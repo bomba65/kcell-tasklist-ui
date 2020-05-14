@@ -34,6 +34,13 @@
                 'tnuTsdNumber',
                 'ne_terminal_id',
                 'fe_terminal_id',
+                'ne_protection_rau_subband',
+                'fe_protection_rau_subband',
+                'ne_protection_suspension_height',
+                'fe_protection_suspension_height',
+                'ne_protection_antenna_diameter',
+                'fe_protection_antenna_diameter'
+
             ];
 
             camForm.on('form-loaded', function () {
@@ -61,6 +68,7 @@
 
             $scope.protectionModeSetted = false;
             $scope.antenaSetted = false;
+            $scope.linkCapacitySetted = false;
             $scope.variablesFetched = false;
 
 
@@ -80,7 +88,7 @@
 
             $scope.setValues = function () {
                 $scope.populateSelectFromCatalog(['protectionModeList'], 44); // Protection mode
-                if (!$scope.protectionModeSetted && $scope.variablesFetched){
+                if (!$scope.protectionModeSetted && $scope.variablesFetched) {
                     var i = $scope.protectionModeList.findIndex(function (e) {
                         $scope.protectionModeSetted = true;
                         return e.id.toString() === $scope.protection_mode
@@ -94,7 +102,18 @@
                     }
                 }
 
-                if (!$scope.antenaSetted && $scope.variablesFetched){
+                if (!$scope.linkCapacitySetted && $scope.variablesFetched) {
+                    var i = $scope.linkCapacityList.findIndex(function (e) {
+                        $scope.linkCapacitySetted = true;
+                        return e.id.toString() === $scope.hop_link_capacity
+                    });
+
+                    if (i > -1) {
+                        $scope.hop_link_capacity = $scope.linkCapacityList[i].id;
+                    }
+                }
+
+                if (!$scope.antenaSetted && $scope.variablesFetched) {
                     var neI = $scope.trAntennasTypeList.findIndex(function (e) {
                         $scope.antenaSetted = true;
                         return e.id.toString() === $scope.ne_diameter
@@ -139,6 +158,7 @@
                     }
                 });
                 $scope.variablesFetched = true;
+                $scope.protectionMode();
 
                 $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name + "/profile").then(function (result) {
                     $rootScope.authentication.assigneeName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
@@ -166,6 +186,10 @@
                         $scope.setValues()
                     }
                     if ($scope.trAntennasTypeList && !$scope.antenaSetted) {
+                        $scope.setValues()
+                    }
+
+                    if ($scope.linkCapacityList && !$scope.linkCapacitySetted) {
                         $scope.setValues()
                     }
                 });
@@ -427,7 +451,8 @@
                     <td align="center" colspan="8">
                         <select class="form-control" id="protection_mode" name="protection_mode"
                                 ng-model="protection_mode" required ng-change="protectionMode()">
-                            <option ng-repeat="ct in protectionModeList" ng-selected="ct.id.toString() === protection_mode"
+                            <option ng-repeat="ct in protectionModeList"
+                                    ng-selected="ct.id.toString() === protection_mode"
                                     value="{{ct.id}}" ng-value="ct.id">{{ct.value}}
                             </option>
                         </select>
@@ -528,7 +553,7 @@
                 <tr>
                     <td align="right" colspan="2">RAU subband:</td>
                     <td align="center" colspan="4">
-                        <select class="form-control" id="ne_rau_subband" name="ne_rau_subband" ng-model="ne_rau_subband"
+                        <select class="form-control" id="ne_rau_subband" name="ne_rau_subband" ng-model="ne_rau_subband"  ng-disabled="protection_mode_fetched"
                                 required ng-change="rauSubbandSelected()">
                             <option ng-repeat="ct in rauSubbandList" ng-value="ct.id">{{ct.value}}</option>
                         </select>
@@ -537,8 +562,8 @@
                             field</label>
                     </td>
                     <td align="center" colspan="4">
-                        <select class="form-control" id="fe_rau_subband" name="fe_rau_subband" ng-model="fe_rau_subband"
-                                required disabled>
+                        <select class="form-control" id="fe_rau_subband" name="fe_rau_subband" ng-model="fe_rau_subband" ng-disabled="protection_mode_fetched"
+                                required>
                             <option ng-repeat="ct in rauSubbandList" ng-value="ct.id">{{ct.value}}</option>
                         </select>
                         <label class="error"
@@ -557,7 +582,7 @@
                     </td>
                     <td align="center" colspan="4">
                         <select class="form-control" id="fe_protection_rau_subband" name="fe_protection_rau_subband"
-                                ng-model="fe_protection_rau_subband" disabled ng-disabled="protection_mode_fetched">
+                                ng-model="fe_protection_rau_subband"  ng-disabled="protection_mode_fetched">
                             <option ng-repeat="ct in rauSubbandList" ng-value="ct.id">{{ct.value}}</option>
                         </select>
                     </td>
