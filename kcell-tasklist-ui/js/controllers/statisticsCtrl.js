@@ -45,6 +45,7 @@ define(['./module','jquery'], function(app,$){
         $scope.currentReport = $stateParams.report;
 
         $scope.task = $stateParams.task;
+        console.log("$SCOPEE TASK = ", $scope.task)
         $scope.filter = {};
         if($stateParams.reason){
              $scope.filter.reason = $stateParams.reason;
@@ -334,6 +335,7 @@ define(['./module','jquery'], function(app,$){
                     unfinished: true
                 }).then(function(response) {
                     var tasks = response.data;
+                    console.log(tasks)
                     var processInstanceIds = _.map(tasks, 'processInstanceId');
                     return $http.post($scope.baseUrl + '/history/variable-instance/?deserializeValues=false', {
                         processInstanceIdIn: processInstanceIds
@@ -789,6 +791,7 @@ define(['./module','jquery'], function(app,$){
                         });
                 }
             }
+            console.log("tasksByIdAndRegionCounted" , $scope.tasksByIdAndRegionCounted)
 
         }
 
