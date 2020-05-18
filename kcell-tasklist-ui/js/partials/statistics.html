@@ -84,14 +84,30 @@
 							<thead>
 							<tr>
 								<th>Activity</th>
-								<th class="sortable">Almaty</th>
-								<th class="sortable">East</th>
-								<th class="sortable">West</th>
-								<th class="sortable">North &amp; Central</th>
-								<th class="sortable">South</th>
-								<th class="sortable">Astana</th>
-								<th class="sortable">No region</th>
-								<th class="sortable">Total</th>
+								<th class="sortable">Almaty
+									<i ng-click="orderByFieldName('Almaty')" class="glyphicon" ng-class="fieldName != 'Almaty' ? 'glyphicon-sort' : reverseOrder?'glyphicon-chevron-down':'glyphicon-chevron-up'"></i>
+								</th>
+								<th class="sortable">East
+									<i ng-click="orderByFieldName('East')" class="glyphicon" ng-class="fieldName != 'East' ? 'glyphicon-sort' : reverseOrder?'glyphicon-chevron-down':'glyphicon-chevron-up'"></i>
+								</th>
+								<th class="sortable">West
+									<i ng-click="orderByFieldName('West')" class="glyphicon" ng-class="fieldName != 'West' ? 'glyphicon-sort' : reverseOrder?'glyphicon-chevron-down':'glyphicon-chevron-up'"></i>
+								</th>
+								<th class="sortable">North &amp; Central
+									<i ng-click="orderByFieldName('NorthCentral')" class="glyphicon" ng-class="fieldName != 'NorthCentral' ? 'glyphicon-sort' : reverseOrder?'glyphicon-chevron-down':'glyphicon-chevron-up'"></i>
+								</th>
+								<th class="sortable">South
+									<i ng-click="orderByFieldName('South')" class="glyphicon" ng-class="fieldName != 'South' ? 'glyphicon-sort' : reverseOrder?'glyphicon-chevron-down':'glyphicon-chevron-up'"></i>
+								</th>
+								<th class="sortable">Astana
+									<i ng-click="orderByFieldName('Astana')" class="glyphicon" ng-class="fieldName != 'Astana' ? 'glyphicon-sort' : reverseOrder?'glyphicon-chevron-down':'glyphicon-chevron-up'"></i>
+								</th>
+								<th class="sortable">No region
+									<i ng-click="orderByFieldName('Noregion')" class="glyphicon" ng-class="fieldName != 'Noregion' ? 'glyphicon-sort' : reverseOrder?'glyphicon-chevron-down':'glyphicon-chevron-up'"></i>
+								</th>
+								<th class="sortable">Total
+									<i ng-click="orderByFieldName('Total')" class="glyphicon" ng-class="fieldName != 'Total' ? 'glyphicon-sort' : reverseOrder?'glyphicon-chevron-down':'glyphicon-chevron-up'"></i>
+								</th>
 							</tr>
 							<tr>
 								<td colspan="9">&nbsp;</td>
@@ -104,12 +120,14 @@
 							</tr>
 							</thead>
 							<tbody>
-							<tr ng-repeat="taskDefId in kcellTasks[currentReport]">
+							<tr ng-repeat="taskDefId in kcellTasks[currentReport] | orderBy : fieldName : reverseOrder ">
 								<td><a href="#/statistics?task={{taskDefId}}&report={{currentReport.concat(filter.reason?'&reason='+filter.reason:'').concat(filter.mainContract?'&mainContract='+filter.mainContract:'')}}">{{userTasksMap[taskDefId].name}}</a></td>
 								<td class="number" ng-repeat="region in regions">
 									<a ng-if="checkRegionView(region)" href="#/statistics?task={{taskDefId}}&report={{currentReport.concat(filter.reason?'&reason='+filter.reason:'')}}&region={{region.replace('.','').concat(filter.mainContract?'&mainContract='+filter.mainContract:'')}}">{{ _.get(tasksByIdAndRegionCounted, taskDefId + region, 0) }}</a>
 								</td>
-								<td></td>
+								<td>
+									<span ng-if="checkRegionView(region)">{{ _.get(tasksByIdAndRegionCounted, taskDefId, 0) }}</span>
+								</td>
 							</tr>
 							</tbody>
 							<thead>
@@ -124,12 +142,14 @@
 							</tr>
 							</thead>
 							<tbody>
-							<tr ng-repeat="taskDefId in contractorTasks[currentReport]">
+							<tr ng-repeat="taskDefId in contractorTasks[currentReport] | orderBy : fieldName : reverseOrder">
 								<td><a href="#/statistics?task={{taskDefId}}&report={{currentReport.concat(filter.reason?'&reason='+filter.reason:'').concat(filter.mainContract?'&mainContract='+filter.mainContract:'')}}">{{userTasksMap[taskDefId].name}}</a></td>
 								<td class="number" ng-repeat="region in regions">
 									<a ng-if="checkRegionView(region)" href="#/statistics?task={{taskDefId}}&report={{currentReport.concat(filter.reason?'&reason='+filter.reason:'')}}&region={{region.replace('.','').concat(filter.mainContract?'&mainContract='+filter.mainContract:'')}}">{{ _.get(tasksByIdAndRegionCounted, taskDefId + region, 0) }}</a>
 								</td>
-								<td class="number">  </td>
+								<td>
+									<span ng-if="checkRegionView(region)">{{ _.get(totalCounter,taskDefId, 0) }}</span>
+								</td>
 							</tr>
 							</tbody>
 							<tfoot>
@@ -160,7 +180,7 @@
 								<td>{{ task.variables.starter.value }}</td>
 								<td>{{ task.variables.requestedDate.value | date: 'dd.MM.yyyy' }}</td>
 								<td>{{ task.variables.validityDate.value | date: 'dd.MM.yyyy'}}</td>
-								<td>{{ task.variables.assignee.value ? task.variables.assignee.value : task.variables.toString()}} </td>
+								<td>{{ task.assignee }} </td>
 							</tr>
 							</tbody>
 							<tbody ng-hide="tasks.length > 0">
@@ -175,22 +195,38 @@
 						<table class="report" ng-show="task" ng-if="currentReport == 'invoice-open-tasks' && $root.isProcessAvailable(reportsMap[currentReport].process) && $root.isProcessVisible(reportsMap[currentReport].process)">
 							<thead>
 							<tr>
-								<th class="sortable">Region</th>
-								<th class="sortable">Act #</th>
-								<th class="sortable">Type of work</th>
-								<th class="sortable">Period</th>
-								<th class="sortable">Contractor</th>
-								<th class="sortable">Requested by</th>
+								<th class="sortable">Region
+									<i ng-click="orderByFieldName('Region')" class="glyphicon" ng-class="fieldName != 'Region' ? 'glyphicon-sort' : reverseOrder?'glyphicon-chevron-down':'glyphicon-chevron-up'"></i>
+								</th>
+								<th class="sortable">Act #
+									<i ng-click="orderByFieldName('Act')" class="glyphicon" ng-class="fieldName != 'Act' ? 'glyphicon-sort' : reverseOrder?'glyphicon-chevron-down':'glyphicon-chevron-up'"></i>
+								</th>
+								<th class="sortable">Type of work
+									<i ng-click="orderByFieldName('Typeofwork')" class="glyphicon" ng-class="fieldName != 'Typeofwork' ? 'glyphicon-sort' : reverseOrder?'glyphicon-chevron-down':'glyphicon-chevron-up'"></i>
+								</th>
+								<th class="sortable">Period
+									<i ng-click="orderByFieldName('Period')" class="glyphicon" ng-class="fieldName != 'Period' ? 'glyphicon-sort' : reverseOrder?'glyphicon-chevron-down':'glyphicon-chevron-up'"></i>
+								</th>
+								<th class="sortable">Contractor
+									<i ng-click="orderByFieldName('Contractor')" class="glyphicon" ng-class="fieldName != 'Contractor' ? 'glyphicon-sort' : reverseOrder?'glyphicon-chevron-down':'glyphicon-chevron-up'"></i>
+								</th>
+								<th class="sortable">Requested by
+									<i ng-click="orderByFieldName('Requestedby')" class="glyphicon" ng-class="fieldName != 'Requestedby' ? 'glyphicon-sort' : reverseOrder?'glyphicon-chevron-down':'glyphicon-chevron-up'"></i>
+								</th>
+								<th class="sortable">Current assignee
+									<i ng-click="orderByFieldName('Currentassignee')" class="glyphicon" ng-class="fieldName != 'Currentassignee' ? 'glyphicon-sort' : reverseOrder?'glyphicon-chevron-down':'glyphicon-chevron-up'"></i>
+								</th>
 							</tr>
 							</thead>
 							<tbody ng-show="tasks.length > 0">
-							<tr ng-repeat="task in tasks | filter:filterRegion">
+							<tr ng-repeat="task in tasks | filter:filterRegion | orderBy : fieldName : reverseOrder">
 								<td>{{ getInvoiceRegion(task.variables.invoiceNumber.value) }}</td>
 								<td>{{ task.variables.monthActNumber.value || task.variables.invoiceNumber.value}}</td>
 								<td>{{ reasonsTitle[task.variables.workType.value] }}</td>
 								<td>{{ task.variables.monthOfFormalPeriod.value }} {{ task.variables.yearOfFormalPeriod.value }}</td>
 								<td>TOO Line System Engineering</td>
 								<td>{{ task.variables.starter.value }}</td>
+								<td>{{ task.assignee }}</td>
 							</tr>
 							</tbody>
 							<tbody ng-hide="tasks.length > 0">

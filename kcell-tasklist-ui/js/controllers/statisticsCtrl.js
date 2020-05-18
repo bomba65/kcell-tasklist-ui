@@ -43,7 +43,8 @@ define(['./module','jquery'], function(app,$){
         }, true);
 
         $scope.currentReport = $stateParams.report;
-
+        $scope.reverseOrder = false;
+        $scope.fieldName = 'Region';
         $scope.task = $stateParams.task;
         console.log("$SCOPEE TASK = ", $scope.task)
         $scope.filter = {};
@@ -86,6 +87,16 @@ define(['./module','jquery'], function(app,$){
             }
         };
 
+        $scope.orderByFieldName = function(fieldName) {
+            console.log(fieldName)
+			if ($scope.fieldName == fieldName) {
+				$scope.reverseOrder = !$scope.reverseOrder;
+			} else {
+				$scope.reverseOrder = false;
+				$scope.fieldName = fieldName;
+			}
+        };
+        
         $scope.getInvoiceRegion = function (invoiceNumber) {
             if(invoiceNumber.endsWith('-RO-1')){
                 invoiceNumber = invoiceNumber.replace('-RO-1','');
@@ -711,9 +722,22 @@ define(['./module','jquery'], function(app,$){
                             );
 
                             $scope.tasksByIdAndRegionCounted = tasksByIdAndRegionCounted;
+                            
+                            let a = Object.keys(tasksByIdAndRegionCounted);
+                            let newJson = {};
+                            for(let i =0; i<a.length;i++){
+                                let counter = 0;
+                                let b = Object.values(tasksByIdAndRegionCounted[a[i]]);
+                                b.forEach(i => {
+                                    counter += i;
+                                })
+                                newJson[a[i]] = counter; 
+                            }
+
+                            $scope.totalCounter = newJson;
+                            console.log(tasksByIdAndRegionCounted)
                         });
                 } else if($scope.currentReport === 'invoice-open-tasks'){
-
                     var processQuery = {
                         "processDefinitionKey": "Invoice",
                         "unfinished": true,
@@ -764,6 +788,7 @@ define(['./module','jquery'], function(app,$){
                                 taskInstances,
                                 'taskDefinitionKey'
                             );
+                            console.log(taskInstancesByDefinition)
 
                             var tasksByIdAndRegionGrouped = _.mapValues(
                                 taskInstancesByDefinition,
@@ -788,10 +813,23 @@ define(['./module','jquery'], function(app,$){
                             );
 
                             $scope.tasksByIdAndRegionCounted = tasksByIdAndRegionCounted;
+
+                            let a = Object.keys(tasksByIdAndRegionCounted);
+                            let newJson = {};
+                            for(let i =0; i<a.length;i++){
+                                let counter = 0;
+                                let b = Object.values(tasksByIdAndRegionCounted[a[i]]);
+                                b.forEach(i => {
+                                    counter += i;
+                                })
+                                newJson[a[i]] = counter; 
+                            }
+
+                            $scope.totalCounter = newJson;
+
                         });
                 }
             }
-            console.log("tasksByIdAndRegionCounted" , $scope.tasksByIdAndRegionCounted)
 
         }
 
