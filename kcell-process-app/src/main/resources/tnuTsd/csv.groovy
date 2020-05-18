@@ -26,8 +26,8 @@ def fe_construction_height = '9'
 
 def binding = ["tnuTsdNumber":tnuTsdNumber,"ne_longitude":ne_longitude.replace(".",","),"fe_longitude":fe_longitude.replace(".",","),
                "ne_latitude":ne_latitude.replace(".",","),"fe_latitude":fe_latitude.replace(".",","),
-               "ne_altitude":ne_altitude.replace(".",","),"fe_altitude":fe_altitude.replace(".",","),
-               "ne_sitename":ne_sitename,"fe_sitename":fe_sitename,"ne_azimuth":ne_azimuth.replace(".",","),"fe_azimuth":fe_azimuth.replace(".",","),
+               "ne_altitude":ne_altitude,"fe_altitude":fe_altitude,
+               "ne_sitename":ne_sitename,"fe_sitename":fe_sitename,"ne_azimuth":ne_azimuth.toString().replace(".",","),"fe_azimuth":fe_azimuth.toString().replace(".",","),
                "ne_suspension_height_antennas":ne_suspension_height_antennas, "fe_suspension_height":fe_suspension_height]
 
 def template = ''' yieldUnescaped '"Name";"Name2";"Longitude";"Longitude2";"Latitude";"Latitude2";"Elevation";"Elevation2";"Site A";"Site B";"Azimuth1";"Azimuth2";"TowerHeight1";"TowerHeight2";"TXPower";"RadioProfile";"Tilt";"Feeder";"Parity";"Antenna_profile"'
