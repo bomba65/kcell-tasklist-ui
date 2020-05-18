@@ -1,6 +1,7 @@
 package kz.kcell.flow.revision.sap;
 
 import lombok.extern.java.Log;
+import org.camunda.bpm.engine.delegate.BpmnError;
 import org.camunda.bpm.engine.delegate.DelegateExecution;
 import org.camunda.bpm.engine.delegate.JavaDelegate;
 import org.camunda.spin.json.SpinJsonNode;
@@ -72,12 +73,12 @@ public class CheckJOFile implements JavaDelegate {
 
                             log.info("Remote error file for JR " + delegateExecution.getBusinessKey() + " is: " + result);
 
-                            String error = result.substring(result.lastIndexOf("\t"), result.length());
-                            delegateExecution.setVariable("joFileCheckError", error);
+                            template.remove(errorFilePath);
+                            String error = result.substring(result.lastIndexOf("\t"));
+                            throw new BpmnError("error", error);
                         }
                     );
-                    template.remove(errorFilePath);
-                    delegateExecution.setVariable("joFileCheckResult", "error");
+                    throw new BpmnError("error", "Error file without error message!");
                 } else {
                     delegateExecution.setVariable("joFileCheckError", "JO result files not found");
                 }

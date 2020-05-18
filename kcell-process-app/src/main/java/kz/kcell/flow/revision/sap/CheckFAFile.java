@@ -3,6 +3,7 @@ package kz.kcell.flow.revision.sap;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.extern.java.Log;
+import org.camunda.bpm.engine.delegate.BpmnError;
 import org.camunda.bpm.engine.delegate.DelegateExecution;
 import org.camunda.bpm.engine.delegate.JavaDelegate;
 import org.camunda.spin.SpinList;
@@ -91,18 +92,18 @@ public class CheckFAFile implements JavaDelegate {
                                 sapFaList.add(jsonValue.getValue());
                             }
                         }
+                        delegateExecution.setVariable("sapFaList", SpinValues.jsonValue(sapFaList.toString()));
                         if(success){
                             delegateExecution.setVariable("faFileCheckResult", "success");
                         } else {
-                            delegateExecution.setVariable("faFileCheckResult", "error");
+                            throw new BpmnError("error", "Fa code absent!");
                         }
-                        delegateExecution.setVariable("sapFaList", SpinValues.jsonValue(sapFaList.toString()));
                     }
                 );
             } else {
                 SpinList<SpinJsonNode> sapFaList = new SpinListImpl<>();
                 delegateExecution.setVariable("sapFaList", SpinValues.jsonValue(sapFaList.toString()));
-                delegateExecution.setVariable("faFileCheckResult", "error");
+                throw new BpmnError("error", "Empty File list!");
             }
         } else {
             delegateExecution.setVariable("faFileCheckResult", "notFound");
