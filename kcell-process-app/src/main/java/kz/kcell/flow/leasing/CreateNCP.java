@@ -136,6 +136,13 @@ public class CreateNCP implements JavaDelegate {
                         log.warning(e.getMessage());
                     }
 
+                    SpinJsonNode powerSource = delegateExecution.hasVariable("powerSource") ? JSON(delegateExecution.getVariable("powerSource")) : null;
+//                    String ps_lt_id = powerSource != null && powerSource.hasProp("cableLayingType") && powerSource.prop("cableLayingType") != null ? (powerSource.prop("cableLayingType").value().toString()) : null;
+                    String landlord_cable_length = powerSource != null && powerSource.hasProp("cableLength") && powerSource.prop("cableLength") != null ? (powerSource.prop("cableLength").value().toString()) : null;
+                    String landlord_monthly_pc = powerSource != null && powerSource.hasProp("agreeToReceiveMonthlyPayment") && powerSource.prop("agreeToReceiveMonthlyPayment") != null ? (powerSource.prop("agreeToReceiveMonthlyPayment").value().toString()) : null;
+                    String res_4kv = powerSource != null && powerSource.hasProp("closestPublic04") && powerSource.prop("closestPublic04") != null ? (powerSource.prop("closestPublic04").value().toString()) : null;
+                    String res_10kv = powerSource != null && powerSource.hasProp("closestPublic10") && powerSource.prop("closestPublic10") != null ? (powerSource.prop("closestPublic10").value().toString()) : null;
+
                     SpinJsonNode candidate = delegateExecution.getVariable("candidate") != null ? JSON(delegateExecution.getVariable("candidate")) : null;
                     String cn_longitude = candidate != null && candidate.hasProp("longitude") && candidate.prop("longitude") != null ? (candidate.prop("longitude").stringValue()) : null;
                     String cn_latitude = candidate != null && candidate.hasProp("latitude") && candidate.prop("latitude") != null ? (candidate.prop("latitude").stringValue()) : null;
@@ -166,7 +173,7 @@ public class CreateNCP implements JavaDelegate {
                     SpinList farEnds = feJson != null ? feJson.elements() : null;
                     SpinJsonNode fe = farEnds != null ? (SpinJsonNode) farEnds.get(0) : null;
                     String fe_azimuth = fe != null && fe.hasProp("azimuth") ? (fe.prop("azimuth").stringValue()) : null;
-                    String fe_diameter = fe != null && fe.hasProp("diameter") ? (fe.prop("diameter").stringValue()) : null;
+                    String fe_diameter = fe != null && fe.hasProp("diameter") ? (fe.prop("diameter").value().toString()) : null;
                     String fe_frequencyBand = fe != null && fe.hasProp("frequencyBand") ? fe.prop("frequencyBand").stringValue().replaceAll("[^0-9.]", "") : null;
                     String fe_suspensionHeight = fe != null && fe.hasProp("suspensionHeight") && fe.prop("suspensionHeight") != null ? fe.prop("suspensionHeight").stringValue() : null;
                     String fe_constructionType = fe != null && fe.hasProp("constructionType") && fe.prop("constructionType") != null ? (fe.prop("constructionType").hasProp("id") ? fe.prop("constructionType").prop("id").stringValue() : null) : null;
@@ -174,6 +181,24 @@ public class CreateNCP implements JavaDelegate {
                     String fe_comment = fe != null && fe.hasProp("comments") && fe.prop("comments") != null ? fe.prop("comments").stringValue() : null;
                     String fe_survey_date = fe != null && fe.hasProp("surveyDate") && fe.prop("surveyDate") != null ? (fe.prop("surveyDate").stringValue().substring(0, 9)) : null;
                     Date fe_formated_survey_date = fe_survey_date != null ? formatter.parse(fe_survey_date) : null;
+
+                    String fe_legal_name = fe.hasProp("renterCompany") && fe.prop("renterCompany").hasProp("legalName") ? fe.prop("renterCompany").prop("legalName").value().toString() : null;
+                    String fe_legal_address = fe.hasProp("renterCompany") && fe.prop("renterCompany").hasProp("fe_legal_address") ? fe.prop("renterCompany").prop("fe_legal_address").value().toString() : null;
+                    String fe_phone_fax = fe.hasProp("renterCompany") && fe.prop("renterCompany").hasProp("telFax") ? fe.prop("renterCompany").prop("telFax").value().toString() : null;
+                    String fe_leader_name = fe.hasProp("renterCompany") && fe.prop("renterCompany").hasProp("firstLeaderName") ? fe.prop("renterCompany").prop("firstLeaderName").value().toString() : null;
+                    String fe_leader_position = fe.hasProp("renterCompany") && fe.prop("renterCompany").hasProp("firstLeaderPosition") ? fe.prop("renterCompany").prop("firstLeaderPosition").value().toString() : null;
+                    String fe_email = fe.hasProp("renterCompany") && fe.prop("renterCompany").hasProp("email") ? fe.prop("renterCompany").prop("email").value().toString() : null;
+                    String fe_contact_name = fe.hasProp("renterCompany") && fe.prop("renterCompany").hasProp("name") ? fe.prop("renterCompany").prop("name").value().toString() : null;
+                    String fe_contact_position = fe.hasProp("renterCompany") && fe.prop("renterCompany").hasProp("position") ? fe.prop("renterCompany").prop("position").value().toString() : null;
+                    String fe_contact_information = fe.hasProp("renterCompany") && fe.prop("renterCompany").hasProp("contactInformation") ? fe.prop("renterCompany").prop("contactInformation").value().toString() : null;
+                    String fe_name = fe.hasProp("farEndName") ? fe.prop("farEndName").value().toString() : null;
+                    String fe_square = fe.hasProp("square") ? fe.prop("square").value().toString() : null;
+                    String fe_antennas_quantity = fe.hasProp("antennasQuantity") ? fe.prop("antennasQuantity").value().toString() : null;
+                    String fe_weight = fe.hasProp("weight") ? fe.prop("weight").value().toString() : null;
+                    String fe_suspension_height = fe.hasProp("suspensionHeight") ? fe.prop("suspensionHeight").value().toString() : null;
+                    String fe_comments = fe.hasProp("comments") ? fe.prop("comments").value().toString() : null;
+                    String fe_results_visit_objects = fe.hasProp("resultsOfVisit") ? fe.prop("resultsOfVisit").value().toString() : null;
+                    String fe_equipment_type = fe.hasProp("equipmentType") ? fe.prop("equipmentType").value().toString() : null;
 
                     String fe_address = fe != null ? ("" +
                         (fe.hasProp("address") && fe.prop("address").hasProp("cn_addr_oblast") ? fe.prop("address").prop("cn_addr_oblast").stringValue() : "") +
@@ -185,6 +210,18 @@ public class CreateNCP implements JavaDelegate {
                         (fe.hasProp("address") && fe.prop("address").hasProp("cn_addr_note") && fe.prop("address").prop("cn_addr_note") != null ? ", " + fe.prop("address").prop("cn_addr_note").stringValue() : "")) : null;
 
                     SpinJsonNode renterCompany = delegateExecution.getVariable("renterCompany") != null ? JSON(delegateExecution.getVariable("renterCompany")) : null;
+                    String cn_legal_name = renterCompany != null && renterCompany.hasProp("legalName") && renterCompany.prop("legalName") != null ? (renterCompany.prop("legalName").value().toString()) : null;
+                    String cn_phone_fax = renterCompany != null && renterCompany.hasProp("telFax") && renterCompany.prop("telFax") != null ? (renterCompany.prop("telFax").value().toString()) : null;
+                    String cn_legal_address = renterCompany != null && renterCompany.hasProp("legalAddress") && renterCompany.prop("legalAddress") != null ? (renterCompany.prop("legalAddress").value().toString()) : null;
+                    String cn_leader_name = renterCompany != null && renterCompany.hasProp("firstLeaderName") && renterCompany.prop("firstLeaderName") != null ? (renterCompany.prop("firstLeaderName").value().toString()) : null;
+                    String cn_leader_position = renterCompany != null && renterCompany.hasProp("firstLeaderPos") && renterCompany.prop("firstLeaderPos") != null ? (renterCompany.prop("firstLeaderPos").value().toString()) : null;
+                    String cn_email = renterCompany != null && renterCompany.hasProp("email") && renterCompany.prop("email") != null ? (renterCompany.prop("email").value().toString()) : null;
+                    String cn_contact_name = renterCompany != null && renterCompany.hasProp("contactName") && renterCompany.prop("contactName") != null ? (renterCompany.prop("contactName").value().toString()) : "" +
+                        " " + renterCompany != null && renterCompany.hasProp("contactLastName") && renterCompany.prop("contactLastName") != null ? (renterCompany.prop("contactLastName").value().toString()) : ""
+                        ;
+                    String cn_contact_position = renterCompany != null && renterCompany.hasProp("contactPosition") && renterCompany.prop("contactPosition") != null ? (renterCompany.prop("contactPosition").value().toString()) : null;
+                    String cn_contact_information = renterCompany != null && renterCompany.hasProp("contactInfo") && renterCompany.prop("contactInfo") != null ? (renterCompany.prop("contactInfo").value().toString()) : null;
+
                     String contact_person = renterCompany != null ? ("" + (renterCompany.hasProp("contactName") && !renterCompany.prop("contactName").equals(null) ? renterCompany.prop("contactName").stringValue() : "") +
                         " " + (renterCompany.hasProp("contactPosition") && !renterCompany.prop("contactPosition").equals(null) ? renterCompany.prop("contactPosition").stringValue() : "") +
                         " ( tel:" + (renterCompany.hasProp("telFax") && !renterCompany.prop("telFax").equals(null) ? renterCompany.prop("telFax").stringValue() : "") + ")") : null;
@@ -606,8 +643,8 @@ public class CreateNCP implements JavaDelegate {
                     } else {
                         newArtefactRRStatusPreparedStatement.setNull(i++, Types.BIGINT);
                     }
-                    if (createdArtefactRSDId != null) {
-                        newArtefactRRStatusPreparedStatement.setLong(i++, createdArtefactRSDId);
+                    if (createdArtefactRRId != null) {
+                        newArtefactRRStatusPreparedStatement.setLong(i++, createdArtefactRRId);
                     } else {
                         newArtefactRRStatusPreparedStatement.setNull(i++, Types.BIGINT);
                     }
@@ -622,7 +659,7 @@ public class CreateNCP implements JavaDelegate {
                     log.info("createdArtefactRRStatusId:");
                     log.info(createdArtefactRRStatusId.toString());
 
-                    udbConnect.commit();
+//                    udbConnect.commit();
                     //insert ARTEFACT_TSD_EXT
                     Long createdArtefactExtTSDId = null;
                     String artefactExtTSDReturnStatus[] = {"TSDID"};
@@ -791,6 +828,416 @@ public class CreateNCP implements JavaDelegate {
                     log.info("createdArtefactExtTSDId:");
                     log.info(createdArtefactExtTSDId.toString());
 
+                    // KWMS-940 insert into new 7 tables:
+
+                    String INSERT_ARTEFACT_RR_POWER = "INSERT INTO ARTEFACT_RR_POWER (POWER_ID, RR_ID, LT_ID, LANDLORD, LANDLORD_CABLE_LENGTH, LANDLORD_MONTHLY_PC, RES_4KV, RES_10KV) VALUES  (ARTEFACT_RR_POWER_SEQ.nextval, ?, ?, ?, ?, ?, ?, ?)"; //(18144, 18744, 1, 1, 30, 1, null, null);
+                    PreparedStatement ARTEFACT_RR_POWER_PreparedStatement = udbConnect.prepareStatement(INSERT_ARTEFACT_RR_POWER);
+                    log.info("INSERT INTO ARTEFACT_RR_POWER preparedStatement SQL UPDATE VALUES");
+
+                    i = 1;
+                    ARTEFACT_RR_POWER_PreparedStatement.setLong(i++, createdArtefactRRId); //RR_ID
+//                    if (fe_suspensionHeight != null) {
+//                        Integer fe_suspensionHeightInt = Integer.parseInt(fe_suspensionHeight);
+//                        if (fe_suspensionHeightInt != null) {
+//                            newArtefactExtTSDPreparedStatement.setLong(i++, fe_suspensionHeightInt); //LT_ID
+//                        } else {
+//                            newArtefactExtTSDPreparedStatement.setNull(i++, Types.BIGINT);
+//                        }
+//                    }
+                    ARTEFACT_RR_POWER_PreparedStatement.setNull(i++, Types.BIGINT); //LT_ID
+                    ARTEFACT_RR_POWER_PreparedStatement.setNull(i++, Types.BIGINT); //LANDLORD
+                    if (landlord_cable_length != null) {
+                        Integer landlord_cable_lengthInt = Integer.parseInt(landlord_cable_length);
+                        if (landlord_cable_lengthInt != null) {
+                            ARTEFACT_RR_POWER_PreparedStatement.setLong(i++, landlord_cable_lengthInt); //LANDLORD_CABLE_LENGTH
+                        } else {
+                            ARTEFACT_RR_POWER_PreparedStatement.setNull(i++, Types.BIGINT);
+                        }
+                    }
+                    if (landlord_monthly_pc != null) {
+                        if (landlord_monthly_pc.equals("Yes")){
+                            ARTEFACT_RR_POWER_PreparedStatement.setLong(i++, 1); //LANDLORD_MONTHLY_PC
+                        } else {
+                            ARTEFACT_RR_POWER_PreparedStatement.setLong(i++, 0); //LANDLORD_MONTHLY_PC
+                        }
+                    } else {
+                        ARTEFACT_RR_POWER_PreparedStatement.setNull(i++, Types.BIGINT);
+                    }
+                    if (res_4kv != null) {
+                        ARTEFACT_RR_POWER_PreparedStatement.setLong(i++, Integer.parseInt(res_4kv)); //RES_4KV
+                    } else {
+                        ARTEFACT_RR_POWER_PreparedStatement.setNull(i++, Types.BIGINT);
+                    }
+                    if (res_10kv != null) {
+                        ARTEFACT_RR_POWER_PreparedStatement.setLong(i++, Integer.parseInt(res_10kv)); //RES_10KV
+                    } else {
+                        ARTEFACT_RR_POWER_PreparedStatement.setNull(i++, Types.BIGINT);
+                    }
+
+
+                    ARTEFACT_RR_POWER_PreparedStatement.executeUpdate();
+                    log.info("Successfully inserted");
+
+
+                // INSERT INTO ARTEFACT_RR_RENTER CN
+                    String INSERT_ARTEFACT_RR_RENTER = "INSERT INTO ARTEFACT_RR_RENTER (RENTER_ID, RR_ID, TYPE, LEGAL_NAME, LEGAL_ADDRESS, PHONE_FAX, LEADER_NAME, LEADER_POSITION, EMAIL, CONTACT_NAME, CONTACT_POSITION, CONTACT_INFORMATION) VALUES (ARTEFACT_RR_RENTER_SEQ.nextval, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"; //(13029, 10365, 1, 'ОРТПЦ (КазТелеРадио)', 'Almaty, st, Zheltoksana 38,                                                                             Uralsk city, st. Zheleznodorozhnaya 1', '71-75-73, 71-75-78, 71-75-72 (Almaty)', 'Efrimenko Viktor Pavlovich', 'Glavny injener', null, 'Sharafutdinov Serik                  ', null, '50-62-77, 50-35-90                     87112 51-39-32');
+                    PreparedStatement ARTEFACT_RR_RENTER_PreparedStatement = udbConnect.prepareStatement(INSERT_ARTEFACT_RR_RENTER);
+                    log.info("INSERT INTO ARTEFACT_RR_RENTER preparedStatement SQL UPDATE VALUES");
+
+                    i = 1;
+                    ARTEFACT_RR_RENTER_PreparedStatement.setLong(i++, createdArtefactRRId);// RR_ID
+                    ARTEFACT_RR_RENTER_PreparedStatement.setLong(i++, 1);// TYPE
+                    if (cn_legal_name != null) {
+                        ARTEFACT_RR_RENTER_PreparedStatement.setString(i++, cn_legal_name); // LEGAL_NAME
+                    } else {
+                        ARTEFACT_RR_RENTER_PreparedStatement.setNull(i++, Types.VARCHAR);
+                    }
+                    if (cn_phone_fax != null) {
+                        ARTEFACT_RR_RENTER_PreparedStatement.setString(i++, cn_phone_fax); // LEGAL_ADDRESS
+                    } else {
+                        ARTEFACT_RR_RENTER_PreparedStatement.setNull(i++, Types.VARCHAR);
+                    }
+                    if (cn_legal_address != null) {
+                        ARTEFACT_RR_RENTER_PreparedStatement.setString(i++, cn_legal_address); // PHONE_FAX
+                    } else {
+                        ARTEFACT_RR_RENTER_PreparedStatement.setNull(i++, Types.VARCHAR);
+                    }
+                    if (cn_leader_name != null) {
+                        ARTEFACT_RR_RENTER_PreparedStatement.setString(i++, cn_leader_name); // LEADER_NAME
+                    } else {
+                        ARTEFACT_RR_RENTER_PreparedStatement.setNull(i++, Types.VARCHAR);
+                    }
+                    if (cn_leader_position != null) {
+                        ARTEFACT_RR_RENTER_PreparedStatement.setString(i++, cn_leader_position); // LEADER_POSITION
+                    } else {
+                        ARTEFACT_RR_RENTER_PreparedStatement.setNull(i++, Types.VARCHAR);
+                    }
+                    if (cn_email != null) {
+                        ARTEFACT_RR_RENTER_PreparedStatement.setString(i++, cn_email); // EMAIL
+                    } else {
+                        ARTEFACT_RR_RENTER_PreparedStatement.setNull(i++, Types.VARCHAR);
+                    }
+                    if (cn_contact_name != null) {
+                        ARTEFACT_RR_RENTER_PreparedStatement.setString(i++, cn_contact_name); // CONTACT_NAME
+                    } else {
+                        ARTEFACT_RR_RENTER_PreparedStatement.setNull(i++, Types.VARCHAR);
+                    }
+                    if (cn_contact_position != null) {
+                        ARTEFACT_RR_RENTER_PreparedStatement.setString(i++, cn_contact_position); // CONTACT_POSITION
+                    } else {
+                        ARTEFACT_RR_RENTER_PreparedStatement.setNull(i++, Types.VARCHAR);
+                    }
+                    if (cn_contact_information != null) {
+                        ARTEFACT_RR_RENTER_PreparedStatement.setString(i++, cn_contact_information); // CONTACT_INFORMATION
+                    } else {
+                        ARTEFACT_RR_RENTER_PreparedStatement.setNull(i++, Types.VARCHAR);
+                    }
+
+                    ARTEFACT_RR_RENTER_PreparedStatement.executeUpdate();
+                    log.info("Successfully inserted");
+
+
+                // INSERT INTO ARTEFACT_RR_RENTER FE
+                    String INSERT_ARTEFACT_RR_RENTER_FE = "INSERT INTO ARTEFACT_RR_RENTER (RENTER_ID, RR_ID, TYPE, LEGAL_NAME, LEGAL_ADDRESS, PHONE_FAX, LEADER_NAME, LEADER_POSITION, EMAIL, CONTACT_NAME, CONTACT_POSITION, CONTACT_INFORMATION) VALUES (ARTEFACT_RR_RENTER_SEQ.nextval, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"; //(13029, 10365, 1, 'ОРТПЦ (КазТелеРадио)', 'Almaty, st, Zheltoksana 38,                                                                             Uralsk city, st. Zheleznodorozhnaya 1', '71-75-73, 71-75-78, 71-75-72 (Almaty)', 'Efrimenko Viktor Pavlovich', 'Glavny injener', null, 'Sharafutdinov Serik                  ', null, '50-62-77, 50-35-90                     87112 51-39-32');
+                    PreparedStatement ARTEFACT_RR_RENTER_FE_PreparedStatement = udbConnect.prepareStatement(INSERT_ARTEFACT_RR_RENTER_FE);
+                    log.info("INSERT INTO ARTEFACT_RR_RENTER preparedStatement SQL UPDATE VALUES");
+
+                    i = 1;
+                    ARTEFACT_RR_RENTER_FE_PreparedStatement.setLong(i++, createdArtefactRRId);// RR_ID
+                    ARTEFACT_RR_RENTER_FE_PreparedStatement.setLong(i++, 2);// TYPE
+                    if (fe_legal_name != null) {
+                        ARTEFACT_RR_RENTER_FE_PreparedStatement.setString(i++, fe_legal_name); // LEGAL_NAME
+                    } else {
+                        ARTEFACT_RR_RENTER_FE_PreparedStatement.setNull(i++, Types.VARCHAR);
+                    }
+                    if (fe_phone_fax != null) {
+                        ARTEFACT_RR_RENTER_FE_PreparedStatement.setString(i++, fe_legal_address ); // LEGAL_ADDRESS
+                    } else {
+                        ARTEFACT_RR_RENTER_FE_PreparedStatement.setNull(i++, Types.VARCHAR);
+                    }
+                    if (fe_address != null) {
+                        ARTEFACT_RR_RENTER_FE_PreparedStatement.setString(i++, fe_phone_fax); // PHONE_FAX
+                    } else {
+                        ARTEFACT_RR_RENTER_FE_PreparedStatement.setNull(i++, Types.VARCHAR);
+                    }
+                    if (fe_leader_name != null) {
+                        ARTEFACT_RR_RENTER_FE_PreparedStatement.setString(i++, fe_leader_name); // LEADER_NAME
+                    } else {
+                        ARTEFACT_RR_RENTER_FE_PreparedStatement.setNull(i++, Types.VARCHAR);
+                    }
+                    if (fe_leader_position != null) {
+                        ARTEFACT_RR_RENTER_FE_PreparedStatement.setString(i++, fe_leader_position); // LEADER_POSITION
+                    } else {
+                        ARTEFACT_RR_RENTER_FE_PreparedStatement.setNull(i++, Types.VARCHAR);
+                    }
+                    if (fe_email != null) {
+                        ARTEFACT_RR_RENTER_FE_PreparedStatement.setString(i++, fe_email); // EMAIL
+                    } else {
+                        ARTEFACT_RR_RENTER_FE_PreparedStatement.setNull(i++, Types.VARCHAR);
+                    }
+                    if (fe_contact_name != null) {
+                        ARTEFACT_RR_RENTER_FE_PreparedStatement.setString(i++, fe_contact_name); // CONTACT_NAME
+                    } else {
+                        ARTEFACT_RR_RENTER_FE_PreparedStatement.setNull(i++, Types.VARCHAR);
+                    }
+                    if (fe_contact_position != null) {
+                        ARTEFACT_RR_RENTER_FE_PreparedStatement.setString(i++, fe_contact_position); // CONTACT_POSITION
+                    } else {
+                        ARTEFACT_RR_RENTER_FE_PreparedStatement.setNull(i++, Types.VARCHAR);
+                    }
+                    if (fe_contact_information != null) {
+                        ARTEFACT_RR_RENTER_FE_PreparedStatement.setString(i++, fe_contact_information); // CONTACT_INFORMATION
+                    } else {
+                        ARTEFACT_RR_RENTER_FE_PreparedStatement.setNull(i++, Types.VARCHAR);
+                    }
+
+                    ARTEFACT_RR_RENTER_FE_PreparedStatement.executeUpdate();
+                    log.info("Successfully inserted");
+
+
+// --ARTEFACT_RR_TR
+                    String INSERT_ARTEFACT_RR_TR = "INSERT INTO ARTEFACT_RR_TR (RR_TR_ID, RR_ID, FE_NAME, SURVEY_DATE, FE_ADDRESS, CONTACT_INFO, SQUARE, EQUIPMENT_TYPE, DMTR, ANTENNA_QUANTITY, WEIGHT, SUSPENSION_HEIGHT, AZIMUTH, CONSTR_TYPE, COMMENTS, RESULTS, FE_ARTEFACTID) VALUES (ARTEFACT_RR_TR_SEQ.nextval, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"; //(17902, 18222, '03029SHUHOSPIT', TO_DATE('2010-02-16 00:00:00', 'YYYY-MM-DD HH24:MI:SS'), '(SHHOS) Жамбылская обл., г. Шу, ул. Сатпаева 151, "Региональная поликлиника"', 'Иманалиев Б. 8(72643)23272', null, 4, 0.3, 1, null, null, 13, 13, 201, 26, null, null, 15605);
+                    PreparedStatement ARTEFACT_RR_TR_PreparedStatement = udbConnect.prepareStatement(INSERT_ARTEFACT_RR_TR);
+                    log.info("INSERT INTO ARTEFACT_RR_TR preparedStatement SQL UPDATE VALUES");
+
+                    i = 1;
+                    ARTEFACT_RR_TR_PreparedStatement.setLong(i++, createdArtefactRRId); // RR_ID
+                    if (fe_name != null) {
+                        ARTEFACT_RR_TR_PreparedStatement.setString(i++, fe_name ); // FE_NAME
+                    } else {
+                        ARTEFACT_RR_TR_PreparedStatement.setNull(i++, Types.VARCHAR);
+                    }
+
+                    if (fe_formated_survey_date != null) {
+                        ARTEFACT_RR_TR_PreparedStatement.setDate(i++, new java.sql.Date(fe_formated_survey_date.getTime())); // SURVEY_DATE (fe_survey_date)
+                    } else {
+                        ARTEFACT_RR_TR_PreparedStatement.setNull(i++, Types.DATE);
+                    }
+
+                    if (fe_address != null) {
+                        ARTEFACT_RR_TR_PreparedStatement.setString(i++, fe_address); // FE_ADDRESS
+                    } else {
+                        ARTEFACT_RR_TR_PreparedStatement.setNull(i++, Types.VARCHAR);
+                    }
+
+                    if (fe_contact_information != null) {
+                        ARTEFACT_RR_TR_PreparedStatement.setString(i++, fe_contact_information); // CONTACT_INFO
+                    } else {
+                        ARTEFACT_RR_TR_PreparedStatement.setNull(i++, Types.VARCHAR);
+                    }
+
+                    if (fe_square != null) {
+                        ARTEFACT_RR_TR_PreparedStatement.setLong(i++, Integer.parseInt(fe_square)); // SQUARE
+                    } else {
+                        ARTEFACT_RR_TR_PreparedStatement.setNull(i++, Types.INTEGER);
+                    }
+
+                    if (fe_equipment_type != null) {
+                        if (fe_equipment_type.equals("TN2P")){
+                            ARTEFACT_RR_TR_PreparedStatement.setLong(i++, 2); // EQUIPMENT_TYPE fe.equipmentType
+                        } else if (fe_equipment_type.equals("TN20P")){
+                            ARTEFACT_RR_TR_PreparedStatement.setLong(i++, 6); // EQUIPMENT_TYPE fe.equipmentType
+                        } else if (fe_equipment_type.equals("TN6P")){
+                            ARTEFACT_RR_TR_PreparedStatement.setLong(i++, 4); // EQUIPMENT_TYPE fe.equipmentType
+                        } else {
+                            ARTEFACT_RR_TR_PreparedStatement.setNull(i++, Types.INTEGER);
+                        }
+                    } else {
+                        ARTEFACT_RR_TR_PreparedStatement.setNull(i++, Types.INTEGER);
+                    }
+
+                    if (fe_diameter != null) {
+                        ARTEFACT_RR_TR_PreparedStatement.setFloat(i++, Float.parseFloat(fe_diameter)); // DMTR fe.diameter
+                    } else {
+                        ARTEFACT_RR_TR_PreparedStatement.setNull(i++, Types.FLOAT);
+                    }
+
+                    if (fe_antennas_quantity != null) {
+                        ARTEFACT_RR_TR_PreparedStatement.setLong(i++, Integer.parseInt(fe_antennas_quantity)); // ANTENNA_QUANTITY
+                    } else {
+                        ARTEFACT_RR_TR_PreparedStatement.setNull(i++, Types.INTEGER);
+                    }
+
+                    if (fe_weight != null) {
+                        ARTEFACT_RR_TR_PreparedStatement.setLong(i++, Integer.parseInt(fe_weight)); // WEIGHT
+                    } else {
+                        ARTEFACT_RR_TR_PreparedStatement.setNull(i++, Types.INTEGER);
+                    }
+
+                    if (fe_suspension_height != null) {
+                        ARTEFACT_RR_TR_PreparedStatement.setLong(i++, Integer.parseInt(fe_suspension_height)); // SUSPENSION_HEIGHT
+                    } else {
+                        ARTEFACT_RR_TR_PreparedStatement.setNull(i++, Types.INTEGER);
+                    }
+
+                    if (fe_azimuth != null) {
+                        ARTEFACT_RR_TR_PreparedStatement.setLong(i++, Integer.parseInt(fe_azimuth)); // AZIMUTH
+                    } else {
+                        ARTEFACT_RR_TR_PreparedStatement.setNull(i++, Types.INTEGER);
+                    }
+
+                    if (fe_constructionType != null) {
+                        ARTEFACT_RR_TR_PreparedStatement.setLong(i++, Integer.parseInt(fe_constructionType)); // CONSTR_TYPE
+                    } else {
+                        ARTEFACT_RR_TR_PreparedStatement.setNull(i++, Types.INTEGER);
+                    }
+
+                    if (fe_comments != null) {
+                        ARTEFACT_RR_TR_PreparedStatement.setString(i++, fe_comments); // COMMENTS
+                    } else {
+                        ARTEFACT_RR_TR_PreparedStatement.setNull(i++, Types.VARCHAR);
+                    }
+
+                    if (fe_results_visit_objects != null) {
+                        ARTEFACT_RR_TR_PreparedStatement.setString(i++, fe_results_visit_objects); // RESULTS
+                    } else {
+                        ARTEFACT_RR_TR_PreparedStatement.setNull(i++, Types.VARCHAR);
+                    }
+
+//                    if (!= null) {
+//                        ARTEFACT_RR_TR_PreparedStatement.setLong(i++, ); // FE_ARTEFACTID
+//                    } else {
+//                        ARTEFACT_RR_TR_PreparedStatement.setNull(i++, Types.VARCHAR);
+//                    }
+                    ARTEFACT_RR_TR_PreparedStatement.setNull(i++, Types.INTEGER); //FE_ARTEFACTID
+
+
+                    ARTEFACT_RR_TR_PreparedStatement.executeUpdate();
+                    log.info("Successfully inserted");
+
+
+// --ARTEFACT_RR_TR_ANTENNA
+                    String INSERT_ARTEFACT_RR_TR_ANTENNA = "INSERT INTO ARTEFACT_RR_TR_ANTENNA (TR_ANTENNA_ID, RR_ID, EQUIP_ID, ANTENNA_QUANTITY, FREQ_BAND, DMTR, WEIGHT, SUSPENSION_HEIGHT, AZIMUTH) VALUES (ARTEFACT_RR_TR_ANTENNA_SEQ.nextval, ?, ?, ?, ?, ?, ?, ?, ?)"; //(23968, 24828, 2, 1, '7', 0.6, 15, 14, 182);
+                    PreparedStatement ARTEFACT_RR_TR_ANTENNA_PreparedStatement = udbConnect.prepareStatement(INSERT_ARTEFACT_RR_TR_ANTENNA);
+                    log.info("INSERT INTO ARTEFACT_RR_TR_ANTENNA preparedStatement SQL UPDATE VALUES");
+
+                    i = 1;
+                    ARTEFACT_RR_TR_ANTENNA_PreparedStatement.setLong(i++, createdArtefactRRId);// RR_ID
+                    if (fe_equipment_type != null) {
+                        if (fe_equipment_type.equals("TN2P")){
+                            ARTEFACT_RR_TR_ANTENNA_PreparedStatement.setLong(i++, 2); // EQUIP_ID fe.equipmentType
+                        } else if (fe_equipment_type.equals("TN20P")){
+                            ARTEFACT_RR_TR_ANTENNA_PreparedStatement.setLong(i++, 6); // EQUIP_ID fe.equipmentType
+                        } else if (fe_equipment_type.equals("TN6P")){
+                            ARTEFACT_RR_TR_ANTENNA_PreparedStatement.setLong(i++, 4); // EQUIP_ID fe.equipmentType
+                        } else {
+                            ARTEFACT_RR_TR_ANTENNA_PreparedStatement.setNull(i++, Types.INTEGER); // EQUIP_ID
+                        }
+                    } else {
+                        ARTEFACT_RR_TR_ANTENNA_PreparedStatement.setNull(i++, Types.INTEGER); // EQUIP_ID
+                    }
+                    if (fe_antennas_quantity != null) {
+                        ARTEFACT_RR_TR_ANTENNA_PreparedStatement.setLong(i++, Integer.parseInt(fe_antennas_quantity)); // ANTENNA_QUANTITY
+                    } else {
+                        ARTEFACT_RR_TR_ANTENNA_PreparedStatement.setNull(i++, Types.INTEGER);
+                    }
+
+                    if (fe_frequencyBand != null) {
+                        Integer fe_frequencyBandInt = Integer.parseInt(fe_frequencyBand);
+                        if (fe_frequencyBandInt != null) {
+                            ARTEFACT_RR_TR_ANTENNA_PreparedStatement.setLong(i++, fe_frequencyBandInt); // FE_TXRF_FREQUENCY
+                        } else {
+                            ARTEFACT_RR_TR_ANTENNA_PreparedStatement.setNull(i++, Types.BIGINT);
+                        }
+                    }
+
+                    if (fe_diameter != null) {
+                        ARTEFACT_RR_TR_ANTENNA_PreparedStatement.setFloat(i++, Float.parseFloat(fe_diameter)); // DMTR fe.diameter
+                    } else {
+                        ARTEFACT_RR_TR_ANTENNA_PreparedStatement.setNull(i++, Types.FLOAT);
+                    }
+
+                    if (fe_weight != null) {
+                        ARTEFACT_RR_TR_ANTENNA_PreparedStatement.setLong(i++, Integer.parseInt(fe_weight)); // WEIGHT
+                    } else {
+                        ARTEFACT_RR_TR_ANTENNA_PreparedStatement.setNull(i++, Types.INTEGER);
+                    }
+
+                    if (fe_suspension_height != null) {
+                        ARTEFACT_RR_TR_ANTENNA_PreparedStatement.setLong(i++, Integer.parseInt(fe_suspension_height)); // SUSPENSION_HEIGHT
+                    } else {
+                        ARTEFACT_RR_TR_ANTENNA_PreparedStatement.setNull(i++, Types.INTEGER);
+                    }
+
+                    if (fe_azimuth != null) {
+                        ARTEFACT_RR_TR_ANTENNA_PreparedStatement.setLong(i++, Integer.parseInt(fe_azimuth)); // AZIMUTH
+                    } else {
+                        ARTEFACT_RR_TR_ANTENNA_PreparedStatement.setNull(i++, Types.INTEGER);
+                    }
+
+                    ARTEFACT_RR_TR_ANTENNA_PreparedStatement.executeUpdate();
+                    log.info("Successfully inserted");
+
+
+// --ARTEFACT_RSD_EXIST
+                    String INSERT_ARTEFACT_RSD_EXIST = "INSERT INTO ARTEFACT_RSD_EXIST (RSDID, RSD_EXIST, ARTEFACTID) VALUES (?, ?, ?)"; //(38554, 0, 37614);
+                    PreparedStatement ARTEFACT_RSD_EXIST_PreparedStatement = udbConnect.prepareStatement(INSERT_ARTEFACT_RSD_EXIST);
+                    log.info("INSERT INTO ARTEFACT_RSD_EXIST preparedStatement SQL UPDATE VALUES");
+
+                    i = 1;
+                    ARTEFACT_RSD_EXIST_PreparedStatement.setLong(i++, createdArtefactRSDId);// RSDID
+                    ARTEFACT_RSD_EXIST_PreparedStatement.setLong(i++, 1);// RSD_EXIST
+                    ARTEFACT_RSD_EXIST_PreparedStatement.setLong(i++, createdArtefactId);// ARTEFACTID
+
+                    ARTEFACT_RSD_EXIST_PreparedStatement.executeUpdate();
+                    log.info("Successfully inserted");
+
+
+// --ARTEFACT_RSD_HISTORY
+                    String INSERT_ARTEFACT_RSD_HISTORY = "INSERT INTO ARTEFACT_RSD_HISTORY (ID, RSDID, ARTEFACTID, BSCID, ALTITUDE, CNSTRTYPEID, TOWERTYPEID, HEIGHT, DATEOFINSERT, DATEOFVISIT, PLANNER, CONTACTPERSON, COMMENTS, LASTEDITOR, RBSID, SITE_TYPE, PLANNING_TARGET) VALUES (SEQ_ARTEFACT_RSD_HISTORY.nextval, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";//(5361, 4701, 167, 1131, 10, null, 6, TO_DATE('2009-05-18 15:53:24', 'YYYY-MM-DD HH24:MI:SS'), TO_DATE('2009-05-15 00:00:00', 'YYYY-MM-DD HH24:MI:SS'), 'VITALIY.CHERNIKOV', null, 'Contaiter, poles (3m) on container, all antennas must be installed on poles. ', null, null, TO_DATE('2009-08-07 12:03:07', 'YYYY-MM-DD HH24:MI:SS'), 'VIKTOR.MAXIMENKO', ' ', 565, null, null, null, null, null, null);
+                    PreparedStatement ARTEFACT_RSD_HISTORY_PreparedStatement = udbConnect.prepareStatement(INSERT_ARTEFACT_RSD_HISTORY);
+                    log.info("INSERT INTO ARTEFACT_RSD_HISTORY preparedStatement SQL UPDATE VALUES");
+
+                    i = 1;
+                    ARTEFACT_RSD_HISTORY_PreparedStatement.setLong(i++, createdArtefactRSDId);// RSDID
+                    ARTEFACT_RSD_HISTORY_PreparedStatement.setLong(i++, createdArtefactId);// ARTEFACTID
+                    if (cn_bscInt != null) {
+                        ARTEFACT_RSD_HISTORY_PreparedStatement.setLong(i++, cn_bscInt); //BSCID
+                    } else {
+                        ARTEFACT_RSD_HISTORY_PreparedStatement.setNull(i++, Types.BIGINT);
+                    }
+                    if (cn_altitude != null) {
+                        ARTEFACT_RSD_HISTORY_PreparedStatement.setLong(i++, cn_altitude.longValue()); // ALTITUDE (cn_altitude)
+                    } else {
+                        ARTEFACT_RSD_HISTORY_PreparedStatement.setNull(i++, Types.BIGINT);
+                    }
+                    if (cn_constructionTypeInt != null) {
+                        ARTEFACT_RSD_HISTORY_PreparedStatement.setLong(i++, cn_constructionTypeInt); //CNSTRTYPEID
+                    } else {
+                        ARTEFACT_RSD_HISTORY_PreparedStatement.setNull(i++, Types.BIGINT);
+                    }
+                    ARTEFACT_RSD_HISTORY_PreparedStatement.setNull(i++, Types.BIGINT); // TOWERTYPEID
+                    if (cn_height_constr != null) {
+                        ARTEFACT_RSD_HISTORY_PreparedStatement.setLong(i++, cn_height_constr.longValue()); // CONSTRUCTION_HEIGHT (cn_height_constr)
+                    } else {
+                        ARTEFACT_RSD_HISTORY_PreparedStatement.setNull(i++, Types.BIGINT);
+                    }
+                    ARTEFACT_RSD_HISTORY_PreparedStatement.setDate(i++, new java.sql.Date(new Date().getTime())); // INSERT_DATE
+                    if (date_of_visit != null) {
+                        ARTEFACT_RSD_HISTORY_PreparedStatement.setDate(i++, new java.sql.Date(date_of_visit.getTime())); //DATE OF VISIT (cn_date_visit)
+                    } else {
+                        ARTEFACT_RSD_HISTORY_PreparedStatement.setNull(i++, Types.DATE);
+                    }
+                    ARTEFACT_RSD_HISTORY_PreparedStatement.setString(i++, starter); // starter need change to current user // PLANNER
+                    ARTEFACT_RSD_HISTORY_PreparedStatement.setString(i++, contact_person); //CONTACTPERSON
+                    ARTEFACT_RSD_HISTORY_PreparedStatement.setString(i++, cn_comments); // PL_COMMENTS (cn_comments)
+                    ARTEFACT_RSD_HISTORY_PreparedStatement.setString(i++, starter); // starter need change to current user // LASTEDITOR
+                    if (rbsTypeInt != null) {
+                        ARTEFACT_RSD_HISTORY_PreparedStatement.setLong(i++, rbsTypeInt); //RBSID
+                    } else {
+                        ARTEFACT_RSD_HISTORY_PreparedStatement.setNull(i++, Types.BIGINT);
+                    }
+                    if (siteTypeInt != null) {
+                        ARTEFACT_RSD_HISTORY_PreparedStatement.setLong(i++, siteTypeInt); //SITE_TYPE
+                    } else {
+                        ARTEFACT_RSD_HISTORY_PreparedStatement.setNull(i++, Types.BIGINT);
+                    }
+                    ARTEFACT_RSD_HISTORY_PreparedStatement.setString(i++, targetCoverage); // PLANNING_TARGET
+
+                    ARTEFACT_RSD_HISTORY_PreparedStatement.executeUpdate();
+                    log.info("Successfully inserted");
+
+                    // end KWMS-940
 
                     udbConnect.commit();
                     delegateExecution.setVariable("ncpCreatedId", ncpCreatedId);
