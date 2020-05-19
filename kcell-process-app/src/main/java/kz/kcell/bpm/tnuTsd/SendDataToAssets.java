@@ -1,12 +1,17 @@
 package kz.kcell.bpm.tnuTsd;
 
+import lombok.extern.java.Log;
 import org.camunda.bpm.engine.delegate.DelegateExecution;
 import org.camunda.bpm.engine.delegate.ExecutionListener;
+import org.camunda.bpm.engine.delegate.JavaDelegate;
 
-public class SendDataToAssets implements ExecutionListener {
+@Log
+public class SendDataToAssets implements JavaDelegate {
 
     @Override
-    public void notify(DelegateExecution execution) {
+    public void execute(DelegateExecution execution) {
+
+        log.info("sending data to Assets");
 
     }
 }
