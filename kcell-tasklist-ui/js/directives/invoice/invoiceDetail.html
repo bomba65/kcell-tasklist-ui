@@ -208,12 +208,14 @@
                             <tr>
                                 <th colspan="2">Requested Job Info</th>
                                 <th>Site Info</th>
-                                <th colspan="2">Job Request Info</th>
-                                <th colspan="5">Price</th>
+                                <th ng-if="invoice.mainContract.value != 'Roll-out'" colspan="2">Job Request Info</th>
+                                <th ng-if="invoice.mainContract.value == 'Roll-out'" colspan="1">Job Request Info</th>
+                                <th ng-if="invoice.mainContract.value != 'Roll-out'" colspan="5">Price</th>
+                                <th ng-if="invoice.mainContract.value == 'Roll-out'" colspan="3">Price</th>
                                 <th>PR#</th>
                                 <th>PO#</th>
                             </tr>
-                            <tr>
+                            <tr ng-if="invoice.mainContract.value != 'Roll-out'">
                                 <th width="30%">Ordered work</th>
                                 <th width="3%">Q-ty</th>
                                 <th width="8%">Sitename</th>
@@ -227,9 +229,20 @@
                                 <th width="4%">PR#</th>
                                 <th width="4%">PO#</th>
                             </tr>
+                            <tr ng-if="invoice.mainContract.value == 'Roll-out'">
+                                <th width="30%">Ordered work</th>
+                                <th width="3%">Q-ty</th>
+                                <th width="8%">Sitename</th>
+                                <th width="12%">JR number</th>
+                                <th width="16%">Base Price for work</th>
+                                <th width="16%">Base Price * works q-ty</th>
+                                <th width="7%">Total</th>
+                                <th width="4%">PR#</th>
+                                <th width="4%">PO#</th>
+                            </tr>
                         </thead>
                         <tbody ng-repeat="work in selectedWorks | orderBy: work.key">
-                            <tr ng-repeat="w in work.value">
+                            <tr ng-if="invoice.mainContract.value != 'Roll-out'" ng-repeat="w in work.value">
                                 <td ng-if="$first" rowspan="{{work.value.length}}">{{catalogs.worksTitle[work.key]}}</td>
                                 <td>{{w.quantity}}</td>
                                 <td><span ng-repeat="rs in w.relatedSites">{{rs.site_name}}<br ng-if="!$last" /></span></td>
@@ -243,6 +256,17 @@
                                 <td>{{w.sapPRNo?'#'+w.sapPRNo:''}}</td>
                                 <td>{{w.sapPONo?'#'+w.sapPONo:''}}</td>
                             </tr>
+                            <tr ng-if="invoice.mainContract.value == 'Roll-out'" ng-repeat="w in work.value">
+                                <td ng-if="$first" rowspan="{{work.value.length}}">{{catalogs.worksTitle[work.key]}}</td>
+                                <td>{{w.quantity}}</td>
+                                <td><span ng-repeat="rs in w.relatedSites">{{rs.site_name}}<br ng-if="!$last" /></span></td>
+                                <td><a ng-click="toggleProcessView(w.processInstanceId, work.key, 'finance')">{{w.businessKey}}</a></td>
+                                <td>{{w.workPrices.unitWorkPrice.replace('.',',')}}</td>
+                                <td>{{work.workPrices.basePriceByQuantity ? work.workPrices.basePriceByQuantity.replace('.',',') : calculateBasePriceByQuantity(w.workPrices)}}</td>
+                                <td>{{w.workPrices.total.replace('.',',')}}</td>
+                                <td>{{w.sapPRNo?'#'+w.sapPRNo:''}}</td>
+                                <td>{{w.sapPONo?'#'+w.sapPONo:''}}</td>
+                            </tr>
                             <tr ng-if="pkey === work.key && jobModel && table==='finance'">
                                 <td colspan="11">
                                     <job-request job-model="jobModel"></job-request>
@@ -251,7 +275,8 @@
                         </tbody>
                         <tbody>
                             <tr>
-                                <td colspan="9">Total price</td>
+                                <td ng-if="invoice.mainContract.value != 'Roll-out'"  colspan="9">Total price</td>
+                                <td ng-if="invoice.mainContract.value == 'Roll-out'" colspan="6">Total price</td>
                                 <td>{{total.replace('.',',')}}</td>
                                 <td></td>
                                 <td></td>
