@@ -51,9 +51,6 @@ public class CheckFAFile implements JavaDelegate {
         String successFilePath = isSftp ? sftpRemoteDirectoryFromFa + "/" + name : faBucketName + "/" + name;
         Boolean successResult = template.exists(successFilePath);
 
-        String reason = delegateExecution.getVariable("reason").toString();
-        JsonValue jobWorks = delegateExecution.<JsonValue>getVariableTyped( "jobWorks");
-
         if(successResult){
             if(isSftp){
                 template.get(successFilePath,
@@ -103,7 +100,7 @@ public class CheckFAFile implements JavaDelegate {
             } else {
                 SpinList<SpinJsonNode> sapFaList = new SpinListImpl<>();
                 delegateExecution.setVariable("sapFaList", SpinValues.jsonValue(sapFaList.toString()));
-                throw new BpmnError("error", "Empty File list!");
+                throw new BpmnError("error", "Test error fa file!");
             }
         } else {
             delegateExecution.setVariable("faFileCheckResult", "notFound");

@@ -1427,18 +1427,16 @@
       <bpmn:startEvent id="StartEvent_1t4szr8">
         <bpmn:outgoing>SequenceFlow_0pw7rcn</bpmn:outgoing>
       </bpmn:startEvent>
-      <bpmn:sequenceFlow id="SequenceFlow_0pw7rcn" sourceRef="StartEvent_1t4szr8" targetRef="Task_0v4b5sl" />
+      <bpmn:sequenceFlow id="SequenceFlow_0pw7rcn" sourceRef="StartEvent_1t4szr8" targetRef="ExclusiveGateway_0wu3s92" />
       <bpmn:serviceTask id="Task_0v4b5sl" name="Check Sloc" camunda:delegateExpression="${checkSlocExistance}">
-        <bpmn:incoming>SequenceFlow_0pw7rcn</bpmn:incoming>
-        <bpmn:incoming>SequenceFlow_1tlrcap</bpmn:incoming>
+        <bpmn:incoming>SequenceFlow_1g8sp18</bpmn:incoming>
         <bpmn:outgoing>SequenceFlow_1va6vyu</bpmn:outgoing>
       </bpmn:serviceTask>
       <bpmn:sequenceFlow id="SequenceFlow_0m7yyb0" sourceRef="provide_info_sloc_creation" targetRef="create_sloc_sap_enter_db" />
-      <bpmn:sequenceFlow id="SequenceFlow_1tlrcap" sourceRef="create_sloc_sap_enter_db" targetRef="Task_0v4b5sl" />
       <bpmn:userTask id="create_sloc_sap_enter_db" name="Create Sloc in SAP and enter into the DB" camunda:formKey="embedded:app:forms/revision/createAndEnterSloc.html" camunda:priority="#{priority == &#39;emergency&#39;? 100: 50}">
         <bpmn:documentation>Create JO in Sap</bpmn:documentation>
         <bpmn:incoming>SequenceFlow_0m7yyb0</bpmn:incoming>
-        <bpmn:outgoing>SequenceFlow_1tlrcap</bpmn:outgoing>
+        <bpmn:outgoing>SequenceFlow_1xoijva</bpmn:outgoing>
       </bpmn:userTask>
       <bpmn:userTask id="provide_info_sloc_creation" name="Provide information for Sloc creation" camunda:formKey="embedded:app:forms/revision/provideInfoForSlocCreate.html" camunda:priority="#{priority == &#39;emergency&#39;? 100: 50}">
         <bpmn:documentation>Create JO in Sap</bpmn:documentation>
@@ -1519,6 +1517,13 @@
         <bpmn:outgoing>SequenceFlow_1n0r80q</bpmn:outgoing>
       </bpmn:exclusiveGateway>
       <bpmn:sequenceFlow id="SequenceFlow_1n0r80q" sourceRef="ExclusiveGateway_0a5nr1l" targetRef="Task_0meslky" />
+      <bpmn:exclusiveGateway id="ExclusiveGateway_0wu3s92">
+        <bpmn:incoming>SequenceFlow_0pw7rcn</bpmn:incoming>
+        <bpmn:incoming>SequenceFlow_1xoijva</bpmn:incoming>
+        <bpmn:outgoing>SequenceFlow_1g8sp18</bpmn:outgoing>
+      </bpmn:exclusiveGateway>
+      <bpmn:sequenceFlow id="SequenceFlow_1g8sp18" sourceRef="ExclusiveGateway_0wu3s92" targetRef="Task_0v4b5sl" />
+      <bpmn:sequenceFlow id="SequenceFlow_1xoijva" sourceRef="create_sloc_sap_enter_db" targetRef="ExclusiveGateway_0wu3s92" />
       <bpmn:association id="Association_1kcyypk" sourceRef="create_sloc_sap_enter_db" targetRef="TextAnnotation_076luq1" />
     </bpmn:subProcess>
     <bpmn:inclusiveGateway id="ExclusiveGateway_1exrv6l">
@@ -1680,7 +1685,7 @@
       <bpmn:endEvent id="EndEvent_14arw8e">
         <bpmn:incoming>SequenceFlow_1g31fdm</bpmn:incoming>
       </bpmn:endEvent>
-      <bpmn:sequenceFlow id="SequenceFlow_010156c" sourceRef="Task_1vafb8e" targetRef="Task_1o0sjro" />
+      <bpmn:sequenceFlow id="SequenceFlow_010156c" sourceRef="Task_1vafb8e" targetRef="ExclusiveGateway_1rd6ijm" />
       <bpmn:sequenceFlow id="SequenceFlow_0i8jd28" sourceRef="Task_1o0sjro" targetRef="Task_0lbjdwa" />
       <bpmn:exclusiveGateway id="ExclusiveGateway_1ktd1gu">
         <bpmn:incoming>SequenceFlow_0yzoq0g</bpmn:incoming>
@@ -1695,7 +1700,7 @@
       <bpmn:sequenceFlow id="SequenceFlow_1s5g5zh" name="error" sourceRef="ExclusiveGateway_1ktd1gu" targetRef="correct_pr_file">
         <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${prFileCheckResult == 'error'}</bpmn:conditionExpression>
       </bpmn:sequenceFlow>
-      <bpmn:sequenceFlow id="SequenceFlow_1mv8eb8" sourceRef="correct_pr_file" targetRef="Task_1o0sjro" />
+      <bpmn:sequenceFlow id="SequenceFlow_1mv8eb8" sourceRef="correct_pr_file" targetRef="ExclusiveGateway_1rd6ijm" />
       <bpmn:serviceTask id="Task_1vafb8e" name="Create PR file" camunda:delegateExpression="${createPRFile}">
         <bpmn:extensionElements>
           <camunda:inputOutput>
@@ -1708,8 +1713,7 @@
         <bpmn:outgoing>SequenceFlow_010156c</bpmn:outgoing>
       </bpmn:serviceTask>
       <bpmn:serviceTask id="Task_1o0sjro" name="Save PR file to folder &#34;PR_Waiting&#34;" camunda:delegateExpression="${transferPRFile}">
-        <bpmn:incoming>SequenceFlow_010156c</bpmn:incoming>
-        <bpmn:incoming>SequenceFlow_1mv8eb8</bpmn:incoming>
+        <bpmn:incoming>SequenceFlow_12ank7p</bpmn:incoming>
         <bpmn:outgoing>SequenceFlow_0i8jd28</bpmn:outgoing>
       </bpmn:serviceTask>
       <bpmn:serviceTask id="Task_0lbjdwa" name="Check PR file result" camunda:delegateExpression="${checkPRFile}">
@@ -1744,6 +1748,12 @@
         </bpmn:timerEventDefinition>
       </bpmn:intermediateCatchEvent>
       <bpmn:sequenceFlow id="SequenceFlow_129gogu" sourceRef="IntermediateThrowEvent_wait_pr_result" targetRef="Task_0lbjdwa" />
+      <bpmn:exclusiveGateway id="ExclusiveGateway_1rd6ijm">
+        <bpmn:incoming>SequenceFlow_010156c</bpmn:incoming>
+        <bpmn:incoming>SequenceFlow_1mv8eb8</bpmn:incoming>
+        <bpmn:outgoing>SequenceFlow_12ank7p</bpmn:outgoing>
+      </bpmn:exclusiveGateway>
+      <bpmn:sequenceFlow id="SequenceFlow_12ank7p" sourceRef="ExclusiveGateway_1rd6ijm" targetRef="Task_1o0sjro" />
     </bpmn:subProcess>
     <bpmn:sequenceFlow id="SequenceFlow_0y5orge" sourceRef="SubProcess_1f6dred" targetRef="SubProcess_0uj0q0p" />
     <bpmn:endEvent id="EndEvent_1ew3us3">
@@ -4039,7 +4049,7 @@
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="SequenceFlow_0pw7rcn_di" bpmnElement="SequenceFlow_0pw7rcn">
         <di:waypoint x="-898" y="729" />
-        <di:waypoint x="-614" y="729" />
+        <di:waypoint x="-804" y="729" />
         <bpmndi:BPMNLabel>
           <dc:Bounds x="821" y="734" width="90" height="13" />
         </bpmndi:BPMNLabel>
@@ -4052,14 +4062,6 @@
         <di:waypoint x="-729" y="893" />
         <bpmndi:BPMNLabel>
           <dc:Bounds x="998" y="867" width="90" height="13" />
-        </bpmndi:BPMNLabel>
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="SequenceFlow_1tlrcap_di" bpmnElement="SequenceFlow_1tlrcap">
-        <di:waypoint x="-779" y="854" />
-        <di:waypoint x="-779" y="729" />
-        <di:waypoint x="-614" y="729" />
-        <bpmndi:BPMNLabel>
-          <dc:Bounds x="916" y="808" width="90" height="13" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNShape id="UserTask_1bpe2yy_di" bpmnElement="create_sloc_sap_enter_db">
@@ -4392,13 +4394,13 @@
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_010156c_di" bpmnElement="SequenceFlow_010156c">
         <di:waypoint x="3816" y="830" />
-        <di:waypoint x="3928" y="830" />
+        <di:waypoint x="3889" y="830" />
         <bpmndi:BPMNLabel>
           <dc:Bounds x="4865" y="808" width="90" height="13" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_0i8jd28_di" bpmnElement="SequenceFlow_0i8jd28">
-        <di:waypoint x="4028" y="830" />
+        <di:waypoint x="4116" y="830" />
         <di:waypoint x="4208" y="830" />
         <bpmndi:BPMNLabel>
           <dc:Bounds x="5111" y="807.5" width="90" height="13" />
@@ -4434,8 +4436,8 @@
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_1mv8eb8_di" bpmnElement="SequenceFlow_1mv8eb8">
         <di:waypoint x="4208" y="981" />
-        <di:waypoint x="3977" y="981" />
-        <di:waypoint x="3977" y="870" />
+        <di:waypoint x="3914" y="981" />
+        <di:waypoint x="3914" y="855" />
         <bpmndi:BPMNLabel>
           <dc:Bounds x="5085.5" y="958.5" width="90" height="13" />
         </bpmndi:BPMNLabel>
@@ -4444,7 +4446,7 @@
         <dc:Bounds x="3716" y="790" width="100" height="80" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="ServiceTask_1cll59r_di" bpmnElement="Task_1o0sjro">
-        <dc:Bounds x="3928" y="790" width="100" height="80" />
+        <dc:Bounds x="4016" y="790" width="100" height="80" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="ServiceTask_07ulh7b_di" bpmnElement="Task_0lbjdwa">
         <dc:Bounds x="4208" y="790" width="100" height="80" />
@@ -5712,6 +5714,24 @@
       <bpmndi:BPMNShape id="BoundaryEvent_0wr7p2k_di" bpmnElement="BoundaryEvent_0i34p1j">
         <dc:Bounds x="2694" y="789" width="36" height="36" />
       </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="ExclusiveGateway_1rd6ijm_di" bpmnElement="ExclusiveGateway_1rd6ijm" isMarkerVisible="true">
+        <dc:Bounds x="3889" y="805" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_12ank7p_di" bpmnElement="SequenceFlow_12ank7p">
+        <di:waypoint x="3939" y="830" />
+        <di:waypoint x="4016" y="830" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="ExclusiveGateway_0wu3s92_di" bpmnElement="ExclusiveGateway_0wu3s92" isMarkerVisible="true">
+        <dc:Bounds x="-804" y="704" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_1g8sp18_di" bpmnElement="SequenceFlow_1g8sp18">
+        <di:waypoint x="-754" y="729" />
+        <di:waypoint x="-614" y="729" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_1xoijva_di" bpmnElement="SequenceFlow_1xoijva">
+        <di:waypoint x="-779" y="854" />
+        <di:waypoint x="-779" y="754" />
+      </bpmndi:BPMNEdge>
     </bpmndi:BPMNPlane>
   </bpmndi:BPMNDiagram>
 </bpmn:definitions>
