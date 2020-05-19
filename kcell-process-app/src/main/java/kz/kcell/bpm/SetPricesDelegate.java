@@ -61,8 +61,13 @@ public class SetPricesDelegate implements TaskListener {
                 }
 
                 BigDecimal unitWorkPrice = new BigDecimal(worksPriceMap.get(work.get("sapServiceNumber").textValue()));
-                BigDecimal unitTransportationPrice = unitWorkPrice.multiply(new BigDecimal("0.08"));
-                unitTransportationPrice = unitTransportationPrice.setScale(2, RoundingMode.DOWN);
+
+                BigDecimal unitTransportationPrice = BigDecimal.valueOf(0);
+
+                if (!"Roll-out".equals(mainContract)){
+                    unitTransportationPrice = unitWorkPrice.multiply(new BigDecimal("0.08"));
+                    unitTransportationPrice = unitTransportationPrice.setScale(2, RoundingMode.DOWN);
+                }
 
                 BigDecimal unitWorkPricePlusTx = unitWorkPrice.add(unitTransportationPrice);
 
