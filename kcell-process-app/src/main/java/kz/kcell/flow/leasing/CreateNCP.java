@@ -138,10 +138,10 @@ public class CreateNCP implements JavaDelegate {
 
                     SpinJsonNode powerSource = delegateExecution.hasVariable("powerSource") ? JSON(delegateExecution.getVariable("powerSource")) : null;
 //                    String ps_lt_id = powerSource != null && powerSource.hasProp("cableLayingType") && powerSource.prop("cableLayingType") != null ? (powerSource.prop("cableLayingType").value().toString()) : null;
-                    String landlord_cable_length = powerSource != null && powerSource.hasProp("cableLength") && powerSource.prop("cableLength") != null ? (powerSource.prop("cableLength").value().toString()) : null;
-                    String landlord_monthly_pc = powerSource != null && powerSource.hasProp("agreeToReceiveMonthlyPayment") && powerSource.prop("agreeToReceiveMonthlyPayment") != null ? (powerSource.prop("agreeToReceiveMonthlyPayment").value().toString()) : null;
-                    String res_4kv = powerSource != null && powerSource.hasProp("closestPublic04") && powerSource.prop("closestPublic04") != null ? (powerSource.prop("closestPublic04").value().toString()) : null;
-                    String res_10kv = powerSource != null && powerSource.hasProp("closestPublic10") && powerSource.prop("closestPublic10") != null ? (powerSource.prop("closestPublic10").value().toString()) : null;
+                    String landlord_cable_length = powerSource != null && powerSource.hasProp("cableLength") && powerSource.prop("cableLength").value() != null ? (powerSource.prop("cableLength").value().toString()) : null;
+                    String landlord_monthly_pc = powerSource != null && powerSource.hasProp("agreeToReceiveMonthlyPayment") && powerSource.prop("agreeToReceiveMonthlyPayment").value() != null ? (powerSource.prop("agreeToReceiveMonthlyPayment").value().toString()) : null;
+                    String res_4kv = powerSource != null && powerSource.hasProp("closestPublic04") && powerSource.prop("closestPublic04").value() != null ? (powerSource.prop("closestPublic04").value().toString()) : null;
+                    String res_10kv = powerSource != null && powerSource.hasProp("closestPublic10") && powerSource.prop("closestPublic10").value() != null ? (powerSource.prop("closestPublic10").value().toString()) : null;
 
                     SpinJsonNode candidate = delegateExecution.getVariable("candidate") != null ? JSON(delegateExecution.getVariable("candidate")) : null;
                     String cn_longitude = candidate != null && candidate.hasProp("longitude") && candidate.prop("longitude") != null ? (candidate.prop("longitude").stringValue()) : null;
@@ -151,10 +151,8 @@ public class CreateNCP implements JavaDelegate {
                     Number cn_square = candidate != null && candidate.hasProp("square") && candidate.prop("square") != null ? (candidate.prop("square").numberValue()) : null;
                     String cn_constructionType = candidate != null ? (candidate.hasProp("constructionType") && candidate.prop("constructionType").hasProp("id") ? candidate.prop("constructionType").prop("id").stringValue() : "0") : null;
 
-                    Number cn_height_constr = candidate.hasProp("cn_height_constr") ? Integer.parseInt(candidate.prop("cn_height_constr").value().toString()) : 0;
-                    Number cn_altitude = candidate.hasProp("cn_altitude") ? Integer.parseInt(candidate.prop("cn_altitude").value().toString()) : 0;
-                    log.info("cn_altitude:" + cn_altitude);
-                    log.info("cn_height_constr:" + cn_height_constr);
+                    Number cn_height_constr = candidate != null && candidate.hasProp("cn_height_constr") ? Integer.parseInt(candidate.prop("cn_height_constr").value().toString()) : 0;
+                    Number cn_altitude = candidate != null && candidate.hasProp("cn_altitude") ? Integer.parseInt(candidate.prop("cn_altitude").value().toString()) : 0;
                     SimpleDateFormat formatter = new SimpleDateFormat("yyyy-dd-MM"); //2020-01-02T18:00:00.000Z
                     String cn_date_of_visit = candidate != null && candidate.hasProp("dateOfVisit") && candidate.prop("dateOfVisit") != null ? (candidate.prop("dateOfVisit").stringValue().substring(0, 9)) : null;
                     Date date_of_visit = cn_date_of_visit != null ? formatter.parse(cn_date_of_visit) : null;
@@ -172,6 +170,10 @@ public class CreateNCP implements JavaDelegate {
                     SpinJsonNode feJson = delegateExecution.getVariable("farEndInformation") != null ? JSON(delegateExecution.getVariable("farEndInformation")) : null;
                     SpinList farEnds = feJson != null ? feJson.elements() : null;
                     SpinJsonNode fe = farEnds != null ? (SpinJsonNode) farEnds.get(0) : null;
+                    log.info("fe.toString():");
+                    log.info(fe.toString());
+                    log.info("end of fe.toString()");
+
                     String fe_azimuth = fe != null && fe.hasProp("azimuth") ? (fe.prop("azimuth").stringValue()) : null;
                     String fe_diameter = fe != null && fe.hasProp("diameter") ? (fe.prop("diameter").value().toString()) : null;
                     String fe_frequencyBand = fe != null && fe.hasProp("frequencyBand") ? fe.prop("frequencyBand").stringValue().replaceAll("[^0-9.]", "") : null;
@@ -182,23 +184,24 @@ public class CreateNCP implements JavaDelegate {
                     String fe_survey_date = fe != null && fe.hasProp("surveyDate") && fe.prop("surveyDate") != null ? (fe.prop("surveyDate").stringValue().substring(0, 9)) : null;
                     Date fe_formated_survey_date = fe_survey_date != null ? formatter.parse(fe_survey_date) : null;
 
-                    String fe_legal_name = fe.hasProp("renterCompany") && fe.prop("renterCompany").hasProp("legalName") ? fe.prop("renterCompany").prop("legalName").value().toString() : null;
-                    String fe_legal_address = fe.hasProp("renterCompany") && fe.prop("renterCompany").hasProp("fe_legal_address") ? fe.prop("renterCompany").prop("fe_legal_address").value().toString() : null;
-                    String fe_phone_fax = fe.hasProp("renterCompany") && fe.prop("renterCompany").hasProp("telFax") ? fe.prop("renterCompany").prop("telFax").value().toString() : null;
-                    String fe_leader_name = fe.hasProp("renterCompany") && fe.prop("renterCompany").hasProp("firstLeaderName") ? fe.prop("renterCompany").prop("firstLeaderName").value().toString() : null;
-                    String fe_leader_position = fe.hasProp("renterCompany") && fe.prop("renterCompany").hasProp("firstLeaderPosition") ? fe.prop("renterCompany").prop("firstLeaderPosition").value().toString() : null;
-                    String fe_email = fe.hasProp("renterCompany") && fe.prop("renterCompany").hasProp("email") ? fe.prop("renterCompany").prop("email").value().toString() : null;
-                    String fe_contact_name = fe.hasProp("renterCompany") && fe.prop("renterCompany").hasProp("name") ? fe.prop("renterCompany").prop("name").value().toString() : null;
-                    String fe_contact_position = fe.hasProp("renterCompany") && fe.prop("renterCompany").hasProp("position") ? fe.prop("renterCompany").prop("position").value().toString() : null;
-                    String fe_contact_information = fe.hasProp("renterCompany") && fe.prop("renterCompany").hasProp("contactInformation") ? fe.prop("renterCompany").prop("contactInformation").value().toString() : null;
-                    String fe_name = fe.hasProp("farEndName") ? fe.prop("farEndName").value().toString() : null;
-                    String fe_square = fe.hasProp("square") ? fe.prop("square").value().toString() : null;
-                    String fe_antennas_quantity = fe.hasProp("antennasQuantity") ? fe.prop("antennasQuantity").value().toString() : null;
-                    String fe_weight = fe.hasProp("weight") ? fe.prop("weight").value().toString() : null;
-                    String fe_suspension_height = fe.hasProp("suspensionHeight") ? fe.prop("suspensionHeight").value().toString() : null;
-                    String fe_comments = fe.hasProp("comments") ? fe.prop("comments").value().toString() : null;
-                    String fe_results_visit_objects = fe.hasProp("resultsOfVisit") ? fe.prop("resultsOfVisit").value().toString() : null;
-                    String fe_equipment_type = fe.hasProp("equipmentType") ? fe.prop("equipmentType").value().toString() : null;
+                    String fe_legal_name = fe != null && fe.hasProp("renterCompany") && fe.prop("renterCompany").hasProp("legalName") ? fe.prop("renterCompany").prop("legalName").value().toString() : null;
+                    String fe_legal_address = fe != null && fe.hasProp("renterCompany") && fe.prop("renterCompany").hasProp("fe_legal_address") ? fe.prop("renterCompany").prop("fe_legal_address").value().toString() : null;
+                    String fe_phone_fax = fe != null && fe.hasProp("renterCompany") && fe.prop("renterCompany").hasProp("telFax") ? fe.prop("renterCompany").prop("telFax").value().toString() : null;
+                    String fe_leader_name = fe != null && fe.hasProp("renterCompany") && fe.prop("renterCompany").hasProp("firstLeaderName") ? fe.prop("renterCompany").prop("firstLeaderName").value().toString() : null;
+                    String fe_leader_position = fe != null && fe.hasProp("renterCompany") && fe.prop("renterCompany").hasProp("firstLeaderPosition") ? fe.prop("renterCompany").prop("firstLeaderPosition").value().toString() : null;
+                    String fe_email = fe != null && fe.hasProp("renterCompany") && fe.prop("renterCompany").hasProp("email") ? fe.prop("renterCompany").prop("email").value().toString() : null;
+                    String fe_contact_name = fe != null && fe.hasProp("renterCompany") && fe.prop("renterCompany").hasProp("name") ? fe.prop("renterCompany").prop("name").value().toString() : null;
+                    String fe_contact_position = fe != null && fe.hasProp("renterCompany") && fe.prop("renterCompany").hasProp("position") ? fe.prop("renterCompany").prop("position").value().toString() : null;
+                    String fe_contact_information = fe != null && fe.hasProp("renterCompany") && fe.prop("renterCompany").hasProp("contactInformation") ? fe.prop("renterCompany").prop("contactInformation").value().toString() : null;
+                    String fe_name = fe != null && fe.hasProp("farEndName") ? fe.prop("farEndName").value().toString() : null;
+                    String fe_square = fe != null && fe.hasProp("square") ? fe.prop("square").value().toString() : null;
+                    String fe_antennas_quantity = fe != null && fe.hasProp("antennasQuantity") ? fe.prop("antennasQuantity").value().toString() : null;
+                    String fe_weight = fe != null && fe.hasProp("weight") ? fe.prop("weight").value().toString() : null;
+                    String fe_suspension_height = fe != null && fe.hasProp("suspensionHeight") && fe.prop("suspensionHeight") != null ? fe.prop("suspensionHeight").value().toString() : null;
+                    String fe_comments = fe != null && fe.hasProp("comments") && fe.prop("comments") != null ? fe.prop("comments").value().toString() : null;
+                    String fe_results_visit_objects = fe != null && fe.hasProp("resultsOfVisit") && fe.prop("resultsOfVisit") != null ? fe.prop("resultsOfVisit").value().toString() : null;
+                    String fe_equipment_type = fe != null && fe.hasProp("equipmentType") && fe.prop("equipmentType").value() != null  ? fe.prop("equipmentType").value().toString() : null;
+
 
                     String fe_address = fe != null ? ("" +
                         (fe.hasProp("address") && fe.prop("address").hasProp("cn_addr_oblast") ? fe.prop("address").prop("cn_addr_oblast").stringValue() : "") +
@@ -853,6 +856,8 @@ public class CreateNCP implements JavaDelegate {
                         } else {
                             ARTEFACT_RR_POWER_PreparedStatement.setNull(i++, Types.BIGINT);
                         }
+                    } else {
+                        ARTEFACT_RR_POWER_PreparedStatement.setNull(i++, Types.BIGINT);
                     }
                     if (landlord_monthly_pc != null) {
                         if (landlord_monthly_pc.equals("Yes")){
@@ -1139,6 +1144,8 @@ public class CreateNCP implements JavaDelegate {
                         } else {
                             ARTEFACT_RR_TR_ANTENNA_PreparedStatement.setNull(i++, Types.BIGINT);
                         }
+                    } else {
+                        ARTEFACT_RR_TR_ANTENNA_PreparedStatement.setNull(i++, Types.BIGINT);
                     }
 
                     if (fe_diameter != null) {
