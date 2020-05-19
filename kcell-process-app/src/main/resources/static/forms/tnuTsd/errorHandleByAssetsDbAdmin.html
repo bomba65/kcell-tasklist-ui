@@ -148,6 +148,22 @@
                     if (feI > -1) {
                         $scope.fe_diameter = $scope.trAntennasTypeList[feI].id
                     }
+
+                    var nePI = $scope.trAntennasTypeList.findIndex(function (e) {
+                        $scope.antenaSetted = true;
+                        return e.id.toString() === $scope.ne_protection_antenna_diameter
+                    });
+                    var fePI = $scope.trAntennasTypeList.findIndex(function (e) {
+                        $scope.antenaSetted = true;
+                        return e.id.toString() === $scope.fe_protection_antenna_diameter
+                    });
+
+                    if (nePI > -1) {
+                        $scope.ne_protection_antenna_diameter = $scope.trAntennasTypeList[nePI].id
+                    }
+                    if (fePI > -1) {
+                        $scope.fe_protection_antenna_diameter = $scope.trAntennasTypeList[fePI].id
+                    }
                 }
 
             };
@@ -203,22 +219,30 @@
 
                 $scope.error_code = $scope.sendAssetsErrorMessage;
                 $scope.decription = null;
-                $scope.actions = null;
+                $scope.actions1 = null;
+                $scope.actions2 = null;
+                $scope.actions3 = null;
     
                 if($scope.error_code === "400"){
-                    $scope.actions = "Попробуйте повторно произвести запись, Для этого нажмите Complete. Обратитесь к разработчику"
+                    $scope.actions1 = "Попробуйте повторно произвести запись, Для этого нажмите Complete"
+                    $scope.actions2 = "Обратитесь к разработчику"
                     $scope.decription = "Неверный запрос"
                 }else if($scope.error_code === "401"){
-                    $scope.actions = "Попробуйте повторно произвести запись, Для этого нажмите Complete. Обратитесь к разработчику"
+                    $scope.actions1 = "Попробуйте повторно произвести запись, Для этого нажмите Complete"
+                    $scope.actions2 = "Обратитесь к разработчику"
                     $scope.decription = "Ошибка авторизации"
                 }else if($scope.error_code === "403"){
-                    $scope.actions = "Попробуйте повторно произвести запись, Для этого нажмите Complete. Обратитесь к разработчику"
+                    $scope.actions1 = "Попробуйте повторно произвести запись, Для этого нажмите Complete"
+                    $scope.actions2 = "Обратитесь к разработчику"
                     $scope.decription = "Ошибка доступа"
                 }else if($scope.error_code === "404"){
-                    $scope.actions = "Попробуйте повторно произвести запись, Для этого нажмите Complete. Обратитесь к разработчику"
+                    $scope.actions1 = "Попробуйте повторно произвести запись, Для этого нажмите Complete"
+                    $scope.actions2 = "Обратитесь к разработчику"
                     $scope.decription = "Не найдена запись которая меняется"
                 }else if($scope.error_code === "500"){
-                    $scope.actions = "Попробуйте повторно произвести запись, Для этого нажмите Complete. Проверьте работает ли сервер, далее нажмите Complete. Обратитесь к разработчику"
+                    $scope.actions1 = "Попробуйте повторно произвести запись, Для этого нажмите Complete"
+                    $scope.actions2 = "Проверьте работает ли сервер, далее нажмите Complete"
+                    $scope.actions3 = "Обратитесь к разработчику"
                     $scope.decription = "Ошибка сервера"
                 }
             });
@@ -539,8 +563,18 @@
                         </tr>
                         <tr>
                             <td align="right" colspan="2">Protection antenna diameter:</td>
-                            <td align="center" colspan="4"></td>
-                            <td align="center" colspan="4"></td>
+                            <td align="center" colspan="4">
+                                <select class="form-control" id="ne_protection_antenna_diameter" name="ne_protection_antenna_diameter" ng-model="ne_protection_antenna_diameter" ng-change="protectionAntennaDiameter()" ng-disabled="protection_mode_fetched" ng-readonly="true">
+                                    <option ng-repeat="ct in trAntennasTypeList" disabled ng-value="ct.id">{{ct.value}}</option>
+                                </select>
+                                <label class="error" ng-if="kcell_form.ne_protection_antenna_diameter.$error.required && ( kcell_form.ne_protection_antenna_diameter.$touched || view.submitted)">Required field</label>
+                            </td>
+                            <td align="center" colspan="4">
+                                <select class="form-control" id="fe_protection_antenna_diameter" name="fe_protection_antenna_diameter" ng-model="fe_protection_antenna_diameter" ng-disabled="protection_mode_fetched" ng-readonly="true">
+                                    <option ng-repeat="ct in trAntennasTypeList" disabled ng-value="ct.id">{{ct.value}}</option>
+                                </select>
+                                <label class="error" ng-if="kcell_form.fe_protection_antenna_diameter.$error.required && ( kcell_form.fe_protection_antenna_diameter.$touched || view.submitted)">Required field</label>
+                            </td>        
                         </tr>
                         <tr>
                             <td align="right" colspan="2">Height of suspension of MW ant (m):</td>
@@ -714,7 +748,7 @@
                                     ng-model="ne_protection_txrx_frequincies"
                                     cam-variable-name="ne_protection_txrx_frequincies" cam-variable-type="String"
                                     ng-blur="ne_protection_txrx_frequinciesValuesCheck()"
-                                    ng-disabled="protection_mode_fetched" readonly>
+                                    ng-disabled="protection_mode_fetched || !ne_protection_rau_subband" readonly>
                                 <label class="error"
                                     ng-if="ne_protection_rau_subband && ne_protection_txrx_frequincies && ne_protection_txrx_frequinciesInvalid">Expected
                                     between {{rauRelations[ne_protection_rau_subband].minFrequency}} and
@@ -725,7 +759,7 @@
                                     ng-model="fe_protection_txrx_frequincies"
                                     cam-variable-name="fe_protection_txrx_frequincies" cam-variable-type="String"
                                     ng-blur="fe_protection_txrx_frequinciesValuesCheck()"
-                                    ng-disabled="protection_mode_fetched" readonly>
+                                    ng-disabled="protection_mode_fetched || !fe_protection_rau_subband" readonly>
                                 <label class="error"
                                     ng-if="fe_protection_rau_subband && fe_protection_txrx_frequincies && fe_protection_txrx_frequinciesInvalid">Expected
                                     between {{rauRelations[fe_protection_rau_subband].minFrequency}} and
@@ -829,18 +863,24 @@
             <table class="table table-bordered">
                 <thead>
                     <tr align="center">
-                        <td colspan="3"><b>Method</b></td>
-                        <td colspan="3"><b>Error code</b></td>
-                        <td colspan="3"><b>Decription</b></td>
-                        <td colspan="3"><b>Actions</b></td>
+                        <td rowspan="4"><b>Method</b></td>
+                        <td rowspan="4"><b>Error code</b></td>
+                        <td rowspan="4"><b>Decription</b></td>
+                        <td><b>Actions</b></td>
                     </tr>
                 </thead>
                 <tbody>
                     <tr>
-                        <td align="center" colspan="3">Post</td>
-                        <td align="center" colspan="3">{{error_code}}</td>
-                        <td align="center" colspan="3">{{decription}}</td>
-                        <td align="center" colspan="3">{{actions}}</td>
+                        <td align="center" rowspan="0">Post</td>
+                        <td align="center" rowspan="0">{{error_code}}</td>
+                        <td align="center" rowspan="0">{{decription}}</td>
+                        <td align="center">{{actions1}}</td>
+                    </tr>
+                    <tr>
+                        <td align="center">{{actions2}}</td>
+                    </tr>
+                    <tr ng-if="$scope.error_code=='500'">
+                        <td align="center">{{actions3}}</td>
                     </tr>
                 </tbody>
             </table>
