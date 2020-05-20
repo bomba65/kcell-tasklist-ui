@@ -372,6 +372,21 @@ define(['./module','jquery'], function(app,$){
                 }).then(function (tasks) {
                     $scope.tasks = tasks;
                     console.log($scope.tasks);
+                    for(let i =0; i<$scope.tasks.length;i++){
+                        $http.get(`${$scope.baseUrl}/task/${$scope.tasks[i].id}/identity-links`).then( (response)=> {
+                            var groups = response.data
+                            var groupList = ''
+                            for(let j =0; j<groups.length;j++) {
+                                if(groups[j].groupId){
+                                    groupList += groups[j].groupId
+                                    if(groups.length > 1) {
+                                        groupList += ', '
+                                    }
+                                }
+                            }
+                            $scope.tasks[i].groupId = groupList
+                        })
+                    }
                 });
 
             } else {
@@ -602,13 +617,15 @@ define(['./module','jquery'], function(app,$){
                 }).then(function (tasks) {
                     $scope.tasks = tasks;
                     for(let i =0; i<$scope.tasks.length;i++){
-                        return $http.get(`${$scope.baseUrl}/task/${$scope.tasks[i].id}/identity-links`).then( (response)=> {
+                        $http.get(`${$scope.baseUrl}/task/${$scope.tasks[i].id}/identity-links`).then( (response)=> {
                             var groups = response.data
                             var groupList = ''
                             for(let j =0; j<groups.length;j++) {
-                                groupList += groups[j].groupId
-                                if(groups.length > 1) {
-                                    groupList += ', '
+                                if(groups[j].groupId){
+                                    groupList += groups[j].groupId
+                                    if(groups.length > 1) {
+                                        groupList += ', '
+                                    }
                                 }
                             }
                             $scope.tasks[i].groupId = groupList
