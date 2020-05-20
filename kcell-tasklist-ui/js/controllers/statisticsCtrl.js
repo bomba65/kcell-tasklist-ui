@@ -46,7 +46,7 @@ define(['./module','jquery'], function(app,$){
         $scope.reverseOrder = false;
         $scope.fieldName = 'Region';
         $scope.task = $stateParams.task;
-        console.log("$SCOPEE TASK = ", $scope.task)
+
         $scope.filter = {};
         if($stateParams.reason){
              $scope.filter.reason = $stateParams.reason;
@@ -495,7 +495,7 @@ define(['./module','jquery'], function(app,$){
                                 var variablesByProcessInstance = _.keyBy(response.data, 'processInstanceId');
                                 var valueByProcessInstance = _.mapValues(variablesByProcessInstance, 'value');
                                 var result = _.mapValues(processInstances, (pi, id) => _.assign({}, pi, {'sharingPlan': JSON.parse(valueByProcessInstance[id])}));
-                                //console.log(result);
+                                // console.log(result);
                                 return result;
                             });
                         } else {
@@ -543,6 +543,20 @@ define(['./module','jquery'], function(app,$){
                             );
 
                             $scope.tasksByIdAndRegionCounted = tasksByIdAndRegionCounted;
+
+                            let a = Object.keys(tasksByIdAndRegionCounted);
+                            let newJson = {};
+                            for(let i =0; i<a.length;i++){
+                                let counter = 0;
+                                let b = Object.values(tasksByIdAndRegionCounted[a[i]]);
+                                b.forEach(i => {
+                                    counter += i;
+                                })
+                                newJson[a[i]] = counter; 
+                            }
+
+                            $scope.totalCounter = newJson;
+                            console.log(tasksByIdAndRegionCounted)
                         });
                 }
             }
@@ -587,7 +601,23 @@ define(['./module','jquery'], function(app,$){
                     });
                 }).then(function (tasks) {
                     $scope.tasks = tasks;
+                    for(let i =0; i<$scope.tasks.length;i++){
+                        return $http.get(`${$scope.baseUrl}/task/${$scope.tasks[i].id}/identity-links`).then( (response)=> {
+                            var groups = response.data
+                            var groupList = ''
+                            for(let j =0; j<groups.length;j++) {
+                                groupList += groups[j].groupId
+                                if(groups.length > 1) {
+                                    groupList += ', '
+                                }
+                            }
+                            $scope.tasks[i].groupId = groupList
+                        })
+                    }
                 });
+                
+
+                
 
             } else if($scope.currentReport) {
                 $scope.updateTaskDefinitions();
