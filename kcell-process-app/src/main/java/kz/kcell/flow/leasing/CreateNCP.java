@@ -49,6 +49,7 @@ public class CreateNCP implements JavaDelegate {
                 udbOracleUrl,
                 udbOracleUsername,
                 udbOraclePassword);
+//            Connection udbConnect = DriverManager.getConnection("jdbc:oracle:thin:@//sc2-appcl010406:1521/apexudb", "app_apexudb_camunda", "p28zt#7C");
             try {
                 if (udbConnect != null) {
                     udbConnect.setAutoCommit(false);
@@ -170,9 +171,6 @@ public class CreateNCP implements JavaDelegate {
                     SpinJsonNode feJson = delegateExecution.getVariable("farEndInformation") != null ? JSON(delegateExecution.getVariable("farEndInformation")) : null;
                     SpinList farEnds = feJson != null ? feJson.elements() : null;
                     SpinJsonNode fe = farEnds != null ? (SpinJsonNode) farEnds.get(0) : null;
-                    log.info("fe.toString():");
-                    log.info(fe.toString());
-                    log.info("end of fe.toString()");
 
                     String fe_azimuth = fe != null && fe.hasProp("azimuth") ? (fe.prop("azimuth").stringValue()) : null;
                     String fe_diameter = fe != null && fe.hasProp("diameter") ? (fe.prop("diameter").value().toString()) : null;
@@ -436,9 +434,8 @@ public class CreateNCP implements JavaDelegate {
                     } else {
                         newArtefactCurrentStatePreparedStatement.setNull(i++, Types.BIGINT);
                     }
-                    Integer cn_constructionTypeInt = Integer.parseInt(cn_constructionType);
-                    if (cn_constructionTypeInt != null) {
-                        newArtefactCurrentStatePreparedStatement.setLong(i++, cn_constructionTypeInt); // CONSTRUCTION_TYPE (cn_construction_type)
+                    if (cn_constructionType != null) {
+                        newArtefactCurrentStatePreparedStatement.setLong(i++, Integer.parseInt(cn_constructionType)); // CONSTRUCTION_TYPE (cn_construction_type)
                     } else {
                         newArtefactCurrentStatePreparedStatement.setNull(i++, Types.BIGINT);
                     }
@@ -489,8 +486,8 @@ public class CreateNCP implements JavaDelegate {
                     } else {
                         newArtefactRSDPreparedStatement.setNull(i++, Types.BIGINT);
                     }
-                    if (cn_constructionTypeInt != null) {
-                        newArtefactRSDPreparedStatement.setLong(i++, cn_constructionTypeInt); //CNSTRTYPEID
+                    if (cn_constructionType != null) {
+                        newArtefactRSDPreparedStatement.setLong(i++, Integer.parseInt(cn_constructionType)); //CNSTRTYPEID
                     } else {
                         newArtefactRSDPreparedStatement.setNull(i++, Types.BIGINT);
                     }
@@ -541,8 +538,8 @@ public class CreateNCP implements JavaDelegate {
                     newArtefactRRPreparedStatement.setString(i++, cn_address); //ADDRESS
                     newArtefactRRPreparedStatement.setString(i++, latitude); //LATITUDE
                     newArtefactRRPreparedStatement.setString(i++, longitude); //LONGITUDE
-                    if (cn_constructionTypeInt != null) {
-                        newArtefactRRPreparedStatement.setLong(i++, cn_constructionTypeInt); //CONSTR_TYPE
+                    if (cn_constructionType != null) {
+                        newArtefactRRPreparedStatement.setLong(i++, Integer.parseInt(cn_constructionType)); //CONSTR_TYPE
                     } else {
                         newArtefactRRPreparedStatement.setNull(i++, Types.BIGINT);
 
@@ -833,8 +830,10 @@ public class CreateNCP implements JavaDelegate {
 
                     // KWMS-940 insert into new 7 tables:
 
+                    Long createdArtefactRrPowerId = null;
+                    String artefactRrPowerId[] = {"POWER_ID"};
                     String INSERT_ARTEFACT_RR_POWER = "INSERT INTO ARTEFACT_RR_POWER (POWER_ID, RR_ID, LT_ID, LANDLORD, LANDLORD_CABLE_LENGTH, LANDLORD_MONTHLY_PC, RES_4KV, RES_10KV) VALUES  (ARTEFACT_RR_POWER_SEQ.nextval, ?, ?, ?, ?, ?, ?, ?)"; //(18144, 18744, 1, 1, 30, 1, null, null);
-                    PreparedStatement ARTEFACT_RR_POWER_PreparedStatement = udbConnect.prepareStatement(INSERT_ARTEFACT_RR_POWER);
+                    PreparedStatement ARTEFACT_RR_POWER_PreparedStatement = udbConnect.prepareStatement(INSERT_ARTEFACT_RR_POWER, artefactRrPowerId);
                     log.info("INSERT INTO ARTEFACT_RR_POWER preparedStatement SQL UPDATE VALUES");
 
                     i = 1;
@@ -883,10 +882,18 @@ public class CreateNCP implements JavaDelegate {
                     ARTEFACT_RR_POWER_PreparedStatement.executeUpdate();
                     log.info("Successfully inserted");
 
+                    ResultSet createdArtefactRrPowerIdResultSet = ARTEFACT_RR_POWER_PreparedStatement.getGeneratedKeys();
+                    createdArtefactRrPowerIdResultSet.next();
+                    createdArtefactRrPowerId = createdArtefactRrPowerIdResultSet.getLong(1);
+                    log.info("createdArtefactRrPowerId:");
+                    log.info(createdArtefactRrPowerId.toString());
+
 
                 // INSERT INTO ARTEFACT_RR_RENTER CN
+                    Long createdArtefactRrRenterCnId = null;
+                    String artefactRrRenterCnId[] = {"RENTER_ID"};
                     String INSERT_ARTEFACT_RR_RENTER = "INSERT INTO ARTEFACT_RR_RENTER (RENTER_ID, RR_ID, TYPE, LEGAL_NAME, LEGAL_ADDRESS, PHONE_FAX, LEADER_NAME, LEADER_POSITION, EMAIL, CONTACT_NAME, CONTACT_POSITION, CONTACT_INFORMATION) VALUES (ARTEFACT_RR_RENTER_SEQ.nextval, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"; //(13029, 10365, 1, 'ОРТПЦ (КазТелеРадио)', 'Almaty, st, Zheltoksana 38,                                                                             Uralsk city, st. Zheleznodorozhnaya 1', '71-75-73, 71-75-78, 71-75-72 (Almaty)', 'Efrimenko Viktor Pavlovich', 'Glavny injener', null, 'Sharafutdinov Serik                  ', null, '50-62-77, 50-35-90                     87112 51-39-32');
-                    PreparedStatement ARTEFACT_RR_RENTER_PreparedStatement = udbConnect.prepareStatement(INSERT_ARTEFACT_RR_RENTER);
+                    PreparedStatement ARTEFACT_RR_RENTER_PreparedStatement = udbConnect.prepareStatement(INSERT_ARTEFACT_RR_RENTER, artefactRrRenterCnId);
                     log.info("INSERT INTO ARTEFACT_RR_RENTER preparedStatement SQL UPDATE VALUES");
 
                     i = 1;
@@ -941,10 +948,18 @@ public class CreateNCP implements JavaDelegate {
                     ARTEFACT_RR_RENTER_PreparedStatement.executeUpdate();
                     log.info("Successfully inserted");
 
+                    ResultSet createdArtefactRrRenterCnIdResultSet = ARTEFACT_RR_RENTER_PreparedStatement.getGeneratedKeys();
+                    createdArtefactRrRenterCnIdResultSet.next();
+                    createdArtefactRrRenterCnId = createdArtefactRrRenterCnIdResultSet.getLong(1);
+                    log.info("createdArtefactRrRenterCnId:");
+                    log.info(createdArtefactRrRenterCnId.toString());
+
 
                 // INSERT INTO ARTEFACT_RR_RENTER FE
+                    Long createdArtefactRrRenterFeId = null;
+                    String artefactRrRenterFeId[] = {"RENTER_ID"};
                     String INSERT_ARTEFACT_RR_RENTER_FE = "INSERT INTO ARTEFACT_RR_RENTER (RENTER_ID, RR_ID, TYPE, LEGAL_NAME, LEGAL_ADDRESS, PHONE_FAX, LEADER_NAME, LEADER_POSITION, EMAIL, CONTACT_NAME, CONTACT_POSITION, CONTACT_INFORMATION) VALUES (ARTEFACT_RR_RENTER_SEQ.nextval, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"; //(13029, 10365, 1, 'ОРТПЦ (КазТелеРадио)', 'Almaty, st, Zheltoksana 38,                                                                             Uralsk city, st. Zheleznodorozhnaya 1', '71-75-73, 71-75-78, 71-75-72 (Almaty)', 'Efrimenko Viktor Pavlovich', 'Glavny injener', null, 'Sharafutdinov Serik                  ', null, '50-62-77, 50-35-90                     87112 51-39-32');
-                    PreparedStatement ARTEFACT_RR_RENTER_FE_PreparedStatement = udbConnect.prepareStatement(INSERT_ARTEFACT_RR_RENTER_FE);
+                    PreparedStatement ARTEFACT_RR_RENTER_FE_PreparedStatement = udbConnect.prepareStatement(INSERT_ARTEFACT_RR_RENTER_FE, artefactRrRenterFeId);
                     log.info("INSERT INTO ARTEFACT_RR_RENTER preparedStatement SQL UPDATE VALUES");
 
                     i = 1;
@@ -1000,9 +1015,18 @@ public class CreateNCP implements JavaDelegate {
                     log.info("Successfully inserted");
 
 
+                    ResultSet createdArtefactRrRenterFeIdResultSet = ARTEFACT_RR_RENTER_FE_PreparedStatement.getGeneratedKeys();
+                    createdArtefactRrRenterFeIdResultSet.next();
+                    createdArtefactRrRenterFeId = createdArtefactRrRenterFeIdResultSet.getLong(1);
+                    log.info("createdArtefactRrRenterFeId:");
+                    log.info(createdArtefactRrRenterFeId.toString());
+
+
 // --ARTEFACT_RR_TR
+                    Long createdArtefactRrTrId = null;
+                    String artefactRrTrId[] = {"RR_TR_ID"};
                     String INSERT_ARTEFACT_RR_TR = "INSERT INTO ARTEFACT_RR_TR (RR_TR_ID, RR_ID, FE_NAME, SURVEY_DATE, FE_ADDRESS, CONTACT_INFO, SQUARE, EQUIPMENT_TYPE, DMTR, ANTENNA_QUANTITY, WEIGHT, SUSPENSION_HEIGHT, AZIMUTH, CONSTR_TYPE, COMMENTS, RESULTS, FE_ARTEFACTID) VALUES (ARTEFACT_RR_TR_SEQ.nextval, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"; //(17902, 18222, '03029SHUHOSPIT', TO_DATE('2010-02-16 00:00:00', 'YYYY-MM-DD HH24:MI:SS'), '(SHHOS) Жамбылская обл., г. Шу, ул. Сатпаева 151, "Региональная поликлиника"', 'Иманалиев Б. 8(72643)23272', null, 4, 0.3, 1, null, null, 13, 13, 201, 26, null, null, 15605);
-                    PreparedStatement ARTEFACT_RR_TR_PreparedStatement = udbConnect.prepareStatement(INSERT_ARTEFACT_RR_TR);
+                    PreparedStatement ARTEFACT_RR_TR_PreparedStatement = udbConnect.prepareStatement(INSERT_ARTEFACT_RR_TR, artefactRrTrId);
                     log.info("INSERT INTO ARTEFACT_RR_TR preparedStatement SQL UPDATE VALUES");
 
                     i = 1;
@@ -1111,9 +1135,18 @@ public class CreateNCP implements JavaDelegate {
                     log.info("Successfully inserted");
 
 
+                    ResultSet createdArtefactRrTrIdResultSet = ARTEFACT_RR_TR_PreparedStatement.getGeneratedKeys();
+                    createdArtefactRrTrIdResultSet.next();
+                    createdArtefactRrTrId = createdArtefactRrTrIdResultSet.getLong(1);
+                    log.info("createdArtefactRrTrId:");
+                    log.info(createdArtefactRrTrId.toString());
+
+
 // --ARTEFACT_RR_TR_ANTENNA
+                    Long createdTrAntennaId = null;
+                    String trAntennaId[] = {"TR_ANTENNA_ID"};
                     String INSERT_ARTEFACT_RR_TR_ANTENNA = "INSERT INTO ARTEFACT_RR_TR_ANTENNA (TR_ANTENNA_ID, RR_ID, EQUIP_ID, ANTENNA_QUANTITY, FREQ_BAND, DMTR, WEIGHT, SUSPENSION_HEIGHT, AZIMUTH) VALUES (ARTEFACT_RR_TR_ANTENNA_SEQ.nextval, ?, ?, ?, ?, ?, ?, ?, ?)"; //(23968, 24828, 2, 1, '7', 0.6, 15, 14, 182);
-                    PreparedStatement ARTEFACT_RR_TR_ANTENNA_PreparedStatement = udbConnect.prepareStatement(INSERT_ARTEFACT_RR_TR_ANTENNA);
+                    PreparedStatement ARTEFACT_RR_TR_ANTENNA_PreparedStatement = udbConnect.prepareStatement(INSERT_ARTEFACT_RR_TR_ANTENNA, trAntennaId);
                     log.info("INSERT INTO ARTEFACT_RR_TR_ANTENNA preparedStatement SQL UPDATE VALUES");
 
                     i = 1;
@@ -1175,6 +1208,12 @@ public class CreateNCP implements JavaDelegate {
                     ARTEFACT_RR_TR_ANTENNA_PreparedStatement.executeUpdate();
                     log.info("Successfully inserted");
 
+                    ResultSet createdTrAntennaIdResultSet = ARTEFACT_RR_TR_ANTENNA_PreparedStatement.getGeneratedKeys();
+                    createdTrAntennaIdResultSet.next();
+                    createdTrAntennaId = createdTrAntennaIdResultSet.getLong(1);
+                    log.info("createdTrAntennaId:");
+                    log.info(createdTrAntennaId.toString());
+
 
 // --ARTEFACT_RSD_EXIST
                     String INSERT_ARTEFACT_RSD_EXIST = "INSERT INTO ARTEFACT_RSD_EXIST (RSDID, RSD_EXIST, ARTEFACTID) VALUES (?, ?, ?)"; //(38554, 0, 37614);
@@ -1191,8 +1230,10 @@ public class CreateNCP implements JavaDelegate {
 
 
 // --ARTEFACT_RSD_HISTORY
+                    Long createdRsdHistoryId = null;
+                    String rsdHistoryId[] = {"ID"};
                     String INSERT_ARTEFACT_RSD_HISTORY = "INSERT INTO ARTEFACT_RSD_HISTORY (ID, RSDID, ARTEFACTID, BSCID, ALTITUDE, CNSTRTYPEID, TOWERTYPEID, HEIGHT, DATEOFINSERT, DATEOFVISIT, PLANNER, CONTACTPERSON, COMMENTS, LASTEDITOR, RBSID, SITE_TYPE, PLANNING_TARGET) VALUES (SEQ_ARTEFACT_RSD_HISTORY.nextval, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";//(5361, 4701, 167, 1131, 10, null, 6, TO_DATE('2009-05-18 15:53:24', 'YYYY-MM-DD HH24:MI:SS'), TO_DATE('2009-05-15 00:00:00', 'YYYY-MM-DD HH24:MI:SS'), 'VITALIY.CHERNIKOV', null, 'Contaiter, poles (3m) on container, all antennas must be installed on poles. ', null, null, TO_DATE('2009-08-07 12:03:07', 'YYYY-MM-DD HH24:MI:SS'), 'VIKTOR.MAXIMENKO', ' ', 565, null, null, null, null, null, null);
-                    PreparedStatement ARTEFACT_RSD_HISTORY_PreparedStatement = udbConnect.prepareStatement(INSERT_ARTEFACT_RSD_HISTORY);
+                    PreparedStatement ARTEFACT_RSD_HISTORY_PreparedStatement = udbConnect.prepareStatement(INSERT_ARTEFACT_RSD_HISTORY, rsdHistoryId);
                     log.info("INSERT INTO ARTEFACT_RSD_HISTORY preparedStatement SQL UPDATE VALUES");
 
                     i = 1;
@@ -1208,8 +1249,8 @@ public class CreateNCP implements JavaDelegate {
                     } else {
                         ARTEFACT_RSD_HISTORY_PreparedStatement.setNull(i++, Types.BIGINT);
                     }
-                    if (cn_constructionTypeInt != null) {
-                        ARTEFACT_RSD_HISTORY_PreparedStatement.setLong(i++, cn_constructionTypeInt); //CNSTRTYPEID
+                    if (cn_constructionType != null) {
+                        ARTEFACT_RSD_HISTORY_PreparedStatement.setLong(i++, Integer.parseInt(cn_constructionType)); //CNSTRTYPEID
                     } else {
                         ARTEFACT_RSD_HISTORY_PreparedStatement.setNull(i++, Types.BIGINT);
                     }
@@ -1244,6 +1285,25 @@ public class CreateNCP implements JavaDelegate {
                     ARTEFACT_RSD_HISTORY_PreparedStatement.executeUpdate();
                     log.info("Successfully inserted");
 
+                    ResultSet createdRsdHistoryIdResultSet = ARTEFACT_RSD_HISTORY_PreparedStatement.getGeneratedKeys();
+                    createdRsdHistoryIdResultSet.next();
+                    createdRsdHistoryId = createdRsdHistoryIdResultSet.getLong(1);
+                    log.info("createdRsdHistoryId:");
+                    log.info(createdRsdHistoryId.toString());
+
+                    // --ARTEFACT_TSD_EXIST
+                    String INSERT_ARTEFACT_TSD_EXIST = "INSERT INTO ARTEFACT_TSD_EXIST (TSDID, TSD_EXIST, ARTEFACTID) VALUES (?, ?, ?)";  //ARTEFACT_TSD_EXIST_, 1, 10373);"
+                    PreparedStatement ARTEFACT_TSD_EXIST_PreparedStatement = udbConnect.prepareStatement(INSERT_ARTEFACT_TSD_EXIST);
+                    log.info("INSERT INTO ARTEFACT_TSD_EXIST preparedStatement SQL UPDATE VALUES");
+
+                    i = 1;
+                    ARTEFACT_TSD_EXIST_PreparedStatement.setLong(i++, createdArtefactExtTSDId);// TSDID
+                    ARTEFACT_TSD_EXIST_PreparedStatement.setLong(i++, 1);
+                    ARTEFACT_TSD_EXIST_PreparedStatement.setLong(i++, createdArtefactId);// ARTEFACTID
+
+                    ARTEFACT_TSD_EXIST_PreparedStatement.executeUpdate();
+                    log.info("Successfully inserted");
+
                     // end KWMS-940
 
                     udbConnect.commit();
@@ -1256,6 +1316,12 @@ public class CreateNCP implements JavaDelegate {
                     delegateExecution.setVariable("createdCandApprovalId", createdCandApprovalId);
                     delegateExecution.setVariable("createdArtefactRRStatusId", createdArtefactRRStatusId);
                     delegateExecution.setVariable("createdArtefactExtTSDId", createdArtefactExtTSDId);
+                    delegateExecution.setVariable("createdArtefactRrPowerId", createdArtefactRrPowerId);
+                    delegateExecution.setVariable("createdArtefactRrRenterCnId", createdArtefactRrRenterCnId);
+                    delegateExecution.setVariable("createdArtefactRrRenterFeId", createdArtefactRrRenterFeId);
+                    delegateExecution.setVariable("createdArtefactRrTrId", createdArtefactRrTrId);
+                    delegateExecution.setVariable("createdTrAntennaId", createdTrAntennaId);
+                    delegateExecution.setVariable("createdRsdHistoryId", createdRsdHistoryId);
                     udbConnect.close();
                     log.warning("udbConnection closed!");
                 } else {
