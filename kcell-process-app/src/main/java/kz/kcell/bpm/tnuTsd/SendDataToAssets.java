@@ -6,10 +6,13 @@ import lombok.extern.java.Log;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
+import org.apache.http.conn.ssl.TrustSelfSignedStrategy;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
+import org.apache.http.ssl.SSLContextBuilder;
 import org.apache.http.util.EntityUtils;
 import org.camunda.bpm.engine.delegate.DelegateExecution;
 import org.camunda.bpm.engine.delegate.JavaDelegate;
@@ -59,10 +62,13 @@ public class SendDataToAssets implements JavaDelegate {
         fe_antenna_diameter_id.put("catalog_id", 20);
         fe_antenna_diameter_id.put("id", fe_diameter);
 
-        ObjectNode fe_antenna_diameter_protect_id = objectMapper.createObjectNode();
-        objectNode.set("fe_antenna_diameter_protect_id", fe_antenna_diameter_protect_id);
-        fe_antenna_diameter_protect_id.put("catalog_id", 20);
-        fe_antenna_diameter_protect_id.put("id", fe_protection_antenna_diameter);
+        if (fe_protection_antenna_diameter != null) {
+            ObjectNode fe_antenna_diameter_protect_id = objectMapper.createObjectNode();
+            objectNode.set("fe_antenna_diameter_protect_id", fe_antenna_diameter_protect_id);
+            fe_antenna_diameter_protect_id.put("catalog_id", 20);
+            fe_antenna_diameter_protect_id.put("id", fe_protection_antenna_diameter);
+        }
+
 
         objectNode.put("fe_azimuth", fe_azimuth);
         objectNode.put("fe_different_address", true);
@@ -79,14 +85,16 @@ public class SendDataToAssets implements JavaDelegate {
         fe_rau_subband_id.put("catalog_id", 46);
         fe_rau_subband_id.put("id", fe_rau_subband);
 
-        ObjectNode fe_rau_subband_protect_id = objectMapper.createObjectNode();
-        objectNode.set("fe_rau_subband_protect_id", fe_rau_subband_protect_id);
-        fe_rau_subband_protect_id.put("catalog_id", 46);
-        fe_rau_subband_protect_id.put("id", fe_protection_rau_subband);
+        if (fe_protection_rau_subband != null) {
+            ObjectNode fe_rau_subband_protect_id = objectMapper.createObjectNode();
+            objectNode.set("fe_rau_subband_protect_id", fe_rau_subband_protect_id);
+            fe_rau_subband_protect_id.put("catalog_id", 46);
+            fe_rau_subband_protect_id.put("id", fe_protection_rau_subband);
+        }
 
         objectNode.put("fe_terminalid", fe_terminal_id);
-        objectNode.put("fe_txrx_frequincies", fe_txrx_frequincies);
-        objectNode.put("fe_protection_txrx_frequincies", fe_protection_txrx_frequincies);
+        objectNode.put("fe_txrx_frequencies", fe_txrx_frequincies);
+        objectNode.put("fe_txrx_frequencies_protect", fe_protection_txrx_frequincies);
 
         ObjectNode link_type_id = objectMapper.createObjectNode();
         objectNode.set("fe_rau_subband_protect_id", link_type_id);
@@ -122,10 +130,13 @@ public class SendDataToAssets implements JavaDelegate {
         ne_antenna_diameter_id.put("catalog_id", 20);
         ne_antenna_diameter_id.put("id", ne_diameter);
 
-        ObjectNode ne_antenna_diameter_protect_id = objectMapper.createObjectNode();
-        objectNode.set("ne_antenna_diameter_protect_id", ne_antenna_diameter_protect_id);
-        ne_antenna_diameter_protect_id.put("catalog_id", 20);
-        ne_antenna_diameter_protect_id.put("id", ne_protection_antenna_diameter);
+        if (ne_protection_antenna_diameter != null) {
+            ObjectNode ne_antenna_diameter_protect_id = objectMapper.createObjectNode();
+            objectNode.set("ne_antenna_diameter_protect_id", ne_antenna_diameter_protect_id);
+            ne_antenna_diameter_protect_id.put("catalog_id", 20);
+            ne_antenna_diameter_protect_id.put("id", ne_protection_antenna_diameter);
+        }
+
 
         objectNode.put("ne_azimuth", ne_azimuth);
         objectNode.put("ne_different_address", true);
@@ -142,14 +153,16 @@ public class SendDataToAssets implements JavaDelegate {
         ne_rau_subband_id.put("catalog_id", 46);
         ne_rau_subband_id.put("id", ne_rau_subband);
 
-        ObjectNode ne_rau_subband_protect_id = objectMapper.createObjectNode();
-        objectNode.set("ne_rau_subband_protect_id", ne_rau_subband_protect_id);
-        ne_rau_subband_protect_id.put("catalog_id", 46);
-        ne_rau_subband_protect_id.put("id", ne_protection_rau_subband);
+        if (ne_protection_rau_subband != null) {
+            ObjectNode ne_rau_subband_protect_id = objectMapper.createObjectNode();
+            objectNode.set("ne_rau_subband_protect_id", ne_rau_subband_protect_id);
+            ne_rau_subband_protect_id.put("catalog_id", 46);
+            ne_rau_subband_protect_id.put("id", ne_protection_rau_subband);
+        }
 
         objectNode.put("ne_terminalid", ne_terminal_id);
-        objectNode.put("ne_txrx_frequincies", ne_txrx_frequincies);
-        objectNode.put("ne_protection_txrx_frequincies", ne_protection_txrx_frequincies);
+        objectNode.put("ne_txrx_frequencies", ne_txrx_frequincies);
+        objectNode.put("fe_txrx_frequencies_protect", ne_protection_txrx_frequincies);
 
         objectNode.put("nxe1", hop_link_nxe1);
         objectNode.put("path_distance", path_distance);
@@ -165,36 +178,31 @@ public class SendDataToAssets implements JavaDelegate {
         protection_mode_id.put("id", protection_mode);
 
         try {
-            CloseableHttpClient closeableHttpClient = HttpClients.createDefault();
-            executePost("https://asset.test-flow.kcell.kz/asset-management/tsd_mw", closeableHttpClient, objectNode.toString());
+            SSLContextBuilder builder = new SSLContextBuilder();
+            builder.loadTrustMaterial(null, new TrustSelfSignedStrategy());
+            SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(
+                builder.build());
+            CloseableHttpClient httpclient = HttpClients.custom().setSSLSocketFactory(
+                sslsf).build();
+            String path = "https://asset.test-flow.kcell.kz/asset-management/tsd_mw";
+            HttpResponse httpResponse = executePost(path, httpclient, objectNode.toString());
             log.info("json :  ----   " + objectNode.toString());
-
+            if (httpResponse.getStatusLine().getStatusCode() < 200 || httpResponse.getStatusLine().getStatusCode() >= 300) {
+                throw new RuntimeException("asset.flow.kcell.kz returns code " + httpResponse.getStatusLine().getStatusCode());
+            }
         } catch (Exception e) {
-            e.printStackTrace();
             throw new BpmnError("error", e.getMessage());
         }
-
-        String[] list = {"400", "401", "403", "404", "500"};
-        Random r = new Random();
-
-        String errorMessage = list[r.nextInt(list.length)];
-
-        throw new BpmnError("error", errorMessage);
 
     }
 
 
-    private String executePost(String url, HttpClient httpClient, String requestBody) throws Exception {
+    private HttpResponse executePost(String url, HttpClient httpClient, String requestBody) throws Exception {
         StringEntity entity = new StringEntity(requestBody, ContentType.APPLICATION_JSON);
 
         HttpPost httpPost = new HttpPost(url);
         httpPost.addHeader("Content-Type", "application/json;charset=UTF-8");
         httpPost.setEntity(entity);
-        HttpResponse httpResponse = httpClient.execute(httpPost);
-        HttpEntity responseEntity = httpResponse.getEntity();
-        String strEntity = EntityUtils.toString(responseEntity);
-        log.info("POST: " + url + " statusCode " + httpResponse.getStatusLine().getStatusCode());
-        log.info("RESPONSE: " + url + " strEntity " + strEntity);
-        return strEntity;
+        return httpClient.execute(httpPost);
     }
 }
