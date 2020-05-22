@@ -44,6 +44,7 @@ public class SetStatus implements JavaDelegate {
                 udbOracleUrl,
                 udbOracleUsername,
                 udbOraclePassword);
+//            Connection udbConnect = DriverManager.getConnection("jdbc:oracle:thin:@//sc2-appcl010406:1521/apexudb", "app_apexudb_camunda", "p28zt#7C");
             try {
                 if (udbConnect != null) {
                     udbConnect.setAutoCommit(false);
@@ -71,6 +72,7 @@ public class SetStatus implements JavaDelegate {
                     String _SET_FE_STATUS = delegateExecution.hasVariableLocal("_SET_FE_STATUS") ? delegateExecution.getVariableLocal("_SET_FE_STATUS").toString() : "";
                     String _SET_FE_STATUS_NCP = delegateExecution.hasVariableLocal("_SET_FE_STATUS_NCP") ? delegateExecution.getVariableLocal("_SET_FE_STATUS_NCP").toString() : _SET_FE_STATUS;
                     String _SET_CAND_STATUS = delegateExecution.hasVariableLocal("_SET_CAND_STATUS") ? delegateExecution.getVariableLocal("_SET_CAND_STATUS").toString() : "";
+                    String _SET_RSD_STATUS = delegateExecution.hasVariableLocal("_SET_RSD_STATUS") ? delegateExecution.getVariableLocal("_SET_RSD_STATUS").toString() : "";
 
                     log.info("ncpId");
                     log.info(ncpId);
@@ -112,6 +114,21 @@ public class SetStatus implements JavaDelegate {
                         updateGENstatusInArtefactPreparedStatement.setLong(i++, Integer.parseInt(_SET_GEN_STATUS)); // GS_STATUS
                         updateGENstatusInArtefactPreparedStatement.setLong(i++, createdArtefactId); // ARTEFACTID
                         updateGENstatusInArtefactPreparedStatement.executeUpdate();
+                        log.info("successfull GEN_STATUS updated!");
+                    }
+                    if (_SET_RSD_STATUS != null && !_SET_RSD_STATUS.equals("")) {
+                        log.info("_SET_RSD_STATUS");
+                        log.info(_SET_RSD_STATUS);
+                        //UPDATE NCP
+                        String UPDATE_RSD_STATUS = "update ARTEFACT_CURRENT_STATE set RSD_EXIST = ? where ARTEFACTID = ?";
+                        PreparedStatement updateRSDstatusInArtefactPreparedStatement = udbConnect.prepareStatement(UPDATE_RSD_STATUS);
+
+                        log.info("GEN_STATUS preparedStatement SQL UPDATE VALUES");
+                        // set values to update
+                        i = 1;
+                        updateRSDstatusInArtefactPreparedStatement.setLong(i++, Integer.parseInt(_SET_RSD_STATUS)); // GS_STATUS
+                        updateRSDstatusInArtefactPreparedStatement.setLong(i++, createdArtefactId); // ARTEFACTID
+                        updateRSDstatusInArtefactPreparedStatement.executeUpdate();
                         log.info("successfull GEN_STATUS updated!");
                     }
                     if (_SET_RR_STATUS != null && !_SET_RR_STATUS.equals("")) {
