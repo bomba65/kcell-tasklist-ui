@@ -37,7 +37,7 @@ public class SendDataToAssets implements JavaDelegate {
         Integer fe_diameter = Integer.parseInt(String.valueOf(execution.getVariable("fe_diameter")));
         Integer fe_protection_antenna_diameter = execution.getVariable("fe_protection_antenna_diameter") == null ? null : Integer.parseInt(String.valueOf(execution.getVariable("fe_protection_antenna_diameter")));
         Double fe_azimuth = Double.parseDouble(String.valueOf(execution.getVariable("fe_azimuth")));
-        Integer fe_suspension_height_antennas = execution.getVariable("fe_suspension_height_antennas") == null ? null : Integer.parseInt(String.valueOf(execution.getVariable("fe_suspension_height_antennas")));
+        Integer fe_suspension_height_antennas = execution.getVariable("fe_suspension_height") == null ? null : Integer.parseInt(String.valueOf(execution.getVariable("fe_suspension_height")));
         Integer fe_protection_suspension_height = execution.getVariable("fe_protection_suspension_height") == null ? null : Integer.parseInt(String.valueOf(execution.getVariable("fe_protection_suspension_height")));
         Integer fe_power_level_rx = execution.getVariable("fe_power_level_rx") == null ? null : Integer.parseInt(String.valueOf(execution.getVariable("fe_power_level_rx")));
         Integer fe_protection_power_level_rx = execution.getVariable("fe_protection_power_level_rx") == null || String.valueOf(execution.getVariable("fe_protection_power_level_rx")).equals("") ? null : Integer.parseInt(String.valueOf(execution.getVariable("fe_protection_power_level_rx")));
@@ -163,7 +163,8 @@ public class SendDataToAssets implements JavaDelegate {
 
         objectNode.put("ne_terminalid", ne_terminal_id);
         objectNode.put("ne_txrx_frequencies", ne_txrx_frequincies);
-        objectNode.put("fe_txrx_frequencies_protect", ne_protection_txrx_frequincies);
+        objectNode.put("fe_txrx_frequencies_protect", fe_protection_txrx_frequincies);
+        objectNode.put("ne_txrx_frequencies_protect", ne_protection_txrx_frequincies);
 
         objectNode.put("nxe1", hop_link_nxe1);
         objectNode.put("path_distance", path_distance);
