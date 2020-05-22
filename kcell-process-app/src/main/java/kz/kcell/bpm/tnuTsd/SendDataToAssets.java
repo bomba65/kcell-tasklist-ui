@@ -18,6 +18,7 @@ import org.camunda.bpm.engine.delegate.DelegateExecution;
 import org.camunda.bpm.engine.delegate.JavaDelegate;
 import org.camunda.bpm.engine.delegate.BpmnError;
 import org.apache.http.client.HttpClient;
+import org.json.JSONObject;
 
 import java.util.Random;
 
@@ -97,7 +98,7 @@ public class SendDataToAssets implements JavaDelegate {
         objectNode.put("fe_txrx_frequencies_protect", fe_protection_txrx_frequincies);
 
         ObjectNode link_type_id = objectMapper.createObjectNode();
-        objectNode.set("fe_rau_subband_protect_id", link_type_id);
+        objectNode.set("link_type_id", link_type_id);
         link_type_id.put("catalog_id", 47);
         link_type_id.put("id", hop_link_type);
 
@@ -186,20 +187,22 @@ public class SendDataToAssets implements JavaDelegate {
                 sslsf).build();
             String path = "https://asset.test-flow.kcell.kz/asset-management/tsd_mw";
             HttpResponse httpResponse = executePost(path, httpclient, objectNode.toString());
+            String response = EntityUtils.toString(httpResponse.getEntity());
             log.info("json :  ----   " + objectNode.toString());
+            log.info("response :  ----   " + response);
             if (httpResponse.getStatusLine().getStatusCode() < 200 || httpResponse.getStatusLine().getStatusCode() >= 300) {
                 throw new RuntimeException("asset.flow.kcell.kz returns code " + httpResponse.getStatusLine().getStatusCode());
             }
+            JSONObject json = new JSONObject(response);
+            execution.setVariable("tsdMwId", json.getString("id"));
         } catch (Exception e) {
             throw new BpmnError("error", e.getMessage());
         }
 
     }
 
-
     private HttpResponse executePost(String url, HttpClient httpClient, String requestBody) throws Exception {
         StringEntity entity = new StringEntity(requestBody, ContentType.APPLICATION_JSON);
-
         HttpPost httpPost = new HttpPost(url);
         httpPost.addHeader("Content-Type", "application/json;charset=UTF-8");
         httpPost.setEntity(entity);
