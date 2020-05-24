@@ -151,6 +151,22 @@ public class UpdateCandidate implements JavaDelegate {
                         fe_equipment_type = 4;
                     }
 
+                    Number fe_artefact_id = 0;
+                    String SelectArtefactBySite = "select * from ARTEFACT where SITENAME = ?";
+                    PreparedStatement selectArtefactBySitePreparedStatement = udbConnect.prepareStatement(SelectArtefactBySite);
+                    int i = 1;
+                    log.info("get artefact_id by fe_sitename...");
+                    log.info(fe_sitename);
+                    selectArtefactBySitePreparedStatement.setString(i++, fe_sitename); // sitename
+                    ResultSet resultSet = selectArtefactBySitePreparedStatement.executeQuery();
+
+                    if (resultSet.next() == false ) {
+                        log.info("not Found");
+                    } else {
+                        fe_artefact_id = resultSet.getInt("ARTEFACTID");
+                        log.info("fe_artefact_id: " + fe_artefact_id);
+                    }
+
                     String fe_address = fe != null ? ("" +
                         (fe.hasProp("address") && fe.prop("address").hasProp("cn_addr_oblast") ? fe.prop("address").prop("cn_addr_oblast").stringValue() : "") +
                         (fe.hasProp("address") && fe.prop("address").hasProp("cn_addr_district") && fe.prop("address").prop("cn_addr_district") != null ? ", " + fe.prop("address").prop("cn_addr_district").stringValue() : "") +
@@ -201,7 +217,7 @@ public class UpdateCandidate implements JavaDelegate {
 
                     Integer bandsIdForUDBInt = bandsIdForUDB != null ? Integer.parseInt(bandsIdForUDB) : null;
                     String contractInfoString = renterCompany != null && renterCompany.hasProp("contactInfo") && !renterCompany.prop("contactInfo").equals(null) ? renterCompany.prop("contactInfo").stringValue() : "";
-                    int i = 1;
+                    i = 1;
                     log.info("UPDATE ARTEFACT ARTEFACT_CURRENT_STATE");
                     // set values to insert
                     updateArtefactCurrentStatePreparedStatement.setLong(i++, 2); // RR_STATUS
@@ -363,7 +379,7 @@ public class UpdateCandidate implements JavaDelegate {
 
                     //UPDATE ARTEFACT_TSD
                     log.info("UPDATE ARTEFACT_TSD");
-                    String UpdateArtefactTSD = "update ARTEFACT_TSD_EXT set equipment_id = ?, ne_longitude = ?, ne_latitude = ?, fe_sitename = ?, fe_constr_type = ?, fe_address = ?, survey_date = ?, ne_azimuth = ?, ne_antennadiameter = ?, ne_suspensionheight = ?, ne_txrf_frequency = ?, fe_azimuth = ?, fe_antennadiameter = ?, fe_suspensionheight = ?, fe_txrf_frequency = ?, update_date = ? where tsdid = ?";
+                    String UpdateArtefactTSD = "update ARTEFACT_TSD_EXT set equipment_id = ?, ne_longitude = ?, ne_latitude = ?, fe_sitename = ?, fe_constr_type = ?, fe_address = ?, survey_date = ?, ne_azimuth = ?, ne_antennadiameter = ?, ne_suspensionheight = ?, ne_txrf_frequency = ?, fe_azimuth = ?, fe_antennadiameter = ?, fe_suspensionheight = ?, fe_txrf_frequency = ?, update_date = ?, fe_artefactid = ? where tsdid = ?";
                     PreparedStatement updateArtefactTSDPreparedStatement = udbConnect.prepareStatement(UpdateArtefactTSD);
 
                     i = 1;
@@ -435,6 +451,8 @@ public class UpdateCandidate implements JavaDelegate {
                     }
                     if (fe_diameter != null) {
                         updateArtefactTSDPreparedStatement.setFloat(i++, Float.parseFloat(fe_diameter)); // FE_ANTENNADIAMETER
+                    } else {
+                        updateArtefactTSDPreparedStatement.setNull(i++, Types.FLOAT);
                     }
                     if (fe_suspensionHeight != null) {
                         Integer fe_suspensionHeightInt = Integer.parseInt(fe_suspensionHeight);
@@ -453,6 +471,13 @@ public class UpdateCandidate implements JavaDelegate {
                         }
                     }
                     updateArtefactTSDPreparedStatement.setDate(i++, new java.sql.Date(new Date().getTime())); // update_date
+
+                    if (fe_artefact_id != null && fe_artefact_id.longValue() > 0) {
+                        updateArtefactTSDPreparedStatement.setLong(i++, fe_artefact_id.longValue()); // FE_ARTEFACTID
+                    } else {
+                        updateArtefactTSDPreparedStatement.setNull(i++, Types.BIGINT);
+                    }
+
                     updateArtefactTSDPreparedStatement.setLong(i++, createdArtefactExtTSDId); //tsdid
 
                     log.info("updateArtefactTSDPreparedStatement.executeUpdate()");
@@ -733,12 +758,12 @@ public class UpdateCandidate implements JavaDelegate {
                         ARTEFACT_RR_TR_PreparedStatement.setNull(i++, Types.VARCHAR);
                     }
 
-//                    if (!= null) {
-//                        ARTEFACT_RR_TR_PreparedStatement.setLong(i++, ); // FE_ARTEFACTID
-//                    } else {
-//                        ARTEFACT_RR_TR_PreparedStatement.setNull(i++, Types.VARCHAR);
-//                    }
-                    ARTEFACT_RR_TR_PreparedStatement.setNull(i++, Types.INTEGER); //FE_ARTEFACTID
+                    if (fe_artefact_id != null && fe_artefact_id.longValue() > 0) {
+                        ARTEFACT_RR_TR_PreparedStatement.setLong(i++, fe_artefact_id.longValue()); // FE_ARTEFACTID
+                    } else {
+                        ARTEFACT_RR_TR_PreparedStatement.setNull(i++, Types.BIGINT);
+                    }
+//                    ARTEFACT_RR_TR_PreparedStatement.setNull(i++, Types.INTEGER); //FE_ARTEFACTID
                     ARTEFACT_RR_TR_PreparedStatement.setLong(i++, createdArtefactRrTrId); //createdArtefactRrTrId
 
 

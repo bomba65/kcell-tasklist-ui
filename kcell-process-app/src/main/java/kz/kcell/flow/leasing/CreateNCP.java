@@ -55,14 +55,6 @@ public class CreateNCP implements JavaDelegate {
                     udbConnect.setAutoCommit(false);
                     log.info("Connected to the database!");
 
-                    //insert NCP
-                    String returnCols[] = {"ARTEFACTID"};
-                    String insertNCP = "INSERT INTO NCP_CREATION ( ARTEFACTID, NCPID, TARGET_CELL, REGION, LONGITUDE, LATITUDE, REASON, PROJECT, CREATOR, DATEOFINSERT, COMMENTS, CABINETID, TARGET_COVERAGE, TYPE, GEN_STATUS, NCP_STATUS, NCP_STATUS_DATE, BAND, INITIATOR, PART) VALUES (NCP_CREATION_SEQ.nextval, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 7, 1, ?, ?, ?, ?)";
-                    PreparedStatement preparedStatement = udbConnect.prepareStatement(insertNCP, returnCols);
-
-                    Integer i = 1;
-                    log.info("preparedStatement.setValues");
-
                     // proc vars
                     Integer cn_rbs_location = 2;
                     String ncpId = delegateExecution.getVariable("ncpID") != null ? delegateExecution.getVariable("ncpID").toString() : null;
@@ -172,6 +164,8 @@ public class CreateNCP implements JavaDelegate {
                     SpinList farEnds = feJson != null ? feJson.elements() : null;
                     SpinJsonNode fe = farEnds != null ? (SpinJsonNode) farEnds.get(0) : null;
 
+                    Number fe_artefact_id = 0;
+
                     String fe_azimuth = fe != null && fe.hasProp("azimuth") ? (fe.prop("azimuth").stringValue()) : null;
                     String fe_diameter = fe != null && fe.hasProp("diameter") ? (fe.prop("diameter").value().toString()) : null;
                     String fe_frequencyBand = fe != null && fe.hasProp("frequencyBand") ? fe.prop("frequencyBand").stringValue().replaceAll("[^0-9.]", "") : null;
@@ -199,6 +193,20 @@ public class CreateNCP implements JavaDelegate {
                     String fe_comments = fe != null && fe.hasProp("comments") && fe.prop("comments") != null ? fe.prop("comments").value().toString() : null;
                     String fe_results_visit_objects = fe != null && fe.hasProp("resultsOfVisit") && fe.prop("resultsOfVisit") != null ? fe.prop("resultsOfVisit").value().toString() : null;
                     String fe_equipment_type = fe != null && fe.hasProp("equipmentType") && fe.prop("equipmentType").value() != null  ? fe.prop("equipmentType").value().toString() : null;
+
+                    String SelectArtefactBySite = "select * from ARTEFACT where SITENAME = ?";
+                    PreparedStatement selectArtefactBySitePreparedStatement = udbConnect.prepareStatement(SelectArtefactBySite);
+                    int i = 1;
+                    log.info("get artefact_id by fe_sitename...");
+                    log.info(fe_sitename);
+                    selectArtefactBySitePreparedStatement.setString(i++, fe_sitename); // sitename
+                    ResultSet resultSet = selectArtefactBySitePreparedStatement.executeQuery();
+
+                    if (resultSet.next() == false ) {
+                        log.info("not Found");
+                    } else {
+                        fe_artefact_id = resultSet.getInt("ARTEFACTID");
+                    }
 
 
                     String fe_address = fe != null ? ("" +
@@ -240,6 +248,14 @@ public class CreateNCP implements JavaDelegate {
                     String cn_bsc = candidate != null ? (candidate.hasProp("bsc") ? (candidate.prop("bsc").hasProp("id") ? candidate.prop("bsc").prop("id").stringValue() : null) : null) : null;
                     Integer cn_bscInt = cn_bsc != null ? Integer.parseInt(cn_bsc) : null;
 
+
+                    //insert NCP
+                    String returnCols[] = {"ARTEFACTID"};
+                    String insertNCP = "INSERT INTO NCP_CREATION ( ARTEFACTID, NCPID, TARGET_CELL, REGION, LONGITUDE, LATITUDE, REASON, PROJECT, CREATOR, DATEOFINSERT, COMMENTS, CABINETID, TARGET_COVERAGE, TYPE, GEN_STATUS, NCP_STATUS, NCP_STATUS_DATE, BAND, INITIATOR, PART) VALUES (NCP_CREATION_SEQ.nextval, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 7, 1, ?, ?, ?, ?)";
+                    PreparedStatement preparedStatement = udbConnect.prepareStatement(insertNCP, returnCols);
+
+                    i = 1;
+                    log.info("preparedStatement.setValues");
                     // set values to insert
                     preparedStatement.setString(i++, ncpId); // NCPID
                     Integer regionCodeInt = Integer.parseInt(regionCode);
@@ -725,6 +741,10 @@ public class CreateNCP implements JavaDelegate {
                         insertNewArtefactExtTSDbuilder.append(", COMMENTS");
                         insertNewArtefactExtTSDbuilderValues.append(", ?");
                     }
+                    if (fe_artefact_id != null && fe_artefact_id.longValue() > 0) {
+                        insertNewArtefactExtTSDbuilder.append(", FE_ARTEFACTID");
+                        insertNewArtefactExtTSDbuilderValues.append(", ?");
+                    }
                     insertNewArtefactExtTSDbuilder.append(insertNewArtefactExtTSDbuilderValues.toString());
                     String insertNewArtefactExtTSD = insertNewArtefactExtTSDbuilder.toString() + ")";
                     PreparedStatement newArtefactExtTSDPreparedStatement = udbConnect.prepareStatement(insertNewArtefactExtTSD, artefactExtTSDReturnStatus);
@@ -817,6 +837,9 @@ public class CreateNCP implements JavaDelegate {
                     }
                     if (fe_comment != null) {
                         newArtefactExtTSDPreparedStatement.setString(i++, fe_comment); // COMMENTS
+                    }
+                    if (fe_artefact_id != null && fe_artefact_id.longValue() > 0) {
+                        newArtefactExtTSDPreparedStatement.setLong(i++, fe_artefact_id.longValue()); // COMMENTS
                     }
                     log.info("newArtefactExtTSDPreparedStatement.executeUpdate()");
                     newArtefactExtTSDPreparedStatement.executeUpdate();
@@ -1123,12 +1146,12 @@ public class CreateNCP implements JavaDelegate {
                         ARTEFACT_RR_TR_PreparedStatement.setNull(i++, Types.VARCHAR);
                     }
 
-//                    if (!= null) {
-//                        ARTEFACT_RR_TR_PreparedStatement.setLong(i++, ); // FE_ARTEFACTID
-//                    } else {
-//                        ARTEFACT_RR_TR_PreparedStatement.setNull(i++, Types.VARCHAR);
-//                    }
-                    ARTEFACT_RR_TR_PreparedStatement.setNull(i++, Types.INTEGER); //FE_ARTEFACTID
+                    if (fe_artefact_id != null && fe_artefact_id.longValue() > 0 ) {
+                        ARTEFACT_RR_TR_PreparedStatement.setLong(i++, fe_artefact_id.longValue()); // FE_ARTEFACTID
+                    } else {
+                        ARTEFACT_RR_TR_PreparedStatement.setNull(i++, Types.INTEGER);
+                    }
+//                    ARTEFACT_RR_TR_PreparedStatement.setNull(i++, Types.INTEGER); //FE_ARTEFACTID
 
 
                     ARTEFACT_RR_TR_PreparedStatement.executeUpdate();
