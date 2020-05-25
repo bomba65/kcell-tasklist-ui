@@ -97,6 +97,32 @@ define(['./module','jquery'], function(app,$){
 			}
         };
 
+        $scope.orderMaFunction = function(task){
+            if($scope.fieldName === 'Region'){
+                return $scope.getInvoiceRegion(task.variables.invoiceNumber.value);
+            } else if($scope.fieldName === 'Act'){
+                if(task.variables.monthActNumber){
+                    return task.variables.monthActNumber.value;
+                } else {
+                    return task.variables.invoiceNumber.value;
+                }
+            } else if($scope.fieldName === 'Typeofwork'){
+                return $scope.reasonsTitle[task.variables.workType.value];
+            } else if($scope.fieldName === 'Period'){
+                return task.variables.monthOfFormalPeriod.value + ' ' + task.variables.yearOfFormalPeriod.value;
+            } else if($scope.fieldName === 'Contractor'){
+                return 'TOO Line System Engineering';
+            } else if($scope.fieldName === 'Requestedby'){
+                return task.variables.starter.value;
+            } else if($scope.fieldName === 'Currentassignee'){
+                if(task.assignee){
+                    return task.assignee;
+                } else {
+                    return task.groupId;
+                }
+            }
+        }
+
         $scope.orderByRevisionFieldName = function(revisionFieldName) {
             if ($scope.revisionFieldName == revisionFieldName) {
                 $scope.revisionReverseOrder = !$scope.revisionReverseOrder;
@@ -118,7 +144,11 @@ define(['./module','jquery'], function(app,$){
             } else if($scope.revisionFieldName === 'reason'){
                 return $scope.reasonsTitle[task.variables.reason.value];
             } else if($scope.revisionFieldName === 'project'){
-                return task.variables.project.value;
+                if(task.variables.project){
+                    return task.variables.project.value;
+                } else {
+                    return 'Z';
+                }       
             } else if($scope.revisionFieldName === 'starter'){
                 return task.variables.starter.value;
             } else if($scope.revisionFieldName === 'requestedDate'){
@@ -127,12 +157,7 @@ define(['./module','jquery'], function(app,$){
                 return task.variables.validityDate.value;
             } else if($scope.revisionFieldName === 'assignee'){
                 return task.assignee ? task.assignee : task.groupId;
-            }     
-            
-            
-            
-            
-            
+            }
         }
         
         $scope.getInvoiceRegion = function (invoiceNumber) {
