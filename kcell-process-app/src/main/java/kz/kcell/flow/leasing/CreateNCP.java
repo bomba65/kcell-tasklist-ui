@@ -2,6 +2,8 @@ package kz.kcell.flow.leasing;
 
 import org.camunda.bpm.engine.delegate.DelegateExecution;
 import org.camunda.bpm.engine.delegate.JavaDelegate;
+import org.camunda.bpm.engine.impl.util.json.JSONArray;
+import org.camunda.bpm.engine.impl.util.json.JSONObject;
 import org.camunda.spin.SpinList;
 import org.camunda.spin.json.SpinJsonNode;
 import org.postgresql.util.PGobject;
@@ -70,6 +72,9 @@ public class CreateNCP implements JavaDelegate {
                     String createNCPTaskComment = delegateExecution.getVariable("createNCPTaskComment") != null ? delegateExecution.getVariable("createNCPTaskComment").toString() : null;
                     String bandsIdForUDB = delegateExecution.getVariable("bandsIdForUDB") != null ? delegateExecution.getVariable("bandsIdForUDB").toString() : null;
                     String plannedCabinetTypeIdForUDB = delegateExecution.getVariable("plannedCabinetTypeIdForUDB") != null ? delegateExecution.getVariable("plannedCabinetTypeIdForUDB").toString() : null;
+
+                    SpinJsonNode createNewCandidateSiteFilesJSON = JSON(delegateExecution.getVariable("createNewCandidateSiteFiles"));
+                    SpinList createNewCandidateSiteFiles = createNewCandidateSiteFilesJSON.elements();
 
                     Integer reasonInt = null;
                     SpinJsonNode reasonJson = delegateExecution.getVariable("reason") != null ? JSON(delegateExecution.getVariable("reason")) : null;
@@ -1326,6 +1331,25 @@ public class CreateNCP implements JavaDelegate {
 
                     ARTEFACT_TSD_EXIST_PreparedStatement.executeUpdate();
                     log.info("Successfully inserted");
+
+                    // --Create new candidate form files:
+
+//                    for (int j=0; j<createNewCandidateSiteFiles.size(); j++) {
+                    for (int j=0; j<1; j++) {
+                        SpinJsonNode file = (SpinJsonNode) createNewCandidateSiteFiles.get(j);
+                        if (file != null) {
+                            String INSERT_ARTEFACT_RR_FILE = "INSERT INTO ARTEFACT_RR_FILE (FILE_ID, RR_ID, FILENAME, LASTUPDATED) VALUES (ARTEFACT_RR_FILE_SEQ.nextval, ?, ?, ?)";
+                            PreparedStatement ARTEFACT_RR_FILE_PreparedStatement = udbConnect.prepareStatement(INSERT_ARTEFACT_RR_FILE);
+                            log.info("INSERT INTO ARTEFACT_RR_FILE: #" + j + "/" + createNewCandidateSiteFiles.size() + " " + file.prop("name").value().toString());
+
+                            i = 1;
+                            ARTEFACT_RR_FILE_PreparedStatement.setLong(i++, createdArtefactRRId);// RR_ID
+                            ARTEFACT_RR_FILE_PreparedStatement.setString(i++, file.hasProp("name") ? file.prop("name").value().toString() : "");
+                            ARTEFACT_RR_FILE_PreparedStatement.setDate(i++, new java.sql.Date(new Date().getTime())); // INSERT_DATE
+                            ARTEFACT_RR_FILE_PreparedStatement.executeUpdate();
+                            log.info("Successfully inserted");
+                        }
+                    }
 
                     // end KWMS-940
 
