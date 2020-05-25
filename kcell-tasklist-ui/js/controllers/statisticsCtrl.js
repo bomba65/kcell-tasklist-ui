@@ -96,6 +96,44 @@ define(['./module','jquery'], function(app,$){
 				$scope.fieldName = fieldName;
 			}
         };
+
+        $scope.orderByRevisionFieldName = function(revisionFieldName) {
+            if ($scope.revisionFieldName == revisionFieldName) {
+                $scope.revisionReverseOrder = !$scope.revisionReverseOrder;
+            } else {
+                $scope.revisionReverseOrder = false;
+                $scope.revisionFieldName = revisionFieldName;
+            }
+        };
+
+        $scope.orderRevisionFunction = function(task){
+            if($scope.revisionFieldName === 'Region'){
+                return $scope.getJrRegion(task.variables.jrNumber.value);
+            } else if($scope.revisionFieldName === 'site_name'){
+                return task.variables.site_name.value;
+            } else if($scope.revisionFieldName === 'jrNumber'){
+                return task.variables.jrNumber.value;
+            } else if($scope.revisionFieldName === 'contractor'){
+                return $scope.contractorsTitle[task.variables.contractor.value];
+            } else if($scope.revisionFieldName === 'reason'){
+                return $scope.reasonsTitle[task.variables.reason.value];
+            } else if($scope.revisionFieldName === 'project'){
+                return task.variables.project.value;
+            } else if($scope.revisionFieldName === 'starter'){
+                return task.variables.starter.value;
+            } else if($scope.revisionFieldName === 'requestedDate'){
+                return task.variables.requestedDate.value;
+            } else if($scope.revisionFieldName === 'validityDate'){
+                return task.variables.validityDate.value;
+            } else if($scope.revisionFieldName === 'assignee'){
+                return task.assignee ? task.assignee : task.groupId;
+            }     
+            
+            
+            
+            
+            
+        }
         
         $scope.getInvoiceRegion = function (invoiceNumber) {
             if(invoiceNumber.endsWith('-RO-1')){
@@ -782,7 +820,6 @@ define(['./module','jquery'], function(app,$){
                             }
 
                             $scope.totalCounter = newJson;
-                            console.log(tasksByIdAndRegionCounted)
                         });
                 } else if($scope.currentReport === 'invoice-open-tasks'){
                     var processQuery = {
