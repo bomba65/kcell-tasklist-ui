@@ -27,7 +27,7 @@ html(lang:'en') {
     }
     newLine()
     body {
-        p(link)
+        p(a(href: link, link))
     }
 }
 '''
