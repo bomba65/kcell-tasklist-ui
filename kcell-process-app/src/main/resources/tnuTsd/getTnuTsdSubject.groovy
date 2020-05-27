@@ -1,8 +1,10 @@
+package tnuTsd
+
 import org.camunda.bpm.engine.delegate.DelegateExecution
 
 def getSubject(DelegateExecution execution) {
-    def businessKey = (String) execution.getVariable("businessKey")
-    String region_name = delegateTask.getVariable("region_name").toString();
+    def businessKey = execution.businessKey;
+    String region_name = execution.getVariable("region_name").toString();
     Map<String, String> map = new HashMap<>();
     map.put("alm", "Almaty");
     map.put("astana", "Astana");

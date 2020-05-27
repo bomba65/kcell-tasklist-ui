@@ -1,9 +1,17 @@
+package tnuTsd
+
 import groovy.text.markup.MarkupTemplateEngine
 import groovy.text.markup.TemplateConfiguration
+import org.springframework.core.io.ClassPathResource
 
+
+def properties = new Properties()
+properties.load(new ClassPathResource('application.properties').inputStream);
+
+def link =  properties.'asset.url'
 
 def tsdMwId = execution.getVariable("tsdMwId")
-def link = "https://asset.test-flow.kcell.kz/kcell-tasklist-ui/#/assets/tsd/" + tsdMwId
+link = link + "/kcell-tasklist-ui/#/assets/tsd/" + tsdMwId
 
 def binding = [
         "link": link,
