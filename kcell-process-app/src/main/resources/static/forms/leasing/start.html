@@ -38,11 +38,11 @@
                     function(result){
                         angular.extend($scope.dictionary, result.data);
                         $scope.dictionary.rbsTypes = [];
-                        angular.forEach($scope.dictionary.rbsType, function (rbs) {
-                            if($scope.dictionary.rbsTypes.indexOf(rbs.rbsType) < 0){
-                                $scope.dictionary.rbsTypes.push(rbs.rbsType);
-                            }
-                        })
+                        // angular.forEach($scope.dictionary.rbsType, function (rbs) {
+                        //     if($scope.dictionary.rbsTypes.indexOf(rbs.rbsType) < 0){
+                        //         $scope.dictionary.rbsTypes.push(rbs.rbsType);
+                        //     }
+                        // })
                         $scope.bands = $scope.dictionary.bands;
                         $scope.years = $scope.dictionary.part;
                     },
@@ -99,6 +99,16 @@
                     name: 'siteType',
                     type: 'Json',
                     value: $scope.siteType
+                });
+                camForm.variableManager.createVariable({
+                    name: 'rbsType',
+                    type: 'String',
+                    value: $scope.rbsType
+                });
+                camForm.variableManager.createVariable({
+                    name: 'rbsTypeId',
+                    type: 'String',
+                    value: $scope.rbsTypeId
                 });
                 camForm.variableManager.createVariable({
                     name: 'planingInput',
@@ -181,6 +191,11 @@
                     $scope.bandsIdForUDB = $scope.bandsForUDB[$scope.selectedBandsString] ? $scope.bandsForUDB[$scope.selectedBandsString] : null
                 }
             }, true);
+            // $scope.$watch('siteType', function (siteType) {
+            //     $scope.rbsTypeObj = {};
+            //     $scope.dictionary.rbsTypes = $scope.dictionary.rbsType.filter(t => {return t.siteType === siteType.name});
+            //
+            // }, true);
             $scope.preSubmit = function () {
                 var deferred = $q.defer();
                 var tempLat;
@@ -297,6 +312,10 @@
 
             $scope.types = function (rbsType) {
                 return Number(rbsType);
+            }
+            $scope.setRbsType = function (rbsTypeObj) {
+                $scope.rbsType = rbsTypeObj.rbsType;
+                $scope.rbsTypeId = rbsTypeObj.id;
             }
         }]);
 
@@ -432,10 +451,9 @@
             <label class="col-sm-4 control-label">RBS type:</label>
             <div class="col-sm-4">
                 <select class="form-control" id="rbsType" name="rbsType"
-                        cam-variable-name="rbsType" cam-variable-type="String"
-                        ng-model="rbsType" required>
+                        ng-model="rbsTypeObj" ng-change="setRbsType(rbsTypeObj)" required>
                     <option value="" disabled selected hidden>Select RBS type</option>
-                    <option ng-repeat="r in dictionary.rbsTypes | orderBy: types">{{r}}</option>
+                    <option ng-repeat="r in dictionary.rbsType | orderBy: types" ng-value="r">{{r.rbsType + ' - ' + r.siteType}}</option>
                 </select>
                 <label class="error" ng-show="kcell_form.rbsType.$error.required && ( kcell_form.rbsType.$touched || view.submitted)">Required field</label>
             </div>

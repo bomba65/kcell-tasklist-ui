@@ -58,7 +58,6 @@ public class CreateNCP implements JavaDelegate {
                     log.info("Connected to the database!");
 
                     // proc vars
-                    Integer cn_rbs_location = 2;
                     String ncpId = delegateExecution.getVariable("ncpID") != null ? delegateExecution.getVariable("ncpID").toString() : null;
 //                    String region = delegateExecution.getVariable("region").toString(); // not number
                     String longitude = delegateExecution.getVariable("longitude") != null ? delegateExecution.getVariable("longitude").toString() : null;
@@ -68,7 +67,8 @@ public class CreateNCP implements JavaDelegate {
                     String targetCell = delegateExecution.getVariable("createNCPTaskComment") != null ? delegateExecution.getVariable("createNCPTaskComment").toString() : null;
                     String targetCoverage = delegateExecution.getVariable("targetCoverage") != null ? delegateExecution.getVariable("targetCoverage").toString() : null;
                     String regionCode = delegateExecution.getVariable("regionCode") != null ? delegateExecution.getVariable("regionCode").toString() : null;
-                    String rbsType = delegateExecution.getVariable("rbsType") != null ? delegateExecution.getVariable("rbsType").toString() : null;
+                    String rbsType = delegateExecution.getVariable("rbsTypeId") != null ? delegateExecution.getVariable("rbsTypeId").toString() : null;
+                    Integer rbsTypeInt = Integer.parseInt(rbsType);
                     String createNCPTaskComment = delegateExecution.getVariable("createNCPTaskComment") != null ? delegateExecution.getVariable("createNCPTaskComment").toString() : null;
                     String bandsIdForUDB = delegateExecution.getVariable("bandsIdForUDB") != null ? delegateExecution.getVariable("bandsIdForUDB").toString() : null;
                     String plannedCabinetTypeIdForUDB = delegateExecution.getVariable("plannedCabinetTypeIdForUDB") != null ? delegateExecution.getVariable("plannedCabinetTypeIdForUDB").toString() : null;
@@ -147,12 +147,13 @@ public class CreateNCP implements JavaDelegate {
                     String cn_siteName = candidate != null && candidate.hasProp("siteName") && candidate.prop("siteName") != null ? (candidate.prop("siteName").stringValue()) : null;
                     String cn_comments = candidate != null ? (candidate.hasProp("comments") && candidate.prop("comments") != null ? candidate.prop("comments").stringValue() : null) : null;
                     Number cn_square = candidate != null && candidate.hasProp("square") && candidate.prop("square") != null ? (candidate.prop("square").numberValue()) : null;
+                    String cn_rbs_location = candidate != null && candidate.hasProp("rbsLocation") && candidate.prop("rbsLocation") != null && candidate.prop("rbsLocation").hasProp("id") && candidate.prop("rbsLocation").prop("id") != null ? (candidate.prop("rbsLocation").prop("id").value().toString()) : null;
                     String cn_constructionType = candidate != null ? (candidate.hasProp("constructionType") && candidate.prop("constructionType").hasProp("id") ? candidate.prop("constructionType").prop("id").stringValue() : "0") : null;
 
                     Number cn_height_constr = candidate != null && candidate.hasProp("cn_height_constr") ? Integer.parseInt(candidate.prop("cn_height_constr").value().toString()) : 0;
                     Number cn_altitude = candidate != null && candidate.hasProp("cn_altitude") ? Integer.parseInt(candidate.prop("cn_altitude").value().toString()) : 0;
-                    SimpleDateFormat formatter = new SimpleDateFormat("yyyy-dd-MM"); //2020-01-02T18:00:00.000Z
-                    String cn_date_of_visit = candidate != null && candidate.hasProp("dateOfVisit") && candidate.prop("dateOfVisit") != null ? (candidate.prop("dateOfVisit").stringValue().substring(0, 9)) : null;
+                    SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd"); //2020-01-02T18:00:00.000Z
+                    String cn_date_of_visit = candidate != null && candidate.hasProp("dateOfVisit") && candidate.prop("dateOfVisit") != null ? (candidate.prop("dateOfVisit").stringValue().substring(0, 10)) : null;
                     Date date_of_visit = cn_date_of_visit != null ? formatter.parse(cn_date_of_visit) : null;
 
 
@@ -178,7 +179,7 @@ public class CreateNCP implements JavaDelegate {
                     String fe_constructionType = fe != null && fe.hasProp("constructionType") && fe.prop("constructionType") != null ? (fe.prop("constructionType").hasProp("id") ? fe.prop("constructionType").prop("id").stringValue() : null) : null;
                     String fe_sitename = fe != null && fe.hasProp("farEndName") && fe.prop("farEndName") != null ? fe.prop("farEndName").stringValue() : null;
                     String fe_comment = fe != null && fe.hasProp("comments") && fe.prop("comments") != null ? fe.prop("comments").stringValue() : null;
-                    String fe_survey_date = fe != null && fe.hasProp("surveyDate") && fe.prop("surveyDate") != null ? (fe.prop("surveyDate").stringValue().substring(0, 9)) : null;
+                    String fe_survey_date = fe != null && fe.hasProp("surveyDate") && fe.prop("surveyDate") != null ? (fe.prop("surveyDate").stringValue().substring(0, 10)) : null;
                     Date fe_formated_survey_date = fe_survey_date != null ? formatter.parse(fe_survey_date) : null;
 
                     String fe_legal_name = fe != null && fe.hasProp("renterCompany") && fe.prop("renterCompany").hasProp("legalName") ? fe.prop("renterCompany").prop("legalName").value().toString() : null;
@@ -291,8 +292,8 @@ public class CreateNCP implements JavaDelegate {
                     preparedStatement.setDate(i++, new java.sql.Date(new Date().getTime())); // DATEOFINSERT
                     preparedStatement.setString(i++, createNCPTaskComment); // COMMENTS
                     Integer plannedCabinetTypeIdForUDBInt = Integer.parseInt(plannedCabinetTypeIdForUDB);
-                    if (plannedCabinetTypeIdForUDBInt != null) {
-                        preparedStatement.setLong(i++, plannedCabinetTypeIdForUDBInt); // CABINETID
+                    if (rbsTypeInt != null) {
+                        preparedStatement.setLong(i++, rbsTypeInt); // CABINETID
                     } else {
                         preparedStatement.setNull(i++, Types.BIGINT);
                     }
@@ -371,10 +372,26 @@ public class CreateNCP implements JavaDelegate {
                     log.info("createdArtefactId:");
                     log.info(createdArtefactId.toString());
 
+                    //update ncp_creation (set candidate_id)
+
+                    //UPDATE ARTEFACT
+                    log.info("update NCP_CREATION set CANDIDATE_ID...");
+                    String UPDATENCP = "update NCP_CREATION set CANDIDATE_ID = ? where ARTEFACTID = ?";
+                    PreparedStatement updatePreparedStatement = udbConnect.prepareStatement(UPDATENCP);
+
+                    i = 1;
+                    // set values to update
+                    updatePreparedStatement.setLong(i++, createdArtefactId); // NCPID
+                    updatePreparedStatement.setLong(i++, ncpCreatedId); // NCPID
+
+                    updatePreparedStatement.executeUpdate();
+                    log.info("successfull updated database!");
+
                     //insert new Candidate (in ARTEFACT_CURRENT_STATE table)
                     String insertNewArtefactCurrentState = "INSERT INTO ARTEFACT_CURRENT_STATE (ARTEFACTID,\n" +
                         "                                                        NCPID,\n" +
                         "                                                        RSD_EXIST,\n" +
+                        "                                                        TSD_EXIST,\n" +
                         "                                                        CAND_STATUS,\n" +
                         "                                                        CAND_STATUS_PERSON,\n" +
                         "                                                        CAND_STATUS_DATE,\n" +
@@ -396,7 +413,7 @@ public class CreateNCP implements JavaDelegate {
                         "                                                        INSERT_DATE,\n" +
                         "                                                        INSERT_PERSON,\n" +
                         "                                                        GS_STATUS,\n" +
-                        "                                                        PL_COMMENTS) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                        "                                                        PL_COMMENTS) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
                     PreparedStatement newArtefactCurrentStatePreparedStatement = udbConnect.prepareStatement(insertNewArtefactCurrentState);
 
                     i = 1;
@@ -414,6 +431,7 @@ public class CreateNCP implements JavaDelegate {
 
                     }
                     newArtefactCurrentStatePreparedStatement.setLong(i++, 0); // RSD_EXIST first insert value mast be = 1
+                    newArtefactCurrentStatePreparedStatement.setLong(i++, 0); // TSD_EXIST first insert value mast be = 1
                     newArtefactCurrentStatePreparedStatement.setLong(i++, 1); // CAND_STATUS first insert value mast be = 1
 
                     newArtefactCurrentStatePreparedStatement.setString(i++, starter); // CAND_STATUS_PERSON (current user) // current or start ?????? (who complete create candidate task?)
@@ -423,7 +441,6 @@ public class CreateNCP implements JavaDelegate {
                     newArtefactCurrentStatePreparedStatement.setDate(i++, new java.sql.Date(new Date().getTime())); // RR_STATUS_DATE
                     newArtefactCurrentStatePreparedStatement.setString(i++, cn_longitude); // LONGITUDE ex: E 80 50 42,4
                     newArtefactCurrentStatePreparedStatement.setString(i++, cn_latitude); // LATITUDE ex: N 48 48 05,6
-                    Integer rbsTypeInt = Integer.parseInt(rbsType);
                     if (rbsTypeInt != null) {
                         newArtefactCurrentStatePreparedStatement.setLong(i++, rbsTypeInt); // RBS_TYPE (cn_rbs_type)
                     } else {
@@ -441,7 +458,8 @@ public class CreateNCP implements JavaDelegate {
                         newArtefactCurrentStatePreparedStatement.setNull(i++, Types.BIGINT);
                     }
                     if (cn_rbs_location != null) {
-                        newArtefactCurrentStatePreparedStatement.setLong(i++, cn_rbs_location); // RBS_LOCATION (cn_rbs_location) //
+                        Integer cn_rbs_location_int = Integer.parseInt(cn_rbs_location);
+                        newArtefactCurrentStatePreparedStatement.setLong(i++, cn_rbs_location_int); // RBS_LOCATION (cn_rbs_location) //
                     } else {
                         newArtefactCurrentStatePreparedStatement.setNull(i++, Types.BIGINT);
                     }
@@ -465,7 +483,8 @@ public class CreateNCP implements JavaDelegate {
                     newArtefactCurrentStatePreparedStatement.setString(i++, renterCompany != null ? ((renterCompany.hasProp("contactInfo") && !renterCompany.prop("contactInfo").equals(null) ? renterCompany.prop("contactInfo").stringValue() : "")) : null); // COMMENTS (cn_contact_information)
                     newArtefactCurrentStatePreparedStatement.setDate(i++, new java.sql.Date(new Date().getTime())); // INSERT_DATE
                     newArtefactCurrentStatePreparedStatement.setString(i++, starter); // INSERT_PERSON
-                    newArtefactCurrentStatePreparedStatement.setLong(i++, 7); // GS_STATUS
+//                    newArtefactCurrentStatePreparedStatement.setLong(i++, 7); // GS_STATUS
+                    newArtefactCurrentStatePreparedStatement.setNull(i++, Types.BIGINT); //GS_STATUS
                     newArtefactCurrentStatePreparedStatement.setString(i++, cn_comments); // PL_COMMENTS (cn_comments)
                     log.info("newArtefactCurrentStatePreparedStatement.executeUpdate()");
                     newArtefactCurrentStatePreparedStatement.executeUpdate();
@@ -518,7 +537,11 @@ public class CreateNCP implements JavaDelegate {
                         newArtefactRSDPreparedStatement.setNull(i++, Types.BIGINT);
                     }
                     newArtefactRSDPreparedStatement.setDate(i++, new java.sql.Date(new Date().getTime())); // INSERT_DATE
-                    newArtefactRSDPreparedStatement.setDate(i++, date_of_visit != null ? new java.sql.Date(date_of_visit.getTime()) : null); // DATE OF VISIT (cn_date_visit)
+                    if (date_of_visit != null) {
+                        newArtefactRSDPreparedStatement.setDate(i++, new java.sql.Date(date_of_visit.getTime())); //DATE OF VISIT (cn_date_visit)
+                    } else {
+                        newArtefactRSDPreparedStatement.setNull(i++, Types.DATE);
+                    }
                     newArtefactRSDPreparedStatement.setString(i++, contact_person); //CONTACTPERSON
                     newArtefactRSDPreparedStatement.setString(i++, cn_comments); //COMMENTS
                     newArtefactRSDPreparedStatement.setLong(i++, 2); //STATE
@@ -555,7 +578,12 @@ public class CreateNCP implements JavaDelegate {
                     } else {
                         newArtefactRRPreparedStatement.setNull(i++, Types.BIGINT);
                     }
-                    newArtefactRRPreparedStatement.setDate(i++, date_of_visit != null ? new java.sql.Date(date_of_visit.getTime()) : null); // DATEOFVISIT
+//                    newArtefactRRPreparedStatement.setDate(i++, date_of_visit != null ? new java.sql.Date(date_of_visit.getTime()) : null); // DATEOFVISIT
+                    if (date_of_visit != null) {
+                        newArtefactRRPreparedStatement.setDate(i++, new java.sql.Date(date_of_visit.getTime())); //DATE OF VISIT (cn_date_visit)
+                    } else {
+                        newArtefactRRPreparedStatement.setNull(i++, Types.DATE);
+                    }
                     newArtefactRRPreparedStatement.setString(i++, cn_address); //ADDRESS
                     newArtefactRRPreparedStatement.setString(i++, latitude); //LATITUDE
                     newArtefactRRPreparedStatement.setString(i++, longitude); //LONGITUDE
@@ -577,7 +605,8 @@ public class CreateNCP implements JavaDelegate {
                     }
                     newArtefactRRPreparedStatement.setString(i++, bandsIdForUDB); //BAND
                     if (cn_rbs_location != null) {
-                        newArtefactRRPreparedStatement.setLong(i++, cn_rbs_location); //RBS_LOCATION
+                        Integer cn_rbs_location_int = Integer.parseInt(cn_rbs_location);
+                        newArtefactRRPreparedStatement.setLong(i++, cn_rbs_location_int); //RBS_LOCATION
                     } else {
                         newArtefactRRPreparedStatement.setNull(i++, Types.BIGINT);
                     }
@@ -844,7 +873,7 @@ public class CreateNCP implements JavaDelegate {
                         newArtefactExtTSDPreparedStatement.setString(i++, fe_comment); // COMMENTS
                     }
                     if (fe_artefact_id != null && fe_artefact_id.longValue() > 0) {
-                        newArtefactExtTSDPreparedStatement.setLong(i++, fe_artefact_id.longValue()); // COMMENTS
+                        newArtefactExtTSDPreparedStatement.setLong(i++, fe_artefact_id.longValue()); // fe_artefact_id
                     }
                     log.info("newArtefactExtTSDPreparedStatement.executeUpdate()");
                     newArtefactExtTSDPreparedStatement.executeUpdate();
@@ -998,12 +1027,12 @@ public class CreateNCP implements JavaDelegate {
                     } else {
                         ARTEFACT_RR_RENTER_FE_PreparedStatement.setNull(i++, Types.VARCHAR);
                     }
-                    if (fe_phone_fax != null) {
-                        ARTEFACT_RR_RENTER_FE_PreparedStatement.setString(i++, fe_legal_address ); // LEGAL_ADDRESS
+                    if (fe_address != null) {
+                        ARTEFACT_RR_RENTER_FE_PreparedStatement.setString(i++, fe_address ); // LEGAL_ADDRESS
                     } else {
                         ARTEFACT_RR_RENTER_FE_PreparedStatement.setNull(i++, Types.VARCHAR);
                     }
-                    if (fe_address != null) {
+                    if (fe_phone_fax != null) {
                         ARTEFACT_RR_RENTER_FE_PreparedStatement.setString(i++, fe_phone_fax); // PHONE_FAX
                     } else {
                         ARTEFACT_RR_RENTER_FE_PreparedStatement.setNull(i++, Types.VARCHAR);
@@ -1134,7 +1163,8 @@ public class CreateNCP implements JavaDelegate {
                     }
 
                     if (fe_constructionType != null) {
-                        ARTEFACT_RR_TR_PreparedStatement.setLong(i++, Integer.parseInt(fe_constructionType)); // CONSTR_TYPE
+//                        ARTEFACT_RR_TR_PreparedStatement.setLong(i++, Integer.parseInt(fe_constructionType)); // CONSTR_TYPE
+                        ARTEFACT_RR_TR_PreparedStatement.setLong(i++, 141); // CONSTR_TYPE
                     } else {
                         ARTEFACT_RR_TR_PreparedStatement.setNull(i++, Types.INTEGER);
                     }
@@ -1250,74 +1280,73 @@ public class CreateNCP implements JavaDelegate {
 
                     i = 1;
                     ARTEFACT_RSD_EXIST_PreparedStatement.setLong(i++, createdArtefactRSDId);// RSDID
-                    ARTEFACT_RSD_EXIST_PreparedStatement.setLong(i++, 1);// RSD_EXIST
+                    ARTEFACT_RSD_EXIST_PreparedStatement.setLong(i++, 0);// RSD_EXIST
                     ARTEFACT_RSD_EXIST_PreparedStatement.setLong(i++, createdArtefactId);// ARTEFACTID
 
                     ARTEFACT_RSD_EXIST_PreparedStatement.executeUpdate();
                     log.info("Successfully inserted");
 
-
 // --ARTEFACT_RSD_HISTORY
-                    Long createdRsdHistoryId = null;
-                    String rsdHistoryId[] = {"ID"};
-                    String INSERT_ARTEFACT_RSD_HISTORY = "INSERT INTO ARTEFACT_RSD_HISTORY (ID, RSDID, ARTEFACTID, BSCID, ALTITUDE, CNSTRTYPEID, TOWERTYPEID, HEIGHT, DATEOFINSERT, DATEOFVISIT, PLANNER, CONTACTPERSON, COMMENTS, LASTEDITOR, RBSID, SITE_TYPE, PLANNING_TARGET) VALUES (SEQ_ARTEFACT_RSD_HISTORY.nextval, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";//(5361, 4701, 167, 1131, 10, null, 6, TO_DATE('2009-05-18 15:53:24', 'YYYY-MM-DD HH24:MI:SS'), TO_DATE('2009-05-15 00:00:00', 'YYYY-MM-DD HH24:MI:SS'), 'VITALIY.CHERNIKOV', null, 'Contaiter, poles (3m) on container, all antennas must be installed on poles. ', null, null, TO_DATE('2009-08-07 12:03:07', 'YYYY-MM-DD HH24:MI:SS'), 'VIKTOR.MAXIMENKO', ' ', 565, null, null, null, null, null, null);
-                    PreparedStatement ARTEFACT_RSD_HISTORY_PreparedStatement = udbConnect.prepareStatement(INSERT_ARTEFACT_RSD_HISTORY, rsdHistoryId);
-                    log.info("INSERT INTO ARTEFACT_RSD_HISTORY preparedStatement SQL UPDATE VALUES");
-
-                    i = 1;
-                    ARTEFACT_RSD_HISTORY_PreparedStatement.setLong(i++, createdArtefactRSDId);// RSDID
-                    ARTEFACT_RSD_HISTORY_PreparedStatement.setLong(i++, createdArtefactId);// ARTEFACTID
-                    if (cn_bscInt != null) {
-                        ARTEFACT_RSD_HISTORY_PreparedStatement.setLong(i++, cn_bscInt); //BSCID
-                    } else {
-                        ARTEFACT_RSD_HISTORY_PreparedStatement.setNull(i++, Types.BIGINT);
-                    }
-                    if (cn_altitude != null) {
-                        ARTEFACT_RSD_HISTORY_PreparedStatement.setLong(i++, cn_altitude.longValue()); // ALTITUDE (cn_altitude)
-                    } else {
-                        ARTEFACT_RSD_HISTORY_PreparedStatement.setNull(i++, Types.BIGINT);
-                    }
-                    if (cn_constructionType != null) {
-                        ARTEFACT_RSD_HISTORY_PreparedStatement.setLong(i++, Integer.parseInt(cn_constructionType)); //CNSTRTYPEID
-                    } else {
-                        ARTEFACT_RSD_HISTORY_PreparedStatement.setNull(i++, Types.BIGINT);
-                    }
-                    ARTEFACT_RSD_HISTORY_PreparedStatement.setNull(i++, Types.BIGINT); // TOWERTYPEID
-                    if (cn_height_constr != null) {
-                        ARTEFACT_RSD_HISTORY_PreparedStatement.setLong(i++, cn_height_constr.longValue()); // CONSTRUCTION_HEIGHT (cn_height_constr)
-                    } else {
-                        ARTEFACT_RSD_HISTORY_PreparedStatement.setNull(i++, Types.BIGINT);
-                    }
-                    ARTEFACT_RSD_HISTORY_PreparedStatement.setDate(i++, new java.sql.Date(new Date().getTime())); // INSERT_DATE
-                    if (date_of_visit != null) {
-                        ARTEFACT_RSD_HISTORY_PreparedStatement.setDate(i++, new java.sql.Date(date_of_visit.getTime())); //DATE OF VISIT (cn_date_visit)
-                    } else {
-                        ARTEFACT_RSD_HISTORY_PreparedStatement.setNull(i++, Types.DATE);
-                    }
-                    ARTEFACT_RSD_HISTORY_PreparedStatement.setString(i++, starter); // starter need change to current user // PLANNER
-                    ARTEFACT_RSD_HISTORY_PreparedStatement.setString(i++, contact_person); //CONTACTPERSON
-                    ARTEFACT_RSD_HISTORY_PreparedStatement.setString(i++, cn_comments); // PL_COMMENTS (cn_comments)
-                    ARTEFACT_RSD_HISTORY_PreparedStatement.setString(i++, starter); // starter need change to current user // LASTEDITOR
-                    if (rbsTypeInt != null) {
-                        ARTEFACT_RSD_HISTORY_PreparedStatement.setLong(i++, rbsTypeInt); //RBSID
-                    } else {
-                        ARTEFACT_RSD_HISTORY_PreparedStatement.setNull(i++, Types.BIGINT);
-                    }
-                    if (siteTypeInt != null) {
-                        ARTEFACT_RSD_HISTORY_PreparedStatement.setLong(i++, siteTypeInt); //SITE_TYPE
-                    } else {
-                        ARTEFACT_RSD_HISTORY_PreparedStatement.setNull(i++, Types.BIGINT);
-                    }
-                    ARTEFACT_RSD_HISTORY_PreparedStatement.setString(i++, targetCoverage); // PLANNING_TARGET
-
-                    ARTEFACT_RSD_HISTORY_PreparedStatement.executeUpdate();
-                    log.info("Successfully inserted");
-
-                    ResultSet createdRsdHistoryIdResultSet = ARTEFACT_RSD_HISTORY_PreparedStatement.getGeneratedKeys();
-                    createdRsdHistoryIdResultSet.next();
-                    createdRsdHistoryId = createdRsdHistoryIdResultSet.getLong(1);
-                    log.info("createdRsdHistoryId:");
-                    log.info(createdRsdHistoryId.toString());
+//                    Long createdRsdHistoryId = null;
+//                    String rsdHistoryId[] = {"ID"};
+//                    String INSERT_ARTEFACT_RSD_HISTORY = "INSERT INTO ARTEFACT_RSD_HISTORY (ID, RSDID, ARTEFACTID, BSCID, ALTITUDE, CNSTRTYPEID, TOWERTYPEID, HEIGHT, DATEOFINSERT, DATEOFVISIT, PLANNER, CONTACTPERSON, COMMENTS, LASTEDITOR, RBSID, SITE_TYPE, PLANNING_TARGET) VALUES (SEQ_ARTEFACT_RSD_HISTORY.nextval, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";//(5361, 4701, 167, 1131, 10, null, 6, TO_DATE('2009-05-18 15:53:24', 'YYYY-MM-DD HH24:MI:SS'), TO_DATE('2009-05-15 00:00:00', 'YYYY-MM-DD HH24:MI:SS'), 'VITALIY.CHERNIKOV', null, 'Contaiter, poles (3m) on container, all antennas must be installed on poles. ', null, null, TO_DATE('2009-08-07 12:03:07', 'YYYY-MM-DD HH24:MI:SS'), 'VIKTOR.MAXIMENKO', ' ', 565, null, null, null, null, null, null);
+//                    PreparedStatement ARTEFACT_RSD_HISTORY_PreparedStatement = udbConnect.prepareStatement(INSERT_ARTEFACT_RSD_HISTORY, rsdHistoryId);
+//                    log.info("INSERT INTO ARTEFACT_RSD_HISTORY preparedStatement SQL UPDATE VALUES");
+//
+//                    i = 1;
+//                    ARTEFACT_RSD_HISTORY_PreparedStatement.setLong(i++, createdArtefactRSDId);// RSDID
+//                    ARTEFACT_RSD_HISTORY_PreparedStatement.setLong(i++, createdArtefactId);// ARTEFACTID
+//                    if (cn_bscInt != null) {
+//                        ARTEFACT_RSD_HISTORY_PreparedStatement.setLong(i++, cn_bscInt); //BSCID
+//                    } else {
+//                        ARTEFACT_RSD_HISTORY_PreparedStatement.setNull(i++, Types.BIGINT);
+//                    }
+//                    if (cn_altitude != null) {
+//                        ARTEFACT_RSD_HISTORY_PreparedStatement.setLong(i++, cn_altitude.longValue()); // ALTITUDE (cn_altitude)
+//                    } else {
+//                        ARTEFACT_RSD_HISTORY_PreparedStatement.setNull(i++, Types.BIGINT);
+//                    }
+//                    if (cn_constructionType != null) {
+//                        ARTEFACT_RSD_HISTORY_PreparedStatement.setLong(i++, Integer.parseInt(cn_constructionType)); //CNSTRTYPEID
+//                    } else {
+//                        ARTEFACT_RSD_HISTORY_PreparedStatement.setNull(i++, Types.BIGINT);
+//                    }
+//                    ARTEFACT_RSD_HISTORY_PreparedStatement.setNull(i++, Types.BIGINT); // TOWERTYPEID
+//                    if (cn_height_constr != null) {
+//                        ARTEFACT_RSD_HISTORY_PreparedStatement.setLong(i++, cn_height_constr.longValue()); // CONSTRUCTION_HEIGHT (cn_height_constr)
+//                    } else {
+//                        ARTEFACT_RSD_HISTORY_PreparedStatement.setNull(i++, Types.BIGINT);
+//                    }
+//                    ARTEFACT_RSD_HISTORY_PreparedStatement.setDate(i++, new java.sql.Date(new Date().getTime())); // INSERT_DATE
+//                    if (date_of_visit != null) {
+//                        ARTEFACT_RSD_HISTORY_PreparedStatement.setDate(i++, new java.sql.Date(date_of_visit.getTime())); //DATE OF VISIT (cn_date_visit)
+//                    } else {
+//                        ARTEFACT_RSD_HISTORY_PreparedStatement.setNull(i++, Types.DATE);
+//                    }
+//                    ARTEFACT_RSD_HISTORY_PreparedStatement.setString(i++, starter); // starter need change to current user // PLANNER
+//                    ARTEFACT_RSD_HISTORY_PreparedStatement.setString(i++, contact_person); //CONTACTPERSON
+//                    ARTEFACT_RSD_HISTORY_PreparedStatement.setString(i++, cn_comments); // PL_COMMENTS (cn_comments)
+//                    ARTEFACT_RSD_HISTORY_PreparedStatement.setString(i++, starter); // starter need change to current user // LASTEDITOR
+//                    if (rbsTypeInt != null) {
+//                        ARTEFACT_RSD_HISTORY_PreparedStatement.setLong(i++, rbsTypeInt); //RBSID
+//                    } else {
+//                        ARTEFACT_RSD_HISTORY_PreparedStatement.setNull(i++, Types.BIGINT);
+//                    }
+//                    if (siteTypeInt != null) {
+//                        ARTEFACT_RSD_HISTORY_PreparedStatement.setLong(i++, siteTypeInt); //SITE_TYPE
+//                    } else {
+//                        ARTEFACT_RSD_HISTORY_PreparedStatement.setNull(i++, Types.BIGINT);
+//                    }
+//                    ARTEFACT_RSD_HISTORY_PreparedStatement.setString(i++, targetCoverage); // PLANNING_TARGET
+//
+//                    ARTEFACT_RSD_HISTORY_PreparedStatement.executeUpdate();
+//                    log.info("Successfully inserted");
+//
+//                    ResultSet createdRsdHistoryIdResultSet = ARTEFACT_RSD_HISTORY_PreparedStatement.getGeneratedKeys();
+//                    createdRsdHistoryIdResultSet.next();
+//                    createdRsdHistoryId = createdRsdHistoryIdResultSet.getLong(1);
+//                    log.info("createdRsdHistoryId:");
+//                    log.info(createdRsdHistoryId.toString());
 
                     // --ARTEFACT_TSD_EXIST
                     String INSERT_ARTEFACT_TSD_EXIST = "INSERT INTO ARTEFACT_TSD_EXIST (TSDID, TSD_EXIST, ARTEFACTID) VALUES (?, ?, ?)";  //ARTEFACT_TSD_EXIST_, 1, 10373);"
@@ -1326,11 +1355,13 @@ public class CreateNCP implements JavaDelegate {
 
                     i = 1;
                     ARTEFACT_TSD_EXIST_PreparedStatement.setLong(i++, createdArtefactExtTSDId);// TSDID
-                    ARTEFACT_TSD_EXIST_PreparedStatement.setLong(i++, 1);
+                    ARTEFACT_TSD_EXIST_PreparedStatement.setLong(i++, 0);
                     ARTEFACT_TSD_EXIST_PreparedStatement.setLong(i++, createdArtefactId);// ARTEFACTID
 
                     ARTEFACT_TSD_EXIST_PreparedStatement.executeUpdate();
                     log.info("Successfully inserted");
+
+                    // end KWMS-940
 
                     // --Create new candidate form files:
 
@@ -1351,7 +1382,27 @@ public class CreateNCP implements JavaDelegate {
                         }
                     }
 
-                    // end KWMS-940
+                    // --ARTEFACT_TSD_LEASING_ACTION
+                    log.info("INSERT INTO ARTEFACT_TSD_LEASING_ACTION preparedStatement SQL UPDATE VALUES");log.info("INSERT INTO ARTEFACT_TSD_LEASING_ACTION preparedStatement SQL UPDATE VALUES");
+                    Long tsdLeasingActionId = null;
+                    String tsdLeasingAction[] = {"LEASING_STATUS_ACTION_ID"};
+                    String INSERT_ARTEFACT_TSD_LEASING_ACTION = "INSERT INTO ARTEFACT_TSD_LEASING_ACTION (LEASING_STATUS_ACTION_ID, ARTEFACTID, LEASING_STATUS_ID, INSERTDATE) VALUES (ARTEFACT_TSD_LEASING_ACTI_SEQ.nextval, ?, ?, ?)";
+                    PreparedStatement ARTEFACT_TSD_LEASING_ACTION_PreparedStatement = udbConnect.prepareStatement(INSERT_ARTEFACT_TSD_LEASING_ACTION, tsdLeasingAction);
+
+
+                    i = 1;
+                    ARTEFACT_TSD_LEASING_ACTION_PreparedStatement.setLong(i++, createdArtefactId);// RR_ID
+                    ARTEFACT_TSD_LEASING_ACTION_PreparedStatement.setLong(i++, 1);// status
+                    ARTEFACT_TSD_LEASING_ACTION_PreparedStatement.setDate(i++, new java.sql.Date(new Date().getTime())); // INSERT_DATE
+
+                    ARTEFACT_TSD_LEASING_ACTION_PreparedStatement.executeUpdate();
+                    log.info("Successfully inserted");
+
+                    ResultSet tsdLeasingActionIdResultSet = ARTEFACT_TSD_LEASING_ACTION_PreparedStatement.getGeneratedKeys();
+                    tsdLeasingActionIdResultSet.next();
+                    tsdLeasingActionId = tsdLeasingActionIdResultSet.getLong(1);
+                    log.info("tsdLeasingActionId:");
+                    log.info(tsdLeasingActionId.toString());
 
                     udbConnect.commit();
                     delegateExecution.setVariable("ncpCreatedId", ncpCreatedId);
@@ -1368,7 +1419,8 @@ public class CreateNCP implements JavaDelegate {
                     delegateExecution.setVariable("createdArtefactRrRenterFeId", createdArtefactRrRenterFeId);
                     delegateExecution.setVariable("createdArtefactRrTrId", createdArtefactRrTrId);
                     delegateExecution.setVariable("createdTrAntennaId", createdTrAntennaId);
-                    delegateExecution.setVariable("createdRsdHistoryId", createdRsdHistoryId);
+//                    delegateExecution.setVariable("createdRsdHistoryId", createdRsdHistoryId);
+                    delegateExecution.setVariable("tsdLeasingAction", tsdLeasingAction);
                     udbConnect.close();
                     log.warning("udbConnection closed!");
                 } else {

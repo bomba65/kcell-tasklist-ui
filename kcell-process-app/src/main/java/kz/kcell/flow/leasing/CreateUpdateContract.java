@@ -79,10 +79,10 @@ public class CreateUpdateContract implements JavaDelegate {
 
                             contractid = ci.hasProp("ct_contractid") ? ci.prop("ct_contractid").value().toString() : "";
                             String ct_acquisitionType = ci.prop("ct_acquisitionType").stringValue();
-                            SimpleDateFormat formatter = new SimpleDateFormat("yyyy-dd-MM"); //2020-01-02T18:00:00.000Z
-                            String ct_acceptance_act_date = ci.prop("ct_acceptance_act_date").stringValue().substring(0,9);
-                            String ct_contract_start_date = ci.prop("ct_contract_start_date").stringValue().substring(0,9);
-                            String ct_contract_end_date = ci.prop("ct_contract_end_date").stringValue().substring(0,9);
+                            SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd"); //2020-01-02T18:00:00.000Z
+                            String ct_acceptance_act_date = ci.prop("ct_acceptance_act_date").stringValue().substring(0,10);
+                            String ct_contract_start_date = ci.prop("ct_contract_start_date").stringValue().substring(0,10);
+                            String ct_contract_end_date = ci.prop("ct_contract_end_date").stringValue().substring(0,10);
 
                             if(_CONTRACT_APPROVAL_TYPE.equals("FE")){
                                 String ct_fe_sitename = ci.prop("ct_sitename").value().toString();
@@ -256,9 +256,9 @@ public class CreateUpdateContract implements JavaDelegate {
                                 //INSERT_CONTRACTS
                                 String INSERT_CONTRACTS = "";
                                 if (ct_acquisitionType.equals("existingContract")) {
-                                    INSERT_CONTRACTS = "INSERT INTO CONTRACTS (CID, OLD_CID, RENTSUM, RENTAREA, CONTRACTID, INCOMINGDATE, INCOMINGWEEK, CONTRACTTYPE, POWERSUPPLY, LEGALTYPE, LEGALNAME, LEGALADDRESS, CONTACTPERSON, CONTACTPHONE, ACCESS_STATUS, CONTRACT_SAP_NO, VENDOR_SAP_NO, CONTRACT_EXECUTOR, NEEDVAT, PAYMENTPERIOD, PAYMENTWAY, CONTRACTSTARTDATE, CONTRACTENDDATE, AUTOPROLONGATION, USERNAME, AREA_ACT_ACCEPT_DATE, RNN, IBAN, BANK_ID) VALUES (CONTRACTS_SEQ.nextval, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                                    INSERT_CONTRACTS = "INSERT INTO CONTRACTS (CID, OLD_CID, RENTSUM, RENTAREA, CONTRACTID, INCOMINGDATE, INCOMINGWEEK, CONTRACTTYPE, POWERSUPPLY, LEGALTYPE, LEGALNAME, LEGALADDRESS, CONTACTPERSON, CONTACTPHONE, ACCESS_STATUS, CONTRACT_SAP_NO, VENDOR_SAP_NO, CONTRACT_EXECUTOR, NEEDVAT, PAYMENTPERIOD, PAYMENTWAY, CONTRACTSTARTDATE, CONTRACTENDDATE, AUTOPROLONGATION, USERNAME, AREA_ACT_ACCEPT_DATE, RNN, INN, IBAN, BANK_ID) VALUES (CONTRACTS_SEQ.nextval, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
                                 } else {
-                                    INSERT_CONTRACTS = "INSERT INTO CONTRACTS (CID, RENTSUM, RENTAREA, CONTRACTID, INCOMINGDATE, INCOMINGWEEK, CONTRACTTYPE, POWERSUPPLY, LEGALTYPE, LEGALNAME, LEGALADDRESS, CONTACTPERSON, CONTACTPHONE, ACCESS_STATUS, CONTRACT_SAP_NO, VENDOR_SAP_NO, CONTRACT_EXECUTOR, NEEDVAT, PAYMENTPERIOD, PAYMENTWAY, CONTRACTSTARTDATE, CONTRACTENDDATE, AUTOPROLONGATION, USERNAME, AREA_ACT_ACCEPT_DATE, RNN, IBAN, BANK_ID) VALUES (CONTRACTS_SEQ.nextval, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                                    INSERT_CONTRACTS = "INSERT INTO CONTRACTS (CID, RENTSUM, RENTAREA, CONTRACTID, INCOMINGDATE, INCOMINGWEEK, CONTRACTTYPE, POWERSUPPLY, LEGALTYPE, LEGALNAME, LEGALADDRESS, CONTACTPERSON, CONTACTPHONE, ACCESS_STATUS, CONTRACT_SAP_NO, VENDOR_SAP_NO, CONTRACT_EXECUTOR, NEEDVAT, PAYMENTPERIOD, PAYMENTWAY, CONTRACTSTARTDATE, CONTRACTENDDATE, AUTOPROLONGATION, USERNAME, AREA_ACT_ACCEPT_DATE, RNN, INN, IBAN, BANK_ID) VALUES (CONTRACTS_SEQ.nextval, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
                                 }
 
                                 PreparedStatement INSERT_CONTRACTSPreparedStatement = udbConnect.prepareStatement(INSERT_CONTRACTS, returnStatus);
@@ -293,7 +293,7 @@ public class CreateUpdateContract implements JavaDelegate {
                                 INSERT_CONTRACTSPreparedStatement.setString(i++, starter);  // USERNAME
                                 INSERT_CONTRACTSPreparedStatement.setDate(i++, new java.sql.Date(new Date().getTime()));  // AREA_ACT_ACCEPT_DATE
                                 INSERT_CONTRACTSPreparedStatement.setString(i++, ct_bin);  // RNN
-//                                INSERT_CONTRACTSPreparedStatement.setString(i++, ct_bin);  // INN ??
+                                INSERT_CONTRACTSPreparedStatement.setString(i++, ct_bin);  // INN ??
                                 INSERT_CONTRACTSPreparedStatement.setString(i++, ct_iban);  // IBAN
                                 INSERT_CONTRACTSPreparedStatement.setLong(i++, ct_bank_id.longValue());  // BANK_ID
                                 // bank_id ct_bankname
@@ -380,7 +380,7 @@ public class CreateUpdateContract implements JavaDelegate {
                                 String ct_aa_date = "";
 
                                 if (ci.hasProp("ct_aa_date") && !ci.prop("ct_aa_date").isNull()) {
-                                    ct_aa_date = ci.prop("ct_aa_date").stringValue().substring(0,9);
+                                    ct_aa_date = ci.prop("ct_aa_date").stringValue().substring(0,10);
                                     formated_ct_aa_date = formatter.parse(ct_aa_date);
                                 }
 

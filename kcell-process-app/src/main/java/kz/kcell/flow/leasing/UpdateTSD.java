@@ -71,8 +71,8 @@ public class UpdateTSD implements JavaDelegate {
                     String fe_sitename = fe.prop("farEndName").stringValue();
                     String fe_comment = fe.prop("comments").stringValue();
 
-                    SimpleDateFormat formatter = new SimpleDateFormat("yyyy-dd-MM"); //2020-01-02T18:00:00.000Z
-                    String fe_survey_date = fe.prop("surveyDate").stringValue().substring(0,9);
+                    SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd"); //2020-01-02T18:00:00.000Z
+                    String fe_survey_date = fe.prop("surveyDate").stringValue().substring(0,10);
                     Date fe_formated_survey_date = formatter.parse(fe_survey_date);
 
                     String fe_address = "" + (fe.prop("address").hasProp("cn_addr_oblast") ? fe.prop("address").prop("cn_addr_oblast").stringValue() : "") +

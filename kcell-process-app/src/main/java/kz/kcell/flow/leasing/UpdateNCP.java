@@ -49,10 +49,10 @@ public class UpdateNCP implements JavaDelegate {
                     log.info("Connected to the database!");
 
                     // proc vars
-                    Integer cn_rbs_location = 2;
+//                    Integer cn_rbs_location = 2;
 
                     //generated vars
-//                    Long ncpCreatedId = delegateExecution.getVariable("ncpCreatedId") != null ? (Long) delegateExecution.getVariable("ncpCreatedId") : null;
+                    Long ncpCreatedId = delegateExecution.getVariable("ncpCreatedId") != null ? (Long) delegateExecution.getVariable("ncpCreatedId") : null;
 //                    Long createdNcpStatusId = delegateExecution.getVariable("createdNcpStatusId") != null ? (Long) delegateExecution.getVariable("createdNcpStatusId") : null;
                     Long createdArtefactId = delegateExecution.getVariable("createdArtefactId") != null ? (Long) delegateExecution.getVariable("createdArtefactId") : null;
                     Long createdArtefactRSDId = delegateExecution.getVariable("createdArtefactRSDId") != null ? (Long) delegateExecution.getVariable("createdArtefactRSDId") : null;
@@ -69,7 +69,7 @@ public class UpdateNCP implements JavaDelegate {
                     String starter = delegateExecution.getVariable("starter") != null ? delegateExecution.getVariable("starter").toString() : null;
 //                    String targetCoverage = delegateExecution.getVariable("targetCoverage").toString();
 //                    String regionCode = delegateExecution.getVariable("regionCode").toString();
-                    String rbsType = delegateExecution.getVariable("rbsType") != null ? delegateExecution.getVariable("rbsType").toString() : null;
+                    String rbsType = delegateExecution.getVariable("rbsTypeId") != null ? delegateExecution.getVariable("rbsTypeId").toString() : null;
 //                    String createNCPTaskComment = delegateExecution.getVariable("createNCPTaskComment").toString();
                     String bandsIdForUDB = delegateExecution.getVariable("bandsIdForUDB") != null ? delegateExecution.getVariable("bandsIdForUDB").toString() : null;
 //                    String plannedCabinetTypeIdForUDB = delegateExecution.getVariable("plannedCabinetTypeIdForUDB").toString();
@@ -109,8 +109,10 @@ public class UpdateNCP implements JavaDelegate {
 
                     Integer cn_altitude = candidate != null && candidate.hasProp("cn_altitude") ? Integer.parseInt(candidate.prop("cn_altitude") != null ? candidate.prop("cn_altitude").value().toString() : "0") : 0;
 
-                    SimpleDateFormat formatter = new SimpleDateFormat("yyyy-dd-MM"); //2020-01-02T18:00:00.000Z
-                    String cn_date_of_visit = candidate.prop("dateOfVisit").stringValue().substring(0, 9);
+                    String cn_rbs_location = candidate != null && candidate.hasProp("rbsLocation") && candidate.prop("rbsLocation") != null && candidate.prop("rbsLocation").hasProp("id") && candidate.prop("rbsLocation").prop("id") != null ? (candidate.prop("rbsLocation").prop("id").value().toString()) : null;
+
+                    SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd"); //2020-01-02T18:00:00.000Z
+                    String cn_date_of_visit = candidate.prop("dateOfVisit").stringValue().substring(0, 10);
                     Date date_of_visit = formatter.parse(cn_date_of_visit);
 
                     SpinJsonNode renterCompany = delegateExecution.getVariable("renterCompany") != null ? JSON(delegateExecution.getVariable("renterCompany")) : null;
@@ -141,7 +143,7 @@ public class UpdateNCP implements JavaDelegate {
                     // set values to update
                     Integer ncpIdInt = ncpId != null ? Integer.parseInt(ncpId) : null;
                     if (ncpIdInt != null) {
-                        updatePreparedStatement.setLong(i++, ncpIdInt); // NCPID
+                        updatePreparedStatement.setLong(i++, ncpCreatedId); // NCPID
                     } else {
                         updatePreparedStatement.setNull(i++, Types.BIGINT);
                     }
@@ -166,7 +168,7 @@ public class UpdateNCP implements JavaDelegate {
                     log.info("preparedStatement.setValues");
                     // set values to insert
                     if (ncpIdInt != null) {
-                        updateArtefactCurrentStatePreparedStatement.setLong(i++, ncpIdInt); //ncpid
+                        updateArtefactCurrentStatePreparedStatement.setLong(i++, ncpCreatedId); //ncpid
                     } else {
                         updateArtefactCurrentStatePreparedStatement.setNull(i++, Types.BIGINT);
                     }
@@ -189,7 +191,8 @@ public class UpdateNCP implements JavaDelegate {
                         updateArtefactCurrentStatePreparedStatement.setNull(i++, Types.BIGINT);
                     }
                     if (cn_rbs_location != null) {
-                        updateArtefactCurrentStatePreparedStatement.setLong(i++, cn_rbs_location); // RBS_LOCATION (cn_rbs_location) //
+                        Integer cn_rbs_location_int = Integer.parseInt(cn_rbs_location);
+                        updateArtefactCurrentStatePreparedStatement.setLong(i++, cn_rbs_location_int); // RBS_LOCATION (cn_rbs_location) //
                     } else {
                         updateArtefactCurrentStatePreparedStatement.setNull(i++, Types.BIGINT);
                     }
@@ -299,7 +302,8 @@ public class UpdateNCP implements JavaDelegate {
                     }
                     updateArtefactRRPreparedStatement.setString(i++, bandsIdForUDB); //BAND
                     if (cn_rbs_location != null) {
-                        updateArtefactRRPreparedStatement.setLong(i++, cn_rbs_location); //RBS_LOCATION
+                        Integer cn_rbs_location_int = Integer.parseInt(cn_rbs_location);
+                        updateArtefactRRPreparedStatement.setLong(i++, cn_rbs_location_int); //RBS_LOCATION
                     } else {
                         updateArtefactRRPreparedStatement.setNull(i++, Types.BIGINT);
                     }

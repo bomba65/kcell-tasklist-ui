@@ -50,7 +50,7 @@ public class UpdateCandidate implements JavaDelegate {
                     log.info("Connected to the database!");
 
                     // proc vars
-                    Integer cn_rbs_location = 2;
+//                    Integer cn_rbs_location = 2;
 
                     //generated vars
                     Long createdArtefactId = delegateExecution.getVariable("createdArtefactId") != null ? (Long) delegateExecution.getVariable("createdArtefactId") : null;
@@ -68,7 +68,7 @@ public class UpdateCandidate implements JavaDelegate {
 
                     String ncpId = delegateExecution.getVariable("ncpID") != null ? delegateExecution.getVariable("ncpID").toString() : null;
                     String starter = delegateExecution.getVariable("starter") != null ? delegateExecution.getVariable("starter").toString() : null;
-                    String rbsType = delegateExecution.getVariable("rbsType") != null ? delegateExecution.getVariable("rbsType").toString() : null;
+                    String rbsType = delegateExecution.getVariable("rbsTypeId") != null ? delegateExecution.getVariable("rbsTypeId").toString() : null;
                     String bandsIdForUDB = delegateExecution.getVariable("bandsIdForUDB") != null ? delegateExecution.getVariable("bandsIdForUDB").toString() : null;
                     String targetCoverage = delegateExecution.getVariable("targetCoverage") != null ? delegateExecution.getVariable("targetCoverage").toString() : null;
                     String connectionPossibleFromRES = delegateExecution.getVariable("connectionPossibleFromRES") != null ? delegateExecution.getVariable("connectionPossibleFromRES").toString() : null;
@@ -96,8 +96,10 @@ public class UpdateCandidate implements JavaDelegate {
                     Number cn_height_constr = candidate.hasProp("cn_height_constr") ? Integer.parseInt(candidate.prop("cn_height_constr").value().toString()) : 0;
                     Number cn_altitude = candidate.hasProp("cn_altitude") ? Integer.parseInt(candidate.prop("cn_altitude").value().toString()) : 0;
 
-                    SimpleDateFormat formatter = new SimpleDateFormat("yyyy-dd-MM"); //2020-01-02T18:00:00.000Z
-                    String cn_date_of_visit = candidate.prop("dateOfVisit").stringValue().substring(0, 9);
+                    String cn_rbs_location = candidate != null && candidate.hasProp("rbsLocation") && candidate.prop("rbsLocation") != null && candidate.prop("rbsLocation").hasProp("id") && candidate.prop("rbsLocation").prop("id") != null ? (candidate.prop("rbsLocation").prop("id").value().toString()) : null;
+
+                    SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd"); //2020-01-02T18:00:00.000Z
+                    String cn_date_of_visit = candidate.prop("dateOfVisit").stringValue().substring(0, 10);
                     Date date_of_visit = formatter.parse(cn_date_of_visit);
 
                     SpinJsonNode ne = delegateExecution.getVariable("transmissionAntenna") != null ? JSON(delegateExecution.getVariable("transmissionAntenna")) : null;
@@ -117,7 +119,7 @@ public class UpdateCandidate implements JavaDelegate {
                     String fe_constructionType = fe != null && fe.hasProp("constructionType") && fe.prop("constructionType") != null ? (fe.prop("constructionType").hasProp("id") ? fe.prop("constructionType").prop("id").stringValue() : null) : null;
                     String fe_sitename = fe != null && fe.hasProp("farEndName") && fe.prop("farEndName") != null ? fe.prop("farEndName").stringValue() : null;
                     String fe_comment = fe != null && fe.hasProp("comments") && fe.prop("comments") != null ? fe.prop("comments").stringValue() : null;
-                    String fe_survey_date = fe != null && fe.hasProp("surveyDate") && fe.prop("surveyDate") != null ? (fe.prop("surveyDate").stringValue().substring(0, 9)) : null;
+                    String fe_survey_date = fe != null && fe.hasProp("surveyDate") && fe.prop("surveyDate") != null ? (fe.prop("surveyDate").stringValue().substring(0, 10)) : null;
                     Date fe_formated_survey_date = fe_survey_date != null ? formatter.parse(fe_survey_date) : null;
 
                     String fe_legal_name = fe != null && fe.hasProp("renterCompany") && fe.prop("renterCompany").hasProp("legalName") ? fe.prop("renterCompany").prop("legalName").value().toString() : null;
@@ -240,7 +242,8 @@ public class UpdateCandidate implements JavaDelegate {
                         updateArtefactCurrentStatePreparedStatement.setNull(i++, Types.BIGINT);
                     }
                     if (cn_rbs_location != null) {
-                        updateArtefactCurrentStatePreparedStatement.setLong(i++, cn_rbs_location); // RBS_LOCATION (cn_rbs_location) //
+                        Integer cn_rbs_location_int = Integer.parseInt(cn_rbs_location);
+                        updateArtefactCurrentStatePreparedStatement.setLong(i++, cn_rbs_location_int); // RBS_LOCATION (cn_rbs_location) //
                     } else {
                         updateArtefactCurrentStatePreparedStatement.setNull(i++, Types.BIGINT);
                     }
@@ -362,7 +365,8 @@ public class UpdateCandidate implements JavaDelegate {
                     }
                     updateArtefactRRPreparedStatement.setString(i++, bandsIdForUDB); //BAND
                     if (cn_rbs_location != null) {
-                        updateArtefactRRPreparedStatement.setLong(i++, cn_rbs_location); //RBS_LOCATION
+                        Integer cn_rbs_location_int = Integer.parseInt(cn_rbs_location);
+                        updateArtefactRRPreparedStatement.setLong(i++, cn_rbs_location_int); //RBS_LOCATION
                     } else {
                         updateArtefactRRPreparedStatement.setNull(i++, Types.BIGINT);
                     }
