@@ -64,7 +64,7 @@ public class UpdateCandidate implements JavaDelegate {
                     Long createdArtefactRrRenterFeId = delegateExecution.getVariable("createdArtefactRrRenterFeId") != null ? (Long) delegateExecution.getVariable("createdArtefactRrRenterFeId") : null;
                     Long createdArtefactRrTrId = delegateExecution.getVariable("createdArtefactRrTrId") != null ? (Long) delegateExecution.getVariable("createdArtefactRrTrId") : null;
                     Long createdTrAntennaId = delegateExecution.getVariable("createdTrAntennaId") != null ? (Long) delegateExecution.getVariable("createdTrAntennaId") : null;
-                    Long createdRsdHistoryId = delegateExecution.getVariable("createdRsdHistoryId") != null ? (Long) delegateExecution.getVariable("createdRsdHistoryId") : null;
+//                    Long createdRsdHistoryId = delegateExecution.getVariable("createdRsdHistoryId") != null ? (Long) delegateExecution.getVariable("createdRsdHistoryId") : null;
 
                     String ncpId = delegateExecution.getVariable("ncpID") != null ? delegateExecution.getVariable("ncpID").toString() : null;
                     String starter = delegateExecution.getVariable("starter") != null ? delegateExecution.getVariable("starter").toString() : null;
@@ -896,7 +896,8 @@ public class UpdateCandidate implements JavaDelegate {
                     }
                     ARTEFACT_RSD_HISTORY_PreparedStatement.setString(i++, targetCoverage); // PLANNING_TARGET
 
-                    ARTEFACT_RSD_HISTORY_PreparedStatement.setLong(i++, createdRsdHistoryId); //createdRsdHistoryId
+//                    ARTEFACT_RSD_HISTORY_PreparedStatement.setLong(i++, createdRsdHistoryId); //createdRsdHistoryId
+                    ARTEFACT_RSD_HISTORY_PreparedStatement.setNull(i++, Types.BIGINT); //createdRsdHistoryId
 
                     ARTEFACT_RSD_HISTORY_PreparedStatement.executeUpdate();
                     log.info("Successfully inserted");
