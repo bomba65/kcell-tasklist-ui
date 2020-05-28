@@ -1,11 +1,6 @@
-<style>
-    .well {
-        color: #333;
-    }
-</style>
 <form role="form" class="form-horizontal" name="kcell_form" novalidate>
     <script cam-script type="text/form-script">
-        inject(['$scope', '$http', 'Uri', '$rootScope', '$q', '$timeout', function ($scope, $http, Uri, $rootScope, $q, $timeout) {
+        inject(['$scope', '$http', 'Uri', '$rootScope', '$q', function ($scope, $http, Uri, $rootScope, $q) {
             var variables = [
                 'requestedDate',
                 'jrNumber',
@@ -24,38 +19,45 @@
                 'project',
                 'supplementaryFiles',
                 'explanation',
-                'resolutions',
-                'workPrices',
-                'jobWorksTotal',
                 'jobWorks',
+                'sapPRFileXLS',
+                'sapPRNo',
+                'kcellWarehouseMaterialsList',
+                'kcellWarehouseMaterialsListName',
+                'kcellWarehouseMaterialsAdditionalList',
+                'eLicenseResolutionFile',
+                'eLicenseResolutionFileName',
+                'resolutions',
+                'contractorZIPWarehouseMaterialsList',
+                'contractorZIPWarehouseMaterialsListName',
                 'jrBlank',
                 'tssrssidFile',
                 'tssrssidFileName',
-                'kcellWarehouseMaterialsList',
-                'contractorZIPWarehouseMaterialsList',
-                'kcellWarehouseMaterialsListName',
-                'kcellWarehouseMaterialsAdditionalList',
-                'contractorZIPWarehouseMaterialsListName',
                 'priority',
+                'fillApplied',
+                'sapTransferRequestFile',
+                'actOfMaterialsDispatchingFile',
+                'actOfMaterialsDispatchingFileName',
+                'actOfMaterialsDispatchingFiles',
+                'trFilesName',
+                'trAdditionalFilesName',
+                'trFiles',
+                'siteWorksFiles',
                 'mlApprovalAdditionalInfoFile',
                 'contractorJobAssignedDate',
                 'mainContract'
+
             ];
-
-            $scope.jobModel = {};
-
-            var Big;
-            if(window.require){
-                $scope.Big = require('big-js')
-                Big = require('big-js')
-            }
+            $scope.jobModel = {
+                hideSAPPRNO: true
+            };
             $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
-                function(result){
-                    $scope.processInstanceId = result.data.processInstanceId;
-                },
-                function (error) {
-                    console.log(error.data);
-                }
+                    function(result){
+                        $scope.processInstanceId = result.data.processInstanceId;
+                    },
+                    function (error) {
+                        console.log(error.data);
+                    }
             );
             camForm.on('form-loaded', function () {
                 variables.forEach(function (el) {
@@ -72,22 +74,24 @@
                         }
                 );
                 camForm.variableManager.createVariable({
-                    name: 'signByCentralGroupTaskResult',
+                    name: 'approveMaterialsListByRegionGroupsHeadTaskResult',
                     type: 'String',
                     value: ''
                 });
-                $scope.signByCentralGroupTaskResult = '';
-                camForm.variableManager.variableValue('signByCentralGroupTaskResult', $scope.signByCentralGroupTaskResult);
+                camForm.variableManager.createVariable({
+                    name: 'modifyWorks',
+                    type: 'Boolean',
+                    value: undefined
+                });
+                camForm.variableManager.createVariable({
+                    name: 'regionTransmissionCheckRequired',
+                    type: 'String',
+                    value: ''
+                });
             });
             camForm.on('variables-fetched', function () {
                 variables.forEach(function (el) {
-                    if(el === 'workPrices'){
-                        $scope.jobModel[el] = JSON.parse(camForm.variableManager.variables[el].originalValue);
-                    } else if(el === 'sapPRFileXLSName'){
-                        $scope[el] = camForm.variableManager.variables[el];
-                    } else {
-                        $scope.jobModel[el] = camForm.variableManager.variables[el];
-                    }
+                    $scope.jobModel[el] = camForm.variableManager.variables[el];
                     if (el === 'resolutions') {
                         $scope[el] = camForm.variableManager.variables[el].value;
                     }
@@ -95,143 +99,405 @@
                 $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name+ "/profile").then(function(result){
                     $rootScope.authentication.assigneeName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
                 });
-                if(camForm.variableManager.variables['signByCentralGroupComment']){
-                    camForm.variableManager.variableValue('signByCentralGroupComment', '');
+                if(camForm.variableManager.variables['approveMaterialsListByRegionGroupsHeadComment']){
+                    camForm.variableManager.variableValue('approveMaterialsListByRegionGroupsHeadComment', '');
                 }
             });
-            camForm.on('submit', function (e) {
-                camForm.variableManager.variableValue('signByCentralGroupTaskResult', $scope.signByCentralGroupTaskResult);
+
+            camForm.on('submit', function () {
+                camForm.variableManager.variableValue('approveMaterialsListByRegionGroupsHeadTaskResult', $scope.approveMaterialsListByRegionGroupsHeadTaskResult);
                 camForm.variableManager.createVariable({
-                    name: 'signpr_by_centerTaskResult',
+                    name: 'approve_additional_material_list_regionTaskResult',
                     type: 'String',
-                    value: $scope.signByCentralGroupTaskResult
+                    value: $scope.approveMaterialsListByRegionGroupsHeadTaskResult
                 });
+                if ($scope.approveMaterialsListByRegionGroupsHeadTaskResult === 'approved') {
+                    camForm.variableManager.variableValue('modifyWorks', false);
+                }
+                else{
+                    camForm.variableManager.variableValue('modifyWorks', true);
+                }
+
+                $scope.approveMaterialsGroupList = [];
+                if($scope.optimizationMaterialApproveRequired){
+                    $scope.approveMaterialsGroupList.push('P&O');
+                }
+                if($scope.transmissionMaterialApproveRequired){
+                    $scope.approveMaterialsGroupList.push('Transmission');
+                }
+                if($scope.infrastructureMaterialApproveRequired){
+                    $scope.approveMaterialsGroupList.push('S&FM');
+                }
+                if($scope.operationMaterialApproveRequired){
+                    $scope.approveMaterialsGroupList.push('Operation');
+                }
+
+                camForm.variableManager.createVariable({
+                    name: 'approveMaterialsGroupList',
+                    type: 'Json',
+                    value: $scope.approveMaterialsGroupList
+                });
+
+                camForm.variableManager.variableValue('regionTransmissionCheckRequired', $scope.regionTransmissionCheckRequired);
+
                 var visibility = 'all';
-                if($scope.signByCentralGroupComment && $scope.signByCentralGroupCommentVisibility){
-                    visibility = $scope.signByCentralGroupCommentVisibility;
+                if($scope.approveMaterialsListByRegionGroupsHeadComment && $scope.approveMaterialsListByRegionGroupsHeadCommentVisibility){
+                    visibility = $scope.approveMaterialsListByRegionGroupsHeadCommentVisibility;
                     camForm.variableManager.createVariable({
-                        name: 'signpr_by_centerTaskCommentVisibility',
+                        name: 'approve_additional_material_list_regionTaskCommentVisibility',
                         type: 'String',
                         value: visibility
                     });
                 }
                 camForm.variableManager.createVariable({
-                    name: 'signpr_by_centerTaskComment',
+                    name: 'approve_additional_material_list_regionTaskComment',
                     type: 'String',
-                    value: $scope.signByCentralGroupComment
+                    value: $scope.approveMaterialsListByRegionGroupsHeadComment
                 });
                 camForm.variableManager.destroyVariable('resolutions');
             });
 
             camForm.on('store', function() {
-                camForm.variableManager.variableValue('signByCentralGroupTaskResult', $scope.signByCentralGroupTaskResult);
+                camForm.variableManager.variableValue('approveMaterialsListByRegionGroupsHeadTaskResult', $scope.approveMaterialsListByRegionGroupsHeadTaskResult);
             });
 
             camForm.on('variables-restored', function() {
-                $scope.signByCentralGroupTaskResult = camForm.variableManager.variableValue('signByCentralGroupTaskResult');
+                $scope.approveMaterialsListByRegionGroupsHeadTaskResult = camForm.variableManager.variableValue('approveMaterialsListByRegionGroupsHeadTaskResult');
             });
+
+            $scope.fileSelected = fileSelected;
+            function fileSelected(el) {
+                $scope['sapPRFile'] = (el.value !== '');
+            }
 
             $scope.isVisible = function (resolution) {
                return !resolution.visibility || resolution.visibility === 'all' || (resolution.visibility === 'kcell' && $rootScope.hasGroup('kcellUsers'));
             }
 
             $scope.hasComment = function () {
-                return $scope.signByCentralGroupComment && $rootScope.hasGroup('kcellUsers');
+                return $scope.approveMaterialsListByRegionGroupsHeadComment && $rootScope.hasGroup('kcellUsers');
             }
 
-            $scope.calculateBasePriceByQuantity = function(work){
-                var unitWorkPrice = Big(work.unitWorkPrice);
-                var quantity = Big(work.quantity);
-                var result = unitWorkPrice.times(quantity);
-                return result.toFixed(2).replace('.',',');
-            }
-
-            $scope.calculateBasePriceTotal = function(){
-                var total = Big(0.0);
-                angular.forEach($scope.jobModel.workPrices, function(work){
-                    total = total.plus((work.basePriceByQuantity? Big(work.basePriceByQuantity) : Big(work.unitWorkPrice).times(Big(work.quantity))));
-                });
-                return total.toFixed(2).replace('.',',');
+            $scope.showJobModal = function() {
             }
         }]);
     </script>
-    <job-request job-model="jobModel"></job-request>
+    <button class="btn btn-default pull-right" ng-click="showJobModal()">{{ jobModel.jrNumber.value }}</button>
+    <h3>Job Order Information</h3>
+
+    <table class="table table-bordered">
+        <thead>
+        <tr>
+            <th>Field</th>
+            <th>Value</th>
+            <th>Description</th>
+            <th>Actions</th>
+            <th>Comment</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr>
+            <td>JO Number</td><td>{{ jobModel.jrNumber.value }}</td><td>{{ jobModel.jrNumber.value }}</td><td></td><td></td>
+        </tr>
+        <tr>
+            <td>Sitename</td><td>{{jobModel.site.value}}, {{jobModel.siteName.value}}</td><td>{{jobModel.site.value}}, {{jobModel.siteName.value}}</td><td></td><td></td>
+        </tr>
+        <tr>
+            <td>Job Requester</td><td>{{contractorsShortTitle[jobModel.contractor.value]}}</td><td>{{contractorsTitle[jobModel.contractor.value]}}</td><td></td><td></td>
+        </tr>
+        <tr>
+            <td>Job Type</td><td>R</td><td>{{servicesTitle[jobModel.contract.value]}}</td><td></td><td></td>
+        </tr>
+        <tr>
+            <td>Status</td><td>A</td><td>Approved</td><td></td><td></td>
+        </tr>
+        <tr>
+            <td>Job Detail</td><td>{{jobModel.siteName.value}} {{jobModel.site_name.value}}</td><td>{{jobModel.siteName.value}} {{jobModel.site_name.value}}</td><td>Edit</td><td>Edited by:</td>
+        </tr>
+        <tr>
+            <td>Subcontructor ID</td><td>949</td><td>949 GULZHAN IMANDOSOVA</td><td></td><td></td>
+        </tr>
+        <tr>
+            <td>Job Order Date</td><td>22.03.2020</td><td>JO creation date</td><td>Edit</td><td>Edited by:</td>
+        </tr>
+        <tr>
+            <td>Plant</td><td>0201</td><td>Almaty</td><td></td><td></td>
+        </tr>
+        <tr>
+            <td>Stor. Location</td><td>K001</td><td>Storage location</td><td></td><td></td>
+        <tr>
+        </tbody>
+    </table>
+    <h3>PR Information</h3>
+    <div class="row" style="border: 1px solid;">
+        <div class="col-md-12" style="padding: 10px;">
+            <strong>Header note</strong>
+            <div>1.Purchase description: Revision works for site JR# N&C-LSE-SAO-20-0001 dated 13.03.2020</div>
+            <div>2.Budgeted or not: yes 252-70160-1</div>
+            <div>3.Main project for Fintur: revision works</div>
+            <div>4.Describe the need of this purchase for this year: necessary for revision works</div>
+            <div>5.Contact person: KEREMET</div>
+            <div>6. Vendor: Line System Engineering LLP</div>
+            <div>8. Total sum: 47819,16</div>
+        </div>
+    </div>
+    <br/>
     <div class="row">
-        <table class="table table-condensed">
-            <thead>
-            <tr>
-                <th width="30%">Works</th>
-                <th>Works Qty</th>
-                <th>Materials Qty</th>
-                <th>Sites</th>
-                <th>Base Price</th>
-                <th>Base + Transportation +8%</th>
-                <th>Base Price * works q-ty</th>
-                <th>1 work price per site Sum/site q-ty</th>
-                <th>Sum * works q-ty</th>
-                <th style="text-align:right;font-weight: bold;font-size: 16px;background-color: lightpink;">Total</th>
-            </tr>
-            </thead>
-            <tbody>
-            <tr ng-repeat="work in jobModel.workPrices">
-                <td>{{jobModel.worksTitle[work.sapServiceNumber]}}</td>
-                <td>{{work.quantity}}</td>
-                <td>{{work.materialQuantity}}</td>
-                <td><span ng-repeat="rs in work.relatedSites" class="my-tag" ng-class="{'main-site':rs.site_name===jobModel.site_name.value}"><span ng-if="rs.site_name===jobModel.site_name.value">Main Site: </span>{{rs.site_name}}</span></td>
-                <td>{{work.unitWorkPrice.replace('.',',')}}&nbsp;&#8376;</td>
-                <td>{{work.unitWorkPricePlusTx.replace('.',',')}}&nbsp;&#8376;</td>
-                <td>{{work.basePriceByQuantity ? work.basePriceByQuantity.replace('.',',') : calculateBasePriceByQuantity(work)}}&nbsp;&#8376;</td>
-                <td><span ng-if="work.unitWorkPricePerSite >= 0">{{work.unitWorkPricePerSite.replace('.',',')}}&nbsp;&#8376;</span></td>
-                <td><span ng-if="work.netWorkPricePerSite >= 0">{{work.netWorkPricePerSite.replace('.',',')}}&nbsp;&#8376;</span></td>
-                <td style="text-align:right;font-weight: bold;font-size: 16px;background-color: lightpink;"><span style="padding: 6px 0px;display: inline-block;">{{work.total.replace('.',',')}}</span></td>
-            </tr>
-            <tr>
-                <th colspan="6">Total</th>
-                <th>{{calculateBasePriceTotal()}}</th>
-                <th></th>
-                <th>{{jobModel.jobWorksTransportationTotal.replace('.',',')}}</th>
-                <th style="text-align:right;font-weight: bold;font-size: 16px;background-color: lightpink;">{{jobModel.jobWorksTotal.value.replace('.',',')}}</th>
-            </tr>
-            </tbody>
-        </table>
+        <div class="col-md-12">
+            <table class="table table-bordered">
+                <tr style="background-color: #b6b6b6">
+                    <th>Work #</th>
+                    <th>1. RBS/BTS cell addition (BBS+cabinet)</th>
+                    <th>8.Site change/replacement (All equipments, RF &TR& Infrastructure</th>
+                    <th>2.BTS Micro/BTS Midi installation (cabinet only) with on-air</th>
+                    <th>2.BTS Micro/BTS Midi installation (cabinet only) with on-air</th>
+                    <th></th>
+                    <th></th>
+                </tr>
+                <tr>
+                    <th>Field</th>
+                    <th>Value</th>
+                    <th>Value</th>
+                    <th>Value</th>
+                    <th>Value</th>
+                    <th>Actions</th>
+                    <th>Comment</th>
+                </tr>
+                <tr>
+                    <td>PR document type</td>
+                    <td>ZK73-01</td>
+                    <td>ZK73-01</td>
+                    <td>ZK73-01</td>
+                    <td>ZK73-01</td>
+                    <td></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td>Cost Type</td>
+                    <td>Y</td>
+                    <td>Y</td>
+                    <td>K</td>
+                    <td>K</td>
+                    <td>Edit</td>
+                    <td>Edited by:</td>
+                </tr>
+                <tr>
+                    <td>JR Number</td>
+                    <td>Alm-LSE-P&O-20-0015</td>
+                    <td>Alm-LSE-P&O-20-0015</td>
+                    <td>Alm-LSE-P&O-20-0015</td>
+                    <td>Alm-LSE-P&O-20-0015</td>
+                    <td></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td>JR Status</td>
+                    <td>approved</td>
+                    <td>approved</td>
+                    <td>approved</td>
+                    <td>approved</td>
+                    <td></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td>JR Reuqest date</td>
+                    <td>22.03.2020</td>
+                    <td>22.03.2020</td>
+                    <td>22.03.2020</td>
+                    <td>22.03.2020</td>
+                    <td>Edit</td>
+                    <td>Edited by:</td>
+                </tr>
+                <tr>
+                    <td>Vendor</td>
+                    <td>280209</td>
+                    <td>280209</td>
+                    <td>280209</td>
+                    <td>280209</td>
+                    <td></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td>Region</td>
+                    <td>7</td>
+                    <td>7</td>
+                    <td>7</td>
+                    <td>7</td>
+                    <td></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td>Service Type</td>
+                    <td>Y</td>
+                    <td>Y</td>
+                    <td>Y</td>
+                    <td>Y</td>
+                    <td></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td>PR Item text</td>
+                    <td>installation service 00001ALGSMAK</td>
+                    <td>installation service 00001ALGSMAK</td>
+                    <td>installation service 00001ALGSMAK</td>
+                    <td>installation service 00003FOODKZ</td>
+                    <td>Edit</td>
+                    <td>Edited by:</td>
+                </tr>
+                <tr>
+                    <td>CM Contract no</td>
+                    <td>56357</td>
+                    <td>56357</td>
+                    <td>56357</td>
+                    <td>56357</td>
+                    <td></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td>Service number</td>
+                    <td>1</td>
+                    <td>8</td>
+                    <td>2</td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td>Service quantity </td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td>Delivery Date</td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td>WBS Element</td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td>Job Order no </td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td>Stor. Location</td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td>FA number</td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td>Cost center </td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td>Controlling Area</td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td>Activity Service Number</td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td>Amount</td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td>KWMS PR Req. Name</td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                </tr>
+            </table>
+        </div>
     </div>
     <div class="form-group">
         <label class="col-sm-4 control-label">Resolution</label>
         <div class="col-sm-8">
             <label class="radio-inline">
-                <input type="radio" name="signByCentralGroupTaskResult" ng-model="signByCentralGroupTaskResult" value="approve" required> Approve
+                <input type="radio" ng-model="approveMaterialsListByRegionGroupsHeadTaskResult" name="approveMaterialsListByRegionGroupsHeadTaskResult" value="approved" required> Approved
+            </label>
+            <label class="radio-inline" ng-show="jobModel.fillApplied.value !== 'notEnough'">
+                <input type="radio" ng-model="approveMaterialsListByRegionGroupsHeadTaskResult" name="approveMaterialsListByRegionGroupsHeadTaskResult" value="modify" required> Modify works
             </label>
             <label class="radio-inline">
-                <input type="radio" name="signByCentralGroupTaskResult" ng-model="signByCentralGroupTaskResult" value="reject" required> Reject
+                <input type="radio" ng-model="approveMaterialsListByRegionGroupsHeadTaskResult" name="approveMaterialsListByRegionGroupsHeadTaskResult" value="rejected" required> Reject
             </label>
-            <label class="radio-inline">
-                <input type="radio" name="signByCentralGroupTaskResult" ng-model="signByCentralGroupTaskResult" value="suspend" required> Suspend
-            </label>
-            <label class="radio-inline">
-                <input type="radio" name="signByCentralGroupTaskResult" ng-model="signByCentralGroupTaskResult" value="unsuspend" required> Unsuspend
-            </label>
-            <label class="error" ng-show="kcell_form.signByCentralGroupTaskResult.$error.required && ( kcell_form.signByCentralGroupTaskResult.$touched || view.submitted)">Required field</label>
+            <label class="error" ng-show="kcell_form.approveMaterialsListByRegionGroupsHeadTaskResult.$error.required && ( kcell_form.approveMaterialsListByRegionGroupsHeadTaskResult.$touched || view.submitted)">Required field</label>
         </div>
     </div>
     <div class="form-group">
-        <label class="col-sm-4 control-label">Comments:</label>
+        <label class="col-sm-4 control-label">Comments</label>
         <div class="col-sm-8">
-            <textarea class="form-control" rows="4" maxlength="500" cam-variable-name="signByCentralGroupComment" name="signByCentralGroupComment" ng-required="signByCentralGroupTaskResult === 'reject'" cam-variable-type="String"></textarea>
-            <label class="error" ng-show="kcell_form.signByCentralGroupComment.$error.required && ( kcell_form.signByCentralGroupComment.$touched || view.submitted)">Required field</label>
+            <textarea class="form-control" rows="4" maxlength="500" cam-variable-name="approveMaterialsListByRegionGroupsHeadComment" name="approveMaterialsListByRegionGroupsHeadComment" ng-required="approveMaterialsListByRegionGroupsHeadTaskResult == 'modify' || approveMaterialsListByRegionGroupsHeadTaskResult == 'rejected'" cam-variable-type="String"></textarea>
+            <label class="error" ng-show="kcell_form.approveMaterialsListByRegionGroupsHeadComment.$error.required && ( kcell_form.approveMaterialsListByRegionGroupsHeadComment.$touched || view.submitted)">Required field</label>
         </div>
     </div>
     <div class="form-group" ng-show="hasComment()">
         <label class="col-sm-4 control-label">Comments visibility</label>
         <div class="col-sm-8">
             <label class="radio-inline">
-                <input type="radio" name="signByCentralGroupCommentVisibility"
-                       ng-model="signByCentralGroupCommentVisibility" value="all" ng-required="hasComment()"> Visible for all
+                <input type="radio" name="approveMaterialsListByRegionGroupsHeadCommentVisibility"
+                       ng-model="approveMaterialsListByRegionGroupsHeadCommentVisibility" value="all" ng-required="hasComment()"> Visible for all
             </label>
             <label class="radio-inline">
-                <input type="radio" name="signByCentralGroupCommentVisibility"
-                       ng-model="signByCentralGroupCommentVisibility" value="kcell" ng-required="hasComment()"> Kcell staff only
+                <input type="radio" name="approveMaterialsListByRegionGroupsHeadCommentVisibility"
+                       ng-model="approveMaterialsListByRegionGroupsHeadCommentVisibility" value="kcell" ng-required="hasComment()"> Kcell staff only
             </label>
-            <label class="error" ng-show="kcell_form.signByCentralGroupCommentVisibility.$error.required && ( kcell_form.signByCentralGroupCommentVisibility.$touched || view.submitted)">Required field</label>
+            <label class="error" ng-show="kcell_form.approveMaterialsListByRegionGroupsHeadCommentVisibility.$error.required && ( kcell_form.approveMaterialsListByRegionGroupsHeadCommentVisibility.$touched || view.submitted)">Required field</label>
         </div>
     </div>
     <accordion>
