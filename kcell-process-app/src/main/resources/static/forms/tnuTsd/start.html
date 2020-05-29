@@ -543,64 +543,6 @@
             $scope.cancelCreateNewSite = function () {
                 $scope.creatingNewSite = false
             };
-
-            $scope.saveSite = function () {
-                $scope.addressJson = {
-                    "building": $scope.new_siteJson.cn_addr_building,
-                    "cadastral_number": $scope.new_siteJson.cn_addr_cadastral_number,
-                    "city_id": {
-                      "catalog_id": 32,
-                      "id": $scope.new_siteJson.cn_addr_city
-                    },
-                    "not_full_address": $scope.new_siteJson.ca_not_full_addres ? $scope.new_siteJson.ca_not_full_addres : false,
-                    "note": $scope.new_siteJson.cn_addr_note,
-                    "street": $scope.new_siteJson.cn_addr_street
-                }
-
-                $http.post(assetsServerUrl + '/asset-management/adresses', $scope.addressJson).then(
-                    function (response) {
-                        $scope.facilityJson = {
-                            "address_id": response.data.id,
-                            "altitude": $scope.new_siteJson.assets_altitude,
-                            "construction_height": $scope.new_siteJson.assets_construction_height,
-                            "construction_type_id": {
-                                "catalog_id": 14,
-                                "id": $scope.new_siteJson.assets_construction_type
-                            },
-                            "latitude": $scope.new_siteJson.assets_latitude.substring(0,2) + "," + $scope.new_siteJson.assets_latitude.substring(2),
-                            "longitude":$scope.new_siteJson.assets_longitude.substring(0,2) + "," +$scope.new_siteJson.assets_longitude.substring(2),
-                            "square": 0
-                        }
-
-                        $http.post(assetsServerUrl + '/asset-management/facilities', $scope.facilityJson).then(
-                            function (response) {
-                                $scope.siteJson = {
-                                    "date_started": new Date().toISOString(),
-                                    "facility_id": response.data.id,
-                                    "site_name": $scope.new_siteJson.assets_site_id + $scope.new_siteJson.assets_site_name,
-                                    "site_status_id": {
-                                        "catalog_id": 3,
-                                        "id": 1
-                                    },
-                                    "site_type_id": {
-                                        "catalog_id": 2,
-                                        "id": $scope.new_siteJson.assets_site_type
-                                    },
-                                    "siteid": $scope.new_siteJson.assets_site_id
-                                }
-
-                                $http.post(assetsServerUrl + '/asset-management/sites', $scope.siteJson).then(
-                                    function (response) {
-                                        $scope.addressJson = {}
-                                        $scope.facilityJson = {}
-                                        $scope.creatingNewSite = false
-                                    }
-                                );
-                            }
-                        );
-                    }
-                );
-            };
         }]);
     </script>
     <iframe id="fileDownloadIframe" style="display:none;"></iframe>
@@ -637,10 +579,6 @@
             <label class="error" ng-if="kcell_form.ne_sitename.$error.required && ( kcell_form.ne_sitename.$touched || view.submitted)">Required field</label>
             <label class="error" ng-if="kcell_form.ne_siteId.$error.required && ( kcell_form.ne_sitename.$touched || view.submitted)">Необходимо выбрать сайт из списка</label>
         </div>
-        <div class="col-sm-2">
-            <button type="button" class="btn btn-default" ng-if="!creatingNewSite" ng-click="createNewSite()">New</button>
-            <button type="button" class="btn btn-default" ng-if="creatingNewSite" ng-click="cancelCreateNewSite()">Cancel</button>
-        </div>
     </div>
     <div class="form-group">
         <label class="col-sm-2 control-label">Site Address:</label>
@@ -670,7 +608,7 @@
                         <label class="col-sm-2 control-label">Longtitude</label>
                         <label class="col-sm-2 control-label">N</label>
                         <div class="col-sm-6">
-                            <input type="text" class="form-control" ng-model="new_siteJson.assets_longitude" id="assets_longitude" name="assets_longitude" ng-pattern="longitudePattern" ui-mask="E9.999999" ui-mask-placeholder ui-mask-placeholder-char="_" cam-variable-name="assets_longitude" cam-variable-type="String">                         
+                            <input type="text" class="form-control" ng-model="new_siteJson.assets_longitude" id="assets_longitude" name="assets_longitude" ng-pattern="longitudePattern" ui-mask="E9.999999" ui-mask-placeholder ui-mask-placeholder-char="_" cam-variable-name="assets_longitude" cam-variable-type="String">
                             <label class="error" ng-if="kcell_form.assets_longitude.$error.pattern && ( kcell_form.assets_longitude.$touched || view.submitted)">Expected: 46.493000 <- Longtitude <- 87.315000</label>
                         </div>
                     </div>
@@ -678,7 +616,7 @@
                         <label class="col-sm-2 control-label">Latitude</label>
                         <label class="col-sm-2 control-label">E</label>
                         <div class="col-sm-6">
-                            <input type="text" class="form-control" ng-model="new_siteJson.assets_latitude" id="assets_latitude" name="assets_latitude" ng-pattern="latitudePattern" ui-mask="N9.999999" ui-mask-placeholder ui-mask-placeholder-char="_" cam-variable-name="assets_latitude" cam-variable-type="String">                         
+                            <input type="text" class="form-control" ng-model="new_siteJson.assets_latitude" id="assets_latitude" name="assets_latitude" ng-pattern="latitudePattern" ui-mask="N9.999999" ui-mask-placeholder ui-mask-placeholder-char="_" cam-variable-name="assets_latitude" cam-variable-type="String">
                             <label class="error" ng-if="kcell_form.assets_latitude.$error.pattern && ( kcell_form.assets_latitude.$touched || view.submitted)">Expected: 40.568000 <- Latitude <- 55.440000</label>
                         </div>
                     </div>
@@ -793,9 +731,6 @@
         </div>
 
         <div class="col-sm-10"></div>
-        <div align="end" class="col-sm-2">
-            <button type="button" class="btn btn-default" ng-if="creatingNewSite" ng-click="saveSite()">Save</button>
-        </div>
     </div>
 
     <div class="form-group">
@@ -951,12 +886,12 @@
                 <tr>
                     <td align="right" colspan="2">Azimuth (degree):</td>
                     <td align="center" colspan="4">
-                        <input type="number" class="form-control" ng-model="ne_azimuth" name="ne_azimuth" ng-pattern="azimuthPattern" cam-variable-name="ne_azimuth" cam-variable-type="Double" required>
+                        <input type="number" class="form-control" ng-model="ne_azimuth" name="ne_azimuth" ng-pattern="azimuthPattern" cam-variable-name="ne_azimuth" cam-variable-type="Double" required disabled="disabled">
                         <label class="error" ng-if="kcell_form.ne_azimuth.$error.required && ( kcell_form.ne_azimuth.$touched || view.submitted)">Required field</label>
                         <label class="error" ng-if="kcell_form.ne_azimuth.$error.pattern && ( kcell_form.ne_azimuth.$touched || view.submitted)">Expected: 0 <- Azimuth <- 360</label>
                     </td>
                     <td align="center" colspan="4">
-                        <input type="number" class="form-control" ng-model="fe_azimuth" name="fe_azimuth" ng-pattern="azimuthPattern" cam-variable-name="fe_azimuth" cam-variable-type="Double" required>
+                        <input type="number" class="form-control" ng-model="fe_azimuth" name="fe_azimuth" ng-pattern="azimuthPattern" cam-variable-name="fe_azimuth" cam-variable-type="Double" required disabled="disabled">
                         <label class="error" ng-if="kcell_form.fe_azimuth.$error.required && ( kcell_form.fe_azimuth.$touched || view.submitted)">Required field</label>
                         <label class="error" ng-if="kcell_form.fe_azimuth.$error.pattern && ( kcell_form.fe_azimuth.$touched || view.submitted)">Expected: 0 <- Azimuth <- 360</label>
                     </td>
@@ -964,7 +899,7 @@
                 <tr>
                     <td align="right" colspan="2">Path distance (km):</td>
                     <td align="center" colspan="8">
-                        <input type="number" class="form-control" ng-model="path_distance" name="path_distance" cam-variable-name="path_distance" cam-variable-type="Double" required>
+                        <input type="number" class="form-control" ng-model="path_distance" name="path_distance" cam-variable-name="path_distance" cam-variable-type="Double" required disabled="disabled">
                         <label class="error" ng-if="kcell_form.path_distance.$error.required && ( kcell_form.path_distance.$touched || view.submitted)">Required field</label>
                     </td>
                 </tr>
