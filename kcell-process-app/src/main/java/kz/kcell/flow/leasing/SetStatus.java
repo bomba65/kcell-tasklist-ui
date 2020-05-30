@@ -57,13 +57,14 @@ public class SetStatus implements JavaDelegate {
                     Long ncpCreatedId = (Long) delegateExecution.getVariable("ncpCreatedId");
 //                    Long createdNcpStatusId = (Long) delegateExecution.getVariable("createdNcpStatusId");
                     Long createdArtefactId = (Long) delegateExecution.getVariable("createdArtefactId");
-//                    Long createdArtefactRSDId = (Long) delegateExecution.getVariable("createdArtefactRSDId");
+                    Long createdArtefactRSDId = (Long) delegateExecution.getVariable("createdArtefactRSDId");
 //                    Long createdArtefactRRId = (Long) delegateExecution.getVariable("createdArtefactRRId");
 //                    Long createdArtefactVSDId = (Long) delegateExecution.getVariable("createdArtefactVSDId");
                     Long createdCandApprovalId = (Long) delegateExecution.getVariable("createdCandApprovalId");
                     Long createdArtefactRRStatusId = (Long) delegateExecution.getVariable("createdArtefactRRStatusId");
 
                     String ncpId = delegateExecution.getVariable("ncpID").toString();
+                    String starter = delegateExecution.getVariable("starter").toString();
                     String _SET_NCP_STATUS = delegateExecution.hasVariableLocal("_SET_NCP_STATUS") ? delegateExecution.getVariableLocal("_SET_NCP_STATUS").toString() : "";
                     String _SET_GEN_STATUS = delegateExecution.hasVariableLocal("_SET_GEN_STATUS") ? delegateExecution.getVariableLocal("_SET_GEN_STATUS").toString() : "";
                     String _SET_RR_STATUS = delegateExecution.hasVariableLocal("_SET_RR_STATUS") ? delegateExecution.getVariableLocal("_SET_RR_STATUS").toString() : "";
@@ -158,17 +159,20 @@ public class SetStatus implements JavaDelegate {
                         log.info("_SET_CAND_STATUS");
                         log.info(_SET_CAND_STATUS);
                         //UPDATE NCP
-                        String UPDATE_Cand_Apr__CAND_STATUS = "update CANDAPPROVAL set STATUSID = ?, DESDATE = ? where ARTEFACTID = ?";
+//                        String UPDATE_Cand_Apr__CAND_STATUS = "update CANDAPPROVAL set STATUSID = ?, DESDATE = ? where ARTEFACTID = ?";
+                        String INSERT_Cand_Apr__CAND_STATUS = "insert into CANDAPPROVAL(ID, ARTEFACTID, RSDID, STATUSID, DESDATE, APPROVER) values (CANDAPPROVAL_SEQ.nextval, ?, ?, ?, SYSDATE, ?)";
                         String UPDATE_ArtCurSt__CAND_STATUS = "update ARTEFACT_CURRENT_STATE set CAND_STATUS = ?, CAND_STATUS_DATE = ? where ARTEFACTID = ?";
-                        PreparedStatement updateCand_AprCandStatusPreparedStatement = udbConnect.prepareStatement(UPDATE_Cand_Apr__CAND_STATUS);
+                        PreparedStatement updateCand_AprCandStatusPreparedStatement = udbConnect.prepareStatement(INSERT_Cand_Apr__CAND_STATUS);
                         PreparedStatement updateCandStatusInCandAprPreparedStatement = udbConnect.prepareStatement(UPDATE_ArtCurSt__CAND_STATUS);
 
                         log.info("CAND_STATUS preparedStatement SQL UPDATE VALUES");
                         // set values to update
                         i = 1;
-                        updateCand_AprCandStatusPreparedStatement.setLong(i++, Integer.parseInt(_SET_CAND_STATUS)); // STATUSID
-                        updateCand_AprCandStatusPreparedStatement.setDate(i++, new java.sql.Date(new Date().getTime())); // DESDATE
+
                         updateCand_AprCandStatusPreparedStatement.setLong(i++, createdArtefactId); // ARTEFACTID
+                        updateCand_AprCandStatusPreparedStatement.setLong(i++, createdArtefactRSDId); // RSDID
+                        updateCand_AprCandStatusPreparedStatement.setLong(i++, Integer.parseInt(_SET_CAND_STATUS)); // STATUSID
+                        updateCand_AprCandStatusPreparedStatement.setString(i++, starter); // ARTEFACTID
                         updateCand_AprCandStatusPreparedStatement.executeUpdate();
                         i = 1;
                         updateCandStatusInCandAprPreparedStatement.setLong(i++, Integer.parseInt(_SET_CAND_STATUS)); // CAND_STATUS

@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import javax.sql.DataSource;
 import java.sql.*;
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.TimeZone;
 
@@ -98,9 +99,12 @@ public class UpdateCandidate implements JavaDelegate {
 
                     String cn_rbs_location = candidate != null && candidate.hasProp("rbsLocation") && candidate.prop("rbsLocation") != null && candidate.prop("rbsLocation").hasProp("id") && candidate.prop("rbsLocation").prop("id") != null ? (candidate.prop("rbsLocation").prop("id").value().toString()) : null;
 
-                    SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd"); //2020-01-02T18:00:00.000Z
-                    String cn_date_of_visit = candidate.prop("dateOfVisit").stringValue().substring(0, 10);
-                    Date date_of_visit = formatter.parse(cn_date_of_visit);
+                    SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXX"); //2020-01-02T18:00:00.000Z
+                    String cn_date_of_visit = candidate != null && candidate.hasProp("dateOfVisit") && candidate.prop("dateOfVisit") != null ? (candidate.prop("dateOfVisit").stringValue()) : null;
+                    Date date_of_visit_date = cn_date_of_visit != null ? formatter.parse(cn_date_of_visit) : null;
+                    Calendar date_of_visit = Calendar.getInstance();
+                    date_of_visit.setTime(date_of_visit_date);
+                    date_of_visit.add(Calendar.HOUR_OF_DAY, 6);
 
                     SpinJsonNode ne = delegateExecution.getVariable("transmissionAntenna") != null ? JSON(delegateExecution.getVariable("transmissionAntenna")) : null;
                     String ne_azimuth = ne != null ? (ne.hasProp("azimuth") ? ne.prop("azimuth").stringValue() : "0") : null;
@@ -119,8 +123,13 @@ public class UpdateCandidate implements JavaDelegate {
                     String fe_constructionType = fe != null && fe.hasProp("constructionType") && fe.prop("constructionType") != null ? (fe.prop("constructionType").hasProp("id") ? fe.prop("constructionType").prop("id").stringValue() : null) : null;
                     String fe_sitename = fe != null && fe.hasProp("farEndName") && fe.prop("farEndName") != null ? fe.prop("farEndName").stringValue() : null;
                     String fe_comment = fe != null && fe.hasProp("comments") && fe.prop("comments") != null ? fe.prop("comments").stringValue() : null;
-                    String fe_survey_date = fe != null && fe.hasProp("surveyDate") && fe.prop("surveyDate") != null ? (fe.prop("surveyDate").stringValue().substring(0, 10)) : null;
+                    String fe_survey_date = fe != null && fe.hasProp("surveyDate") && fe.prop("surveyDate") != null ? (fe.prop("surveyDate").stringValue()) : null;
                     Date fe_formated_survey_date = fe_survey_date != null ? formatter.parse(fe_survey_date) : null;
+                    Calendar fe_cal_survey_date = Calendar.getInstance();
+                    if (fe_formated_survey_date != null){
+                        fe_cal_survey_date.setTime(fe_formated_survey_date);
+                        fe_cal_survey_date.add(Calendar.HOUR_OF_DAY, 6);
+                    }
 
                     String fe_legal_name = fe != null && fe.hasProp("renterCompany") && fe.prop("renterCompany").hasProp("legalName") ? fe.prop("renterCompany").prop("legalName").value().toString() : null;
                     String fe_legal_address = fe != null && fe.hasProp("renterCompany") && fe.prop("renterCompany").hasProp("fe_legal_address") ? fe.prop("renterCompany").prop("fe_legal_address").value().toString() : null;
@@ -289,7 +298,7 @@ public class UpdateCandidate implements JavaDelegate {
 
                     i = 1;
 //
-                    java.sql.Date dateOfVisitDate = date_of_visit != null ? new java.sql.Date(date_of_visit.getTime()) : null;
+                    java.sql.Date dateOfVisitDate = date_of_visit != null ? new java.sql.Date(date_of_visit.getTimeInMillis()) : null;
                     // set values to update
                     if (cn_bscInt != null) {
                         updateArtefactRsdPreparedStatement.setLong(i++, cn_bscInt); //BSCID
@@ -417,7 +426,7 @@ public class UpdateCandidate implements JavaDelegate {
                         updateArtefactTSDPreparedStatement.setString(i++, fe_address); // FE_ADDRESS
                     }
                     if (fe_formated_survey_date != null) {
-                        updateArtefactTSDPreparedStatement.setDate(i++, new java.sql.Date(fe_formated_survey_date.getTime())); // SURVEY_DATE (fe_survey_date)
+                        updateArtefactTSDPreparedStatement.setDate(i++, new java.sql.Date(fe_cal_survey_date.getTimeInMillis())); // SURVEY_DATE (fe_survey_date)
                     }
                     if (ne_azimuth != null) {
                         Integer ne_azimuthInt = Integer.parseInt(ne_azimuth);
@@ -684,7 +693,7 @@ public class UpdateCandidate implements JavaDelegate {
                     }
 
                     if (fe_formated_survey_date != null) {
-                        ARTEFACT_RR_TR_PreparedStatement.setDate(i++, new java.sql.Date(fe_formated_survey_date.getTime())); // SURVEY_DATE (fe_survey_date)
+                        ARTEFACT_RR_TR_PreparedStatement.setDate(i++, new java.sql.Date(fe_cal_survey_date.getTimeInMillis())); // SURVEY_DATE (fe_survey_date)
                     } else {
                         ARTEFACT_RR_TR_PreparedStatement.setNull(i++, Types.DATE);
                     }
@@ -876,7 +885,7 @@ public class UpdateCandidate implements JavaDelegate {
                     }
                     ARTEFACT_RSD_HISTORY_PreparedStatement.setDate(i++, new java.sql.Date(new Date().getTime())); // INSERT_DATE
                     if (date_of_visit != null) {
-                        ARTEFACT_RSD_HISTORY_PreparedStatement.setDate(i++, new java.sql.Date(date_of_visit.getTime())); //DATE OF VISIT (cn_date_visit)
+                        ARTEFACT_RSD_HISTORY_PreparedStatement.setDate(i++, new java.sql.Date(date_of_visit.getTimeInMillis())); //DATE OF VISIT (cn_date_visit)
                     } else {
                         ARTEFACT_RSD_HISTORY_PreparedStatement.setNull(i++, Types.DATE);
                     }

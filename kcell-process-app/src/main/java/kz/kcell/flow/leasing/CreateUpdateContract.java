@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 import javax.sql.DataSource;
 import java.sql.*;
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.TimeZone;
 
@@ -79,10 +80,11 @@ public class CreateUpdateContract implements JavaDelegate {
 
                             contractid = ci.hasProp("ct_contractid") ? ci.prop("ct_contractid").value().toString() : "";
                             String ct_acquisitionType = ci.prop("ct_acquisitionType").stringValue();
-                            SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd"); //2020-01-02T18:00:00.000Z
-                            String ct_acceptance_act_date = ci.prop("ct_acceptance_act_date").stringValue().substring(0,10);
-                            String ct_contract_start_date = ci.prop("ct_contract_start_date").stringValue().substring(0,10);
-                            String ct_contract_end_date = ci.prop("ct_contract_end_date").stringValue().substring(0,10);
+                            SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXX"); //2020-01-02T18:00:00.000Z
+                            String ct_acceptance_act_date = ci.prop("ct_acceptance_act_date").stringValue();
+                            String ct_contract_start_date = ci.prop("ct_contract_start_date").stringValue();
+                            String ct_contract_end_date = ci.prop("ct_contract_end_date").stringValue();
+
 
                             if(_CONTRACT_APPROVAL_TYPE.equals("FE")){
                                 String ct_fe_sitename = ci.prop("ct_sitename").value().toString();
@@ -117,6 +119,22 @@ public class CreateUpdateContract implements JavaDelegate {
                             Date formated_ct_acceptance_act_date = formatter.parse(ct_acceptance_act_date);
                             Date formated_ct_contract_start_date = formatter.parse(ct_contract_start_date);
                             Date formated_ct_contract_end_date = formatter.parse(ct_contract_end_date);
+                            Calendar cal_ct_acceptance_act_date = Calendar.getInstance();
+                            Calendar cal_ct_contract_start_date = Calendar.getInstance();
+                            Calendar cal_ct_contract_end_date = Calendar.getInstance();
+//                            .getTimeInMillis()
+                            if(formated_ct_acceptance_act_date != null) {
+                                cal_ct_acceptance_act_date.setTime(formated_ct_acceptance_act_date);
+                                cal_ct_acceptance_act_date.add(Calendar.HOUR_OF_DAY, 6);
+                            }
+                            if(formated_ct_acceptance_act_date != null) {
+                                cal_ct_contract_start_date.setTime(formated_ct_contract_start_date);
+                                cal_ct_contract_start_date.add(Calendar.HOUR_OF_DAY, 6);
+                            }
+                            if(formated_ct_acceptance_act_date != null) {
+                                cal_ct_contract_end_date.setTime(formated_ct_contract_end_date);
+                                cal_ct_contract_end_date.add(Calendar.HOUR_OF_DAY, 6);
+                            }
 
                             Number ct_rent = ci.prop("ct_rent").numberValue();
                             Number ct_rent_all = ci.prop("ct_rent_all").numberValue();
@@ -287,8 +305,8 @@ public class CreateUpdateContract implements JavaDelegate {
                                 INSERT_CONTRACTSPreparedStatement.setString(i++, ct_checkvat);  // NEEDVAT
                                 INSERT_CONTRACTSPreparedStatement.setLong(i++, ct_payment_period.longValue());  // PAYMENTPERIOD
                                 INSERT_CONTRACTSPreparedStatement.setLong(i++, ct_currency_type.longValue());  // PAYMENTWAY
-                                INSERT_CONTRACTSPreparedStatement.setDate(i++, new java.sql.Date(formated_ct_contract_start_date.getTime())); // CONTRACTSTARTDATE
-                                INSERT_CONTRACTSPreparedStatement.setDate(i++, new java.sql.Date(formated_ct_contract_end_date.getTime())); // CONTRACTENDDATE
+                                INSERT_CONTRACTSPreparedStatement.setDate(i++, new java.sql.Date(cal_ct_contract_start_date.getTimeInMillis())); // CONTRACTSTARTDATE
+                                INSERT_CONTRACTSPreparedStatement.setDate(i++, new java.sql.Date(cal_ct_contract_end_date.getTimeInMillis())); // CONTRACTENDDATE
                                 INSERT_CONTRACTSPreparedStatement.setString(i++, ct_autoprolongation);  // AUTOPROLONGATION
                                 INSERT_CONTRACTSPreparedStatement.setString(i++, starter);  // USERNAME
                                 INSERT_CONTRACTSPreparedStatement.setDate(i++, new java.sql.Date(new Date().getTime()));  // AREA_ACT_ACCEPT_DATE
@@ -378,10 +396,12 @@ public class CreateUpdateContract implements JavaDelegate {
 
                                 Date formated_ct_aa_date = new Date();
                                 String ct_aa_date = "";
-
+                                Calendar cal_ct_aa_date = Calendar.getInstance();
                                 if (ci.hasProp("ct_aa_date") && !ci.prop("ct_aa_date").isNull()) {
-                                    ct_aa_date = ci.prop("ct_aa_date").stringValue().substring(0,10);
+                                    ct_aa_date = ci.prop("ct_aa_date").stringValue();
                                     formated_ct_aa_date = formatter.parse(ct_aa_date);
+                                    cal_ct_aa_date.setTime(formated_ct_aa_date);
+                                    cal_ct_aa_date.add(Calendar.HOUR_OF_DAY, 6);
                                 }
 
                                 Number ct_agreement_executor = Integer.parseInt(ci.hasProp("ct_agreement_executor") && !ci.prop("ct_agreement_executor").value().equals(null) ? ci.prop("ct_agreement_executor").value().toString() : "0");
@@ -398,7 +418,7 @@ public class CreateUpdateContract implements JavaDelegate {
                                 INSERT_CONTRACT_AA_PreparedStatement.setLong(i++, ct_cid); // CID
                                 INSERT_CONTRACT_AA_PreparedStatement.setString(i++, ct_agreement_number); // AA_NUMBER
                                 if (!ct_aa_date.equals("")) {
-                                    INSERT_CONTRACT_AA_PreparedStatement.setDate(i++, new java.sql.Date(formated_ct_aa_date.getTime())); // AA_DATE
+                                    INSERT_CONTRACT_AA_PreparedStatement.setDate(i++, new java.sql.Date(cal_ct_aa_date.getTimeInMillis())); // AA_DATE
                                 } else {
                                     INSERT_CONTRACT_AA_PreparedStatement.setNull (i++, Types.TIMESTAMP); // AA_DATE
                                 }
@@ -424,8 +444,8 @@ public class CreateUpdateContract implements JavaDelegate {
                                 INSERT_CONTRACT_AA_PreparedStatement.setLong(i++, ct_payment_period.longValue()); // PAYMENT_PERIOD
                                 INSERT_CONTRACT_AA_PreparedStatement.setLong(i++, ct_currency_type.longValue());  // PAYMENTWAY
                                 INSERT_CONTRACT_AA_PreparedStatement.setString(i++, ct_checkvat); // NEEDVAT
-                                INSERT_CONTRACT_AA_PreparedStatement.setDate(i++, new java.sql.Date(formated_ct_contract_start_date.getTime())); // CONTRACT_START_DATE
-                                INSERT_CONTRACT_AA_PreparedStatement.setDate(i++, new java.sql.Date(formated_ct_contract_end_date.getTime())); // CONTRACT_END_DATE
+                                INSERT_CONTRACT_AA_PreparedStatement.setDate(i++, new java.sql.Date(cal_ct_contract_start_date.getTimeInMillis())); // CONTRACT_START_DATE
+                                INSERT_CONTRACT_AA_PreparedStatement.setDate(i++, new java.sql.Date(cal_ct_contract_end_date.getTimeInMillis())); // CONTRACT_END_DATE
                                 INSERT_CONTRACT_AA_PreparedStatement.setString(i++, ct_autoprolongation); // AUTOPROLONGATION
                                 INSERT_CONTRACT_AA_PreparedStatement.setLong(i++, 41); // AA_STATUS
                                 INSERT_CONTRACT_AA_PreparedStatement.setDate(i++, new java.sql.Date(new Date().getTime())); // INSERT_DATE

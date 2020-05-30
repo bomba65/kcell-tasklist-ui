@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 import javax.sql.DataSource;
 import java.awt.print.Pageable;
 import java.sql.*;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.TimeZone;
 import java.text.SimpleDateFormat;
@@ -51,7 +52,6 @@ public class CreateNCP implements JavaDelegate {
                 udbOracleUrl,
                 udbOracleUsername,
                 udbOraclePassword);
-//            Connection udbConnect = DriverManager.getConnection("jdbc:oracle:thin:@//sc2-appcl010406:1521/apexudb", "app_apexudb_camunda", "p28zt#7C");
             try {
                 if (udbConnect != null) {
                     udbConnect.setAutoCommit(false);
@@ -152,9 +152,12 @@ public class CreateNCP implements JavaDelegate {
 
                     Number cn_height_constr = candidate != null && candidate.hasProp("cn_height_constr") ? Integer.parseInt(candidate.prop("cn_height_constr").value().toString()) : 0;
                     Number cn_altitude = candidate != null && candidate.hasProp("cn_altitude") ? Integer.parseInt(candidate.prop("cn_altitude").value().toString()) : 0;
-                    SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd"); //2020-01-02T18:00:00.000Z
-                    String cn_date_of_visit = candidate != null && candidate.hasProp("dateOfVisit") && candidate.prop("dateOfVisit") != null ? (candidate.prop("dateOfVisit").stringValue().substring(0, 10)) : null;
-                    Date date_of_visit = cn_date_of_visit != null ? formatter.parse(cn_date_of_visit) : null;
+                    SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXX"); //2020-01-02T18:00:00.000Z
+                    String cn_date_of_visit = candidate != null && candidate.hasProp("dateOfVisit") && candidate.prop("dateOfVisit") != null ? (candidate.prop("dateOfVisit").stringValue()) : null;
+                    Date date_of_visit_date = cn_date_of_visit != null ? formatter.parse(cn_date_of_visit) : null;
+                    Calendar date_of_visit = Calendar.getInstance();
+                    date_of_visit.setTime(date_of_visit_date);
+                    date_of_visit.add(Calendar.HOUR_OF_DAY, 6);
 
 
                     //{"antennaType":"ML 0.6","diameter":"0.6","weight":"14","antennaQuantity":1,"frequencyBand":"8GHz","suspensionHeight":12,"azimuth":"123"}
@@ -179,8 +182,13 @@ public class CreateNCP implements JavaDelegate {
                     String fe_constructionType = fe != null && fe.hasProp("constructionType") && fe.prop("constructionType") != null ? (fe.prop("constructionType").hasProp("id") ? fe.prop("constructionType").prop("id").stringValue() : null) : null;
                     String fe_sitename = fe != null && fe.hasProp("farEndName") && fe.prop("farEndName") != null ? fe.prop("farEndName").stringValue() : null;
                     String fe_comment = fe != null && fe.hasProp("comments") && fe.prop("comments") != null ? fe.prop("comments").stringValue() : null;
-                    String fe_survey_date = fe != null && fe.hasProp("surveyDate") && fe.prop("surveyDate") != null ? (fe.prop("surveyDate").stringValue().substring(0, 10)) : null;
+                    String fe_survey_date = fe != null && fe.hasProp("surveyDate") && fe.prop("surveyDate") != null ? (fe.prop("surveyDate").stringValue()) : null;
                     Date fe_formated_survey_date = fe_survey_date != null ? formatter.parse(fe_survey_date) : null;
+                    Calendar fe_cal_survey_date = Calendar.getInstance();
+                    if (fe_formated_survey_date != null){
+                        fe_cal_survey_date.setTime(fe_formated_survey_date);
+                        fe_cal_survey_date.add(Calendar.HOUR_OF_DAY, 6);
+                    }
 
                     String fe_legal_name = fe != null && fe.hasProp("renterCompany") && fe.prop("renterCompany").hasProp("legalName") ? fe.prop("renterCompany").prop("legalName").value().toString() : null;
                     String fe_legal_address = fe != null && fe.hasProp("renterCompany") && fe.prop("renterCompany").hasProp("fe_legal_address") ? fe.prop("renterCompany").prop("fe_legal_address").value().toString() : null;
@@ -257,7 +265,7 @@ public class CreateNCP implements JavaDelegate {
 
                     //insert NCP
                     String returnCols[] = {"ARTEFACTID"};
-                    String insertNCP = "INSERT INTO NCP_CREATION ( ARTEFACTID, NCPID, TARGET_CELL, REGION, LONGITUDE, LATITUDE, REASON, PROJECT, CREATOR, DATEOFINSERT, COMMENTS, CABINETID, TARGET_COVERAGE, TYPE, GEN_STATUS, NCP_STATUS, NCP_STATUS_DATE, BAND, INITIATOR, PART) VALUES (NCP_CREATION_SEQ.nextval, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 7, 1, ?, ?, ?, ?)";
+                    String insertNCP = "INSERT INTO NCP_CREATION ( ARTEFACTID, NCPID, TARGET_CELL, REGION, LONGITUDE, LATITUDE, REASON, PROJECT, CREATOR, DATEOFINSERT, COMMENTS, CABINETID, TARGET_COVERAGE, TYPE, GEN_STATUS, NCP_STATUS, NCP_STATUS_DATE, BAND, INITIATOR, PART) VALUES (NCP_CREATION_SEQ.nextval, ?, ?, ?, ?, ?, ?, ?, ?, SYSDATE, ?, ?, ?, ?, 7, 1, SYSDATE, ?, ?, ?)";
                     PreparedStatement preparedStatement = udbConnect.prepareStatement(insertNCP, returnCols);
 
                     i = 1;
@@ -289,7 +297,7 @@ public class CreateNCP implements JavaDelegate {
                         preparedStatement.setNull(i++, Types.BIGINT);
                     }
                     preparedStatement.setString(i++, starter); // CREATOR 'SERGEI.ZAITSEV'
-                    preparedStatement.setDate(i++, new java.sql.Date(new Date().getTime())); // DATEOFINSERT
+//                    preparedStatement.setDate(i++, new java.sql.Date(new Date().getTime())); // DATEOFINSERT
                     preparedStatement.setString(i++, createNCPTaskComment); // COMMENTS
                     Integer plannedCabinetTypeIdForUDBInt = Integer.parseInt(plannedCabinetTypeIdForUDB);
                     if (rbsTypeInt != null) {
@@ -303,7 +311,7 @@ public class CreateNCP implements JavaDelegate {
                     } else {
                         preparedStatement.setNull(i++, Types.BIGINT);
                     }
-                    preparedStatement.setDate(i++, new java.sql.Date(new Date().getTime())); // NCP_STATUS_DATE
+//                    preparedStatement.setDate(i++, new java.sql.Date(new Date().getTime())); // NCP_STATUS_DATE
                     preparedStatement.setString(i++, bandsIdForUDB); // BAND ex:'1'   ncp_band	(Подставлять ID согласно справочнику Bands)
                     if (initiatorInt != null) {
                         preparedStatement.setLong(i++, initiatorInt); // INITIATOR
@@ -329,14 +337,14 @@ public class CreateNCP implements JavaDelegate {
                     //insert new status
                     Long createdNcpStatusId = null;
                     String returnStatus[] = {"STATUS_ACTION_ID"};
-                    String insertNewStatus = "insert into NCP_CREATION_STATUS_ACTION values ( NCP_CREATION_STATUS_ACTIO_SEQ.nextval, ?, 2, ?, ?, null)";
+                    String insertNewStatus = "insert into NCP_CREATION_STATUS_ACTION values ( NCP_CREATION_STATUS_ACTIO_SEQ.nextval, ?, 2, ?, SYSDATE, null)";
                     PreparedStatement newNcpStatusPreparedStatement = udbConnect.prepareStatement(insertNewStatus, returnStatus);
 
                     i = 1;
                     log.info("newNcpStatusPreparedStatement.setString");
                     newNcpStatusPreparedStatement.setLong(i++, ncpCreatedId);
                     newNcpStatusPreparedStatement.setString(i++, starter); // CREATOR 'SERGEI.ZAITSEV'
-                    newNcpStatusPreparedStatement.setDate(i++, new java.sql.Date(new Date().getTime())); // DATEOFINSERT
+//                    newNcpStatusPreparedStatement.setDate(i++, new java.sql.Date(new Date().getTime())); // DATEOFINSERT
                     log.info("newNcpStatusPreparedStatement.executeUpdate()");
                     newNcpStatusPreparedStatement.executeUpdate();
                     log.info("successfull insert to database!");
@@ -413,7 +421,7 @@ public class CreateNCP implements JavaDelegate {
                         "                                                        INSERT_DATE,\n" +
                         "                                                        INSERT_PERSON,\n" +
                         "                                                        GS_STATUS,\n" +
-                        "                                                        PL_COMMENTS) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                        "                                                        PL_COMMENTS) VALUES (?, ?, ?, ?, ?, ?, SYSDATE, ?, ?, SYSDATE, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, SYSDATE, ?, ?, ?)";
                     PreparedStatement newArtefactCurrentStatePreparedStatement = udbConnect.prepareStatement(insertNewArtefactCurrentState);
 
                     i = 1;
@@ -435,10 +443,10 @@ public class CreateNCP implements JavaDelegate {
                     newArtefactCurrentStatePreparedStatement.setLong(i++, 1); // CAND_STATUS first insert value mast be = 1
 
                     newArtefactCurrentStatePreparedStatement.setString(i++, starter); // CAND_STATUS_PERSON (current user) // current or start ?????? (who complete create candidate task?)
-                    newArtefactCurrentStatePreparedStatement.setDate(i++, new java.sql.Date(new Date().getTime())); // CAND_STATUS_DATE
+//                    newArtefactCurrentStatePreparedStatement.setDate(i++, new java.sql.Date(new Date().getTime())); // CAND_STATUS_DATE
                     newArtefactCurrentStatePreparedStatement.setLong(i++, 1); // RR_STATUS first insert value mast be = 1
                     newArtefactCurrentStatePreparedStatement.setString(i++, starter); // RR_STATUS_PERSON (current user)
-                    newArtefactCurrentStatePreparedStatement.setDate(i++, new java.sql.Date(new Date().getTime())); // RR_STATUS_DATE
+//                    newArtefactCurrentStatePreparedStatement.setDate(i++, new java.sql.Date(new Date().getTime())); // RR_STATUS_DATE
                     newArtefactCurrentStatePreparedStatement.setString(i++, cn_longitude); // LONGITUDE ex: E 80 50 42,4
                     newArtefactCurrentStatePreparedStatement.setString(i++, cn_latitude); // LATITUDE ex: N 48 48 05,6
                     if (rbsTypeInt != null) {
@@ -481,7 +489,7 @@ public class CreateNCP implements JavaDelegate {
                     newArtefactCurrentStatePreparedStatement.setString(i++, cn_address); // ADDRESS "Восточно-Казахстанская область, Зайсанский район, село Карабулак, водонапорная башня"
                     newArtefactCurrentStatePreparedStatement.setString(i++, contact_person); // CONTACT_PERSON "Мария Николаевна Специалист акимата 8 701 479 19 86"
                     newArtefactCurrentStatePreparedStatement.setString(i++, renterCompany != null ? ((renterCompany.hasProp("contactInfo") && !renterCompany.prop("contactInfo").equals(null) ? renterCompany.prop("contactInfo").stringValue() : "")) : null); // COMMENTS (cn_contact_information)
-                    newArtefactCurrentStatePreparedStatement.setDate(i++, new java.sql.Date(new Date().getTime())); // INSERT_DATE
+//                    newArtefactCurrentStatePreparedStatement.setDate(i++, new java.sql.Date(new Date().getTime())); // INSERT_DATE
                     newArtefactCurrentStatePreparedStatement.setString(i++, starter); // INSERT_PERSON
 //                    newArtefactCurrentStatePreparedStatement.setLong(i++, 7); // GS_STATUS
                     newArtefactCurrentStatePreparedStatement.setNull(i++, Types.BIGINT); //GS_STATUS
@@ -510,7 +518,7 @@ public class CreateNCP implements JavaDelegate {
                     //insert new Candidate (in ARTEFACT_RSD table)
                     Long createdArtefactRSDId = null;
                     String rsdReturnStatus[] = {"RSDID"};
-                    String insertNewArtefactRSD = "INSERT INTO ARTEFACT_RSD (RSDID, ARTEFACTID, BSCID, CNSTRTYPEID, HEIGHT, DATEOFINSERT, DATEOFVISIT, CONTACTPERSON, COMMENTS, STATE, RBSID, SITE_TYPE) VALUES ( ARTEFACT_RSD_SEQ.nextval, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                    String insertNewArtefactRSD = "INSERT INTO ARTEFACT_RSD (RSDID, ARTEFACTID, BSCID, CNSTRTYPEID, HEIGHT, DATEOFINSERT, DATEOFVISIT, CONTACTPERSON, COMMENTS, STATE, RBSID, SITE_TYPE) VALUES ( ARTEFACT_RSD_SEQ.nextval, ?, ?, ?, ?, SYSDATE, ?, ?, ?, ?, ?, ?)";
                     PreparedStatement newArtefactRSDPreparedStatement = udbConnect.prepareStatement(insertNewArtefactRSD, rsdReturnStatus);
 
                     i = 1;
@@ -536,9 +544,9 @@ public class CreateNCP implements JavaDelegate {
                     } else {
                         newArtefactRSDPreparedStatement.setNull(i++, Types.BIGINT);
                     }
-                    newArtefactRSDPreparedStatement.setDate(i++, new java.sql.Date(new Date().getTime())); // INSERT_DATE
+//                    newArtefactRSDPreparedStatement.setDate(i++, new java.sql.Date(new Date().getTime())); // INSERT_DATE
                     if (date_of_visit != null) {
-                        newArtefactRSDPreparedStatement.setDate(i++, new java.sql.Date(date_of_visit.getTime())); //DATE OF VISIT (cn_date_visit)
+                        newArtefactRSDPreparedStatement.setDate(i++, new java.sql.Date(date_of_visit.getTimeInMillis())); //DATE OF VISIT (cn_date_visit)
                     } else {
                         newArtefactRSDPreparedStatement.setNull(i++, Types.DATE);
                     }
@@ -568,7 +576,7 @@ public class CreateNCP implements JavaDelegate {
                     //insert new Candidate (in ARTEFACT_RR table)
                     Long createdArtefactRRId = null;
                     String rrReturnStatus[] = {"RR_ID"};
-                    String insertNewArtefactRR = "INSERT INTO ARTEFACT_RR (RR_ID, ARTEFACTID, DATEOFVISIT, ADDRESS, LATITUDE, LONGITUDE, CONSTR_TYPE, SQUARE, RBS_TYPE, BAND, RBS_LOCATION, COMMENTS, DATEOFCREATION, CREATOR) VALUES (ARTEFACT_RR_SEQ.nextval, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                    String insertNewArtefactRR = "INSERT INTO ARTEFACT_RR (RR_ID, ARTEFACTID, DATEOFVISIT, ADDRESS, LATITUDE, LONGITUDE, CONSTR_TYPE, SQUARE, RBS_TYPE, BAND, RBS_LOCATION, COMMENTS, DATEOFCREATION, CREATOR) VALUES (ARTEFACT_RR_SEQ.nextval, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, SYSDATE, ?)";
                     PreparedStatement newArtefactRRPreparedStatement = udbConnect.prepareStatement(insertNewArtefactRR, rrReturnStatus);
 
                     i = 1;
@@ -578,9 +586,9 @@ public class CreateNCP implements JavaDelegate {
                     } else {
                         newArtefactRRPreparedStatement.setNull(i++, Types.BIGINT);
                     }
-//                    newArtefactRRPreparedStatement.setDate(i++, date_of_visit != null ? new java.sql.Date(date_of_visit.getTime()) : null); // DATEOFVISIT
+//                    newArtefactRRPreparedStatement.setDate(i++, date_of_visit != null ? new java.sql.Date(date_of_visit.getTimeInMillis()) : null); // DATEOFVISIT
                     if (date_of_visit != null) {
-                        newArtefactRRPreparedStatement.setDate(i++, new java.sql.Date(date_of_visit.getTime())); //DATE OF VISIT (cn_date_visit)
+                        newArtefactRRPreparedStatement.setDate(i++, new java.sql.Date(date_of_visit.getTimeInMillis())); //DATE OF VISIT (cn_date_visit)
                     } else {
                         newArtefactRRPreparedStatement.setNull(i++, Types.DATE);
                     }
@@ -611,7 +619,7 @@ public class CreateNCP implements JavaDelegate {
                         newArtefactRRPreparedStatement.setNull(i++, Types.BIGINT);
                     }
                     newArtefactRRPreparedStatement.setString(i++, cn_comments); //COMMENTS
-                    newArtefactRRPreparedStatement.setDate(i++, new java.sql.Date(new Date().getTime())); // DATEOFCREATION
+//                    newArtefactRRPreparedStatement.setDate(i++, new java.sql.Date(new Date().getTime())); // DATEOFCREATION
                     newArtefactRRPreparedStatement.setString(i++, cn_comments); //CREATOR
                     log.info("newArtefactRRPreparedStatement.executeUpdate()");
                     newArtefactRRPreparedStatement.executeUpdate();
@@ -655,7 +663,7 @@ public class CreateNCP implements JavaDelegate {
                     //insert CANDAPPROVAL
                     Long createdCandApprovalId = null;
                     String candApprovalReturnStatus[] = {"ID"};
-                    String insertNewCandApproval = "insert into CANDAPPROVAL(ID, ARTEFACTID, RSDID) values (CANDAPPROVAL_SEQ.nextval, ?, ?)";
+                    String insertNewCandApproval = "insert into CANDAPPROVAL(ID, ARTEFACTID, RSDID, STATUSID, DESDATE, APPROVER) values (CANDAPPROVAL_SEQ.nextval, ?, ?, ?, SYSDATE, ?)";
                     PreparedStatement newCandApprovalPreparedStatement = udbConnect.prepareStatement(insertNewCandApproval, candApprovalReturnStatus);
 
                     i = 1;
@@ -670,6 +678,9 @@ public class CreateNCP implements JavaDelegate {
                     } else {
                         newCandApprovalPreparedStatement.setNull(i++, Types.BIGINT);
                     }
+                    newCandApprovalPreparedStatement.setLong(i++, 1);
+//                    newCandApprovalPreparedStatement.setDate(i++, new java.sql.Date(new Date().getTime()));
+                    newCandApprovalPreparedStatement.setString(i++, starter); //approver
                     log.info("newCandApprovalPreparedStatement.executeUpdate()");
                     newCandApprovalPreparedStatement.executeUpdate();
                     log.info("successfull insert to database!");
@@ -683,7 +694,7 @@ public class CreateNCP implements JavaDelegate {
                     //insert ARTEFACT_RR_STATUS
                     Long createdArtefactRRStatusId = null;
                     String artefactRRStatusReturnStatus[] = {"ID"};
-                    String insertNewArtefactRRStatus = "insert into ARTEFACT_RR_STATUS(ID, ARTEFACTID, RR_ID, DATEOFPERFORM) values (ARTEFACT_RR_STATUS_SEQ.nextval, ?, ?, ?)";
+                    String insertNewArtefactRRStatus = "insert into ARTEFACT_RR_STATUS(ID, ARTEFACTID, RR_ID, DATEOFPERFORM) values (ARTEFACT_RR_STATUS_SEQ.nextval, ?, ?, SYSDATE)";
                     PreparedStatement newArtefactRRStatusPreparedStatement = udbConnect.prepareStatement(insertNewArtefactRRStatus, artefactRRStatusReturnStatus);
 
                     i = 1;
@@ -698,7 +709,7 @@ public class CreateNCP implements JavaDelegate {
                     } else {
                         newArtefactRRStatusPreparedStatement.setNull(i++, Types.BIGINT);
                     }
-                    newArtefactRRStatusPreparedStatement.setDate(i++, new java.sql.Date(new Date().getTime()));
+//                    newArtefactRRStatusPreparedStatement.setDate(i++, new java.sql.Date(new Date().getTime()));
                     log.info("newArtefactRRStatusPreparedStatement.executeUpdate()");
                     newArtefactRRStatusPreparedStatement.executeUpdate();
                     log.info("successfull insert to database!");
@@ -714,7 +725,7 @@ public class CreateNCP implements JavaDelegate {
                     Long createdArtefactExtTSDId = null;
                     String artefactExtTSDReturnStatus[] = {"TSDID"};
                     StringBuilder insertNewArtefactExtTSDbuilder = new StringBuilder("INSERT INTO ARTEFACT_TSD_EXT (TSDID, ARTEFACTID, INSERT_DATE, INSERT_PERSON");
-                    StringBuilder insertNewArtefactExtTSDbuilderValues = new StringBuilder(") VALUES (ARTEFACT_TSD_SEQ.nextval, ?, ?, ?");
+                    StringBuilder insertNewArtefactExtTSDbuilderValues = new StringBuilder(") VALUES (ARTEFACT_TSD_SEQ.nextval, ?, SYSDATE, ?");
                     if (cn_longitude != null) {
                         insertNewArtefactExtTSDbuilder.append(", NE_LONGITUDE");
                         insertNewArtefactExtTSDbuilderValues.append(", ?");
@@ -790,7 +801,7 @@ public class CreateNCP implements JavaDelegate {
                     } else {
                         newArtefactExtTSDPreparedStatement.setNull(i++, Types.BIGINT);
                     }
-                    newArtefactExtTSDPreparedStatement.setDate(i++, new java.sql.Date(new Date().getTime())); // INSERT_DATE
+//                    newArtefactExtTSDPreparedStatement.setDate(i++, new java.sql.Date(new Date().getTime())); // INSERT_DATE
                     newArtefactExtTSDPreparedStatement.setString(i++, starter); // INSERT_PERSON
 
                     if (cn_longitude != null) {
@@ -814,7 +825,7 @@ public class CreateNCP implements JavaDelegate {
                         newArtefactExtTSDPreparedStatement.setString(i++, fe_address); // FE_ADDRESS
                     }
                     if (fe_formated_survey_date != null) {
-                        newArtefactExtTSDPreparedStatement.setDate(i++, new java.sql.Date(fe_formated_survey_date.getTime())); // SURVEY_DATE (fe_survey_date)
+                        newArtefactExtTSDPreparedStatement.setDate(i++, new java.sql.Date(fe_cal_survey_date.getTimeInMillis())); // SURVEY_DATE (fe_survey_date)
                     }
                     if (ne_azimuth != null) {
                         Integer ne_azimuthInt = Integer.parseInt(ne_azimuth);
@@ -1095,7 +1106,7 @@ public class CreateNCP implements JavaDelegate {
                     }
 
                     if (fe_formated_survey_date != null) {
-                        ARTEFACT_RR_TR_PreparedStatement.setDate(i++, new java.sql.Date(fe_formated_survey_date.getTime())); // SURVEY_DATE (fe_survey_date)
+                        ARTEFACT_RR_TR_PreparedStatement.setDate(i++, new java.sql.Date(fe_cal_survey_date.getTimeInMillis())); // SURVEY_DATE (fe_survey_date)
                     } else {
                         ARTEFACT_RR_TR_PreparedStatement.setNull(i++, Types.DATE);
                     }
@@ -1319,7 +1330,7 @@ public class CreateNCP implements JavaDelegate {
 //                    }
 //                    ARTEFACT_RSD_HISTORY_PreparedStatement.setDate(i++, new java.sql.Date(new Date().getTime())); // INSERT_DATE
 //                    if (date_of_visit != null) {
-//                        ARTEFACT_RSD_HISTORY_PreparedStatement.setDate(i++, new java.sql.Date(date_of_visit.getTime())); //DATE OF VISIT (cn_date_visit)
+//                        ARTEFACT_RSD_HISTORY_PreparedStatement.setDate(i++, new java.sql.Date(date_of_visit.getTimeInMillis())); //DATE OF VISIT (cn_date_visit)
 //                    } else {
 //                        ARTEFACT_RSD_HISTORY_PreparedStatement.setNull(i++, Types.DATE);
 //                    }
@@ -1369,14 +1380,14 @@ public class CreateNCP implements JavaDelegate {
                     for (int j=0; j<1; j++) {
                         SpinJsonNode file = (SpinJsonNode) createNewCandidateSiteFiles.get(j);
                         if (file != null) {
-                            String INSERT_ARTEFACT_RR_FILE = "INSERT INTO ARTEFACT_RR_FILE (FILE_ID, RR_ID, FILENAME, LASTUPDATED) VALUES (ARTEFACT_RR_FILE_SEQ.nextval, ?, ?, ?)";
+                            String INSERT_ARTEFACT_RR_FILE = "INSERT INTO ARTEFACT_RR_FILE (FILE_ID, RR_ID, FILENAME, LASTUPDATED) VALUES (ARTEFACT_RR_FILE_SEQ.nextval, ?, ?, SYSDATE)";
                             PreparedStatement ARTEFACT_RR_FILE_PreparedStatement = udbConnect.prepareStatement(INSERT_ARTEFACT_RR_FILE);
                             log.info("INSERT INTO ARTEFACT_RR_FILE: #" + j + "/" + createNewCandidateSiteFiles.size() + " " + file.prop("name").value().toString());
 
                             i = 1;
                             ARTEFACT_RR_FILE_PreparedStatement.setLong(i++, createdArtefactRRId);// RR_ID
                             ARTEFACT_RR_FILE_PreparedStatement.setString(i++, file.hasProp("name") ? file.prop("name").value().toString() : "");
-                            ARTEFACT_RR_FILE_PreparedStatement.setDate(i++, new java.sql.Date(new Date().getTime())); // INSERT_DATE
+//                            ARTEFACT_RR_FILE_PreparedStatement.setDate(i++, new java.sql.Date(new Date().getTime())); // INSERT_DATE
                             ARTEFACT_RR_FILE_PreparedStatement.executeUpdate();
                             log.info("Successfully inserted");
                         }
@@ -1386,14 +1397,14 @@ public class CreateNCP implements JavaDelegate {
                     log.info("INSERT INTO ARTEFACT_TSD_LEASING_ACTION preparedStatement SQL UPDATE VALUES");log.info("INSERT INTO ARTEFACT_TSD_LEASING_ACTION preparedStatement SQL UPDATE VALUES");
                     Long tsdLeasingActionId = null;
                     String tsdLeasingAction[] = {"LEASING_STATUS_ACTION_ID"};
-                    String INSERT_ARTEFACT_TSD_LEASING_ACTION = "INSERT INTO ARTEFACT_TSD_LEASING_ACTION (LEASING_STATUS_ACTION_ID, ARTEFACTID, LEASING_STATUS_ID, INSERTDATE) VALUES (ARTEFACT_TSD_LEASING_ACTI_SEQ.nextval, ?, ?, ?)";
+                    String INSERT_ARTEFACT_TSD_LEASING_ACTION = "INSERT INTO ARTEFACT_TSD_LEASING_ACTION (LEASING_STATUS_ACTION_ID, ARTEFACTID, LEASING_STATUS_ID, INSERTDATE) VALUES (ARTEFACT_TSD_LEASING_ACTI_SEQ.nextval, ?, ?, SYSDATE)";
                     PreparedStatement ARTEFACT_TSD_LEASING_ACTION_PreparedStatement = udbConnect.prepareStatement(INSERT_ARTEFACT_TSD_LEASING_ACTION, tsdLeasingAction);
 
 
                     i = 1;
                     ARTEFACT_TSD_LEASING_ACTION_PreparedStatement.setLong(i++, createdArtefactId);// RR_ID
                     ARTEFACT_TSD_LEASING_ACTION_PreparedStatement.setLong(i++, 1);// status
-                    ARTEFACT_TSD_LEASING_ACTION_PreparedStatement.setDate(i++, new java.sql.Date(new Date().getTime())); // INSERT_DATE
+//                    ARTEFACT_TSD_LEASING_ACTION_PreparedStatement.setDate(i++, new java.sql.Date(new Date().getTime())); // INSERT_DATE
 
                     ARTEFACT_TSD_LEASING_ACTION_PreparedStatement.executeUpdate();
                     log.info("Successfully inserted");

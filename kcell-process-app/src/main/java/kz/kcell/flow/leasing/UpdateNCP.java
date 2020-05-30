@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import javax.sql.DataSource;
 import java.sql.*;
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.TimeZone;
 
@@ -111,9 +112,12 @@ public class UpdateNCP implements JavaDelegate {
 
                     String cn_rbs_location = candidate != null && candidate.hasProp("rbsLocation") && candidate.prop("rbsLocation") != null && candidate.prop("rbsLocation").hasProp("id") && candidate.prop("rbsLocation").prop("id") != null ? (candidate.prop("rbsLocation").prop("id").value().toString()) : null;
 
-                    SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd"); //2020-01-02T18:00:00.000Z
-                    String cn_date_of_visit = candidate.prop("dateOfVisit").stringValue().substring(0, 10);
-                    Date date_of_visit = formatter.parse(cn_date_of_visit);
+                    SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXX"); //2020-01-02T18:00:00.000Z
+                    String cn_date_of_visit = candidate != null && candidate.hasProp("dateOfVisit") && candidate.prop("dateOfVisit") != null ? (candidate.prop("dateOfVisit").stringValue()) : null;
+                    Date date_of_visit_date = cn_date_of_visit != null ? formatter.parse(cn_date_of_visit) : null;
+                    Calendar date_of_visit = Calendar.getInstance();
+                    date_of_visit.setTime(date_of_visit_date);
+                    date_of_visit.add(Calendar.HOUR_OF_DAY, 6);
 
                     SpinJsonNode renterCompany = delegateExecution.getVariable("renterCompany") != null ? JSON(delegateExecution.getVariable("renterCompany")) : null;
                     String contact_person = "" +
@@ -222,7 +226,7 @@ public class UpdateNCP implements JavaDelegate {
 
                     i = 1;
                     log.info("preparedStatement.setValues");
-                    java.sql.Date dateOfVisitDate = date_of_visit != null ? new java.sql.Date(date_of_visit.getTime()) : null;
+                    java.sql.Date dateOfVisitDate = date_of_visit != null ? new java.sql.Date(date_of_visit.getTimeInMillis()) : null;
                     // set values to update
                     if (createdArtefactId != null) {
                         updateArtefactRsdPreparedStatement.setLong(i++, createdArtefactId); //ARTEFACTID
