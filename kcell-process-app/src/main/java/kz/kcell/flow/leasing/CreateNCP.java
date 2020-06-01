@@ -1,5 +1,7 @@
 package kz.kcell.flow.leasing;
 
+import kz.kcell.flow.files.Minio;
+import org.apache.commons.io.IOUtils;
 import org.camunda.bpm.engine.delegate.DelegateExecution;
 import org.camunda.bpm.engine.delegate.JavaDelegate;
 import org.camunda.bpm.engine.impl.util.json.JSONArray;
@@ -15,6 +17,8 @@ import org.springframework.stereotype.Service;
 
 import javax.sql.DataSource;
 import java.awt.print.Pageable;
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
 import java.sql.*;
 import java.util.Calendar;
 import java.util.Date;
@@ -27,8 +31,15 @@ import static org.camunda.spin.Spin.JSON;
 @Service("CreateNCP")
 public class CreateNCP implements JavaDelegate {
 
+    private Minio minioClient;
+
     @Autowired
     DataSource dataSource;
+
+    @Autowired
+    public CreateNCP(Minio minioClient) {
+        this.minioClient = minioClient;
+    }
 
     @Value("${udb.oracle.url:jdbc:oracle:thin:@//sc2-appcl010406:1521/apexudb}")
     private String udbOracleUrl;
@@ -52,6 +63,7 @@ public class CreateNCP implements JavaDelegate {
                 udbOracleUrl,
                 udbOracleUsername,
                 udbOraclePassword);
+//            Connection udbConnect = DriverManager.getConnection("jdbc:oracle:thin:@//sc2-appcl010406:1521/apexudb", "app_apexudb_camunda", "p28zt#7C");
             try {
                 if (udbConnect != null) {
                     udbConnect.setAutoCommit(false);
@@ -265,7 +277,7 @@ public class CreateNCP implements JavaDelegate {
 
                     //insert NCP
                     String returnCols[] = {"ARTEFACTID"};
-                    String insertNCP = "INSERT INTO NCP_CREATION ( ARTEFACTID, NCPID, TARGET_CELL, REGION, LONGITUDE, LATITUDE, REASON, PROJECT, CREATOR, DATEOFINSERT, COMMENTS, CABINETID, TARGET_COVERAGE, TYPE, GEN_STATUS, NCP_STATUS, NCP_STATUS_DATE, BAND, INITIATOR, PART) VALUES (NCP_CREATION_SEQ.nextval, ?, ?, ?, ?, ?, ?, ?, ?, SYSDATE, ?, ?, ?, ?, 7, 1, SYSDATE, ?, ?, ?)";
+                    String insertNCP = "INSERT INTO NCP_CREATION ( ARTEFACTID, NCPID, TARGET_CELL, REGION, LONGITUDE, LATITUDE, REASON, PROJECT, CREATOR, DATEOFINSERT, COMMENTS, CABINETID, TARGET_COVERAGE, TYPE, GEN_STATUS, TR_STATUS, NCP_STATUS, NCP_STATUS_DATE, BAND, INITIATOR, PART) VALUES (NCP_CREATION_SEQ.nextval, ?, ?, ?, ?, ?, ?, ?, ?, SYSDATE, ?, ?, ?, ?, 7, 0, 1, SYSDATE, ?, ?, ?)";
                     PreparedStatement preparedStatement = udbConnect.prepareStatement(insertNCP, returnCols);
 
                     i = 1;
@@ -421,7 +433,9 @@ public class CreateNCP implements JavaDelegate {
                         "                                                        INSERT_DATE,\n" +
                         "                                                        INSERT_PERSON,\n" +
                         "                                                        GS_STATUS,\n" +
-                        "                                                        PL_COMMENTS) VALUES (?, ?, ?, ?, ?, ?, SYSDATE, ?, ?, SYSDATE, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, SYSDATE, ?, ?, ?)";
+                        "                                                        POWER_STATUS,\n" +
+                        "                                                        FE_STATUS,\n" +
+                        "                                                        PL_COMMENTS) VALUES (?, ?, ?, ?, ?, ?, SYSDATE, ?, ?, SYSDATE, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, SYSDATE, ?, ?, 0, 0, ?)";
                     PreparedStatement newArtefactCurrentStatePreparedStatement = udbConnect.prepareStatement(insertNewArtefactCurrentState);
 
                     i = 1;
@@ -1380,14 +1394,20 @@ public class CreateNCP implements JavaDelegate {
                     for (int j=0; j<1; j++) {
                         SpinJsonNode file = (SpinJsonNode) createNewCandidateSiteFiles.get(j);
                         if (file != null) {
-                            String INSERT_ARTEFACT_RR_FILE = "INSERT INTO ARTEFACT_RR_FILE (FILE_ID, RR_ID, FILENAME, LASTUPDATED) VALUES (ARTEFACT_RR_FILE_SEQ.nextval, ?, ?, SYSDATE)";
+                            String INSERT_ARTEFACT_RR_FILE = "INSERT INTO ARTEFACT_RR_FILE (FILE_ID, RR_ID, FILENAME, LASTUPDATED, RR_FILE) VALUES (ARTEFACT_RR_FILE_SEQ.nextval, ?, ?, SYSDATE, ?)";
                             PreparedStatement ARTEFACT_RR_FILE_PreparedStatement = udbConnect.prepareStatement(INSERT_ARTEFACT_RR_FILE);
                             log.info("INSERT INTO ARTEFACT_RR_FILE: #" + j + "/" + createNewCandidateSiteFiles.size() + " " + file.prop("name").value().toString());
+
+                            String rrFilePath = file.prop("path").value().toString();
+                            InputStream rrFileInputStream = minioClient.getObject(rrFilePath);
+                            byte[] rrFileBytes = IOUtils.toByteArray(rrFileInputStream);
+                            ByteArrayInputStream rrFileIs = new ByteArrayInputStream(rrFileBytes);
 
                             i = 1;
                             ARTEFACT_RR_FILE_PreparedStatement.setLong(i++, createdArtefactRRId);// RR_ID
                             ARTEFACT_RR_FILE_PreparedStatement.setString(i++, file.hasProp("name") ? file.prop("name").value().toString() : "");
 //                            ARTEFACT_RR_FILE_PreparedStatement.setDate(i++, new java.sql.Date(new Date().getTime())); // INSERT_DATE
+                            ARTEFACT_RR_FILE_PreparedStatement.setBinaryStream(i++, rrFileIs);
                             ARTEFACT_RR_FILE_PreparedStatement.executeUpdate();
                             log.info("Successfully inserted");
                         }
