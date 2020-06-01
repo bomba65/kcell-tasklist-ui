@@ -77,43 +77,43 @@ public class UpdateNCP implements JavaDelegate {
 
 //                    SpinJsonNode reasonJson = JSON(delegateExecution.getVariable("reason"));
 //                    SpinJsonNode reason = reasonJson.prop("id");
-//                    String reasonString = reason.stringValue();
+//                    String reasonString = reason.value().toString();
 //                    int reasonInt = Integer.parseInt(reasonString);
 
                     SpinJsonNode siteTypeJson = delegateExecution.getVariable("siteType") != null ? JSON(delegateExecution.getVariable("siteType")) : null;
                     SpinJsonNode siteType = siteTypeJson != null && siteTypeJson.hasProp("id") ? siteTypeJson.prop("id") : null;
-                    String siteTypeString = siteType != null ? siteType.stringValue() : null;
+                    String siteTypeString = siteType != null ? siteType.value().toString() : null;
                     Integer siteTypeInt = siteTypeString != null ? Integer.parseInt(siteTypeString) : null;
 
 //                    SpinJsonNode projectJson = JSON(delegateExecution.getVariable("project"));
 //                    SpinJsonNode project = projectJson.prop("id");
-//                    String projectString = project.stringValue();
+//                    String projectString = project.value().toString();
 //                    int projectInt = Integer.parseInt(projectString);
 
 //                    SpinJsonNode initiatorJson = JSON(delegateExecution.getVariable("initiator"));
 //                    SpinJsonNode initiator = initiatorJson.prop("id");
-//                    String initiatorString = initiator.stringValue();
+//                    String initiatorString = initiator.value().toString();
 //                    int initiatorInt = Integer.parseInt(initiatorString);
 
 //                    SpinJsonNode partJson = JSON(delegateExecution.getVariable("part"));
 //                    SpinJsonNode part = partJson.prop("id");
-//                    String partString = part.stringValue();
+//                    String partString = part.value().toString();
 //                    int partInt = Integer.parseInt(partString);
 
                     SpinJsonNode candidate = delegateExecution.getVariable("candidate") != null ? JSON(delegateExecution.getVariable("candidate")) : null;
-                    String cn_longitude = candidate != null && candidate.hasProp("longitude") && candidate.prop("longitude") != null ? candidate.prop("longitude").stringValue() : null;
-                    String cn_latitude = candidate != null && candidate.hasProp("latitude") && candidate.prop("latitude") != null ? candidate.prop("latitude").stringValue() : null;
-                    String cn_siteName = candidate != null && candidate.hasProp("siteName") && candidate.prop("siteName") != null ? candidate.prop("siteName").stringValue() : null;
-                    String cn_comments = candidate != null && candidate.hasProp("comments") && candidate.prop("comments") != null ? candidate.prop("comments").stringValue() : null;
+                    String cn_longitude = candidate != null && candidate.hasProp("longitude") && candidate.prop("longitude") != null ? candidate.prop("longitude").value().toString() : null;
+                    String cn_latitude = candidate != null && candidate.hasProp("latitude") && candidate.prop("latitude") != null ? candidate.prop("latitude").value().toString() : null;
+                    String cn_siteName = candidate != null && candidate.hasProp("siteName") && candidate.prop("siteName") != null ? candidate.prop("siteName").value().toString() : null;
+                    String cn_comments = candidate != null && candidate.hasProp("comments") && candidate.prop("comments") != null ? candidate.prop("comments").value().toString() : null;
                     Number cn_square = candidate != null && candidate.hasProp("square") && candidate.prop("square") != null ? candidate.prop("square").numberValue() : null;
-                    String cn_constructionType = candidate != null && candidate.hasProp("constructionType") && candidate.prop("constructionType").hasProp("id") && candidate.prop("constructionType").prop("id") != null ? candidate.prop("constructionType").prop("id").stringValue() : null;
+                    String cn_constructionType = candidate != null && candidate.hasProp("constructionType") && candidate.prop("constructionType").hasProp("id") && candidate.prop("constructionType").prop("id") != null ? candidate.prop("constructionType").prop("id").value().toString() : null;
 
                     Integer cn_altitude = candidate != null && candidate.hasProp("cn_altitude") ? Integer.parseInt(candidate.prop("cn_altitude") != null ? candidate.prop("cn_altitude").value().toString() : "0") : 0;
 
                     String cn_rbs_location = candidate != null && candidate.hasProp("rbsLocation") && candidate.prop("rbsLocation") != null && candidate.prop("rbsLocation").hasProp("id") && candidate.prop("rbsLocation").prop("id") != null ? (candidate.prop("rbsLocation").prop("id").value().toString()) : null;
 
                     SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXX"); //2020-01-02T18:00:00.000Z
-                    String cn_date_of_visit = candidate != null && candidate.hasProp("dateOfVisit") && candidate.prop("dateOfVisit") != null ? (candidate.prop("dateOfVisit").stringValue()) : null;
+                    String cn_date_of_visit = candidate != null && candidate.hasProp("dateOfVisit") && candidate.prop("dateOfVisit") != null ? (candidate.prop("dateOfVisit").value().toString()) : null;
                     Date date_of_visit_date = cn_date_of_visit != null ? formatter.parse(cn_date_of_visit) : null;
                     Calendar date_of_visit = Calendar.getInstance();
                     date_of_visit.setTime(date_of_visit_date);
@@ -121,21 +121,21 @@ public class UpdateNCP implements JavaDelegate {
 
                     SpinJsonNode renterCompany = delegateExecution.getVariable("renterCompany") != null ? JSON(delegateExecution.getVariable("renterCompany")) : null;
                     String contact_person = "" +
-                        (renterCompany != null && renterCompany.hasProp("contactName") && !renterCompany.prop("contactName").equals(null) ? renterCompany.prop("contactName").stringValue() : "") +
-                        " " + (renterCompany != null && renterCompany.hasProp("contactPosition") && !renterCompany.prop("contactPosition").equals(null) ? renterCompany.prop("contactPosition").stringValue() : "") +
-                        " ( tel:" + (renterCompany != null && renterCompany.hasProp("telFax") && !renterCompany.prop("telFax").equals(null) ? renterCompany.prop("telFax").stringValue() : "") + ")";
+                        (renterCompany != null && renterCompany.hasProp("contactName") && !renterCompany.prop("contactName").equals(null) ? renterCompany.prop("contactName").value().toString() : "") +
+                        " " + (renterCompany != null && renterCompany.hasProp("contactPosition") && !renterCompany.prop("contactPosition").equals(null) ? renterCompany.prop("contactPosition").value().toString() : "") +
+                        " ( tel:" + (renterCompany != null && renterCompany.hasProp("telFax") && !renterCompany.prop("telFax").equals(null) ? renterCompany.prop("telFax").value().toString() : "") + ")";
 
                     //{"cn_addr_oblast":"область Акмолинская","cn_addr_district":"","cn_addr_city":"г. Кокшетау","cn_addr_street":"фывфв","ca_not_full_addres":false,"cn_addr_building":"фывыфв"}
                     SpinJsonNode address = delegateExecution.getVariable("address") != null ? JSON(delegateExecution.getVariable("address")) : null;
-                    String cn_address = "" + (address != null && address.hasProp("cn_addr_oblast") && address.prop("cn_addr_oblast") != null ? address.prop("cn_addr_oblast").stringValue() : "") +
-                        (address != null && address.hasProp("cn_addr_district") && address.prop("cn_addr_district") != null ? ", " + address.prop("cn_addr_district").stringValue() : "") +
-                        (address != null && address.hasProp("cn_addr_city") && address.prop("cn_addr_city") != null ? ", " + address.prop("cn_addr_city").stringValue() : "") +
-                        (address != null && address.hasProp("cn_addr_street") && address.prop("cn_addr_street") != null ? ", " + address.prop("cn_addr_street").stringValue() : "") +
-                        (address != null && address.hasProp("cn_addr_building") && address.prop("cn_addr_building") != null ? ", " + address.prop("cn_addr_building").stringValue() : "") +
-                        (address != null && address.hasProp("cn_addr_cadastral_number") && address.prop("cn_addr_cadastral_number") != null ? ", " + address.prop("cn_addr_cadastral_number").stringValue() : "") +
-                        (address != null && address.hasProp("cn_addr_note") && address.prop("cn_addr_note") != null ? ", " + address.prop("cn_addr_note").stringValue() : "");
+                    String cn_address = "" + (address != null && address.hasProp("cn_addr_oblast") && address.prop("cn_addr_oblast") != null ? address.prop("cn_addr_oblast").value().toString() : "") +
+                        (address != null && address.hasProp("cn_addr_district") && address.prop("cn_addr_district") != null ? ", " + address.prop("cn_addr_district").value().toString() : "") +
+                        (address != null && address.hasProp("cn_addr_city") && address.prop("cn_addr_city") != null ? ", " + address.prop("cn_addr_city").value().toString() : "") +
+                        (address != null && address.hasProp("cn_addr_street") && address.prop("cn_addr_street") != null ? ", " + address.prop("cn_addr_street").value().toString() : "") +
+                        (address != null && address.hasProp("cn_addr_building") && address.prop("cn_addr_building") != null ? ", " + address.prop("cn_addr_building").value().toString() : "") +
+                        (address != null && address.hasProp("cn_addr_cadastral_number") && address.prop("cn_addr_cadastral_number") != null ? ", " + address.prop("cn_addr_cadastral_number").value().toString() : "") +
+                        (address != null && address.hasProp("cn_addr_note") && address.prop("cn_addr_note") != null ? ", " + address.prop("cn_addr_note").value().toString() : "");
 
-                    String cn_bsc = candidate != null && candidate.hasProp("bsc") && candidate.prop("bsc") != null && candidate.prop("bsc").hasProp("id") && candidate.prop("bsc").prop("id") != null ? candidate.prop("bsc").prop("id").stringValue() : null;
+                    String cn_bsc = candidate != null && candidate.hasProp("bsc") && candidate.prop("bsc") != null && candidate.prop("bsc").hasProp("id") && candidate.prop("bsc").prop("id") != null ? candidate.prop("bsc").prop("id").value().toString() : null;
                     Integer cn_bscInt = cn_bsc != null ? Integer.parseInt(cn_bsc) : null;
 
                     //UPDATE ARTEFACT
@@ -167,7 +167,7 @@ public class UpdateNCP implements JavaDelegate {
                     Integer rbsTypeInt = rbsType != null ? Integer.parseInt(rbsType) : null;
                     Integer cnConstructionTypeInt = cn_constructionType != null ? Integer.parseInt(cn_constructionType) : null;
                     Integer bandsIdForUDBInt = bandsIdForUDB != null ? Integer.parseInt(bandsIdForUDB) : null;
-                    String contractInfoString = renterCompany != null && renterCompany.hasProp("contactInfo") && !renterCompany.prop("contactInfo").equals(null) ? renterCompany.prop("contactInfo").stringValue() : "";
+                    String contractInfoString = renterCompany != null && renterCompany.hasProp("contactInfo") && !renterCompany.prop("contactInfo").equals(null) ? renterCompany.prop("contactInfo").value().toString() : "";
                     i = 1;
                     log.info("preparedStatement.setValues");
                     // set values to insert
