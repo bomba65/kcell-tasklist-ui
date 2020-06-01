@@ -1,6 +1,7 @@
 package kz.kcell.flow.leasing;
 
 import kz.kcell.flow.files.Minio;
+import lombok.extern.java.Log;
 import org.apache.commons.io.IOUtils;
 import org.camunda.bpm.engine.delegate.DelegateExecution;
 import org.camunda.bpm.engine.delegate.JavaDelegate;
@@ -21,6 +22,7 @@ import java.util.stream.Stream;
 
 import static org.camunda.spin.Spin.JSON;
 
+@Log
 @Service("SaveRsdTsdVsdFiles")
 public class SaveRsdTsdVsdFiles implements JavaDelegate {
 
@@ -42,7 +44,7 @@ public class SaveRsdTsdVsdFiles implements JavaDelegate {
 
     @Override
     public void execute(DelegateExecution delegateExecution) throws Exception {
-        System.out.println("try to connect....");
+        log.info("try to connect....");
         try {
             TimeZone timeZone = TimeZone.getTimeZone("Asia/Almaty");
             TimeZone.setDefault(timeZone);
@@ -51,11 +53,11 @@ public class SaveRsdTsdVsdFiles implements JavaDelegate {
                 udbOracleUrl,
                 udbOracleUsername,
                 udbOraclePassword);
-//            Connection udbConnect = DriverManager.getConnection("jdbc:oracle:thin:@//sc2-appcl010406:1521/apexudb", "app_apexudb_camunda", "p28zt#7C");
+//                Connection udbConnect = DriverManager.getConnection("jdbc:oracle:thin:@//sc2-appcl010406:1521/apexudb", "app_apexudb_camunda", "p28zt#7C");
             try {
                 if (udbConnect != null) {
                     udbConnect.setAutoCommit(false);
-                    System.out.println("Connected to the database!");
+                    log.info("Connected to the database!");
                     List<String> fileList = Stream.of("uploadTSDfileFiles",
                         "uploadRSDandVSDfilesFiles",
                         "createdRSDFile").collect(Collectors.toList());
@@ -102,7 +104,7 @@ public class SaveRsdTsdVsdFiles implements JavaDelegate {
                     PreparedStatement updateRSDextPreparedStatement = udbConnect.prepareStatement(UPDATE_RSD_EXT);
 
                     int i = 1;
-                    System.out.println("preparedStatement.setValues");
+                    log.info("Save Files (RSD, TSD, VSD) to ArtefactId: " + createdArtefactId);
                     // set values to insert
                     updateTSDextPreparedStatement.setLong(i++, createdArtefactId); // ARTEFACTID
                     updateTSDextPreparedStatement.setLong(i++, createdArtefactRSDId); // RSDID
@@ -110,9 +112,9 @@ public class SaveRsdTsdVsdFiles implements JavaDelegate {
                     updateTSDextPreparedStatement.setDate(i++, new java.sql.Date(new Date().getTime())); // LASTUPDATE
                     updateTSDextPreparedStatement.setBinaryStream(i++, tsdIs);
 
-                    System.out.println("preparedStatement.executeUpdate()");
+                    log.info("saving (updateTSDextPreparedStatement.executeUpdate)");
                     updateTSDextPreparedStatement.executeUpdate();
-                    System.out.println("successfull insert to database!");
+                    log.info("successfull insert tsdFile to database!");
 
                     i = 1;
                     updateVSDextPreparedStatement.setLong(i++, createdArtefactId); // ARTEFACTID
@@ -121,9 +123,9 @@ public class SaveRsdTsdVsdFiles implements JavaDelegate {
                     updateVSDextPreparedStatement.setDate(i++, new java.sql.Date(new Date().getTime())); // LASTUPDATE
                     updateVSDextPreparedStatement.setBinaryStream(i++, vsdIs);
 
-                    System.out.println("preparedStatement.executeUpdate()");
+                    log.info("saving (updateVSDextPreparedStatement.executeUpdate)");
                     updateVSDextPreparedStatement.executeUpdate();
-                    System.out.println("successfull insert to database!");
+                    log.info("successfull insert vsdFile to database!");
 
                     i = 1;
                     updateRSDextPreparedStatement.setLong(i++, createdArtefactId); // ARTEFACTID
@@ -132,31 +134,33 @@ public class SaveRsdTsdVsdFiles implements JavaDelegate {
                     updateRSDextPreparedStatement.setDate(i++, new java.sql.Date(new Date().getTime())); // LASTUPDATE
                     updateRSDextPreparedStatement.setBinaryStream(i++, rsdIs);
 
-                    System.out.println("preparedStatement.executeUpdate()");
+                    log.info("saving (updateRSDextPreparedStatement.executeUpdate)");
                     updateRSDextPreparedStatement.executeUpdate();
-                    System.out.println("successfull insert to database!");
+                    log.info("successfull insert rsdFile to database!");
 
                     udbConnect.commit();
                     udbConnect.close();
-                    System.out.println("udbConnection closed!");
+                    log.info("udbConnection closed!");
 
                 } else {
                     udbConnect.close();
-                    System.out.println("Failed to make connection!");
+                    log.info("Failed to make connection!");
                 }
             } catch (Exception e) {
                 udbConnect.rollback();
                 udbConnect.close();
-                System.out.println("connection Exception!");
-                System.out.println(e);
+                log.info("connection Exception!");
+                log.info(e.toString());
                 throw e;
             }
         } catch (SQLException e) {
-            System.out.println("testConnect SQLException!");
-            System.out.println(e.toString());
-            System.err.format("SQL State: %s\n%s", e.getSQLState(), e.getMessage());
+            log.info("testConnect SQLException!");
+            log.info(e.toString());
+            log.warning("SQL State: %s\n%s");
+            log.warning(e.getSQLState());
+            log.warning(e.getMessage());
         } catch (Exception e) {
-            System.out.println("testConnect Exception!");
+            log.info("testConnect Exception!");
             e.printStackTrace();
         }
 
