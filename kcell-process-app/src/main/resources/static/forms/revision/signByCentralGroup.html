@@ -45,7 +45,9 @@
                 'siteWorksFiles',
                 'mlApprovalAdditionalInfoFile',
                 'contractorJobAssignedDate',
-                'mainContract'
+                'mainContract',
+                'jobWorksTotal',
+                'sapFaList'
 
             ];
             $scope.jobModel = {
@@ -89,18 +91,95 @@
                     value: ''
                 });
             });
+
+            $scope.documentType = {1:"ZK73-02", 2:"ZK73-03", 3:"ZK73-04", 4:"ZK73-01"};
+
+            $scope.capexWorks = ['1','2','3','4','5','8','10','11','12','14','15','16','17','19','20','22','23','25','26','28','29','31','32','34',
+                '35','36','38','42','45', '46', '47', '48', '49', '50', '54', '55', '56', '57', '60', '62', '65', '66', '71', '72',
+                '77', '78', '79', '80', '81', '86', '87', '88', '91', '94', '97', '100', '103', '104', '105', '106', '112', '113',
+                '114', '115', '122', '131', '134', '138', '141', '144', '147', '150', '151', '155', '156', '157', '158', '159', '160',
+                '161', '162', '165', '168', '169', '172', '173'];
+
+            $scope.undefinedWorks = ['39', '40', '41', '43', '61', '63', '67', '68', '73', '74', '82', '84', '85', '89', '92', '95', '98', '101', '107',
+                '108', '116', '117', '118', '123', '125', '126', '127', '128', '129', '130', '132', '135', '137', '139', '142', '145',
+                '148', '152', '153', '154', '166'];
+
+            $scope.opexWorks = ['6', '7', '9', '13', '18', '21', '24', '27', '30', '33', '37', '44', '51', '52', '53', '58', '59', '64', '69', '70', '75',
+                '76', '83', '90', '93', '96', '99', '102', '109', '110', '111', '119', '120', '121', '124', '133', '136', '140', '143',
+                '146', '149', '163', '164', '167', '170', '171'];
+
             camForm.on('variables-fetched', function () {
                 variables.forEach(function (el) {
                     $scope.jobModel[el] = camForm.variableManager.variables[el];
                     if (el === 'resolutions') {
                         $scope[el] = camForm.variableManager.variables[el].value;
                     }
+                    if(el === 'jobWorks'){
+                        $scope.jobWorksValue = angular.copy(camForm.variableManager.variables[el].value);
+                    }
                 });
+
                 $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name+ "/profile").then(function(result){
                     $rootScope.authentication.assigneeName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
                 });
                 if(camForm.variableManager.variables['approveMaterialsListByRegionGroupsHeadComment']){
                     camForm.variableManager.variableValue('approveMaterialsListByRegionGroupsHeadComment', '');
+                }
+                try{
+                    $scope.jobWorksValue.forEach(function(work){
+                        work.price = _.find($scope.jobModel.workPrices, function(p){
+                            return work.sapServiceNumber === p.sapServiceNumber
+                        });
+
+                        if($scope.capexWorks.indexOf(work.sapServiceNumber)!==-1){
+                            work.expenseType = 'CAPEX';
+                        } else if($scope.opexWorks.indexOf(work.sapServiceNumber)!==-1){
+                            work.expenseType = 'OPEX';
+                        }
+
+                        if(work.expenseType==='CAPEX'){
+                            work.activityServiceNumber = 'DUMMY';
+                            if($scope.jobModel.reason.value === '2'){
+                                work.wbsElement = 'TN-0502-48-0236';
+                            } else {
+                                work.wbsElement = 'RN-0502-33-0236';
+                            }
+                            work.controllingArea = 'DUMMY';
+                        } else if(work.expenseType==='OPEX'){
+                            if($scope.jobModel.reason.value === '2'){
+                                work.activityServiceNumber = '7016046';
+                            } else {
+                                work.activityServiceNumber = '7016045';
+                            }
+                            if($scope.jobModel.reason.value === '4'){
+                                work.wbsElement = '252-70160-1';
+                            } else {
+                                work.wbsElement = '251-70160-1';
+                            }
+                            work.controllingArea = '3020';
+                        }
+                        work.costCenter = '25510';
+
+                        if(work.expenseType==='CAPEX'){
+                            if($scope.jobModel.reason.value === '2'){
+                                angular.forEach(work.relatedSites, function (rs) {
+                                    angular.forEach($scope.jobModel.sapFaList.value, function (fa) {
+                                        if(fa.faClass == $scope.workDefinitionMap[work.sapServiceNumber].faClass && fa.sloc == $scope.tnuSiteLocations[rs.site_name].siteLocation){
+                                            $scope.tnuSiteLocations[rs.site_name].work[work.sapServiceNumber].fixedAssetNumber = fa.faNumber;
+                                        }
+                                    });
+                                });
+                            } else {
+                                angular.forEach($scope.jobModel.sapFaList.value, function (fa) {
+                                    if(fa.faClass === $scope.workDefinitionMap[work.sapServiceNumber].faClass && fa.sloc == $scope.jobModel.sloc.value){
+                                        work.fixedAssetNumber = fa.faNumber;
+                                    }
+                                });
+                            }
+                        }
+                    });
+                } catch(E) {
+                    console.log(E);
                 }
             });
 
@@ -232,13 +311,13 @@
     <div class="row" style="border: 1px solid;">
         <div class="col-md-12" style="padding: 10px;">
             <strong>Header note</strong>
-            <div>1.Purchase description: Revision works for site JR# N&C-LSE-SAO-20-0001 dated 13.03.2020</div>
-            <div>2.Budgeted or not: yes 252-70160-1</div>
+            <div>1.Purchase description: Revision works for site {{r.site_name}} JR# {{jobModel.jrNumber.value}} dated {{jobModel.requestedDate.value | date:'dd.MM.yyyy'}}</div>
+            <div>2.Budgeted or not: yes {{w.wbsElement}}</div>
             <div>3.Main project for Fintur: revision works</div>
             <div>4.Describe the need of this purchase for this year: necessary for revision works</div>
-            <div>5.Contact person: KEREMET</div>
+            <div>5.Contact person: {{reasonsSubcontractorResponsible[jobModel.reason.value].responsible}}</div>
             <div>6. Vendor: Line System Engineering LLP</div>
-            <div>8. Total sum: 47819,16</div>
+            <div>8. Total sum: {{jobModel.jobWorksTotal.value.replace('.',',')}}</div>
         </div>
     </div>
     <br/>
@@ -247,217 +326,291 @@
             <table class="table table-bordered">
                 <tr style="background-color: #b6b6b6">
                     <th>Work #</th>
-                    <th>1. RBS/BTS cell addition (BBS+cabinet)</th>
-                    <th>8.Site change/replacement (All equipments, RF &TR& Infrastructure</th>
-                    <th>2.BTS Micro/BTS Midi installation (cabinet only) with on-air</th>
-                    <th>2.BTS Micro/BTS Midi installation (cabinet only) with on-air</th>
+                    <th ng-repeat="w in jobWorksValue track by $index"></th>
                     <th></th>
                     <th></th>
                 </tr>
                 <tr>
                     <th>Field</th>
-                    <th>Value</th>
-                    <th>Value</th>
-                    <th>Value</th>
-                    <th>Value</th>
+                    <th ng-repeat="w in jobWorksValue track by $index">Value</th>
                     <th>Actions</th>
                     <th>Comment</th>
                 </tr>
                 <tr>
                     <td>PR document type</td>
-                    <td>ZK73-01</td>
-                    <td>ZK73-01</td>
-                    <td>ZK73-01</td>
-                    <td>ZK73-01</td>
+                    <th ng-repeat="w in jobWorksValue track by $index">{{documentType[jobModel.reason.value]}}</th>
                     <td></td>
                     <td></td>
                 </tr>
                 <tr>
                     <td>Cost Type</td>
-                    <td>Y</td>
-                    <td>Y</td>
-                    <td>K</td>
-                    <td>K</td>
-                    <td>Edit</td>
+                    <td  ng-repeat="w in jobWorksValue track by $index">{{w.expenseType=='CAPEX'?'Y':(w.expenseType=='OPEX'?'K':'')}}</td>
+                    <td></td>
                     <td>Edited by:</td>
                 </tr>
                 <tr>
                     <td>JR Number</td>
-                    <td>Alm-LSE-P&O-20-0015</td>
-                    <td>Alm-LSE-P&O-20-0015</td>
-                    <td>Alm-LSE-P&O-20-0015</td>
-                    <td>Alm-LSE-P&O-20-0015</td>
+                    <td  ng-repeat="w in jobWorksValue track by $index">{{jobModel.jrNumber.value}}</td>
                     <td></td>
                     <td></td>
                 </tr>
                 <tr>
                     <td>JR Status</td>
-                    <td>approved</td>
-                    <td>approved</td>
-                    <td>approved</td>
-                    <td>approved</td>
+                    <td  ng-repeat="w in jobWorksValue track by $index">approved</td>
                     <td></td>
                     <td></td>
                 </tr>
                 <tr>
                     <td>JR Reuqest date</td>
-                    <td>22.03.2020</td>
-                    <td>22.03.2020</td>
-                    <td>22.03.2020</td>
-                    <td>22.03.2020</td>
+                    <td  ng-repeat="w in jobWorksValue track by $index">{{jobModel.requestedDate.value | date:'dd.MM.yyyy'}}</td>
                     <td>Edit</td>
                     <td>Edited by:</td>
                 </tr>
                 <tr>
                     <td>Vendor</td>
-                    <td>280209</td>
-                    <td>280209</td>
-                    <td>280209</td>
-                    <td>280209</td>
+                    <td  ng-repeat="w in jobWorksValue track by $index">{{workDefinitionMap[w.sapServiceNumber].vendor}}</td>
                     <td></td>
                     <td></td>
                 </tr>
                 <tr>
                     <td>Region</td>
-                    <td>7</td>
-                    <td>7</td>
-                    <td>7</td>
-                    <td>7</td>
+                    <td  ng-repeat="w in jobWorksValue track by $index">7</td>
                     <td></td>
                     <td></td>
                 </tr>
                 <tr>
                     <td>Service Type</td>
-                    <td>Y</td>
-                    <td>Y</td>
-                    <td>Y</td>
-                    <td>Y</td>
+                    <td  ng-repeat="w in jobWorksValue track by $index">Y</td>
                     <td></td>
                     <td></td>
                 </tr>
                 <tr>
                     <td>PR Item text</td>
-                    <td>installation service 00001ALGSMAK</td>
-                    <td>installation service 00001ALGSMAK</td>
-                    <td>installation service 00001ALGSMAK</td>
-                    <td>installation service 00003FOODKZ</td>
+                    <td  ng-repeat="w in jobWorksValue track by $index">installation service {{r.site_name}}</td>
                     <td>Edit</td>
                     <td>Edited by:</td>
                 </tr>
                 <tr>
                     <td>CM Contract no</td>
-                    <td>56357</td>
-                    <td>56357</td>
-                    <td>56357</td>
-                    <td>56357</td>
+                    <td  ng-repeat="w in jobWorksValue track by $index">{{contractorsService[jobModel.contractor.value].contract.service}}</td>
                     <td></td>
                     <td></td>
                 </tr>
                 <tr>
                     <td>Service number</td>
-                    <td>1</td>
-                    <td>8</td>
-                    <td>2</td>
-                    <td></td>
+                    <td  ng-repeat="w in jobWorksValue track by $index">{{workDefinitionMap[w.sapServiceNumber].sapServiceNumber}}</td>
                     <td></td>
                     <td></td>
                 </tr>
                 <tr>
                     <td>Service quantity </td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
+                    <td  ng-repeat="w in jobWorksValue track by $index">{{w.quantity}}</td>
                     <td></td>
                     <td></td>
                 </tr>
                 <tr>
                     <td>Delivery Date</td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
+                    <td  ng-repeat="w in jobWorksValue track by $index">31.12.{{currentDate | date:'yyyy'}}</td>
                     <td></td>
                     <td></td>
                 </tr>
                 <tr>
                     <td>WBS Element</td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
+                    <td  ng-repeat="w in jobWorksValue track by $index">{{w.wbsElement}}</td>
                     <td></td>
                     <td></td>
                 </tr>
                 <tr>
                     <td>Job Order no </td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
+                    <td  ng-repeat="w in jobWorksValue track by $index">{{jobModel.jrNumber.value}}</td>
                     <td></td>
                     <td></td>
                 </tr>
                 <tr>
                     <td>Stor. Location</td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
+                    <td  ng-repeat="w in jobWorksValue track by $index">{{jobModel.sloc.value}}</td>
                     <td></td>
                     <td></td>
                 </tr>
                 <tr>
                     <td>FA number</td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
+                    <td  ng-repeat="w in jobWorksValue track by $index">{{w.fixedAssetNumber!=null?w.fixedAssetNumber:'DUMMY'}}</td>
                     <td></td>
                     <td></td>
                 </tr>
                 <tr>
                     <td>Cost center </td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
+                    <td  ng-repeat="w in jobWorksValue track by $index">{{w.costCenter}}</td>
                     <td></td>
                     <td></td>
                 </tr>
                 <tr>
                     <td>Controlling Area</td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
+                    <td  ng-repeat="w in jobWorksValue track by $index">{{w.controllingArea}}</td>
                     <td></td>
                     <td></td>
                 </tr>
                 <tr>
                     <td>Activity Service Number</td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
+                    <td  ng-repeat="w in jobWorksValue track by $index">{{w.activityServiceNumber}}</td>
                     <td></td>
                     <td></td>
                 </tr>
                 <tr>
                     <td>Amount</td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
+                    <td  ng-repeat="w in jobWorksValue track by $index">{{w.price.unitWorkPricePlusTx.replace('.',',')}}</td>
                     <td></td>
                     <td></td>
                 </tr>
                 <tr>
                     <td>KWMS PR Req. Name</td>
+                    <td  ng-repeat="w in jobWorksValue track by $index">{{reasonsSubcontractorResponsible[jobModel.reason.value].responsible}}</td>
                     <td></td>
                     <td></td>
+                </tr>
+            </table>
+            <table class="table table-bordered">
+                <tr style="background-color: #b6b6b6">
+                    <th>Work #</th>
+                    <th ng-repeat="w in jobWorksValue track by $index"></th>
+                    <th></th>
+                    <th></th>
+                </tr>
+                <tr>
+                    <th>Field</th>
+                    <th ng-repeat="w in jobWorksValue track by $index">Value</th>
+                    <th>Actions</th>
+                    <th>Comment</th>
+                </tr>
+                <tr>
+                    <td>PR document type</td>
+                    <th ng-repeat="w in jobWorksValue track by $index">{{documentType[jobModel.reason.value]}}</th>
                     <td></td>
                     <td></td>
+                </tr>
+                <tr>
+                    <td>Cost Type</td>
+                    <td  ng-repeat="w in jobWorksValue track by $index">{{w.expenseType=='CAPEX'?'Y':(w.expenseType=='OPEX'?'K':'')}}</td>
+                    <td></td>
+                    <td>Edited by:</td>
+                </tr>
+                <tr>
+                    <td>JR Number</td>
+                    <td  ng-repeat="w in jobWorksValue track by $index">{{jobModel.jrNumber.value}}</td>
+                    <td></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td>JR Status</td>
+                    <td  ng-repeat="w in jobWorksValue track by $index">approved</td>
+                    <td></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td>JR Reuqest date</td>
+                    <td  ng-repeat="w in jobWorksValue track by $index">{{jobModel.requestedDate.value | date:'dd.MM.yyyy'}}</td>
+                    <td>Edit</td>
+                    <td>Edited by:</td>
+                </tr>
+                <tr>
+                    <td>Vendor</td>
+                    <td  ng-repeat="w in jobWorksValue track by $index">{{workDefinitionMap[w.sapServiceNumber].vendor}}</td>
+                    <td></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td>Region</td>
+                    <td  ng-repeat="w in jobWorksValue track by $index">7</td>
+                    <td></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td>Service Type</td>
+                    <td  ng-repeat="w in jobWorksValue track by $index">Y</td>
+                    <td></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td>PR Item text</td>
+                    <td  ng-repeat="w in jobWorksValue track by $index">installation service {{r.site_name}}</td>
+                    <td>Edit</td>
+                    <td>Edited by:</td>
+                </tr>
+                <tr>
+                    <td>CM Contract no</td>
+                    <td  ng-repeat="w in jobWorksValue track by $index">{{contractorsService[jobModel.contractor.value].contract.service}}</td>
+                    <td></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td>Service number</td>
+                    <td  ng-repeat="w in jobWorksValue track by $index">{{workDefinitionMap[w.sapServiceNumber].sapServiceNumber}}</td>
+                    <td></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td>Service quantity </td>
+                    <td  ng-repeat="w in jobWorksValue track by $index">{{w.quantity}}</td>
+                    <td></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td>Delivery Date</td>
+                    <td  ng-repeat="w in jobWorksValue track by $index">31.12.{{currentDate | date:'yyyy'}}</td>
+                    <td></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td>WBS Element</td>
+                    <td  ng-repeat="w in jobWorksValue track by $index">{{w.wbsElement}}</td>
+                    <td></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td>Job Order no </td>
+                    <td  ng-repeat="w in jobWorksValue track by $index">{{jobModel.jrNumber.value}}</td>
+                    <td></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td>Stor. Location</td>
+                    <td  ng-repeat="w in jobWorksValue track by $index">{{jobModel.sloc.value}}</td>
+                    <td></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td>FA number</td>
+                    <td  ng-repeat="w in jobWorksValue track by $index">{{w.fixedAssetNumber!=null?w.fixedAssetNumber:'DUMMY'}}</td>
+                    <td></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td>Cost center </td>
+                    <td  ng-repeat="w in jobWorksValue track by $index">{{w.costCenter}}</td>
+                    <td></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td>Controlling Area</td>
+                    <td  ng-repeat="w in jobWorksValue track by $index">{{w.controllingArea}}</td>
+                    <td></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td>Activity Service Number</td>
+                    <td  ng-repeat="w in jobWorksValue track by $index">{{w.activityServiceNumber}}</td>
+                    <td></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td>Amount</td>
+                    <td  ng-repeat="w in jobWorksValue track by $index">{{w.price.unitWorkPricePlusTx.replace('.',',')}}</td>
+                    <td></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td>KWMS PR Req. Name</td>
+                    <td  ng-repeat="w in jobWorksValue track by $index">{{reasonsSubcontractorResponsible[jobModel.reason.value].responsible}}</td>
                     <td></td>
                     <td></td>
                 </tr>
