@@ -41,8 +41,6 @@ public class TaskNotificationListener implements TaskListener {
     private final CompiledScript template;
     private ScriptEngine groovyEngine;
 
-    private final List<String> disabledProcesses = Arrays.asList("AftersalesPBX");
-
     @Autowired
     public TaskNotificationListener(
         @Value("${mail.sender:flow@kcell.kz}") String sender,
@@ -63,19 +61,6 @@ public class TaskNotificationListener implements TaskListener {
 
     @Override
     public void notify(DelegateTask delegateTask) {
-        boolean isProcessDisabled =
-            delegateTask
-                .getProcessEngineServices()
-                .getRepositoryService()
-                .createProcessDefinitionQuery()
-                .processDefinitionId(delegateTask.getProcessDefinitionId())
-                .list()
-                .stream()
-                .filter(e-> disabledProcesses.contains(e.getKey()))
-                .findAny()
-                .isPresent();
-
-        if (isProcessDisabled) return;
 
         boolean isRevisionProcess =
             delegateTask
