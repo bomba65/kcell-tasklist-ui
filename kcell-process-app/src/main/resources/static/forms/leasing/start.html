@@ -4,7 +4,7 @@
             background-color: #ffffcc;
             border: 1px solid #b3b3b3;
             color: #333;
-            padding:10px;
+            padding: 10px;
         }
 
     </style>
@@ -16,6 +16,9 @@
                 $scope.bands = [];
                 $scope.dictionary = {};
                 $scope.project = {};
+                $scope.latitudePattern = 'N (4([1-9]{1}.[0-9]{6}|0.([6-9]{1}[0-9]{5}|5([7-9]{1}[0-9]{4}|6(9[0-9]{3}|8[0-9]{3}))))|5([0-4]{1}.[0-9]{6}|5.([0-3]{1}[0-9]{5}|4([0-3]{1}[0-9]{4}|40000))))';
+                $scope.longitudePattern = 'E ([5-7]{1}[0-9]{1}.[0-9]{6}|4([7-9]{1}.[0-9]{6}|6.([5-9]{1}[0-9]{5}|49([4-9]{1}|3)[0-9]{3}))|8([0-6]{1}.[0-9]{6}|7.([0-2]{1}[0-9]{5}|3(0[0-9]{4}|1([0-4]{1}[0-9]{3}|5000)))))';
+
 
                 $scope.bandsForUDB = {"G900" : "1",
                     "G1800" : "2",
@@ -200,11 +203,11 @@
                 var deferred = $q.defer();
                 var tempLat;
                 var tempLong;
-                var validLat = false;
-                var validLong = false;
+                var validLat = true;
+                var validLong = true;
 
                 // latitude check
-                if (!isNaN($scope.latitude)) {
+               /* if (!isNaN($scope.latitude)) {
                     tempLat = $scope.latitude;
                     if (Number.isInteger(tempLat)) {
                         tempLat = parseInt(tempLat);
@@ -243,11 +246,11 @@
                 } else {
                     deferred.reject('Longitude must be in [46.493, 87.315] range');
                     return deferred.promise;
-                }
+                } */
                 if (validLat && validLong) {
                     var currentDate = new Date();
                     var rolloutCounter = 'ROLLOUT-' + currentDate.getFullYear().toString();
-                    return $http.post('/asset-management/rolloutcounter/' + rolloutCounter).then(
+                     return $http.post('/asset-management/rolloutcounter/' + rolloutCounter).then(
                             function (result) {
                                 var businessKey = 'ROLLOUT-' + $scope.ncpID + '-' + currentDate.getFullYear().toString() + '-' + result.data;
                                 camForm.businessKey = businessKey;
@@ -256,6 +259,7 @@
                     deferred.resolve();
                     return deferred.promise;
                 }
+
 
              }
 
@@ -308,6 +312,7 @@
                 }).code;
             }
 
+
             $scope.types = function (rbsType) {
                 return Number(rbsType);
             }
@@ -315,7 +320,10 @@
                 $scope.rbsType = rbsTypeObj.rbsType;
                 $scope.rbsTypeId = rbsTypeObj.id;
             }
+
+
         }]);
+
 
     </script>
     <div>
@@ -325,8 +333,11 @@
         <div class="form-group">
             <label class="col-sm-4 control-label">NCP ID:</label>
             <div class="col-sm-4">
-                <input class="form-control" id="ncpID" name="ncpID" required ng-model="ncpID" cam-variable-name="ncpID" cam-variable-type="String" limit-to="5" numbers-only>
-                <label class="error" ng-show="kcell_form.ncpID.$error.required && ( kcell_form.ncpID.$touched || view.submitted)">Required field</label>
+                <input class="form-control" id="ncpID" name="ncpID" required ng-model="ncpID" cam-variable-name="ncpID"
+                       cam-variable-type="String" limit-to="5" numbers-only>
+                <label class="error"
+                       ng-show="kcell_form.ncpID.$error.required && ( kcell_form.ncpID.$touched || view.submitted)">Required
+                    field</label>
             </div>
         </div>
         <div class="form-group">
@@ -338,7 +349,9 @@
                     <option value="" disabled selected hidden>Select Site type</option>
                     <option ng-repeat="type in dictionary.siteType" ng-value="type">{{type.name}}</option>
                 </select>
-                <label class="error" ng-show="kcell_form.siteType.$error.required && ( kcell_form.siteType.$touched || view.submitted)">Required field</label>
+                <label class="error"
+                       ng-show="kcell_form.siteType.$error.required && ( kcell_form.siteType.$touched || view.submitted)">Required
+                    field</label>
             </div>
         </div>
         <div class="form-group">
@@ -349,25 +362,44 @@
                         ng-model="region"
                         ng-change="regionSelected(region)"
                         required ng-disabled="!ncpID.startsWith('9')">
-                    <option value="{{r.id}}" ng-repeat="r in dictionary.regions" ng-selected="{{r.id == region}}">{{r.name}}</option>
+                    <option value="{{r.id}}" ng-repeat="r in dictionary.regions" ng-selected="{{r.id == region}}">
+                        {{r.name}}
+                    </option>
                 </select>
-                <label class="error" ng-show="kcell_form.region.$error.required && ( kcell_form.region.$touched || view.submitted)">Required field</label>
+                <label class="error"
+                       ng-show="kcell_form.region.$error.required && ( kcell_form.region.$touched || view.submitted)">Required
+                    field</label>
             </div>
         </div>
         <div class="form-group">
             <label class="col-sm-4 control-label">Latitude:</label>
             <div class="col-sm-4">
-                <input class="form-control" id="latitude" name="latitude" required ng-model="latitude" cam-variable-name="latitude" maxlength="9" cam-variable-type="String">
-                <label class="error" ng-show="kcell_form.latitude.$error.required && ( kcell_form.latitude.$touched || view.submitted)">Required field</label>
-                <label class="error" ng-show="invalidLatitude">Latitude must be in [40.568, 55.440] range</label>
+                <input class="form-control" id="latitude" placeholder="N ХХ.ХХХХХХ" name="latitude"
+                       ng-pattern="latitudePattern" required ng-model="latitude" cam-variable-name="latitude"
+                       maxlength="11" cam-variable-type="String">
+                <label class="error"
+                       ng-show="kcell_form.latitude.$error.required && ( kcell_form.latitude.$touched || view.submitted)">Required
+                    field</label>
+                <!-- <label class="error" ng-show="invalidLatitude">Latitude must be in [40.568, 55.440] range</label>-->
+                <label class="error"
+                       ng-if="kcell_form.latitude.$error.pattern && ( kcell_form.latitude.$touched || view.submitted)">Expected:N
+                    40.568000 <- Latitude <-N 55.440000</label>
             </div>
         </div>
         <div class="form-group">
             <label class="col-sm-4 control-label">Longitude:</label>
             <div class="col-sm-4">
-                <input class="form-control" id="longitude" name="longitude" required ng-model="longitude" cam-variable-name="longitude" maxlength="9" cam-variable-type="String">
-                <label class="error" ng-show="kcell_form.longitude.$error.required && ( kcell_form.longitude.$touched || view.submitted)">Required field</label>
-                <label class="error" ng-show="invalidLongitude">Longitude must be in [46.493, 87.315] range</label>
+                <input class="form-control" id="longitude" placeholder="E ХХ.ХХХХХХ" name="longitude"
+                       ng-pattern="longitudePattern" required ng-model="longitude" cam-variable-name="longitude"
+                       maxlength="11" cam-variable-type="String">
+                <label class="error"
+                       ng-show="kcell_form.longitude.$error.required && ( kcell_form.longitude.$touched || view.submitted)">Required
+                    field</label>
+                <!--<label class="error" ng-show="invalidLongitude">Longitude must be in [46.493, 87.315] range</label>-->
+                <label class="error"
+                       ng-if="kcell_form.longitude.$error.pattern && ( kcell_form.longitude.$touched || view.submitted)">Expected:E
+                    40.568000 <- Longitude <-E 55.440000</label>
+
             </div>
         </div>
         <div class="form-group">
@@ -379,7 +411,9 @@
                     <option value="" disabled selected hidden>Select Initiator</option>
                     <option ng-repeat="i in dictionary.initiators" ng-value="i">{{i.name}}</option>
                 </select>
-                <label class="error" ng-show="kcell_form.initiator.$error.required && ( kcell_form.initiator.$touched || view.submitted)">Required field</label>
+                <label class="error"
+                       ng-show="kcell_form.initiator.$error.required && ( kcell_form.initiator.$touched || view.submitted)">Required
+                    field</label>
             </div>
         </div>
 
@@ -392,7 +426,9 @@
                         ng-required="projectsByInitiator">
                     <option ng-repeat="pr in projectsByInitiator.project" ng-value="pr">{{pr.name}}</option>
                 </select>
-                <label class="error" ng-show="kcell_form.project.$error.required && ( kcell_form.project.$touched || view.submitted)">Required field</label>
+                <label class="error"
+                       ng-show="kcell_form.project.$error.required && ( kcell_form.project.$touched || view.submitted)">Required
+                    field</label>
             </div>
         </div>
 
@@ -406,7 +442,9 @@
                         required>
                     <option ng-repeat="r in reasonsByProject" ng-value="r">{{r.reason}}</option>
                 </select>
-                <label class="error" ng-show="kcell_form.reason.$error.required && ( kcell_form.reason.$touched || view.submitted)">Required field</label>
+                <label class="error"
+                       ng-show="kcell_form.reason.$error.required && ( kcell_form.reason.$touched || view.submitted)">Required
+                    field</label>
             </div>
         </div>
 
@@ -419,14 +457,18 @@
                     <option value="" disabled selected hidden></option>
                     <option ng-repeat="y in years" ng-value="y">{{y.name}}</option>
                 </select>
-                <label class="error" ng-show="kcell_form.part.$error.required && ( kcell_form.part.$touched || view.submitted)">Required field</label>
+                <label class="error"
+                       ng-show="kcell_form.part.$error.required && ( kcell_form.part.$touched || view.submitted)">Required
+                    field</label>
             </div>
         </div>
 
         <div class="form-group">
             <label class="control-label col-sm-4">Target Coverage:</label>
             <div class="col-sm-4" style="margin-top: 5px">
-                <textarea style="resize:vertical;"  class="form-control" rows="4" maxlength="500" name="targetCoverage" cam-variable-name="targetCoverage" cam-variable-type="String" ng-model="targetCoverage"></textarea>
+                <textarea style="resize:vertical;" class="form-control" rows="4" maxlength="500" name="targetCoverage"
+                          cam-variable-name="targetCoverage" cam-variable-type="String"
+                          ng-model="targetCoverage"></textarea>
             </div>
         </div>
 
@@ -441,7 +483,9 @@
                     <option value="Indoor">Indoor</option>
                     <option value="Outdoor">Outdoor</option>
                 </select>
-                <label class="error" ng-show="kcell_form.plannedCabinetType.$error.required && ( kcell_form.plannedCabinetType.$touched || view.submitted)">Required field</label>
+                <label class="error"
+                       ng-show="kcell_form.plannedCabinetType.$error.required && ( kcell_form.plannedCabinetType.$touched || view.submitted)">Required
+                    field</label>
             </div>
         </div>
 
@@ -451,27 +495,37 @@
                 <select class="form-control" id="rbsType" name="rbsType"
                         ng-model="rbsTypeObj" ng-change="setRbsType(rbsTypeObj)" required>
                     <option value="" disabled selected hidden>Select RBS type</option>
-                    <option ng-repeat="r in dictionary.rbsType | orderBy: types" ng-value="r">{{r.rbsType + ' - ' + r.siteType}}</option>
+                    <option ng-repeat="r in dictionary.rbsType | orderBy: types" ng-value="r">{{r.rbsType + ' - ' +
+                        r.siteType}}
+                    </option>
                 </select>
-                <label class="error" ng-show="kcell_form.rbsType.$error.required && ( kcell_form.rbsType.$touched || view.submitted)">Required field</label>
+                <label class="error"
+                       ng-show="kcell_form.rbsType.$error.required && ( kcell_form.rbsType.$touched || view.submitted)">Required
+                    field</label>
             </div>
         </div>
         <div class="form-group">
             <label class="col-sm-4 control-label">Bands:</label>
             <div class="col-sm-4">
                 <div class="form-check col-sm-6" ng-repeat="band in bands track by $index">
-                    <input type="checkbox" name="bandValues" ng-model="band.value" class="form-check-input" id="{{'check' + $index}}" ng-required="!selectedBands || selectedBands.length==0">
+                    <input type="checkbox" name="bandValues" ng-model="band.value" class="form-check-input"
+                           id="{{'check' + $index}}" ng-required="!selectedBands || selectedBands.length==0">
                     <label class="form-check-label" for="{{'check' + $index}}">{{ band.title }}</label>
                 </div>
-                <label class="error" ng-show="kcell_form.bandValues.$error.required && ( kcell_form.bandValues.$touched || view.submitted)">Required field</label>
+                <label class="error"
+                       ng-show="kcell_form.bandValues.$error.required && ( kcell_form.bandValues.$touched || view.submitted)">Required
+                    field</label>
             </div>
         </div>
         <div class="form-group">
             <label class="col-sm-4 control-label">Selected bands:</label>
             <div class="col-sm-4">
-                <span ng-repeat="band in selectedBands" >{{$index == 0?' ': ' + ' }}{{band.title}}</span>
-                <input class="form-control" ng-hide="true" id="bandsIdForUDB" name="bandsIdForUDB" required ng-model="bandsIdForUDB">
-                <label class="error" ng-show="kcell_form.bandsIdForUDB.$error.required && ( kcell_form.bandsIdForUDB.$touched || view.submitted)">Недопустимое значение</label>
+                <span ng-repeat="band in selectedBands">{{$index == 0?' ': ' + ' }}{{band.title}}</span>
+                <input class="form-control" ng-hide="true" id="bandsIdForUDB" name="bandsIdForUDB" required
+                       ng-model="bandsIdForUDB">
+                <label class="error"
+                       ng-show="kcell_form.bandsIdForUDB.$error.required && ( kcell_form.bandsIdForUDB.$touched || view.submitted)">Недопустимое
+                    значение</label>
             </div>
         </div>
 
@@ -481,7 +535,9 @@
     <div class="form-group" style="margin-top:10px;">
         <label class="control-label col-sm-4">Comments:</label>
         <div class="col-sm-8" style="margin-top: 5px">
-            <textarea style="resize:vertical;"  class="form-control" rows="4" maxlength="500" name="createNCPTaskComment" cam-variable-name="createNCPTaskComment" cam-variable-type="String" ng-model="createNCPTaskComment"></textarea>
+            <textarea style="resize:vertical;" class="form-control" rows="4" maxlength="500" name="createNCPTaskComment"
+                      cam-variable-name="createNCPTaskComment" cam-variable-type="String"
+                      ng-model="createNCPTaskComment"></textarea>
         </div>
     </div>
 </form>
