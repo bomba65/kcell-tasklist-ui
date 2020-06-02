@@ -2,7 +2,6 @@ define(['./module', 'jquery', 'moment', 'camundaSDK'], function (app, $, moment,
     'use strict';
     return app.controller('searchCtrl', ['$scope', '$rootScope', '$http', '$routeParams', '$q', '$location', '$timeout', 'AuthenticationService', 'exModal', '$state', 'StartProcessService', 'SearchCurrentSelectedProcessService', 'disconnectSelectedProcessService',
         function ($scope, $rootScope, $http, $routeParams, $q, $location, $timeout, AuthenticationService, exModal, $state, StartProcessService, SearchCurrentSelectedProcessService, disconnectSelectedProcessService) {
-
             var camClient = new CamSDK.Client({
                 mock: false,
                 apiUri: '/camunda/api/engine/'

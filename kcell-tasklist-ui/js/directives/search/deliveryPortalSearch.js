@@ -1006,19 +1006,42 @@ define(['../module', 'moment'], function (module, moment) {
                                                             }
                                                         }
                                                     });
-                                                    asynCall5 = true;
-                                                    if (asynCall1 && asynCall4 && ((asynCall2 && asynCall3) || !asProcess) && asynCall5) {
-                                                        openProcessCardModal();
-                                                        asynCall1 = false;
-                                                        asynCall2 = false;
-                                                        asynCall3 = false;
-                                                        asynCall4 = false;
-                                                        asynCall5 = false;
-                                                    } else {
-                                                        //console.log(asynCall1,asynCall4, asynCall5, asProcess);
-                                                    }
+
+                                                }).then(function () {
+                                                    $http.get("/camunda/api/engine/engine/default/process-instance/" + scope.jobModel.resolutions.processInstanceId + "/activity-instances").then(
+                                                        function (result) {
+                                                            var otherActivities = []
+                                                            _.forEach(result.data.childActivityInstances, function (firstLevel) {
+                                                                if (firstLevel.activityType === 'subProcess') {
+                                                                    _.forEach(firstLevel.childActivityInstances, function (secondLevel) {
+                                                                        if (secondLevel.activityType !== 'userTask' && secondLevel.activityType !== 'multiInstanceBody') {
+                                                                            otherActivities.push(secondLevel);
+                                                                        }
+                                                                    });
+                                                                } else if (firstLevel.activityType !== 'userTask' && firstLevel.activityType !== 'multiInstanceBody') {
+                                                                    otherActivities.push(firstLevel);
+                                                                }
+                                                            });
+                                                            scope.jobModel.otherActivities = otherActivities;
+                                                            asynCall5 = true;
+                                                            if (asynCall1 && asynCall4 && ((asynCall2 && asynCall3) || !asProcess) && asynCall5) {
+                                                                openProcessCardModal();
+                                                                asynCall1 = false;
+                                                                asynCall2 = false;
+                                                                asynCall3 = false;
+                                                                asynCall4 = false;
+                                                                asynCall5 = false;
+                                                            } else {
+                                                                //console.log(asynCall1,asynCall4, asynCall5, asProcess);
+                                                            }
+                                                        },
+                                                        function (error){
+                                                            console.log(error.data)
+                                                        });
                                                 });
                                             }
+                                            // var x = $http.get("/camunda/api/engine/engine/default/process-instance/" + scope.jobModel.resolutions.processInstanceId+"/activity-instances")
+                                            // console.log(x.data)
                                             angular.extend(scope.jobModel, catalogs);
                                             scope.jobModel.showTarif = true;
                                             scope.jobModel.tasks = processInstanceTasks;
@@ -1190,6 +1213,7 @@ define(['../module', 'moment'], function (module, moment) {
                                 startDisconnectProcess: scope.startDisconnectProcess,
                                 toggleIndexAftersales: scope.toggleIndexAftersales,
                                 toggleInfoAftersales: scope.toggleInfoAftersales,
+                                otherActivities: scope.otherActivities,
                                 download: function (file) {
                                     $http({
                                         method: 'GET',
@@ -1225,12 +1249,14 @@ define(['../module', 'moment'], function (module, moment) {
 
                     function DPModalController(scope, $http) {
                         scope.toggleProcessViewAftersales = function (index) {
+                            console.log('00')
                             if (scope.toggleIndexAftersales === index) {
                                 scope.toggleIndexAftersales = undefined;
                             } else {
                                 scope.toggleIndexAftersales = index;
                                 scope.toggleInfoAftersales = scope.processInstancesAftersales[index];
                                 scope.toggleInfoAftersales.changeIdentifierType = false;
+                                console.log('1')
                                 if (scope.processInstancesAftersales[index].state === "ACTIVE") {
                                     $http({
                                         method: 'GET',
