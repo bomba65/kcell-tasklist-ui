@@ -1249,14 +1249,12 @@ define(['../module', 'moment'], function (module, moment) {
 
                     function DPModalController(scope, $http) {
                         scope.toggleProcessViewAftersales = function (index) {
-                            console.log('00')
                             if (scope.toggleIndexAftersales === index) {
                                 scope.toggleIndexAftersales = undefined;
                             } else {
                                 scope.toggleIndexAftersales = index;
                                 scope.toggleInfoAftersales = scope.processInstancesAftersales[index];
                                 scope.toggleInfoAftersales.changeIdentifierType = false;
-                                console.log('1')
                                 if (scope.processInstancesAftersales[index].state === "ACTIVE") {
                                     $http({
                                         method: 'GET',
