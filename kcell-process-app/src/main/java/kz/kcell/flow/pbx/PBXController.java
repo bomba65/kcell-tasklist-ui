@@ -131,9 +131,9 @@ public class PBXController {
         bounds = new Rectangle(950, 0, 320, 230);
         TextRenderer.drawString(g,
             "PBX\n" +
-                technicalSpecifications.getString("pbxType") + "\n" +
+                (technicalSpecifications.has("pbxType") ? technicalSpecifications.getString("pbxType") : "") + "\n" +
                 customerInformation.getString("legalName") + "\n" +
-                technicalSpecifications.getString("pbxCity"),
+                (technicalSpecifications.has("pbxCity") ? technicalSpecifications.getString("pbxCity"):""),
             g.getFont(), Color.BLACK, bounds, TextAlignment.MIDDLE, TextFormat.FIRST_LINE_VISIBLE
         );
 
