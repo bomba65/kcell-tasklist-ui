@@ -47,6 +47,12 @@
 
             camForm.on('variables-fetched', function () {
                 $scope.legalInfo = camForm.variableManager.variableValue('legalInfo');
+                if (!$scope.legalInfo) {
+                  $scope.legalInfo = {};
+                } else if($scope.legalInfo.companyDate) {
+                  $scope.legalInfo.companyDate = new Date($scope.legalInfo.companyDate);
+                }
+
                 $scope.techSpecs = camForm.variableManager.variableValue('techSpecs');
                 $scope.resolutions = camForm.variableManager.variableValue('resolutions');
                 $scope.attachments = camForm.variableManager.variableValue('attachments');
@@ -55,7 +61,6 @@
                 $scope.callbackForwarding = camForm.variableManager.variableValue('callbackForwarding');
                 $scope.existingChannel = camForm.variableManager.variableValue('existingChannel');
 
-                if (!$scope.legalInfo) $scope.legalInfo = {};
                 if (!$scope.techSpecs) $scope.techSpecs = {};
 
                 if (!$scope.tssName) $scope.tssName = 'tss';
@@ -120,7 +125,18 @@
                 camForm.variableManager.variableValue('connectionPoint', ($scope.techSpecs.sip?$scope.techSpecs.sip.connectionPoint:''));
                 camForm.variableManager.variableValue('clientBIN', $scope.legalInfo.BIN);
                 // Fields for search page filters
-                camForm.variableManager.variableValue('searchSalesReprId', $scope.legalInfo.salesReprId);
+                if(camForm.variableManager.variables['searchSalesReprId'] && camForm.variableManager.variables['searchSalesReprId'].type){
+                  camForm.variableManager.variableValue('searchSalesReprId', $scope.legalInfo.salesReprId.toLowerCase());
+                } else {
+                  if(camForm.variableManager.variables['searchSalesReprId'] && !camForm.variableManager.variables['searchSalesReprId'].type){
+                    camForm.variableManager.destroyVariable('searchSalesReprId');
+                  }
+                  camForm.variableManager.createVariable({
+                      name: 'searchSalesReprId',
+                      type: 'String',
+                      value: $scope.legalInfo.salesReprId.toLowerCase()
+                  });
+                }
                 camForm.variableManager.variableValue('searchCallerID', $scope.legalInfo.callerID);
                 camForm.variableManager.variableValue('searchPbxNumbers', $scope.techSpecs.pbxNumbers);
 

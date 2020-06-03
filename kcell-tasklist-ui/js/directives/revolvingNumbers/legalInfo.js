@@ -84,9 +84,9 @@ define(['./../module'], function(module){
 
                 if(clientCRM.salesExecutiveUser && clientCRM.salesExecutiveUser.username) {
                   scope.userSelected({id: clientCRM.salesExecutiveUser.email.replace('[','').replace(']','').split('|')[0]});
-                  $http.get("/camunda/api/engine/engine/default/user/" + scope.data.salesReprId + "/profile").then(function(userResponse) {
+                  $http.get("/camunda/api/engine/engine/default/user/" + scope.data.salesReprId.toLowerCase() + "/profile").then(function(userResponse) {
                     scope.userSelected({
-                      id: scope.data.salesReprId,
+                      id: scope.data.salesReprId.toLowerCase(),
                       name: userResponse.data.firstName + ' ' + userResponse.data.lastName
                     });
                   });
