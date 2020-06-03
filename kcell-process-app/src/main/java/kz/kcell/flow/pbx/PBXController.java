@@ -66,7 +66,40 @@ public class PBXController {
         String[] split = numbers.split(",");
         String pbxNumbers[] = new String[split.length];
         for (int i = 0; i < split.length; i++) {
-            pbxNumbers[i] = "+" + split[i].charAt(0) + "-" + split[i].charAt(1) + split[i].charAt(2) + split[i].charAt(3) + "-" + split[i].charAt(4) + split[i].charAt(5) + split[i].charAt(6) + "-" + split[i].charAt(7) + split[i].charAt(8) + "-" + split[i].charAt(9) + split[i].charAt(10);
+            pbxNumbers[i] = "+";
+            if(split[i].length()>0){
+                pbxNumbers[i] = "+" + split[i].charAt(0);
+            }
+            if(split[i].length()>1){
+                pbxNumbers[i] = pbxNumbers[i] + "-" + split[i].charAt(1);
+            }
+            if(split[i].length()>2){
+                pbxNumbers[i] = pbxNumbers[i] + split[i].charAt(2);
+            }
+            if(split[i].length()>3){
+                pbxNumbers[i] = pbxNumbers[i] + split[i].charAt(3);
+            }
+            if(split[i].length()>4){
+                pbxNumbers[i] = pbxNumbers[i] + "-" + split[i].charAt(4);
+            }
+            if(split[i].length()>5){
+                pbxNumbers[i] = pbxNumbers[i] + split[i].charAt(5);
+            }
+            if(split[i].length()>6){
+                pbxNumbers[i] = pbxNumbers[i] + split[i].charAt(6);
+            }
+            if(split[i].length()>7){
+                pbxNumbers[i] = pbxNumbers[i] + "-" + split[i].charAt(7);
+            }
+            if(split[i].length()>8){
+                pbxNumbers[i] = pbxNumbers[i] + split[i].charAt(8);
+            }
+            if(split[i].length()>9){
+                pbxNumbers[i] = pbxNumbers[i] + "-" + split[i].charAt(9);
+            }
+            if(split[i].length()>10){
+                pbxNumbers[i] = pbxNumbers[i] + split[i].charAt(10);
+            }
         }
         replaceText(doc, "virtualNumbers", Arrays.asList(pbxNumbers).stream().collect(Collectors.joining(", ")));
         if (technicalSpecifications.getInt("virtualNumbersCount") == 1) {
