@@ -110,39 +110,33 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 		$scope.startProcess = function(id){
 			StartProcessService(id);
 		}
-		function showProcessStartButtonVisible () {
-			var showModal = false;
+		$rootScope.modalStartProcess = function() {
+			var processList = [];
+			angular.forEach($scope.projects, function(project) {
+				processList += _.map(project.processes, 'key');
+			});			
 			$http.get(baseUrl+'/process-definition?latest=true&active=true&firstResult=0&maxResults=100&startablePermissionCheck=true').then(
 				function(results){
-					$scope.processDefinitions = [];
+					var processDefinitions = [];
 					angular.forEach(results.data, function(e){
-						if($rootScope.isProcessAvailable(e.key)){
-							$scope.processDefinitions.push(e);
+						if($rootScope.isProcessAvailable(e.key) && processList.indexOf(e.key) !== -1 && e.key !== 'after-sales-ivr-sms'){
+							processDefinitions.push(e);
 						}
 					});
-					if ($scope.processDefinitions.length>0) {
-						showModal= true;
-					}
-					$rootScope.isProcessStartButtonVisible = showModal;
+					exModal.open({
+						scope: {
+							allProcessDefinitions: processDefinitions,
+							startProcess: $scope.startProcess
+						},
+						templateUrl: './js/partials/startProcess.html',
+						size: 'md'
+					}).then(function (results) {
+					});
 				},
 				function(error){
 					console.log(error.data);
-					$rootScope.isProcessStartButtonVisible = showModal;
 				}
 			);
-		}
-		$rootScope.isProcessStartButtonVisible = showProcessStartButtonVisible();
-		$rootScope.modalStartProcess = function() {
-			exModal.open({
-				scope: {
-					projects : $scope.projects,
-					getAllProcessDefinitions: $scope.getAllProcessDefinitions,
-					startProcess: $scope.startProcess
-				},
-				templateUrl: './js/partials/startProcess.html',
-				size: 'md'
-			}).then(function (results) {
-			});
 		};
 		$rootScope.logout = function(){
 			AuthenticationService.logout().then(function(){
@@ -575,10 +569,8 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 			$rootScope.updateSelectedProject(project);
 			$rootScope.updateSelectedProcess(undefined);
 			$rootScope.updateSelectedTask(undefined);
-			loadProcessDefinitions();
 			$scope.currentFilter = undefined;
 			$scope.taskGroups = {};
-			getTaskList();
 			$scope.secondLevel = "closed";
         }
 
@@ -589,26 +581,12 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 			}
 			$scope.currentFilter = undefined;
 			$scope.taskGroups = {};
+			getTaskList();
 			$scope.secondLevel = "closed";
         }
 		$scope.collapseTask = function(task) {
 			$rootScope.updateSelectedTask(task);
 			$scope.collapseLevels('secondLevel');
-		}
-		function loadProcessDefinitions(){
-			$http.get(baseUrl+'/process-definition?latest=true&active=true&firstResult=0&maxResults=100&startablePermissionCheck=true').then(
-				function(results){
-					$scope.processDefinitions = [];
-					angular.forEach(results.data, function(e){
-						if($rootScope.isProcessAvailable(e.key)){
-							$scope.processDefinitions.push(e);
-						}
-					});
-				},
-				function(error){
-					console.log(error.data);
-				}
-			);
 		}
 
 		$scope.clearContractorFilters = function(){
@@ -824,6 +802,7 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 				return processList.indexOf(pd.key) !== -1 && pd.key !== 'after-sales-ivr-sms';
 			});
 		}
+
 		function getTaskList(){
 			$scope.projects = angular.copy($rootScope.projects);
 			$http.get(baseUrl+'/filter?resoureType=Task').then(
@@ -832,43 +811,45 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 					angular.forEach($scope.projects, function(project){
 						if($rootScope.selectedProject.key && $rootScope.selectedProject.key === project.key){
 							angular.forEach(project.processes, function(process){
-								var allTasks = 0;
-								var claimed = 0;
-		 						process.filters = [];
-								var selectedProcessDefinitionKeyMap = [process.key];
-								if(process.subprocesses && process.subprocesses.length > 0){
-									selectedProcessDefinitionKeyMap = _.concat(selectedProcessDefinitionKeyMap, _.map(process.subprocesses, 'key'));
-								}
-								var selectedQuery = {'processDefinitionKeyIn':selectedProcessDefinitionKeyMap};
-								if(process.businessKeyLike){
-									selectedQuery.processInstanceBusinessKeyLike = process.businessKeyLike;
-								}
-
-			 					angular.forEach(filters, function(filter){
-			 						if(!filter.properties.processDefinitionKey || filter.properties.processDefinitionKey === process.key){
-										$http.post(baseUrl+'/filter/'+filter.id+'/count',selectedQuery,{headers:{'Content-Type':'application/json'}}).then(
-											function(results){
-												var tmpfilter = angular.copy(filter);
-												tmpfilter.itemCount = results.data.count;
-												if (filter.name==='All Tasks') {
-													allTasks = results.data.count;
-												} else if (filter.name==='My Claimed Tasks' || filter.name=== 'My Unclaimed Tasks') {
-													claimed+= results.data.count;
-													}
-												process.itemCount = allTasks>claimed ? allTasks : claimed;
-												process.filters.push(tmpfilter);
-						 						if($rootScope.selectedProcess && process.key === $rootScope.selectedProcess.key){
-							 						$rootScope.selectedProcess.itemCount = process.itemCount;
-							 						$rootScope.selectedProcess.filters = process.filters;
-						 						}
-												project.itemCount = project.itemCount ? project.itemCount + results.data.count : results.data.count;
-											},
-											function(error){
-												console.log(error.data);
-											}
-										);
+								if($rootScope.selectedProcess.key && $rootScope.selectedProcess.key === process.key){
+									var allTasks = 0;
+									var claimed = 0;
+			 						process.filters = [];
+									var selectedProcessDefinitionKeyMap = [process.key];
+									if(process.subprocesses && process.subprocesses.length > 0){
+										selectedProcessDefinitionKeyMap = _.concat(selectedProcessDefinitionKeyMap, _.map(process.subprocesses, 'key'));
 									}
-								});
+									var selectedQuery = {'processDefinitionKeyIn':selectedProcessDefinitionKeyMap};
+									if(process.businessKeyLike){
+										selectedQuery.processInstanceBusinessKeyLike = process.businessKeyLike;
+									}
+
+				 					angular.forEach(filters, function(filter){
+				 						if(!filter.properties.processDefinitionKey || filter.properties.processDefinitionKey === process.key){
+											$http.post(baseUrl+'/filter/'+filter.id+'/count',selectedQuery,{headers:{'Content-Type':'application/json'}}).then(
+												function(results){
+													var tmpfilter = angular.copy(filter);
+													tmpfilter.itemCount = results.data.count;
+													if (filter.name==='All Tasks') {
+														allTasks = results.data.count;
+													} else if (filter.name==='My Claimed Tasks' || filter.name=== 'My Unclaimed Tasks') {
+														claimed+= results.data.count;
+														}
+													process.itemCount = allTasks>claimed ? allTasks : claimed;
+													process.filters.push(tmpfilter);
+							 						if($rootScope.selectedProcess && process.key === $rootScope.selectedProcess.key){
+								 						$rootScope.selectedProcess.itemCount = process.itemCount;
+								 						$rootScope.selectedProcess.filters = process.filters;
+							 						}
+													project.itemCount = project.itemCount ? project.itemCount + results.data.count : results.data.count;
+												},
+												function(error){
+													console.log(error.data);
+												}
+											);
+										}
+									});
+				 				}
 							});
 						}
 					});
