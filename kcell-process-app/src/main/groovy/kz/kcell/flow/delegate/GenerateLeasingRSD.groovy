@@ -1,6 +1,7 @@
 package kz.kcell.flow.delegate
 
 import groovy.json.JsonSlurper
+import groovy.json.internal.LazyMap
 import groovy.text.markup.MarkupTemplateEngine
 import groovy.text.markup.TemplateConfiguration
 import kz.kcell.flow.files.Minio
@@ -892,7 +893,7 @@ class GenerateLeasingRSD implements ExecutionListener {
             def test = [
                     "cn_addr_city": cellAntennaJson.address ? cellAntennaJson.address.cn_addr_city : '',
                     "cn_sitename": candidateJson.siteName ? candidateJson.siteName : '',
-                    "cn_bsc": candidateJson.bsc ? candidateJson.bsc.name : '',
+                    "cn_bsc": candidateJson.bsc ?  (candidateJson.bsc instanceof LazyMap? candidateJson.bsc.name : candidateJson.bsc) : '',
                     "cn_latitude": candidateJson.latitude ? candidateJson.latitude : '',
                     "cn_longitude": candidateJson.longitude ? candidateJson.longitude : '',
                     "cn_altidude": candidateJson.cn_altitude ? candidateJson.cn_altitude : '',
