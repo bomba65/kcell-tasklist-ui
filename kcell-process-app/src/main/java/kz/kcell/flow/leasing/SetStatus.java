@@ -74,6 +74,8 @@ public class SetStatus implements JavaDelegate {
                     String _SET_FE_STATUS_NCP = delegateExecution.hasVariableLocal("_SET_FE_STATUS_NCP") ? delegateExecution.getVariableLocal("_SET_FE_STATUS_NCP").toString() : _SET_FE_STATUS;
                     String _SET_CAND_STATUS = delegateExecution.hasVariableLocal("_SET_CAND_STATUS") ? delegateExecution.getVariableLocal("_SET_CAND_STATUS").toString() : "";
                     String _SET_RSD_STATUS = delegateExecution.hasVariableLocal("_SET_RSD_STATUS") ? delegateExecution.getVariableLocal("_SET_RSD_STATUS").toString() : "";
+                    String _SET_ARTEFACT_RSD_EXIST = delegateExecution.hasVariableLocal("_SET_ARTEFACT_RSD_EXIST") ? delegateExecution.getVariableLocal("_SET_ARTEFACT_RSD_EXIST").toString() : "";
+                    String _SET_TR_STATUS = delegateExecution.hasVariableLocal("_SET_TR_STATUS") ? delegateExecution.getVariableLocal("_SET_TR_STATUS").toString() : "";
 
                     log.info("ncpId");
                     log.info(ncpId);
@@ -124,13 +126,43 @@ public class SetStatus implements JavaDelegate {
                         String UPDATE_RSD_STATUS = "update ARTEFACT_CURRENT_STATE set RSD_EXIST = ? where ARTEFACTID = ?";
                         PreparedStatement updateRSDstatusInArtefactPreparedStatement = udbConnect.prepareStatement(UPDATE_RSD_STATUS);
 
-                        log.info("GEN_STATUS preparedStatement SQL UPDATE VALUES");
+                        log.info("RSD_STATUS preparedStatement SQL UPDATE VALUES");
                         // set values to update
                         i = 1;
                         updateRSDstatusInArtefactPreparedStatement.setLong(i++, Integer.parseInt(_SET_RSD_STATUS)); // GS_STATUS
                         updateRSDstatusInArtefactPreparedStatement.setLong(i++, createdArtefactId); // ARTEFACTID
                         updateRSDstatusInArtefactPreparedStatement.executeUpdate();
-                        log.info("successfull GEN_STATUS updated!");
+                        log.info("successfull RSD_STATUS updated!");
+                    }
+                    if (_SET_ARTEFACT_RSD_EXIST != null && !_SET_ARTEFACT_RSD_EXIST.equals("")) {
+                        log.info("_SET_ARTEFACT_RSD_EXIST");
+                        log.info(_SET_ARTEFACT_RSD_EXIST);
+                        //UPDATE NCP
+                        String UPDATE_ARTEFACT_RSD_STATUS = "update ARTEFACT_RSD_EXIST set RSD_EXIST = ? where ARTEFACTID = ?";
+                        PreparedStatement updateARTEFACT_RSDstatusInArtefactPreparedStatement = udbConnect.prepareStatement(UPDATE_ARTEFACT_RSD_STATUS);
+
+                        log.info("ARTEFACT_RSD_EXIST STATUS preparedStatement SQL UPDATE VALUES");
+                        // set values to update
+                        i = 1;
+                        updateARTEFACT_RSDstatusInArtefactPreparedStatement.setLong(i++, Integer.parseInt(_SET_ARTEFACT_RSD_EXIST)); // RSD_EXIST
+                        updateARTEFACT_RSDstatusInArtefactPreparedStatement.setLong(i++, createdArtefactId); // ARTEFACTID
+                        updateARTEFACT_RSDstatusInArtefactPreparedStatement.executeUpdate();
+                        log.info("successfull ARTEFACT_RSD_EXIST STATUS updated!");
+                    }
+                    if (_SET_TR_STATUS != null && !_SET_TR_STATUS.equals("")) {
+                        log.info("_SET_TR_STATUS");
+                        log.info(_SET_TR_STATUS);
+                        //UPDATE NCP
+                        String UPDATE_NCP_CREATION = "update NCP_CREATION set TR_STATUS = ? where ARTEFACTID = ?";
+                        PreparedStatement updateTrStatusInNcpCreationPreparedStatement = udbConnect.prepareStatement(UPDATE_NCP_CREATION);
+
+                        log.info("TR STATUS preparedStatement SQL UPDATE VALUES");
+                        // set values to update
+                        i = 1;
+                        updateTrStatusInNcpCreationPreparedStatement.setLong(i++, Integer.parseInt(_SET_TR_STATUS)); // TR_STATUS
+                        updateTrStatusInNcpCreationPreparedStatement.setLong(i++, ncpCreatedId); // ARTEFACTID
+                        updateTrStatusInNcpCreationPreparedStatement.executeUpdate();
+                        log.info("successfull TR STATUS updated!");
                     }
                     if (_SET_RR_STATUS != null && !_SET_RR_STATUS.equals("")) {
                         log.info("_SET_RR_STATUS");
@@ -219,28 +251,26 @@ public class SetStatus implements JavaDelegate {
                         log.info(_SET_FE_STATUS_NCP);
 
                         //UPDATE NCP
-                        String UPDATE_ArtCurSt_FE_STATUS = "update ARTEFACT_CURRENT_STATE set TR_STATUS = ?, TR_STATUS_DATE = ?, fe_status = ?, fe_status_date = ? where ARTEFACTID = ?";
+                        String UPDATE_ArtCurSt_FE_STATUS = "update ARTEFACT_CURRENT_STATE set fe_status = ?, fe_status_date = ? where ARTEFACTID = ?";
                         PreparedStatement updateArtCurStFeStatusPreparedStatement = udbConnect.prepareStatement(UPDATE_ArtCurSt_FE_STATUS);
 
                         log.info("FE_STATUS ARTEFACT_CURRENT_STATE table preparedStatement SQL UPDATE VALUES");
                         // set values to update
                         i = 1;
-                        updateArtCurStFeStatusPreparedStatement.setLong(i++, Integer.parseInt(_SET_FE_STATUS)); // POWER_STATUS
-                        updateArtCurStFeStatusPreparedStatement.setDate(i++, new java.sql.Date(new Date().getTime())); // CAND_STATUS_DATE
-                        updateArtCurStFeStatusPreparedStatement.setLong(i++, Integer.parseInt(_SET_FE_STATUS)); // POWER_STATUS
-                        updateArtCurStFeStatusPreparedStatement.setDate(i++, new java.sql.Date(new Date().getTime())); // CAND_STATUS_DATE
+                        updateArtCurStFeStatusPreparedStatement.setLong(i++, Integer.parseInt(_SET_FE_STATUS)); // fe_status
+                        updateArtCurStFeStatusPreparedStatement.setDate(i++, new java.sql.Date(new Date().getTime())); // fe_status_date
                         updateArtCurStFeStatusPreparedStatement.setLong(i++, createdArtefactId); // ARTEFACTID
                         updateArtCurStFeStatusPreparedStatement.executeUpdate();
 
-                        String UPDATE_NCP_CREATION_TR_STATUS = "update NCP_CREATION set TR_STATUS = ? where NCPID = ?";
-                        PreparedStatement updateNcpCreationFeStatusPreparedStatement = udbConnect.prepareStatement(UPDATE_NCP_CREATION_TR_STATUS);
+                        String INSERT_ARTEFACT_TSD_LEASING_ACTION = "INSERT INTO ARTEFACT_TSD_LEASING_ACTION (LEASING_STATUS_ACTION_ID, ARTEFACTID, LEASING_STATUS_ID, INSERTDATE) VALUES (ARTEFACT_TSD_LEASING_ACTI_SEQ.nextval, ?, ?, SYSDATE)";
+                        PreparedStatement insertArtefactTsdLeasingActionPreparedStatement = udbConnect.prepareStatement(INSERT_ARTEFACT_TSD_LEASING_ACTION);
 
                         log.info("FE_STATUS NCP_CREATION table preparedStatement SQL UPDATE VALUES");
                         // set values to update
                         i = 1;
-                        updateNcpCreationFeStatusPreparedStatement.setLong(i++, Integer.parseInt(_SET_FE_STATUS_NCP)); // TR_STATUS
-                        updateNcpCreationFeStatusPreparedStatement.setString(i++, ncpId); // NCPID
-                        updateNcpCreationFeStatusPreparedStatement.executeUpdate();
+                        insertArtefactTsdLeasingActionPreparedStatement.setLong(i++, createdArtefactId); // ARTEFACTID
+                        insertArtefactTsdLeasingActionPreparedStatement.setLong(i++, Integer.parseInt(_SET_FE_STATUS)); // LEASING_STATUS_ID
+                        insertArtefactTsdLeasingActionPreparedStatement.executeUpdate();
 
                         //UPDATE NCP
                         String UPDATE_ArtTsdExt_FE_STATUS = "update ARTEFACT_TSD_EXT set TSD_STATUS = ? where ARTEFACTID = ?";
