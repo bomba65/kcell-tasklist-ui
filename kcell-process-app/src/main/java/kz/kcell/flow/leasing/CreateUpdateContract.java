@@ -48,6 +48,7 @@ public class CreateUpdateContract implements JavaDelegate {
                 udbOracleUrl,
                 udbOracleUsername,
                 udbOraclePassword);
+//            Connection udbConnect = DriverManager.getConnection("jdbc:oracle:thin:@//sc2-appcl010406:1521/apexudb", "app_apexudb_camunda", "p28zt#7C");
             try {
                 if (udbConnect != null) {
                     udbConnect.setAutoCommit(false);
@@ -279,6 +280,10 @@ public class CreateUpdateContract implements JavaDelegate {
                                     INSERT_CONTRACTS = "INSERT INTO CONTRACTS (CID, RENTSUM, RENTAREA, CONTRACTID, INCOMINGDATE, INCOMINGWEEK, CONTRACTTYPE, POWERSUPPLY, LEGALTYPE, LEGALNAME, LEGALADDRESS, CONTACTPERSON, CONTACTPHONE, ACCESS_STATUS, CONTRACT_SAP_NO, VENDOR_SAP_NO, CONTRACT_EXECUTOR, NEEDVAT, PAYMENTPERIOD, PAYMENTWAY, CONTRACTSTARTDATE, CONTRACTENDDATE, AUTOPROLONGATION, USERNAME, AREA_ACT_ACCEPT_DATE, RNN, INN, IBAN, BANK_ID) VALUES (CONTRACTS_SEQ.nextval, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
                                 }
 
+                                Calendar c = Calendar.getInstance();
+                                c.setMinimalDaysInFirstWeek(4); // For ISO 8601
+                                Integer incomingWeekInt = c.get(Calendar.WEEK_OF_YEAR);
+
                                 PreparedStatement INSERT_CONTRACTSPreparedStatement = udbConnect.prepareStatement(INSERT_CONTRACTS, returnStatus);
 
                                 log.info("INSERT_CONTRACTS preparedStatement SQL UPDATE VALUES");
@@ -290,7 +295,7 @@ public class CreateUpdateContract implements JavaDelegate {
                                 INSERT_CONTRACTSPreparedStatement.setFloat(i++, ct_rent_area.floatValue());  // RENTAREA
                                 INSERT_CONTRACTSPreparedStatement.setString(i++, contractid);  // CONTRACTID
                                 INSERT_CONTRACTSPreparedStatement.setDate(i++, new java.sql.Date(new Date().getTime())); // INCOMINGDATE
-                                INSERT_CONTRACTSPreparedStatement.setString(i++, "12");  // INCOMINGWEEK
+                                INSERT_CONTRACTSPreparedStatement.setString(i++, incomingWeekInt.toString());  // INCOMINGWEEK
                                 INSERT_CONTRACTSPreparedStatement.setLong(i++, ct_contract_type.longValue());  // CONTRACTTYPE +
                                 INSERT_CONTRACTSPreparedStatement.setLong(i++, ct_rent_power.longValue());  // POWERSUPPLY
                                 INSERT_CONTRACTSPreparedStatement.setLong(i++, ct_legal_type.longValue());  // LEGALTYPE

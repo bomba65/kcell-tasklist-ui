@@ -147,7 +147,9 @@ public class CreateNCP implements JavaDelegate {
                     }
 
                     SpinJsonNode powerSource = delegateExecution.hasVariable("powerSource") ? JSON(delegateExecution.getVariable("powerSource")) : null;
-//                    String ps_lt_id = powerSource != null && powerSource.hasProp("cableLayingType") && powerSource.prop("cableLayingType") != null ? (powerSource.prop("cableLayingType").value().toString()) : null;
+                    SpinList ps_lt_ids = powerSource != null && powerSource.hasProp("cableLayingType") && powerSource.prop("cableLayingType") != null ? powerSource.prop("cableLayingType").elements() : null;
+                    SpinJsonNode ps_lt_id = ps_lt_ids != null ? (SpinJsonNode) ps_lt_ids.get(0) : null;
+//                    String ps_lt_id = powerSource != null && powerSource.hasProp("cableLayingType") && powerSource.prop("cableLayingType") != null ? powerSource.prop("cableLayingType").value().toString() : null;
                     String landlord_cable_length = powerSource != null && powerSource.hasProp("cableLength") && powerSource.prop("cableLength").value() != null ? (powerSource.prop("cableLength").value().toString()) : null;
                     String landlord_monthly_pc = powerSource != null && powerSource.hasProp("agreeToReceiveMonthlyPayment") && powerSource.prop("agreeToReceiveMonthlyPayment").value() != null ? (powerSource.prop("agreeToReceiveMonthlyPayment").value().toString()) : null;
                     String res_4kv = powerSource != null && powerSource.hasProp("closestPublic04") && powerSource.prop("closestPublic04").value() != null ? (powerSource.prop("closestPublic04").value().toString()) : null;
@@ -928,7 +930,12 @@ public class CreateNCP implements JavaDelegate {
 //                            newArtefactExtTSDPreparedStatement.setNull(i++, Types.BIGINT);
 //                        }
 //                    }
-                    ARTEFACT_RR_POWER_PreparedStatement.setNull(i++, Types.BIGINT); //LT_ID
+//                    ARTEFACT_RR_POWER_PreparedStatement.setNull(i++, Types.BIGINT); //LT_ID
+                    if (ps_lt_id != null) {
+                        ARTEFACT_RR_POWER_PreparedStatement.setLong(i++, Integer.parseInt(ps_lt_id.prop("id").value().toString())); //LT_ID
+                    } else {
+                        ARTEFACT_RR_POWER_PreparedStatement.setNull(i++, Types.BIGINT); //LT_ID
+                    }
                     ARTEFACT_RR_POWER_PreparedStatement.setNull(i++, Types.BIGINT); //LANDLORD
                     if (landlord_cable_length != null) {
                         Integer landlord_cable_lengthInt = Integer.parseInt(landlord_cable_length);
@@ -1380,7 +1387,7 @@ public class CreateNCP implements JavaDelegate {
 
                     i = 1;
                     ARTEFACT_TSD_EXIST_PreparedStatement.setLong(i++, createdArtefactExtTSDId);// TSDID
-                    ARTEFACT_TSD_EXIST_PreparedStatement.setLong(i++, 0);
+                    ARTEFACT_TSD_EXIST_PreparedStatement.setLong(i++, 1);
                     ARTEFACT_TSD_EXIST_PreparedStatement.setLong(i++, createdArtefactId);// ARTEFACTID
 
                     ARTEFACT_TSD_EXIST_PreparedStatement.executeUpdate();
