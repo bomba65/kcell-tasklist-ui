@@ -374,7 +374,8 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
         $scope.showHistory = function(resolutions){
 			exModal.open({
 				scope: {
-					resolutions: resolutions,
+					resolutions: $scope.processDefinitionKey === 'leasing' ? _.orderBy(resolutions, ['type', 'assignDate'], ['asc', 'desc']) : resolutions,
+					// resolutions: resolutions,
 					procDef: $scope.processDefinitionKey,
 					download: function(path) {
 		                $http({method: 'GET', url: '/camunda/uploads/get/' + path, transformResponse: [] }).
