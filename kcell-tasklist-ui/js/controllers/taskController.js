@@ -215,7 +215,14 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 
     $scope.getTaskAssigneeUserList = function(val) {
       $scope.newAssigneeId = null;
-      var users = $http.get('/camunda/api/engine/engine/default/user?firstNameLike='+encodeURIComponent('%'+val+'%')).then(
+      var link = '/camunda/api/engine/engine/default/user?firstNameLike='+encodeURIComponent('%'+val+'%');
+      var lastNameLink ='/camunda/api/engine/engine/default/user?lastNameLike='+encodeURIComponent('%'+val+'%');
+
+		 if($scope.processDefinitionKey === 'Revision' && !$scope.hasGroup('revision_managers')){
+		 	link = link + `&memberOfGroup=` +  $scope.currentTask.candidateObject.groupId;
+		 	lastNameLink = lastNameLink + `&memberOfGroup=` +  $scope.currentTask.candidateObject.groupId;
+		 }
+      var users = $http.get(link).then(
         function(response){
           var usersByFirstName = _.flatMap(response.data, function(s){
             if(s.id){
@@ -233,7 +240,7 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
             }
           });
 
-          return $http.get('/camunda/api/engine/engine/default/user?lastNameLike='+encodeURIComponent('%'+val+'%')).then(
+          return $http.get(lastNameLink).then(
             function(response){
               var usersByLastName = _.flatMap(response.data, function(s){
                 if(s.id){
@@ -322,7 +329,12 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 
 		$scope.assignLinkEnabled = function(processDefinitionKey) {
 			if(processDefinitionKey === 'Revision'){
-				return $scope.hasGroup('revision_managers');
+				if($scope.hasGroup('revision_managers')){
+					return true;
+				}else{
+					return $scope.currentTask.candidateObject.groupId  === 'hq_leasing' && $scope.hasGroup('hq_leasing');
+				}
+
 			} else if(processDefinitionKey === 'Invoice') {
 				return $scope.hasGroup('monthly_act_managers');
 			} else if(processDefinitionKey === 'Demand') {
