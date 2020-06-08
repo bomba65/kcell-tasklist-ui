@@ -115,8 +115,8 @@ public class GetValueFromUDB implements JavaDelegate {
                                 log.info("justSetInstStatus");
                                 delegateExecution.setVariable("instStatusFromUDB", uis);
                             } else if (uis == 16) {
-                                dataFromUDB = "finishWithSetInstStatus";
-                                log.info("finishWithSetInstStatus 16");
+                                dataFromUDB = "justSetInstStatus";
+                                log.info("justSetInstStatus 16");
                                 delegateExecution.setVariable("setInstStatusFromUDB", "Transmission problem");
                                 delegateExecution.setVariable("instStatusFromUDB", uis);
                             } else if (uis == 13) {
