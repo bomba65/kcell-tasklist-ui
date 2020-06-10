@@ -211,12 +211,26 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 		$scope.assignmentInProgress = false;
 		$scope.dispayAssignField = function() {
 			$scope.assignmentInProgress = true;
+			$scope.getLeasingUsers();
 		}
+
+
+	$scope.getLeasingUsers = function() {
+		$scope.leasingUserList = [];
+		var link = '/camunda/api/engine/engine/default/user?memberOfGroup=' + $scope.currentTask.candidateObject.groupId;
+		console.log("123",link);
+		$http.get(link).then(
+			function(response) {
+				$scope.leasingUserList = response.data;
+
+			});
+	}
 
     $scope.getTaskAssigneeUserList = function(val) {
       $scope.newAssigneeId = null;
       var link = '/camunda/api/engine/engine/default/user?firstNameLike='+encodeURIComponent('%'+val+'%');
       var lastNameLink ='/camunda/api/engine/engine/default/user?lastNameLike='+encodeURIComponent('%'+val+'%');
+
 
 		 if($scope.processDefinitionKey === 'Revision' && !$scope.hasGroup('revision_managers')){
 		 	link = link + `&memberOfGroup=` +  $scope.currentTask.candidateObject.groupId;
@@ -271,14 +285,17 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 				function(){
 					$scope.tryToOpen = {};
 					$scope.$parent.getTaskList();
-					task.assigneeObject = $rootScope.authUser;
-					task.assignee = $rootScope.authentication.name;
+					//task.assigneeObject = $rootScope.authUser;
+					//task.assignee = $rootScope.authentication.name;
 					init();
 				},
 				function(error){
 					console.log(error.data);
 				}
 			);
+		}
+		$scope.assignSelected = function() {
+			$scope.assign($scope.newLeasingAssignee, $scope.currentTask);
 		}
 		$scope.selectedTab = 'form';
 		$scope.selectTab = function(tab){
@@ -332,7 +349,13 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 				if($scope.hasGroup('revision_managers')){
 					return true;
 				}else{
-					return $scope.currentTask.candidateObject.groupId  === 'hq_leasing' && $scope.hasGroup('hq_leasing');
+					return ($scope.currentTask.candidateObject.groupId  === 'hq_leasing' && $scope.hasGroup('hq_leasing'))
+						||($scope.currentTask.candidateObject.groupId  === 'nc_leasing' && $scope.hasGroup('nc_leasing'))
+						|| ($scope.currentTask.candidateObject.groupId  === 'astana_leasing' && $scope.hasGroup('astana_leasing'))
+						|| ($scope.currentTask.candidateObject.groupId  === 'alm_leasing' && $scope.hasGroup('alm_leasing'))
+						|| ($scope.currentTask.candidateObject.groupId  === 'south_leasing' && $scope.hasGroup('south_leasing'))
+						|| ($scope.currentTask.candidateObject.groupId  === 'east_leasing' && $scope.hasGroup('east_leasing'))
+						|| ($scope.currentTask.candidateObject.groupId  === 'west_leasing' && $scope.hasGroup('west_leasing'));
 				}
 
 			} else if(processDefinitionKey === 'Invoice') {
