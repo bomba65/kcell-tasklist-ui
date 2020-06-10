@@ -258,7 +258,7 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
         };
 
         $scope.taskIds = [{id:'all', label:'All'},{id:'attach_material_list_contractor', label:'Attach Material List'},{id:'upload_tr_contractor', label:'Upload TR'},{id:'fill_applied_changes_info', label:'Fill Applied Changes Info'},
-        					{id:'attach_additional_material_list_contractor', label:'Attach Additional Material List'},{id:'upload_additional_tr_contractor', label:'Upload Additional TR'}];
+        					{id:'attach_additional_material_list_contractor', label:'Attach Additional Material List'},{id:'upload_additional_tr_contractor', label:'Upload Additional TR'}, {id: 'approve_jr_regions', label: 'sadf'}];
 
 		$scope.searchForContractors = function(){
 			if($scope.accepted){
@@ -281,19 +281,20 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 				});
 				queryParams.taskDefinitionKeyIn = _.map(taskIdList, 'id');
         	}
+
         	if($scope.priority === 'emergency'){
         		queryParams.priority = 100;
         	}
+			queryParams.processVariables = [];
         	if($scope.bussinessKey){
-        		if(!queryParams.processVariables){
-        			queryParams.processVariables = [];
-        		}
         		queryParams.processVariables.push({name:"jrNumber", value:$scope.bussinessKey, operator: "eq"});
         	}
+			queryParams.processVariables.push({name:"contractorJobAssignedDate", value:new Date(), operator: "lteq"});
+
+			queryParams.processVariables.push({name:"contractor", value: 4, operator: "eq"});
 
         	queryParams.candidateUser = $rootScope.authUser.id;
         	queryParams.includeAssignedTasks = true;
-
 			$scope.searchResults = [];
 			$http({
 				method: 'POST',
@@ -338,8 +339,8 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 			);
         };
 
-        $scope.searchProcessesForContractors = function(){
-        	var queryParams = {processDefinitionKey: 'Revision', variables: [], activityIdIn: ['attach-scan-copy-of-acceptance-form','intermediate_wait_acts_passed','intermediate_wait_invoiced']};
+        $scope.searchProcessesForContractors = async function(taskInfo){
+        	var queryParams = {processDefinitionKey: 'Revision', variables: []};
 			if($scope.site && $scope.site_name){
         		queryParams.variables.push({name:"site", value:$scope.site, operator: "eq"});
         	}
@@ -349,7 +350,9 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
         	if($scope.bussinessKey){
         		queryParams.businessKey = $scope.bussinessKey;
         	}
-
+        	if(!taskInfo) {
+				queryParams.activityIdIn = ['attach-scan-copy-of-acceptance-form','intermediate_wait_acts_passed','intermediate_wait_invoiced']
+			}
  			if($rootScope.hasGroup('hq_contractor_lse')){
                 // all values
             } else if($rootScope.hasGroup('astana_contractor_lse') && $rootScope.hasGroup('nc_contractor_lse')){
@@ -374,7 +377,7 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
             }
 
         	$scope.processSearchResults = [];
-			$http({
+			await $http({
 				method: 'POST',
 				headers:{'Accept':'application/hal+json, application/json; q=0.5'},
 				data: queryParams,
@@ -422,20 +425,20 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 			});
         }
 
-        $scope.toggleProcessViewRevision = function(p) {
+        $scope.toggleProcessViewRevision = async function(p, notOpenModal) {
             $scope.jobModel = {
                 state: 'Active',
                 processDefinitionKey: 'Revision',
                 startTime: p.requestedDate
             };
-            $http({
+            await $http({
                 method: 'GET',
                 headers: {'Accept': 'application/hal+json, application/json; q=0.5'},
                 url: baseUrl + '/task?processInstanceId=' + p.id,
             }).then(
-                function (tasks) {
+                async function (tasks) {
                     var processInstanceTasks = tasks.data._embedded.task;
-                    $http.get(baseUrl + '/history/variable-instance?deserializeValues=false&processInstanceId=' + p.id).then(
+                    await $http.get(baseUrl + '/history/variable-instance?deserializeValues=false&processInstanceId=' + p.id).then(
                         function (result) {
                             var workFiles = [];
                             result.data.forEach(function (el) {
@@ -476,7 +479,9 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
                             });
                             angular.extend($scope.jobModel, $scope.catalogs);
                             $scope.jobModel.tasks = processInstanceTasks;
-                            openProcessCardModalRevision(p);
+                            if(!notOpenModal){
+                            	openProcessCardModalRevision(p);
+							}
                         },
                         function (error) {
                             console.log(error.data);
@@ -487,8 +492,33 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
                     console.log(error.data);
                 }
             );
-	    };
+	    }
 
+		$scope.getUserById = async function(task) {
+
+			await $http({
+				method: 'GET',
+				headers:{'Accept':'application/hal+json, application/json; q=0.5'},
+				url: baseUrl+'/user/?id=' + task.assignee
+			}).then(function(results){
+				var index = _.findIndex($scope.jobModel.tasks, function(v){
+					return v.processInstanceId = task.processInstanceId
+				})
+				$scope.jobModel.tasks[index].assigneeObject = results.data[0]
+
+			})
+		}
+			// open modal on task search with process info
+        $scope.openTaskCardModalRevision = async function(task) {
+        	await $scope.searchProcessesForContractors(true)
+			var process = _.filter($scope.processSearchResults, function(v){
+				return v.id === task.processInstanceId
+			})
+			await $scope.toggleProcessViewRevision(process[0], true);
+			await $scope.getUserById(task);
+			openProcessCardModalRevision(process[0])
+
+		}
 	    function openProcessCardModalRevision(p) {
 	        exModal.open({
 	            scope: {
