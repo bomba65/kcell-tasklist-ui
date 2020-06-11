@@ -497,19 +497,19 @@ public class UpdateCandidate implements JavaDelegate {
                     updateArtefactTSDPreparedStatement.executeUpdate();
                     log.info("successfull insert to database!");
 
-                    //UPDATE NCP
-                    String UPDATE_ArtRRst_CREATION_RR_STATUS = "update ARTEFACT_RR_STATUS set RR_STATUS_ID = ?, DATEOFPERFORM = ? where ID = ?";
-                    PreparedStatement updateRRstatusInArtRRstPreparedStatement = udbConnect.prepareStatement(UPDATE_ArtRRst_CREATION_RR_STATUS);
-
-                    log.info("RR_STATUS preparedStatement SQL UPDATE VALUES");
-                    // set values to update
-                    i = 1;
-                    updateRRstatusInArtRRstPreparedStatement.setLong(i++, 2); // RR_STATUS
-                    updateRRstatusInArtRRstPreparedStatement.setDate(i++, new java.sql.Date(new Date().getTime())); // DATEOFPERFORM
-                    updateRRstatusInArtRRstPreparedStatement.setLong(i++, createdArtefactRRStatusId); // Artefact RRStatus ID
-                    updateRRstatusInArtRRstPreparedStatement.executeUpdate();
-
-                    log.info("ArtefactID: " + createdArtefactId + " successfully RR_STATUS updated to 2");
+//                    //UPDATE NCP
+//                    String UPDATE_ArtRRst_CREATION_RR_STATUS = "update ARTEFACT_RR_STATUS set RR_STATUS_ID = ?, DATEOFPERFORM = ? where ID = ?";
+//                    PreparedStatement updateRRstatusInArtRRstPreparedStatement = udbConnect.prepareStatement(UPDATE_ArtRRst_CREATION_RR_STATUS);
+//
+//                    log.info("RR_STATUS preparedStatement SQL UPDATE VALUES");
+//                    // set values to update
+//                    i = 1;
+//                    updateRRstatusInArtRRstPreparedStatement.setLong(i++, 2); // RR_STATUS
+//                    updateRRstatusInArtRRstPreparedStatement.setDate(i++, new java.sql.Date(new Date().getTime())); // DATEOFPERFORM
+//                    updateRRstatusInArtRRstPreparedStatement.setLong(i++, createdArtefactRRStatusId); // Artefact RRStatus ID
+//                    updateRRstatusInArtRRstPreparedStatement.executeUpdate();
+//
+//                    log.info("ArtefactID: " + createdArtefactId + " successfully RR_STATUS updated to 2");
 
 
                     //KWMS-940
