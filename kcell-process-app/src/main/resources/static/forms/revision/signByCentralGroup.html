@@ -121,6 +121,14 @@
                     if(el === 'workPrices'){
                         $scope.jobModel[el] = JSON.parse(camForm.variableManager.variables[el].originalValue);
                     }
+                    if(el === 'requestedDate'){
+                        try {
+                            $scope.jobModel['requestedDateObject'] = new Date(camForm.variableManager.variables[el].originalValue);
+                            console.log(typeof $scope.jobModel['requestedDateObject']);
+                        } catch(e) {
+                            console.log(e);
+                        }
+                    }
                     if(el === 'tnuSiteLocations' || el === 'workDefinitionMap'){
                         $scope[el] = camForm.variableManager.variables[el].value;
                     }
@@ -283,6 +291,13 @@
 
             $scope.showJobModal = function() {
             }
+
+            function open($event) {
+                console.log(event);
+                $event.preventDefault();
+                $event.stopPropagation();
+                $scope.requestedDateOpened = true;
+            };
         }]);
     </script>
     <button class="btn btn-default pull-right" ng-click="showJobModal()">{{ jobModel.jrNumber.value }}</button>
@@ -337,28 +352,46 @@
             <td>Job Detail</td>
             <td>{{jobModel.siteName.value}} {{jobModel.site_name.value}}</td>
             <td>{{jobModel.siteName.value}} {{jobModel.site_name.value}}</td>
-            <td>Edit</td>
-            <td>Edited by:</td>
+            <td></td>
+            <td></td>
         </tr>
         <tr>
             <td>Subcontructor ID</td>
             <td>949</td>
             <td>949 GULZHAN IMANDOSOVA</td>
+            <td></td>
+            <td></td>
         </tr>
         <tr>
             <td>Job Order Date</td>
-            <td>22.03.2020</td>
+            <td>
+                <span>{{jobModel.requestedDateObject}}{{jobModel.requestedDateObject | date:'dd.MM.yyyy'}}</span>
+                <div class="input-group">
+                    <input type="text" ng-model="jobModel.requestedDate" name="jobModel.requestedDateObject" required class="form-control" datepicker-popup="dd.MM.yyyy" is-open="requestedDateOpened" id="jobModel.requestedDate" />
+                    <span class="input-group-btn">
+                        <button type="button" class="btn btn-default" ng-click="open($event)">
+                            <i class="glyphicon glyphicon-calendar"></i>
+                        </button>
+                    </span>
+                </div>
+            </td>
             <td>JO creation date</td>
+            <td></td>
+            <td></td>
         </tr>
         <tr>
             <td>Plant</td>
             <td>0201</td>
             <td>Almaty</td>
+            <td></td>
+            <td></td>
         </tr>
         <tr>
             <td>Stor. Location</td>
-            <td>K001</td>
-            <td>Storage location</td>
+            <td>{{tnuSiteLocations[jobModel.site_name.value].siteLocation}}</td>
+            <td>{{tnuSiteLocations[jobModel.site_name.value].siteLocation}}</td>
+            <td></td>
+            <td></td>
         <tr>
         </tbody>
     </table>
@@ -417,8 +450,10 @@
                 </tr>
                 <tr>
                     <td>JR Reuqest date</td>
-                    <td ng-repeat="w in jobWorksValueTemp track by $index">{{jobModel.requestedDate.value | date:'dd.MM.yyyy'}}</td>
-                    <td>Edit</td>
+                    <td ng-repeat="w in jobWorksValueTemp track by $index">
+                        <span>{{jobModel.requestedDate.value | date:'dd.MM.yyyy'}}</span>
+                    </td>
+                    <td><a ng-click="">Edit</a></td>
                     <td>Edited by:</td>
                 </tr>
                 <tr>
@@ -483,7 +518,7 @@
                 </tr>
                 <tr>
                     <td>Stor. Location</td>
-                    <td ng-repeat="w in jobWorksValueTemp track by $index">{{jobModel.reason.value == '2' ? tnuSiteLocations[r.site_name].siteLocation : jobModel.sloc.value}}</td>
+                    <td ng-repeat="w in jobWorksValueTemp track by $index">{{jobModel.reason.value == '2' ? tnuSiteLocations[w.r.site_name].siteLocation : jobModel.sloc.value}}</td>
                     <td></td>
                     <td></td>
                 </tr>
