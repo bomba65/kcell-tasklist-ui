@@ -23,7 +23,7 @@ define(['./module','jquery'], function(app,$){
         $scope.report_ready = false;
 
 		$scope.reportsMap = {
-            'revision-open-tasks': {name: 'Revision open tasks', process: 'Revision'},
+            'revision-open-tasks': {name: 'Revision Works Statistics Grouped', process: 'Revision'},
             'invoice-open-tasks': {name: 'Monthly Act open tasks', process: 'Invoice'},
             '4gSharing-open-tasks': {name: '4G Site Sharing open tasks', process: 'SiteSharingTopProcess'}
         };
@@ -33,14 +33,6 @@ define(['./module','jquery'], function(app,$){
             'invoice-open-tasks',
             '4gSharing-open-tasks'
         ];
-        
-        $scope.$watchGroup(['selectedProject', 'selectedProcess'], function(newValues, oldValues, scope) {
-            if((newValues[0].key !== oldValues[0].key || newValues[1].key !== oldValues[1].key)){
-                if(!$rootScope.isProjectAvailable('NetworkInfrastructure') || !$rootScope.isProjectVisible('NetworkInfrastructure')){
-                    $state.go('tasks');
-                }
-            }
-        }, true);
 
         $scope.currentReport = $stateParams.report;
         $scope.reverseOrder = false;
@@ -409,7 +401,6 @@ define(['./module','jquery'], function(app,$){
                     unfinished: true
                 }).then(function(response) {
                     var tasks = response.data;
-                    console.log(tasks)
                     var processInstanceIds = _.map(tasks, 'processInstanceId');
                     return $http.post($scope.baseUrl + '/history/variable-instance/?deserializeValues=false', {
                         processInstanceIdIn: processInstanceIds
@@ -643,8 +634,39 @@ define(['./module','jquery'], function(app,$){
                 var query = {
                     taskDefinitionKey: $scope.task,
                     processDefinitionKey: $scope.getProcessDefinition(),
-                    unfinished: true
+                    unfinished: true,
+                    processVariables: []
                 };
+
+                if($scope.task === 'no_task'){
+                    delete query.taskDefinitionKey;
+                }
+
+                if($scope.currentReport === 'revision-open-tasks' && ($scope.task.endsWith('_po') || $scope.task.endsWith('_op') || $scope.task.endsWith('_tr') || $scope.task.endsWith('_fm'))){
+                    query.taskDefinitionKey = $scope.task.substring(0, $scope.task.length - 3);
+
+                    var revisionTaskName = {
+                        'approve_material_list_center_po' : 'Approve Material List by "P&O"',
+                        'approve_material_list_center_tr' : 'Approve Material List by "Transmission"',
+                        'approve_material_list_center_fm' : 'Approve Material List by "S&FM"',
+                        'approve_material_list_center_op' : 'Approve Material List by "Operation"',
+                        'validate_tr_bycenter_po' : 'Validate TR by Center by "P&O"',
+                        'validate_tr_bycenter_tr' : 'Validate TR by Center by "Transmission"',
+                        'validate_tr_bycenter_fm' : 'Validate TR by Center by "S&FM"',
+                        'validate_tr_bycenter_op' : 'Validate TR by Center by "Operation"',
+                        'validate_additional_tr_bycenter_po' : 'Validate Additional TR by Center by "P&O"',
+                        'validate_additional_tr_bycenter_tr' : 'Validate Additional TR by Center by "Transmission"',
+                        'validate_additional_tr_bycenter_fm' : 'Validate Additional TR by Center by "S&FM"',
+                        'validate_additional_tr_bycenter_op' : 'Validate Additional TR by Center by "Operation"',
+                        'approve_additional_material_list_center_po' : 'Approve Additional Material List by "P&O"',
+                        'approve_additional_material_list_center_tr' : 'Approve Additional Material List by "Transmission"',
+                        'approve_additional_material_list_center_fm' : 'Approve Additional Material List by "S&FM"',
+                        'approve_additional_material_list_center_op' : 'Approve Additional Material List by "Operation"',
+                    }
+
+                    query.taskName = revisionTaskName[$scope.task];
+                }
+
                 if($scope.filter.reason) {
                     if($scope.getProcessDefinition() === 'Revision'){
                         query.processVariables = [{name:'reason', operator:'eq', value:$scope.filter.reason}];
@@ -653,11 +675,11 @@ define(['./module','jquery'], function(app,$){
                     }
                 }
                 if($scope.filter.mainContract && $scope.filter.mainContract !== 'All'){
-                    if(query.processVariables){
-                        query.processVariables.push({name:'mainContract', operator:'eq', value:$scope.filter.mainContract});
-                    } else {
-                        query.processVariables = [{name:'mainContract', operator:'eq', value:$scope.filter.mainContract}];
-                    }
+                    query.processVariables.push({name:'mainContract', operator:'eq', value:$scope.filter.mainContract});
+                }
+                if($scope.region){
+                    var region = $scope.region === 'north_central' ? 'nc' : ($scope.region === 'almaty' ? 'alm' : $scope.region);
+                    query.processVariables.push({name:'siteRegion', operator:'eq', value:region});
                 }
 
                 $http.post($scope.baseUrl + '/history/task', query).then(function(response) {
@@ -702,37 +724,105 @@ define(['./module','jquery'], function(app,$){
             } else if($scope.currentReport) {
                 $scope.updateTaskDefinitions();
 
+                $scope.revisionTaskDisplay = {
+                        'approve_jr_regions' : 'Wait Region Head Approval',
+                        'check_power' : 'Wait Power Checking',
+                        'approve_jr': 'Wait Central Unit Approval',
+                        'approve_transmission_works' : 'Wait Central Unit Approval (Transmission works)',
+                        'approve_jr_budget' : 'Wait Budget Approval (Transmission works)',
+                        'approve_jr_budget' : 'Wait Budget Approval (Transmission works)',
+                        'update_leasing_status_special': 'Wait Central Acquisition Approval',
+                        'update_leasing_status_general': 'Wait Region Acquisition Approval',
+                        'modify_jr': 'Wait Modify JR',
+                        'approve_material_list_region':'Wait Material List Approval by Initiator',
+                        'approve_material_list_center_po':'Wait Material List Approval by Central Unit (P&O)',
+                        'approve_material_list_center_tr':'Wait Material List Approval by Central Unit (TNU)',
+                        'approve_material_list_center_fm':'Wait Material List Approval by Central Unit (S&FM)',
+                        'approve_material_list_center_op':'Wait Material List Approval by Central Unit (SAO)',
+                        'approve_material_list_center1':'Wait Material List Approval by Central Unit',
+                        'approve_material_list_tnu_region':'Wait Material List Approval by TNU (Region)',   
+                        'validate_tr': 'Wait TR Validation', //validate_tr
+                        'validate_tr_bycenter_po' : 'Wait TR Validation by Central unit (P&O)',
+                        'validate_tr_bycenter_tr' : 'Wait TR Validation by Central unit (TNU)',
+                        'validate_tr_bycenter_fm' : 'Wait TR Validation by Central unit (S&FM)',
+                        'validate_tr_bycenter_op' : 'Wait TR Validation by Central unit (SAO)',
+                        'set_materials_dispatch_status' : 'Wait Materials Dispatch',
+                        'approve_additional_material_list_region' : 'Wait Additional Material List Approval by Initiator',
+                        'approve_additional_material_list_tnu_region' : 'Wait Additional Material List Approval by TNU (Region)',
+                        'approve_additional_material_list_center1' : 'Wait Additional Material List Approval by Central Unit',
+                        'approve_additional_material_list_center_po' : 'Wait Additional Material List Approval by Central Unit (P&O)',
+                        'approve_additional_material_list_center_tr' : 'Wait Additional Material List Approval by Central Unit (TNU)',
+                        'approve_additional_material_list_center_fm' : 'Wait Additional Material List Approval by Central Unit (S&FM)',
+                        'approve_additional_material_list_center_op' : 'Wait Additional Material List Approval by Central Unit (SAO)',
+                        'validate_additional_tr' : 'Wait Additional TR Validation',
+                        'validate_additional_tr_bycenter_po' : 'Wait Additional TR Validation by Central unit (P&O)',
+                        'validate_additional_tr_bycenter_tr' : 'Wait Additional TR Validation by Central unit (TNU)',
+                        'validate_additional_tr_bycenter_fm' : 'Wait Additional TR Validation by Central unit (S&FM)',
+                        'validate_additional_tr_bycenter_op' : 'Wait Additional TR Validation by Central unit (SAO)',
+                        'set_additional_materials_dispatch_status' : 'Wait Additional Materials Dispatch',
+                        'verify_works' : 'Wait Verify Works',
+                        'accept_work_initiator' : 'Wait Acceptance of Performed Works by Initiator',
+                        'accept_work_maintenance_group' : 'Wait Acceptance of Performed Works by Maintenance Group',
+                        'accept_work_planning_group' : 'Wait Acceptance of Performed Works by Planing Group',
+                        'sign_region_head' : 'Wait Acceptance of Performed Works by Region Head',
+                        'attach-scan-copy-of-acceptance-form' : 'Wait Attach of scan copy of Acceptance Form',
+                        'upload_tr_contractor' : 'Wait for Upload TR', //upload_tr_contractor
+                        'upload_additional_tr_contractor' : 'Wait Additional for Upload TR',
+                        'attach_material_list_contractor' : 'Wait for Attach Material List by Contractor', //attach_material_list_contractor
+                        'attach_additional_material_list_contractor' : 'Wait for Additional Attach Material List by Contractor',
+                        'fill_applied_changes_info' : 'Wait for Fill Applied Changes Info' //fill_applied_changes_info
+                }
+
                 $scope.kcellTasks = {
-                    'revision-open-tasks':[
-                        'modify_jr', //modify_jr
-                        'approve_jr_regions', //approve_jr_regions
-                        'check_power', //check_power
-                        'approve_transmission_works', //approve_transmission_works
-                        'approve_jr_budget', //approve_jr_budget
-                        'approve_jr', //approve_jr
-                        'update_leasing_status_general', //update_leasing_status_general
-                        'update_leasing_status_special', //update_leasing_status_special
-                        'approve_material_list_region', //approve_material_list_region
-                        'approve_material_list_center', //approve_material_list_center
-                        'approve_material_list_center1',
-                        'validate_tr', //validate_tr
-                        'set_materials_dispatch_status', //set_materials_dispatch_status
-                        'verify_works', //verify_works
-                        'accept_work_initiator', //accept_work_initiator
-                        'accept_work_maintenance_group', //accept_work_maintenance_group
-                        'accept_work_planning_group', //accept_work_planning_group
-                        'sign_region_head', //accept_work_planning_group
-                        'attach-scan-copy-of-acceptance-form',
-                        'approve_material_list_tnu_region',
-                        'validate_tr_bycenter',
-                        'approve_additional_material_list_region',
-                        'approve_additional_material_list_tnu_region',
-                        'approve_additional_material_list_center1',
-                        'approve_additional_material_list_center',
-                        'validate_additional_tr',
-                        'validate_additional_tr_bycenter',
-                        'set_additional_materials_dispatch_status'
-                    ],
+                    'revision-open-tasks':{
+                        'revisionJobRequestApprovalSubprocessTasks':[
+                            'approve_jr_regions', //approve_jr_regions
+                            'check_power', //check_power
+                            'approve_transmission_works', //approve_transmission_works
+                            'approve_jr_budget', //approve_jr_budget
+                            'approve_jr', //approve_jr
+                            'update_leasing_status_general', //update_leasing_status_general
+                            'update_leasing_status_special', //update_leasing_status_special   
+                            'modify_jr' //modify_jr
+                        ],
+                        'revisionMaterialsPreparationTasks':[
+                            'approve_material_list_region', //approve_material_list_region
+                            'approve_material_list_center_po', //approve_material_list_center P&O
+                            'approve_material_list_center_op', //approve_material_list_center Operation
+                            'approve_material_list_center_tr', //approve_material_list_center Transmission
+                            'approve_material_list_center_fm', //approve_material_list_center S&FM
+                            'approve_material_list_center1',
+                            'approve_material_list_tnu_region',
+                            'validate_tr', //validate_tr
+                            'validate_tr_bycenter_po',
+                            'validate_tr_bycenter_op',
+                            'validate_tr_bycenter_tr',
+                            'validate_tr_bycenter_fm',
+                            'set_materials_dispatch_status',
+                            'approve_additional_material_list_region',
+                            'approve_additional_material_list_tnu_region',   
+                            'approve_additional_material_list_center1',
+                            'approve_additional_material_list_center_po',
+                            'approve_additional_material_list_center_op',
+                            'approve_additional_material_list_center_tr',
+                            'approve_additional_material_list_center_fm',
+                            'validate_additional_tr',
+                            'validate_additional_tr_bycenter_po',
+                            'validate_additional_tr_bycenter_op',
+                            'validate_additional_tr_bycenter_tr',
+                            'validate_additional_tr_bycenter_fm',
+                            'set_additional_materials_dispatch_status',
+                            'verify_works'
+                        ],
+                        'waitWorksVerificationPermitTeamTasks':[],
+                        'revisionAcceptWorksTasks':[
+                            'accept_work_initiator',
+                            'accept_work_maintenance_group',
+                            'accept_work_planning_group',
+                            'sign_region_head',
+                            'attach-scan-copy-of-acceptance-form',
+                        ]
+                    },
                     'invoice-open-tasks': [
                         'ma_sign_region_head',
                         'ma_sign_region_manager',
@@ -804,6 +894,20 @@ define(['./module','jquery'], function(app,$){
                             var processInstances = results[0];
                             var taskInstances = results[1];
 
+                            angular.forEach(taskInstances, function(t){
+                                if(['approve_material_list_center','validate_tr_bycenter','approve_additional_material_list_center', 'validate_additional_tr_bycenter'].indexOf(t.taskDefinitionKey)){
+                                    if(t.name.indexOf('P&O')!=-1){
+                                        t.taskDefinitionKey = t.taskDefinitionKey + '_po'
+                                    } else if(t.name.indexOf('Transmission')!=-1){
+                                        t.taskDefinitionKey = t.taskDefinitionKey + '_tr'
+                                    } else if(t.name.indexOf('S&FM')!=-1){
+                                        t.taskDefinitionKey = t.taskDefinitionKey + '_fm'
+                                    } else if(t.name.indexOf('Operation')!=-1){
+                                        t.taskDefinitionKey = t.taskDefinitionKey + '_op'
+                                    }
+                                }
+                            })
+
                             var taskInstancesByDefinition = _.groupBy(
                                 taskInstances,
                                 'taskDefinitionKey'
@@ -835,16 +939,22 @@ define(['./module','jquery'], function(app,$){
                             
                             let a = Object.keys(tasksByIdAndRegionCounted);
                             let newJson = {};
+                            let regionJson = {};
                             for(let i =0; i<a.length;i++){
                                 let counter = 0;
                                 let b = Object.values(tasksByIdAndRegionCounted[a[i]]);
-                                b.forEach(i => {
-                                    counter += i;
+                                let c = Object.keys(tasksByIdAndRegionCounted[a[i]]);
+                                
+                                b.forEach(j => {
+                                    counter += j;
+                                })
+                                c.forEach(k => {
+                                    regionJson[k] = regionJson[k] ? regionJson[k] + tasksByIdAndRegionCounted[a[i]][k] : tasksByIdAndRegionCounted[a[i]][k];
                                 })
                                 newJson[a[i]] = counter; 
                             }
-
                             $scope.totalCounter = newJson;
+                            $scope.regionCounter = regionJson;
                         });
                 } else if($scope.currentReport === 'invoice-open-tasks'){
                     var processQuery = {
@@ -925,17 +1035,24 @@ define(['./module','jquery'], function(app,$){
 
                             let a = Object.keys(tasksByIdAndRegionCounted);
                             let newJson = {};
+                            let regionJson = {};
                             for(let i =0; i<a.length;i++){
                                 let counter = 0;
                                 let b = Object.values(tasksByIdAndRegionCounted[a[i]]);
+                                let c = Object.keys(tasksByIdAndRegionCounted[a[i]]);
+
                                 b.forEach(i => {
                                     counter += i;
                                 })
+                                c.forEach(k => {
+                                    regionJson[k] = regionJson[k] ? regionJson[k] + tasksByIdAndRegionCounted[a[i]][k] : tasksByIdAndRegionCounted[a[i]][k];
+                                })
+
                                 newJson[a[i]] = counter; 
                             }
 
                             $scope.totalCounter = newJson;
-
+                            $scope.regionCounter = regionJson;
                         });
                 }
             }
