@@ -895,7 +895,7 @@ define(['./module','jquery'], function(app,$){
                             var taskInstances = results[1];
 
                             angular.forEach(taskInstances, function(t){
-                                if(['approve_material_list_center','validate_tr_bycenter','approve_additional_material_list_center', 'validate_additional_tr_bycenter'].indexOf(t.taskDefinitionKey)){
+                                if(['approve_material_list_center','validate_tr_bycenter','approve_additional_material_list_center', 'validate_additional_tr_bycenter'].indexOf(t.taskDefinitionKey)!==-1){
                                     if(t.name.indexOf('P&O')!=-1){
                                         t.taskDefinitionKey = t.taskDefinitionKey + '_po'
                                     } else if(t.name.indexOf('Transmission')!=-1){
