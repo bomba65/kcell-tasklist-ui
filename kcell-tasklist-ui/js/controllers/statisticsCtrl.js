@@ -948,9 +948,11 @@ define(['./module','jquery'], function(app,$){
                                 b.forEach(j => {
                                     counter += j;
                                 })
-                                c.forEach(k => {
-                                    regionJson[k] = regionJson[k] ? regionJson[k] + tasksByIdAndRegionCounted[a[i]][k] : tasksByIdAndRegionCounted[a[i]][k];
-                                })
+                                if($scope.revisionTaskDisplay[a[i]]){
+                                    c.forEach(k => {
+                                        regionJson[k] = regionJson[k] ? regionJson[k] + tasksByIdAndRegionCounted[a[i]][k] : tasksByIdAndRegionCounted[a[i]][k];
+                                    })
+                                }
                                 newJson[a[i]] = counter; 
                             }
                             $scope.totalCounter = newJson;
