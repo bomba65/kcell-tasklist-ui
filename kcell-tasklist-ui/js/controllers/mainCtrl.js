@@ -400,13 +400,13 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 
         $scope.searchProcessesForContractors = async function(taskInfo){
 			var queryParams = {processDefinitionKey: 'Revision', variables: []};
-			var queryTaskParams = {processDefinitionKey: 'Revision', active: true}
+			var taskDefKey;
 
 			if(!$scope.accepted){
 				queryParams.variables.push({name:"contractorJobAssignedDate", value:new Date(), operator: "lteq"});
 				queryParams.variables.push({name:"contractor", value: 4, operator: "eq"});
 				if($scope.taskId !== 'all'){
-					queryTaskParams.taskDefinitionKey = $scope.taskId;
+					taskDefKey = $scope.taskId;
 				}
 			}
 			if($scope.site && $scope.site_name){
@@ -476,39 +476,39 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 							}
 						);
 					});
-					$scope.processSearchResults.forEach(function(el) {
-						$http({
-							method: 'GET',
-							headers:{'Accept':'application/hal+json, application/json; q=0.5'},
-							url: baseUrl+'/process-instance/' + el.id + '/activity-instances'
-						}).then(function(activities){
-							activities.data.childActivityInstances.forEach(function(act) {
-								if(['attach-scan-copy-of-acceptance-form','intermediate_wait_acts_passed','intermediate_wait_invoiced'].indexOf(act.activityId)!==-1){
-									el.activityName = act.activityName;
-								}
-							});
-						});
-					});
 					if(!$scope.accepted) {
-						$scope.processSearchResults.forEach(async function (el) {
-							queryTaskParams.processInstanceId = el.id;
-							await $http({
+						$scope.processSearchResults.forEach(function (el) {
+							$http({
 								method: 'POST',
 								headers: {'Accept': 'application/hal+json, application/json; q=0.5'},
-								data: queryTaskParams,
+								data: {processInstanceId: el.id, processDefinitionKey: 'Revision', active: true, taskDefinitionKey: taskDefKey},
 								url: baseUrl + '/task'
 							}).then(
-								function (results) {
+								function(results) {
 									el.tasks = results.data
 									results.data.forEach(async function(task) {
 										el.tasks.assigneeObject = await $scope.getUserById(task)
 									})
 								},
-								function (error) {
+								function(error) {
 									console.log('task_error: ', error)
 								}
 							);
 						})
+					} else {
+						$scope.processSearchResults.forEach(function(el) {
+							$http({
+								method: 'GET',
+								headers:{'Accept':'application/hal+json, application/json; q=0.5'},
+								url: baseUrl+'/process-instance/' + el.id + '/activity-instances'
+							}).then(function(activities){
+								activities.data.childActivityInstances.forEach(function(act) {
+									if(['attach-scan-copy-of-acceptance-form','intermediate_wait_acts_passed','intermediate_wait_invoiced'].indexOf(act.activityId)!==-1){
+										el.activityName = act.activityName;
+									}
+								});
+							});
+						});
 					}
 				}
 			});
