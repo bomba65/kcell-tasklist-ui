@@ -127,8 +127,7 @@
                             var a = camForm.variableManager.variables[el].originalValue.substring(0,10);
                             console.log(a);
                             a.replace('-','/');
-                            $scope.jobModel['requestedDateObject'] = new Date(a);
-                            console.log($scope.jobModel['requestedDateObject']);
+                            $scope.requestedDateObject = new Date(a);
                         } catch(e) {
                             console.log(e);
                         }
@@ -200,25 +199,80 @@
                     });
                     $scope.jobWorksValueTemp = [];
                     $scope.jobWorksValue.forEach(function(w, index) {
+                        console.log(index+' ' + w.uuid);
                         if($scope.jobModel.reason.value != '2') {
                             w.r = {
                                 site_name: $scope.site_name
                             };
+                            w.prItemText = 'installation service ' + w.r.site_name;
                             w.index = index;
+                            w.uuid = uuidv4();
+                            w.requestedDate = angular.copy($scope.requestedDateObject);
+                            w.deliveryDate = new Date(new Date().getFullYear(), 11, 31);
+                            w.open = function($event){
+                                $event.preventDefault();
+                                $event.stopPropagation();
+                                this.requestedDateObjectOpened = true;
+                            };
+                            w.deliveryDateOpen = function($event){
+                                $event.preventDefault();
+                                $event.stopPropagation();
+                                this.deliveryDateOpened = true;
+                            };
+                            if(!w.price){
+                                w.price = {};
+                            }
+                            if(!w.price.unitWorkPricePerSite) {
+                                w.price.unitWorkPricePerSite = '0.0';
+                            }
+                            if(!w.price.unitWorkPricePlusTx) {
+                                w.price.unitWorkPricePlusTx = '0.0';
+                            }
+                            w.amountText = $scope.jobModel.reason.value == '2' ? w.price.unitWorkPricePerSite.replace('.',',') : w.price.unitWorkPricePlusTx.replace('.',',');
                             $scope.jobWorksValueTemp.push(w);
                         } else {
                             w.relatedSites.forEach(function(r, rindex) {
                                 w.r = r;
                                 w.index = rindex + index;
-                                $scope.jobWorksValueTemp.push(w);
+                                w.uuid = uuidv4();
+                                w.prItemText = 'installation service ' + w.r.site_name;
+                                w.requestedDate = angular.copy($scope.requestedDateObject);
+                                w.deliveryDate = new Date(new Date().getFullYear(), 11, 31);
+                                w.open = function($event){
+                                    $event.preventDefault();
+                                    $event.stopPropagation();
+                                    this.requestedDateObjectOpened = true;
+                                };
+                                w.deliveryDateOpen = function($event){
+                                    $event.preventDefault();
+                                    $event.stopPropagation();
+                                    this.deliveryDateOpened = true;
+                                };
+                                if(!w.price){
+                                    w.price = {};
+                                }
+                                if(!w.price.unitWorkPricePerSite) {
+                                    w.price.unitWorkPricePerSite = '0.0';
+                                }
+                                if(!w.price.unitWorkPricePlusTx) {
+                                    w.price.unitWorkPricePlusTx = '0.0';
+                                }
+                                w.amountText = $scope.jobModel.reason.value == '2' ? w.price.unitWorkPricePerSite.replace('.',',') : w.price.unitWorkPricePlusTx.replace('.',',');
+                                $scope.jobWorksValueTemp.push(angular.copy(w));
                             });
                         }
-                        console.log(w);
                     });
                 } catch(E) {
                     console.log(E);
                 }
             });
+
+            function uuidv4() {
+              return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+                var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+                return v.toString(16);
+              });
+            }
 
             camForm.on('submit', function () {
                 camForm.variableManager.variableValue('approveMaterialsListByRegionGroupsHeadTaskResult', $scope.approveMaterialsListByRegionGroupsHeadTaskResult);
@@ -271,6 +325,145 @@
                     value: $scope.approveMaterialsListByRegionGroupsHeadComment
                 });
                 camForm.variableManager.destroyVariable('resolutions');
+
+                if($scope.requestedDateChangerName){
+                    camForm.variableManager.createVariable({
+                        name: 'requestedDateChangerName',
+                        type: 'String',
+                        value: $scope.requestedDateChangerName
+                    });
+                }
+                if($scope.requestedDateChangerAssigneeName){
+                    camForm.variableManager.createVariable({
+                        name: 'requestedDateChangerAssigneeName',
+                        type: 'String',
+                        value: $scope.requestedDateChangerAssigneeName
+                    });
+                }
+                if($scope.expenseTypeName){
+                    camForm.variableManager.createVariable({
+                        name: 'expenseTypeName',
+                        type: 'String',
+                        value: $scope.expenseTypeName
+                    });
+                }
+                if($scope.expenseTypeAssigneeName){
+                    camForm.variableManager.createVariable({
+                        name: 'expenseTypeAssigneeName',
+                        type: 'String',
+                        value: $scope.expenseTypeAssigneeName
+                    });
+                }
+                if($scope.prItemTextName){
+                    camForm.variableManager.createVariable({
+                        name: 'prItemTextName',
+                        type: 'String',
+                        value: $scope.prItemTextName
+                    });
+                }
+                if($scope.prItemTextAssigneeName){
+                    camForm.variableManager.createVariable({
+                        name: 'prItemTextAssigneeName',
+                        type: 'String',
+                        value: $scope.prItemTextAssigneeName
+                    });
+                }
+                if($scope.wbsElementName){
+                    camForm.variableManager.createVariable({
+                        name: 'wbsElementName',
+                        type: 'String',
+                        value: $scope.wbsElementName
+                    });
+                }
+                if($scope.wbsElementAssigneeName){
+                    camForm.variableManager.createVariable({
+                        name: 'wbsElementAssigneeName',
+                        type: 'String',
+                        value: $scope.wbsElementAssigneeName
+                    });
+                }
+                if($scope.amountTextName){
+                    camForm.variableManager.createVariable({
+                        name: 'amountTextName',
+                        type: 'String',
+                        value: $scope.amountTextName
+                    });
+                }
+                if($scope.amountTextAssigneeName){
+                    camForm.variableManager.createVariable({
+                        name: 'amountTextAssigneeName',
+                        type: 'String',
+                        value: $scope.amountTextAssigneeName
+                    });
+                }
+                if($scope.controllingAreaName){
+                    camForm.variableManager.createVariable({
+                        name: 'controllingAreaName',
+                        type: 'String',
+                        value: $scope.controllingAreaName
+                    });
+                }
+                if($scope.controllingAreaAssigneeName){
+                    camForm.variableManager.createVariable({
+                        name: 'controllingAreaAssigneeName',
+                        type: 'String',
+                        value: $scope.controllingAreaAssigneeName
+                    });
+                }
+                if($scope.activityServiceNumberName){
+                    camForm.variableManager.createVariable({
+                        name: 'activityServiceNumberName',
+                        type: 'String',
+                        value: $scope.activityServiceNumberName
+                    });
+                }
+                if($scope.activityServiceNumberAssigneeName){
+                    camForm.variableManager.createVariable({
+                        name: 'activityServiceNumberAssigneeName',
+                        type: 'String',
+                        value: $scope.activityServiceNumberAssigneeName
+                    });
+                }
+                if($scope.wRequestedDateName){
+                    camForm.variableManager.createVariable({
+                        name: 'wRequestedDateName',
+                        type: 'String',
+                        value: $scope.wRequestedDateName
+                    });
+                }
+                if($scope.wRequestedDateAssigneeName){
+                    camForm.variableManager.createVariable({
+                        name: 'wRequestedDateAssigneeName',
+                        type: 'String',
+                        value: $scope.wRequestedDateAssigneeName
+                    });
+                }
+                if($scope.wdeliveryDateName){
+                    camForm.variableManager.createVariable({
+                        name: 'wdeliveryDateName',
+                        type: 'String',
+                        value: $scope.wdeliveryDateName
+                    });
+                }
+                if($scope.wdeliveryDateAssigneeName){
+                    camForm.variableManager.createVariable({
+                        name: 'wdeliveryDateAssigneeName',
+                        type: 'String',
+                        value: $scope.wdeliveryDateAssigneeName
+                    });
+                }
+
+                camForm.variableManager.createVariable({
+                    name: 'jobWorksValueTemp',
+                    type: 'Json',
+                    value: $scope.jobWorksValueTemp
+                });
+
+                camForm.variableManager.createVariable({
+                    name: 'requestedDateObject',
+                    type: 'Date',
+                    value: $scope.requestedDateObject
+                });
             });
 
             camForm.on('store', function() {
@@ -298,7 +491,6 @@
             }
 
             $scope.open = function($event){
-                console.log(event);
                 $event.preventDefault();
                 $event.stopPropagation();
                 $scope.requestedDateObjectOpened = true;
@@ -312,6 +504,41 @@
             $scope.expenseTypeChanged = function() {
                 $scope.expenseTypeName = $rootScope.authentication.name;
                 $scope.expenseTypeAssigneeName = $rootScope.authentication.assigneeName;
+            }
+
+            $scope.prItemTextChanged = function() {
+                $scope.prItemTextName = $rootScope.authentication.name;
+                $scope.prItemTextAssigneeName = $rootScope.authentication.assigneeName;
+            }
+
+            $scope.wbsElementChanged = function() {
+                $scope.wbsElementName = $rootScope.authentication.name;
+                $scope.wbsElementAssigneeName = $rootScope.authentication.assigneeName;
+            }
+
+            $scope.amountTextChanged = function() {
+                $scope.amountTextName = $rootScope.authentication.name;
+                $scope.amountTextAssigneeName = $rootScope.authentication.assigneeName;
+            }
+
+            $scope.controllingAreaChanged = function() {
+                $scope.controllingAreaName = $rootScope.authentication.name;
+                $scope.controllingAreaAssigneeName = $rootScope.authentication.assigneeName;
+            }
+
+            $scope.activityServiceNumberChanged = function() {
+                $scope.activityServiceNumberName = $rootScope.authentication.name;
+                $scope.activityServiceNumberAssigneeName = $rootScope.authentication.assigneeName;
+            }
+
+            $scope.wRequestedDateChanged = function() {
+                $scope.wRequestedDateName = $rootScope.authentication.name;
+                $scope.wRequestedDateAssigneeName = $rootScope.authentication.assigneeName;
+            }
+
+            $scope.wdeliveryDateChanged = function() {
+                $scope.wdeliveryDateName = $rootScope.authentication.name;
+                $scope.wdeliveryDateAssigneeName = $rootScope.authentication.assigneeName;
             }
         }]);
     </script>
@@ -380,9 +607,9 @@
         <tr>
             <td>Job Order Date</td>
             <td>
-                <span ng-if="!requestedDateObjectEdit">{{jobModel.requestedDateObject | date:'dd.MM.yyyy'}}</span>
+                <span ng-if="!requestedDateObjectEdit">{{requestedDateObject | date:'dd.MM.yyyy'}}</span>
                 <div class="input-group" ng-if="requestedDateObjectEdit">
-                    <input type="text" ng-model="jobModel.requestedDateObject" name="jobModel.requestedDateObject" ng-change="requestedDateObjectChanged()" required class="form-control" datepicker-popup="dd.MM.yyyy" is-open="requestedDateObjectOpened" id="jobModel.requestedDateObject" />
+                    <input type="text" ng-model="requestedDateObject" name="requestedDateObject" ng-change="requestedDateObjectChanged()" required class="form-control" datepicker-popup="dd.MM.yyyy" is-open="requestedDateObjectOpened" id="requestedDateObject" />
                     <span class="input-group-btn">
                         <button type="button" class="btn btn-default" ng-click="open($event)">
                             <i class="glyphicon glyphicon-calendar"></i>
@@ -472,12 +699,20 @@
                     <td></td>
                 </tr>
                 <tr>
-                    <td>JR Reuqest date</td>
+                    <td>JR Request date</td>
                     <td ng-repeat="w in jobWorksValueTemp track by $index">
-                        <span>{{jobModel.requestedDate.value | date:'dd.MM.yyyy'}}</span>
+                        <span ng-if="!wRequestedDateEdit">{{w.requestedDate | date:'dd.MM.yyyy'}}</span>
+                        <div class="input-group" ng-if="wRequestedDateEdit">
+                            <input type="text" ng-model="w.requestedDate" ng-change="wRequestedDateChanged()" required class="form-control" datepicker-popup="dd.MM.yyyy" is-open="w.requestedDateObjectOpened"  />
+                            <span class="input-group-btn">
+                                <button type="button" class="btn btn-default" ng-click="w.open($event)">
+                                    <i class="glyphicon glyphicon-calendar"></i>
+                                </button>
+                            </span>
+                        </div>
                     </td>
-                    <td></td>
-                    <td></td>
+                    <td><a ng-click="wRequestedDateEdit = true"><u>edit</u></a></td>
+                    <td>Edited by: {{wRequestedDateAssigneeName}}</td>
                 </tr>
                 <tr>
                     <td>Vendor</td>
@@ -499,9 +734,12 @@
                 </tr>
                 <tr>
                     <td>PR Item text</td>
-                    <td ng-repeat="w in jobWorksValueTemp track by $index">installation service {{w.r.site_name}}</td>
-                    <td>Edit</td>
-                    <td>Edited by:</td>
+                    <td ng-repeat="w in jobWorksValueTemp track by $index">
+                        <span ng-if="!prItemTextEdit">{{w.prItemText}}</span>
+                        <input ng-model="w.prItemText" ng-if="prItemTextEdit" class="form-control" ng-change="prItemTextChanged()" />
+                    </td>
+                    <td><a ng-click="prItemTextEdit = true"><u>edit</u></a></td>
+                    <td>Edited by: {{prItemTextAssigneeName}}</td>
                 </tr>
                 <tr>
                     <td>CM Contract no</td>
@@ -523,15 +761,28 @@
                 </tr>
                 <tr>
                     <td>Delivery Date</td>
-                    <td ng-repeat="w in jobWorksValueTemp track by $index">31.12.{{currentDate | date:'yyyy'}}</td>
-                    <td></td>
-                    <td></td>
+                    <td ng-repeat="w in jobWorksValueTemp track by $index">
+                        <span ng-if="!wdeliveryDateEdit">{{w.deliveryDate | date:'dd.MM.yyyy'}}</span>
+                        <div class="input-group" ng-if="wdeliveryDateEdit">
+                            <input type="text" ng-model="w.deliveryDate" ng-change="wdeliveryDateChanged()" required class="form-control" datepicker-popup="dd.MM.yyyy" is-open="w.deliveryDateOpened"  />
+                            <span class="input-group-btn">
+                                <button type="button" class="btn btn-default" ng-click="w.deliveryDateOpen($event)">
+                                    <i class="glyphicon glyphicon-calendar"></i>
+                                </button>
+                            </span>
+                        </div>
+                    </td>
+                    <td><a ng-click="wdeliveryDateEdit = true"><u>edit</u></a></td>
+                    <td>Edited by: {{wdeliveryDateEditAssigneeName}}</td>
                 </tr>
                 <tr>
                     <td>WBS Element</td>
-                    <td ng-repeat="w in jobWorksValueTemp track by $index">{{w.wbsElement}}</td>
-                    <td></td>
-                    <td></td>
+                    <td ng-repeat="w in jobWorksValueTemp track by $index">
+                        <span ng-if="!wbsElementEdit">{{w.wbsElement}}</span>
+                        <input ng-model="w.wbsElement" ng-if="wbsElementEdit" class="form-control" ng-change="wbsElementChanged()" />
+                    </td>
+                    <td><a ng-click="wbsElementEdit = true"><u>edit</u></a></td>
+                    <td>Edited by: {{wbsElementAssigneeName}}</td>
                 </tr>
                 <tr>
                     <td>Job Order no </td>
@@ -562,21 +813,30 @@
                 </tr>
                 <tr>
                     <td>Controlling Area</td>
-                    <td ng-repeat="w in jobWorksValueTemp track by $index">{{w.controllingArea}}</td>
-                    <td></td>
-                    <td></td>
+                    <td ng-repeat="w in jobWorksValueTemp track by $index">
+                        <span ng-if="!controllingAreaEdit">{{w.controllingArea}}</span>
+                        <input ng-model="w.controllingArea" ng-if="controllingAreaEdit" class="form-control" ng-change="controllingAreaChanged()" />
+                    </td>
+                    <td><a ng-click="controllingAreaEdit = true"><u>edit</u></a></td>
+                    <td>Edited by: {{controllingAreaAssigneeName}}</td>
                 </tr>
                 <tr>
                     <td>Activity Service Number</td>
-                    <td ng-repeat="w in jobWorksValueTemp track by $index">{{w.activityServiceNumber}}</td>
-                    <td></td>
-                    <td></td>
+                    <td ng-repeat="w in jobWorksValueTemp track by $index">
+                        <span ng-if="!activityServiceNumberEdit">{{w.activityServiceNumber}}</span>
+                        <input ng-model="w.activityServiceNumber" ng-if="activityServiceNumberEdit" class="form-control" ng-change="activityServiceNumberChanged()" />
+                    </td>
+                    <td><a ng-click="activityServiceNumberEdit = true"><u>edit</u></a></td>
+                    <td>Edited by: {{activityServiceNumberAssigneeName}}</td>
                 </tr>
                 <tr>
                     <td>Amount</td>
-                    <td ng-repeat="w in jobWorksValueTemp track by $index">{{jobModel.reason.value == '2' ? w.price.unitWorkPricePerSite.replace('.',',') : w.price.unitWorkPricePlusTx.replace('.',',')}}</td>
-                    <td></td>
-                    <td></td>
+                    <td ng-repeat="w in jobWorksValueTemp track by $index">
+                        <span ng-if="!amountTextEdit">{{w.amountText}}</span>
+                        <input ng-model="w.amountText" ng-if="amountTextEdit" class="form-control" ng-change="amountTextChanged()" />
+                    </td>
+                    <td><a ng-click="amountTextEdit = true"><u>edit</u></a></td>
+                    <td>Edited by: {{amountTextAssigneeName}}</td>
                 </tr>
                 <tr>
                     <td>KWMS PR Req. Name</td>

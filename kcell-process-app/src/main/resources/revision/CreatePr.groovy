@@ -38,14 +38,22 @@ def undefinedWorks = ['39', '40', '41', '43', '61', '63', '67', '68', '73', '74'
 def opexWorks = ['6', '7', '9', '13', '18', '21', '24', '27', '30', '33', '37', '44', '51', '52', '53', '58', '59', '64', '69', '70', '75',
                  '76', '83', '90', '93', '96', '99', '102', '109', '110', '111', '119', '120', '121', '124', '133', '136', '140', '143',
                  '146', '149', '163', '164', '167', '170', '171']
-
+// requestedDateChangerAssigneeName
+// expenseTypeAssigneeName
+// prItemTextAssigneeName
+// wbsElementAssigneeName
+// amountTextAssigneeName
+// controllingAreaAssigneeName
+// activityServiceNumberAssigneeName
+// wRequestedDateAssigneeName
+// wdeliveryDateAssigneeName
 def cal = Calendar.instance
 def yearEndDate = "31.12."+cal.get(Calendar.YEAR)
 
 def formatDate = new SimpleDateFormat("dd.MM.yyyy")
-def jobWorksObj = new JsonSlurper().parseText(jobWorks.toString())
+def jobWorksObj = new JsonSlurper().parseText(jobWorksValueTemp.toString())
 def workPricesObj = new JsonSlurper().parseText(workPrices.toString())
-def requestDateObj = formatDate.format(requestedDate)
+def requestDateObj = formatDate.format(requestedDateObject)
 def sapFaListObj = new JsonSlurper().parseText("[]")
 if(hasCapexWorks == 'true'){
     sapFaListObj = new JsonSlurper().parseText(sapFaList.toString());
@@ -71,26 +79,8 @@ jobWorksObj.each { work ->
     }
     if ('CAPEX' == work.expenseType){
         work.costType = 'Y'
-        work.activityServiceNumber = 'DUMMY'
-        if('2' == reason){
-            work.wbsElement = 'TN-0502-48-0236'
-        } else {
-            work.wbsElement = 'RN-0502-33-0236'
-        }
-        work.controllingArea = 'DUMMY'
     } else if ('OPEX' == work.expenseType){
         work.costType = 'K'
-        if('2' == reason){
-            work.activityServiceNumber = '7016046'
-        } else {
-            work.activityServiceNumber = '7016045'
-        }
-        if('4' == reason){
-            work.wbsElement = '252-70160-1'
-        } else {
-            work.wbsElement = '251-70160-1'
-        }
-        work.controllingArea = '3020'
     }
     work.contractorNo = contractorsTitle[contractor.toString()].contract.service
     work.costCenter = '25510'
