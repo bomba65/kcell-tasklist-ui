@@ -137,7 +137,6 @@
                 );
                 $scope.leasingCandidate = {};
                 $scope.contractInformations = [];
-
                 $scope.dictionary = {};
             });
 
@@ -223,15 +222,13 @@
                 );
             });
 
-            camForm.on('submit', function () {
+            camForm.on('submit', function (evt) {
+                // evt.submitPrevented = true;
                 camForm.variableManager.variableValue('uploadSignedOwnerLeaseContractTaskResult', $scope.uploadSignedOwnerLeaseContractTaskResult);
                 camForm.variableManager.variableValue('uploadSignedOwnerLeaseContractTaskComment', $scope.uploadSignedOwnerLeaseContractTaskComment);
                 camForm.variableManager.variableValue('contractInformations', $scope.contractInformations);
 
                 var thisTaskFiles = $scope.leasingFiles.filter(f => {return f.varName === 'uploadSignedOwnerLeaseContractFiles'});
-                console.log('--thisTaskFiles--')
-                console.log(thisTaskFiles)
-                console.log('-----------------')
                 if(!camForm.variableManager.variables['uploadSignedOwnerLeaseContractFiles'].type){
                     camForm.variableManager.destroyVariable('uploadSignedOwnerLeaseContractFiles');
                     camForm.variableManager.createVariable({
@@ -444,6 +441,7 @@
 
             $scope.preSubmit = function() {
                 var deferred = $q.defer();
+                var currentDate = new Date();
                 if($scope.uploadSignedOwnerLeaseContractTaskResult === 'refusal'){
                     exModal.open({
                         templateUrl: './js/partials/confirmModal.html',
@@ -464,6 +462,10 @@
                         }
                     );
                 } else {
+                    for (let i=0; i<$scope.contractInformations.length; i++ ) {
+                        let cci = $scope.contractInformations[i]
+                        cci.assignee = $scope.taskAssignee;
+                    }
                     deferred.resolve();
                     return deferred.promise;
                 }
@@ -543,13 +545,13 @@
                         field</label>
                 </div>
             </div>
-            <div class="form-group">
-                <label class="col-sm-3 control-label">*Contract ID:</label>
-                <div class="col-sm-9">
-                    <input class="form-control" id="{{'cci.' + $index}}.ct_contractid" name="cci.ct_contractid" ng-model="cci.ct_contractid" ng-required="cci.ct_acquisitionType !== 'additionalAgreement' && uploadSignedOwnerLeaseContractTaskResult !== 'refusal'" ng-disabled="cci.ct_acquisitionType === 'additionalAgreement'">
-                    <label class="error" ng-show="kcell_form.cci.ct_contractid.$error.required && ( kcell_form.cci.ct_contractid.$touched || view.submitted)">Required field</label>
-                </div>
-            </div>
+<!--            <div class="form-group">-->
+<!--                <label class="col-sm-3 control-label">*Contract ID:</label>-->
+<!--                <div class="col-sm-9">-->
+<!--                    <input class="form-control" id="{{'cci.' + $index}}.ct_contractid" name="cci.ct_contractid" ng-model="cci.ct_contractid" ng-required="cci.ct_acquisitionType !== 'additionalAgreement' && uploadSignedOwnerLeaseContractTaskResult !== 'refusal'" ng-disabled="cci.ct_acquisitionType === 'additionalAgreement'">-->
+<!--                    <label class="error" ng-show="kcell_form.cci.ct_contractid.$error.required && ( kcell_form.cci.ct_contractid.$touched || view.submitted)">Required field</label>-->
+<!--                </div>-->
+<!--            </div>-->
             <!--                <div class="form-group">-->
             <!--                    <div class="col-sm-12">-->
             <!--                        <div class="form-check">-->
@@ -753,34 +755,34 @@
                             <div class="form-group">
                                 <div class="col-sm-12">
                                     <div class="form-check">
-                                        <input type="checkbox" ng-model="address.ca_not_full_addres" class="form-check-input" id="ca_not_full_addres">
-                                        <label class="form-check-label" for="ca_not_full_addres">Object without official address</label>
+                                        <input type="checkbox" ng-model="cci.address.ca_not_full_addres" class="form-check-input" id="ca_not_{{$index}}_full_addres">
+                                        <label class="form-check-label" for="ca_not_{{$index}}_full_addres">Object without official address</label>
                                     </div>
                                 </div>
                             </div>
                             <div class="form-group">
-                                <label class="col-sm-3 control-label">{{!address.ca_not_full_addres ? '*' : ''}}Street:</label>
+                                <label class="col-sm-3 control-label">{{!cci.address.ca_not_full_addres ? '*' : ''}}Street:</label>
                                 <div class="col-sm-9">
                                     <input class="form-control" id="ContractInfo_cn_addr{{$index}}_street" name="ContractInfo_cn_addr_street" ng-model="cci.address.cn_addr_street" ng-required="!cci.address.ca_not_full_addres && uploadSignedOwnerLeaseContractTaskResult !== 'refusal'">
                                     <label class="error" ng-show="kcell_form.ContractInfo_cn_addr_street.$error.required && ( kcell_form.ContractInfo_cn_addr_street.$touched || view.submitted)">Required field</label>
                                 </div>
                             </div>
                             <div class="form-group">
-                                <label class="col-sm-3 control-label">{{!address.ca_not_full_addres ? '*' : ''}}Building:</label>
+                                <label class="col-sm-3 control-label">{{!cci.address.ca_not_full_addres ? '*' : ''}}Building:</label>
                                 <div class="col-sm-9">
                                     <input class="form-control" id="ContractInfo_cn_addr{{$index}}_building" name="ContractInfo_cn_addr_building" ng-model="cci.address.cn_addr_building" ng-required="!cci.address.ca_not_full_addres && uploadSignedOwnerLeaseContractTaskResult !== 'refusal'">
                                     <label class="error" ng-show="kcell_form.ContractInfo_cn_addr_building.$error.required && ( kcell_form.ContractInfo_cn_addr_building.$touched || view.submitted)">Required field</label>
                                 </div>
                             </div>
                             <div class="form-group">
-                                <label class="col-sm-3 control-label">{{address.ca_not_full_addres ? '*' : ''}}Cadastral number:</label>
+                                <label class="col-sm-3 control-label">{{cci.address.ca_not_full_addres ? '*' : ''}}Cadastral number:</label>
                                 <div class="col-sm-9">
                                     <input class="form-control" id="ContractInfo_cn_addr{{$index}}_cadastral_number" name="ContractInfo_cn_addr_cadastral_number" ng-model="cci.address.cn_addr_cadastral_number" ng-required="cci.address.ca_not_full_addres && uploadSignedOwnerLeaseContractTaskResult !== 'refusal'">
                                     <label class="error" ng-show="kcell_form.ContractInfo_cn_addr_cadastral_number.$error.required && ( kcell_form.ContractInfo_cn_addr_cadastral_number.$touched || view.submitted)">Required field</label>
                                 </div>
                             </div>
                             <div class="form-group">
-                                <label class="col-sm-3 control-label">{{address.ca_not_full_addres ? '*' : ''}}Note to the address:</label>
+                                <label class="col-sm-3 control-label">{{cci.address.ca_not_full_addres ? '*' : ''}}Note to the address:</label>
                                 <div class="col-sm-9">
                                     <input class="form-control" id="ContractInfo_cn_addr{{$index}}_note" name="ContractInfo_cn_addr_note" ng-model="cci.address.cn_addr_note" ng-required="cci.address.ca_not_full_addres && uploadSignedOwnerLeaseContractTaskResult !== 'refusal'">
                                     <label class="error" ng-show="kcell_form.ContractInfo_cn_addr_note.$error.required && ( kcell_form.ContractInfo_cn_addr_note.$touched || view.submitted)">Required field</label>
