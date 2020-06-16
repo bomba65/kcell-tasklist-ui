@@ -1,0 +1,30 @@
+version: '2.2'
+services:
+  camunda:
+    extends:
+      file: common-services.yml
+      service: camunda
+    links:
+      - mail
+    depends_on:
+      camundadb:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+    entrypoint:
+      - "java"
+      - "-Djava.security.egd=file:/dev/./urandom"
+      - "-jar"
+      - "/opt/app.jar"
+      - "--spring.profiles.include=docker,sftp"
+      - "--mail.message.baseurl=https://leasing.test-flow.kcell.kz"
+      - "--server.session.cookie.secure=true"
+  camundadb:
+    ports:
+      - "5432:5432"
+  assetsdb:
+    ports:
+      - "5433:5432"
+  networkinfrastructuredb:
+    ports:
+      - "5434:5432"
