@@ -355,13 +355,13 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 				if($scope.hasGroup('revision_managers')){
 					return true;
 				}else{
-					return ($scope.currentTask.candidateObject.groupId  === 'hq_leasing' && $scope.hasGroup('hq_leasing'))
+					return $scope.currentTask.candidateObject && (($scope.currentTask.candidateObject.groupId  === 'hq_leasing' && $scope.hasGroup('hq_leasing'))
 						||($scope.currentTask.candidateObject.groupId  === 'nc_leasing' && $scope.hasGroup('nc_leasing'))
 						|| ($scope.currentTask.candidateObject.groupId  === 'astana_leasing' && $scope.hasGroup('astana_leasing'))
 						|| ($scope.currentTask.candidateObject.groupId  === 'alm_leasing' && $scope.hasGroup('alm_leasing'))
 						|| ($scope.currentTask.candidateObject.groupId  === 'south_leasing' && $scope.hasGroup('south_leasing'))
 						|| ($scope.currentTask.candidateObject.groupId  === 'east_leasing' && $scope.hasGroup('east_leasing'))
-						|| ($scope.currentTask.candidateObject.groupId  === 'west_leasing' && $scope.hasGroup('west_leasing'));
+						|| ($scope.currentTask.candidateObject.groupId  === 'west_leasing' && $scope.hasGroup('west_leasing')));
 				}
 
 			} else if(processDefinitionKey === 'Invoice') {
