@@ -58,7 +58,7 @@ public class CreateUpdateContract implements JavaDelegate {
 
                     String _CONTRACT_APPROVAL_TYPE = delegateExecution.hasVariableLocal("_CONTRACT_APPROVAL_TYPE") ? delegateExecution.getVariable("_CONTRACT_APPROVAL_TYPE").toString() : null;
 
-                    String starter = delegateExecution.getVariable("starter").toString();
+//                    String starter = delegateExecution.getVariable("starter").toString();
                     Long createdArtefactId = (Long) delegateExecution.getVariable("createdArtefactId");
 
                     // check FE or CN: _CONTRACT_APPROVAL_TYPE.equals("CN")
@@ -81,6 +81,7 @@ public class CreateUpdateContract implements JavaDelegate {
 
                             contractid = ci.hasProp("ct_contractid") ? ci.prop("ct_contractid").value().toString() : "";
                             String ct_acquisitionType = ci.prop("ct_acquisitionType").stringValue();
+                            String assignUser = ci.prop("assignee").value().toString();
                             SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXX"); //2020-01-02T18:00:00.000Z
                             String ct_acceptance_act_date = ci.prop("ct_acceptance_act_date").stringValue();
                             String ct_contract_start_date = ci.prop("ct_contract_start_date").stringValue();
@@ -222,7 +223,7 @@ public class CreateUpdateContract implements JavaDelegate {
                                 log.info("OLD CONTRACT....");
                                 ct_cid = ci.prop("ct_cid").numberValue().longValue();
 
-                                ct_contractid_old = ci.prop("ct_contractid_old").stringValue();
+                                ct_contractid_old = ci.prop("ct_contractid_old").value().toString();
                                 ct_vendor_sap = ci.prop("ct_vendor_sap").numberValue().intValue();
 //                                ct_agreement_type = ci.prop("ct_agreement_type").numberValue().intValue();
 
@@ -313,7 +314,7 @@ public class CreateUpdateContract implements JavaDelegate {
                                 INSERT_CONTRACTSPreparedStatement.setDate(i++, new java.sql.Date(cal_ct_contract_start_date.getTimeInMillis())); // CONTRACTSTARTDATE
                                 INSERT_CONTRACTSPreparedStatement.setDate(i++, new java.sql.Date(cal_ct_contract_end_date.getTimeInMillis())); // CONTRACTENDDATE
                                 INSERT_CONTRACTSPreparedStatement.setString(i++, ct_autoprolongation);  // AUTOPROLONGATION
-                                INSERT_CONTRACTSPreparedStatement.setString(i++, starter);  // USERNAME
+                                INSERT_CONTRACTSPreparedStatement.setString(i++, assignUser);  // USERNAME
                                 INSERT_CONTRACTSPreparedStatement.setDate(i++, new java.sql.Date(new Date().getTime()));  // AREA_ACT_ACCEPT_DATE
                                 INSERT_CONTRACTSPreparedStatement.setString(i++, ct_bin);  // RNN
                                 INSERT_CONTRACTSPreparedStatement.setString(i++, ct_bin);  // INN ??
@@ -330,7 +331,7 @@ public class CreateUpdateContract implements JavaDelegate {
                                 log.info("createdContractCID:");
                                 log.info(createdContractCID.toString());
 
-                                //INSERT_CONTRACT_ARTEFACT
+                                //INSERT_CONTRACT_ARTEFACT asd
 
                                 Long createdContractArtefactID = null;
                                 String returnContractArtefactID[] = { "ID" };
@@ -411,6 +412,21 @@ public class CreateUpdateContract implements JavaDelegate {
 
                                 Number ct_agreement_executor = Integer.parseInt(ci.hasProp("ct_agreement_executor") && !ci.prop("ct_agreement_executor").value().equals(null) ? ci.prop("ct_agreement_executor").value().toString() : "0");
 
+                                Number contract_aa_cid = 0;
+                                String SelectMinCIDinCA = "select min(ca.CID) as CID from CONTRACT_ARTEFACT ca join CONTRACTS c on ca.ARTEFACTID = c.CID where c.CONTRACTID = ?"; //AS-1089-09
+                                PreparedStatement SelectMinCIDinCAPreparedStatement = udbConnect.prepareStatement(SelectMinCIDinCA);
+                                i = 1;
+                                log.info("get contracts...");
+                                SelectMinCIDinCAPreparedStatement.setString(i++, ct_contractid_old); //ct_contractid_old
+                                ResultSet SelectMinCIDinCAresultSet = SelectMinCIDinCAPreparedStatement.executeQuery();
+
+                                if (SelectMinCIDinCAresultSet.next() == false) {
+                                    log.info("not Found");
+                                } else {
+                                    log.info("get contracts...");
+                                    contract_aa_cid = SelectMinCIDinCAresultSet.getInt("CID");
+                                }
+
                                 Long createdContractAA = null;
                                 String createdContractAAID[] = { "AAID" };
                                 String INSERT_CONTRACT_AA = "INSERT INTO CONTRACT_AA (AAID, CID, AA_NUMBER, AA_DATE, AA_EXECUTOR, ARTEFACTID, AA_TYPE, AA_REASON, CONTRACT_TYPE, RENTSUM, RENT_AREA, POWERSUPPLY, LEGAL_TYPE, LEGAL_NAME, LEGAL_ADDRESS, CONTACT_PERSON, CONTACT_PHONE, PAYMENT_PERIOD, PAYMENT_WAY, NEEDVAT, CONTRACT_START_DATE, CONTRACT_END_DATE, AUTOPROLONGATION, AA_STATUS, INSERT_DATE, INSERT_PERSON) VALUES (CONTRACT_AA_SEQ.nextval, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
@@ -420,7 +436,12 @@ public class CreateUpdateContract implements JavaDelegate {
                                 log.info("INSERT_CONTRACT_AA preparedStatement SQL UPDATE VALUES");
                                 // set values to update
 
-                                INSERT_CONTRACT_AA_PreparedStatement.setLong(i++, ct_cid); // CID
+//                                INSERT_CONTRACT_AA_PreparedStatement.setLong(i++, ct_cid); // CID
+                                if (contract_aa_cid.longValue() > 0) {
+                                    INSERT_CONTRACT_AA_PreparedStatement.setLong(i++, contract_aa_cid.longValue()); // CID
+                                } else {
+                                    INSERT_CONTRACT_AA_PreparedStatement.setNull (i++, Types.INTEGER); // AA_DATE
+                                }
                                 INSERT_CONTRACT_AA_PreparedStatement.setString(i++, ct_agreement_number); // AA_NUMBER
                                 if (!ct_aa_date.equals("")) {
                                     INSERT_CONTRACT_AA_PreparedStatement.setDate(i++, new java.sql.Date(cal_ct_aa_date.getTimeInMillis())); // AA_DATE
@@ -454,7 +475,7 @@ public class CreateUpdateContract implements JavaDelegate {
                                 INSERT_CONTRACT_AA_PreparedStatement.setString(i++, ct_autoprolongation); // AUTOPROLONGATION
                                 INSERT_CONTRACT_AA_PreparedStatement.setLong(i++, 41); // AA_STATUS
                                 INSERT_CONTRACT_AA_PreparedStatement.setDate(i++, new java.sql.Date(new Date().getTime())); // INSERT_DATE
-                                INSERT_CONTRACT_AA_PreparedStatement.setString(i++, starter); // INSERT_PERSON
+                                INSERT_CONTRACT_AA_PreparedStatement.setString(i++, assignUser); // INSERT_PERSON
 
                                 INSERT_CONTRACT_AA_PreparedStatement.executeUpdate();
                                 log.info("successfull INSERT_CONTRACT_AA created!");
