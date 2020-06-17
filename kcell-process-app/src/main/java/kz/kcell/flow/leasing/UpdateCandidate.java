@@ -231,7 +231,7 @@ public class UpdateCandidate implements JavaDelegate {
                     i = 1;
                     log.info("UPDATE ARTEFACT ARTEFACT_CURRENT_STATE");
                     // set values to insert
-                    updateArtefactCurrentStatePreparedStatement.setLong(i++, 2); // RR_STATUS
+                    updateArtefactCurrentStatePreparedStatement.setLong(i++, 3); // RR_STATUS
                     updateArtefactCurrentStatePreparedStatement.setDate(i++, new java.sql.Date(new Date().getTime())); // RR_STATUS_DATE
                     updateArtefactCurrentStatePreparedStatement.setString(i++, cn_longitude); //longitude
                     updateArtefactCurrentStatePreparedStatement.setString(i++, cn_latitude); //latitude
