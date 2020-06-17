@@ -940,23 +940,30 @@ define(['./module','jquery'], function(app,$){
                             let a = Object.keys(tasksByIdAndRegionCounted);
                             let newJson = {};
                             let regionJson = {};
+                            var finalTasksCounter = 0;
+                            var finalRegionCounter = 0;
+
                             for(let i =0; i<a.length;i++){
-                                let counter = 0;
-                                let b = Object.values(tasksByIdAndRegionCounted[a[i]]);
-                                let c = Object.keys(tasksByIdAndRegionCounted[a[i]]);
-                                
-                                b.forEach(j => {
-                                    counter += j;
-                                })
                                 if($scope.revisionTaskDisplay[a[i]]){
+                                    let counter = 0;
+                                    let b = Object.values(tasksByIdAndRegionCounted[a[i]]);
+                                    let c = Object.keys(tasksByIdAndRegionCounted[a[i]]);
+
+                                    b.forEach(j => {
+                                        counter += j;
+                                        finalTasksCounter = finalTasksCounter + j;
+                                    });
                                     c.forEach(k => {
                                         regionJson[k] = regionJson[k] ? regionJson[k] + tasksByIdAndRegionCounted[a[i]][k] : tasksByIdAndRegionCounted[a[i]][k];
-                                    })
+                                        finalRegionCounter = finalRegionCounter + tasksByIdAndRegionCounted[a[i]][k];
+                                    });
+                                    newJson[a[i]] = counter;
                                 }
-                                newJson[a[i]] = counter; 
                             }
                             $scope.totalCounter = newJson;
                             $scope.regionCounter = regionJson;
+                            $scope.finalRegionCounter = finalRegionCounter;
+                            $scope.finalTasksCounter = finalTasksCounter;
                         });
                 } else if($scope.currentReport === 'invoice-open-tasks'){
                     var processQuery = {
@@ -1038,6 +1045,9 @@ define(['./module','jquery'], function(app,$){
                             let a = Object.keys(tasksByIdAndRegionCounted);
                             let newJson = {};
                             let regionJson = {};
+                            var finalTasksCounter = 0;
+                            var finalRegionCounter = 0;
+
                             for(let i =0; i<a.length;i++){
                                 let counter = 0;
                                 let b = Object.values(tasksByIdAndRegionCounted[a[i]]);
@@ -1045,9 +1055,11 @@ define(['./module','jquery'], function(app,$){
 
                                 b.forEach(i => {
                                     counter += i;
+                                    finalTasksCounter = finalTasksCounter + i;
                                 })
                                 c.forEach(k => {
                                     regionJson[k] = regionJson[k] ? regionJson[k] + tasksByIdAndRegionCounted[a[i]][k] : tasksByIdAndRegionCounted[a[i]][k];
+                                    finalRegionCounter = finalRegionCounter + tasksByIdAndRegionCounted[a[i]][k];
                                 })
 
                                 newJson[a[i]] = counter; 
@@ -1055,6 +1067,8 @@ define(['./module','jquery'], function(app,$){
 
                             $scope.totalCounter = newJson;
                             $scope.regionCounter = regionJson;
+                            $scope.finalRegionCounter = finalRegionCounter;
+                            $scope.finalTasksCounter = finalTasksCounter;
                         });
                 }
             }
