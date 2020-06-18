@@ -665,6 +665,28 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 		// 	openProcessCardModalRevision(process[0])
 		//
 		// }
+		$scope.showGroupDetails = function (group) {
+            $http({
+                method: 'GET',
+                headers: {'Accept': 'application/hal+json, application/json; q=0.5'},
+                url: baseUrl + '/user?memberOfGroup=' + group
+            }).then(
+              function (result) {
+                  exModal.open({
+                      scope: {
+                          members: result.data,
+                      },
+                      templateUrl: './js/partials/members.html',
+                      size: 'md'
+                  }).then(function (results) {
+                  });
+              },
+              function (error) {
+                  console.log(error.data);
+              }
+            );
+        };
+
 	    function openProcessCardModalRevision(p) {
 	        exModal.open({
 	            scope: {
@@ -673,6 +695,7 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 	                showHistory: $scope.showHistory,
 	                hasGroup: $scope.hasGroup,
 	                showGroupDetails: $scope.showGroupDetails,
+
 	                processDefinitionId: p.definitionId,
 	                businessKey: p.businessKey,
 	                download: function (file) {
