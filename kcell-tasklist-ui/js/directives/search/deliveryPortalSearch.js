@@ -1014,11 +1014,11 @@ define(['../module', 'moment'], function (module, moment) {
                                                             _.forEach(result.data.childActivityInstances, function (firstLevel) {
                                                                 if (firstLevel.activityType === 'subProcess') {
                                                                     _.forEach(firstLevel.childActivityInstances, function (secondLevel) {
-                                                                        if (secondLevel.activityType !== 'userTask' && secondLevel.activityType !== 'multiInstanceBody') {
+                                                                        if (secondLevel.activityType !== 'userTask' && secondLevel.activityType !== 'multiInstanceBody' && secondLevel.activityType !== 'parallelGateway' ) {
                                                                             otherActivities.push(secondLevel);
                                                                         }
                                                                     });
-                                                                } else if (firstLevel.activityType !== 'userTask' && firstLevel.activityType !== 'multiInstanceBody') {
+                                                                } else if (firstLevel.activityType !== 'userTask' && firstLevel.activityType !== 'multiInstanceBody' && firstLevel.activityType !== 'parallelGateway') {
                                                                     otherActivities.push(firstLevel);
                                                                 }
                                                             });
