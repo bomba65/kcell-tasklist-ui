@@ -493,6 +493,15 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 								function(error) {
 									console.log('task_error: ', error)
 								}
+
+							// function(taskResult){
+							// 	if(taskResult.data._embedded && taskResult.data._embedded.group){
+							// 		e.group = taskResult.data._embedded.group[0].id;
+							// 	}
+							// },
+							// function(error){
+							// 	console.log(error.data);
+							// }
 							);
 						})
 					} else {
@@ -527,6 +536,47 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
             }).then(
                 async function (tasks) {
                     var processInstanceTasks = tasks.data._embedded.task;
+					if(processInstanceTasks && processInstanceTasks.length > 0){
+						for (var k = 0; k < processInstanceTasks.length; k++) {
+							var e = processInstanceTasks[k]
+							if (e.assignee && tasks.data._embedded.assignee) {
+								for (var i = 0; i < tasks.data._embedded.assignee.length; i++) {
+									if (tasks.data._embedded.assignee[i].id === e.assignee) {
+										e.assigneeObject = tasks.data._embedded.assignee[i];
+									}
+									await $http({
+										method: 'GET',
+										headers: {'Accept': 'application/hal+json, application/json; q=0.5'},
+										url: baseUrl + '/task/' + e.id
+									}).then(
+										function (taskResult) {
+											if (taskResult.data._embedded && taskResult.data._embedded.group) {
+												e.group = taskResult.data._embedded.group[0].id;
+											}
+										},
+										function (error) {
+											console.log(error.data);
+										}
+									);
+								}
+							}
+							await $http({
+								method: 'GET',
+								headers: {'Accept': 'application/hal+json, application/json; q=0.5'},
+								url: baseUrl + '/task/' + e.id
+							}).then(
+								function (taskResult) {
+									if (taskResult.data._embedded && taskResult.data._embedded.group) {
+										e.group = taskResult.data._embedded.group[0].id;
+									}
+								},
+								function (error) {
+									console.log(error.data);
+								}
+							);
+						};
+						$scope.jobModel.tasks = processInstanceTasks;
+					}
                     await $http.get(baseUrl + '/history/variable-instance?deserializeValues=false&processInstanceId=' + p.id).then(
                         async function (result) {
                             var workFiles = [];
@@ -567,10 +617,10 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
                                 }
                             });
                             angular.extend($scope.jobModel, $scope.catalogs);
-							for(var i = 0; i< processInstanceTasks.length;i++) {
-								processInstanceTasks[i].assigneeObject = await $scope.getUserById(processInstanceTasks[i])
-							}
-                            $scope.jobModel.tasks = processInstanceTasks;
+							// for(var i = 0; i< processInstanceTasks.length;i++) {
+							// 	processInstanceTasks[i].assigneeObject = await $scope.getUserById(processInstanceTasks[i])
+							// }
+                            // $scope.jobModel.tasks = processInstanceTasks;
 
                             openProcessCardModalRevision(p);
                         },
@@ -578,6 +628,8 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
                             console.log(error.data);
                         }
                     );
+                    console.log('processInstanceTasks: ', processInstanceTasks)
+
                 },
                 function (error) {
                     console.log(error.data);
@@ -834,6 +886,7 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 											headers:{'Accept':'application/hal+json, application/json; q=0.5'},
 											url: baseUrl+'/task/'+e.id
 										}).then(
+
 											function(taskResult){
 												if(taskResult.data._embedded && taskResult.data._embedded.group){
 													e.group = taskResult.data._embedded.group[0].id;
