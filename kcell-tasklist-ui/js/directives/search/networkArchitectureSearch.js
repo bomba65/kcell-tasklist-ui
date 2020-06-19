@@ -9,6 +9,8 @@ define(['../module', 'moment'], function (module, moment) {
                 var catalogs = {};
                 scope.dismantleCatalogs = {};
                 scope.leasingCatalogs = {};
+                scope.isCustomField = false;
+
                 $http.get($rootScope.getCatalogsHttpByName('catalogs')).then(
                     function (result) {
                         angular.extend(scope, result.data);
@@ -387,6 +389,9 @@ define(['../module', 'moment'], function (module, moment) {
                     var fileName = scope.onlyProcessActive.toLowerCase() + '-search-result.xlsx';
                     if (scope.xlsxPreparedRevision) {
                         var tbl = document.getElementById('xlsxRevisionsTable');
+                        if(scope.onlyProcessActive==='Revision' && scope.selectedCustomFields.length > 0){
+                            tbl = document.getElementById('customXlsxRevisionsTable');
+                        }
                         var ws = XLSX.utils.table_to_sheet(tbl, {dateNF: 'DD.MM.YYYY'});
                         var wb = XLSX.utils.book_new();
                         XLSX.utils.book_append_sheet(wb, ws, 'New Sheet Name 1');
@@ -850,6 +855,12 @@ define(['../module', 'moment'], function (module, moment) {
                                 if(scope.filter.leasingContractType || scope.filter.leasingContractExecutor || scope.filter.bin){
                                     variables.push('contractInformations');
                                 }
+                            }
+                            if(scope.selectedProcessInstances.indexOf('Revision')!==-1){
+                                variables.push('monthActNumber');
+                                variables.push('invoiceRO1Number');
+                                variables.push('invoiceRO2Number');
+                                variables.push('invoiceRO3Number');
                             }
 
                             if (scope[processInstances].length > 0) {
@@ -1733,6 +1744,56 @@ define(['../module', 'moment'], function (module, moment) {
                     }).then(function(results){
                     });
                 }
+                scope.setCustomField = function(){
+                    scope.isCustomField = !scope.isCustomField;
+                }
+                scope.customFields = [
+                    {name: "Region", id: "region", selected: false, order: 1},
+                    {name: "Sitename", id: "sitename", selected: false, order: 2},
+                    {name: "JR Number", id: "jrNumber", selected: false, order:3},
+                    {name: "Execution Time", id: "executionTime", selected: false, order: 4},
+                    {name: "Current Activity", id: "currentActivity", selected: false, order: 5},
+                    {name: "Contractor", id: "contractor", selected: false, order: 6},
+                    {name: "Reason", id: "reason", selected: false, order: 7},
+                    {name: "Requested By", id: "requestedby", selected: false, order: 8},
+                    {name: "Current Assignee", id: "currentAssignee", selected: false, order: 9},
+                    {name: "Requested Date", id: "requestedDate", selected: false, order: 10},
+                    {name: "Validity Date", id: "validityDate", selected: false, order: 11},
+                    {name: "Jobs List", id: "jobsList", selected: false, order: 12},
+                    {name: "Montly Act #", id: "montlyAct", selected: false, order: 13}
+                ];
+
+                scope.selectedCustomFields = [];
+
+                scope.selectCustomField = function(){
+                    var tmp= [];
+                    angular.forEach(scope.customFields, function(field){
+                        if(field.selected){
+                            field.selected = false;
+                            scope.selectedCustomFields.push(field);
+                        } else {
+                            tmp.push(field);
+                        }
+                    });
+                    scope.customFields = tmp;
+                }
+
+                scope.unSelectCustomField = function(){
+                    var tmp= [];
+                    angular.forEach(scope.selectedCustomFields, function(field){
+                        if(field.selected){
+                            field.selected = false;
+                            scope.customFields.push(field);
+                        } else {
+                            tmp.push(field);
+                        }
+                    });
+                    scope.selectedCustomFields = tmp;
+                }  
+
+                scope.fillEmptyLines = function(length){
+                    return new Array(13-length);
+                }              
             },
             templateUrl: './js/directives/search/networkArchitectureSearch.html'
         };

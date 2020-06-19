@@ -416,7 +416,9 @@
     </div>
 </div>
 <div class="row">
-    <div class="form-group col-sm-4"></div>
+    <div class="form-group col-sm-4">
+        <a class="btn btn-default active" ng-click="setCustomField()" ng-show="onlyProcessActive==='Revision'">Select custom columns</a>
+    </div>
 
     <div class="form-group col-sm-4">
         <div class="col-sm-12">
@@ -430,183 +432,314 @@
         <a ng-if="lastSearchParamsRevision" class="btn btn-default" style="float: right" id="xlsxClick" ng-click="getXlsxProcessInstances()">{{xlsxPreparedRevision ? 'Export to Excel' : 'Prepare Excel'}}</a>
     </div>
 </div>
+
+<div collapse="!isCustomField" ng-show="onlyProcessActive==='Revision'">
+    <div class="row">
+        <div class="form-group col-sm-2">
+            <table class="table table-bordered">
+                <tbody>
+                    <tr ng-repeat="field in customFields | orderBy: 'order'">
+                        <td>{{field.name}}</td>
+                        <td><input type="checkbox" name="custom{{field.id}}" ng-model="field.selected" /></td>
+                    </tr>
+                    <tr ng-repeat="a in fillEmptyLines(customFields.length) track by $index">
+                        <td colspan="2"><input style="visibility: hidden;" type="checkbox" name="hiddenC{{$index}}" /></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="form-group col-sm-1">
+            <center>
+                <a ng-show="customFields.length>0" ng-click="selectCustomField()">>></i></a><br />
+                <a ng-show="selectedCustomFields.length>0" ng-click="unSelectCustomField()"><<</i></a>
+            </center>
+        </div>        
+        <div class="form-group col-sm-2">
+            <table class="table table-bordered">
+                <tbody>
+                    <tr ng-repeat="field in selectedCustomFields | orderBy: 'order'">
+                        <td>{{field.name}}</td>
+                        <td><input type="checkbox" name="selcustom{{field.id}}" ng-model="field.selected" /></td>
+                    </tr>
+                    <tr ng-repeat="a in fillEmptyLines(selectedCustomFields.length) track by $index">
+                        <td colspan="2"><input style="visibility: hidden;" type="checkbox" name="hiddenSC{{$index}}" /></td>
+                    </tr>                    
+                </tbody>
+            </table>            
+        </div>
+    </div>
+</div>
 <div style="margin-bottom: 20px;"></div>
 
-<table class="table table-condensed table-hover" ng-if="processInstances.length>0" id="revisionsTable" name="revisionsTable">
-    <thead class="fixed-header">
-    <tr>
-        <th>#</th>
-        <th ng-if="RevisionOrMonthlyAct || onlyProcessActive==='Dismantle' || onlyProcessActive==='Replacement' || onlyProcessActive==='leasing'">Region</th>
-        <th ng-if="onlyProcessActive==='Revision' || onlyProcessActive==='Dismantle' || onlyProcessActive==='Replacement' || onlyProcessActive==='leasing'">Sitename</th>
-        <th>{{onlyProcessActive==='Revision'?'JR Number' : onlyProcessActive==='Invoice'? 'MA Number' : 'Business Key' }}</th>
-        <th ng-if="onlyProcessActive===''">Process Name</th>
-        <th ng-if="RevisionOrMonthlyAct || onlyProcessActive==='Dismantle' || onlyProcessActive==='Replacement'">Execution Time</th>
-        <th ng-if="onlyProcessActive==='leasing' && filter.leasingInitiator">Initiator</th>
-        <th ng-if="onlyProcessActive==='leasing' && filter.leasingProject">Project</th>
-        <th ng-if="onlyProcessActive==='leasing' && filter.leasingReason">Reason</th>
-        <th ng-if="onlyProcessActive==='leasing' && filter.ncpId">NCP ID</th>
-        <th ng-if="onlyProcessActive==='leasing' && filter.leasingSiteType">Site type</th>
-        <th ng-if="onlyProcessActive==='leasing' && filter.leasingRbsType">RBS type</th>
-        <th ng-if="onlyProcessActive==='leasing' && filter.leasingCabinetType">Cabinet type</th>
-        <th ng-if="onlyProcessActive==='leasing' && filter.leasingBand">Bands</th>
-        <th ng-if="onlyProcessActive==='leasing' && filter.leasingInstallationStatus">Installation status</th>
-        <th ng-if="onlyProcessActive==='leasing' && filter.leasingKazakhtelecomBranch">Branch of Kazakhtelecom</th>
-        <th ng-if="onlyProcessActive==='leasing' && filter.leasingCandidateLegalType">Candidate Legal type</th>
-        <th ng-if="onlyProcessActive==='leasing' && filter.leasingFarEndLegalType">Far End Legal type</th>
-        <th ng-if="onlyProcessActive==='leasing' && filter.leasingContractType">Contract type</th>
-        <th ng-if="onlyProcessActive==='leasing' && filter.leasingContractExecutor">Contract Executor</th>
-        <th ng-if="onlyProcessActive==='leasing' && filter.bin">BIN/IIN</th>        
-        <th ng-if="onlyProcessActive==='leasing'">Created Date</th>
-        <th ng-if="onlyProcessActive==='leasing'">Closed Date</th>
-        <th>Current Activity</th>
-        <th ng-if="onlyProcessActive==='Revision'">Contractor</th>
-        <th ng-if="RevisionOrMonthlyAct">Reason</th>
-        <th ng-if="onlyProcessActive!=='leasing'">Requested By</th>
-        <th ng-if="onlyProcessActive==='Revision' || onlyProcessActive==='Dismantle' || onlyProcessActive==='Replacement' || onlyProcessActive==='leasing'">Current Assignee</th>
-        <th ng-if="onlyProcessActive!=='leasing'">Requested Date</th>
-        <th ng-if="onlyProcessActive==='Revision'">Validity Date</th>
-        <th ng-if="onlyProcessActive==='Revision'">Jobs List</th>
-        <th ng-if="onlyProcessActive==='leasing'">General status</th>
-    </tr>
-    </thead>
-    <tbody>
-    <tr ng-repeat="pi in processInstances" class="pi-{{pi.state == 'EXTERNALLY_TERMINATED'?'COMPLETED':pi.state}}">
-        <td>{{(filter.page-1)*20 + $index + 1}}</td>
-        <td ng-if="RevisionOrMonthlyAct || onlyProcessActive==='Dismantle' || onlyProcessActive==='Replacement' || onlyProcessActive==='leasing'">{{regionsMap[pi.siteRegion]}}</td>
-        <td ng-if="onlyProcessActive==='Revision' || onlyProcessActive==='Dismantle' || onlyProcessActive==='Replacement' || onlyProcessActive==='leasing'">{{pi.site_name}}</td>
-        <td>
-            <a ng-if="pi.processDefinitionKey=='Revision'" ng-click="toggleProcessViewRevision($index, pi.processDefinitionKey, pi.processDefinitionId, pi.businessKey)">
-                {{pi.businessKey}}
-            </a>
-            <a ng-if="pi.processDefinitionKey==='sdr_srr_request' && pi.requestType === 'dismantle'" ng-click="toggleProcessViewDismantle($index, pi.processDefinitionKey, pi.processDefinitionId, pi.businessKey)">
-                {{pi.businessKey}}
-            </a>
-            <a ng-if="pi.processDefinitionKey==='sdr_srr_request' && pi.requestType === 'replacement'" ng-click="toggleProcessViewReplacement($index, pi.processDefinitionKey, pi.processDefinitionId, pi.businessKey)">
-                {{pi.businessKey}}
-            </a>
-            <a ng-if="pi.processDefinitionKey=='leasing'" ng-click="toggleProcessViewLeasing($index, pi.processDefinitionKey, pi.processDefinitionId, pi.businessKey)">
-                {{pi.businessKey}}
-            </a>
-        </td>
-        <td ng-if="onlyProcessActive===''">{{pi.processDefinitionKey == 'sdr_srr_request'? (pi.requestType === 'dismantle' ? 'Dismantle' : 'Replacement') : pi.processDefinitionName}}</td>
-        <td ng-if="RevisionOrMonthlyAct || onlyProcessActive==='Dismantle' || onlyProcessActive==='Replacement'">{{pi.executionTime}} days</td>
-        <td ng-if="onlyProcessActive==='leasing' && filter.leasingInitiator">{{pi.initiator.name}}</td>
-        <td ng-if="onlyProcessActive==='leasing' && filter.leasingProject">{{pi.project.name}}</td>
-        <td ng-if="onlyProcessActive==='leasing' && filter.leasingReason">{{pi.reason.reason}}</td>
-        <td ng-if="onlyProcessActive==='leasing' && filter.ncpId">{{pi.ncpID}}</td>
-        <td ng-if="onlyProcessActive==='leasing' && filter.leasingSiteType">{{pi.siteType.name}}</td>
-        <td ng-if="onlyProcessActive==='leasing' && filter.leasingRbsType">{{pi.rbsType}}</td>
-        <td ng-if="onlyProcessActive==='leasing' && filter.leasingCabinetType">{{pi.plannedCabinetType}}</td>
-        <td ng-if="onlyProcessActive==='leasing' && filter.leasingBand">
-            <span ng-repeat="b in pi.bands">{{b.title}}<br/></span>
-        </td>
-        <td ng-if="onlyProcessActive==='leasing' && filter.leasingInstallationStatus">{{pi.installationStatus}}</td>
-        <td ng-if="onlyProcessActive==='leasing' && filter.leasingKazakhtelecomBranch">{{pi.branchKT}}</td>
-        <td ng-if="onlyProcessActive==='leasing' && filter.leasingCandidateLegalType">{{leasingCatalogs.legalTypeTitle[pi.leasingCandidateLegalType]}}</td>
-        <td ng-if="onlyProcessActive==='leasing' && filter.leasingFarEndLegalType">
-            <span ng-repeat="fe in pi.farEndInformation">{{leasingCatalogs.legalTypeTitle[fe.legaltype]}}<br/></span>
-        </td>
-        <td ng-if="onlyProcessActive==='leasing' && filter.leasingContractType">
-            <span ng-repeat="ci in pi.contractInformations">{{ci.ct_contract_type}}<br/></span>            
-        </td>
-        <td ng-if="onlyProcessActive==='leasing' && filter.leasingContractExecutor">
-            <span ng-repeat="ci in pi.contractInformations">{{ci.ct_executor.name}}<br/></span>            
-        </td>
-        <td ng-if="onlyProcessActive==='leasing' && filter.bin">
-            <span ng-repeat="ci in pi.contractInformations">{{ci.bin}}<br/></span>            
-        </td>        
-        <td ng-if="onlyProcessActive==='leasing'">
-            {{pi.startTime | date:'dd.MM.yyyy'}}
-        </td>
-        <td ng-if="onlyProcessActive==='leasing'">
-            {{pi.endTime | date:'dd.MM.yyyy'}}
-        </td>
-        <td style="max-width: 100px;">
-            <span ng-if="!(hasGroup('revision_managers') || hasGroup('revision_audit'))" ng-repeat="task in pi.tasks">{{$index+1}}. {{task.name}}<br/></span>
-            <a ng-if="hasGroup('revision_managers') || hasGroup('revision_audit')" ng-repeat="task in pi.tasks" ui-sref="tasks.task({id:task.id})" target="_blank">{{$index+1}}. {{task.name}}<br/></a>
-            <span ng-repeat="act in pi.otherActivities">{{pi.tasks.length+$index+1}}. {{act.activityName}}<br/></span>
-        </td>
-        <td ng-if="onlyProcessActive==='Revision'">{{contractorShortName[pi.contractor]}}</td>
-        <td ng-if="RevisionOrMonthlyAct">
-            {{pi.processDefinitionKey==='Invoice' ? reasonShortName[pi.workType]
-            : reasonShortName[pi.reason] }}</td>
-        <td ng-if="onlyProcessActive!=='leasing'">{{profiles[pi.startUserId] ? profiles[pi.startUserId].firstName : pi.startUserId}} {{profiles[pi.startUserId] ? profiles[pi.startUserId].lastName : ''}}</td>
-        <td ng-if="onlyProcessActive==='Revision' || onlyProcessActive==='Dismantle' || onlyProcessActive==='Replacement' || onlyProcessActive==='leasing'">
-            <a ng-click="showTaskDetail(task)" ng-repeat="task in pi.tasks">{{$index+1}}. {{task.assignee ? (profiles[task.assignee] ? (profiles[task.assignee].firstName + ' ' + profiles[task.assignee].lastName) : task.assignee) : 'Not claimed'}}<br/></a>
-        </td>
-        <td ng-if="onlyProcessActive!=='leasing'">{{pi.processDefinitionKey==='Revision'? (pi.requestedDate | date:'dd MMM yyyy') : pi.startTime | date:'dd MMM yyyy' }}</td>
-        <td ng-if="onlyProcessActive==='Revision'">{{pi.validityDate | date:'dd MMM yyyy'}}</td>
-        <td ng-if="onlyProcessActive==='Revision'" style="max-width: 190px;">
-            <a ng-click="showWorkDetail(pi.jobWorks)">
-											<span ng-repeat="work in pi.jobWorks" class="nowrapDots">
-												{{worksTitle[work.sapServiceNumber]}}, works qty: {{work.quantity}}, materials qty: {{work.materialQuantity}} {{work.materialUnit}}
-												<br/>
-											</span>
-            </a>
-        </td>
-        <td ng-if="onlyProcessActive==='leasing'">{{pi.generalStatus}}</td>
-    </tr>
+<div ng-if="onlyProcessActive!=='Revision' || (onlyProcessActive==='Revision' && selectedCustomFields.length === 0)">
+    <table class="table table-condensed table-hover" ng-if="processInstances.length>0" id="revisionsTable" name="revisionsTable">
+        <thead class="fixed-header">
+        <tr>
+            <th>#</th>
+            <th ng-if="RevisionOrMonthlyAct || onlyProcessActive==='Dismantle' || onlyProcessActive==='Replacement' || onlyProcessActive==='leasing'">Region</th>
+            <th ng-if="onlyProcessActive==='Revision' || onlyProcessActive==='Dismantle' || onlyProcessActive==='Replacement' || onlyProcessActive==='leasing'">Sitename</th>
+            <th>{{onlyProcessActive==='Revision'?'JR Number' : onlyProcessActive==='Invoice'? 'MA Number' : 'Business Key' }}</th>
+            <th ng-if="onlyProcessActive===''">Process Name</th>
+            <th ng-if="RevisionOrMonthlyAct || onlyProcessActive==='Dismantle' || onlyProcessActive==='Replacement'">Execution Time</th>
+            <th ng-if="onlyProcessActive==='leasing' && filter.leasingInitiator">Initiator</th>
+            <th ng-if="onlyProcessActive==='leasing' && filter.leasingProject">Project</th>
+            <th ng-if="onlyProcessActive==='leasing' && filter.leasingReason">Reason</th>
+            <th ng-if="onlyProcessActive==='leasing' && filter.ncpId">NCP ID</th>
+            <th ng-if="onlyProcessActive==='leasing' && filter.leasingSiteType">Site type</th>
+            <th ng-if="onlyProcessActive==='leasing' && filter.leasingRbsType">RBS type</th>
+            <th ng-if="onlyProcessActive==='leasing' && filter.leasingCabinetType">Cabinet type</th>
+            <th ng-if="onlyProcessActive==='leasing' && filter.leasingBand">Bands</th>
+            <th ng-if="onlyProcessActive==='leasing' && filter.leasingInstallationStatus">Installation status</th>
+            <th ng-if="onlyProcessActive==='leasing' && filter.leasingKazakhtelecomBranch">Branch of Kazakhtelecom</th>
+            <th ng-if="onlyProcessActive==='leasing' && filter.leasingCandidateLegalType">Candidate Legal type</th>
+            <th ng-if="onlyProcessActive==='leasing' && filter.leasingFarEndLegalType">Far End Legal type</th>
+            <th ng-if="onlyProcessActive==='leasing' && filter.leasingContractType">Contract type</th>
+            <th ng-if="onlyProcessActive==='leasing' && filter.leasingContractExecutor">Contract Executor</th>
+            <th ng-if="onlyProcessActive==='leasing' && filter.bin">BIN/IIN</th>        
+            <th ng-if="onlyProcessActive==='leasing'">Created Date</th>
+            <th ng-if="onlyProcessActive==='leasing'">Closed Date</th>
+            <th>Current Activity</th>
+            <th ng-if="onlyProcessActive==='Revision'">Contractor</th>
+            <th ng-if="RevisionOrMonthlyAct">Reason</th>
+            <th ng-if="onlyProcessActive!=='leasing'">Requested By</th>
+            <th ng-if="onlyProcessActive==='Revision' || onlyProcessActive==='Dismantle' || onlyProcessActive==='Replacement' || onlyProcessActive==='leasing'">Current Assignee</th>
+            <th ng-if="onlyProcessActive!=='leasing'">Requested Date</th>
+            <th ng-if="onlyProcessActive==='Revision'">Validity Date</th>
+            <th ng-if="onlyProcessActive==='Revision'">Jobs List</th>
+            <th ng-if="onlyProcessActive==='leasing'">General status</th>
+            <th ng-if="onlyProcessActive==='Revision'">Monthly act #</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr ng-repeat="pi in processInstances" class="pi-{{pi.state == 'EXTERNALLY_TERMINATED'?'COMPLETED':pi.state}}">
+            <td>{{(filter.page-1)*20 + $index + 1}}</td>
+            <td ng-if="RevisionOrMonthlyAct || onlyProcessActive==='Dismantle' || onlyProcessActive==='Replacement' || onlyProcessActive==='leasing'">{{regionsMap[pi.siteRegion]}}</td>
+            <td ng-if="onlyProcessActive==='Revision' || onlyProcessActive==='Dismantle' || onlyProcessActive==='Replacement' || onlyProcessActive==='leasing'">{{pi.site_name}}</td>
+            <td>
+                <a ng-if="pi.processDefinitionKey=='Revision'" ng-click="toggleProcessViewRevision($index, pi.processDefinitionKey, pi.processDefinitionId, pi.businessKey)">
+                    {{pi.businessKey}}
+                </a>
+                <a ng-if="pi.processDefinitionKey==='sdr_srr_request' && pi.requestType === 'dismantle'" ng-click="toggleProcessViewDismantle($index, pi.processDefinitionKey, pi.processDefinitionId, pi.businessKey)">
+                    {{pi.businessKey}}
+                </a>
+                <a ng-if="pi.processDefinitionKey==='sdr_srr_request' && pi.requestType === 'replacement'" ng-click="toggleProcessViewReplacement($index, pi.processDefinitionKey, pi.processDefinitionId, pi.businessKey)">
+                    {{pi.businessKey}}
+                </a>
+                <a ng-if="pi.processDefinitionKey=='leasing'" ng-click="toggleProcessViewLeasing($index, pi.processDefinitionKey, pi.processDefinitionId, pi.businessKey)">
+                    {{pi.businessKey}}
+                </a>
+            </td>
+            <td ng-if="onlyProcessActive===''">{{pi.processDefinitionKey == 'sdr_srr_request'? (pi.requestType === 'dismantle' ? 'Dismantle' : 'Replacement') : pi.processDefinitionName}}</td>
+            <td ng-if="RevisionOrMonthlyAct || onlyProcessActive==='Dismantle' || onlyProcessActive==='Replacement'">{{pi.executionTime}} days</td>
+            <td ng-if="onlyProcessActive==='leasing' && filter.leasingInitiator">{{pi.initiator.name}}</td>
+            <td ng-if="onlyProcessActive==='leasing' && filter.leasingProject">{{pi.project.name}}</td>
+            <td ng-if="onlyProcessActive==='leasing' && filter.leasingReason">{{pi.reason.reason}}</td>
+            <td ng-if="onlyProcessActive==='leasing' && filter.ncpId">{{pi.ncpID}}</td>
+            <td ng-if="onlyProcessActive==='leasing' && filter.leasingSiteType">{{pi.siteType.name}}</td>
+            <td ng-if="onlyProcessActive==='leasing' && filter.leasingRbsType">{{pi.rbsType}}</td>
+            <td ng-if="onlyProcessActive==='leasing' && filter.leasingCabinetType">{{pi.plannedCabinetType}}</td>
+            <td ng-if="onlyProcessActive==='leasing' && filter.leasingBand">
+                <span ng-repeat="b in pi.bands">{{b.title}}<br/></span>
+            </td>
+            <td ng-if="onlyProcessActive==='leasing' && filter.leasingInstallationStatus">{{pi.installationStatus}}</td>
+            <td ng-if="onlyProcessActive==='leasing' && filter.leasingKazakhtelecomBranch">{{pi.branchKT}}</td>
+            <td ng-if="onlyProcessActive==='leasing' && filter.leasingCandidateLegalType">{{leasingCatalogs.legalTypeTitle[pi.leasingCandidateLegalType]}}</td>
+            <td ng-if="onlyProcessActive==='leasing' && filter.leasingFarEndLegalType">
+                <span ng-repeat="fe in pi.farEndInformation">{{leasingCatalogs.legalTypeTitle[fe.legaltype]}}<br/></span>
+            </td>
+            <td ng-if="onlyProcessActive==='leasing' && filter.leasingContractType">
+                <span ng-repeat="ci in pi.contractInformations">{{ci.ct_contract_type}}<br/></span>            
+            </td>
+            <td ng-if="onlyProcessActive==='leasing' && filter.leasingContractExecutor">
+                <span ng-repeat="ci in pi.contractInformations">{{ci.ct_executor.name}}<br/></span>            
+            </td>
+            <td ng-if="onlyProcessActive==='leasing' && filter.bin">
+                <span ng-repeat="ci in pi.contractInformations">{{ci.bin}}<br/></span>            
+            </td>        
+            <td ng-if="onlyProcessActive==='leasing'">
+                {{pi.startTime | date:'dd.MM.yyyy'}}
+            </td>
+            <td ng-if="onlyProcessActive==='leasing'">
+                {{pi.endTime | date:'dd.MM.yyyy'}}
+            </td>
+            <td style="max-width: 100px;">
+                <span ng-if="!(hasGroup('revision_managers') || hasGroup('revision_audit'))" ng-repeat="task in pi.tasks">{{$index+1}}. {{task.name}}<br/></span>
+                <a ng-if="hasGroup('revision_managers') || hasGroup('revision_audit')" ng-repeat="task in pi.tasks" ui-sref="tasks.task({id:task.id})" target="_blank">{{$index+1}}. {{task.name}}<br/></a>
+                <span ng-repeat="act in pi.otherActivities">{{pi.tasks.length+$index+1}}. {{act.activityName}}<br/></span>
+            </td>
+            <td ng-if="onlyProcessActive==='Revision'">{{contractorShortName[pi.contractor]}}</td>
+            <td ng-if="RevisionOrMonthlyAct">
+                {{pi.processDefinitionKey==='Invoice' ? reasonShortName[pi.workType]
+                : reasonShortName[pi.reason] }}</td>
+            <td ng-if="onlyProcessActive!=='leasing'">{{profiles[pi.startUserId] ? profiles[pi.startUserId].firstName : pi.startUserId}} {{profiles[pi.startUserId] ? profiles[pi.startUserId].lastName : ''}}</td>
+            <td ng-if="onlyProcessActive==='Revision' || onlyProcessActive==='Dismantle' || onlyProcessActive==='Replacement' || onlyProcessActive==='leasing'">
+                <a ng-click="showTaskDetail(task)" ng-repeat="task in pi.tasks">{{$index+1}}. {{task.assignee ? (profiles[task.assignee] ? (profiles[task.assignee].firstName + ' ' + profiles[task.assignee].lastName) : task.assignee) : 'Not claimed'}}<br/></a>
+            </td>
+            <td ng-if="onlyProcessActive!=='leasing'">{{pi.processDefinitionKey==='Revision'? (pi.requestedDate | date:'dd MMM yyyy') : pi.startTime | date:'dd MMM yyyy' }}</td>
+            <td ng-if="onlyProcessActive==='Revision'">{{pi.validityDate | date:'dd MMM yyyy'}}</td>
+            <td ng-if="onlyProcessActive==='Revision'" style="max-width: 190px;">
+                <a ng-click="showWorkDetail(pi.jobWorks)">
+    				<span ng-repeat="work in pi.jobWorks" class="nowrapDots">
+    					{{worksTitle[work.sapServiceNumber]}}, works qty: {{work.quantity}}, materials qty: {{work.materialQuantity}} {{work.materialUnit}}
+    					<br/>
+    				</span>
+                </a>
+            </td>
+            <td ng-if="onlyProcessActive==='leasing'">{{pi.generalStatus}}</td>
+            <td ng-if="onlyProcessActive==='Revision'">{{pi.monthActNumber}} {{pi.invoiceRO1Number?pi.invoiceRO1Number+', ':''}} {{pi.invoiceRO2Number?pi.invoiceRO2Number+', ':''}} {{pi.invoiceRO3Number?pi.invoiceRO3Number+', ':''}}</td>
+        </tr>
 
-    </tbody>
-    <tbody>
-    <tr>
-        <td colspan="13" style="text-align: center">
-            <a ng-disabled="filter.page <= 1" ng-click="filter.page <= 1 || selectPage(1)" class="btn btn-pagination"> << </a>
-            <a ng-disabled="filter.page <= 1" ng-click="filter.page <= 1 || prevPage()" class="btn btn-pagination"> < </a>
-            <a ng-repeat="page in getPages()" ng-disabled="filter.page == page" ng-click="filter.page == page || selectPage(page)" ng-class="filter.page == page? 'btn-pagination-active':''" class="btn btn-pagination">{{page}}</a>
-            <a ng-disabled="filter.page >= processInstancesPages" ng-click="filter.page >= processInstancesPages || nextPage()" class="btn btn-pagination"> > </a>
-            <a ng-disabled="filter.page >= processInstancesPages" ng-click="filter.page >= processInstancesPages || selectPage(processInstancesPages)" class="btn btn-pagination"> >> </a>
-        </td>
-    </tr>
-    </tbody>
-</table>
+        </tbody>
+        <tbody>
+        <tr>
+            <td colspan="13" style="text-align: center">
+                <a ng-disabled="filter.page <= 1" ng-click="filter.page <= 1 || selectPage(1)" class="btn btn-pagination"> << </a>
+                <a ng-disabled="filter.page <= 1" ng-click="filter.page <= 1 || prevPage()" class="btn btn-pagination"> < </a>
+                <a ng-repeat="page in getPages()" ng-disabled="filter.page == page" ng-click="filter.page == page || selectPage(page)" ng-class="filter.page == page? 'btn-pagination-active':''" class="btn btn-pagination">{{page}}</a>
+                <a ng-disabled="filter.page >= processInstancesPages" ng-click="filter.page >= processInstancesPages || nextPage()" class="btn btn-pagination"> > </a>
+                <a ng-disabled="filter.page >= processInstancesPages" ng-click="filter.page >= processInstancesPages || selectPage(processInstancesPages)" class="btn btn-pagination"> >> </a>
+            </td>
+        </tr>
+        </tbody>
+    </table>
 
-<table id="xlsxRevisionsTable" name="xlsxRevisionsTable" id="xlsxRevisionsTable" style="display: none;">
-    <thead class="fixed-header">
-    <tr>
-        <th>#</th>
-        <th ng-if="RevisionOrMonthlyAct">Region</th>
-        <th ng-if="onlyProcessActive==='Revision'">Sitename</th>
-        <th>{{onlyProcessActive==='Revision'?'JR Number' : onlyProcessActive==='Invoice'? 'MA Number' : 'Business Key' }}</th>
-        <th ng-if="RevisionOrMonthlyAct">Execution Time</th>
-        <th>Current Activity</th>
-        <th ng-if="onlyProcessActive==='Revision'">Contractor</th>
-        <th ng-if="RevisionOrMonthlyAct">Reason</th>
-        <th>Requested By</th>
-        <th ng-if="onlyProcessActive==='Revision'">Current Assignee</th>
-        <th>Requested Date</th>
-        <th ng-if="onlyProcessActive==='Revision'">Validity Date</th>
-        <th ng-if="onlyProcessActive==='Revision'">Jobs List</th>
-        <th ng-if="onlyProcessActive==='Revision'">Explanation</th>
-    </tr>
-    </thead>
-    <tbody ng-repeat="pi in xlsxProcessInstances">
-    <tr>
-        <td>{{$index + 1}}</td>
-        <td ng-if="RevisionOrMonthlyAct">{{regionsMap[pi.siteRegion]}}</td>
-        <td ng-if="onlyProcessActive==='Revision'">{{pi.site_name}}</td>
-        <td>{{pi.businessKey}}</td>
-        <td ng-if="RevisionOrMonthlyAct">{{pi.executionTime}} days</td>
-        <td>
-            <span ng-repeat="task in pi.tasks">{{$index+1}}. {{task.name}}<br/></span>
-            <span ng-repeat="act in pi.otherActivities">{{pi.tasks.length+$index+1}}. {{act.activityName}}<br/></span>
-        </td>
-        <td ng-if="onlyProcessActive==='Revision'">{{contractorShortName[pi.contractor]}}</td>
-        <td ng-if="RevisionOrMonthlyAct">{{reasonShortName[pi.reason]}}</td>
-        <td>{{profiles[pi.startUserId].firstName}} {{profiles[pi.startUserId].lastName}}</td>
-        <td ng-if="onlyProcessActive==='Revision'">
-            <span ng-repeat="task in pi.tasks">{{$index+1}}. {{profiles[task.assignee] ? (profiles[task.assignee].firstName + ' ' + profiles[task.assignee].lastName) : 'Not claimed'}}<br/></span>
-        </td>
-        <td>{{pi.requestedDate | date:'dd MMM yyyy'}}</td>
-        <td ng-if="onlyProcessActive==='Revision'">{{pi.validityDate | date:'dd MMM yyyy'}}</td>
-        <td ng-if="onlyProcessActive==='Revision'">
-										<span ng-repeat="work in pi.jobWorks">
-											{{worksTitle[work.sapServiceNumber]}}, works qty: {{work.quantity}}, materials qty: {{work.materialQuantity}} {{work.materialUnit}}
-											<br/>
-										</span>
-        </td>
-        <td ng-if="onlyProcessActive==='Revision'">{{pi.explanation}}
-        </td>
-    </tr>
-    </tbody>
-</table>
+    <table id="xlsxRevisionsTable" name="xlsxRevisionsTable" id="xlsxRevisionsTable" style="display: none;">
+        <thead class="fixed-header">
+        <tr>
+            <th>#</th>
+            <th ng-if="RevisionOrMonthlyAct">Region</th>
+            <th ng-if="onlyProcessActive==='Revision'">Sitename</th>
+            <th>{{onlyProcessActive==='Revision'?'JR Number' : onlyProcessActive==='Invoice'? 'MA Number' : 'Business Key' }}</th>
+            <th ng-if="RevisionOrMonthlyAct">Execution Time</th>
+            <th>Current Activity</th>
+            <th ng-if="onlyProcessActive==='Revision'">Contractor</th>
+            <th ng-if="RevisionOrMonthlyAct">Reason</th>
+            <th>Requested By</th>
+            <th ng-if="onlyProcessActive==='Revision'">Current Assignee</th>
+            <th>Requested Date</th>
+            <th ng-if="onlyProcessActive==='Revision'">Validity Date</th>
+            <th ng-if="onlyProcessActive==='Revision'">Jobs List</th>
+            <th ng-if="onlyProcessActive==='Revision'">Explanation</th>
+        </tr>
+        </thead>
+        <tbody ng-repeat="pi in xlsxProcessInstances">
+        <tr>
+            <td>{{$index + 1}}</td>
+            <td ng-if="RevisionOrMonthlyAct">{{regionsMap[pi.siteRegion]}}</td>
+            <td ng-if="onlyProcessActive==='Revision'">{{pi.site_name}}</td>
+            <td>{{pi.businessKey}}</td>
+            <td ng-if="RevisionOrMonthlyAct">{{pi.executionTime}} days</td>
+            <td>
+                <span ng-repeat="task in pi.tasks">{{$index+1}}. {{task.name}}<br/></span>
+                <span ng-repeat="act in pi.otherActivities">{{pi.tasks.length+$index+1}}. {{act.activityName}}<br/></span>
+            </td>
+            <td ng-if="onlyProcessActive==='Revision'">{{contractorShortName[pi.contractor]}}</td>
+            <td ng-if="RevisionOrMonthlyAct">{{reasonShortName[pi.reason]}}</td>
+            <td>{{profiles[pi.startUserId].firstName}} {{profiles[pi.startUserId].lastName}}</td>
+            <td ng-if="onlyProcessActive==='Revision'">
+                <span ng-repeat="task in pi.tasks">{{$index+1}}. {{profiles[task.assignee] ? (profiles[task.assignee].firstName + ' ' + profiles[task.assignee].lastName) : 'Not claimed'}}<br/></span>
+            </td>
+            <td>{{pi.requestedDate | date:'dd MMM yyyy'}}</td>
+            <td ng-if="onlyProcessActive==='Revision'">{{pi.validityDate | date:'dd MMM yyyy'}}</td>
+            <td ng-if="onlyProcessActive==='Revision'">
+				<span ng-repeat="work in pi.jobWorks">
+					{{worksTitle[work.sapServiceNumber]}}, works qty: {{work.quantity}}, materials qty: {{work.materialQuantity}} {{work.materialUnit}}
+					<br/>
+				</span>
+            </td>
+            <td ng-if="onlyProcessActive==='Revision'">{{pi.explanation}}
+            </td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+<div ng-if="onlyProcessActive==='Revision' && selectedCustomFields.length > 0">
+     <table class="table table-condensed table-hover" ng-if="processInstances.length>0" id="customRevisionsTable" name="customRevisionsTable">
+        <thead class="fixed-header">
+        <tr>
+            <th>#</th>
+            <th ng-repeat="field in selectedCustomFields | orderBy: 'order'">{{field.name}}</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr ng-repeat="pi in processInstances" class="pi-{{pi.state == 'EXTERNALLY_TERMINATED'?'COMPLETED':pi.state}}">
+            <td>{{(filter.page-1)*20 + $index + 1}}</td>
+            <td ng-repeat="field in selectedCustomFields | orderBy: 'order'" ng-style="{'max-width': {true:'190px',false:'100%'}[field.id == 'jobsList']}">
+                {{field.id === 'region' ? regionsMap[pi.siteRegion] : ''}}
+                {{field.id === 'sitename' ? pi.site_name : ''}}
+                {{field.id === 'jrNumber' ? pi.businessKey : ''}}
+                {{field.id === 'executionTime' ? pi.executionTime + ' days' : ''}}
+                <span ng-if="field.id === 'currentActivity' && !(hasGroup('revision_managers') || hasGroup('revision_audit'))" ng-repeat="task in pi.tasks">{{$index+1}}. {{task.name}}<br/></span>
+                <a ng-if="field.id === 'currentActivity' && hasGroup('revision_managers') || hasGroup('revision_audit')" ng-repeat="task in pi.tasks" ui-sref="tasks.task({id:task.id})" target="_blank">{{$index+1}}. {{task.name}}<br/></a>
+                <span ng-if="field.id === 'currentActivity'" ng-repeat="act in pi.otherActivities">{{pi.tasks.length+$index+1}}. {{act.activityName}}<br/></span>
+
+                {{field.id === 'contractor' ? contractorShortName[pi.contractor] : ''}}
+                {{field.id === 'reason' ? reasonShortName[pi.reason] : ''}}
+                {{field.id === 'requestedby' ? (profiles[pi.startUserId] ? profiles[pi.startUserId].firstName : pi.startUserId) + ' ' + (profiles[pi.startUserId] ? profiles[pi.startUserId].lastName : '') : ''}}
+                <a ng-if="field.id === 'currentAssignee'" ng-click="showTaskDetail(task)" ng-repeat="task in pi.tasks">{{$index+1}}. {{task.assignee ? (profiles[task.assignee] ? (profiles[task.assignee].firstName + ' ' + profiles[task.assignee].lastName) : task.assignee) : 'Not claimed'}}<br/></a>
+
+                <span ng-if="field.id === 'requestedDate'">{{pi.requestedDate | date:'dd MMM yyyy'}}</span>
+                <span ng-if="field.id === 'validityDate'">{{pi.validityDate | date:'dd MMM yyyy'}}</span>
+
+                <a ng-if="field.id === 'jobsList'" ng-click="showWorkDetail(pi.jobWorks)">
+                    <span ng-repeat="work in pi.jobWorks" class="nowrapDots">
+                        {{worksTitle[work.sapServiceNumber]}}, works qty: {{work.quantity}}, materials qty: {{work.materialQuantity}} {{work.materialUnit}}
+                        <br/>
+                    </span>
+                </a>
+                <span ng-if="field.id === 'montlyAct'">
+                    {{pi.monthActNumber}} {{pi.invoiceRO1Number?pi.invoiceRO1Number+', ':''}} {{pi.invoiceRO2Number?pi.invoiceRO2Number+', ':''}} {{pi.invoiceRO3Number?pi.invoiceRO3Number+', ':''}}                    
+                </span>
+            </td>
+        </tbody>
+        <tfoot>
+        <tr>
+            <td colspan="13" style="text-align: center">
+                <a ng-disabled="filter.page <= 1" ng-click="filter.page <= 1 || selectPage(1)" class="btn btn-pagination"> << </a>
+                <a ng-disabled="filter.page <= 1" ng-click="filter.page <= 1 || prevPage()" class="btn btn-pagination"> < </a>
+                <a ng-repeat="page in getPages()" ng-disabled="filter.page == page" ng-click="filter.page == page || selectPage(page)" ng-class="filter.page == page? 'btn-pagination-active':''" class="btn btn-pagination">{{page}}</a>
+                <a ng-disabled="filter.page >= processInstancesPages" ng-click="filter.page >= processInstancesPages || nextPage()" class="btn btn-pagination"> > </a>
+                <a ng-disabled="filter.page >= processInstancesPages" ng-click="filter.page >= processInstancesPages || selectPage(processInstancesPages)" class="btn btn-pagination"> >> </a>
+            </td>
+        </tr>
+        </tfoot>
+    </table>
+
+    <table class="table table-condensed table-hover" id="customXlsxRevisionsTable" name="customXlsxRevisionsTable" style="display: none;">
+        <thead class="fixed-header">
+        <tr>
+            <th>#</th>
+            <th ng-repeat="field in selectedCustomFields | orderBy: 'order'">{{field.name}}</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr ng-repeat="pi in xlsxProcessInstances">
+            <td>{{$index + 1}}</td>
+            <td ng-repeat="field in selectedCustomFields | orderBy: 'order'">
+                {{field.id === 'region' ? regionsMap[pi.siteRegion] : ''}}
+                {{field.id === 'sitename' ? pi.site_name : ''}}
+                {{field.id === 'jrNumber' ? pi.businessKey : ''}}
+                {{field.id === 'executionTime' ? pi.executionTime + ' days' : ''}}
+                <span ng-if="field.id === 'currentActivity' && !(hasGroup('revision_managers') || hasGroup('revision_audit'))" ng-repeat="task in pi.tasks">{{$index+1}}. {{task.name}}<br/></span>
+                <span ng-if="field.id === 'currentActivity'" ng-repeat="act in pi.otherActivities">{{pi.tasks.length+$index+1}}. {{act.activityName}}<br/></span>
+
+                {{field.id === 'contractor' ? contractorShortName[pi.contractor] : ''}}
+                {{field.id === 'reason' ? reasonShortName[pi.reason] : ''}}
+                {{field.id === 'requestedby' ? (profiles[pi.startUserId] ? profiles[pi.startUserId].firstName : pi.startUserId) + ' ' + (profiles[pi.startUserId] ? profiles[pi.startUserId].lastName : '') : ''}}
+
+                <span ng-if="field.id === 'currentAssignee'" ng-repeat="task in pi.tasks">{{$index+1}}. {{profiles[task.assignee] ? (profiles[task.assignee].firstName + ' ' + profiles[task.assignee].lastName) : 'Not claimed'}}<br/></span>
+
+                <span ng-if="field.id === 'requestedDate'">{{pi.requestedDate | date:'dd MMM yyyy'}}</span>
+                <span ng-if="field.id === 'validityDate'">{{pi.validityDate | date:'dd MMM yyyy'}}</span>
+
+                <span ng-if="field.id === 'jobsList'" ng-repeat="work in pi.jobWorks">
+                    {{worksTitle[work.sapServiceNumber]}}, works qty: {{work.quantity}}, materials qty: {{work.materialQuantity}} {{work.materialUnit}}
+                    <br/>
+                </span>
+                <span ng-if="field.id === 'montlyAct'">
+                    {{pi.monthActNumber}} {{pi.invoiceRO1Number?pi.invoiceRO1Number+', ':''}} {{pi.invoiceRO2Number?pi.invoiceRO2Number+', ':''}} {{pi.invoiceRO3Number?pi.invoiceRO3Number+', ':''}}                    
+                </span>
+            </td>
+        </tbody>
+    </table>
+</div>
