@@ -201,7 +201,7 @@
                     });
                     $scope.jobWorksValueTemp = [];
                     $scope.jobWorksValue.forEach(function(w, index) {
-                        console.log(index+' ' + w.uuid);
+                        console.log(index+' ' + w.uuid);1
                         if($scope.jobModel.reason.value != '2') {
                             w.r = {
                                 site_name: $scope.site_name
@@ -270,7 +270,7 @@
                 console.log($scope.jobModel.reason);
                 console.log($scope.reasonsSubcontractorResponsible);
                 $scope.jobModel.purchaseDescription = "Revision works for site " + $scope.jobModel.site_name.value + " JR# "+ $scope.jobModel.jrNumber.value + " dated " + $filter('date')($scope.jobModel.requestedDate.value, 'dd.MM.yyyy');
-                $scope.jobModel.budgetedOrNot = "yes " + $scope.jobWorksValueTemp[0].wbsElement;
+                $scope.jobModel.budgetedOrNot = "yes " + ($scope.jobWorksValueTemp && $scope.jobWorksValueTemp.lenght > 0 ? $scope.jobWorksValueTemp[0].wbsElement : '');
                 $scope.jobModel.mainPprojectForFintur = ($scope.jobModel.revision ? $scope.jobModel.revision : '') + " works";
                 $scope.jobModel.describeTheNeedOfThisPurchaseForThisYear = "necessary for revision works";
                 $scope.jobModel.contactPerson = $scope.reasonsSubcontractorResponsible && $scope.reasonsSubcontractorResponsible[$scope.jobModel.reason.value] ? $scope.reasonsSubcontractorResponsible[$scope.jobModel.reason.value].responsible : '';
@@ -331,9 +331,9 @@
                     });
                 }
                 camForm.variableManager.createVariable({
-                    name: 'approve_additional_material_list_regionTaskComment',
+                    name: 'correct_pr_fileTaskComment',
                     type: 'String',
-                    value: $scope.approveMaterialsListByRegionGroupsHeadComment
+                    value: $scope.correct_pr_fileTaskComment
                 });
                 camForm.variableManager.destroyVariable('resolutions');
 
@@ -451,7 +451,22 @@
             }
         }]);
     </script>
-    <button class="btn btn-default pull-right" ng-click="showJobModal()">{{ jobModel.jrNumber.value }}</button>
+    <button class="btn btn-default pull-right" data-toggle="modal" data-target="#jobModal">{{ jobModel.jrNumber.value }}</button>
+    <div class="modal fade" id="jobModal">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 class="modal-title">Job Request</h3>
+                </div>
+                <div class="modal-body col-sm-12">
+                    <job-request job-model="jobModel"></job-request>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary pull-right" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <h4>Error code # {{jobModel.joFileCheckError.value}}</h4>
     <h3>PR Information</h3>
@@ -460,11 +475,11 @@
             <strong>Header note</strong>
             <table width="100%">
                 <tr><td width="30%">1.Purchase description:</td><td><input type="text" class="form-control" ng-model="jobModel.purchaseDescription" /></td></tr>
-                <tr><td width="30%">2.Budgeted or not:</td><td><input type="text" class="form-control" ng-model="jobModel.budgetedOrNot" /></td></tr>
-                <tr><td width="30%">3.Main project for Fintur:</td><td><input type="text" class="form-control" ng-model="jobModel.mainPprojectForFintur" /></td></tr>
-                <tr><td width="30%">4.Describe the need of this purchase for this year:</td><td><input type="text" class="form-control" ng-model="jobModel.describeTheNeedOfThisPurchaseForThisYear" /></td></tr>
-                <tr><td width="30%">5.Contact person:</td><td><input type="text" class="form-control" ng-model="jobModel.contactPerson" /></td></tr>
-                <tr><td width="30%">6. Vendor:</td><td><input type="text" class="form-control" ng-model="jobModel.vendor" /></td></tr>
+                <tr><td width="30%">2.Budgeted or not:</td><td><input type="text" class="form-control" ng-model="jobModel.budgetedOrNot"/></td></tr>
+                <tr><td width="30%">3.Main project for Fintur:</td><td><div class="form-control" ng-bind="jobModel.mainPprojectForFintur"></div></td></tr>
+                <tr><td width="30%">4.Describe the need of this purchase for this year:</td><td><div class="form-control" ng-bind="jobModel.describeTheNeedOfThisPurchaseForThisYear"></div></td></tr>
+                <tr><td width="30%">5.Contact person:</td><td><div class="form-control" ng-bind="jobModel.contactPerson"></div></td></tr>
+                <tr><td width="30%">6. Vendor:</td><td><div class="form-control" ng-bind="jobModel.vendor"></div></td></tr>
                 <tr><td width="30%">8. Total sum:</td><td><input type="text" class="form-control" ng-model="jobModel.totalSum" /></td></tr>
             </table>
         </div>
@@ -667,39 +682,10 @@
         </div>
     </div>
     <div class="form-group">
-        <label class="col-sm-4 control-label">Resolution</label>
-        <div class="col-sm-8">
-            <label class="radio-inline">
-                <input type="radio" ng-model="approveMaterialsListByRegionGroupsHeadTaskResult" name="approveMaterialsListByRegionGroupsHeadTaskResult" value="approved" required> Approved
-            </label>
-            <label class="radio-inline" ng-show="jobModel.fillApplied.value !== 'notEnough'">
-                <input type="radio" ng-model="approveMaterialsListByRegionGroupsHeadTaskResult" name="approveMaterialsListByRegionGroupsHeadTaskResult" value="modify" required> Modify works
-            </label>
-            <label class="radio-inline">
-                <input type="radio" ng-model="approveMaterialsListByRegionGroupsHeadTaskResult" name="approveMaterialsListByRegionGroupsHeadTaskResult" value="rejected" required> Reject
-            </label>
-            <label class="error" ng-show="kcell_form.approveMaterialsListByRegionGroupsHeadTaskResult.$error.required && ( kcell_form.approveMaterialsListByRegionGroupsHeadTaskResult.$touched || view.submitted)">Required field</label>
-        </div>
-    </div>
-    <div class="form-group">
         <label class="col-sm-4 control-label">Comments</label>
         <div class="col-sm-8">
-            <textarea class="form-control" rows="4" maxlength="500" cam-variable-name="approveMaterialsListByRegionGroupsHeadComment" name="approveMaterialsListByRegionGroupsHeadComment" ng-required="approveMaterialsListByRegionGroupsHeadTaskResult == 'modify' || approveMaterialsListByRegionGroupsHeadTaskResult == 'rejected'" cam-variable-type="String"></textarea>
-            <label class="error" ng-show="kcell_form.approveMaterialsListByRegionGroupsHeadComment.$error.required && ( kcell_form.approveMaterialsListByRegionGroupsHeadComment.$touched || view.submitted)">Required field</label>
-        </div>
-    </div>
-    <div class="form-group" ng-show="hasComment()">
-        <label class="col-sm-4 control-label">Comments visibility</label>
-        <div class="col-sm-8">
-            <label class="radio-inline">
-                <input type="radio" name="approveMaterialsListByRegionGroupsHeadCommentVisibility"
-                       ng-model="approveMaterialsListByRegionGroupsHeadCommentVisibility" value="all" ng-required="hasComment()"> Visible for all
-            </label>
-            <label class="radio-inline">
-                <input type="radio" name="approveMaterialsListByRegionGroupsHeadCommentVisibility"
-                       ng-model="approveMaterialsListByRegionGroupsHeadCommentVisibility" value="kcell" ng-required="hasComment()"> Kcell staff only
-            </label>
-            <label class="error" ng-show="kcell_form.approveMaterialsListByRegionGroupsHeadCommentVisibility.$error.required && ( kcell_form.approveMaterialsListByRegionGroupsHeadCommentVisibility.$touched || view.submitted)">Required field</label>
+            <textarea class="form-control" rows="4" maxlength="500" cam-variable-name="correct_pr_fileTaskComment" name="correct_pr_fileTaskComment" ng-required="correct_pr_fileTaskTaskResult == 'modify' || correct_pr_fileTaskTaskResult == 'rejected'" cam-variable-type="String"></textarea>
+            <label class="error" ng-show="kcell_form.correct_pr_fileTaskComment.$error.required && ( kcell_form.correct_pr_fileTaskComment.$touched || view.submitted)">Required field</label>
         </div>
     </div>
     <accordion>

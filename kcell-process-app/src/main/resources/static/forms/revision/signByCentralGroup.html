@@ -141,8 +141,8 @@
                 $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name+ "/profile").then(function(result){
                     $rootScope.authentication.assigneeName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
                 });
-                if(camForm.variableManager.variables['approveMaterialsListByRegionGroupsHeadComment']){
-                    camForm.variableManager.variableValue('approveMaterialsListByRegionGroupsHeadComment', '');
+                if(camForm.variableManager.variables['check_pr_dataTaskComment']){
+                    camForm.variableManager.variableValue('check_pr_dataTaskComment', '');
                 }
                 try{
                     $scope.jobWorksValue.forEach(function(work){
@@ -311,8 +311,8 @@
                 camForm.variableManager.variableValue('regionTransmissionCheckRequired', $scope.regionTransmissionCheckRequired);
 
                 var visibility = 'all';
-                if($scope.approveMaterialsListByRegionGroupsHeadComment && $scope.approveMaterialsListByRegionGroupsHeadCommentVisibility){
-                    visibility = $scope.approveMaterialsListByRegionGroupsHeadCommentVisibility;
+                if($scope.check_pr_dataTaskComment && $scope.check_pr_dataTaskCommentVisibility){
+                    visibility = $scope.check_pr_dataTaskCommentVisibility;
                     camForm.variableManager.createVariable({
                         name: 'approve_additional_material_list_regionTaskCommentVisibility',
                         type: 'String',
@@ -320,9 +320,9 @@
                     });
                 }
                 camForm.variableManager.createVariable({
-                    name: 'approve_additional_material_list_regionTaskComment',
+                    name: 'check_pr_dataTaskComment',
                     type: 'String',
-                    value: $scope.approveMaterialsListByRegionGroupsHeadComment
+                    value: $scope.check_pr_dataTaskComment
                 });
                 camForm.variableManager.destroyVariable('resolutions');
 
@@ -484,7 +484,7 @@
             }
 
             $scope.hasComment = function () {
-                return $scope.approveMaterialsListByRegionGroupsHeadComment && $rootScope.hasGroup('kcellUsers');
+                return $scope.check_pr_dataTaskComment && $rootScope.hasGroup('kcellUsers');
             }
 
             $scope.showJobModal = function() {
@@ -542,7 +542,22 @@
             }
         }]);
     </script>
-    <button class="btn btn-default pull-right" ng-click="showJobModal()">{{ jobModel.jrNumber.value }}</button>
+    <button class="btn btn-default pull-right" data-toggle="modal" data-target="#jobModal">{{ jobModel.jrNumber.value }}</button>
+    <div class="modal fade" id="jobModal">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 class="modal-title">Job Request</h3>
+                </div>
+                <div class="modal-body col-sm-12">
+                    <job-request job-model="jobModel"></job-request>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary pull-right" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
     <h3>Job Order Information</h3>
 
     <table class="table table-bordered">
@@ -848,39 +863,10 @@
         </div>
     </div>
     <div class="form-group">
-        <label class="col-sm-4 control-label">Resolution</label>
-        <div class="col-sm-8">
-            <label class="radio-inline">
-                <input type="radio" ng-model="approveMaterialsListByRegionGroupsHeadTaskResult" name="approveMaterialsListByRegionGroupsHeadTaskResult" value="approved" required> Approved
-            </label>
-            <label class="radio-inline" ng-show="jobModel.fillApplied.value !== 'notEnough'">
-                <input type="radio" ng-model="approveMaterialsListByRegionGroupsHeadTaskResult" name="approveMaterialsListByRegionGroupsHeadTaskResult" value="modify" required> Modify works
-            </label>
-            <label class="radio-inline">
-                <input type="radio" ng-model="approveMaterialsListByRegionGroupsHeadTaskResult" name="approveMaterialsListByRegionGroupsHeadTaskResult" value="rejected" required> Reject
-            </label>
-            <label class="error" ng-show="kcell_form.approveMaterialsListByRegionGroupsHeadTaskResult.$error.required && ( kcell_form.approveMaterialsListByRegionGroupsHeadTaskResult.$touched || view.submitted)">Required field</label>
-        </div>
-    </div>
-    <div class="form-group">
         <label class="col-sm-4 control-label">Comments</label>
         <div class="col-sm-8">
-            <textarea class="form-control" rows="4" maxlength="500" cam-variable-name="approveMaterialsListByRegionGroupsHeadComment" name="approveMaterialsListByRegionGroupsHeadComment" ng-required="approveMaterialsListByRegionGroupsHeadTaskResult == 'modify' || approveMaterialsListByRegionGroupsHeadTaskResult == 'rejected'" cam-variable-type="String"></textarea>
-            <label class="error" ng-show="kcell_form.approveMaterialsListByRegionGroupsHeadComment.$error.required && ( kcell_form.approveMaterialsListByRegionGroupsHeadComment.$touched || view.submitted)">Required field</label>
-        </div>
-    </div>
-    <div class="form-group" ng-show="hasComment()">
-        <label class="col-sm-4 control-label">Comments visibility</label>
-        <div class="col-sm-8">
-            <label class="radio-inline">
-                <input type="radio" name="approveMaterialsListByRegionGroupsHeadCommentVisibility"
-                       ng-model="approveMaterialsListByRegionGroupsHeadCommentVisibility" value="all" ng-required="hasComment()"> Visible for all
-            </label>
-            <label class="radio-inline">
-                <input type="radio" name="approveMaterialsListByRegionGroupsHeadCommentVisibility"
-                       ng-model="approveMaterialsListByRegionGroupsHeadCommentVisibility" value="kcell" ng-required="hasComment()"> Kcell staff only
-            </label>
-            <label class="error" ng-show="kcell_form.approveMaterialsListByRegionGroupsHeadCommentVisibility.$error.required && ( kcell_form.approveMaterialsListByRegionGroupsHeadCommentVisibility.$touched || view.submitted)">Required field</label>
+            <textarea class="form-control" rows="4" maxlength="500" cam-variable-name="check_pr_dataTaskComment" name="check_pr_dataTaskComment" ng-required="approveMaterialsListByRegionGroupsHeadTaskResult == 'modify' || approveMaterialsListByRegionGroupsHeadTaskResult == 'rejected'" cam-variable-type="String"></textarea>
+            <label class="error" ng-show="kcell_form.check_pr_dataTaskComment.$error.required && ( kcell_form.check_pr_dataTaskComment.$touched || view.submitted)">Required field</label>
         </div>
     </div>
     <accordion>
