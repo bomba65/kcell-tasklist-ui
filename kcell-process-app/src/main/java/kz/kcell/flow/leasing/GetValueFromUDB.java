@@ -40,6 +40,7 @@ public class GetValueFromUDB implements JavaDelegate {
                 udbOracleUrl,
                 udbOracleUsername,
                 udbOraclePassword);
+//            Connection udbConnect = DriverManager.getConnection("jdbc:oracle:thin:@//sc2-appcl010406:1521/apexudb", "app_apexudb_camunda", "p28zt#7C");
             try {
                 if (udbConnect != null) {
                     udbConnect.setAutoCommit(false);
@@ -92,6 +93,14 @@ public class GetValueFromUDB implements JavaDelegate {
                         log.info("done G_ONAIR_DATE");
                         log.info(firstJson.has("G_ONAIR_DATE") ? firstJson.getString("G_ONAIR_DATE") : "");
 
+                        if (firstJson.has("INST_STATUS")) {
+                            int uis = firstJson.getInt("INST_STATUS");
+//                            uis = 13;
+                            if (uis != 13) {
+                                delegateExecution.setVariable("InstStatusBeforeLeasingProblem", uis);
+                            }
+                        }
+
                         if ((firstJson.has("ONAIR_DATE") && !firstJson.getString("ONAIR_DATE").equals(null)) || (firstJson.has("G_ONAIR_DATE") && !firstJson.getString("G_ONAIR_DATE").equals(null))) {
                             log.info("ONAIR_DATE or G_ONAIR_DATE is not null");
                             dataFromUDB = "withFinishDate";
@@ -101,6 +110,10 @@ public class GetValueFromUDB implements JavaDelegate {
 
                         if (firstJson.has("INST_STATUS") && dataFromUDB.equals("noData")) {
                             int uis = firstJson.getInt("INST_STATUS");
+//                            uis = 13;
+//                            if (uis != 13){
+//                                delegateExecution.setVariable("InstStatusBeforeLeasingProblem", uis);
+//                            }
                             if (uis == 8 || uis == 15 || uis == 7 || uis == 4) {
                                 dataFromUDB = "justSetInstStatus";
                                 if (uis == 8) {
