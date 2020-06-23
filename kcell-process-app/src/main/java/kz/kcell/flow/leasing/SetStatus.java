@@ -168,18 +168,18 @@ public class SetStatus implements JavaDelegate {
                         log.info("_SET_RR_STATUS");
                         log.info(_SET_RR_STATUS);
                         //UPDATE NCP
-                        String UPDATE_ArtRRst_CREATION_RR_STATUS = "update ARTEFACT_RR_STATUS set RR_STATUS_ID = ?, DATEOFPERFORM = ? where ID = ?";
+//                        String UPDATE_ArtRRst_CREATION_RR_STATUS = "update ARTEFACT_RR_STATUS set RR_STATUS_ID = ?, DATEOFPERFORM = ? where ID = ?";
                         String UPDATE_ARTEFACT_RR_STATUS = "update ARTEFACT_CURRENT_STATE set RR_STATUS = ?, RR_STATUS_DATE = ? where ARTEFACTID = ?";
-                        PreparedStatement updateRRstatusInArtRRstPreparedStatement = udbConnect.prepareStatement(UPDATE_ArtRRst_CREATION_RR_STATUS);
+//                        PreparedStatement updateRRstatusInArtRRstPreparedStatement = udbConnect.prepareStatement(UPDATE_ArtRRst_CREATION_RR_STATUS);
                         PreparedStatement updateRRstatusInArtefactPreparedStatement = udbConnect.prepareStatement(UPDATE_ARTEFACT_RR_STATUS);
 
                         log.info("RR_STATUS preparedStatement SQL UPDATE VALUES");
                         // set values to update
-                        i = 1;
-                        updateRRstatusInArtRRstPreparedStatement.setLong(i++, Integer.parseInt(_SET_RR_STATUS)); // RR_STATUS
-                        updateRRstatusInArtRRstPreparedStatement.setDate(i++, new java.sql.Date(new Date().getTime())); // DATEOFPERFORM
-                        updateRRstatusInArtRRstPreparedStatement.setLong(i++, createdArtefactRRStatusId); // Artefact RRStatus ID
-                        updateRRstatusInArtRRstPreparedStatement.executeUpdate();
+//                        i = 1;
+//                        updateRRstatusInArtRRstPreparedStatement.setLong(i++, Integer.parseInt(_SET_RR_STATUS)); // RR_STATUS
+//                        updateRRstatusInArtRRstPreparedStatement.setDate(i++, new java.sql.Date(new Date().getTime())); // DATEOFPERFORM
+//                        updateRRstatusInArtRRstPreparedStatement.setLong(i++, createdArtefactRRStatusId); // Artefact RRStatus ID
+//                        updateRRstatusInArtRRstPreparedStatement.executeUpdate();
                         i = 1;
                         updateRRstatusInArtefactPreparedStatement.setLong(i++, Integer.parseInt(_SET_RR_STATUS)); // GS_STATUS
                         updateRRstatusInArtefactPreparedStatement.setDate(i++, new java.sql.Date(new Date().getTime())); // RR_STATUS_DATE

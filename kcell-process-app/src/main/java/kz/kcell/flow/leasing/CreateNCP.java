@@ -707,34 +707,34 @@ public class CreateNCP implements JavaDelegate {
                     log.info("createdCandApprovalId:");
                     log.info(createdCandApprovalId.toString());
 
-                    //insert ARTEFACT_RR_STATUS
-                    Long createdArtefactRRStatusId = null;
-                    String artefactRRStatusReturnStatus[] = {"ID"};
-                    String insertNewArtefactRRStatus = "insert into ARTEFACT_RR_STATUS(ID, ARTEFACTID, RR_ID, DATEOFPERFORM) values (ARTEFACT_RR_STATUS_SEQ.nextval, ?, ?, SYSDATE)";
-                    PreparedStatement newArtefactRRStatusPreparedStatement = udbConnect.prepareStatement(insertNewArtefactRRStatus, artefactRRStatusReturnStatus);
-
-                    i = 1;
-                    log.info("newArtefactRRStatusPreparedStatement.setString");
-                    if (createdArtefactId != null) {
-                        newArtefactRRStatusPreparedStatement.setLong(i++, createdArtefactId);
-                    } else {
-                        newArtefactRRStatusPreparedStatement.setNull(i++, Types.BIGINT);
-                    }
-                    if (createdArtefactRRId != null) {
-                        newArtefactRRStatusPreparedStatement.setLong(i++, createdArtefactRRId);
-                    } else {
-                        newArtefactRRStatusPreparedStatement.setNull(i++, Types.BIGINT);
-                    }
-//                    newArtefactRRStatusPreparedStatement.setDate(i++, new java.sql.Date(new Date().getTime()));
-                    log.info("newArtefactRRStatusPreparedStatement.executeUpdate()");
-                    newArtefactRRStatusPreparedStatement.executeUpdate();
-                    log.info("successfull insert to database!");
-
-                    ResultSet artefactRRStatusGeneratedIdResultSet = newArtefactRRStatusPreparedStatement.getGeneratedKeys();
-                    artefactRRStatusGeneratedIdResultSet.next();
-                    createdArtefactRRStatusId = artefactRRStatusGeneratedIdResultSet.getLong(1);
-                    log.info("createdArtefactRRStatusId:");
-                    log.info(createdArtefactRRStatusId.toString());
+//                    //insert ARTEFACT_RR_STATUS
+//                    Long createdArtefactRRStatusId = null;
+//                    String artefactRRStatusReturnStatus[] = {"ID"};
+//                    String insertNewArtefactRRStatus = "insert into ARTEFACT_RR_STATUS(ID, ARTEFACTID, RR_ID, DATEOFPERFORM) values (ARTEFACT_RR_STATUS_SEQ.nextval, ?, ?, SYSDATE)";
+//                    PreparedStatement newArtefactRRStatusPreparedStatement = udbConnect.prepareStatement(insertNewArtefactRRStatus, artefactRRStatusReturnStatus);
+//
+//                    i = 1;
+//                    log.info("newArtefactRRStatusPreparedStatement.setString");
+//                    if (createdArtefactId != null) {
+//                        newArtefactRRStatusPreparedStatement.setLong(i++, createdArtefactId);
+//                    } else {
+//                        newArtefactRRStatusPreparedStatement.setNull(i++, Types.BIGINT);
+//                    }
+//                    if (createdArtefactRRId != null) {
+//                        newArtefactRRStatusPreparedStatement.setLong(i++, createdArtefactRRId);
+//                    } else {
+//                        newArtefactRRStatusPreparedStatement.setNull(i++, Types.BIGINT);
+//                    }
+////                    newArtefactRRStatusPreparedStatement.setDate(i++, new java.sql.Date(new Date().getTime()));
+//                    log.info("newArtefactRRStatusPreparedStatement.executeUpdate()");
+//                    newArtefactRRStatusPreparedStatement.executeUpdate();
+//                    log.info("successfull insert to database!");
+//
+//                    ResultSet artefactRRStatusGeneratedIdResultSet = newArtefactRRStatusPreparedStatement.getGeneratedKeys();
+//                    artefactRRStatusGeneratedIdResultSet.next();
+//                    createdArtefactRRStatusId = artefactRRStatusGeneratedIdResultSet.getLong(1);
+//                    log.info("createdArtefactRRStatusId:");
+//                    log.info(createdArtefactRRStatusId.toString());
 
 //                    udbConnect.commit();
                     //insert ARTEFACT_TSD_EXT
@@ -1450,7 +1450,7 @@ public class CreateNCP implements JavaDelegate {
                     delegateExecution.setVariable("createdArtefactRRId", createdArtefactRRId);
 //                    delegateExecution.setVariable("createdArtefactVSDId", createdArtefactVsdId);
                     delegateExecution.setVariable("createdCandApprovalId", createdCandApprovalId);
-                    delegateExecution.setVariable("createdArtefactRRStatusId", createdArtefactRRStatusId);
+//                    delegateExecution.setVariable("createdArtefactRRStatusId", createdArtefactRRStatusId);
                     delegateExecution.setVariable("createdArtefactExtTSDId", createdArtefactExtTSDId);
                     delegateExecution.setVariable("createdArtefactRrPowerId", createdArtefactRrPowerId);
                     delegateExecution.setVariable("createdArtefactRrRenterCnId", createdArtefactRrRenterCnId);
