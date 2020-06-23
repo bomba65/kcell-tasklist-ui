@@ -159,6 +159,7 @@ define(['./module','camundaSDK'], function(module, CamSDK){
 										});
 									}
 								} else {
+									console.log(scope.kcell_form);
 									toasty.error({title: "Error", msg: "Please fill required fields"});
 								}
 							})

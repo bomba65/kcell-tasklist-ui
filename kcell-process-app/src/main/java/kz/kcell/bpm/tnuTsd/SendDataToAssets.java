@@ -20,6 +20,9 @@ import org.camunda.bpm.engine.delegate.BpmnError;
 import org.apache.http.client.HttpClient;
 import org.json.JSONObject;
 
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.Random;
 
 @Log
@@ -46,6 +49,8 @@ public class SendDataToAssets implements JavaDelegate {
         String fe_terminal_id = execution.getVariable("fe_terminal_id") == null ? null : String.valueOf(execution.getVariable("fe_terminal_id")).equals("") ? null : String.valueOf(execution.getVariable("fe_terminal_id"));
         Integer fe_txrx_frequincies = execution.getVariable("fe_txrx_frequincies") == null ? null : Integer.parseInt(String.valueOf(execution.getVariable("fe_txrx_frequincies")));
         Integer fe_protection_txrx_frequincies = execution.getVariable("fe_protection_txrx_frequincies") == null || String.valueOf(execution.getVariable("fe_protection_txrx_frequincies")).equals("") ? null : Integer.parseInt(String.valueOf(execution.getVariable("fe_protection_txrx_frequincies")));
+        String business_key = execution.getBusinessKey();
+        Date date = (Date) execution.getVariable("date_of_visit");
 
 
         ObjectMapper objectMapper = new ObjectMapper();
@@ -80,6 +85,11 @@ public class SendDataToAssets implements JavaDelegate {
         objectNode.put("fe_power_levels_rx_protect", fe_protection_power_level_rx);
         objectNode.put("fe_power_levels_tx", fe_power_level_tx);
         objectNode.put("fe_power_levels_tx_protect", fe_protection_power_level_tx);
+        objectNode.put("business_key", business_key);
+        Calendar c = Calendar.getInstance();
+        c.setTime(date);
+        c.add(Calendar.HOUR, 6);
+        objectNode.put("date", new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ").format(c.getTime()));
 
         ObjectNode fe_rau_subband_id = objectMapper.createObjectNode();
         objectNode.set("fe_rau_subband_id", fe_rau_subband_id);
