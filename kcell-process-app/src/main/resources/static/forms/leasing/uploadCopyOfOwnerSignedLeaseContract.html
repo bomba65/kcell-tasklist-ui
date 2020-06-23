@@ -177,24 +177,13 @@
                     value: ''
                 });
 
-                $scope.newContractInfo = {
-                    ct_acquisitionType: 'newContract',
-                    ct_legal_name: '',
-                    address: {
-                        addr_oblast: '',
-                        cn_addr_district: '',
-                        cn_addr_city: '',
-                    }
-                };
+                $scope.variablesFetched = true;
 
-                $scope.ibanPattern = '(KZ[0-9]{18})'
-
-                if ($scope.farEndInformation && $scope.farEndInformation.length >0) {
-                    $scope.newContractInfo.ct_sitename = $scope.farEndInformation[0].farEndName
+                if ($scope.catalogsFetched && $scope.variablesFetched){
+                    $scope.setNewContract()
                 }
 
-                console.log($scope.newContractInfo)
-                $scope.contractInformationsFE.push(JSON.parse(JSON.stringify($scope.newContractInfo)))
+                $scope.ibanPattern = '(KZ[0-9]{18})'
 
                 $scope.uploadCopyOfOwnerSignedLeaseContractTaskResult = '';
                 $http.get('/api/leasingCatalogs?version=1').then(
@@ -217,13 +206,51 @@
                         $scope.districtList = _.uniqBy($scope.dictionary.addresses, 'district').map( (e, index) => { return {"name" : e.district, "id" : index} });
                         $scope.filteredDistricts = $scope.districtList;
                         console.log($scope.oblastList.length)
-                $scope.view.variablesFetched = true;
+                        $scope.view.variablesFetched = true;
+                        $scope.catalogsFetched = true;
+                        if ($scope.catalogsFetched && $scope.variablesFetched){
+                            $scope.setNewContract()
+                        }
+
                     },
                     function(error){
                         console.log(error);
                     }
                 );
             });
+
+            $scope.setNewContract = function () {
+
+                $scope.newContractInfo = {
+                    ct_acquisitionType: 'newContract',
+                    ct_sitename: $scope.candidate.siteName,
+                    ct_legal_name: $scope.renterCompany.legalName,
+                    ct_contact_person: $scope.renterCompany.contactName,
+                    ct_rent_area: $scope.candidate.square,
+                    address: {
+                        addr_oblast: '',
+                        cn_addr_district: '',
+                        cn_addr_city: '',
+                    }
+                };
+
+                if ($scope.farEndInformation && $scope.farEndInformation.length >0) {
+                    $scope.newContractInfo.ct_sitename = $scope.farEndInformation[0].farEndName
+                    $scope.newContractInfo.ct_legal_name = $scope.farEndInformation[0].renterCompany.legalName
+                    $scope.newContractInfo.ct_contact_person = $scope.farEndInformation[0].renterCompany.name
+                    $scope.newContractInfo.ct_rent_area = $scope.farEndInformation[0].square
+
+
+                    let i = $scope.dictionary.legalType.findIndex( a => { return a.id === $scope.farEndInformation[0].legalType })
+                    // $scope.newContractInfo.legalType = _.find($scope.dictionary.legalType, {'id': $scope.renterCompany.legalType});
+                    if (i > -1){
+                        $scope.newContractInfo.legalType = $scope.dictionary.legalType[i]
+                    }
+                    $scope.contractInformationsFE.push(JSON.parse(JSON.stringify($scope.newContractInfo)))
+                    $scope.contractInformationsFE[$scope.contractInformationsFE.length-1].legalType = $scope.newContractInfo.legalType
+                }
+            }
+
 
             camForm.on('submit', function () {
                 camForm.variableManager.variableValue('uploadCopyOfOwnerSignedLeaseContractTaskResult', $scope.uploadCopyOfOwnerSignedLeaseContractTaskResult);
@@ -471,7 +498,7 @@
 
             $scope.changeContractLegalType = function (index) {
                 if ($scope.contractInformationsFE && $scope.contractInformationsFE[index] && $scope.contractInformationsFE[index].legalType) {
-                    $scope.contractInformationsFE[index].ct_legal_name = ''
+                    // $scope.contractInformationsFE[index].ct_legal_name = ''
                     if ( $scope.contractInformationsFE[index].legalType.id === 'national_kazakhtelecom' ) {
                         $scope.contractInformationsFE[index].ct_legal_name = 'АО "Казахтелеком"'
                     } if ( $scope.contractInformationsFE[index].legalType.id === 'national_kazteleradio' ) {
@@ -504,6 +531,9 @@
                 var temp = {};
                 angular.copy($scope.newContractInfo, temp);
                 $scope.contractInformationsFE.push(temp);
+                if ($scope.newContractInfo.legalType) {
+                    $scope.contractInformationsFE[$scope.contractInformationsFE.length-1].legalType = $scope.newContractInfo.legalType
+                }
             }
         }]);
 
@@ -587,8 +617,7 @@
             <div class="form-group" ng-show="cci.ct_acquisitionType === 'additionalAgreement'">
                 <label class="col-sm-3 control-label">Additional Agreement Number:</label>
                 <div class="col-sm-9">
-                    <input class="form-control" id="{{$index}}_ct_agreement_number" name="{{$index}}_ct_agreement_number" ng-model="cci.ct_agreement_number" ng-required="cci.ct_acquisitionType === 'additionalAgreement' && uploadCopyOfOwnerSignedLeaseContractTaskResult !== 'refusal'
-">
+                    <input class="form-control" id="{{$index}}_ct_agreement_number" name="{{$index}}_ct_agreement_number" ng-model="cci.ct_agreement_number">
                     <label class="error" ng-show="kcell_form['{{$index}}_ct_agreement_number'].$error.required && ( kcell_form['{{$index}}_ct_agreement_number'].$touched || view.submitted)">Required field</label>
                 </div>
             </div>
@@ -706,8 +735,9 @@
                     <select class="form-control" id="{{$index}}_legalType" name="{{$index}}_legalType"
                             ng-model="cci.legalType"
                             ng-change="changeContractLegalType($index)"
-                            ng-required="uploadCopyOfOwnerSignedLeaseContractTaskResult !== 'refusal'">
-                        <option ng-repeat="type in dictionary.legalType" ng-value="type">{{type.desc}}</option>
+                            ng-required="uploadCopyOfOwnerSignedLeaseContractTaskResult !== 'refusal'"
+                            ng-options="type as type.desc for type in dictionary.legalType">
+<!--                        <option ng-repeat="type in dictionary.legalType" ng-value="type">{{type.desc}}</option>-->
                     </select>
                     <label class="error" for="{{$index}}_legalType" ng-show="kcell_form['{{$index}}_legalType'].$error.required && ( kcell_form['{{$index}}_legalType'].$touched || view.submitted)">Required field</label>
                 </div>
