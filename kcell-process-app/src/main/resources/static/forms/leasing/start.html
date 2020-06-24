@@ -201,131 +201,103 @@
             // }, true);
             $scope.preSubmit = function () {
                 var deferred = $q.defer();
-                var tempLat;
-                var tempLong;
-                var validLat = true;
-                var validLong = true;
-
-                // latitude check
-               /* if (!isNaN($scope.latitude)) {
-                    tempLat = $scope.latitude;
-                    if (Number.isInteger(tempLat)) {
-                        tempLat = parseInt(tempLat);
-                        if (!(tempLat > 40 && tempLat <= 55)) {
-                            deferred.reject('Latitude must be in [40.568, 55.440] range');
-                            return deferred.promise;
-                        } else validLat = true;
+        // ncpId check
+                return $http({
+                    method: 'GET',
+                    url: '/camunda/leasing/ncpCheck/' + $scope.ncpID,
+                    transformResponse: []
+                }).then(function (response) {
+                    console.log("response:")
+                    console.log(response)
+                    if (response.status === 200) {
+                        console.log("response.status === 200")
+                        var currentDate = new Date();
+                        var rolloutCounter = 'ROLLOUT-' + currentDate.getFullYear().toString();
+                        return $http.post('/asset-management/rolloutcounter/' + rolloutCounter).then(
+                                function (result) {
+                                    var businessKey = 'ROLLOUT-' + $scope.ncpID + '-' + currentDate.getFullYear().toString() + '-' + result.data;
+                                    camForm.businessKey = businessKey;
+                                }
+                        );
+                        deferred.resolve();
+                        return deferred.promise;
                     } else {
-                        tempLat = parseFloat(tempLat);
-                        if (!(tempLat >= 40.568 && tempLat <= 55.440)) {
-                            deferred.reject('Latitude must be in [40.568, 55.440] range');
-                            return deferred.promise;
-                        } else validLat = true;
+                        deferred.reject('что-то пошло не так...');
+                        return deferred.promise;
                     }
-                } else {
-                    deferred.reject('Latitude must be in [40.568, 55.440] range');
-                    return deferred.promise;
-                }
+                }, function(error){
+                    console.log("error:")
+                    console.log(error)
+                    if (error.status === 409) {
+                        console.log("error.status === 409")
+                        deferred.reject('NCP ID with id ' + $scope.ncpID + ' alreaty exist');
+                        return deferred.promise;
+                    } else console.log(error.data);
+                });
+          }
 
-                // longitude check
-                if (!isNaN($scope.longitude)) {
-                    tempLong = $scope.longitude;
-                    if (Number.isInteger(tempLong)) {
-                        tempLong = parseInt(tempLong);
-                        if (!(tempLong > 46 && tempLong <= 87)) {
-                            deferred.reject('Longitude must be in [46.493, 87.315] range');
-                            return deferred.promise;
-                        } else validLong = true;
-                    } else {
-                        tempLong = parseFloat(tempLong);
-                        if (!(tempLong >= 46.493 && tempLong <= 87.315)) {
-                            deferred.reject('Longitude must be in [46.493, 87.315] range');
-                            return deferred.promise;
-                        } else validLong = true;
-                    }
-                } else {
-                    deferred.reject('Longitude must be in [46.493, 87.315] range');
-                    return deferred.promise;
-                } */
-                if (validLat && validLong) {
-                    var currentDate = new Date();
-                    var rolloutCounter = 'ROLLOUT-' + currentDate.getFullYear().toString();
-                     return $http.post('/asset-management/rolloutcounter/' + rolloutCounter).then(
-                            function (result) {
-                                var businessKey = 'ROLLOUT-' + $scope.ncpID + '-' + currentDate.getFullYear().toString() + '-' + result.data;
-                                camForm.businessKey = businessKey;
-                            }
-                    );
-                    deferred.resolve();
-                    return deferred.promise;
-                }
+     $scope.$watch('initiator', function (initiator) {
+         $scope.projectsByInitiator = {};
+         $scope.reasonsByProject = [];
+         $scope.projectsByInitiator = _.find($scope.dictionary.projects, function (p) {
+             return p.initiator === initiator.name;
+         })
+     }, true);
 
+     $scope.$watch('project', function (project) {
+         $scope.reasonsByProject = [];
+         $scope.reasonsByProject = _.filter($scope.dictionary.reasons, function (r) {
+             if (_.find(r.project, function (p) {return p === project.name; }) ) { return true} else return false;
+         })
+     }, true);
 
+     $scope.$watch('ncpID', function (ncpID) {
+         if(ncpID && ncpID.length === 5){
+
+             var firstElement = ncpID.charAt(0);
+             var secondElement = ncpID.charAt(0);
+             if (firstElement === '0') {
+                 $scope.region = 'almaty';
+             } else if (firstElement === '1' || firstElement === '2') {
+                 $scope.region = 'nc';
+             } else if (firstElement === '3') {
+                 $scope.region = 'east';
+             } else if (firstElement === '4') {
+                 $scope.region = 'south';
+             } else if (firstElement === '5' || firstElement === '6' || firstElement === '7' || firstElement === '8') {
+                 $scope.region = 'west';
+             } else if (firstElement === '9') {
+                 $scope.region = undefined;
              }
 
-            $scope.$watch('initiator', function (initiator) {
-                $scope.projectsByInitiator = {};
-                $scope.reasonsByProject = [];
-                $scope.projectsByInitiator = _.find($scope.dictionary.projects, function (p) {
-                    return p.initiator === initiator.name;
-                })
-            }, true);
+             if (firstElement !== '9') {
+                 $scope.regionSelected($scope.region);
+             }
+         }
+     }, true);
 
-            $scope.$watch('project', function (project) {
-                $scope.reasonsByProject = [];
-                $scope.reasonsByProject = _.filter($scope.dictionary.reasons, function (r) {
-                    if (_.find(r.project, function (p) {return p === project.name; }) ) { return true} else return false;
-                })
-            }, true);
+     $scope.regionSelected = function (region) {
+         $scope.regionName = _.find($scope.dictionary.regions, function (r) {
+             return r.id === region;
+         }).name;
+         $scope.regionCode = _.find($scope.dictionary.regions, function (r) {
+             return r.id === region;
+         }).code;
+     }
 
-            $scope.$watch('ncpID', function (ncpID) {
-                if(ncpID && ncpID.length === 5){
-
-                    var firstElement = ncpID.charAt(0);
-                    var secondElement = ncpID.charAt(0);
-                    if (firstElement === '0') {
-                        $scope.region = 'almaty';
-                    } else if (firstElement === '1' || firstElement === '2') {
-                        $scope.region = 'nc';
-                    } else if (firstElement === '3') {
-                        $scope.region = 'east';
-                    } else if (firstElement === '4') {
-                        $scope.region = 'south';
-                    } else if (firstElement === '5' || firstElement === '6' || firstElement === '7' || firstElement === '8') {
-                        $scope.region = 'west';
-                    } else if (firstElement === '9') {
-                        $scope.region = undefined;
-                    }
-
-                    if (firstElement !== '9') {
-                        $scope.regionSelected($scope.region);
-                    }
-                }
-            }, true);
-
-            $scope.regionSelected = function (region) {
-                $scope.regionName = _.find($scope.dictionary.regions, function (r) {
-                    return r.id === region;
-                }).name;
-                $scope.regionCode = _.find($scope.dictionary.regions, function (r) {
-                    return r.id === region;
-                }).code;
-            }
+     $scope.types = function (rbsType) {
+         return Number(rbsType);
+     }
+     $scope.setRbsType = function (rbsTypeObj) {
+         $scope.rbsType = rbsTypeObj.rbsType;
+         $scope.rbsTypeId = rbsTypeObj.id;
+     }
 
 
-            $scope.types = function (rbsType) {
-                return Number(rbsType);
-            }
-            $scope.setRbsType = function (rbsTypeObj) {
-                $scope.rbsType = rbsTypeObj.rbsType;
-                $scope.rbsTypeId = rbsTypeObj.id;
-            }
+ }]);
 
 
-        }]);
-
-
-    </script>
+</script>
     <div>
         <h4>Create NCP</h4>
     </div>

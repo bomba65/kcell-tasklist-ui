@@ -160,6 +160,62 @@ public class LeasingController {
         }
     }
 
+    @RequestMapping(value = "/ncpCheck/{ncpId}", method = RequestMethod.GET)
+    @ResponseBody
+    public ResponseEntity<String> checkPresignedGetObjectUrl(@PathVariable("ncpId") String ncpId, HttpServletRequest request) throws InvalidEndpointException, InvalidPortException, InvalidKeyException, InvalidBucketNameException, NoSuchAlgorithmException, InsufficientDataException, NoResponseException, ErrorResponseException, InternalException, InvalidExpiresRangeException, IOException, XmlPullParserException, ClassNotFoundException, SQLException {
+        TimeZone timeZone = TimeZone.getTimeZone("Asia/Almaty");
+        TimeZone.setDefault(timeZone);
+        Class.forName ("oracle.jdbc.OracleDriver");
+        Connection udbConnect = DriverManager.getConnection(
+            udbOracleUrl,
+            udbOracleUsername,
+            udbOraclePassword);
+        try {
+            if (udbConnect != null) {
+                udbConnect.setAutoCommit(false);
+                int i;
+
+//                String SelectContract = "select c.cid,\n" +
+                String selectNcp = "select * from NCP_CREATION where NCPID = ?";
+                PreparedStatement selectNcpPreparedStatement = udbConnect.prepareStatement(selectNcp);
+
+                i = 1;
+                log.info("try to get contracts...");
+                selectNcpPreparedStatement.setString(i++, ncpId); // contactId
+                ResultSet resultSet = selectNcpPreparedStatement.executeQuery();
+                String res;
+                int resStatusCode;
+                if (resultSet.next() == false ) {
+                    res = "this ncp " + ncpId + " not found and ready to create";
+                    resStatusCode = 200;
+                    log.info(res);
+                } else {
+                    res = "this ncp " + ncpId + " already exist";
+                    resStatusCode = 409;
+                    log.info(res);
+                }
+
+                udbConnect.commit();
+                udbConnect.close();
+                return ResponseEntity.status(resStatusCode).body(res);// ok(res);
+            } else {
+                udbConnect.close();
+                JSONArray json = new JSONArray();
+                JSONObject obj = new JSONObject();
+                obj.put("result", "not found");
+                json.put(obj);
+                log.warning("Failed to make connection!");
+                return ResponseEntity.ok("Failed to make connection!");
+            }
+        } catch (Exception e) {
+            udbConnect.rollback();
+            udbConnect.close();
+            log.warning("connection Exception!");
+            log.warning(e.getMessage());
+            throw e;
+        }
+    }
+
     @RequestMapping(value = "/rrfile/create", method = RequestMethod.POST, produces={"plain/text"}, consumes="application/json")
     @ResponseBody
     public ResponseEntity<String> FreephoneClientCreateUpdate(@RequestBody RRFileData rrFileData) throws Exception {
