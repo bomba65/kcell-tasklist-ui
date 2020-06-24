@@ -8,10 +8,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import javax.sql.DataSource;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.Date;
 import java.util.TimeZone;
 
@@ -58,10 +55,10 @@ public class SetStatus implements JavaDelegate {
 //                    Long createdNcpStatusId = (Long) delegateExecution.getVariable("createdNcpStatusId");
                     Long createdArtefactId = (Long) delegateExecution.getVariable("createdArtefactId");
                     Long createdArtefactRSDId = (Long) delegateExecution.getVariable("createdArtefactRSDId");
-//                    Long createdArtefactRRId = (Long) delegateExecution.getVariable("createdArtefactRRId");
+                    Long createdArtefactRRId = (Long) delegateExecution.getVariable("createdArtefactRRId");
 //                    Long createdArtefactVSDId = (Long) delegateExecution.getVariable("createdArtefactVSDId");
                     Long createdCandApprovalId = (Long) delegateExecution.getVariable("createdCandApprovalId");
-                    Long createdArtefactRRStatusId = (Long) delegateExecution.getVariable("createdArtefactRRStatusId");
+//                    Long createdArtefactRRStatusId = (Long) delegateExecution.getVariable("createdArtefactRRStatusId");
 
                     String ncpId = delegateExecution.getVariable("ncpID").toString();
                     String starter = delegateExecution.getVariable("starter").toString();
@@ -185,6 +182,30 @@ public class SetStatus implements JavaDelegate {
                         updateRRstatusInArtefactPreparedStatement.setDate(i++, new java.sql.Date(new Date().getTime())); // RR_STATUS_DATE
                         updateRRstatusInArtefactPreparedStatement.setLong(i++, createdArtefactId); // ARTEFACTID
                         updateRRstatusInArtefactPreparedStatement.executeUpdate();
+
+
+//                      insert ARTEFACT_RR_STATUS
+                        String insertNewArtefactRRStatus = "insert into ARTEFACT_RR_STATUS(ID, ARTEFACTID, RR_ID, RR_STATUS_ID,  DATEOFPERFORM) values (ARTEFACT_RR_STATUS_SEQ.nextval, ?, ?, ?, SYSDATE)";
+                        PreparedStatement newArtefactRRStatusPreparedStatement = udbConnect.prepareStatement(insertNewArtefactRRStatus);
+
+                        i = 1;
+                        log.info("newArtefactRRStatusPreparedStatement.setString");
+                        if (createdArtefactId != null) {
+                            newArtefactRRStatusPreparedStatement.setLong(i++, createdArtefactId);
+                        } else {
+                            newArtefactRRStatusPreparedStatement.setNull(i++, Types.BIGINT);
+                        }
+                        if (createdArtefactRRId != null) {
+                            newArtefactRRStatusPreparedStatement.setLong(i++, createdArtefactRRId);
+                        } else {
+                            newArtefactRRStatusPreparedStatement.setNull(i++, Types.BIGINT);
+                        }
+                        newArtefactRRStatusPreparedStatement.setLong(i++, Integer.parseInt(_SET_RR_STATUS)); // RR_STATUS
+    //                    newArtefactRRStatusPreparedStatement.setDate(i++, new java.sql.Date(new Date().getTime()));
+                        log.info("newArtefactRRStatusPreparedStatement.executeUpdate()");
+                        newArtefactRRStatusPreparedStatement.executeUpdate();
+                        log.info("successfull insert to database!");
+
                         log.info("ArtefactID: " + createdArtefactId + " successfully RR_STATUS updated to " + _SET_RR_STATUS);
                     }
                     if (_SET_CAND_STATUS != null && !_SET_CAND_STATUS.equals("")) {
