@@ -740,7 +740,7 @@
       <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${(leasingProceduresStatus == 'waitContract' || leasingProceduresStatus == 'approve') &amp;&amp; leasingProceduresStatus != 'refusal' &amp;&amp; leasingProceduresStatus != 'reject' &amp;&amp; leasingProceduresStatusFE != 'refusal' &amp;&amp; leasingProceduresStatusFE != 'reject'}</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
     <bpmn:sequenceFlow id="SequenceFlow_0xf304q" name="Verbal Agreement" sourceRef="ExclusiveGateway_19ncicm" targetRef="ServiceTask_0lm729x">
-      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${(leasingProceduresStatus == 'verbalAgreement' || leasingProceduresStatusFE == 'approve') &amp;&amp; leasingProceduresStatus != 'refusal' &amp;&amp; leasingProceduresStatus != 'reject' &amp;&amp; leasingProceduresStatusFE != 'refusal' &amp;&amp; leasingProceduresStatusFE != 'reject'}</bpmn:conditionExpression>
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${(leasingProceduresStatus == 'verbalAgreement' || leasingProceduresStatusFE == 'verbalAgreement') &amp;&amp; leasingProceduresStatus != 'refusal' &amp;&amp; leasingProceduresStatus != 'reject' &amp;&amp; leasingProceduresStatusFE != 'refusal' &amp;&amp; leasingProceduresStatusFE != 'reject'}</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
     <bpmn:sequenceFlow id="SequenceFlow_1oo6n65" name="REFUSAL" sourceRef="ExclusiveGateway_1w5b813" targetRef="ServiceTask_1w4dm34">
       <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${leasingProceduresStatus == 'refusal' || leasingProceduresStatus == 'reject' || leasingProceduresStatusFE == 'refusal' || leasingProceduresStatusFE == 'reject'}</bpmn:conditionExpression>
@@ -800,7 +800,7 @@
       <bpmn:incoming>SequenceFlow_0yqmyu4</bpmn:incoming>
       <bpmn:incoming>SequenceFlow_0nb026q</bpmn:incoming>
       <bpmn:incoming>SequenceFlow_08pprj9</bpmn:incoming>
-      <bpmn:incoming>SequenceFlow_0762aq3</bpmn:incoming>
+      <bpmn:incoming>SequenceFlow_1ltcga7</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_15hxet0</bpmn:outgoing>
       <bpmn:startEvent id="StartEvent_0kj1i9w">
         <bpmn:outgoing>SequenceFlow_0o1n50k</bpmn:outgoing>
@@ -895,7 +895,7 @@
         <bpmn:outgoing>SequenceFlow_1774vnl</bpmn:outgoing>
       </bpmn:sendTask>
       <bpmn:sequenceFlow id="SequenceFlow_1774vnl" sourceRef="SendTask_1j6miqc" targetRef="addOutToRollOut" />
-      <bpmn:serviceTask id="createNCP" name="Create Candidate" camunda:asyncBefore="true" camunda:class="kz.kcell.flow.leasing.CreateNCP">
+      <bpmn:serviceTask id="createNCP" name="Create Candidate" camunda:asyncBefore="true" camunda:class="kz.kcell.flow.leasing.CreateCandidate">
         <bpmn:incoming>SequenceFlow_0hly2ew</bpmn:incoming>
         <bpmn:outgoing>SequenceFlow_1tg2ew2</bpmn:outgoing>
       </bpmn:serviceTask>
@@ -917,7 +917,6 @@
       <bpmn:serviceTask id="ServiceTask_15vtfns" name="set Status 01" camunda:class="kz.kcell.flow.leasing.SetStatus">
         <bpmn:extensionElements>
           <camunda:inputOutput>
-            <camunda:inputParameter name="_SET_NCP_STATUS">2</camunda:inputParameter>
             <camunda:inputParameter name="_SET_GEN_STATUS">3</camunda:inputParameter>
           </camunda:inputOutput>
         </bpmn:extensionElements>
@@ -1456,7 +1455,7 @@ def leasingProceduresStatus = execution.getVariable('leasingProceduresStatus')
 if (!uploadSignedOwnerLeaseContractTaskResult || leasingProceduresStatus == "verbalAgreement") {
   execution.setVariable('uploadSignedOwnerLeaseContractTaskResult','skiped')
 }
-if (!uploadCopyOfOwnerSignedLeaseContractTaskResult) {
+if (!uploadCopyOfOwnerSignedLeaseContractTaskResult || leasingProceduresStatusFE == "verbalAgreement") {
     execution.setVariable('uploadCopyOfOwnerSignedLeaseContractTaskResult','skiped')
 }</bpmn:script>
     </bpmn:scriptTask>
@@ -1750,7 +1749,7 @@ if (!uploadCopyOfOwnerSignedLeaseContractTaskResult) {
     <bpmn:sequenceFlow id="SequenceFlow_0vc39bf" sourceRef="SubProcess_1ecv83k" targetRef="ExclusiveGateway_0w92bfy" />
     <bpmn:sequenceFlow id="SequenceFlow_057c8pi" sourceRef="ServiceTask_1rrb49v" targetRef="ExclusiveGateway_0yjn0ea" />
     <bpmn:sequenceFlow id="SequenceFlow_0bx2rua" sourceRef="ServiceTask_1l5f05l" targetRef="SubProcess_0jl82xl" />
-    <bpmn:sequenceFlow id="SequenceFlow_0762aq3" sourceRef="StartEvent_first" targetRef="SubProcess_0oq53qg" />
+    <bpmn:sequenceFlow id="SequenceFlow_0762aq3" sourceRef="StartEvent_first" targetRef="ServiceTask_11vfjnv" />
     <bpmn:sequenceFlow id="SequenceFlow_08pprj9" sourceRef="ServiceTask_1wvm1av" targetRef="SubProcess_0oq53qg" />
     <bpmn:sequenceFlow id="SequenceFlow_0z3jgwx" sourceRef="ServiceTask_12hvgex" targetRef="SubProcess_0iqjr7a" />
     <bpmn:sequenceFlow id="SequenceFlow_069erfz" sourceRef="ParallelGateway_0n7etuj" targetRef="ServiceTask_1rrb49v" />
@@ -1795,6 +1794,11 @@ InstStatusBeforeLeasingProblem</camunda:script>
       <bpmn:outgoing>SequenceFlow_09q3lch</bpmn:outgoing>
     </bpmn:serviceTask>
     <bpmn:sequenceFlow id="SequenceFlow_15hxet0" sourceRef="SubProcess_0oq53qg" targetRef="ExclusiveGateway_0ktht3w" />
+    <bpmn:serviceTask id="ServiceTask_11vfjnv" name="Create NCP" camunda:asyncBefore="true" camunda:class="kz.kcell.flow.leasing.CreateNCP">
+      <bpmn:incoming>SequenceFlow_0762aq3</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_1ltcga7</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:sequenceFlow id="SequenceFlow_1ltcga7" sourceRef="ServiceTask_11vfjnv" targetRef="SubProcess_0oq53qg" />
     <bpmn:textAnnotation id="TextAnnotation_1afyvrl">
       <bpmn:text>Central Planner group</bpmn:text>
     </bpmn:textAnnotation>
@@ -1853,7 +1857,7 @@ InstStatusBeforeLeasingProblem</camunda:script>
     <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="leasing">
       <bpmndi:BPMNEdge id="SequenceFlow_0762aq3_di" bpmnElement="SequenceFlow_0762aq3">
         <di:waypoint x="379" y="1205" />
-        <di:waypoint x="693" y="1205" />
+        <di:waypoint x="465" y="1205" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_0bx2rua_di" bpmnElement="SequenceFlow_0bx2rua" bioc:stroke="#E53935" bioc:fill="#FFCDD2">
         <di:waypoint x="11259" y="325" />
@@ -4146,6 +4150,13 @@ InstStatusBeforeLeasingProblem</camunda:script>
       <bpmndi:BPMNEdge id="SequenceFlow_15hxet0_di" bpmnElement="SequenceFlow_15hxet0">
         <di:waypoint x="2374" y="1205" />
         <di:waypoint x="2489" y="1205" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="ServiceTask_11vfjnv_di" bpmnElement="ServiceTask_11vfjnv" bioc:stroke="#1E88E5" bioc:fill="#BBDEFB">
+        <dc:Bounds x="465" y="1165" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_1ltcga7_di" bpmnElement="SequenceFlow_1ltcga7">
+        <di:waypoint x="565" y="1205" />
+        <di:waypoint x="693" y="1205" />
       </bpmndi:BPMNEdge>
     </bpmndi:BPMNPlane>
   </bpmndi:BPMNDiagram>
