@@ -227,9 +227,7 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
             $scope.siteName = $item.name;
             $scope.site = $item.id;
             $scope.site_name = $item.site_name;
-        };
-
-		getAllTaskNodes();
+        }; 
 
 		function getAllTaskNodes(){
 			$http.get(baseUrl + '/process-definition/key/Revision/xml')
@@ -1242,6 +1240,9 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 			$location.search({task:undefined});
 			if (filter === 'search'){
 				$scope.selectedView = 'search';
+				if($rootScope.selectedProcess.key === 'Revision'){
+					getAllTaskNodes();
+				}
 			} else {
 				$scope.selectedView = 'task';
 				$scope.view.page = 1;
