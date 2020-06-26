@@ -1008,7 +1008,8 @@ define(['../module', 'moment'], function (module, moment) {
                                                     });
 
                                                 }).then(function () {
-                                                    $http.get("/camunda/api/engine/engine/default/process-instance/" + scope.jobModel.resolutions.processInstanceId + "/activity-instances").then(
+                                                    if(scope.processInstancesDP[index].state === 'ACIIVE'){
+                                                        $http.get("/camunda/api/engine/engine/default/process-instance/" + scope.processInstancesDP[index].id + "/activity-instances").then(
                                                         function (result) {
                                                             var otherActivities = []
                                                             _.forEach(result.data.childActivityInstances, function (firstLevel) {
@@ -1038,6 +1039,19 @@ define(['../module', 'moment'], function (module, moment) {
                                                         function (error){
                                                             console.log(error.data)
                                                         });
+                                                    } else {
+                                                        asynCall5 = true;
+                                                        if (asynCall1 && asynCall4 && ((asynCall2 && asynCall3) || !asProcess) && asynCall5) {
+                                                            openProcessCardModal();
+                                                            asynCall1 = false;
+                                                            asynCall2 = false;
+                                                            asynCall3 = false;
+                                                            asynCall4 = false;
+                                                            asynCall5 = false;
+                                                        } else {
+                                                            //console.log(asynCall1,asynCall4, asynCall5, asProcess);
+                                                        }
+                                                    }
                                                 });
                                             }
                                             // var x = $http.get("/camunda/api/engine/engine/default/process-instance/" + scope.jobModel.resolutions.processInstanceId+"/activity-instances")
