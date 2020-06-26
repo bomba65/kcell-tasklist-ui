@@ -1,6 +1,25 @@
 <form role="form" class="form-horizontal" name="kcell_form" novalidate>
     <script cam-script type="text/form-script">
         inject(['$scope', '$http', 'Uri', '$rootScope', '$q', function ($scope, $http, Uri, $rootScope, $q) {
+        $scope.subcontructorDirectory = {
+          "1": {
+            "code": "949",
+            "responsible": "GULZHAN IMANDOSOVA"
+          },
+          "2": {
+            "code": "950",
+            "responsible": "AIGERIM SATYBEKOVA"
+          },
+          "3": {
+            "code": "951",
+            "responsible": "AIGERIM SATYBEKOVA"
+          },
+          "4": {
+            "code": "10",
+            "responsible": "KEREMET IBRAGIMOVA"
+          }
+        }
+
             var variables = [
                 'requestedDate',
                 'jrNumber',
@@ -49,6 +68,7 @@
                 'mainContract',
                 'jobWorksTotal',
                 'sapFaList',
+                'workDefinitionMap',
                 'sloc'
             ];
             $scope.jobModel = {
@@ -145,64 +165,21 @@
                     camForm.variableManager.variableValue('check_pr_dataTaskComment', '');
                 }
                 try{
-                    $scope.jobWorksValue.forEach(function(work){
-                        work.price = _.find($scope.jobModel.workPrices, function(p){
-                            return work.sapServiceNumber === p.sapServiceNumber
-                        });
 
+                    $scope.jobWorksValue.forEach(function(work){
                         if($scope.capexWorks.indexOf(work.sapServiceNumber)!==-1){
                             work.expenseType = 'CAPEX';
                         } else if($scope.opexWorks.indexOf(work.sapServiceNumber)!==-1){
                             work.expenseType = 'OPEX';
                         }
-
-                        if(work.expenseType==='CAPEX'){
-                            work.activityServiceNumber = 'DUMMY';
-                            if($scope.jobModel.reason.value === '2'){
-                                work.wbsElement = 'TN-0502-48-0236';
-                            } else {
-                                work.wbsElement = 'RN-0502-33-0236';
-                            }
-                            work.controllingArea = 'DUMMY';
-                        } else if(work.expenseType==='OPEX'){
-                            if($scope.jobModel.reason.value === '2'){
-                                work.activityServiceNumber = '7016046';
-                            } else {
-                                work.activityServiceNumber = '7016045';
-                            }
-                            if($scope.jobModel.reason.value === '4'){
-                                work.wbsElement = '252-70160-1';
-                            } else {
-                                work.wbsElement = '251-70160-1';
-                            }
-                            work.controllingArea = '3020';
-                        }
-                        work.costCenter = '25510';
-
-                        if(work.expenseType==='CAPEX'){
-                            if($scope.jobModel.reason.value === '2'){
-                                angular.forEach(work.relatedSites, function (rs) {
-                                    angular.forEach($scope.jobModel.sapFaList.value, function (fa) {
-                                        if(fa.faClass == $scope.workDefinitionMap[work.sapServiceNumber].faClass && fa.sloc == $scope.tnuSiteLocations[rs.site_name].siteLocation){
-                                            $scope.tnuSiteLocations[rs.site_name].work[work.sapServiceNumber].fixedAssetNumber = fa.faNumber;
-                                        }
-                                    });
-                                });
-                            } else {
-                                angular.forEach($scope.jobModel.sapFaList.value, function (fa) {
-                                    if(fa.faClass === $scope.workDefinitionMap[work.sapServiceNumber].faClass && fa.sloc == $scope.jobModel.sloc.value){
-                                        work.fixedAssetNumber = fa.faNumber;
-                                    }
-                                });
-                            }
-                        }
                     });
+                    calculateExpense();
                     $scope.jobWorksValueTemp = [];
                     $scope.jobWorksValue.forEach(function(w, index) {
                         console.log(index+' ' + w.uuid);
                         if($scope.jobModel.reason.value != '2') {
                             w.r = {
-                                site_name: $scope.site_name
+                                site_name: $scope.jobModel.site_name.value
                             };
                             w.prItemText = 'installation service ' + w.r.site_name;
                             w.index = index;
@@ -228,6 +205,8 @@
                             if(!w.price.unitWorkPricePlusTx) {
                                 w.price.unitWorkPricePlusTx = '0.0';
                             }
+                            console.log('9058901289081290812904129084129084908');
+                            console.log(w);
                             w.amountText = $scope.jobModel.reason.value == '2' ? w.price.unitWorkPricePerSite.replace('.',',') : w.price.unitWorkPricePlusTx.replace('.',',');
                             $scope.jobWorksValueTemp.push(w);
                         } else {
@@ -266,6 +245,55 @@
                     console.log(E);
                 }
             });
+
+            function calculateExpense() {
+                $scope.jobWorksValue.forEach(function(work){
+                    work.price = _.find($scope.jobModel.workPrices, function(p){
+                        return work.sapServiceNumber === p.sapServiceNumber
+                    });
+
+                    if(work.expenseType==='CAPEX'){
+                        work.activityServiceNumber = 'DUMMY';
+                        if($scope.jobModel.reason.value === '2'){
+                            work.wbsElement = 'TN-0502-48-0236';
+                        } else {
+                            work.wbsElement = 'RN-0502-33-0236';
+                        }
+                        work.controllingArea = 'DUMMY';
+                    } else if(work.expenseType==='OPEX'){
+                        if($scope.jobModel.reason.value === '2'){
+                            work.activityServiceNumber = '7016046';
+                        } else {
+                            work.activityServiceNumber = '7016045';
+                        }
+                        if($scope.jobModel.reason.value === '4'){
+                            work.wbsElement = '252-70160-1';
+                        } else {
+                            work.wbsElement = '251-70160-1';
+                        }
+                        work.controllingArea = '3020';
+                    }
+                    work.costCenter = '25510';
+
+                    if(work.expenseType==='CAPEX'){
+                        if($scope.jobModel.reason.value === '2'){
+                            angular.forEach(work.relatedSites, function (rs) {
+                                angular.forEach($scope.jobModel.sapFaList.value, function (fa) {
+                                    if(fa.faClass == $scope.workDefinitionMap[work.sapServiceNumber].faClass && fa.sloc == $scope.tnuSiteLocations[rs.site_name].siteLocation){
+                                        $scope.tnuSiteLocations[rs.site_name].work[work.sapServiceNumber].fixedAssetNumber = fa.faNumber;
+                                    }
+                                });
+                            });
+                        } else {
+                            angular.forEach($scope.jobModel.sapFaList.value, function (fa) {
+                                if(fa.faClass === $scope.workDefinitionMap[work.sapServiceNumber].faClass && fa.sloc == $scope.jobModel.sloc.value){
+                                    work.fixedAssetNumber = fa.faNumber;
+                                }
+                            });
+                        }
+                    }
+                });
+            }
 
             function uuidv4() {
               return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
@@ -504,6 +532,7 @@
             $scope.expenseTypeChanged = function() {
                 $scope.expenseTypeName = $rootScope.authentication.name;
                 $scope.expenseTypeAssigneeName = $rootScope.authentication.assigneeName;
+                calculateExpense();
             }
 
             $scope.prItemTextChanged = function() {
@@ -580,8 +609,8 @@
         </tr>
         <tr>
             <td>Sitename</td>
-            <td>{{jobModel.site.value}}, {{jobModel.siteName.value}}</td>
-            <td>{{jobModel.site.value}}, {{jobModel.siteName.value}}</td>
+            <td>{{jobModel.siteName.value}}, {{jobModel.site_name.value}}</td>
+            <td>{{jobModel.siteName.value}}, {{jobModel.site_name.value}}</td>
             <td></td>
             <td></td>
         </tr>
@@ -614,8 +643,8 @@
         </tr>
         <tr>
             <td>Subcontructor ID</td>
-            <td>949</td>
-            <td>949 GULZHAN IMANDOSOVA</td>
+            <td>{{subcontructorDirectory[jobModel.reason.value].code}}</td>
+            <td>{{subcontructorDirectory[jobModel.reason.value].code + ' ' + subcontructorDirectory[jobModel.reason.value].responsible}}</td>
             <td></td>
             <td></td>
         </tr>
@@ -692,7 +721,7 @@
                     <td ng-repeat="w in jobWorksValueTemp track by $index">
                         <span ng-if="!expenseTypeEdit">{{w.expenseType=='CAPEX'?'Y':(w.expenseType=='OPEX'?'K':'')}}</span>
                         <div class="input-group" ng-if="expenseTypeEdit">
-                            <select ng-model="w.expenseType" class="form-control" ng-change="">
+                            <select ng-model="w.expenseType" class="form-control" ng-change="expenseTypeChanged()">
                                 <option value="CAPEX">Y</option>
                                 <option value="OPEX">K</option>
                             </select>
@@ -814,8 +843,8 @@
                 <tr>
                     <td>FA number</td>
                     <td ng-repeat="w in jobWorksValueTemp track by $index">
-                        <span ng-if="jobModel.reason.value != '2'">{{w.fixedAssetNumber!=null?w.fixedAssetNumber:'DUMMY'}}</span>
-                        <span ng-if="jobModel.reason.value == '2'">{{w.expenseType=='CAPEX'?tnuSiteLocations[r.site_name].work[w.sapServiceNumber].fixedAssetNumber:'DUMMY'}}</span>
+                        <span ng-if="jobModel.reason.value != '2'">{{w.fixedAssetNumber!=null ? w.fixedAssetNumber : 'DUMMY'}}</span>
+                        <span ng-if="jobModel.reason.value == '2'">{{w.expenseType == 'CAPEX' ? tnuSiteLocations[r.site_name].work[w.sapServiceNumber].fixedAssetNumber : 'DUMMY'}}</span>
                     </td>
                     <td></td>
                     <td></td>
