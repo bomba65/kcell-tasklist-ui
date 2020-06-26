@@ -174,7 +174,7 @@
                             work.expenseType = 'OPEX';
                         }
                     });
-                    calculateExpense();
+                    calculateExpense(true);
                     $scope.jobWorksValueTemp = [];
                     $scope.jobWorksValue.forEach(function(w, index) {
                         console.log(index+' ' + w.uuid);
@@ -247,53 +247,102 @@
                 }
             });
 
-            function calculateExpense() {
-                $scope.jobWorksValue.forEach(function(work){
-                    work.price = _.find($scope.jobModel.workPrices, function(p){
-                        return work.sapServiceNumber === p.sapServiceNumber
-                    });
+            function calculateExpense(isInit) {
+                if(isInit){
+                    $scope.jobWorksValue.forEach(function(work){
+                        work.price = _.find($scope.jobModel.workPrices, function(p){
+                            return work.sapServiceNumber === p.sapServiceNumber
+                        });
 
-                    if(work.expenseType==='CAPEX'){
-                        work.activityServiceNumber = 'DUMMY';
-                        if($scope.jobModel.reason.value === '2'){
-                            work.wbsElement = 'TN-0502-48-0236';
-                        } else {
-                            work.wbsElement = 'RN-0502-33-0236';
+                        if(work.expenseType==='CAPEX'){
+                            work.activityServiceNumber = 'DUMMY';
+                            if($scope.jobModel.reason.value === '2'){
+                                work.wbsElement = 'TN-0502-48-0236';
+                            } else {
+                                work.wbsElement = 'RN-0502-33-0236';
+                            }
+                            work.controllingArea = 'DUMMY';
+                        } else if(work.expenseType==='OPEX'){
+                            if($scope.jobModel.reason.value === '2'){
+                                work.activityServiceNumber = '7016046';
+                            } else {
+                                work.activityServiceNumber = '7016045';
+                            }
+                            if($scope.jobModel.reason.value === '4'){
+                                work.wbsElement = '252-70160-1';
+                            } else {
+                                work.wbsElement = '251-70160-1';
+                            }
+                            work.controllingArea = '3020';
                         }
-                        work.controllingArea = 'DUMMY';
-                    } else if(work.expenseType==='OPEX'){
-                        if($scope.jobModel.reason.value === '2'){
-                            work.activityServiceNumber = '7016046';
-                        } else {
-                            work.activityServiceNumber = '7016045';
-                        }
-                        if($scope.jobModel.reason.value === '4'){
-                            work.wbsElement = '252-70160-1';
-                        } else {
-                            work.wbsElement = '251-70160-1';
-                        }
-                        work.controllingArea = '3020';
-                    }
-                    work.costCenter = '25510';
+                        work.costCenter = '25510';
 
-                    if(work.expenseType==='CAPEX'){
-                        if($scope.jobModel.reason.value === '2'){
-                            angular.forEach(work.relatedSites, function (rs) {
+                        if(work.expenseType==='CAPEX'){
+                            if($scope.jobModel.reason.value === '2'){
+                                angular.forEach(work.relatedSites, function (rs) {
+                                    angular.forEach($scope.jobModel.sapFaList.value, function (fa) {
+                                        if(fa.faClass == $scope.workDefinitionMap[work.sapServiceNumber].faClass && fa.sloc == $scope.tnuSiteLocations[rs.site_name].siteLocation){
+                                            $scope.tnuSiteLocations[rs.site_name].work[work.sapServiceNumber].fixedAssetNumber = fa.faNumber;
+                                        }
+                                    });
+                                });
+                            } else {
                                 angular.forEach($scope.jobModel.sapFaList.value, function (fa) {
-                                    if(fa.faClass == $scope.workDefinitionMap[work.sapServiceNumber].faClass && fa.sloc == $scope.tnuSiteLocations[rs.site_name].siteLocation){
-                                        $scope.tnuSiteLocations[rs.site_name].work[work.sapServiceNumber].fixedAssetNumber = fa.faNumber;
+                                    if(fa.faClass === $scope.workDefinitionMap[work.sapServiceNumber].faClass && fa.sloc == $scope.jobModel.sloc.value){
+                                        work.fixedAssetNumber = fa.faNumber;
                                     }
                                 });
-                            });
-                        } else {
-                            angular.forEach($scope.jobModel.sapFaList.value, function (fa) {
-                                if(fa.faClass === $scope.workDefinitionMap[work.sapServiceNumber].faClass && fa.sloc == $scope.jobModel.sloc.value){
-                                    work.fixedAssetNumber = fa.faNumber;
-                                }
-                            });
+                            }
                         }
-                    }
-                });
+                    });
+                } else {
+                    $scope.jobWorksValueTemp.forEach(function(work){
+                        work.price = _.find($scope.jobModel.workPrices, function(p){
+                            return work.sapServiceNumber === p.sapServiceNumber
+                        });
+
+                        if(work.expenseType==='CAPEX'){
+                            work.activityServiceNumber = 'DUMMY';
+                            if($scope.jobModel.reason.value === '2'){
+                                work.wbsElement = 'TN-0502-48-0236';
+                            } else {
+                                work.wbsElement = 'RN-0502-33-0236';
+                            }
+                            work.controllingArea = 'DUMMY';
+                        } else if(work.expenseType==='OPEX'){
+                            if($scope.jobModel.reason.value === '2'){
+                                work.activityServiceNumber = '7016046';
+                            } else {
+                                work.activityServiceNumber = '7016045';
+                            }
+                            if($scope.jobModel.reason.value === '4'){
+                                work.wbsElement = '252-70160-1';
+                            } else {
+                                work.wbsElement = '251-70160-1';
+                            }
+                            work.controllingArea = '3020';
+                        }
+                        work.costCenter = '25510';
+
+                        if(work.expenseType==='CAPEX'){
+                            if($scope.jobModel.reason.value === '2'){
+                                angular.forEach(work.relatedSites, function (rs) {
+                                    angular.forEach($scope.jobModel.sapFaList.value, function (fa) {
+                                        if(fa.faClass == $scope.workDefinitionMap[work.sapServiceNumber].faClass && fa.sloc == $scope.tnuSiteLocations[rs.site_name].siteLocation){
+                                            $scope.tnuSiteLocations[rs.site_name].work[work.sapServiceNumber].fixedAssetNumber = fa.faNumber;
+                                        }
+                                    });
+                                });
+                            } else {
+                                angular.forEach($scope.jobModel.sapFaList.value, function (fa) {
+                                    if(fa.faClass === $scope.workDefinitionMap[work.sapServiceNumber].faClass && fa.sloc == $scope.jobModel.sloc.value){
+                                        work.fixedAssetNumber = fa.faNumber;
+                                    }
+                                });
+                            }
+                        }
+                    });
+                }
             }
 
             function uuidv4() {
