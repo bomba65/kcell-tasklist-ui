@@ -412,20 +412,20 @@ public class CreateUpdateContract implements JavaDelegate {
 
                                 Number ct_agreement_executor = Integer.parseInt(ci.hasProp("ct_agreement_executor") && !ci.prop("ct_agreement_executor").value().equals(null) ? ci.prop("ct_agreement_executor").value().toString() : "0");
 
-                                Number contract_aa_cid = 0;
-                                String SelectMinCIDinCA = "select min(ca.CID) as CID from CONTRACT_ARTEFACT ca join CONTRACTS c on ca.ARTEFACTID = c.CID where c.CONTRACTID = ?"; //AS-1089-09
-                                PreparedStatement SelectMinCIDinCAPreparedStatement = udbConnect.prepareStatement(SelectMinCIDinCA);
-                                i = 1;
-                                log.info("get contracts...");
-                                SelectMinCIDinCAPreparedStatement.setString(i++, ct_contractid_old); //ct_contractid_old
-                                ResultSet SelectMinCIDinCAresultSet = SelectMinCIDinCAPreparedStatement.executeQuery();
-
-                                if (SelectMinCIDinCAresultSet.next() == false) {
-                                    log.info("not Found");
-                                } else {
-                                    log.info("get contracts...");
-                                    contract_aa_cid = SelectMinCIDinCAresultSet.getInt("CID");
-                                }
+//                                Number contract_aa_cid = 0;
+//                                String SelectMinCIDinCA = "select min(ca.CID) as CID from CONTRACT_ARTEFACT ca join CONTRACTS c on ca.ARTEFACTID = c.CID where c.CONTRACTID = ?"; //AS-1089-09
+//                                PreparedStatement SelectMinCIDinCAPreparedStatement = udbConnect.prepareStatement(SelectMinCIDinCA);
+//                                i = 1;
+//                                log.info("get contracts...");
+//                                SelectMinCIDinCAPreparedStatement.setString(i++, ct_contractid_old); //ct_contractid_old
+//                                ResultSet SelectMinCIDinCAresultSet = SelectMinCIDinCAPreparedStatement.executeQuery();
+//
+//                                if (SelectMinCIDinCAresultSet.next() == false) {
+//                                    log.info("not Found");
+//                                } else {
+//                                    log.info("get contracts...");
+//                                    contract_aa_cid = SelectMinCIDinCAresultSet.getInt("CID");
+//                                }
 
                                 Long createdContractAA = null;
                                 String createdContractAAID[] = { "AAID" };
@@ -436,12 +436,12 @@ public class CreateUpdateContract implements JavaDelegate {
                                 log.info("INSERT_CONTRACT_AA preparedStatement SQL UPDATE VALUES");
                                 // set values to update
 
-//                                INSERT_CONTRACT_AA_PreparedStatement.setLong(i++, ct_cid); // CID
-                                if (contract_aa_cid.longValue() > 0) {
-                                    INSERT_CONTRACT_AA_PreparedStatement.setLong(i++, contract_aa_cid.longValue()); // CID
-                                } else {
-                                    INSERT_CONTRACT_AA_PreparedStatement.setNull (i++, Types.INTEGER); // AA_DATE
-                                }
+                                INSERT_CONTRACT_AA_PreparedStatement.setLong(i++, ct_cid); // CID
+//                                if (contract_aa_cid.longValue() > 0) {
+//                                    INSERT_CONTRACT_AA_PreparedStatement.setLong(i++, contract_aa_cid.longValue()); // CID
+//                                } else {
+//                                    INSERT_CONTRACT_AA_PreparedStatement.setNull (i++, Types.INTEGER); // AA_DATE
+//                                }
                                 INSERT_CONTRACT_AA_PreparedStatement.setString(i++, ct_agreement_number); // AA_NUMBER
                                 if (!ct_aa_date.equals("")) {
                                     INSERT_CONTRACT_AA_PreparedStatement.setDate(i++, new java.sql.Date(cal_ct_aa_date.getTimeInMillis())); // AA_DATE
