@@ -13,6 +13,9 @@ import org.camunda.spin.plugin.variable.SpinValues
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 
+import java.text.DateFormat
+import java.text.SimpleDateFormat
+
 @Service("GenerateLeasingRSD")
 class GenerateLeasingRSD implements ExecutionListener {
     private Minio minioClient;
@@ -966,9 +969,31 @@ class GenerateLeasingRSD implements ExecutionListener {
 
         JSONArray createdRSDFiles = new JSONArray();
         JSONObject createdRSDFile = new JSONObject();
+        def regionCode = execution.getVariable('regionCode').toString();
+        def regionStr = "";
+        if (regionCode.equals("1")) {
+            regionStr = "Alm";
+        } else if (regionCode.equals("2")) {
+            regionStr = "N&C";
+        } else if (regionCode.equals("3")) {
+            regionStr = "East";
+        } else if (regionCode.equals("4")) {
+            regionStr = "South";
+        } else if (regionCode.equals("5")) {
+            regionStr = "West";
+        } else if (regionCode.equals("0")) {
+            regionStr = "Ast";
+        }
+
+        def siteName = execution.getVariable('siteName').toString();
+        SimpleDateFormat formatter = new SimpleDateFormat("yyyyMMdd"); //20200102
+        Date date = new Date();
+        Date dateString = formatter.parse(date).toString();
+
+        def fileName = "RSD_" + regionStr + "_" + siteName + "_" + dateString + ".doc";
         createdRSDFile.put("date", new Date().getTime());
         createdRSDFile.put("author", "");
-        createdRSDFile.put("name", "createdRSDFile.doc");
+        createdRSDFile.put("name", fileName);
         createdRSDFile.put("path", path);
         createdRSDFiles.put(createdRSDFile);
         execution.setVariable("createdRSDFile", SpinValues.jsonValue(createdRSDFiles.toString()))
