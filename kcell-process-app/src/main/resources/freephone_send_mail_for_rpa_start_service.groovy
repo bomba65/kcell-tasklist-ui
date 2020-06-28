@@ -26,7 +26,7 @@ html(lang:'en') {
     }
     newLine()
     body {
-        p('Добрый день!)
+        p('Добрый день!')
         newLine()
         p('Требуется добавить в конфигурации SBC короткий номер ' + finalIDs)
         newLine()

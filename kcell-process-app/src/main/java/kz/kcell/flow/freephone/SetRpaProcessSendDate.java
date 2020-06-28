@@ -1,12 +1,16 @@
 package kz.kcell.flow.freephone;
 
 import kz.kcell.flow.calendar.ProductionCalendar;
+import lombok.extern.java.Log;
 import org.camunda.bpm.engine.delegate.DelegateExecution;
 import org.camunda.bpm.engine.delegate.ExecutionListener;
 
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
 
+@Log
 public class SetRpaProcessSendDate implements ExecutionListener {
+
     @Override
     public void notify(DelegateExecution execution) throws Exception {
         Calendar calendar = Calendar.getInstance();
@@ -19,6 +23,9 @@ public class SetRpaProcessSendDate implements ExecutionListener {
         calendar.set(Calendar.MINUTE, 0);
         calendar.set(Calendar.SECOND,0);
         calendar.add(Calendar.HOUR_OF_DAY, -6);
-        execution.setVariable("rpa_params_send_process_date", calendar.getTime());
+
+        SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:SS'Z'");
+
+        execution.setVariable("rpa_params_send_process_date", df.format(calendar.getTime()));
     }
 }
