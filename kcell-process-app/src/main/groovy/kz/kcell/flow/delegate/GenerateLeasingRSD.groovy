@@ -986,9 +986,10 @@ class GenerateLeasingRSD implements ExecutionListener {
         }
 
         def siteName = execution.getVariable('siteName').toString();
-        SimpleDateFormat formatter = new SimpleDateFormat("yyyyMMdd"); //20200102
         Date date = new Date();
-        Date dateString = formatter.parse(date).toString();
+        DateFormat df = new SimpleDateFormat("yyyyMMdd");
+        String s = df.format(date);
+        String dateString = s;
 
         def fileName = "RSD_" + regionStr + "_" + siteName + "_" + dateString + ".doc";
         createdRSDFile.put("date", new Date().getTime());
