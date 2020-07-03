@@ -290,6 +290,11 @@ public class RevolvingPostTCFForm implements JavaDelegate {
                 Calendar firstDate = Calendar.getInstance();
                 firstDate.set(Calendar.DAY_OF_MONTH, 1);
 
+                Boolean firstDayConnection = false;
+                if(delegateExecution.getVariable("firstDayConnection")!=null){
+                    firstDayConnection = (Boolean) delegateExecution.getVariable("firstDayConnection");
+                }
+
                 Date commercialDate = new Date();
 
                 JSONArray jsonArray = new JSONArray(delegateExecution.getVariable("resolutions").toString());
@@ -372,7 +377,7 @@ public class RevolvingPostTCFForm implements JavaDelegate {
                     pstn = "15";
                 }
                 if (delegateExecution.getVariable("numbersAmount").toString().equals("0")) {
-                    a = "3,000,000";
+                    a = delegateExecution.getVariable("tariffMonthly").toString();
                     b = "6.00";
                     c = "500,000";
                     cug = delegateExecution.getVariable("tariffCug").toString();
@@ -382,7 +387,7 @@ public class RevolvingPostTCFForm implements JavaDelegate {
                     international = delegateExecution.getVariable("tariffInternational").toString();
                 }
                 String htmlTemplateTCF = "<table style=\"border: 1px dotted #d3d3d3;color:#333333;background-color:#ffffff;\">\n" +
-                    "  <tr>\n" +
+                    (!firstDayConnection ? ("  <tr>\n" +
                     "    <td colspan=\"3\">To set the following tariffs for " + legalInformationJSON.get("ticName").toString() + " contract from " + sdf.format(commercialDate) +
                     " commercial_starting_service to " + sdf.format(calendar.getTime()) + ":</td>\n" +
                     "  </tr>\n" +
@@ -416,62 +421,66 @@ public class RevolvingPostTCFForm implements JavaDelegate {
                     "    <td style=\"border: 1px dotted #d3d3d3;color:#333333;background-color:#ffffff;\">CLOSED</td>\n" +
                     "    <td style=\"border: 1px dotted #d3d3d3;color:#333333;background-color:#ffffff;\">1 sec</td>\n" +
                     "  </tr>\n" +
-                    "  <tr>\n" +
-                    "    <td colspan=\"3\" style=\"border: 1px dotted #d3d3d3;color:#333333;background-color:#ffffff;\">To set one time payment for " + legalInformationJSON.get("ticName").toString() + " from " + sdf.format(calendarNext.getTime()) + " - " + a + " tg</td>\n" +
+                    "  <tr>\n") : "") +
+
+                    (firstDayConnection ?
+                        ("    <td colspan=\"3\" style=\"border: 1px dotted #d3d3d3;color:#333333;background-color:#ffffff;\">To set one time payment for " + legalInformationJSON.get("ticName").toString() + " from " + sdf.format(calendarNext.getTime()) + " - " + a + " tg</td>\n") :
+                        ("    <td colspan=\"3\" style=\"border: 1px dotted #d3d3d3;color:#333333;background-color:#ffffff;\">Please set a new tariff for " + legalInformationJSON.get("ticName").toString() + " from " + sdf.format(calendarNext.getTime()) + " - " + a + " tg</td>\n")
+                    ) +
                     "  </tr>\n" +
-//                    "  <tr>\n" +
-//                    "    <td style=\"border: 1px dotted #d3d3d3;color:#333333;background-color:#ffffff;\">Direction</td>\n" +
-//                    "    <td style=\"border: 1px dotted #d3d3d3;color:#333333;background-color:#ffffff;\">Tariff, incl. VAT</td>\n" +
-//                    "    <td style=\"border: 1px dotted #d3d3d3;color:#333333;background-color:#ffffff;\">Charging interval</td>\n" +
-//                    "  </tr>\n" +
-//                    "  <tr>\n" +
-//                    "    <td style=\"border: 1px dotted #d3d3d3;color:#333333;background-color:#ffffff;\">Monthly fee*</td>\n" +
-//                    "    <td style=\"border: 1px dotted #d3d3d3;color:#333333;background-color:#ffffff;\">" + a + "</td>\n" +
-//                    "    <td style=\"border: 1px dotted #d3d3d3;color:#333333;background-color:#ffffff;\"></td>\n" +
-//                    "  </tr>\n" +
-//                    "  <tr\n" +
-//                    "  <tr>\n" +
-//                    "    <td style=\"border: 1px dotted #d3d3d3;color:#333333;background-color:#ffffff;\">Kcell, Activ</td>\n" +
-//                    "    <td style=\"border: 1px dotted #d3d3d3;color:#333333;background-color:#ffffff;\">" + onnet + "</td>\n" +
-//                    "    <td style=\"border: 1px dotted #d3d3d3;color:#333333;background-color:#ffffff;\">1 sec</td>\n" +
-//                    "  </tr>\n" +
-//                    "  <tr>\n" +
-//                    "    <td style=\"border: 1px dotted #d3d3d3;color:#333333;background-color:#ffffff;\">CUG</td>\n" +
-//                    "    <td style=\"border: 1px dotted #d3d3d3;color:#333333;background-color:#ffffff;\">" + cug + "</td>\n" +
-//                    "    <td style=\"border: 1px dotted #d3d3d3;color:#333333;background-color:#ffffff;\">1 sec</td>\n" +
-//                    "  </tr>\n" +
-//                    "  <tr>\n" +
-//                    "    <td style=\"border: 1px dotted #d3d3d3;color:#333333;background-color:#ffffff;\">Other mobile operators</td>\n" +
-//                    "    <td style=\"border: 1px dotted #d3d3d3;color:#333333;background-color:#ffffff;\">" + offnet + "</td>\n" +
-//                    "    <td style=\"border: 1px dotted #d3d3d3;color:#333333;background-color:#ffffff;\">1 sec</td>\n" +
-//                    "  </tr>\n" +
-//                    "  <tr>\n" +
-//                    "    <td style=\"border: 1px dotted #d3d3d3;color:#333333;background-color:#ffffff;\">Fixed network</td>\n" +
-//                    "    <td style=\"border: 1px dotted #d3d3d3;color:#333333;background-color:#ffffff;\">" + pstn + "</td>\n" +
-//                    "    <td style=\"border: 1px dotted #d3d3d3;color:#333333;background-color:#ffffff;\">1 sec</td>\n" +
-//                    "  </tr>\n" +
-//                    "  <tr>\n" +
-//                    "    <td style=\"border: 1px dotted #d3d3d3;color:#333333;background-color:#ffffff;\">International</td>\n" +
-//                    "    <td style=\"border: 1px dotted #d3d3d3;color:#333333;background-color:#ffffff;\">CLOSED</td>\n" +
-//                    "    <td style=\"border: 1px dotted #d3d3d3;color:#333333;background-color:#ffffff;\">1 sec</td>\n" +
-//                    "  </tr>\n" +
-//                    "  <tr>\n" +
-//                    "    <td style=\"border: 1px dotted #d3d3d3;color:#333333;background-color:#ffffff;\"></td>\n" +
-//                    "    <td style=\"border: 1px dotted #d3d3d3;color:#333333;background-color:#ffffff;\"></td>\n" +
-//                    "    <td style=\"border: 1px dotted #d3d3d3;color:#333333;background-color:#ffffff;\"></td>\n" +
-//                    "  </tr>\n" +
-//                    "  <tr>\n" +
-//                    "    <td style=\"border: 1px dotted #d3d3d3;color:#333333;background-color:#ffffff;\" colspan=\"2\">*Monthly fee includes free bonus minutes " + c + " min. </td>\n" +
-//                    "    <td style=\"border: 1px dotted #d3d3d3;color:#333333;background-color:#ffffff;\"></td>\n" +
-//                    "  </tr>\n" +
-//                    "  <tr>\n" +
-//                    "    <td style=\"border: 1px dotted #d3d3d3;color:#333333;background-color:#ffffff;\"></td>\n" +
-//                    "    <td style=\"border: 1px dotted #d3d3d3;color:#333333;background-color:#ffffff;\"></td>\n" +
-//                    "    <td style=\"border: 1px dotted #d3d3d3;color:#333333;background-color:#ffffff;\"></td>\n" +
-//                    "  </tr>\n" +
-//                    "  <tr>\n" +
-//                    "    <td style=\"border: 1px dotted #d3d3d3;color:#333333;background-color:#ffffff;\" colspan=\"3\">Monthly fee includes minutes of CUG, onnet, offnet</td>\n" +
-//                    "  </tr>\n" +
+                    "  <tr>\n" +
+                    "    <td style=\"border: 1px dotted #d3d3d3;color:#333333;background-color:#ffffff;\">Direction</td>\n" +
+                    "    <td style=\"border: 1px dotted #d3d3d3;color:#333333;background-color:#ffffff;\">Tariff, incl. VAT</td>\n" +
+                    "    <td style=\"border: 1px dotted #d3d3d3;color:#333333;background-color:#ffffff;\">Charging interval</td>\n" +
+                    "  </tr>\n" +
+                    "  <tr>\n" +
+                    "    <td style=\"border: 1px dotted #d3d3d3;color:#333333;background-color:#ffffff;\">Monthly fee*</td>\n" +
+                    "    <td style=\"border: 1px dotted #d3d3d3;color:#333333;background-color:#ffffff;\">" + a + "</td>\n" +
+                    "    <td style=\"border: 1px dotted #d3d3d3;color:#333333;background-color:#ffffff;\"></td>\n" +
+                    "  </tr>\n" +
+                    "  <tr\n" +
+                    "  <tr>\n" +
+                    "    <td style=\"border: 1px dotted #d3d3d3;color:#333333;background-color:#ffffff;\">Kcell, Activ</td>\n" +
+                    "    <td style=\"border: 1px dotted #d3d3d3;color:#333333;background-color:#ffffff;\">" + onnet + "</td>\n" +
+                    "    <td style=\"border: 1px dotted #d3d3d3;color:#333333;background-color:#ffffff;\">1 sec</td>\n" +
+                    "  </tr>\n" +
+                    "  <tr>\n" +
+                    "    <td style=\"border: 1px dotted #d3d3d3;color:#333333;background-color:#ffffff;\">CUG</td>\n" +
+                    "    <td style=\"border: 1px dotted #d3d3d3;color:#333333;background-color:#ffffff;\">" + cug + "</td>\n" +
+                    "    <td style=\"border: 1px dotted #d3d3d3;color:#333333;background-color:#ffffff;\">1 sec</td>\n" +
+                    "  </tr>\n" +
+                    "  <tr>\n" +
+                    "    <td style=\"border: 1px dotted #d3d3d3;color:#333333;background-color:#ffffff;\">Other mobile operators</td>\n" +
+                    "    <td style=\"border: 1px dotted #d3d3d3;color:#333333;background-color:#ffffff;\">" + offnet + "</td>\n" +
+                    "    <td style=\"border: 1px dotted #d3d3d3;color:#333333;background-color:#ffffff;\">1 sec</td>\n" +
+                    "  </tr>\n" +
+                    "  <tr>\n" +
+                    "    <td style=\"border: 1px dotted #d3d3d3;color:#333333;background-color:#ffffff;\">Fixed network</td>\n" +
+                    "    <td style=\"border: 1px dotted #d3d3d3;color:#333333;background-color:#ffffff;\">" + pstn + "</td>\n" +
+                    "    <td style=\"border: 1px dotted #d3d3d3;color:#333333;background-color:#ffffff;\">1 sec</td>\n" +
+                    "  </tr>\n" +
+                    "  <tr>\n" +
+                    "    <td style=\"border: 1px dotted #d3d3d3;color:#333333;background-color:#ffffff;\">International</td>\n" +
+                    "    <td style=\"border: 1px dotted #d3d3d3;color:#333333;background-color:#ffffff;\">CLOSED</td>\n" +
+                    "    <td style=\"border: 1px dotted #d3d3d3;color:#333333;background-color:#ffffff;\">1 sec</td>\n" +
+                    "  </tr>\n" +
+                    "  <tr>\n" +
+                    "    <td style=\"border: 1px dotted #d3d3d3;color:#333333;background-color:#ffffff;\"></td>\n" +
+                    "    <td style=\"border: 1px dotted #d3d3d3;color:#333333;background-color:#ffffff;\"></td>\n" +
+                    "    <td style=\"border: 1px dotted #d3d3d3;color:#333333;background-color:#ffffff;\"></td>\n" +
+                    "  </tr>\n" +
+                    "  <tr>\n" +
+                    "    <td style=\"border: 1px dotted #d3d3d3;color:#333333;background-color:#ffffff;\" colspan=\"2\">*Monthly fee includes free bonus minutes " + c + " min. </td>\n" +
+                    "    <td style=\"border: 1px dotted #d3d3d3;color:#333333;background-color:#ffffff;\"></td>\n" +
+                    "  </tr>\n" +
+                    "  <tr>\n" +
+                    "    <td style=\"border: 1px dotted #d3d3d3;color:#333333;background-color:#ffffff;\"></td>\n" +
+                    "    <td style=\"border: 1px dotted #d3d3d3;color:#333333;background-color:#ffffff;\"></td>\n" +
+                    "    <td style=\"border: 1px dotted #d3d3d3;color:#333333;background-color:#ffffff;\"></td>\n" +
+                    "  </tr>\n" +
+                    "  <tr>\n" +
+                    "    <td style=\"border: 1px dotted #d3d3d3;color:#333333;background-color:#ffffff;\" colspan=\"3\">Monthly fee includes minutes of CUG, onnet, offnet</td>\n" +
+                    "  </tr>\n" +
                     "</table>";
                 requestBodyJSON.put("Requirments", htmlTemplateTCF);
                 System.out.println("Requirments: " + htmlTemplateTCF);
