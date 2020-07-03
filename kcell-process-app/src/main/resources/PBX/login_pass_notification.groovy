@@ -44,10 +44,8 @@ def binding = [
         "connectionPoint"  : connectionPoint,
         "authorizationType": authorizationType,
         "destinationIp"    : destinationIp,
-        "testLogin"        : testLogin,
         "preferredCoding"        : preferredCoding,
         "pbxNumbers"        : pbxNumbers,
-        "testPassword"     : testPassword,
         "portStr"          : portStr,
         "ipSignaling"          : ipSignaling,
         "ipVoiceTraffic"          : ipVoiceTraffic,
@@ -80,10 +78,6 @@ html(lang:'en') {
         p('Мы сделали настройки со своей стороны, прописали ваши IP-адреса(' + portStr + '), а также организовали маршрутизацию на выделенную вам нумерационную ёмкость.' )
         newLine()
         p('Теперь мы ждём, когда вы выполните соответствующие настройки на своём оборудовании. Наш внешний IP-адрес ' + destinationIp +  ' для SIP-трафика (на этот адрес настраивается соединение, адреса из диапазона 185.2.224.16/255.255.255.240 (UDP 10000-49999) - для RTP (обычно эти адреса прописываются только на Firewall, они пригодятся, если транк не заработает сразу). ')
-        newLine()
-        p('<b>Логин:</b> ' + testLogin )
-        newLine()
-        p('<b>Пароль:</b> ' + testPassword )
         newLine()        
         p('Для вас на время тестировния прописаны наборы только на номера с префиксом +7 701 211 (служебные номера Kcell).')
         newLine()
