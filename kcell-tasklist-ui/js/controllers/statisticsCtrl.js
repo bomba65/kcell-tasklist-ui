@@ -730,7 +730,6 @@ define(['./module','jquery'], function(app,$){
                         'approve_jr': 'Wait Central Unit Approval',
                         'approve_transmission_works' : 'Wait Central Unit Approval (Transmission works)',
                         'approve_jr_budget' : 'Wait Budget Approval (Transmission works)',
-                        'approve_jr_budget' : 'Wait Budget Approval (Transmission works)',
                         'update_leasing_status_special': 'Wait Central Acquisition Approval',
                         'update_leasing_status_general': 'Wait Region Acquisition Approval',
                         'modify_jr': 'Wait Modify JR',
