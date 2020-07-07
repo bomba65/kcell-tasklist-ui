@@ -23,11 +23,12 @@ define(['./../module'], function(module){
 						scope.dictionary.antennaType = scope.dictionary.antennaType;
 						scope.addressesList = scope.dictionary.addresses;
                         scope.oblastList = _.uniqBy(scope.dictionary.addresses, 'oblast').map( (e, index) => { return {"name" : e.oblast, "id" : index} });
-                        scope.cityList = _.uniqBy(scope.dictionary.addresses, 'city').map( (e, index) => { return {"name" : e.city, "id" : index} });
+                        scope.currentFarEnd.cityList = _.uniqBy(scope.dictionary.addresses, 'city').map( (e, index) => { return {"name" : e.city, "id" : index} });
                         scope.districtList = _.uniqBy(scope.dictionary.addresses, 'district').map( (e, index) => { return {"name" : e.district, "id" : index} });
                         scope.filteredDistricts = scope.districtList;
                         scope.filteredDistrictsInCAI = scope.districtList;
                         scope.alphabet = 'abcdefghijklmnopqrstuvwxyz'.split('');
+						console.log("scope:");
 						console.log(scope);
 						
 						scope.leasingCandidate.addressString = '';
