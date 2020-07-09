@@ -157,22 +157,20 @@ User		        Из нового формата текстового файла	�
 def template = '''\
 if (reason == '2') {
     jobWorksObj.each { w ->
-        w.relatedSites.each { r ->
-            yieldUnescaped '' + documentType + '\t' + w.costType + '\t' + jrNumber + '\tapproved\t' + requestDate + '\t' + workDefinitionMap[w.sapServiceNumber].vendor + '\t' + 
-                  '7\tY\tinstallation service ' + r.site_name + '\t' + w.contractorNo + '\t' + workDefinitionMap[w.sapServiceNumber].sapServiceNumber + '\t' + w.price.quantity + '\t' +
-                  yearEndDate + '\t' + w.wbsElement + '\t' + jrNumber + '\t' + tnuSiteLocations[r.site_name].siteLocation + '\t' + 
-                  (w.expenseType == 'CAPEX'?tnuSiteLocations[r.site_name].work[w.sapServiceNumber].fixedAssetNumber:'DUMMY') + '\t' +
-                  w.costCenter + '\t' + w.controllingArea + '\t' + w.activityServiceNumber + '\t' + w.price.unitWorkPricePerSite + '\t' +
-                  subcontructerName + '\t131\t' + requestedBy + '\t' +
-                  '1.Purchase description: Revision works for site ' + r.site_name + ' JR# ' + jrNumber + ' dated ' + requestDate + ' ' +
-                  '2.Budgeted or not: yes ' + workDefinitionMap[w.sapServiceNumber].spp + ' ' +
-                  '3.Main project for Fintur: revision works ' +
-                  '4.Describe the need of this purchase for this year: necessary for revision works ' +
-                  '5.Contact person: ' + subcontructerName + ' ' +
-                  '6. Vendor: Line System Engineering LLP ' +
-                  '8. Total sum: ' + jobWorksTotal + ''
-            newLine()
-        }
+        yieldUnescaped '' + documentType + '\t' + w.costType + '\t' + jrNumber + '\tapproved\t' + requestDate + '\t' + workDefinitionMap[w.sapServiceNumber].vendor + '\t' + 
+              '7\tY\tinstallation service ' + w.r.site_name + '\t' + w.contractorNo + '\t' + workDefinitionMap[w.sapServiceNumber].sapServiceNumber + '\t' + w.price.quantity + '\t' +
+              yearEndDate + '\t' + w.wbsElement + '\t' + jrNumber + '\t' + tnuSiteLocations[w.r.site_name].siteLocation + '\t' + 
+              (w.expenseType == 'CAPEX'?tnuSiteLocations[w.r.site_name].work[w.sapServiceNumber].fixedAssetNumber:'DUMMY') + '\t' +
+              w.costCenter + '\t' + w.controllingArea + '\t' + w.activityServiceNumber + '\t' + w.price.unitWorkPricePerSite + '\t' +
+              subcontructerName + '\t131\t' + requestedBy + '\t' +
+              '1.Purchase description: Revision works for site ' + w.r.site_name + ' JR# ' + jrNumber + ' dated ' + requestDate + ' ' +
+              '2.Budgeted or not: yes ' + workDefinitionMap[w.sapServiceNumber].spp + ' ' +
+              '3.Main project for Fintur: revision works ' +
+              '4.Describe the need of this purchase for this year: necessary for revision works ' +
+              '5.Contact person: ' + subcontructerName + ' ' +
+              '6. Vendor: Line System Engineering LLP ' +
+              '8. Total sum: ' + jobWorksTotal + ''
+        newLine()
     }
 } else {
     jobWorksObj.each { w ->
