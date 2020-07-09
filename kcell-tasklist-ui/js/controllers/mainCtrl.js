@@ -14,6 +14,12 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 			angular.extend(this, data);
 		}
 
+		$rootScope.logout = function(){
+			AuthenticationService.logout().then(function(){
+				$rootScope.authentication = null;
+			});
+		}
+
 		$scope.view = {
 			page: 1,
 			maxResults: 20
@@ -110,40 +116,6 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 		$scope.startProcess = function(id){
 			StartProcessService(id);
 		}
-		$rootScope.modalStartProcess = function() {
-			var processList = [];
-			angular.forEach($scope.projects, function(project) {
-				processList += _.map(project.processes, 'key');
-			});			
-			$http.get(baseUrl+'/process-definition?latest=true&active=true&firstResult=0&maxResults=100&startablePermissionCheck=true').then(
-				function(results){
-					var processDefinitions = [];
-					angular.forEach(results.data, function(e){
-						if($rootScope.isProcessAvailable(e.key) && processList.indexOf(e.key) !== -1 && e.key !== 'after-sales-ivr-sms'){
-							processDefinitions.push(e);
-						}
-					});
-					exModal.open({
-						scope: {
-							allProcessDefinitions: processDefinitions,
-							startProcess: $scope.startProcess
-						},
-						templateUrl: './js/partials/startProcess.html',
-						size: 'md'
-					}).then(function (results) {
-					});
-				},
-				function(error){
-					console.log(error.data);
-				}
-			);
-		};
-		$rootScope.logout = function(){
-			AuthenticationService.logout().then(function(){
-				$scope.authentication = null;
-			});
-		}
-
 		$scope.nextTasks = function(){
 			$scope.view.page++;
 			loadTasks();

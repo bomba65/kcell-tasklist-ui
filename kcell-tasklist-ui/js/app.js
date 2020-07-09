@@ -48,7 +48,7 @@ define('app',[
 	]);
 	var preLoginUrl;
 	var resolve = {
-		baseUrl: function(){
+		baseUrl: function(){;
 			return '/camunda/api/engine/engine/default';
 		},
 		projects: function(baseUrl, $http){
@@ -328,6 +328,34 @@ define('app',[
 		$rootScope.getCatalogsHttpByName = function(name){
 			return '/api/' + name + '?v=8';
 		}
+		$rootScope.modalStartProcess = function() {
+			var processList = [];
+			angular.forEach($rootScope.projects, function(project) {
+				processList += _.map(project.processes, 'key');
+			});
+			$http.get('/camunda/api/engine/engine/default/process-definition?latest=true&active=true&firstResult=0&maxResults=100&startablePermissionCheck=true').then(
+				function(results){
+					var processDefinitions = [];
+					angular.forEach(results.data, function(e){
+						if($rootScope.isProcessAvailable(e.key) && processList.indexOf(e.key) !== -1 && e.key !== 'after-sales-ivr-sms'){
+							processDefinitions.push(e);
+						}
+					});
+					exModal.open({
+						scope: {
+							allProcessDefinitions: processDefinitions,
+							startProcess: $scope.startProcess
+						},
+						templateUrl: './js/partials/startProcess.html',
+						size: 'md'
+					}).then(function (results) {
+					});
+				},
+				function(error){
+					console.log(error.data);
+				}
+			);
+		};
 	}]).run([ '$rootScope', '$location', 'AuthenticationService', '$q', '$state', function($rootScope, $location, AuthenticationService, $q, $state) {
 		$rootScope.$on('authentication.login.required', function(event) {
 			$rootScope.$evalAsync(function() {
