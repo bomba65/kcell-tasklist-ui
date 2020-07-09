@@ -251,7 +251,7 @@ define('app',[
 	      		}
 	    	};
 		}];
-	}).run(['AuthenticationService', '$rootScope', '$http', 'localStorageService', function(AuthenticationService, $rootScope, $http, localStorageService){
+	}).run(['AuthenticationService', '$rootScope', '$http', 'localStorageService', 'exModal', 'StartProcessService', function(AuthenticationService, $rootScope, $http, localStorageService, exModal, StartProcessService){
 		$rootScope.isProjectVisible = function(projectKey){
 			if($rootScope.selectedProject.key === projectKey){
 				return true;
@@ -344,7 +344,7 @@ define('app',[
 					exModal.open({
 						scope: {
 							allProcessDefinitions: processDefinitions,
-							startProcess: $scope.startProcess
+							startProcess: StartProcessService
 						},
 						templateUrl: './js/partials/startProcess.html',
 						size: 'md'
