@@ -8,6 +8,8 @@ import org.camunda.bpm.engine.delegate.Expression;
 import org.camunda.spin.plugin.variable.SpinValues;
 import org.camunda.spin.plugin.variable.value.JsonValue;
 
+import java.util.Date;
+
 public class VariableSetStatus implements ExecutionListener {
 
     Expression variable;
@@ -18,6 +20,10 @@ public class VariableSetStatus implements ExecutionListener {
 
         String variable = this.variable.getValue(delegateExecution).toString();
         String value = this.value.getValue(delegateExecution).toString();
+
+        if (variable.equals("generalStatus") || variable.equals("installationStatus")) {
+            delegateExecution.setVariable(variable + "UpdatedDate", new Date());
+        }
 
         delegateExecution.setVariable(variable, value);
     }

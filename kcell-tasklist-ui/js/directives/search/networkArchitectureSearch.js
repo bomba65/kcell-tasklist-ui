@@ -833,6 +833,8 @@ define(['../module', 'moment'], function (module, moment) {
                             }
                             if(scope.selectedProcessInstances.indexOf('leasing')!==-1){
                                 variables.push('generalStatus');
+                                variables.push('generalStatusUpdatedDate');
+                                variables.push('installationStatusUpdatedDate');
                                 if(scope.filter.leasingInitiator){
                                     variables.push('initiator');
                                 }
