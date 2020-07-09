@@ -2591,6 +2591,665 @@ define(['./module', 'camundaSDK', 'lodash', 'big-js', 'jquery', 'moment'], funct
                     });
                 }
             }
+        }]).controller('leasingStatisticsCtrl', ['$scope', '$rootScope', '$filter', '$http', '$state', '$stateParams', '$q', '$location', 'AuthenticationService',
+        function ($scope, $rootScope, $filter, $http, $state, $stateParams, $q, $location, AuthenticationService) {
+
+            $rootScope.currentPage = {
+                name: 'statistics'
+            };
+
+            if (window.require) {
+                $scope.XLSX = require('xlsx');
+            }
+
+            $scope._ = window._;
+
+            $rootScope.logout = function () {
+                AuthenticationService.logout().then(function () {
+                    $scope.authentication = null;
+                });
+            }
+
+            $scope.baseUrl = '/camunda/api/engine/engine/default';
+            $scope.report_ready = false;
+
+            $scope.reportsMap = {
+                'revision-open-tasks': {name: 'Revision Works Statistics Grouped', process: 'Revision'},
+                'invoice-open-tasks': {name: 'Monthly Act open tasks', process: 'Invoice'},
+                '4gSharing-open-tasks': {name: '4G Site Sharing open tasks', process: 'SiteSharingTopProcess'}
+            };
+
+            $scope.reports = [
+                'revision-open-tasks',
+                'invoice-open-tasks',
+                '4gSharing-open-tasks'
+            ];
+
+            $scope.currentReport = $stateParams.report;
+            $scope.reverseOrder = false;
+            $scope.fieldName = 'Region';
+            $scope.task = $stateParams.task;
+
+            $scope.filter = {};
+            if ($stateParams.reason) {
+                $scope.filter.reason = $stateParams.reason;
+            }
+            if ($stateParams.mainContract) {
+                $scope.filter.mainContract = $stateParams.mainContract;
+            }
+            $scope.region = $stateParams.region;
+
+            $http.get($rootScope.getCatalogsHttpByName('catalogs')).then(
+                function (result) {
+                    angular.extend($scope, result.data);
+                },
+                function (error) {
+                    console.log(error.data);
+                }
+            );
+
+            $scope.getJrRegion = function (jrNumber) {
+                if (jrNumber) {
+                    if (jrNumber.startsWith("Alm")) {
+                        return 'almaty';
+                    } else if (jrNumber.startsWith("East")) {
+                        return 'east';
+                    } else if (jrNumber.startsWith("N&C")) {
+                        return 'north_central';
+                    } else if (jrNumber.startsWith("South")) {
+                        return 'south';
+                    } else if (jrNumber.startsWith("West")) {
+                        return 'west';
+                    } else if (jrNumber.startsWith("Astana")) {
+                        return 'astana';
+                    } else {
+                        return 'no_region';
+                    }
+                } else {
+                    return 'no_region';
+                }
+            };
+
+            $scope.orderByFieldName = function (fieldName) {
+                console.log(fieldName)
+                if ($scope.fieldName == fieldName) {
+                    $scope.reverseOrder = !$scope.reverseOrder;
+                } else {
+                    $scope.reverseOrder = false;
+                    $scope.fieldName = fieldName;
+                }
+            };
+
+            $scope.orderMaFunction = function (task) {
+                if ($scope.fieldName === 'Region') {
+                    return $scope.getInvoiceRegion(task.variables.invoiceNumber.value);
+                } else if ($scope.fieldName === 'Act') {
+                    if (task.variables.monthActNumber) {
+                        return task.variables.monthActNumber.value;
+                    } else {
+                        return task.variables.invoiceNumber.value;
+                    }
+                } else if ($scope.fieldName === 'Typeofwork') {
+                    return $scope.reasonsTitle[task.variables.workType.value];
+                } else if ($scope.fieldName === 'Period') {
+                    return task.variables.monthOfFormalPeriod.value + ' ' + task.variables.yearOfFormalPeriod.value;
+                } else if ($scope.fieldName === 'Contractor') {
+                    return 'TOO Line System Engineering';
+                } else if ($scope.fieldName === 'Requestedby') {
+                    return task.variables.starter.value;
+                } else if ($scope.fieldName === 'Currentassignee') {
+                    if (task.assignee) {
+                        return task.assignee;
+                    } else {
+                        return task.groupId;
+                    }
+                }
+            }
+
+            $scope.orderByRevisionFieldName = function (revisionFieldName) {
+                if ($scope.revisionFieldName == revisionFieldName) {
+                    $scope.revisionReverseOrder = !$scope.revisionReverseOrder;
+                } else {
+                    $scope.revisionReverseOrder = false;
+                    $scope.revisionFieldName = revisionFieldName;
+                }
+            };
+
+            $scope.orderRevisionFunction = function (task) {
+                if ($scope.revisionFieldName === 'Region') {
+                    return $scope.getJrRegion(task.variables.jrNumber.value);
+                } else if ($scope.revisionFieldName === 'site_name') {
+                    return task.variables.site_name.value;
+                } else if ($scope.revisionFieldName === 'jrNumber') {
+                    return task.variables.jrNumber.value;
+                } else if ($scope.revisionFieldName === 'contractor') {
+                    return $scope.contractorsTitle[task.variables.contractor.value];
+                } else if ($scope.revisionFieldName === 'reason') {
+                    return $scope.reasonsTitle[task.variables.reason.value];
+                } else if ($scope.revisionFieldName === 'project') {
+                    if (task.variables.project) {
+                        return task.variables.project.value;
+                    } else {
+                        return 'Z';
+                    }
+                } else if ($scope.revisionFieldName === 'starter') {
+                    return task.variables.starter.value;
+                } else if ($scope.revisionFieldName === 'requestedDate') {
+                    return task.variables.requestedDate.value;
+                } else if ($scope.revisionFieldName === 'validityDate') {
+                    return task.variables.validityDate.value;
+                } else if ($scope.revisionFieldName === 'assignee') {
+                    return task.assignee ? task.assignee : task.groupId;
+                }
+            }
+
+            $scope.getInvoiceRegion = function (invoiceNumber) {
+                if (invoiceNumber.endsWith('-RO-1')) {
+                    invoiceNumber = invoiceNumber.replace('-RO-1', '');
+                }
+                if (invoiceNumber.endsWith('-RO-2')) {
+                    invoiceNumber = invoiceNumber.replace('-RO-2', '');
+                }
+                if (invoiceNumber.endsWith('-RO-3')) {
+                    invoiceNumber = invoiceNumber.replace('-RO-3', '');
+                }
+                if (invoiceNumber.endsWith('-RO-4')) {
+                    invoiceNumber = invoiceNumber.replace('-RO-4', '');
+                }
+                if (invoiceNumber) {
+                    if (invoiceNumber.endsWith("Alm")) {
+                        return 'almaty';
+                    } else if (invoiceNumber.endsWith("East")) {
+                        return 'east';
+                    } else if (invoiceNumber.endsWith("N&C")) {
+                        return 'north_central';
+                    } else if (invoiceNumber.endsWith("South")) {
+                        return 'south';
+                    } else if (invoiceNumber.endsWith("West")) {
+                        return 'west';
+                    } else if (invoiceNumber.endsWith("Astana")) {
+                        return 'astana';
+                    } else {
+                        return 'no_region';
+                    }
+                } else {
+                    return 'no_region';
+                }
+            };
+
+            $scope.filterRegion = function (task) {
+                if ($scope.region) {
+                    if ($scope.getProcessDefinition() === 'Revision') {
+                        return $scope.getJrRegion(task.variables.jrNumber.value) === $scope.region;
+                    } else if ($scope.getProcessDefinition() === 'Invoice') {
+                        return $scope.getInvoiceRegion(task.variables.invoiceNumber.value) === $scope.region;
+                    }
+                } else {
+                    return true;
+                }
+            }
+
+            $scope.getProcessDefinition = function () {
+                if ($scope.currentReport === 'revision-open-tasks') {
+                    return 'Revision';
+                } else if ($scope.currentReport === 'invoice-open-tasks') {
+                    return 'Invoice';
+                } else if ($scope.currentReport === '4gSharing-open-tasks') {
+                    return 'SiteSharingTopProcess';
+                }
+            }
+
+            $scope.regions = ['.almaty', '.east', '.west', '.north_central', '.south', '.astana', '.no_region',];
+            $scope.checkRegionView = function (region) {
+                if ($rootScope.hasGroup('head_kcell_users')) {
+                    return true;
+                } else if ($rootScope.hasGroup('alm_kcell_users')) {
+                    return region === '.almaty';
+                } else if ($rootScope.hasGroup('astana_kcell_users')) {
+                    return region === '.astana';
+                } else if ($rootScope.hasGroup('east_kcell_users')) {
+                    return region === '.east';
+                } else if ($rootScope.hasGroup('nc_kcell_users')) {
+                    return region === '.north_central';
+                } else if ($rootScope.hasGroup('south_kcell_users')) {
+                    return region === '.south';
+                } else if ($rootScope.hasGroup('west_kcell_users')) {
+                    return region === '.west';
+                } else {
+                    return false;
+                }
+            }
+
+            $scope.updateTaskDefinitions = function () {
+                var processDefinition = $scope.getProcessDefinition();
+
+                $http.get($scope.baseUrl + '/process-definition/key/' + processDefinition + '/xml')
+                    .then(function (response) {
+                        var domParser = new DOMParser();
+
+                        var xml = domParser.parseFromString(response.data.bpmn20Xml, 'application/xml');
+
+                        function getUserTasks(xml) {
+                            var namespaces = {
+                                bpmn: 'http://www.omg.org/spec/BPMN/20100524/MODEL'
+                            };
+
+                            var userTaskNodes = getElementsByXPath(xml, '//bpmn:userTask', prefix => namespaces[prefix]);
+
+                            function getElementsByXPath(doc, xpath, namespaceFn, parent) {
+                                let results = [];
+                                let query = doc.evaluate(xpath,
+                                    parent || doc,
+                                    namespaceFn,
+                                    XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
+                                for (let i = 0, length = query.snapshotLength; i < length; ++i) {
+                                    results.push(query.snapshotItem(i));
+                                }
+                                return results;
+                            }
+
+                            return userTaskNodes.map(node => {
+                                var id = node.id;
+                                var name = node.attributes["name"] && node.attributes["name"].textContent;
+                                var description = getElementsByXPath(
+                                    xml,
+                                    'bpmn:documentation/text()',
+                                    prefix => namespaces[prefix],
+                                    node
+                                )[0];
+
+                                description = description && description.textContent;
+
+                                return {
+                                    "id": id,
+                                    "name": name,
+                                    "description": description
+                                };
+                            });
+                        }
+
+                        var userTasks = getUserTasks(xml);
+                        var userTasksMap = _.keyBy(userTasks, 'id');
+                        $scope.userTasksMap = userTasksMap;
+                    });
+            }
+
+            if (true) {
+                var processQuery = {
+                    "processDefinitionKey": "leasing"
+                };
+                if ($scope.filter.reason) {
+                    processQuery.variables.push({name: 'reason', operator: 'eq', value: $scope.filter.reason});
+                }
+                if ($scope.filter.project && $scope.filter.project !== 'All') {
+                    processQuery.variables.push({
+                        name: 'mainContract',
+                        operator: 'eq',
+                        value: $scope.filter.mainContract
+                    });
+                }
+                var processInstancesPromise = $http.post($scope.baseUrl + '/history/process-instance', processQuery).then(function (response) {
+                    console.log('leasing processInstancesPromise')
+                    console.log(response.data)
+
+                    return response.data
+                    // var processInstances = _.keyBy(response.data, 'id');
+                    // return $http.post($scope.baseUrl + '/history/variable-instance', {
+                    //     variableName: 'jrNumber',
+                    //     processInstanceIdIn: _.keys(processInstances)
+                    // }).then(function (response) {
+                    //     var variablesByProcessInstance = _.keyBy(response.data, 'processInstanceId');
+                    //     var valueByProcessInstance = _.mapValues(variablesByProcessInstance, 'value');
+                    //     var result = _.mapValues(processInstances, (pi, id) => _.assign({}, pi, {'jrNumber': valueByProcessInstance[id]}));
+                    //     return result;
+                    // });
+                });
+
+                // var processInstancesPromise = $http.post($scope.baseUrl + '/history/process-instance', processQuery).then(function (response) {
+                //     var processInstances = _.keyBy(response.data, 'id');
+                //     return $http.post($scope.baseUrl + '/history/variable-instance', {
+                //         variableName: 'jrNumber',
+                //         processInstanceIdIn: _.keys(processInstances)
+                //     }).then(function (response) {
+                //         var variablesByProcessInstance = _.keyBy(response.data, 'processInstanceId');
+                //         var valueByProcessInstance = _.mapValues(variablesByProcessInstance, 'value');
+                //         var result = _.mapValues(processInstances, (pi, id) => _.assign({}, pi, {'jrNumber': valueByProcessInstance[id]}));
+                //         return result;
+                //     });
+                // });
+
+                // var taskQuery = {
+                //     "processDefinitionKey": 'Revision',
+                //     "unfinished": true,
+                //     "processVariables": []
+                // };
+                // if ($scope.filter.reason) {
+                //     taskQuery.processVariables.push({
+                //         name: 'reason',
+                //         operator: 'eq',
+                //         value: $scope.filter.reason
+                //     });
+                // }
+                // if ($scope.filter.mainContract && $scope.filter.mainContract !== 'All') {
+                //     taskQuery.processVariables.push({
+                //         name: 'mainContract',
+                //         operator: 'eq',
+                //         value: $scope.filter.mainContract
+                //     });
+                // }
+                // var taskInstancesPromise = $http.post($scope.baseUrl + '/history/task', taskQuery).then(function (response) {
+                //     return response.data;
+                // });
+
+                $q.all([processInstancesPromise])
+                    .then(function (results) {
+                        var processInstances = results[0];
+                        var activePIDsArray = [];
+                        var PIDsArray = [];
+                        processInstances.forEach(p => {
+                            PIDsArray.push(p.id)
+                            if (p.state === 'ACTIVE') {
+                                activePIDsArray.push(p.id)
+                            }
+                        })
+                        
+                        // var variables = ['generalStatus', 'installationStatus', 'rbsType', 'region']
+
+                        var generalStatusesVarsPromise = $http.post($scope.baseUrl + '/history/variable-instance', {
+                            processInstanceIdIn: PIDsArray,
+                            variableName: 'generalStatus'
+                        }).then(function (response) {
+                            return _.mapValues(_.keyBy(response.data, 'processInstanceId'), 'value');
+                        });
+
+                        var installationStatusesVarsPromise = $http.post($scope.baseUrl + '/history/variable-instance', {
+                            processInstanceIdIn: PIDsArray,
+                            variableName: 'installationStatus'
+                        }).then(function (response) {
+                            return _.mapValues(_.keyBy(response.data, 'processInstanceId'), 'value');
+                        });
+
+                        var rbsTypesVarsPromise = $http.post($scope.baseUrl + '/history/variable-instance', {
+                            processInstanceIdIn: PIDsArray,
+                            variableName: 'rbsType'
+                        }).then(function (response) {
+                            console.log(response.data)
+                            return _.mapValues(_.keyBy(response.data, 'processInstanceId'), 'value');
+                        });
+                        
+                        var regionsVarsPromise = $http.post($scope.baseUrl + '/history/variable-instance', {
+                            processInstanceIdIn: PIDsArray,
+                            variableName: 'region'
+                        }).then(function (response) {
+                            return _.mapValues(_.keyBy(response.data, 'processInstanceId'), 'value');
+                        });
+
+                        $q.all([generalStatusesVarsPromise, installationStatusesVarsPromise, rbsTypesVarsPromise, regionsVarsPromise])
+                            .then(function (results) {
+                                console.log(results);
+                                var fullPIDs = PIDsArray.map( p => {
+                                    return { 
+                                        pid : p,
+                                        generalStatus: results[0][p],
+                                        installationStatus: results[1][p],
+                                        rbsType: results[2][p],
+                                        region: results[3][p]
+                                    }
+                                })
+                                var fullPIDsByRegions = _.groupBy(fullPIDs, 'region')
+                                var fullPIDsFilteredEricsson = _.filter(fullPIDs, p => {
+                                    if (p.rbsType.startsWith(2) || p.rbsType.startsWith(3) || p.rbsType.startsWith(6)) {
+                                        return true
+                                    } return false
+                                })
+                                var fullPIDsFilteredZTE = _.filter(fullPIDs, p => {
+                                    if (p.rbsType.startsWith(8)) {
+                                        return true
+                                    } return false
+                                })
+                                fullPIDsByRegions.ericsson = fullPIDsFilteredEricsson;
+                                fullPIDsByRegions.zte = fullPIDsFilteredZTE;
+                                fullPIDsByRegions.total = fullPIDs;
+                                console.log(fullPIDsByRegions);
+                            })
+
+                        // var taskInstances = results[1];
+
+                        // angular.forEach(taskInstances, function (t) {
+                        //     if (['approve_material_list_center', 'validate_tr_bycenter', 'approve_additional_material_list_center', 'validate_additional_tr_bycenter'].indexOf(t.taskDefinitionKey) !== -1) {
+                        //         if (t.name.indexOf('P&O') != -1) {
+                        //             t.taskDefinitionKey = t.taskDefinitionKey + '_po'
+                        //         } else if (t.name.indexOf('Transmission') != -1) {
+                        //             t.taskDefinitionKey = t.taskDefinitionKey + '_tr'
+                        //         } else if (t.name.indexOf('S&FM') != -1) {
+                        //             t.taskDefinitionKey = t.taskDefinitionKey + '_fm'
+                        //         } else if (t.name.indexOf('Operation') != -1) {
+                        //             t.taskDefinitionKey = t.taskDefinitionKey + '_op'
+                        //         }
+                        //     }
+                        // })
+
+                        // var taskInstancesByDefinition = _.groupBy(
+                        //     taskInstances,
+                        //     'taskDefinitionKey'
+                        // );
+
+                        // var tasksByIdAndRegionGrouped = _.mapValues(
+                        //     taskInstancesByDefinition,
+                        //     function (tasks) {
+                        //         return _.groupBy(
+                        //             tasks,
+                        //             function (task) {
+                        //                 var pid = task.processInstanceId;
+                        //                 if (processInstances[pid]) {
+                        //                     return $scope.getJrRegion(processInstances[pid].jrNumber);
+                        //                 } else {
+                        //                     return 'no_processinstance';
+                        //                 }
+                        //             }
+                        //         );
+                        //     }
+                        // );
+
+                        // var tasksByIdAndRegionCounted = _.mapValues(
+                        //     tasksByIdAndRegionGrouped,
+                        //     function (tasks) {
+                        //         return _.mapValues(tasks, 'length');
+                        //     }
+                        // );
+
+                        // $scope.tasksByIdAndRegionCounted = tasksByIdAndRegionCounted;
+
+                        // let a = Object.keys(tasksByIdAndRegionCounted);
+                        // let newJson = {};
+                        // let regionJson = {};
+                        // var finalTasksCounter = 0;
+                        // var finalRegionCounter = 0;
+
+                        // for (let i = 0; i < a.length; i++) {
+                        //     if ($scope.revisionTaskDisplay[a[i]]) {
+                        //         let counter = 0;
+                        //         let b = Object.values(tasksByIdAndRegionCounted[a[i]]);
+                        //         let c = Object.keys(tasksByIdAndRegionCounted[a[i]]);
+
+                        //         b.forEach(j => {
+                        //             counter += j;
+                        //             finalTasksCounter = finalTasksCounter + j;
+                        //         });
+                        //         c.forEach(k => {
+                        //             regionJson[k] = regionJson[k] ? regionJson[k] + tasksByIdAndRegionCounted[a[i]][k] : tasksByIdAndRegionCounted[a[i]][k];
+                        //             finalRegionCounter = finalRegionCounter + tasksByIdAndRegionCounted[a[i]][k];
+                        //         });
+                        //         newJson[a[i]] = counter;
+                        //     }
+                        // }
+                        // $scope.totalCounter = newJson;
+                        // $scope.regionCounter = regionJson;
+                        // $scope.finalRegionCounter = finalRegionCounter;
+                        // $scope.finalTasksCounter = finalTasksCounter;
+                    });
+
+                // $q.all([processInstancesPromise, taskInstancesPromise])
+                //     .then(function (results) {
+                //         var processInstances = results[0];
+                //         var taskInstances = results[1];
+
+                //         angular.forEach(taskInstances, function (t) {
+                //             if (['approve_material_list_center', 'validate_tr_bycenter', 'approve_additional_material_list_center', 'validate_additional_tr_bycenter'].indexOf(t.taskDefinitionKey) !== -1) {
+                //                 if (t.name.indexOf('P&O') != -1) {
+                //                     t.taskDefinitionKey = t.taskDefinitionKey + '_po'
+                //                 } else if (t.name.indexOf('Transmission') != -1) {
+                //                     t.taskDefinitionKey = t.taskDefinitionKey + '_tr'
+                //                 } else if (t.name.indexOf('S&FM') != -1) {
+                //                     t.taskDefinitionKey = t.taskDefinitionKey + '_fm'
+                //                 } else if (t.name.indexOf('Operation') != -1) {
+                //                     t.taskDefinitionKey = t.taskDefinitionKey + '_op'
+                //                 }
+                //             }
+                //         })
+
+                //         var taskInstancesByDefinition = _.groupBy(
+                //             taskInstances,
+                //             'taskDefinitionKey'
+                //         );
+
+                //         var tasksByIdAndRegionGrouped = _.mapValues(
+                //             taskInstancesByDefinition,
+                //             function (tasks) {
+                //                 return _.groupBy(
+                //                     tasks,
+                //                     function (task) {
+                //                         var pid = task.processInstanceId;
+                //                         if (processInstances[pid]) {
+                //                             return $scope.getJrRegion(processInstances[pid].jrNumber);
+                //                         } else {
+                //                             return 'no_processinstance';
+                //                         }
+                //                     }
+                //                 );
+                //             }
+                //         );
+
+                //         var tasksByIdAndRegionCounted = _.mapValues(
+                //             tasksByIdAndRegionGrouped,
+                //             function (tasks) {
+                //                 return _.mapValues(tasks, 'length');
+                //             }
+                //         );
+
+                //         $scope.tasksByIdAndRegionCounted = tasksByIdAndRegionCounted;
+
+                //         let a = Object.keys(tasksByIdAndRegionCounted);
+                //         let newJson = {};
+                //         let regionJson = {};
+                //         var finalTasksCounter = 0;
+                //         var finalRegionCounter = 0;
+
+                //         for (let i = 0; i < a.length; i++) {
+                //             if ($scope.revisionTaskDisplay[a[i]]) {
+                //                 let counter = 0;
+                //                 let b = Object.values(tasksByIdAndRegionCounted[a[i]]);
+                //                 let c = Object.keys(tasksByIdAndRegionCounted[a[i]]);
+
+                //                 b.forEach(j => {
+                //                     counter += j;
+                //                     finalTasksCounter = finalTasksCounter + j;
+                //                 });
+                //                 c.forEach(k => {
+                //                     regionJson[k] = regionJson[k] ? regionJson[k] + tasksByIdAndRegionCounted[a[i]][k] : tasksByIdAndRegionCounted[a[i]][k];
+                //                     finalRegionCounter = finalRegionCounter + tasksByIdAndRegionCounted[a[i]][k];
+                //                 });
+                //                 newJson[a[i]] = counter;
+                //             }
+                //         }
+                //         $scope.totalCounter = newJson;
+                //         $scope.regionCounter = regionJson;
+                //         $scope.finalRegionCounter = finalRegionCounter;
+                //         $scope.finalTasksCounter = finalTasksCounter;
+                //     });
+            }
+            
+
+            $scope.getSiteRegion = function (siteID) {
+                //console.log(siteID);
+                if (siteID) {
+                    if (siteID.startsWith('0')) {
+                        return 'almaty';
+                    } else if (siteID.startsWith('1') || siteID.startsWith('2')) {
+                        if (siteID.startsWith('11')) {
+                            return 'astana';
+                        } else {
+                            return 'north_central';
+                        }
+                    } else if (siteID.startsWith('3')) {
+                        return 'east';
+                    } else if (siteID.startsWith('4')) {
+                        return 'south';
+                    } else {
+                        return 'west';
+                    }
+                } else {
+                    return 'no_region';
+                }
+            };
+
+            $scope.selectReport = function (report) {
+                $location.url($location.path() + "?report=" + report);
+            }
+
+            $scope.selectReason = function (reason) {
+                var path = $location.path() + "?report=" + $scope.currentReport;
+                if ($scope.filter.mainContract && $scope.filter.mainContract !== 'All') {
+                    path = path + '&mainContract=' + $scope.filter.mainContract;
+                }
+                if (reason == 'all') {
+                    $location.url(path);
+                } else {
+                    $location.url(path + "&reason=" + reason);
+                }
+            }
+
+            $scope.selectMainStatus = function () {
+                var path = $location.path() + "?report=" + $scope.currentReport;
+                if ($scope.filter.reason && $scope.filter.reason !== 'all') {
+                    path = path + "&reason=" + $scope.filter.reason;
+                }
+                if ($scope.filter.mainContract && $scope.filter.mainContract !== 'all') {
+                    $location.url(path + "&mainContract=" + $scope.filter.mainContract);
+                }
+            }
+
+            $scope.downloadExtendedByJobsReport = function () {
+                if ($rootScope.hasGroup('revision_reports')) {
+                    $http.get('/camunda/reports/extended-report-by-jobs').then(function (response) {
+                        var data = response.data;
+
+                        angular.forEach(data, function (d) {
+                            d[8] = $filter('date')(d[8], "yyyy-MM-dd");
+                            d[10] = $filter('date')(d[10], "yyyy-MM-dd");
+                            d[13] = $filter('date')(d[13], "yyyy-MM-dd");
+                            d[14] = $filter('date')(d[14], "yyyy-MM-dd");
+                            d[15] = $filter('date')(d[15], "yyyy-MM-dd");
+                            d[16] = $filter('date')(d[16], "yyyy-MM-dd");
+                            d[17] = $filter('date')(d[17], "yyyy-MM-dd");
+                            d[35] = $filter('date')(d[35], "yyyy-MM-dd");
+                            //d[34] =  $filter('date')(d[34], "yyyy-MM-dd");
+                            d[38] = $filter('date')(d[38], "yyyy-MM-dd");
+                        });
+
+                        data.splice(0, 0, ["Contract", "Year", "Month", "Region", "Sitename", "JR No", "JR To", "JR Reason", "Requested Date", "Requested By", "Validity Date", "Related to the", "Project"
+                            , "Material List Signing Date", "Accept by Initiator", "Accept by Work Maintenance", "Accept by Work Planning", "Acceptance Date", "Job Description", "Quantity"
+                            , "Job reason", "Type of expenses", "Comments", "Customer Material", "Process State", "JR Status", "Detailed status", "Reason", "Price (without transportation)"
+                            , "Price (with transportation)", "Monthly act #", "JO#", "PR#", "PR Total Value", "PR Status", "PR Approval date", "PO#", "Invoice No", "Invoice date"
+                        ]);
+
+                        var ws = XLSX.utils.json_to_sheet(response.data, {skipHeader: true});
+                        var wb = XLSX.utils.book_new();
+                        XLSX.utils.book_append_sheet(wb, ws, 'New Sheet Name 1');
+                        return XLSX.writeFile(wb, 'extended-report-by-jobs.xlsx');
+                    });
+                }
+            }
         }]).controller('TaskCtrl', ['$scope', '$rootScope', 'toasty', 'AuthenticationService', '$stateParams', '$timeout', '$location', 'exModal', '$http', '$state', function ($scope, $rootScope, toasty, AuthenticationService, $stateParams, $timeout, $location, exModal, $http, $state) {
         var camClient = new CamSDK.Client({
             mock: false,

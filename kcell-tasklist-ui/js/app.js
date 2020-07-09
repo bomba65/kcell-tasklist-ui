@@ -210,6 +210,12 @@ define('app',[
 	    	controller: "statisticsCtrl",
 	    	authenticate: true,
 	    	resolve: resolve
+	    }).state("leasingStatistics", {
+			url: "/leasingStatistics",
+	    	templateUrl: "js/partials/leasingStatistics.html",
+	    	controller: "leasingStatisticsCtrl",
+	    	authenticate: true,
+	    	resolve: resolve
 	    }).state("search", {
 	    	url: "/search",
 	    	templateUrl: "js/partials/search_new.html",

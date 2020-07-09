@@ -1,0 +1,434 @@
+<div class="row layout-row">
+	<style>
+		table.report {
+			border: 1px solid darkgray;
+			/*table-layout: fixed;*/
+			border-collapse: collapse;
+			font-size: smaller;
+		}
+
+		table.report th {
+			border: 1px solid darkgray;
+			border-collapse: collapse;
+			padding: 2px 4px;
+		}
+
+		table.report td {
+			border: 1px solid darkgray;
+			border-collapse: collapse;
+			padding: 2px 4px;
+		}
+
+		table.report td.number {
+			text-align: right;
+		}
+		th.sortable {
+			cursor: pointer;
+		}
+		th.sortable:hover {
+			background: #EEE;
+		}
+	</style>
+	<!-- <div class="col-md-2 no-float left">
+		<div class="left-wrapper">
+			<h4>Reports</h4>
+			<ul id="filters">
+				<li ng-repeat="report in reports" ng-class="{active: report === currentReport}">
+					<a ng-if="$root.isProcessAvailable(reportsMap[report].process) && $root.isProcessVisible(reportsMap[report].process)" ng-click="selectReport(report)" class="ng-binding">{{reportsMap[report].name}}</a>
+				</li>
+				<li ng-if="$root.hasGroup('revision_reports') || 'Evgeniy.Semenov@kcell.kz' == authentication.name">
+					<a ng-click="downloadTechnicalReport()" class="ng-binding" id="reportClick">Download Technical report by works</a>
+				</li>
+				<li ng-if="$root.hasGroup('revision_reports') || 'Evgeniy.Semenov@kcell.kz' == authentication.name">
+					<a ng-click="downloadTechnicalByJobsReport()" class="ng-binding" id="reportClick">Download Technical report by jobs</a>
+				</li>
+				<li ng-if="$root.hasGroup('revision_reports')">
+					<a ng-click="downloadFinancialReport()" class="ng-binding" id="finReportClick">Download Extended report by works</a>
+				</li>
+				<li ng-if="$root.hasGroup('revision_reports')">
+					<a ng-click="downloadExtendedByJobsReport()" class="ng-binding" id="finReportClick">Download Extended report by jobs</a>
+				</li>
+			</ul>
+
+			<div ng-show="(currentReport == 'revision-open-tasks' || currentReport == 'invoice-open-tasks') && !task">
+				<h4>Reason</h4>
+				<ul>
+					<li ng-class="{active: !filter.reason}">
+						<a ng-click="selectReason('all')" class="ng-binding">All</a>
+					</li>
+					<li ng-repeat="reason in reasons" ng-class="{active: reason.id == filter.reason}">
+						<a ng-click="selectReason(reason.id)" class="ng-binding">{{reason.name}}</a>
+					</li>
+				</ul>
+			</div>
+		</div>
+	</div> -->
+	<div class="col-md-12 no-float right left-wrapper">
+		<div class="currentTask" style="padding-top: 15px;">
+			<div class="scrollcontainer">
+				<div class="scrollable">
+					<div class="page-body container-fluid">
+						<h3>Statistics for Rollout Leasing process</h3>
+						<div class="col-sm-8" style="margin-bottom: 10px;" ng-show="currentReport === 'revision-open-tasks' || currentReport === 'invoice-open-tasks'">
+							<label class="radio-inline">
+				                <input type="radio" name="mainContract" ng-model="filter.mainContract" value="All" ng-change="selectMainStatus()"> All
+				            </label>
+				            <label class="radio-inline">
+				                <input type="radio" name="mainContract" ng-model="filter.mainContract" value="Revision" ng-change="selectMainStatus()"> Revision
+				            </label>
+				            <label class="radio-inline">
+				                <input type="radio" name="mainContract" ng-model="filter.mainContract" value="Roll-out" ng-change="selectMainStatus()"> Roll-out
+				            </label>
+						</div>
+						<h3> </h3>
+						<table class="report" ng-hide="task">
+							<thead>
+							<tr>
+								<th>Rollout Process status</th>
+								<th>Almaty</th>
+								<th>Astana</th>
+								<th>North &amp; Central</th>
+								<th>East</th>
+								<th>South</th>
+								<th>West</th>
+								<th>Ericsson</th>
+								<th>ZTE</th>
+								<th>Total</th>
+							</tr>
+							</thead>
+							<tbody>
+							<tr ng-repeat="rolloutStatus in kcellTasks[currentReport].revisionJobRequestApprovalSubprocessTasks">
+								<td><span>&nbsp;&nbsp;{{rolloutStatus.name}}</span></td>
+								<td class="number" ng-repeat="region in regions">
+									<a ng-if="checkRegionView(region)" href="#/statistics?task={{taskDefId}}&report={{currentReport.concat(filter.reason?'&reason='+filter.reason:'')}}&region={{region.replace('.','').concat(filter.mainContract?'&mainContract='+filter.mainContract:'')}}">{{ _.get(tasksByIdAndRegionCounted, taskDefId + region, 0) }}</a>
+								</td>
+								<td>
+									<a href="#/statistics?task={{taskDefId}}&report={{currentReport.concat(filter.reason?'&reason='+filter.reason:'').concat(filter.mainContract?'&mainContract='+filter.mainContract:'')}}" ng-if="checkRegionView(region)">
+										{{ _.get(totalCounter, taskDefId, 0) }}
+									</a>
+								</td>
+							</tr>
+							</tbody>
+							<!-- <tfoot>
+								<tr>
+									<td>Total</td>
+									<td class="number" ng-repeat="region in regions">
+										<a ng-if="checkRegionView(region)" href="#/statistics?task=no_task&report={{currentReport.concat(filter.reason?'&reason='+filter.reason:'')}}&region={{region.replace('.','').concat(filter.mainContract?'&mainContract='+filter.mainContract:'')}}">{{ regionCounter[region.replace('.','')] }}</a>
+									</td>
+									<td><span ng-if="$root.hasGroup('head_kcell_users')">{{finalRegionCounter}}\{{finalTasksCounter}}</span></td>
+								</tr>
+							</tfoot> -->
+						</table>
+
+						<table class="report" ng-hide="task" ng-if="currentReport === 'invoice-open-tasks'">
+							<thead>
+							<tr>
+								<th>Activity</th>
+								<th>Almaty</th>
+								<th>East</th>
+								<th>West</th>
+								<th>North &amp; Central</th>
+								<th>South</th>
+								<th>Astana</th>
+								<th>No region</th>
+								<th>Total</th>
+							</tr>
+							<tr>
+								<td colspan="9">&nbsp;</td>
+							</tr>
+							<tr>
+								<th colspan="9">[Kcell]</th>
+							</tr>
+							<tr>
+								<td colspan="9">&nbsp;</td>
+							</tr>
+							</thead>
+							<tbody>
+							<tr ng-repeat="taskDefId in kcellTasks[currentReport]">
+								<td>&nbsp;{{userTasksMap[taskDefId].name}}</td>
+								<td class="number" ng-repeat="region in regions">
+									<a ng-if="checkRegionView(region)" href="#/statistics?task={{taskDefId}}&report={{currentReport.concat(filter.reason?'&reason='+filter.reason:'')}}&region={{region.replace('.','').concat(filter.mainContract?'&mainContract='+filter.mainContract:'')}}">{{ _.get(tasksByIdAndRegionCounted, taskDefId + region, 0) }}</a>
+								</td>
+								<td>
+									<a ng-if="checkRegionView(region)" href="#/statistics?task={{taskDefId}}&report={{currentReport.concat(filter.reason?'&reason='+filter.reason:'').concat(filter.mainContract?'&mainContract='+filter.mainContract:'')}}">{{ _.get(totalCounter, taskDefId, 0) }}</a>
+								</td>
+							</tr>
+							</tbody>
+							<thead>
+							<tr>
+								<td colspan="9">&nbsp;</td>
+							</tr>
+							<tr>
+								<th colspan="9">[Contractor]</th>
+							</tr>
+							<tr>
+								<td colspan="9">&nbsp;</td>
+							</tr>
+							</thead>
+							<tbody>
+							<tr ng-repeat="taskDefId in contractorTasks[currentReport]">
+								<td>&nbsp;{{userTasksMap[taskDefId].name}}</td>
+								<td class="number" ng-repeat="region in regions">
+									<a ng-if="checkRegionView(region)" href="#/statistics?task={{taskDefId}}&report={{currentReport.concat(filter.reason?'&reason='+filter.reason:'')}}&region={{region.replace('.','').concat(filter.mainContract?'&mainContract='+filter.mainContract:'')}}">{{ _.get(tasksByIdAndRegionCounted, taskDefId + region, 0) }}</a>
+								</td>
+								<td>
+									<span ng-if="checkRegionView(region)">
+									<a ng-if="checkRegionView(region)" href="#/statistics?task={{taskDefId}}&report={{currentReport.concat(filter.reason?'&reason='+filter.reason:'').concat(filter.mainContract?'&mainContract='+filter.mainContract:'')}}">{{ _.get(totalCounter,taskDefId, 0) }}</a>
+								</td>
+							</tr>
+							</tbody>
+							<tfoot>
+								<tr>
+									<td>Total</td>
+									<td class="number" ng-repeat="region in regions">
+										<a ng-if="checkRegionView(region)" href="#/statistics?task=no_task&report={{currentReport.concat(filter.reason?'&reason='+filter.reason:'')}}&region={{region.replace('.','').concat(filter.mainContract?'&mainContract='+filter.mainContract:'')}}">{{ regionCounter[region.replace('.','')] }}</a>
+									</td>
+									<td><span ng-if="$root.hasGroup('head_kcell_users')">{{finalRegionCounter}}\{{finalTasksCounter}}</span></td>
+								</tr>
+							</tfoot>
+						</table>
+
+						<table class="report" ng-show="task" ng-if="currentReport == 'revision-open-tasks' && $root.isProcessAvailable(reportsMap[currentReport].process) && $root.isProcessVisible(reportsMap[currentReport].process)">
+							<thead>
+							<tr>
+								<th></th>
+								<th class="sortable">Region
+									<i ng-click="orderByRevisionFieldName('Region')" class="glyphicon" ng-class="revisionFieldName != 'Region' ? 'glyphicon-sort' : reverseOrder?'glyphicon-chevron-down':'glyphicon-chevron-up'"></i>
+								</th>
+								<th class="sortable">Sitename
+									<i ng-click="orderByRevisionFieldName('site_name')" class="glyphicon" ng-class="revisionFieldName != 'site_name' ? 'glyphicon-sort' : reverseOrder?'glyphicon-chevron-down':'glyphicon-chevron-up'"></i>
+								</th>
+								<th class="sortable">JR Number
+									<i ng-click="orderByRevisionFieldName('jrNumber')" class="glyphicon" ng-class="revisionFieldName != 'jrNumber' ? 'glyphicon-sort' : reverseOrder?'glyphicon-chevron-down':'glyphicon-chevron-up'"></i>
+								</th>
+								<th class="sortable">Contractor
+									<i ng-click="orderByRevisionFieldName('contractor')" class="glyphicon" ng-class="revisionFieldName != 'contractor' ? 'glyphicon-sort' : revisionReverseOrder?'glyphicon-chevron-down':'glyphicon-chevron-up'"></i>
+								</th>
+								<th class="sortable">Reason
+									<i ng-click="orderByRevisionFieldName('reason')" class="glyphicon" ng-class="revisionFieldName != 'reason' ? 'glyphicon-sort' : revisionReverseOrder?'glyphicon-chevron-down':'glyphicon-chevron-up'"></i>
+								</th>
+								<th class="sortable">Project
+									<i ng-click="orderByRevisionFieldName('project')" class="glyphicon" ng-class="revisionFieldName != 'project' ? 'glyphicon-sort' : revisionReverseOrder?'glyphicon-chevron-down':'glyphicon-chevron-up'"></i>
+								</th>
+								<th class="sortable">Requested by
+									<i ng-click="orderByRevisionFieldName('starter')" class="glyphicon" ng-class="revisionFieldName != 'starter' ? 'glyphicon-sort' : revisionReverseOrder?'glyphicon-chevron-down':'glyphicon-chevron-up'"></i>
+								</th>
+								<th class="sortable">Job Request date
+									<i ng-click="orderByRevisionFieldName('requestedDate')" class="glyphicon" ng-class="revisionFieldName != 'requestedDate' ? 'glyphicon-sort' : revisionReverseOrder?'glyphicon-chevron-down':'glyphicon-chevron-up'"></i>
+								</th>
+								<th class="sortable">Validity date
+									<i ng-click="orderByRevisionFieldName('validityDate')" class="glyphicon" ng-class="revisionFieldName != 'validityDate' ? 'glyphicon-sort' : revisionReverseOrder?'glyphicon-chevron-down':'glyphicon-chevron-up'"></i>
+								</th>
+								<th class="sortable">Current assignee
+									<i ng-click="orderByRevisionFieldName('assignee')" class="glyphicon" ng-class="revisionFieldName != 'assignee' ? 'glyphicon-sort' : revisionReverseOrder?'glyphicon-chevron-down':'glyphicon-chevron-up'"></i>
+								</th>
+							</tr>
+							</thead>
+							<tbody ng-show="tasks.length > 0">
+							<tr ng-repeat="task in tasks | filter:filterRegion | orderBy : orderRevisionFunction : revisionReverseOrder">
+								<td>{{$index+1}}</td>
+								<td>{{ getJrRegion(task.variables.jrNumber.value) }}</td>
+								<td>{{ task.variables.site_name.value }}</td>
+								<td>{{ task.variables.jrNumber.value }}</td>
+								<td>{{ contractorsTitle[task.variables.contractor.value] }}</td>
+								<td>{{ reasonsTitle[task.variables.reason.value] }}</td>
+								<td>{{ task.variables.project.value }}</td>
+								<td>{{ task.variables.starter.value }}</td>
+								<td>{{ task.variables.requestedDate.value | date: 'dd.MM.yyyy' }}</td>
+								<td>{{ task.variables.validityDate.value | date: 'dd.MM.yyyy'}}</td>
+								<td>{{ task.assignee ? task.assignee : task.groupId }} </td>
+							</tr>
+							</tbody>
+							<tbody ng-hide="tasks.length > 0">
+							<tr>
+								<th colspan="9">No data</th>
+							</tr>
+							</tbody>
+							<tfoot>
+							</tfoot>
+						</table>
+
+						<table class="report" ng-show="task" ng-if="currentReport == 'invoice-open-tasks' && $root.isProcessAvailable(reportsMap[currentReport].process) && $root.isProcessVisible(reportsMap[currentReport].process)">
+							<thead>
+							<tr>
+								<th></th>
+								<th class="sortable">Region
+									<i ng-click="orderByFieldName('Region')" class="glyphicon" ng-class="fieldName != 'Region' ? 'glyphicon-sort' : reverseOrder?'glyphicon-chevron-down':'glyphicon-chevron-up'"></i>
+								</th>
+								<th class="sortable">Act #
+									<i ng-click="orderByFieldName('Act')" class="glyphicon" ng-class="fieldName != 'Act' ? 'glyphicon-sort' : reverseOrder?'glyphicon-chevron-down':'glyphicon-chevron-up'"></i>
+								</th>
+								<th class="sortable">Type of work
+									<i ng-click="orderByFieldName('Typeofwork')" class="glyphicon" ng-class="fieldName != 'Typeofwork' ? 'glyphicon-sort' : reverseOrder?'glyphicon-chevron-down':'glyphicon-chevron-up'"></i>
+								</th>
+								<th class="sortable">Period
+									<i ng-click="orderByFieldName('Period')" class="glyphicon" ng-class="fieldName != 'Period' ? 'glyphicon-sort' : reverseOrder?'glyphicon-chevron-down':'glyphicon-chevron-up'"></i>
+								</th>
+								<th class="sortable">Contractor
+									<i ng-click="orderByFieldName('Contractor')" class="glyphicon" ng-class="fieldName != 'Contractor' ? 'glyphicon-sort' : reverseOrder?'glyphicon-chevron-down':'glyphicon-chevron-up'"></i>
+								</th>
+								<th class="sortable">Requested by
+									<i ng-click="orderByFieldName('Requestedby')" class="glyphicon" ng-class="fieldName != 'Requestedby' ? 'glyphicon-sort' : reverseOrder?'glyphicon-chevron-down':'glyphicon-chevron-up'"></i>
+								</th>
+								<th class="sortable">Current assignee
+									<i ng-click="orderByFieldName('Currentassignee')" class="glyphicon" ng-class="fieldName != 'Currentassignee' ? 'glyphicon-sort' : reverseOrder?'glyphicon-chevron-down':'glyphicon-chevron-up'"></i>
+								</th>
+							</tr>
+							</thead>
+							<tbody ng-show="tasks.length > 0">
+							<tr ng-repeat="task in tasks | filter:filterRegion | orderBy : orderMaFunction : reverseOrder">
+								<td>{{$index+1}}</td>
+								<td>{{ getInvoiceRegion(task.variables.invoiceNumber.value) }}</td>
+								<td>{{ task.variables.monthActNumber.value || task.variables.invoiceNumber.value}}</td>
+								<td>{{ reasonsTitle[task.variables.workType.value] }}</td>
+								<td>{{ task.variables.monthOfFormalPeriod.value }} {{ task.variables.yearOfFormalPeriod.value }}</td>
+								<td>TOO Line System Engineering</td>
+								<td>{{ task.variables.starter.value }}</td>
+								<td>{{ task.assignee ? task.assignee : task.groupId}}</td>
+							</tr>
+							</tbody>
+							<tbody ng-hide="tasks.length > 0">
+							<tr>
+								<th colspan="9">No data</th>
+							</tr>
+							</tbody>
+							<tfoot>
+							</tfoot>
+						</table>
+					</div>
+					<div class="page-body container-fluid" ng-if="currentReport === '4gSharing-open-tasks' && $root.isProcessAvailable(reportsMap[currentReport].process) && $root.isProcessVisible(reportsMap[currentReport].process)">
+						<div class="row" ng-hide="task">
+							<h3>{{reportsMap[currentReport].name}} <span ng-show="task">» {{userTasksMap[task].name}}</span></h3>
+							<div class="col-sm-12">
+								<table class="table">
+								  <thead>
+								    <tr>
+								      <th scope="col"></th>
+								      <th scope="col">800</th>
+								      <th scope="col">1800</th>
+								      <th scope="col">2100</th>
+								      <th scope="col">Всего</th>
+								    </tr>
+								  </thead>
+								  <tbody>
+								    <tr>
+								      <th scope="row">Количество запланированных сайтов</th>
+								      <td>{{siteCountByType.planed.band800}}</td>
+								      <td>{{siteCountByType.planed.band1800}}</td>
+								      <td>{{siteCountByType.planed.band2100}}</td>
+								      <td>{{siteCountByType.planed.all}}</td>
+								    </tr>
+								    <tr>
+								      <th scope="row">On-air количество</th>
+								      <td>{{siteCountByType.onair.band800}}</td>
+								      <td>{{siteCountByType.onair.band1800}}</td>
+								      <td>{{siteCountByType.onair.band2100}}</td>
+								      <td>{{siteCountByType.onair.all}}</td>
+								    </tr>
+								    <tr>
+								      <th scope="row">Количество сайтов, принятых Кселлом в сервис</th>
+								      <td>{{siteCountByType.beelineHost.band800}}</td>
+								      <td>{{siteCountByType.beelineHost.band1800}}</td>
+								      <td>{{siteCountByType.beelineHost.band2100}}</td>
+								      <td>{{siteCountByType.beelineHost.all}}</td>
+								    </tr>
+								    <tr>
+								      <th scope="row">Количество сайтов, принятых Билайном в сервис</th>
+								      <td>{{siteCountByType.kcellHost.band800}}</td>
+								      <td>{{siteCountByType.kcellHost.band1800}}</td>
+								      <td>{{siteCountByType.kcellHost.band2100}}</td>
+								      <td>{{siteCountByType.kcellHost.all}}</td>
+								    </tr>
+								  </tbody>
+								</table>
+								<!-- <span>Количество запланированных сайтов</span>
+								<span>On-air количество</span>
+								<span>Количество сайтов, принятых Кселлом в сервис</span>
+								<span>Количество сайтов, принятых Билайном в сервис</span> -->
+							</div>	
+							<div class="form-group col-sm-4">
+								<label for="sel1">Select SubProcess:</label>
+								<select class="form-control" id="select" ng-model="currentSubProcess">
+								    <option value="BeelineHostBeelineSite">Beeline Host - Beeline Site</option>
+								    <option value="BeelineHostKcellSite">Beeline Host - Kcell Site</option>
+								    <option value="KcellHostBeelineSite">Kcell Host - Beeline Site</option>
+								    <option value="KcellHostKcellSite">Kcell Host - Kcell Site</option>
+								    <option value="ReplanSharedSiteAddressPlan">Replan Shared Site</option>
+							 	</select>
+							</div>
+						</div>
+						
+						<table class="report" ng-hide="task" ng-repeat="CurrentTasks in sharingTasks" >
+							<thead ng-show="currentSubProcess == CurrentTasks.pid">
+							<tr>
+								<th>Activity</th>
+								<th>Almaty</th>
+								<th>East</th>
+								<th>West</th>
+								<th>North &amp; Central</th>
+								<th>South</th>
+								<th>Astana</th>
+								<th>No region</th>
+							</tr>
+							</thead>
+							<tbody ng-show="currentSubProcess == CurrentTasks.pid">
+							<tr>
+								<td colspan="8">&nbsp;</td>
+							</tr>
+							<tr>
+								<td colspan="8">{{CurrentTasks.title}}</td>
+							</tr>
+							<tr>
+								<td colspan="8">&nbsp;</td>
+							</tr>
+							<tr ng-repeat="taskDefId in CurrentTasks.tasks">
+								<td><a href="#/statistics?task={{taskDefId}}&report=4gSharing-open-tasks">{{userTasksMap[taskDefId].name}}</a></td>
+								<td class="number" ng-repeat="region in ['.almaty', '.east', '.west', '.north_central', '.south', '.astana', '.no_region',]">
+									{{ _.get(tasksByIdAndRegionCounted, taskDefId + region, 0) }}
+								</td>
+							</tr>
+							</tbody>
+							<thead>
+						</table>
+
+						<table class="report" ng-show="task">
+							<thead>
+							<tr>
+								<th>Region</th>
+								<th>Sitename</th>
+								<th>Host</th>
+								<th>Infrastructure Owner</th>
+								<th>Integration City</th>
+								<th>Status</th>
+								<th>Requested by</th>
+								<!-- <th>Requested date</th> -->
+								<!-- <th>Acceptance date</th> -->
+							</tr>
+							</thead>
+							<tbody ng-show="tasks.length > 0">
+							<tr ng-repeat="task in tasks">
+								<td>{{ getSiteRegion(task.variables.sharingPlan.value.toString()) }}</td>
+								<td>{{ task.variables.sharingPlan.value.site_name }}</td>
+								<td>{{ task.variables.sharingPlan.value.host }}</td>
+								<td>{{ task.variables.sharingPlan.value.infrastructure_owner }}</td>
+								<td>{{ task.variables.sharingPlan.value.integration_city }}</td>
+								<td>{{ task.variables.sharingPlanStatus.value }}</td>
+								<td>{{ task.variables.starter.value }}</td>
+								<!-- <td>{{ task.variables.requestedDate.value | date: 'dd.MM.yyyy' }}</td> -->
+								<!-- <td>{{ task.variables.validityDate.value | date: 'dd.MM.yyyy'}}</td> -->
+							</tr>
+							</tbody>
+							<tbody ng-hide="tasks.length > 0">
+							<tr>
+								<th colspan="9">No data</th>
+							</tr>
+							</tbody>
+							<tfoot>
+							</tfoot>
+						</table>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
