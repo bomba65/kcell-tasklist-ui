@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.Arrays;
 import java.util.Scanner;
+import java.util.StringTokenizer;
 
 @Service("checkPRFile")
 @Log
@@ -67,7 +68,21 @@ public class CheckPRFile implements JavaDelegate {
                             Scanner s = new Scanner(inputStream).useDelimiter("\\A");
                             String result = s.hasNext() ? s.next() : "";
 
-                            delegateExecution.setVariable("prFileCheckError", result);
+                            StringBuilder str = new StringBuilder("");
+                            StringTokenizer byNewLine = new StringTokenizer(result, "\n");
+                            while(byNewLine.hasMoreTokens()){
+                                String line = byNewLine.nextToken();
+                                int jrNumberfirstPos = ordinalIndexOf(line, "\t", 2);
+                                int jrNumberlastPos = ordinalIndexOf(line, "\t", 3);
+                                String jrNumber = line.substring(jrNumberfirstPos, jrNumberlastPos);
+                                String error = line.substring(line.lastIndexOf("\t"));
+                                str.append(jrNumber);
+                                str.append(": ");
+                                str.append(error);
+                                str.append("\n");
+                            }
+
+                            delegateExecution.setVariable("prFileCheckError", str.toString());
                             delegateExecution.setVariable("prFileCheckResult", "error");
                         }
                     );
@@ -81,5 +96,12 @@ public class CheckPRFile implements JavaDelegate {
                 delegateExecution.setVariable("prFileCheckResult", "notFound");
             }
         }
+    }
+
+    private int ordinalIndexOf(String str, String substr, int n) {
+        int pos = str.indexOf(substr);
+        while (--n > 0 && pos != -1)
+            pos = str.indexOf(substr, pos + 1);
+        return pos;
     }
 }

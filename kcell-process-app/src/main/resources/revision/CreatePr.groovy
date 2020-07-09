@@ -164,7 +164,7 @@ if (reason == '2') {
               w.costCenter + '\t' + w.controllingArea + '\t' + w.activityServiceNumber + '\t' + w.price.unitWorkPricePerSite + '\t' +
               subcontructerName + '\t131\t' + requestedBy + '\t' +
               '1.Purchase description: Revision works for site ' + w.r.site_name + ' JR# ' + jrNumber + ' dated ' + requestDate + ' ' +
-              '2.Budgeted or not: yes ' + workDefinitionMap[w.sapServiceNumber].spp + ' ' +
+              '2.Budgeted or not: yes ' + workDefinitionMap[w.sapServiceNumber].wbsElement + ' ' +
               '3.Main project for Fintur: revision works ' +
               '4.Describe the need of this purchase for this year: necessary for revision works ' +
               '5.Contact person: ' + subcontructerName + ' ' +
