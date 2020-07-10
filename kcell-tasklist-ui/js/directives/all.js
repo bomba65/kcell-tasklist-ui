@@ -4927,6 +4927,7 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                         scope.cityList = _.uniqBy(scope.dictionary.addresses, 'city').map((e, index) => {
                             return {"name": e.city, "id": index}
                         });
+                        scope.currentFarEnd.cityList = _.uniqBy(scope.dictionary.addresses, 'city').map( (e, index) => { return {"name" : e.city, "id" : index} });
                         scope.districtList = _.uniqBy(scope.dictionary.addresses, 'district').map((e, index) => {
                             return {"name": e.district, "id": index}
                         });
