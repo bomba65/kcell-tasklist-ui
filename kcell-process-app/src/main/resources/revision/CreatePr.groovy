@@ -162,14 +162,7 @@ if (reason == '2') {
               yearEndDate + '\t' + w.wbsElement + '\t' + jrNumber + '\t' + tnuSiteLocations[w.r.site_name].siteLocation + '\t' + 
               (w.expenseType == 'CAPEX'?tnuSiteLocations[w.r.site_name].work[w.sapServiceNumber].fixedAssetNumber:'DUMMY') + '\t' +
               w.costCenter + '\t' + w.controllingArea + '\t' + w.activityServiceNumber + '\t' + w.price.unitWorkPricePerSite + '\t' +
-              subcontructerName + '\t131\t' + requestedBy + '\t' +
-              '1.Purchase description: Revision works for site ' + w.r.site_name + ' JR# ' + jrNumber + ' dated ' + requestDate + ' ' +
-              '2.Budgeted or not: yes ' + workDefinitionMap[w.sapServiceNumber].wbsElement + ' ' +
-              '3.Main project for Fintur: revision works ' +
-              '4.Describe the need of this purchase for this year: necessary for revision works ' +
-              '5.Contact person: ' + subcontructerName + ' ' +
-              '6. Vendor: Line System Engineering LLP ' +
-              '8. Total sum: ' + jobWorksTotal + ''
+              subcontructerName + '\t131\t' + requestedBy + '\t' + w.headerNotes
         newLine()
     }
 } else {
@@ -178,14 +171,7 @@ if (reason == '2') {
               '7\tY\tinstallation service ' + site_name + '\t' + w.contractorNo + '\t' + workDefinitionMap[w.sapServiceNumber].sapServiceNumber + '\t' + w.quantity + '\t' +
               yearEndDate + '\t' + w.wbsElement + '\t' + jrNumber + '\t' + sloc + '\t' + (w.fixedAssetNumber!=null?w.fixedAssetNumber:'DUMMY') + '\t' + 
               w.costCenter + '\t' + w.controllingArea + '\t' + w.activityServiceNumber + '\t' + w.price.unitWorkPricePlusTx + '\t' + 
-              subcontructerName + '\t131\t' + requestedBy + '\t' +
-              '1.Purchase description: Revision works for site ' + site_name + ' JR# ' + jrNumber + ' dated ' + requestDate + ' ' +
-              '2.Budgeted or not: yes ' + workDefinitionMap[w.sapServiceNumber].spp + ' ' +
-              '3.Main project for Fintur: revision works ' +
-              '4.Describe the need of this purchase for this year: necessary for revision works ' +
-              '5.Contact person: ' + subcontructerName + ' ' +
-              '6. Vendor: Line System Engineering LLP ' +
-              '8. Total sum: ' + jobWorksTotal + ''
+              subcontructerName + '\t131\t' + requestedBy + '\t'  + w.headerNotes
         newLine()
     }
 }
