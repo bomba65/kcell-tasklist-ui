@@ -22,12 +22,16 @@ def subcontractorsTitle = new JsonSlurper().parseText(this.getClass().getResourc
 def formatDate = new SimpleDateFormat("dd.MM.yyyy")
 def jrNumberObj = (jrNumber != null ? jrNumber : '########')
 def contractorObj = (contractorsTitle[contractor.toString()] != null ? contractorsTitle[contractor.toString()].code : contractorsTitle["0"].id)
-def requestedDateObj = formatDate.format(requestedDate)
+
+print requestedObjectDate
+
+def requestedDateObj = formatDate.format(requestedObjectDate)
+def jobDetailObj = jobDetailObject
 def subcontructerId = (subcontractorsTitle[reason] != null ? subcontractorsTitle[reason].code : "10")
 def plant = "0201"
 
 def binding = ["jrNumber" : jrNumberObj, "contractor":contractorObj, "site_name":site_name, "siteName":siteName, "subcontructerId":subcontructerId,
-               "requestDate":requestedDateObj, "plant":plant, "sloc":sloc]
+               "requestDate":requestedDateObj, "jobDetail":jobDetailObj, "plant":plant, "sloc":sloc]
 
 /*
  323-8989-DM1	323-8989 DILARA MEHMET	Z	C	X	323-8989 DILARA MEHMET TEST 2	000010	22.08.2017	0201	4131
@@ -46,7 +50,7 @@ SLoc              | К001             | Sloc from "ZKZMM0022 - Site List"
 */
 
 def template = '''\
-yieldUnescaped '' + jrNumber + '\t' + siteName + ',' + site_name + '\t' + contractor + '\tRevision\tApproved\t' + 'REVISION ' + jrNumber + '\t' + subcontructerId + '\t' + requestDate + '\t' + plant + '\t' + sloc
+yieldUnescaped '' + jrNumber + '\t' + siteName + ',' + site_name + '\t' + contractor + '\tRevision\tApproved\t' + jobDetail + '\t' + subcontructerId + '\t' + requestDate + '\t' + plant + '\t' + sloc
 '''
 
 def config = new TemplateConfiguration()

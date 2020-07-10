@@ -1,6 +1,6 @@
 <form role="form" class="form-horizontal" name="kcell_form" novalidate>
     <script cam-script type="text/form-script">
-        inject(['$scope', '$http', 'Uri', '$rootScope', '$q', function ($scope, $http, Uri, $rootScope, $q) {
+        inject(['$scope', '$http', 'Uri', '$rootScope', '$filter', '$q', function ($scope, $http, Uri, $rootScope, $filter, $q) {
             $scope.subcontructorDirectory = {
               "1": {
                 "code": "949",
@@ -112,6 +112,11 @@
                     type: 'String',
                     value: ''
                 });
+                camForm.variableManager.createVariable({
+                    name: 'requestedObjectDate',
+                    type: 'Date',
+                    value: undefined
+                });
             });
 
             $scope.documentType = {1:"ZK73-02", 2:"ZK73-03", 3:"ZK73-04", 4:"ZK73-01"};
@@ -144,17 +149,16 @@
                     }
                     if(el === 'requestedDate'){
                         try {
-                            console.log(camForm.variableManager.variables[el]);
-                            var a = camForm.variableManager.variables[el].originalValue.substring(0,10);
-                            console.log(a);
-                            a.replace('-','/');
-                            $scope.requestedDateObject = new Date(a);
+                            $scope.requestedObjectDate = new Date(camForm.variableManager.variables[el].value);
                         } catch(e) {
                             console.log(e);
                         }
                     }
                     if(el === 'tnuSiteLocations' || el === 'workDefinitionMap'){
                         $scope[el] = camForm.variableManager.variables[el].value;
+                    }
+                    if(el == 'jrNumber'){
+                        $scope.jobDetailObject = 'REVISION '  + camForm.variableManager.variables[el].value;
                     }
                 });
                 console.log($scope.jobModel['requestedDate']);
@@ -184,12 +188,12 @@
                             w.prItemText = 'installation service ' + w.r.site_name;
                             w.index = index;
                             w.uuid = uuidv4();
-                            w.requestedDate = angular.copy($scope.requestedDateObject);
+                            w.requestedDate = angular.copy($scope.requestedObjectDate);
                             w.deliveryDate = new Date(new Date().getFullYear(), 11, 31);
                             w.open = function($event){
                                 $event.preventDefault();
                                 $event.stopPropagation();
-                                this.requestedDateObjectOpened = true;
+                                this.requestedObjectDateOpened = true;
                             };
                             w.deliveryDateOpen = function($event){
                                 $event.preventDefault();
@@ -205,15 +209,6 @@
                             if(!w.price.unitWorkPricePlusTx) {
                                 w.price.unitWorkPricePlusTx = '0.0';
                             }
-                            console.log('9058901289081290812904129084129084908');
-                            console.log(w);
-                            w.headerNotes = '1.Purchase description: Revision works for site ' + w.r.site_name + ' JR# ' + $scope.jrNumber + ' dated ' + $scope.requestDate + ' ' +
-                            '2.Budgeted or not: yes ' + $scope.workDefinitionMap[w.sapServiceNumber].wbsElement + ' ' +
-                            '3.Main project for Fintur: revision works ' +
-                            '4.Describe the need of this purchase for this year: necessary for revision works ' +
-                            '5.Contact person: ' + $scope.subcontructerName + ' ' +
-                            '6. Vendor: Line System Engineering LLP ' +
-                            '8. Total sum: ' + $scope.jobWorksTotal + ''
                             w.amountText = $scope.jobModel.reason.value == '2' ? w.price.unitWorkPricePerSite.replace('.',',') : w.price.unitWorkPricePlusTx.replace('.',',');
                             $scope.jobWorksValueTemp.push(w);
                         } else {
@@ -222,12 +217,12 @@
                                 w.index = rindex + index;
                                 w.uuid = uuidv4();
                                 w.prItemText = 'installation service ' + w.r.site_name;
-                                w.requestedDate = angular.copy($scope.requestedDateObject);
+                                w.requestedDate = angular.copy($scope.requestedObjectDate);
                                 w.deliveryDate = new Date(new Date().getFullYear(), 11, 31);
                                 w.open = function($event){
                                     $event.preventDefault();
                                     $event.stopPropagation();
-                                    this.requestedDateObjectOpened = true;
+                                    this.requestedObjectDateOpened = true;
                                 };
                                 w.deliveryDateOpen = function($event){
                                     $event.preventDefault();
@@ -244,13 +239,6 @@
                                     w.price.unitWorkPricePlusTx = '0.0';
                                 }
                                 w.amountText = $scope.jobModel.reason.value == '2' ? w.price.unitWorkPricePerSite.replace('.',',') : w.price.unitWorkPricePlusTx.replace('.',',');
-                                w.headerNotes = '1.Purchase description: Revision works for site ' + $scope.site_name + ' JR# ' + $scope.jrNumber + ' dated ' + $scope.requestDate + ' ' +
-                                '2.Budgeted or not: yes ' + $scope.workDefinitionMap[w.sapServiceNumber].spp + ' ' +
-                                '3.Main project for Fintur: revision works ' +
-                                '4.Describe the need of this purchase for this year: necessary for revision works ' +
-                                '5.Contact person: ' + $scope.subcontructerName + ' ' +
-                                '6. Vendor: Line System Engineering LLP ' +
-                                '8. Total sum: ' + $scope.jobWorksTotal + '';
                                 $scope.jobWorksValueTemp.push(angular.copy(w));
                             });
                         }
@@ -431,6 +419,20 @@
                         value: $scope.requestedDateChangerAssigneeName
                     });
                 }
+                if($scope.jobDetailChangerName){
+                    camForm.variableManager.createVariable({
+                        name: 'jobDetailChangerName',
+                        type: 'String',
+                        value: $scope.jobDetailChangerName
+                    });
+                }
+                if($scope.jobDetailChangerAssigneeName){
+                    camForm.variableManager.createVariable({
+                        name: 'jobDetailChangerAssigneeName',
+                        type: 'String',
+                        value: $scope.jobDetailChangerAssigneeName
+                    });
+                }
                 if($scope.expenseTypeName){
                     camForm.variableManager.createVariable({
                         name: 'expenseTypeName',
@@ -544,17 +546,39 @@
                     });
                 }
 
+                $scope.jobWorksValueTemp.forEach(function(w, index) {
+                    if($scope.jobModel.reason.value != '2') {
+                        w.headerNotes = '1.Purchase description: Revision works for site ' + $scope.jobModel.site_name.value + ' JR# ' + $scope.jobModel.jrNumber.value + ' dated ' + $filter('date')(w.requestedDate,'dd.MM.yyyy') + ' ' +
+                        '2.Budgeted or not: yes ' + w.wbsElement + ' ' +
+                        '3.Main project for Fintur: revision works ' +
+                        '4.Describe the need of this purchase for this year: necessary for revision works ' +
+                        '5.Contact person: ' + $scope.subcontructorDirectory[$scope.jobModel.reason.value].responsible + ' ' +
+                        '6. Vendor: Line System Engineering LLP ' +
+                        '7. Total sum: ' + $scope.jobModel.jobWorksTotal.value + '';
+                    } else {
+                        w.relatedSites.forEach(function(r, rindex) {
+                            w.headerNotes = '1.Purchase description: Revision works for site ' + w.r.site_name + ' JR# ' + $scope.jobModel.jrNumber.value + ' dated ' + $filter('date')(w.requestedDate,'dd.MM.yyyy') + ' ' +
+                            '2.Budgeted or not: yes ' + w.wbsElement + ' ' +
+                            '3.Main project for Fintur: revision works ' +
+                            '4.Describe the need of this purchase for this year: necessary for revision works ' +
+                            '5.Contact person: ' + $scope.subcontructorDirectory[$scope.jobModel.reason.value].responsible + ' ' +
+                            '6. Vendor: Line System Engineering LLP ' +
+                            '7. Total sum: ' + $scope.jobModel.jobWorksTotal.value + '';
+                        });
+                    }
+                });
+
                 camForm.variableManager.createVariable({
                     name: 'jobWorksValueTemp',
                     type: 'Json',
                     value: $scope.jobWorksValueTemp
                 });
-
                 camForm.variableManager.createVariable({
-                    name: 'requestedDateObject',
-                    type: 'Date',
-                    value: $scope.requestedDateObject
+                    name: 'jobDetailObject',
+                    type: 'String',
+                    value: $scope.jobDetailObject
                 });
+                camForm.variableManager.variableValue('requestedObjectDate', $scope.requestedObjectDate);
             });
 
             camForm.on('store', function() {
@@ -584,12 +608,17 @@
             $scope.open = function($event){
                 $event.preventDefault();
                 $event.stopPropagation();
-                $scope.requestedDateObjectOpened = true;
+                $scope.requestedObjectDateOpened = true;
             };
 
-            $scope.requestedDateObjectChanged = function() {
+            $scope.requestedObjectDateChanged = function() {
                 $scope.requestedDateChangerName = $rootScope.authentication.name;
                 $scope.requestedDateChangerAssigneeName = $rootScope.authentication.assigneeName;
+            }
+
+            $scope.jobDetailObjectChanged = function() {
+                $scope.jobDetailChangerName = $rootScope.authentication.name;
+                $scope.jobDetailChangerAssigneeName = $rootScope.authentication.assigneeName;
             }
 
             $scope.expenseTypeChanged = function() {
@@ -699,10 +728,16 @@
         </tr>
         <tr>
             <td>Job Detail</td>
-            <td>Revision {{jobModel.jrNumber.value}}</td>
-            <td>Revision {{jobModel.jrNumber.value}}</td>
-            <td></td>
-            <td></td>
+            <td>
+                <span ng-if="!jobDetailObjectEdit">{{jobDetailObject}}</span>
+                <div class="input-group" ng-if="jobDetailObjectEdit">
+                    <input type="text" ng-model="jobDetailObject" name="jobDetailObject" required class="form-control" id="jobDetailObject" ng-change="jobDetailObjectChanged()" />
+                    <label class="error" ng-show="kcell_form.jobDetailObject.$error.required && ( kcell_form.jobDetailObject.$touched || view.submitted)">Required field</label>
+                </div>
+            </td>
+            <td>{{jobDetailObject}}</td>
+            <td><a ng-click="jobDetailObjectEdit = true"><u>edit</u></a></td>
+            <td>Edited by: {{jobDetailChangerAssigneeName}}</td>
         </tr>
         <tr>
             <td>Subcontructor ID</td>
@@ -714,18 +749,19 @@
         <tr>
             <td>Job Order Date</td>
             <td>
-                <span ng-if="!requestedDateObjectEdit">{{requestedDateObject | date:'dd.MM.yyyy'}}</span>
-                <div class="input-group" ng-if="requestedDateObjectEdit">
-                    <input type="text" ng-model="requestedDateObject" name="requestedDateObject" ng-change="requestedDateObjectChanged()" required class="form-control" datepicker-popup="dd.MM.yyyy" is-open="requestedDateObjectOpened" id="requestedDateObject" />
+                <span ng-if="!requestedObjectDateEdit">{{requestedObjectDate | date:'dd.MM.yyyy'}}</span>
+                <div class="input-group" ng-if="requestedObjectDateEdit">
+                    <input type="text" ng-model="requestedObjectDate" name="requestedObjectDate" ng-change="requestedObjectDateChanged()" required class="form-control" datepicker-popup="dd.MM.yyyy" is-open="requestedObjectDateOpened" id="requestedObjectDate" min-date="datepickerOptions.minDate" />
                     <span class="input-group-btn">
                         <button type="button" class="btn btn-default" ng-click="open($event)">
                             <i class="glyphicon glyphicon-calendar"></i>
                         </button>
                     </span>
                 </div>
+                <label class="error" ng-show="kcell_form.requestedObjectDate.$error.required && ( kcell_form.requestedObjectDate.$touched || view.submitted)">Required field</label>
             </td>
             <td>JO creation date</td>
-            <td><a ng-click="requestedDateObjectEdit = true"><u>edit</u></a></td>
+            <td><a ng-click="requestedObjectDateEdit = true"><u>edit</u></a></td>
             <td>Edited by: {{requestedDateChangerAssigneeName}}</td>
         </tr>
         <tr>
@@ -745,19 +781,6 @@
         </tbody>
     </table>
     <h3>PR Information</h3>
-    <div class="row" style="border: 1px solid;">
-        <div class="col-md-12" style="padding: 10px;">
-            <strong>Header note</strong>
-            <div>1.Purchase description: Revision works for site {{site_name}} JR# {{jobModel.jrNumber.value}} dated {{jobModel.requestedDate.value | date:'dd.MM.yyyy'}}</div>
-            <div>2.Budgeted or not: yes {{jobWorksValueTemp[0].wbsElement}}</div>
-            <div>3.Main project for Fintur: revision works</div>
-            <div>4.Describe the need of this purchase for this year: necessary for revision works</div>
-            <div>5.Contact person: {{reasonsSubcontractorResponsible[jobModel.reason.value].responsible}}</div>
-            <div>6. Vendor: Line System Engineering LLP</div>
-            <div>8. Total sum: {{jobModel.jobWorksTotal.value.replace('.',',')}}</div>
-        </div>
-    </div>
-    <br/>
     <div class="row">
         <div class="col-md-12">
             <table class="table table-bordered">
@@ -775,12 +798,15 @@
                 </tr>
                 <tr>
                     <td>Header notes</td>
-                    <th ng-repeat="w in jobWorksValueTemp track by $index">
-                        <span ng-if="!expenseTypeEdit">{{w.headerNotes}}</span>
-                        <div class="input-group" ng-if="expenseTypeEdit">
-                            <input type="text" ng-model="w.headerNotes" class="form-control" />
-                        </div>
-                    </th>
+                    <td ng-repeat="w in jobWorksValueTemp track by $index">
+                        1.Purchase description: Revision works for site {{jobModel.reason.value != '2' ? site_name : w.r.site_name}}  JR# {{jobModel.jrNumber.value}} dated {{w.requestedDate | date: 'dd.MM.yyyy'}}
+                        2.Budgeted or not: yes {{w.wbsElement}}
+                        3.Main project for Fintur: revision works
+                        4.Describe the need of this purchase for this year: necessary for revision works
+                        5.Contact person: {{subcontructorDirectory[jobModel.reason.value].responsible}}
+                        6. Vendor: Line System Engineering LLP
+                        7. Total sum: {{jobModel.jobWorksTotal.value}}
+                    </td>
                     <td></td>
                     <td></td>
                 </tr>
@@ -821,7 +847,7 @@
                     <td ng-repeat="w in jobWorksValueTemp track by $index">
                         <span ng-if="!wRequestedDateEdit">{{w.requestedDate | date:'dd.MM.yyyy'}}</span>
                         <div class="input-group" ng-if="wRequestedDateEdit">
-                            <input type="text" ng-model="w.requestedDate" ng-change="wRequestedDateChanged()" required class="form-control" datepicker-popup="dd.MM.yyyy" is-open="w.requestedDateObjectOpened"  />
+                            <input type="text" ng-model="w.requestedDate" ng-change="wRequestedDateChanged()" required class="form-control" datepicker-popup="dd.MM.yyyy" is-open="w.requestedObjectDateOpened"  />
                             <span class="input-group-btn">
                                 <button type="button" class="btn btn-default" ng-click="w.open($event)">
                                     <i class="glyphicon glyphicon-calendar"></i>

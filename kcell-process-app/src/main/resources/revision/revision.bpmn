@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" id="Definitions_1" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="3.7.3">
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" id="Definitions_1" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="4.0.0">
   <bpmn:process id="Revision" name="Revision" isExecutable="true">
     <bpmn:subProcess id="SubProcess_0cwj4g6" name="Revision Leasing Procedures">
       <bpmn:incoming>SequenceFlow_1d23qig</bpmn:incoming>
@@ -1445,7 +1445,7 @@
         <bpmn:incoming>SequenceFlow_15x2rpz</bpmn:incoming>
         <bpmn:outgoing>SequenceFlow_0jsq9a9</bpmn:outgoing>
       </bpmn:serviceTask>
-      <bpmn:sequenceFlow id="SequenceFlow_0jsq9a9" sourceRef="Task_1aa3jn9" targetRef="Task_0meslky" />
+      <bpmn:sequenceFlow id="SequenceFlow_0jsq9a9" sourceRef="Task_1aa3jn9" targetRef="Gateway_08ang5q" />
       <bpmn:endEvent id="EndEvent_0pajjtw">
         <bpmn:incoming>SequenceFlow_0fpch05</bpmn:incoming>
       </bpmn:endEvent>
@@ -1471,11 +1471,12 @@
           <camunda:taskListener class="kz.kcell.bpm.assignments.revision.HqSpecialistAssignmentHandler" event="create" />
         </bpmn:extensionElements>
         <bpmn:incoming>SequenceFlow_0iybzur</bpmn:incoming>
+        <bpmn:incoming>Flow_05xnfdw</bpmn:incoming>
         <bpmn:outgoing>SequenceFlow_15x2rpz</bpmn:outgoing>
       </bpmn:userTask>
       <bpmn:sequenceFlow id="SequenceFlow_11jnlb8" sourceRef="Task_0meslky" targetRef="Task_1trhbbe" />
       <bpmn:serviceTask id="Task_0meslky" name="Save JO file to folder &#34;SAP JO file&#34;" camunda:delegateExpression="${transferJOFile}">
-        <bpmn:incoming>SequenceFlow_0jsq9a9</bpmn:incoming>
+        <bpmn:incoming>Flow_04qf6fn</bpmn:incoming>
         <bpmn:outgoing>SequenceFlow_11jnlb8</bpmn:outgoing>
       </bpmn:serviceTask>
       <bpmn:sequenceFlow id="SequenceFlow_0u7jo6g" name="not found" sourceRef="ExclusiveGateway_1opmgse" targetRef="IntermediateThrowEvent_wait_result_jo_file">
@@ -1514,6 +1515,17 @@
         <bpmn:outgoing>Flow_0jloc8h</bpmn:outgoing>
       </bpmn:userTask>
       <bpmn:sequenceFlow id="Flow_0jloc8h" sourceRef="check_pr_data" targetRef="Task_1aa3jn9" />
+      <bpmn:exclusiveGateway id="Gateway_08ang5q">
+        <bpmn:incoming>SequenceFlow_0jsq9a9</bpmn:incoming>
+        <bpmn:outgoing>Flow_04qf6fn</bpmn:outgoing>
+        <bpmn:outgoing>Flow_05xnfdw</bpmn:outgoing>
+      </bpmn:exclusiveGateway>
+      <bpmn:sequenceFlow id="Flow_04qf6fn" sourceRef="Gateway_08ang5q" targetRef="Task_0meslky">
+        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${joCount &gt; 1}</bpmn:conditionExpression>
+      </bpmn:sequenceFlow>
+      <bpmn:sequenceFlow id="Flow_05xnfdw" sourceRef="Gateway_08ang5q" targetRef="correct_jo_file">
+        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${joCount &lt; 2}</bpmn:conditionExpression>
+      </bpmn:sequenceFlow>
       <bpmn:association id="Association_1kcyypk" sourceRef="create_sloc_sap_enter_db" targetRef="TextAnnotation_076luq1" />
     </bpmn:subProcess>
     <bpmn:inclusiveGateway id="ExclusiveGateway_1exrv6l">
@@ -4686,7 +4698,7 @@
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_0jsq9a9_di" bpmnElement="SequenceFlow_0jsq9a9">
         <di:waypoint x="5290" y="2739" />
-        <di:waypoint x="5440" y="2739" />
+        <di:waypoint x="5335" y="2739" />
         <bpmndi:BPMNLabel>
           <dc:Bounds x="1366" y="718.5" width="90" height="13" />
         </bpmndi:BPMNLabel>
@@ -4704,6 +4716,15 @@
         <bpmndi:BPMNLabel>
           <dc:Bounds x="821" y="734" width="90" height="13" />
         </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_04qf6fn_di" bpmnElement="Flow_04qf6fn">
+        <di:waypoint x="5385" y="2739" />
+        <di:waypoint x="5440" y="2739" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_05xnfdw_di" bpmnElement="Flow_05xnfdw">
+        <di:waypoint x="5360" y="2764" />
+        <di:waypoint x="5360" y="2858" />
+        <di:waypoint x="5440" y="2858" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNShape id="StartEvent_1t4szr8_di" bpmnElement="StartEvent_1t4szr8">
         <dc:Bounds x="4520" y="2721" width="36" height="36" />
@@ -4755,6 +4776,9 @@
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="UserTask_19bsyxr_di" bpmnElement="check_pr_data">
         <dc:Bounds x="5020" y="2699" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_08ang5q_di" bpmnElement="Gateway_08ang5q" isMarkerVisible="true">
+        <dc:Bounds x="5335" y="2714" width="50" height="50" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="BoundaryEvent_1s87nln_di" bpmnElement="BoundaryEvent_01b9vsc">
         <dc:Bounds x="5719" y="2761" width="36" height="36" />

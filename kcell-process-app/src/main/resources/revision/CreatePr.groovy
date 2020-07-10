@@ -53,7 +53,7 @@ def yearEndDate = "31.12."+cal.get(Calendar.YEAR)
 def formatDate = new SimpleDateFormat("dd.MM.yyyy")
 def jobWorksObj = new JsonSlurper().parseText(jobWorksValueTemp.toString())
 def workPricesObj = new JsonSlurper().parseText(workPrices.toString())
-def requestDateObj = formatDate.format(requestedDateObject)
+def requestDateObj = formatDate.format(requestedObjectDate)
 def sapFaListObj = new JsonSlurper().parseText("[]")
 if(hasCapexWorks == 'true'){
     sapFaListObj = new JsonSlurper().parseText(sapFaList.toString());

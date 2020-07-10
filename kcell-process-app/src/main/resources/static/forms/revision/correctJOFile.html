@@ -44,7 +44,8 @@
                 'mlApprovalAdditionalInfoFile',
                 'contractorJobAssignedDate',
                 'mainContract',
-                'requestedDateObject'
+                'requestedObjectDate',
+                'jobDetailObject'
             ];
 
             $scope.jobModel = {};
@@ -92,7 +93,10 @@
                     if (el === 'resolutions') {
                         $scope[el] = camForm.variableManager.variables[el].value;
                     }
-                    if (el === 'requestedDateObject') {
+                    if (el === 'requestedObjectDate' && camForm.variableManager.variables[el].value) {
+                        $scope[el] = new Date(camForm.variableManager.variables[el].value);
+                    }
+                    if (el === 'jobDetailObject' && camForm.variableManager.variables[el].value) {
                         $scope[el] = camForm.variableManager.variables[el].value;
                     }
                 });
@@ -125,7 +129,8 @@
                     camForm.variableManager.createVariable($scope.joJrFile);
                 }
 
-                camForm.variableManager.variableValue('requestedDateObject', $scope.requestedDateObject);
+                camForm.variableManager.variableValue('requestedObjectDate', $scope.requestedObjectDate);
+                camForm.variableManager.variableValue('jobDetailObject', $scope.jobDetailObject);
 
                 var visibility = 'all';
                 if($scope.correctJOFileComment && $scope.correctJOFileCommentVisibility){
@@ -221,12 +226,17 @@
             $scope.open = function($event){
                 $event.preventDefault();
                 $event.stopPropagation();
-                $scope.requestedDateObjectOpened = true;
+                $scope.requestedObjectDateOpened = true;
             };
 
-            $scope.requestedDateObjectChanged = function() {
+            $scope.requestedObjectDateChanged = function() {
                 $scope.requestedDateChangerName = $rootScope.authentication.name;
                 $scope.requestedDateChangerAssigneeName = $rootScope.authentication.assigneeName;
+            }
+
+            $scope.jobDetailObjectChanged = function() {
+                $scope.jobDetailChangerName = $rootScope.authentication.name;
+                $scope.jobDetailChangerAssigneeName = $rootScope.authentication.assigneeName;
             }
         }]);
     </script>
@@ -298,10 +308,16 @@
         </tr>
         <tr>
             <td>Job Detail</td>
-            <td>Revision {{jobModel.jrNumber.value}}</td>
-            <td>Revision {{jobModel.jrNumber.value}}</td>
-            <td></td>
-            <td></td>
+            <td>
+                <span ng-if="!jobDetailObjectEdit">{{jobDetailObject}}</span>
+                <div class="input-group" ng-if="jobDetailObjectEdit">
+                    <input type="text" ng-model="jobDetailObject" name="jobDetailObject" required class="form-control" id="jobDetailObject" ng-change="jobDetailObjectChanged()" />
+                    <label class="error" ng-show="kcell_form.jobDetailObject.$error.required && ( kcell_form.jobDetailObject.$touched || view.submitted)">Required field</label>
+                </div>
+            </td>
+            <td>{{jobDetailObject}}</td>
+            <td><a ng-click="jobDetailObjectEdit = true"><u>edit</u></a></td>
+            <td>Edited by: {{jobDetailChangerAssigneeName}}</td>
         </tr>
         <tr>
             <td>Subcontructor ID</td>
@@ -313,9 +329,9 @@
         <tr>
             <td>Job Order Date</td>
             <td>
-                <span ng-if="!requestedDateObjectEdit">{{requestedDateObject | date:'dd.MM.yyyy'}}</span>
-                <div class="input-group" ng-if="requestedDateObjectEdit">
-                    <input type="text" ng-model="requestedDateObject" name="requestedDateObject" ng-change="requestedDateObjectChanged()" required class="form-control" datepicker-popup="dd.MM.yyyy" is-open="requestedDateObjectOpened" id="requestedDateObject" />
+                <span ng-if="!requestedObjectDateEdit">{{requestedObjectDate | date:'dd.MM.yyyy'}}</span>
+                <div class="input-group" ng-if="requestedObjectDateEdit">
+                    <input type="text" ng-model="requestedObjectDate" name="requestedObjectDate" ng-change="requestedObjectDateChanged()" required class="form-control" datepicker-popup="dd.MM.yyyy" is-open="requestedObjectDateOpened" id="requestedObjectDate" />
                     <span class="input-group-btn">
                         <button type="button" class="btn btn-default" ng-click="open($event)">
                             <i class="glyphicon glyphicon-calendar"></i>
@@ -324,7 +340,7 @@
                 </div>
             </td>
             <td>JO creation date</td>
-            <td><a ng-click="requestedDateObjectEdit = true"><u>edit</u></a></td>
+            <td><a ng-click="requestedObjectDateEdit = true"><u>edit</u></a></td>
             <td>Edited by: {{requestedDateChangerAssigneeName}}</td>
         </tr>
         <tr>
