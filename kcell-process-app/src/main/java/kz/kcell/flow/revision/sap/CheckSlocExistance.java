@@ -107,6 +107,40 @@ public class CheckSlocExistance implements JavaDelegate {
                             tnuSiteLocations.prop(relatedSite.get("site_name").asText(),value);
                         }
                     }
+                } else{
+                    if (tnuSiteLocations.hasProp(site_name)){
+                        SpinJsonNode value = tnuSiteLocations.prop(site_name);
+                        if(StringUtils.isEmpty(value.prop("siteLocation").stringValue()) && value.hasProp("filledSiteLocation") && StringUtils.isNotEmpty((value.prop("filledSiteLocation").stringValue()))){
+                            String tnuSiteLocation = getSiteLocations(site_name);
+                            if (tnuSiteLocation == null){
+                                setSiteLocation(site_name, String.valueOf(delegateExecution.getVariable("siteName")), value.prop("filledSiteLocation").stringValue());
+                                tnuSiteLocation = getSiteLocations(site_name);
+                            }
+
+                            if(tnuSiteLocation!=null){
+                                value.prop("siteLocation", tnuSiteLocation);
+                                delegateExecution.setVariable("sloc", tnuSiteLocation);
+                            } else {
+                                value.prop("siteLocation", "");
+                                hasSloc = "no";
+                            }
+                        }
+                    } else {
+                        String tnuSiteLocation = getSiteLocations(site_name);
+
+                        SpinJsonNode value = SpinValues.jsonValue("{}").create().getValue();
+
+                        if(tnuSiteLocation!=null){
+                            value.prop("siteLocation", tnuSiteLocation);
+                            delegateExecution.setVariable("sloc", tnuSiteLocation);
+                        } else {
+                            value.prop("siteLocation", "");
+                            hasSloc = "no";
+                        }
+                        value.prop("siteId", String.valueOf(delegateExecution.getVariable("siteName")));
+                        value.prop("siteName", site_name);
+                        tnuSiteLocations.prop(site_name,value);
+                    }
                 }
             }
 

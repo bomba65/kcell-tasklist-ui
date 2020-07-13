@@ -241,26 +241,6 @@
                     type: 'String',
                     value: $scope.approveMaterialsListByRegionGroupsHeadTaskResult
                 });
-                if ($scope.approveMaterialsListByRegionGroupsHeadTaskResult === 'approved') {
-                    camForm.variableManager.variableValue('modifyWorks', false);
-                }
-                else{
-                    camForm.variableManager.variableValue('modifyWorks', true);
-                }
-
-                $scope.approveMaterialsGroupList = [];
-                if($scope.optimizationMaterialApproveRequired){
-                    $scope.approveMaterialsGroupList.push('P&O');
-                }
-                if($scope.transmissionMaterialApproveRequired){
-                    $scope.approveMaterialsGroupList.push('Transmission');
-                }
-                if($scope.infrastructureMaterialApproveRequired){
-                    $scope.approveMaterialsGroupList.push('S&FM');
-                }
-                if($scope.operationMaterialApproveRequired){
-                    $scope.approveMaterialsGroupList.push('Operation');
-                }
 
                 camForm.variableManager.createVariable({
                     name: 'approveMaterialsGroupList',
@@ -279,68 +259,14 @@
                         value: visibility
                     });
                 }
-                camForm.variableManager.createVariable({
-                    name: 'correct_pr_fileTaskComment',
-                    type: 'String',
-                    value: $scope.correct_pr_fileTaskComment
-                });
                 camForm.variableManager.destroyVariable('resolutions');
 
-                camForm.variableManager.createVariable({
-                    name: 'purchaseDescription',
-                    type: 'String',
-                    value: $scope.purchaseDescription
-                });
-                camForm.variableManager.createVariable({
-                    name: 'budgetedOrNot',
-                    type: 'String',
-                    value: $scope.budgetedOrNot
-                });
-                camForm.variableManager.createVariable({
-                    name: 'mainPprojectForFintur',
-                    type: 'String',
-                    value: $scope.mainPprojectForFintur
-                });
-                camForm.variableManager.createVariable({
-                    name: 'describeTheNeedOfThisPurchaseForThisYear',
-                    type: 'String',
-                    value: $scope.describeTheNeedOfThisPurchaseForThisYear
-                });
-                camForm.variableManager.createVariable({
-                    name: 'contactPerson',
-                    type: 'String',
-                    value: $scope.contactPerson
-                });
-                camForm.variableManager.createVariable({
-                    name: 'vendor',
-                    type: 'String',
-                    value: $scope.vendor
-                });
-                camForm.variableManager.createVariable({
-                    name: 'totalSum',
-                    type: 'String',
-                    value: $scope.totalSum
-                });
+                var headerNotes = $scope.jobWorksValueTemp[0].headerNotes;
                 $scope.jobWorksValueTemp.forEach(function(w, index) {
-                    if($scope.jobModel.reason.value != '2') {
-                        w.headerNotes = '1.Purchase description: Revision works for site ' + $scope.jobModel.site_name.value + ' JR# ' + $scope.jobModel.jrNumber.value + ' dated ' + $filter('date')(w.requestedDate,'dd.MM.yyyy') + ' ' +
-                        '2.Budgeted or not: yes ' + w.wbsElement + ' ' +
-                        '3.Main project for Fintur: revision works ' +
-                        '4.Describe the need of this purchase for this year: necessary for revision works ' +
-                        '5.Contact person: ' + $scope.subcontructorDirectory[$scope.jobModel.reason.value].responsible + ' ' +
-                        '6. Vendor: Line System Engineering LLP ' +
-                        '7. Total sum: ' + $scope.jobModel.jobWorksTotal.value + '';
-                    } else {
-                        w.headerNotes = '1.Purchase description: Revision works for site ' + w.r.site_name + ' JR# ' + $scope.jobModel.jrNumber.value + ' dated ' + $filter('date')(w.requestedDate,'dd.MM.yyyy') + ' ' +
-                        '2.Budgeted or not: yes ' + w.wbsElement + ' ' +
-                        '3.Main project for Fintur: revision works ' +
-                        '4.Describe the need of this purchase for this year: necessary for revision works ' +
-                        '5.Contact person: ' + $scope.subcontructorDirectory[$scope.jobModel.reason.value].responsible + ' ' +
-                        '6. Vendor: Line System Engineering LLP ' +
-                        '7. Total sum: ' + $scope.jobModel.jobWorksTotal.value + '';
-                    }
+                    w.headerNotes = angular.copy(headerNotes);
                 });
                 camForm.variableManager.variableValue('jobWorksValueTemp', $scope.jobWorksValueTemp);
+                camForm.variableManager.variableValue('tnuSiteLocations', $scope.tnuSiteLocations);
             });
 
             camForm.on('store', function() {
@@ -417,6 +343,16 @@
                 $scope.wdeliveryDateName = $rootScope.authentication.name;
                 $scope.wdeliveryDateAssigneeName = $rootScope.authentication.assigneeName;
             }
+
+            $scope.headerNotesChanged = function() {
+                $scope.headerNoteName = $rootScope.authentication.name;
+                $scope.headerNoteAssigneeName = $rootScope.authentication.assigneeName;
+            }
+
+            $scope.faNumberChanged = function() {
+                $scope.faNumberName = $rootScope.authentication.name;
+                $scope.faNumberAssigneeName = $rootScope.authentication.assigneeName;
+            }
         }]);
     </script>
     <button class="btn btn-default pull-right" data-toggle="modal" data-target="#jobModal">{{ jobModel.jrNumber.value }}</button>
@@ -438,6 +374,22 @@
 
     <h4>Error code # {{jobModel.prFileCheckError.value}}</h4>
     <h3>PR Information</h3>
+
+    <table class="table table-bordered" style="border: 1px solid; margin-bottom: 10px;">
+        <tr>
+            <th colspan="3">Header note</th>
+        </tr>
+        <tr>
+            <td ng-if="!headerNoteEdit" style="width:88%">{{jobWorksValueTemp[0].headerNotes}}</td>
+            <td ng-if="headerNoteEdit" style="width:88%">
+                <textarea class="form-control" rows="4" maxlength="500" ng-model="$parent.jobWorksValueTemp[0].headerNotes" name="headerNotes" required ng-change="headerNotesChanged()"></textarea>
+                <label class="error" ng-show="kcell_form.headerNotes.$error.required && ( kcell_form.headerNotes.$touched || view.submitted)">Required field</label>
+            </td>
+            <td><a ng-click="headerNoteEdit = true"><u>edit</u></a></td>
+            <td>Edited by: {{headerNoteAssigneeName}}</td>
+        </tr>
+    </table>
+
     <div class="row">
         <div class="col-md-12">
             <table class="table table-bordered">
@@ -452,20 +404,6 @@
                     <th ng-repeat="w in jobWorksValueTemp track by $index">Value</th>
                     <th>Actions</th>
                     <th>Comment</th>
-                </tr>
-                <tr>
-                    <td>Header notes</td>
-                    <th ng-repeat="w in jobWorksValueTemp track by $index">
-                        1.Purchase description: Revision works for site {{jobModel.reason.value != '2' ? jobModel.site_name.value : w.r.site_name}}  JR# {{jobModel.jrNumber.value}} dated {{w.requestedDate | date: 'dd.MM.yyyy'}}
-                        2.Budgeted or not: yes {{w.wbsElement}}
-                        3.Main project for Fintur: revision works
-                        4.Describe the need of this purchase for this year: necessary for revision works
-                        5.Contact person: {{subcontructorDirectory[jobModel.reason.value].responsible}}
-                        6. Vendor: Line System Engineering LLP
-                        7. Total sum: {{jobModel.jobWorksTotal.value}}
-                    </th>
-                    <td></td>
-                    <td></td>
                 </tr>
                 <tr>
                     <td>PR document type</td>
@@ -600,13 +538,15 @@
                 <tr>
                     <td>FA number</td>
                     <td ng-repeat="w in jobWorksValueTemp track by $index">
-                        <span ng-if="jobModel.reason.value != '2'">{{w.fixedAssetNumber!=null?w.fixedAssetNumber:'DUMMY'}}</span>
-                        <span ng-if="jobModel.reason.value == '2'">
+                        <span ng-if="jobModel.reason.value != '2' && !faNumberEdit">{{w.fixedAssetNumber!=null?w.fixedAssetNumber:'DUMMY'}}</span>
+                        <span ng-if="jobModel.reason.value == '2' && !faNumberEdit"">
                             {{w.expenseType=='CAPEX'?tnuSiteLocations[w.r.site_name].work[w.sapServiceNumber].fixedAssetNumber:'DUMMY'}}
                         </span>
+                        <input ng-model="w.fixedAssetNumber" ng-if="jobModel.reason.value != '2' && faNumberEdit" class="form-control" ng-change="faNumberChanged()" />
+                        <input ng-model="tnuSiteLocations[w.r.site_name].work[w.sapServiceNumber].fixedAssetNumber" ng-if="jobModel.reason.value == '2' && faNumberEdit" class="form-control" ng-change="faNumberChanged()" />
                     </td>
-                    <td></td>
-                    <td></td>
+                    <td><a ng-click="faNumberEdit = true"><u>edit</u></a></td>
+                    <td>Edited by: {{faNumberAssigneeName}}</td>
                 </tr>
                 <tr>
                     <td>Cost center </td>

@@ -25,28 +25,6 @@ def workDefinitionMap = '{"8":{"id":8,"contractor":{"id":5,"name":"Kcell_region"
 "4": "Operation works"
 */
 
-def capexWorks = ['1','2','3','4','5','8','10','11','12','14','15','16','17','19','20','22','23','25','26','28','29','31','32','34',
-                  '35','36','38','42','45', '46', '47', '48', '49', '50', '54', '55', '56', '57', '60', '62', '65', '66', '71', '72',
-                  '77', '78', '79', '80', '81', '86', '87', '88', '91', '94', '97', '100', '103', '104', '105', '106', '112', '113',
-                  '114', '115', '122', '131', '134', '138', '141', '144', '147', '150', '151', '155', '156', '157', '158', '159', '160',
-                  '161', '162', '165', '168', '169', '172', '173']
-
-def undefinedWorks = ['39', '40', '41', '43', '61', '63', '67', '68', '73', '74', '82', '84', '85', '89', '92', '95', '98', '101', '107',
-                      '108', '116', '117', '118', '123', '125', '126', '127', '128', '129', '130', '132', '135', '137', '139', '142', '145',
-                      '148', '152', '153', '154', '166']
-
-def opexWorks = ['6', '7', '9', '13', '18', '21', '24', '27', '30', '33', '37', '44', '51', '52', '53', '58', '59', '64', '69', '70', '75',
-                 '76', '83', '90', '93', '96', '99', '102', '109', '110', '111', '119', '120', '121', '124', '133', '136', '140', '143',
-                 '146', '149', '163', '164', '167', '170', '171']
-// requestedDateChangerAssigneeName
-// expenseTypeAssigneeName
-// prItemTextAssigneeName
-// wbsElementAssigneeName
-// amountTextAssigneeName
-// controllingAreaAssigneeName
-// activityServiceNumberAssigneeName
-// wRequestedDateAssigneeName
-// wdeliveryDateAssigneeName
 def cal = Calendar.instance
 def yearEndDate = "31.12."+cal.get(Calendar.YEAR)
 
@@ -70,47 +48,6 @@ if('2' == reason){
     tnuSiteLocationsObj = new JsonSlurper().parseText(tnuSiteLocations.toString())
 }
 def workDefinitionMapObj = new JsonSlurper().parseText(workDefinitionMap.toString())
-
-jobWorksObj.each { work ->
-    if(capexWorks.contains(work.sapServiceNumber)){
-        work.expenseType = 'CAPEX'
-    } else if(opexWorks.contains(work.sapServiceNumber)){
-        work.expenseType = 'OPEX'
-    }
-    if ('CAPEX' == work.expenseType){
-        work.costType = 'Y'
-    } else if ('OPEX' == work.expenseType){
-        work.costType = 'K'
-    }
-    work.contractorNo = contractorsTitle[contractor.toString()].contract.service
-    work.costCenter = '25510'
-
-    if(reason == '2'){
-        if('CAPEX' == work.expenseType) {
-            work.relatedSites.each { rs ->
-                sapFaListObj.each { fa ->
-                    if (fa.faClass == workDefinitionMapObj[work.sapServiceNumber].faClass && fa.sloc == tnuSiteLocationsObj[rs.site_name].siteLocation) {
-                        tnuSiteLocationsObj[rs.site_name].work[work.sapServiceNumber].fixedAssetNumber = fa.faNumber
-                    }
-                }
-            }
-        }
-    } else {
-        if('CAPEX' == work.expenseType) {
-            sapFaListObj.each { fa ->
-                if (fa.faClass == workDefinitionMapObj[work.sapServiceNumber].faClass && fa.sloc == sloc) {
-                    work.fixedAssetNumber = fa.faNumber
-                }
-            }
-        }
-    }
-}
-
-jobWorksObj.each { work ->
-    work.price = workPricesObj.find {
-        it.sapServiceNumber == work.sapServiceNumber
-    }
-}
 
 def binding = ["documentType": documentType[reason],"jobWorksObj":jobWorksObj, "workPricesObj": workPricesObj, "jrNumber":jrNumber,
                "requestDate": requestDateObj, "yearEndDate":yearEndDate, "sloc":sloc, "subcontructerName":subcontructerName,
@@ -176,19 +113,6 @@ if (reason == '2') {
     }
 }
 '''
-/*
-Briefly answer the following questions:
-1.Purchase description: Revision works for site 00000ALMATY
-JR# West-P&O-17-0048 dated 01.12.2017
-2.Budgeted or not: yes
-RN-0502-33-0150; 251-70160-1
-CIF's # 0150 (на 2018 будет меняться каждый год)
-3.Main project for Fintur: revision works
-4.Describe the need of this purchase for this year: necessary for revision works
-5.Contact person: Keremet Ibragimova
-6. Vendor: Line System Engineering LLP
-8. Total sum: ______
-*/
 
 def config = new TemplateConfiguration()
 config.setAutoNewLine(true)

@@ -186,7 +186,7 @@
                 <td>Fixed Asset Number</td>
                 </thead>
                 <tbody ng-repeat="work in jobWorks track by $index">
-                <tr ng-repeat="r in work.relatedSites track by $index">
+                <tr ng-show="work.relatedSites.length > 0" ng-repeat="r in work.relatedSites track by $index">
                     <td>{{jobModel.worksTitle[work.sapServiceNumber]}}</td>
                     <td>{{r.site_name}}</td>
                     <td>{{tnuSiteLocations[r.site_name].siteLocation}}</td>
@@ -200,7 +200,25 @@
                         <span ng-if="capexWorks.indexOf(work.sapServiceNumber)!==-1 || (undefinedWorks.indexOf(work.sapServiceNumber)!==-1 && work.expenseType == 'CAPEX')">
                             <span ng-if="getSapFilledFa(tnuSiteLocations[r.site_name].siteLocation, workDefinitionMap[work.sapServiceNumber].faClass)">{{getSapFilledFa(tnuSiteLocations[r.site_name].siteLocation,workDefinitionMap[work.sapServiceNumber].faClass)}}</span>
                         </span>
-                        <input type="text" ng-model="tnuSiteLocations[r.site_name].work[work.sapServiceNumber].fixedAssetNumber" name="fixedAssetNumber{{$parent.$index}}-{{$index}}" ng-required="jobModel.reason.value == '2'" ng-show = "(capexWorks.indexOf(work.sapServiceNumber)!==-1 || (undefinedWorks.indexOf(work.sapServiceNumber)!==-1 && work.expenseType == 'CAPEX')) && !getSapFilledFa(tnuSiteLocations[r.site_name].siteLocation,workDefinitionMap[work.sapServiceNumber].faClass)">
+                        <input type="text" ng-model="tnuSiteLocations[r.site_name].work[work.sapServiceNumber].fixedAssetNumber" name="fixedAssetNumber{{$parent.$index}}-{{$index}}" ng-required="jobModel.reason.value == '2' && work.relatedSites.length > 0" ng-show = "(capexWorks.indexOf(work.sapServiceNumber)!==-1 || (undefinedWorks.indexOf(work.sapServiceNumber)!==-1 && work.expenseType == 'CAPEX')) && !getSapFilledFa(tnuSiteLocations[r.site_name].siteLocation,workDefinitionMap[work.sapServiceNumber].faClass)">
+                        <label class="error" ng-if="kcell_form['fixedAssetNumber'+($parent.$index)+'-'+($index)].$error.required && ( kcell_form['fixedAssetNumber'+($parent.$index)+'-'+($index)].$touched || view.submitted)">Required field</label>
+                    </td>
+                </tr>
+                <tr ng-show="work.relatedSites.length == 0">
+                    <td>{{jobModel.worksTitle[work.sapServiceNumber]}}</td>
+                    <td>{{jobModel.site_name.value}}</td>
+                    <td>{{tnuSiteLocations[jobModel.site_name.value].siteLocation}}</td>
+                    <td>
+                        <span ng-if="opexWorks.indexOf(work.sapServiceNumber)!==-1 || (undefinedWorks.indexOf(work.sapServiceNumber)!==-1 && work.expenseType == 'OPEX')">No need to fill for Opex</span>
+                        <span ng-if="capexWorks.indexOf(work.sapServiceNumber)!==-1 || (undefinedWorks.indexOf(work.sapServiceNumber)!==-1 && work.expenseType == 'CAPEX')">{{workDefinitionMap[work.sapServiceNumber].faClass}}</span>
+                    </td>
+                    <td>{{capexWorks.indexOf(work.sapServiceNumber)!==-1 || (undefinedWorks.indexOf(work.sapServiceNumber)!==-1 && work.expenseType == 'CAPEX')?'Y':'K'}}</td>
+                    <td>
+                        <span ng-if="opexWorks.indexOf(work.sapServiceNumber)!==-1 || (undefinedWorks.indexOf(work.sapServiceNumber)!==-1 && work.expenseType == 'OPEX')">No need to fill for Opex</span>
+                        <span ng-if="capexWorks.indexOf(work.sapServiceNumber)!==-1 || (undefinedWorks.indexOf(work.sapServiceNumber)!==-1 && work.expenseType == 'CAPEX')">
+                            <span ng-if="getSapFilledFa(tnuSiteLocations[jobModel.site_name.value].siteLocation, workDefinitionMap[work.sapServiceNumber].faClass)">{{getSapFilledFa(tnuSiteLocations[jobModel.site_name.value].siteLocation,workDefinitionMap[work.sapServiceNumber].faClass)}}</span>
+                        </span>
+                        <input type="text" ng-model="tnuSiteLocations[jobModel.site_name.value].work[work.sapServiceNumber].fixedAssetNumber" name="fixedAssetNumber{{$parent.$index}}-{{$index}}" ng-required="jobModel.reason.value == '2' && work.relatedSites.length == 0" ng-show = "(capexWorks.indexOf(work.sapServiceNumber)!==-1 || (undefinedWorks.indexOf(work.sapServiceNumber)!==-1 && work.expenseType == 'CAPEX')) && !getSapFilledFa(tnuSiteLocations[jobModel.site_name.value].siteLocation,workDefinitionMap[work.sapServiceNumber].faClass)">
                         <label class="error" ng-if="kcell_form['fixedAssetNumber'+($parent.$index)+'-'+($index)].$error.required && ( kcell_form['fixedAssetNumber'+($parent.$index)+'-'+($index)].$touched || view.submitted)">Required field</label>
                     </td>
                 </tr>

@@ -39,10 +39,15 @@ def template = '''\
 if (reason == '2') {
     jobWorksObj.each { w ->
         if (capexWorks.contains(w.sapServiceNumber) || (undefinedWorks.contains(w.sapServiceNumber) && w.expenseType == 'CAPEX')) {
-            w.relatedSites.each { r ->
-                yieldUnescaped '' + workDefinitionMap[w.sapServiceNumber].faClass + '\t' + tnuSiteLocations[r.site_name].siteLocation
-                newLine()
-            }
+            if(w.relatedSites.size()>0){
+                w.relatedSites.each { r ->
+                    yieldUnescaped '' + workDefinitionMap[w.sapServiceNumber].faClass + '\t' + tnuSiteLocations[r.site_name].siteLocation
+                    newLine()
+                }            
+            } else {
+                yieldUnescaped '' + workDefinitionMap[w.sapServiceNumber].faClass + '\t' + sloc
+                newLine()            
+            }            
         }
     }    
 } else {
