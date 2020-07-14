@@ -370,9 +370,7 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 		// 	);
         // };
 		$scope.getExcelFile = function () {
-			console.log( "123");
 			var tbl = document.getElementById( 'revisionsSearchTask');
-			console.log( "123", tbl);
 			var ws = XLSX.utils.table_to_sheet(tbl, {dateNF: 'DD.MM.YYYY'});
 			var wb = XLSX.utils.book_new();
 			XLSX.utils.book_append_sheet(wb, ws, 'New Sheet Name 1');
