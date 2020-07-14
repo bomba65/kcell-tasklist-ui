@@ -161,6 +161,16 @@ public class CheckSlocExistance implements JavaDelegate {
                             value.prop("work", workForFixedAssetNumber);
                             tnuSiteLocations.prop(relatedSite.get("site_name").asText(), value);
                         }
+                    } else {
+                        SpinJsonNode value = tnuSiteLocations.prop(site_name);
+
+                        SpinJsonNode workForFixedAssetNumber = SpinValues.jsonValue("{}").create().getValue();
+                        if(value.hasProp("work")){
+                            workForFixedAssetNumber = value.prop("work");
+                        }
+                        workForFixedAssetNumber.prop(work.get("sapServiceNumber").toString().replace("\"",""), SpinValues.jsonValue("{}").create().getValue());
+                        value.prop("work", workForFixedAssetNumber);
+                        tnuSiteLocations.prop(site_name, value);
                     }
                 }
             }
@@ -312,15 +322,5 @@ public class CheckSlocExistance implements JavaDelegate {
 
         JsonValue jsonValue = SpinValues.jsonValue(workDefinitionMap.toString()).create();
         delegateExecution.setVariable("workDefinitionMap", jsonValue);
-
-        String hasCapexWorks = "false";
-        for (SpinJsonNode work:jobWorks){
-            String sapServiceNumber = work.prop("sapServiceNumber").toString().replace("\"","");
-            String expenseType = work.prop("expenseType").toString();
-            if(capexWorks.contains(sapServiceNumber) || (undefinedWorks.contains(sapServiceNumber) && "CAPEX".equals(expenseType))){
-                hasCapexWorks = "true";
-            }
-        }
-        delegateExecution.setVariable("hasCapexWorks", hasCapexWorks);
     }
 }

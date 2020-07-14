@@ -49,6 +49,28 @@ if('2' == reason){
 }
 def workDefinitionMapObj = new JsonSlurper().parseText(workDefinitionMap.toString())
 
+jobWorksObj.each { work ->
+    work.contractorNo = contractorsTitle[contractor.toString()].contract.service
+
+    if(reason == '2'){
+        if('CAPEX' == work.expenseType) {
+            sapFaListObj.each { fa ->
+                if (fa.faClass == workDefinitionMapObj[work.sapServiceNumber].faClass && fa.sloc == tnuSiteLocationsObj[work.r.site_name].siteLocation) {
+                    tnuSiteLocationsObj[work.r.site_name].work[work.sapServiceNumber].fixedAssetNumber = fa.faNumber
+                }
+            }
+        }
+    } else {
+        if('CAPEX' == work.expenseType) {
+            sapFaListObj.each { fa ->
+                if (fa.faClass == workDefinitionMapObj[work.sapServiceNumber].faClass && fa.sloc == sloc) {
+                    work.fixedAssetNumber = fa.faNumber
+                }
+            }
+        }
+    }
+}
+
 def binding = ["documentType": documentType[reason],"jobWorksObj":jobWorksObj, "workPricesObj": workPricesObj, "jrNumber":jrNumber,
                "requestDate": requestDateObj, "yearEndDate":yearEndDate, "sloc":sloc, "subcontructerName":subcontructerName,
                "site_name":site_name, "requestedBy":requestedBy, "reason": reason, "tnuSiteLocations":tnuSiteLocationsObj,
