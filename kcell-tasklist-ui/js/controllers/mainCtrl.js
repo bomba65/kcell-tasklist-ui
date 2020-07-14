@@ -369,6 +369,16 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 		// 		}
 		// 	);
         // };
+		$scope.getExcelFile = function () {
+			console.log( "123");
+			var tbl = document.getElementById( 'revisionsSearchTask');
+			console.log( "123", tbl);
+			var ws = XLSX.utils.table_to_sheet(tbl, {dateNF: 'DD.MM.YYYY'});
+			var wb = XLSX.utils.book_new();
+			XLSX.utils.book_append_sheet(wb, ws, 'New Sheet Name 1');
+			return XLSX.writeFile(wb, 'revision-search-task-result.xlsx');
+
+		}
 
         $scope.searchProcessesForContractors = async function(taskInfo){
 			var queryParams = {processDefinitionKey: 'Revision', variables: []};
@@ -425,7 +435,7 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 			}).then(function(results){
 				$scope.processSearchResults = results.data;
 				if($scope.processSearchResults.length > 0){
-					_.forEach(['site_name', 'priority', 'validityDate', 'requestedDate'], function(variable) {
+					_.forEach(['site_name', 'priority', 'validityDate', 'requestedDate','starter'], function(variable) {
 						var varSearchParams = {processInstanceIdIn: _.map($scope.processSearchResults, 'id'), variableName: variable};
 						$http({
 							method: 'POST',
@@ -440,8 +450,20 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 									});
 									if(f){
 										el[variable] = f[0].value;
+										if(variable === 'starter'){
+											$http.get(baseUrl + '/user/' + f[0].value + '/profile').then(
+												function (result) {
+													el[variable] = result.data.firstName + " " + result.data.lastName;
+												},
+												function (error) {
+													console.log(error.data);
+												}
+											);
+										}
+
 									}
 								});
+
 							},
 							function(error){
 								console.log(error.data);
