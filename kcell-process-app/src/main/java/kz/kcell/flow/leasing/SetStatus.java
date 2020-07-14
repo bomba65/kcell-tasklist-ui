@@ -73,12 +73,13 @@ public class SetStatus implements JavaDelegate {
                     String _SET_RSD_STATUS = delegateExecution.hasVariableLocal("_SET_RSD_STATUS") ? delegateExecution.getVariableLocal("_SET_RSD_STATUS").toString() : "";
                     String _SET_ARTEFACT_RSD_EXIST = delegateExecution.hasVariableLocal("_SET_ARTEFACT_RSD_EXIST") ? delegateExecution.getVariableLocal("_SET_ARTEFACT_RSD_EXIST").toString() : "";
                     String _SET_TR_STATUS = delegateExecution.hasVariableLocal("_SET_TR_STATUS") ? delegateExecution.getVariableLocal("_SET_TR_STATUS").toString() : "";
+                    String _TEMP_NOT_USE_LIST = delegateExecution.hasVariableLocal("_TEMP_NOT_USE_LIST") ? delegateExecution.getVariableLocal("_TEMP_NOT_USE_LIST").toString() : "";
 
                     log.info("ncpId");
                     log.info(ncpId);
                     int i;
 
-                    if (_SET_NCP_STATUS != null && !_SET_NCP_STATUS.equals("")) {
+                    if (_SET_NCP_STATUS != null && !_SET_NCP_STATUS.equals("") && !_TEMP_NOT_USE_LIST.contains("_SET_NCP_STATUS")) {
                         log.info("_SET_NCP_STATUS");
                         log.info(_SET_NCP_STATUS);
                         //UPDATE NCP
@@ -95,7 +96,7 @@ public class SetStatus implements JavaDelegate {
                         updateNCPstatusPreparedStatement.executeUpdate();
                         log.info("successfull NCP_STATUS updated!");
                     }
-                    if (_SET_GEN_STATUS != null && !_SET_GEN_STATUS.equals("")) {
+                    if (_SET_GEN_STATUS != null && !_SET_GEN_STATUS.equals("") && !_TEMP_NOT_USE_LIST.contains("_SET_GEN_STATUS")) {
                         log.info("_SET_GEN_STATUS");
                         log.info(_SET_GEN_STATUS);
                         //UPDATE NCP
@@ -116,7 +117,7 @@ public class SetStatus implements JavaDelegate {
                         updateGENstatusInArtefactPreparedStatement.executeUpdate();
                         log.info("successfull GEN_STATUS updated!");
                     }
-                    if (_SET_RSD_STATUS != null && !_SET_RSD_STATUS.equals("")) {
+                    if (_SET_RSD_STATUS != null && !_SET_RSD_STATUS.equals("") && !_TEMP_NOT_USE_LIST.contains("_SET_RSD_STATUS")) {
                         log.info("_SET_RSD_STATUS");
                         log.info(_SET_RSD_STATUS);
                         //UPDATE NCP
@@ -131,7 +132,7 @@ public class SetStatus implements JavaDelegate {
                         updateRSDstatusInArtefactPreparedStatement.executeUpdate();
                         log.info("successfull RSD_STATUS updated!");
                     }
-                    if (_SET_ARTEFACT_RSD_EXIST != null && !_SET_ARTEFACT_RSD_EXIST.equals("")) {
+                    if (_SET_ARTEFACT_RSD_EXIST != null && !_SET_ARTEFACT_RSD_EXIST.equals("") && !_TEMP_NOT_USE_LIST.contains("_SET_ARTEFACT_RSD_EXIST")) {
                         log.info("_SET_ARTEFACT_RSD_EXIST");
                         log.info(_SET_ARTEFACT_RSD_EXIST);
                         //UPDATE NCP
@@ -146,7 +147,7 @@ public class SetStatus implements JavaDelegate {
                         updateARTEFACT_RSDstatusInArtefactPreparedStatement.executeUpdate();
                         log.info("successfull ARTEFACT_RSD_EXIST STATUS updated!");
                     }
-                    if (_SET_TR_STATUS != null && !_SET_TR_STATUS.equals("")) {
+                    if (_SET_TR_STATUS != null && !_SET_TR_STATUS.equals("") && !_TEMP_NOT_USE_LIST.contains("_SET_TR_STATUS")) {
                         log.info("_SET_TR_STATUS");
                         log.info(_SET_TR_STATUS);
                         //UPDATE NCP
@@ -161,7 +162,7 @@ public class SetStatus implements JavaDelegate {
                         updateTrStatusInNcpCreationPreparedStatement.executeUpdate();
                         log.info("successfull TR STATUS updated!");
                     }
-                    if (_SET_RR_STATUS != null && !_SET_RR_STATUS.equals("")) {
+                    if (_SET_RR_STATUS != null && !_SET_RR_STATUS.equals("") && !_TEMP_NOT_USE_LIST.contains("_SET_RR_STATUS")) {
                         log.info("_SET_RR_STATUS");
                         log.info(_SET_RR_STATUS);
                         //UPDATE NCP
@@ -208,7 +209,7 @@ public class SetStatus implements JavaDelegate {
 
                         log.info("ArtefactID: " + createdArtefactId + " successfully RR_STATUS updated to " + _SET_RR_STATUS);
                     }
-                    if (_SET_CAND_STATUS != null && !_SET_CAND_STATUS.equals("")) {
+                    if (_SET_CAND_STATUS != null && !_SET_CAND_STATUS.equals("") && !_TEMP_NOT_USE_LIST.contains("_SET_CAND_STATUS")) {
                         log.info("_SET_CAND_STATUS");
                         log.info(_SET_CAND_STATUS);
                         //UPDATE NCP
@@ -234,7 +235,7 @@ public class SetStatus implements JavaDelegate {
                         updateCandStatusInCandAprPreparedStatement.executeUpdate();
                         log.info("successfull CAND_STATUS updated!");
                     }
-                    if (_SET_INST_STATUS != null && !_SET_INST_STATUS.equals("")) {
+                    if (_SET_INST_STATUS != null && !_SET_INST_STATUS.equals("") && !_TEMP_NOT_USE_LIST.contains("_SET_INST_STATUS")) {
                         log.info("_SET_INST_STATUS");
                         log.info(_SET_INST_STATUS);
                         //UPDATE NCP
@@ -250,7 +251,7 @@ public class SetStatus implements JavaDelegate {
                         updateInstStatusInArtCurStPreparedStatement.executeUpdate();
                         log.info("successfull INSTALLATION_STATUS updated!");
                     }
-                    if (_SET_POWER_STATUS != null && !_SET_POWER_STATUS.equals("")) {
+                    if (_SET_POWER_STATUS != null && !_SET_POWER_STATUS.equals("") && !_TEMP_NOT_USE_LIST.contains("_SET_POWER_STATUS")) {
                         log.info("_SET_POWER_STATUS");
                         log.info(_SET_POWER_STATUS);
                         //UPDATE NCP
@@ -265,7 +266,7 @@ public class SetStatus implements JavaDelegate {
                         updateArtCurStPowerStatusPreparedStatement.executeUpdate();
                         log.info("successfull POWER_STATUS updated!");
                     }
-                    if (_SET_FE_STATUS != null && !_SET_FE_STATUS.equals("")) {
+                    if (_SET_FE_STATUS != null && !_SET_FE_STATUS.equals("") && !_TEMP_NOT_USE_LIST.contains("_SET_FE_STATUS")) {
                         log.info("_SET_FE_STATUS");
                         log.info(_SET_FE_STATUS);
                         log.info("_SET_FE_STATUS_NCP");
