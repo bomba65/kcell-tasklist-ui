@@ -221,13 +221,19 @@ public class UpdateCandidate implements JavaDelegate {
 
                     //UPDATE ARTEFACT ARTEFACT_CURRENT_STATE
                     log.info("UPDATE ARTEFACT_CURRENT_STATE");
-                    String UpdateArtefactCurrentState = "UPDATE ARTEFACT_CURRENT_STATE SET RR_STATUS = ?, RR_STATUS_DATE = ?, LONGITUDE = ?, LATITUDE = ?, RBS_TYPE = ?, BSC = ?, BAND = ?, RBS_LOCATION = ?, ALTITUDE = ?, CONSTRUCTION_HEIGHT = ?, CONSTRUCTION_TYPE = ?, ADDRESS = ?, CONTACT_PERSON = ?, COMMENTS = ?, EQUIPMENT_TYPE = ?, GS_STATUS = ?, PL_COMMENTS = ? WHERE ARTEFACTID = ?";
+                    String UpdateArtefactCurrentState = "UPDATE ARTEFACT_CURRENT_STATE SET RR_STATUS = ?, RR_STATUS_DATE = ?, LONGITUDE = ?, LATITUDE = ?, RBS_TYPE = ?, BSC = ?, BAND = ?, RBS_LOCATION = ?, ALTITUDE = ?, CONSTRUCTION_HEIGHT = ?, CONSTRUCTION_TYPE = ?, ADDRESS = ?, CONTACT_PERSON = ?, COMMENTS = ?, EQUIPMENT_TYPE = ?, GS_STATUS = ?, PL_COMMENTS = ?, INST_COMMENTS = ? WHERE ARTEFACTID = ?";
                     PreparedStatement updateArtefactCurrentStatePreparedStatement = udbConnect.prepareStatement(UpdateArtefactCurrentState);
                     Integer rbsTypeInt = rbsType != null ? Integer.parseInt(rbsType) : null;
                     Integer cnConstructionTypeInt = cn_constructionType != null ? Integer.parseInt(cn_constructionType) : null;
 
                     Integer bandsIdForUDBInt = bandsIdForUDB != null ? Integer.parseInt(bandsIdForUDB) : null;
                     String contractInfoString = renterCompany != null && renterCompany.hasProp("contactInfo") && !renterCompany.prop("contactInfo").equals(null) ? renterCompany.prop("contactInfo").value().toString() : "";
+
+                    String inst_comments = null;
+                    if(delegateExecution.hasVariable("ne_tr_parameters")){
+                        inst_comments = (String) delegateExecution.getVariable("ne_tr_parameters");
+                    }
+
                     i = 1;
                     log.info("UPDATE ARTEFACT ARTEFACT_CURRENT_STATE");
                     // set values to insert
@@ -281,6 +287,11 @@ public class UpdateCandidate implements JavaDelegate {
                     }
                     updateArtefactCurrentStatePreparedStatement.setLong(i++, 3); //gs_status
                     updateArtefactCurrentStatePreparedStatement.setString(i++, cn_comments); //pl_comments
+                    if(inst_comments!=null){
+                        updateArtefactCurrentStatePreparedStatement.setString(i++, inst_comments); //inst_comments
+                    } else {
+                        updateArtefactCurrentStatePreparedStatement.setNull(i++, Types.VARCHAR);
+                    }
                     if (createdArtefactId != null) {
                         updateArtefactCurrentStatePreparedStatement.setLong(i++, createdArtefactId); //ARTEFACTID
                     } else {
