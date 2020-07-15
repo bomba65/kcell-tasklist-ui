@@ -145,7 +145,7 @@ public class CreateNCP implements JavaDelegate {
 
                     //insert NCP
                     String returnCols[] = {"ARTEFACTID"};
-                    String insertNCP = "INSERT INTO NCP_CREATION ( ARTEFACTID, NCPID, TARGET_CELL, REGION, LONGITUDE, LATITUDE, REASON, PROJECT, CREATOR, DATEOFINSERT, COMMENTS, CABINETID, TARGET_COVERAGE, TYPE, GEN_STATUS, TR_STATUS, NCP_STATUS, NCP_STATUS_DATE, BAND, INITIATOR, PART) VALUES (NCP_CREATION_SEQ.nextval, ?, ?, ?, ?, ?, ?, ?, ?, SYSDATE, ?, ?, ?, ?, 7, 0, 2, SYSDATE, ?, ?, ?)";
+                    String insertNCP = "INSERT INTO NCP_CREATION ( ARTEFACTID, NCPID, TARGET_CELL, REGION, LONGITUDE, LATITUDE, REASON, PROJECT, CREATOR, DATEOFINSERT, COMMENTS, CABINETID, TARGET_COVERAGE, TYPE, GEN_STATUS, TR_STATUS, NCP_STATUS, NCP_STATUS_DATE, BAND, INITIATOR, PART, SOURCE) VALUES (NCP_CREATION_SEQ.nextval, ?, ?, ?, ?, ?, ?, ?, ?, SYSDATE, ?, ?, ?, ?, 7, 0, 2, SYSDATE, ?, ?, ?, ?)";
                     PreparedStatement preparedStatement = udbConnect.prepareStatement(insertNCP, returnCols);
 
                     int i = 1;
@@ -203,6 +203,7 @@ public class CreateNCP implements JavaDelegate {
                     } else {
                         preparedStatement.setNull(i++, Types.BIGINT);
                     }
+                    preparedStatement.setString(i++, "KWMS");
 
                     log.info("preparedStatement.executeUpdate()");
                     preparedStatement.executeUpdate();
