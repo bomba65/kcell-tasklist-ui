@@ -26,12 +26,10 @@ def workDefinitionMap = '{"8":{"id":8,"contractor":{"id":5,"name":"Kcell_region"
 */
 
 def cal = Calendar.instance
-def yearEndDate = "31.12."+cal.get(Calendar.YEAR)
 
-def formatDate = new SimpleDateFormat("dd.MM.yyyy")
+def formatDate = new SimpleDateFormat("yyyy-MM-dd")
 def jobWorksObj = new JsonSlurper().parseText(jobWorksValueTemp.toString())
 def workPricesObj = new JsonSlurper().parseText(workPrices.toString())
-def requestDateObj = formatDate.format(requestedObjectDate)
 def sapFaListObj = new JsonSlurper().parseText("[]")
 if(hasCapexWorks == 'true'){
     sapFaListObj = new JsonSlurper().parseText(sapFaList.toString());
@@ -72,7 +70,7 @@ jobWorksObj.each { work ->
 }
 
 def binding = ["documentType": documentType[reason],"jobWorksObj":jobWorksObj, "workPricesObj": workPricesObj, "jrNumber":jrNumber,
-               "requestDate": requestDateObj, "yearEndDate":yearEndDate, "sloc":sloc, "subcontructerName":subcontructerName,
+               "sloc":sloc, "subcontructerName":subcontructerName,"formatDate":formatDate,
                "site_name":site_name, "requestedBy":requestedBy, "reason": reason, "tnuSiteLocations":tnuSiteLocationsObj,
                "jobWorksTotal": jobWorksTotal, "sapFaList": sapFaListObj, "workDefinitionMap":workDefinitionMapObj]
 
@@ -116,20 +114,20 @@ User		        Из нового формата текстового файла	�
 def template = '''\
 if (reason == '2') {
     jobWorksObj.each { w ->
-        yieldUnescaped '' + documentType + '\t' + (w.expenseType == 'CAPEX'?'Y':(w.expenseType == 'OPEX'?'K':'')) + '\t' + jrNumber + '\tapproved\t' + w.requestedDate + '\t' + workDefinitionMap[w.sapServiceNumber].vendor + '\t' + 
+        yieldUnescaped '' + documentType + '\t' + (w.expenseType == 'CAPEX'?'Y':(w.expenseType == 'OPEX'?'K':'')) + '\t' + jrNumber + '\tapproved\t' + w.requestedDate.substring(0,10) + '\t' + workDefinitionMap[w.sapServiceNumber].vendor + '\t' + 
               '7\tY\t' + w.prItemText + '\t' + w.contractorNo + '\t' + workDefinitionMap[w.sapServiceNumber].sapServiceNumber + '\t' + w.price.quantity + '\t' +
-              w.deliveryDate + '\t' + w.wbsElement + '\t' + jrNumber + '\t' + tnuSiteLocations[w.r.site_name].siteLocation + '\t' + 
+              w.deliveryDate.substring(0,10) + '\t' + w.wbsElement + '\t' + jrNumber + '\t' + tnuSiteLocations[w.r.site_name].siteLocation + '\t' + 
               (w.expenseType == 'CAPEX'?tnuSiteLocations[w.r.site_name].work[w.sapServiceNumber].fixedAssetNumber:'DUMMY') + '\t' +
-              w.costCenter + '\t' + w.controllingArea + '\t' + w.activityServiceNumber + '\t' + w.amountText + '\t' +
+              w.costCenter + '\t' + w.controllingArea + '\t' + w.activityServiceNumber + '\t' + w.amountText.replace(',','.') + '\t' +
               subcontructerName + '\t131\t' + requestedBy + '\t' + w.headerNotes
         newLine()
     }
 } else {
     jobWorksObj.each { w ->
-        yieldUnescaped '' + documentType + '\t' + (w.expenseType == 'CAPEX'?'Y':(w.expenseType == 'OPEX'?'K':'')) + '\t' + jrNumber + '\tapproved\t' + w.requestedDate + '\t' + workDefinitionMap[w.sapServiceNumber].vendor + '\t' + 
+        yieldUnescaped '' + documentType + '\t' + (w.expenseType == 'CAPEX'?'Y':(w.expenseType == 'OPEX'?'K':'')) + '\t' + jrNumber + '\tapproved\t' + w.requestedDate.substring(0,10) + '\t' + workDefinitionMap[w.sapServiceNumber].vendor + '\t' + 
               '7\tY\t' + w.prItemText + '\t' + w.contractorNo + '\t' + workDefinitionMap[w.sapServiceNumber].sapServiceNumber + '\t' + w.quantity + '\t' +
-              w.deliveryDate + '\t' + w.wbsElement + '\t' + jrNumber + '\t' + sloc + '\t' + (w.fixedAssetNumber!=null?w.fixedAssetNumber:'DUMMY') + '\t' + 
-              w.costCenter + '\t' + w.controllingArea + '\t' + w.activityServiceNumber + '\t' + w.amountText + '\t' + 
+              w.deliveryDate.substring(0,10) + '\t' + w.wbsElement + '\t' + jrNumber + '\t' + sloc + '\t' + (w.fixedAssetNumber!=null?w.fixedAssetNumber:'DUMMY') + '\t' + 
+              w.costCenter + '\t' + w.controllingArea + '\t' + w.activityServiceNumber + '\t' + w.amountText.replace(',','.') + '\t' + 
               subcontructerName + '\t131\t' + requestedBy + '\t'  + w.headerNotes
         newLine()
     }
