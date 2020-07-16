@@ -556,12 +556,13 @@
                 <tr>
                     <td>FA number</td>
                     <td ng-repeat="w in jobWorksValueTemp track by $index">
-                        <span ng-if="jobModel.reason.value != '2' && !faNumberEdit">{{w.fixedAssetNumber!=null?w.fixedAssetNumber:'DUMMY'}}</span>
-                        <span ng-if="jobModel.reason.value == '2' && !faNumberEdit">
+                        <span ng-if="jobModel.reason.value != '2' && !faNumberEdit && (w.expenseType=='OPEX' || (w.expenseType=='CAPEX' && w.fixedAssetNumber))">{{w.expenseType=='CAPEX'?w.fixedAssetNumber:'DUMMY'}}</span>
+                        <span ng-if="jobModel.reason.value == '2' && !faNumberEdit && (w.expenseType=='OPEX' || (w.expenseType=='CAPEX' && tnuSiteLocations[w.r.site_name].work[w.sapServiceNumber].fixedAssetNumber))">
                             {{w.expenseType=='CAPEX'?tnuSiteLocations[w.r.site_name].work[w.sapServiceNumber].fixedAssetNumber:'DUMMY'}}
                         </span>
-                        <input ng-model="w.fixedAssetNumber" ng-if="jobModel.reason.value != '2' && faNumberEdit" class="form-control" ng-change="faNumberChanged()" />
-                        <input ng-model="tnuSiteLocations[w.r.site_name].work[w.sapServiceNumber].fixedAssetNumber" ng-if="jobModel.reason.value == '2' && faNumberEdit" class="form-control" ng-change="faNumberChanged()" />
+                        <input name="faNumber{{$index}}" ng-model="w.fixedAssetNumber" ng-if="jobModel.reason.value != '2' && (faNumberEdit || (w.expenseType=='CAPEX' && !w.fixedAssetNumber))" class="form-control" ng-change="faNumberChanged()" ng-required="w.expenseType=='CAPEX' && !w.fixedAssetNumber" />
+                        <input name="faNumber{{$index}}" ng-model="tnuSiteLocations[w.r.site_name].work[w.sapServiceNumber].fixedAssetNumber" ng-if="jobModel.reason.value == '2' && (faNumberEdit  || (w.expenseType=='CAPEX' && !tnuSiteLocations[w.r.site_name].work[w.sapServiceNumber].fixedAssetNumber))" class="form-control" ng-change="faNumberChanged()" ng-required="w.expenseType=='CAPEX' && !tnuSiteLocations[w.r.site_name].work[w.sapServiceNumber].fixedAssetNumber" />
+                        <label class="error" ng-show="kcell_form['faNumber'+$index].$error.required && ( kcell_form['faNumber'+$index].$touched || view.submitted)">Required field</label>
                     </td>
                     <td><a ng-click="faNumberEdit = true"><u>edit</u></a></td>
                     <td>Edited by: {{faNumberAssigneeName}}</td>

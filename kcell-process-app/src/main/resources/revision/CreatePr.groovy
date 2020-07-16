@@ -116,20 +116,20 @@ User		        Из нового формата текстового файла	�
 def template = '''\
 if (reason == '2') {
     jobWorksObj.each { w ->
-        yieldUnescaped '' + documentType + '\t' + (w.expenseType == 'CAPEX'?'Y':(w.expenseType == 'OPEX'?'K':'')) + '\t' + jrNumber + '\tapproved\t' + requestDate + '\t' + workDefinitionMap[w.sapServiceNumber].vendor + '\t' + 
-              '7\tY\tinstallation service ' + w.r.site_name + '\t' + w.contractorNo + '\t' + workDefinitionMap[w.sapServiceNumber].sapServiceNumber + '\t' + w.price.quantity + '\t' +
-              yearEndDate + '\t' + w.wbsElement + '\t' + jrNumber + '\t' + tnuSiteLocations[w.r.site_name].siteLocation + '\t' + 
+        yieldUnescaped '' + documentType + '\t' + (w.expenseType == 'CAPEX'?'Y':(w.expenseType == 'OPEX'?'K':'')) + '\t' + jrNumber + '\tapproved\t' + w.requestedDate + '\t' + workDefinitionMap[w.sapServiceNumber].vendor + '\t' + 
+              '7\tY\t' + w.prItemText + '\t' + w.contractorNo + '\t' + workDefinitionMap[w.sapServiceNumber].sapServiceNumber + '\t' + w.price.quantity + '\t' +
+              w.deliveryDate + '\t' + w.wbsElement + '\t' + jrNumber + '\t' + tnuSiteLocations[w.r.site_name].siteLocation + '\t' + 
               (w.expenseType == 'CAPEX'?tnuSiteLocations[w.r.site_name].work[w.sapServiceNumber].fixedAssetNumber:'DUMMY') + '\t' +
-              w.costCenter + '\t' + w.controllingArea + '\t' + w.activityServiceNumber + '\t' + w.price.unitWorkPricePerSite + '\t' +
+              w.costCenter + '\t' + w.controllingArea + '\t' + w.activityServiceNumber + '\t' + w.amountText + '\t' +
               subcontructerName + '\t131\t' + requestedBy + '\t' + w.headerNotes
         newLine()
     }
 } else {
     jobWorksObj.each { w ->
-        yieldUnescaped '' + documentType + '\t' + (w.expenseType == 'CAPEX'?'Y':(w.expenseType == 'OPEX'?'K':'')) + '\t' + jrNumber + '\tapproved\t' + requestDate + '\t' + workDefinitionMap[w.sapServiceNumber].vendor + '\t' + 
-              '7\tY\tinstallation service ' + site_name + '\t' + w.contractorNo + '\t' + workDefinitionMap[w.sapServiceNumber].sapServiceNumber + '\t' + w.quantity + '\t' +
-              yearEndDate + '\t' + w.wbsElement + '\t' + jrNumber + '\t' + sloc + '\t' + (w.fixedAssetNumber!=null?w.fixedAssetNumber:'DUMMY') + '\t' + 
-              w.costCenter + '\t' + w.controllingArea + '\t' + w.activityServiceNumber + '\t' + w.price.unitWorkPricePlusTx + '\t' + 
+        yieldUnescaped '' + documentType + '\t' + (w.expenseType == 'CAPEX'?'Y':(w.expenseType == 'OPEX'?'K':'')) + '\t' + jrNumber + '\tapproved\t' + w.requestedDate + '\t' + workDefinitionMap[w.sapServiceNumber].vendor + '\t' + 
+              '7\tY\t' + w.prItemText + '\t' + w.contractorNo + '\t' + workDefinitionMap[w.sapServiceNumber].sapServiceNumber + '\t' + w.quantity + '\t' +
+              w.deliveryDate + '\t' + w.wbsElement + '\t' + jrNumber + '\t' + sloc + '\t' + (w.fixedAssetNumber!=null?w.fixedAssetNumber:'DUMMY') + '\t' + 
+              w.costCenter + '\t' + w.controllingArea + '\t' + w.activityServiceNumber + '\t' + w.amountText + '\t' + 
               subcontructerName + '\t131\t' + requestedBy + '\t'  + w.headerNotes
         newLine()
     }
