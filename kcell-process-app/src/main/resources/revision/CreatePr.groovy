@@ -114,9 +114,10 @@ User		        Из нового формата текстового файла	�
 def template = '''\
 if (reason == '2') {
     jobWorksObj.each { w ->
-        yieldUnescaped '' + documentType + '\t' + (w.expenseType == 'CAPEX'?'Y':(w.expenseType == 'OPEX'?'K':'')) + '\t' + jrNumber + '\tapproved\t' + w.requestedDate.substring(0,10) + '\t' + workDefinitionMap[w.sapServiceNumber].vendor + '\t' + 
+        yieldUnescaped '' + documentType + '\t' + (w.expenseType == 'CAPEX'?'Y':(w.expenseType == 'OPEX'?'K':'')) + '\t' + jrNumber + '\tapproved\t' + 
+              w.requestedDate.substring(8,10) + '.' + w.requestedDate.substring(5,7) + '.'+w.requestedDate.substring(0,4) + '\t' + workDefinitionMap[w.sapServiceNumber].vendor + '\t' + 
               '7\tY\t' + w.prItemText + '\t' + w.contractorNo + '\t' + workDefinitionMap[w.sapServiceNumber].sapServiceNumber + '\t' + w.price.quantity + '\t' +
-              w.deliveryDate.substring(0,10) + '\t' + w.wbsElement + '\t' + jrNumber + '\t' + tnuSiteLocations[w.r.site_name].siteLocation + '\t' + 
+              w.deliveryDate.substring(8,10) + '.' + w.deliveryDate.substring(5,7) + '.'+w.deliveryDate.substring(0,4) + '\t' + w.wbsElement + '\t' + jrNumber + '\t' + tnuSiteLocations[w.r.site_name].siteLocation + '\t' + 
               (w.expenseType == 'CAPEX'?tnuSiteLocations[w.r.site_name].work[w.sapServiceNumber].fixedAssetNumber:'DUMMY') + '\t' +
               w.costCenter + '\t' + w.controllingArea + '\t' + w.activityServiceNumber + '\t' + w.amountText.replace(',','.') + '\t' +
               subcontructerName + '\t131\t' + requestedBy + '\t' + w.headerNotes
@@ -124,9 +125,11 @@ if (reason == '2') {
     }
 } else {
     jobWorksObj.each { w ->
-        yieldUnescaped '' + documentType + '\t' + (w.expenseType == 'CAPEX'?'Y':(w.expenseType == 'OPEX'?'K':'')) + '\t' + jrNumber + '\tapproved\t' + w.requestedDate.substring(0,10) + '\t' + workDefinitionMap[w.sapServiceNumber].vendor + '\t' + 
+        yieldUnescaped '' + documentType + '\t' + (w.expenseType == 'CAPEX'?'Y':(w.expenseType == 'OPEX'?'K':'')) + '\t' + jrNumber + '\tapproved\t' + 
+              w.requestedDate.substring(8,10) + '.' + w.requestedDate.substring(5,7) + '.'+w.requestedDate.substring(0,4) + '\t' + workDefinitionMap[w.sapServiceNumber].vendor + '\t' + 
               '7\tY\t' + w.prItemText + '\t' + w.contractorNo + '\t' + workDefinitionMap[w.sapServiceNumber].sapServiceNumber + '\t' + w.quantity + '\t' +
-              w.deliveryDate.substring(0,10) + '\t' + w.wbsElement + '\t' + jrNumber + '\t' + sloc + '\t' + (w.fixedAssetNumber!=null?w.fixedAssetNumber:'DUMMY') + '\t' + 
+              w.deliveryDate.substring(8,10) + '.' + w.deliveryDate.substring(5,7) + '.'+w.deliveryDate.substring(0,4) + '\t' + w.wbsElement + '\t' + jrNumber + '\t' + sloc + '\t' + 
+              (w.expenseType == 'CAPEX'?w.fixedAssetNumber:'DUMMY') + '\t' +
               w.costCenter + '\t' + w.controllingArea + '\t' + w.activityServiceNumber + '\t' + w.amountText.replace(',','.') + '\t' + 
               subcontructerName + '\t131\t' + requestedBy + '\t'  + w.headerNotes
         newLine()
