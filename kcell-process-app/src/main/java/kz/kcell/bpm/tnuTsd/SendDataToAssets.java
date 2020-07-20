@@ -6,6 +6,7 @@ import lombok.extern.java.Log;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.methods.HttpPut;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.conn.ssl.TrustSelfSignedStrategy;
 import org.apache.http.entity.ContentType;
@@ -51,7 +52,14 @@ public class SendDataToAssets implements JavaDelegate {
         Integer fe_protection_txrx_frequincies = execution.getVariable("fe_protection_txrx_frequincies") == null || String.valueOf(execution.getVariable("fe_protection_txrx_frequincies")).equals("") ? null : Integer.parseInt(String.valueOf(execution.getVariable("fe_protection_txrx_frequincies")));
         String business_key = execution.getBusinessKey();
         Date date = (Date) execution.getVariable("date_of_visit");
-
+        Double ne_altitude = execution.getVariable("ne_altitude") == null ? null : Double.parseDouble(String.valueOf(execution.getVariable("ne_altitude")));
+        Double fe_altitude = execution.getVariable("fe_altitude") == null ? null : Double.parseDouble(String.valueOf(execution.getVariable("fe_altitude")));
+        String ne_construction_type = execution.getVariable("ne_construction_type") == null ? null : String.valueOf(execution.getVariable("ne_construction_type"));
+        String fe_construction_type = execution.getVariable("fe_construction_type") == null ? null : String.valueOf(execution.getVariable("fe_construction_type"));
+        String ne_construction_height = execution.getVariable("ne_construction_height") == null ? null : String.valueOf(execution.getVariable("ne_construction_height"));
+        String fe_construction_height = execution.getVariable("fe_construction_height") == null ? null : String.valueOf(execution.getVariable("fe_construction_height"));
+        Long neFacilityId = execution.getVariable("neFacilityId") == null ? null : (Long) execution.getVariable("neFacilityId");
+        Long feFacilityId = execution.getVariable("feFacilityId") == null ? null : (Long) execution.getVariable("feFacilityId");
 
         ObjectMapper objectMapper = new ObjectMapper();
         ObjectNode objectNode = objectMapper.createObjectNode();
@@ -189,6 +197,23 @@ public class SendDataToAssets implements JavaDelegate {
         protection_mode_id.put("catalog_id", 44);
         protection_mode_id.put("id", protection_mode);
 
+        ObjectNode neFacilityNode = objectMapper.createObjectNode();
+        neFacilityNode.put("altitude",ne_altitude );
+        neFacilityNode.put("construction_height",ne_construction_height);
+        ObjectNode ne_construction_type_id = objectMapper.createObjectNode();
+        neFacilityNode.set("construction_type_id", ne_construction_type_id);
+        neFacilityNode.put("catalog_id", 14);
+        neFacilityNode.put("id", ne_construction_type);
+
+        ObjectNode feFacilityNode = objectMapper.createObjectNode();
+        feFacilityNode.put("altitude",fe_altitude );
+        feFacilityNode.put("construction_height",fe_construction_height);
+        ObjectNode fe_construction_type_id = objectMapper.createObjectNode();
+        feFacilityNode.set("construction_type_id", fe_construction_type_id);
+        feFacilityNode.put("catalog_id", 14);
+        feFacilityNode.put("id", fe_construction_type);
+
+
         try {
             SSLContextBuilder builder = new SSLContextBuilder();
             builder.loadTrustMaterial(null, new TrustSelfSignedStrategy());
@@ -196,7 +221,9 @@ public class SendDataToAssets implements JavaDelegate {
                 builder.build());
             CloseableHttpClient httpclient = HttpClients.custom().setSSLSocketFactory(
                 sslsf).build();
-            String path = "https://asset.test-flow.kcell.kz/asset-management/tsd_mw";
+            //String path = "https://asset.test-flow.kcell.kz/asset-management/tsd_mw";
+            String baseUrl = "https://asset.test-flow.kcell.kz/asset-management";
+            String path = baseUrl + "/tsd_mw";
             HttpResponse httpResponse = executePost(path, httpclient, objectNode.toString());
             String response = EntityUtils.toString(httpResponse.getEntity());
             log.info("json :  ----   " + objectNode.toString());
@@ -206,10 +233,36 @@ public class SendDataToAssets implements JavaDelegate {
             }
             JSONObject json = new JSONObject(response);
             execution.setVariable("tsdMwId", json.getString("id"));
+
+            String neFacilityPutPath = baseUrl + "/facilities/id/" + neFacilityId;
+            HttpResponse httpNeFacilityResponse = executePut(neFacilityPutPath, httpclient, neFacilityNode.toString());
+            String neFacilityResponse = EntityUtils.toString(httpNeFacilityResponse.getEntity());
+            log.info("json :  ----   " + neFacilityNode.toString());
+            log.info("response :  ----   " + neFacilityResponse);
+            if (httpNeFacilityResponse.getStatusLine().getStatusCode() < 200 || httpNeFacilityResponse.getStatusLine().getStatusCode() >= 300) {
+                throw new RuntimeException("asset.flow.kcell.kz facility put returns code " + httpNeFacilityResponse.getStatusLine().getStatusCode() + " for id = " + neFacilityId);
+            }
+
+            String feFacilityPutPath = baseUrl + "/facilities/id/" + feFacilityId;
+            HttpResponse httpFeFacilityResponse = executePut(feFacilityPutPath, httpclient, feFacilityNode.toString());
+            String feFacilityResponse = EntityUtils.toString(httpFeFacilityResponse.getEntity());
+            log.info("json :  ----   " + feFacilityNode.toString());
+            log.info("response :  ----   " + feFacilityResponse);
+            if (httpFeFacilityResponse.getStatusLine().getStatusCode() < 200 || httpFeFacilityResponse.getStatusLine().getStatusCode() >= 300) {
+                throw new RuntimeException("asset.flow.kcell.kz facility put returns code " + httpFeFacilityResponse.getStatusLine().getStatusCode() + " for id = " + feFacilityId);
+            }
         } catch (Exception e) {
             throw new BpmnError("error", e.getMessage());
         }
+        
 
+    }
+    private HttpResponse executePut(String url, HttpClient httpClient, String requestBody) throws Exception {
+        StringEntity entity = new StringEntity(requestBody, ContentType.APPLICATION_JSON);
+        HttpPut httpPut = new HttpPut(url);
+        httpPut.addHeader("Content-Type", "application/json;charset=UTF-8");
+        httpPut.setEntity(entity);
+        return httpClient.execute(httpPut);
     }
 
     private HttpResponse executePost(String url, HttpClient httpClient, String requestBody) throws Exception {
