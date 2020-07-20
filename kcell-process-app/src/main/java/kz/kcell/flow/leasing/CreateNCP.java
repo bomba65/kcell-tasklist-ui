@@ -240,6 +240,7 @@ public class CreateNCP implements JavaDelegate {
                     udbConnect.commit();
                     delegateExecution.setVariable("ncpCreatedId", ncpCreatedId);
                     delegateExecution.setVariable("createdNcpStatusId", createdNcpStatusId);
+                    delegateExecution.setVariable("ncpInsertDate", new Date());
                     udbConnect.close();
                     log.warning("udbConnection closed!");
                 } else {

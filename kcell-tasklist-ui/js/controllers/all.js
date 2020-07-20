@@ -2639,15 +2639,6 @@ define(['./module', 'camundaSDK', 'lodash', 'big-js', 'jquery', 'moment'], funct
             }
             $scope.region = $stateParams.region;
 
-            $http.get($rootScope.getCatalogsHttpByName('catalogs')).then(
-                function (result) {
-                    angular.extend($scope, result.data);
-                },
-                function (error) {
-                    console.log(error.data);
-                }
-            );
-
             $scope.getJrRegion = function (jrNumber) {
                 if (jrNumber) {
                     if (jrNumber.startsWith("Alm")) {
@@ -2875,128 +2866,160 @@ define(['./module', 'camundaSDK', 'lodash', 'big-js', 'jquery', 'moment'], funct
             }
 
             if (true) {
-                var processQuery = {
-                    "processDefinitionKey": "leasing"
-                };
-                if ($scope.filter.reason) {
-                    processQuery.variables.push({name: 'reason', operator: 'eq', value: $scope.filter.reason});
-                }
-                if ($scope.filter.project && $scope.filter.project !== 'All') {
-                    processQuery.variables.push({
-                        name: 'mainContract',
-                        operator: 'eq',
-                        value: $scope.filter.mainContract
-                    });
-                }
-                var processInstancesPromise = $http.post($scope.baseUrl + '/history/process-instance', processQuery).then(function (response) {
-                    console.log('leasing processInstancesPromise')
-                    console.log(response.data)
 
-                    return response.data
-                    // var processInstances = _.keyBy(response.data, 'id');
-                    // return $http.post($scope.baseUrl + '/history/variable-instance', {
-                    //     variableName: 'jrNumber',
-                    //     processInstanceIdIn: _.keys(processInstances)
-                    // }).then(function (response) {
-                    //     var variablesByProcessInstance = _.keyBy(response.data, 'processInstanceId');
-                    //     var valueByProcessInstance = _.mapValues(variablesByProcessInstance, 'value');
-                    //     var result = _.mapValues(processInstances, (pi, id) => _.assign({}, pi, {'jrNumber': valueByProcessInstance[id]}));
-                    //     return result;
-                    // });
-                });
+                $scope.currentView = 'statistics';
 
-                // var processInstancesPromise = $http.post($scope.baseUrl + '/history/process-instance', processQuery).then(function (response) {
-                //     var processInstances = _.keyBy(response.data, 'id');
-                //     return $http.post($scope.baseUrl + '/history/variable-instance', {
-                //         variableName: 'jrNumber',
-                //         processInstanceIdIn: _.keys(processInstances)
-                //     }).then(function (response) {
-                //         var variablesByProcessInstance = _.keyBy(response.data, 'processInstanceId');
-                //         var valueByProcessInstance = _.mapValues(variablesByProcessInstance, 'value');
-                //         var result = _.mapValues(processInstances, (pi, id) => _.assign({}, pi, {'jrNumber': valueByProcessInstance[id]}));
-                //         return result;
-                //     });
-                // });
+                $scope.processIntancesList = [];
+                $scope.ncpMap = {};
+                $scope.sitenameMap = {};
+                $scope.siteTypeMap = {};
+                $scope.projectMap = {};
+                $scope.generalStatusUpdatedDateMap = {};
 
-                // var taskQuery = {
-                //     "processDefinitionKey": 'Revision',
-                //     "unfinished": true,
-                //     "processVariables": []
-                // };
-                // if ($scope.filter.reason) {
-                //     taskQuery.processVariables.push({
-                //         name: 'reason',
-                //         operator: 'eq',
-                //         value: $scope.filter.reason
-                //     });
-                // }
-                // if ($scope.filter.mainContract && $scope.filter.mainContract !== 'All') {
-                //     taskQuery.processVariables.push({
-                //         name: 'mainContract',
-                //         operator: 'eq',
-                //         value: $scope.filter.mainContract
-                //     });
-                // }
-                // var taskInstancesPromise = $http.post($scope.baseUrl + '/history/task', taskQuery).then(function (response) {
-                //     return response.data;
-                // });
+                $scope.generalStatuses = [
+                    {id: 'Planning in progress', name: 'Planning in progress'},
+                    {id: 'Provisional approval by Power, Transmission & Leasing', name: 'Provisional approval', substatuses: [
+                        {id: 'Waiting regional Power approval', name: 'Waiting regional Power approval'}, 
+                        {id: 'Waiting regional Transmission approval', name: 'Waiting regional Transmission approval'},
+                        {id: 'Waiting Leasing approval', name: 'Waiting Leasing approval'}
+                    ]},
+                    {id: 'Leasing in progress', name: 'Leasing in progress', substatuses: [
+                        {id: 'Leasing for Candidate', name: 'Leasing of Candidate'}, 
+                        {id: 'Leasing for Far End', name: 'Leasing of Far End'}
+                    ]},
+                    {id: 'Contract approval in progress', name: 'Contract approval in progress'},
+                    {id: 'Power in progress', name: 'Power in progress'},
+                    {id: 'Installation in progress', name: 'Installation in progress', substatuses: [
+                        {id: 'Instalation problem', name: 'Installation problem'}, 
+                        {id: 'Leasing problem', name: 'Leasing problem'},
+                        {id: 'Transmission problem', name: 'Transmission problem'},
+                        {id: 'SSID in progress', name: 'SSID in progress'},
+                        {id: 'Installation in progress', name: 'Installation in progress'},
+                        {id: 'Installation finish', name: 'Installation finish'}
+                    ]},
+                    {id: 'On-Air', name: 'On Air'}
+                ];
 
-                $q.all([processInstancesPromise])
-                    .then(function (results) {
-                        var processInstances = results[0];
-                        var activePIDsArray = [];
-                        var PIDsArray = [];
-                        processInstances.forEach(p => {
-                            PIDsArray.push(p.id)
-                            if (p.state === 'ACTIVE') {
-                                activePIDsArray.push(p.id)
+                $scope.regions = [
+                    {id: 'almaty', name: 'Almaty'},
+                    {id: 'astana', name: 'Astana'},
+                    {id: 'nc', name: 'North&Central'},
+                    {id: 'east', name: 'East'},
+                    {id: 'south', name: 'South'},
+                    {id: 'west', name: 'West'},
+                    {id: 'ericsson', name: 'Ericsson'},
+                    {id: 'zte', name: 'ZTE'},
+                    {id: 'total', name: 'Total'}
+                ];
+
+                $scope.dictionary = {};
+                $http.get('/api/leasingCatalogs?version=1').then(
+                    function(result){
+                        angular.extend($scope.dictionary, result.data);
+                        $scope.dictionary.projectList = [];
+                        for(var i=0; i<$scope.dictionary.projects.length;i++){
+                            for(var j=0; j<$scope.dictionary.projects[i].project.length;j++){
+                                $scope.dictionary.projectList.push($scope.dictionary.projects[i].project[j]);
                             }
-                        })
+                        }
+                    },
+                    function(error){
+                        console.log(error);
+                    }
+                );
+                $scope.regionsMap = _.mapValues(_.keyBy($scope.regions, 'id'), 'name');
+
+                $scope.init = function(){
+                    console.log('init');
+                    $scope.fullPIDsByRegions = {};
+
+                    var processQuery = {
+                        "processDefinitionKey": "leasing",
+                    };
+                    if($scope.project){
+                        processQuery.variables = [{name: 'projectForSearch', operator: 'eq', value: $scope.project}];
+                    }
+                    var processInstancesPromise = $http.post($scope.baseUrl + '/process-instance', processQuery).then(function (response) {
+                        return response.data;
+                    });
+
+                    var ncpRejectedProcessQuery = {
+                        "processDefinitionKey": "leasing",
+                        "executedActivityIdIn": ["EndEvent_1u7wxvp"],
+                        "finished": true
+                    };
+                    if($scope.project){
+                        ncpRejectedProcessQuery.variables = [{name: 'projectForSearch', operator: 'eq', value: $scope.project}];
+                    }
+                    var ncpRejectedProcessInstancesPromise = $http.post($scope.baseUrl + '/history/process-instance', ncpRejectedProcessQuery).then(function (response) {
+                        return response.data;
+                    });
+
+                    var onAirProcessQuery = {
+                        "processDefinitionKey": "leasing",
+                        "executedActivityIdIn": ["EndEvent_0miie5o"],
+                        "finished": true
+                    };
+                    if($scope.project){
+                        onAirProcessQuery.variables = [{name: 'projectForSearch', operator: 'eq', value: $scope.project}];
+                    }
+                    var onAirProcessInstancesPromise = $http.post($scope.baseUrl + '/history/process-instance', onAirProcessQuery).then(function (response) {
+                        return response.data
+                    });
+
+                    $q.all([processInstancesPromise, ncpRejectedProcessInstancesPromise, onAirProcessInstancesPromise]).then(function (results) {
+
+                        // ********************* Active instances ******************************************************
+                        var PIDsArray = [];
+                        var processInstances = results[0];
+                        $scope.businessKeyMap = _.mapValues(_.keyBy(processInstances, 'id'), 'businessKey');                    
+                        processInstances.forEach(p => {
+                            PIDsArray.push(p.id);
+                        });                    
                         
                         // var variables = ['generalStatus', 'installationStatus', 'rbsType', 'region']
 
-                        var generalStatusesVarsPromise = $http.post($scope.baseUrl + '/history/variable-instance', {
-                            processInstanceIdIn: PIDsArray,
-                            variableName: 'generalStatus'
-                        }).then(function (response) {
-                            return _.mapValues(_.keyBy(response.data, 'processInstanceId'), 'value');
-                        });
+                        if(PIDsArray.length > 0){
+                            var generalStatusesVarsPromise = $http.post($scope.baseUrl + '/variable-instance', {
+                                processInstanceIdIn: PIDsArray,
+                                variableName: 'generalStatus'
+                            }).then(function (response) {
+                                return _.mapValues(_.keyBy(response.data, 'processInstanceId'), 'value');
+                            });
+    /*
+                            var installationStatusesVarsPromise = $http.post($scope.baseUrl + '/variable-instance', {
+                                processInstanceIdIn: PIDsArray,
+                                variableName: 'installationStatus'
+                            }).then(function (response) {
+                                return _.mapValues(_.keyBy(response.data, 'processInstanceId'), 'value');
+                            });
+    */
+                            var rbsTypesVarsPromise = $http.post($scope.baseUrl + '/variable-instance', {
+                                processInstanceIdIn: PIDsArray,
+                                variableName: 'rbsType'
+                            }).then(function (response) {
+                                return _.mapValues(_.keyBy(response.data, 'processInstanceId'), 'value');
+                            });
+                            
+                            var regionsVarsPromise = $http.post($scope.baseUrl + '/variable-instance', {
+                                processInstanceIdIn: PIDsArray,
+                                variableName: 'region'
+                            }).then(function (response) {
+                                return _.mapValues(_.keyBy(response.data, 'processInstanceId'), 'value');
+                            });                        
 
-                        var installationStatusesVarsPromise = $http.post($scope.baseUrl + '/history/variable-instance', {
-                            processInstanceIdIn: PIDsArray,
-                            variableName: 'installationStatus'
-                        }).then(function (response) {
-                            return _.mapValues(_.keyBy(response.data, 'processInstanceId'), 'value');
-                        });
-
-                        var rbsTypesVarsPromise = $http.post($scope.baseUrl + '/history/variable-instance', {
-                            processInstanceIdIn: PIDsArray,
-                            variableName: 'rbsType'
-                        }).then(function (response) {
-                            console.log(response.data)
-                            return _.mapValues(_.keyBy(response.data, 'processInstanceId'), 'value');
-                        });
-                        
-                        var regionsVarsPromise = $http.post($scope.baseUrl + '/history/variable-instance', {
-                            processInstanceIdIn: PIDsArray,
-                            variableName: 'region'
-                        }).then(function (response) {
-                            return _.mapValues(_.keyBy(response.data, 'processInstanceId'), 'value');
-                        });
-
-                        $q.all([generalStatusesVarsPromise, installationStatusesVarsPromise, rbsTypesVarsPromise, regionsVarsPromise])
-                            .then(function (results) {
-                                console.log(results);
+                            $q.all([generalStatusesVarsPromise, /*installationStatusesVarsPromise,*/ rbsTypesVarsPromise, regionsVarsPromise]).then(function (results) {
                                 var fullPIDs = PIDsArray.map( p => {
                                     return { 
                                         pid : p,
+                                        status: 'Active',
                                         generalStatus: results[0][p],
-                                        installationStatus: results[1][p],
-                                        rbsType: results[2][p],
-                                        region: results[3][p]
+                                        //installationStatus: results[1][p],
+                                        rbsType: results[1][p],
+                                        region: results[2][p]
                                     }
-                                })
-                                var fullPIDsByRegions = _.groupBy(fullPIDs, 'region')
+                                });
+                                $scope.fullPIDsByRegions = _.groupBy(fullPIDs, 'region')
                                 var fullPIDsFilteredEricsson = _.filter(fullPIDs, p => {
                                     if (p.rbsType.startsWith(2) || p.rbsType.startsWith(3) || p.rbsType.startsWith(6)) {
                                         return true
@@ -3007,166 +3030,357 @@ define(['./module', 'camundaSDK', 'lodash', 'big-js', 'jquery', 'moment'], funct
                                         return true
                                     } return false
                                 })
-                                fullPIDsByRegions.ericsson = fullPIDsFilteredEricsson;
-                                fullPIDsByRegions.zte = fullPIDsFilteredZTE;
-                                fullPIDsByRegions.total = fullPIDs;
-                                console.log(fullPIDsByRegions);
-                            })
+                                $scope.fullPIDsByRegions.ericsson = fullPIDsFilteredEricsson;
+                                $scope.fullPIDsByRegions.zte = fullPIDsFilteredZTE;
+                                $scope.fullPIDsByRegions.total = fullPIDs;
 
-                        // var taskInstances = results[1];
+                                $scope.regions.forEach(r => {
+                                    if($scope.fullPIDsByRegions[r.id]){
+                                        $scope.fullPIDsByRegions[r.id].generalStatuses =  _.groupBy($scope.fullPIDsByRegions[r.id], 'generalStatus');
 
-                        // angular.forEach(taskInstances, function (t) {
-                        //     if (['approve_material_list_center', 'validate_tr_bycenter', 'approve_additional_material_list_center', 'validate_additional_tr_bycenter'].indexOf(t.taskDefinitionKey) !== -1) {
-                        //         if (t.name.indexOf('P&O') != -1) {
-                        //             t.taskDefinitionKey = t.taskDefinitionKey + '_po'
-                        //         } else if (t.name.indexOf('Transmission') != -1) {
-                        //             t.taskDefinitionKey = t.taskDefinitionKey + '_tr'
-                        //         } else if (t.name.indexOf('S&FM') != -1) {
-                        //             t.taskDefinitionKey = t.taskDefinitionKey + '_fm'
-                        //         } else if (t.name.indexOf('Operation') != -1) {
-                        //             t.taskDefinitionKey = t.taskDefinitionKey + '_op'
-                        //         }
-                        //     }
-                        // })
+                                        if($scope.fullPIDsByRegions[r.id].generalStatuses && $scope.fullPIDsByRegions[r.id].generalStatuses['Leasing in progress']){
+                                            var pIds = [];
+                                            $scope.fullPIDsByRegions[r.id].generalStatuses['Leasing in progress'].forEach(p => {
+                                                pIds.push(p.id);
+                                            });
+                                            var generalSubStatus1VarsPromise = $http.post($scope.baseUrl + '/variable-instance', {
+                                                processInstanceIdIn: PIDsArray,
+                                                variableName: 'generalSubStatus1'
+                                            }).then(function (response) {
+                                                return _.mapValues(_.keyBy(response.data, 'processInstanceId'), 'value');
+                                            });                                            
+                                            var generalSubStatus2VarsPromise = $http.post($scope.baseUrl + '/variable-instance', {
+                                                processInstanceIdIn: PIDsArray,
+                                                variableName: 'generalSubStatus2'
+                                            }).then(function (response) {
+                                                return _.mapValues(_.keyBy(response.data, 'processInstanceId'), 'value');
+                                            });
+                                            $q.all([generalSubStatus1VarsPromise, generalSubStatus2VarsPromise]).then(function (results) {
+                                                $scope.fullPIDsByRegions[r.id].generalStatuses['Leasing in progress'].substatuses = {};
+                                                var pIdsMap = pIds.map( p => {
+                                                    return { 
+                                                        pid : p,
+                                                        generalSubStatus1: results[0][p],
+                                                        generalSubStatus2: results[1][p]
+                                                    }
+                                                });
+                                                pIdsMap.forEach(p => {                                                    
+                                                    if(p.generalSubStatus1 === 'Leasing for Candidate'){
+                                                        if(!$scope.fullPIDsByRegions[r.id].generalStatuses['Leasing in progress'].substatuses['Leasing for Candidate']){
+                                                            $scope.fullPIDsByRegions[r.id].generalStatuses['Leasing in progress'].substatuses['Leasing for Candidate'] = [];
+                                                        }
+                                                        $scope.fullPIDsByRegions[r.id].generalStatuses['Leasing in progress'].substatuses['Leasing for Candidate'].push(p);
+                                                    }
+                                                    if(p.generalSubStatus2 === 'Leasing for Far End'){
+                                                        if(!$scope.fullPIDsByRegions[r.id].generalStatuses['Leasing in progress'].substatuses['Leasing for Far End']){
+                                                            $scope.fullPIDsByRegions[r.id].generalStatuses['Leasing in progress'].substatuses['Leasing for Far End'] = [];
+                                                        }
+                                                        $scope.fullPIDsByRegions[r.id].generalStatuses['Leasing in progress'].substatuses['Leasing for Far End'].push(p);
+                                                    }
+                                                });
+                                            });
+                                        }
+                                        if($scope.fullPIDsByRegions[r.id].generalStatuses && $scope.fullPIDsByRegions[r.id].generalStatuses['Installation in progress']){
+                                            var instIds = [];
+                                            $scope.fullPIDsByRegions[r.id].generalStatuses['Installation in progress'].forEach(p => {
+                                                instIds.push(p.id);
+                                            });
+                                            var setInstStatusFromUDBVarsPromise = $http.post($scope.baseUrl + '/variable-instance', {
+                                                processInstanceIdIn: PIDsArray,
+                                                variableName: 'setInstStatusFromUDB'
+                                            }).then(function (response) {
+                                                return _.mapValues(_.keyBy(response.data, 'processInstanceId'), 'value');
+                                            });
+                                            $q.all([setInstStatusFromUDBVarsPromise]).then(function (results) {
+                                                $scope.fullPIDsByRegions[r.id].generalStatuses['Installation in progress'].substatuses = {};
+                                                var instIdsMap = instIds.map( p => {
+                                                    return { 
+                                                        pid : p,
+                                                        instStatusFromUDB: results[0][p]
+                                                    }
+                                                });
+                                                instIdsMap.forEach(p => {                                                    
+                                                    if(p.instStatusFromUDB){
+                                                        if(!$scope.fullPIDsByRegions[r.id].generalStatuses['Installation in progress'].substatuses[p.instStatusFromUDB]){
+                                                            $scope.fullPIDsByRegions[r.id].generalStatuses['Installation in progress'].substatuses[p.instStatusFromUDB] = [];
+                                                        }
+                                                        $scope.fullPIDsByRegions[r.id].generalStatuses['Installation in progress'].substatuses[p.instStatusFromUDB].push(p);
+                                                    }
+                                                });
+                                            });                                            
+                                        }
+                                        if($scope.fullPIDsByRegions[r.id].generalStatuses && $scope.fullPIDsByRegions[r.id].generalStatuses['Provisional approval by Power, Transmission & Leasing']){
+                                            var pIds = [];
+                                            $scope.fullPIDsByRegions[r.id].generalStatuses['Provisional approval by Power, Transmission & Leasing'].forEach(p => {
+                                                pIds.push(p.id);
+                                            });
+                                            var generalSubStatus1VarsPromise = $http.post($scope.baseUrl + '/variable-instance', {
+                                                processInstanceIdIn: PIDsArray,
+                                                variableName: 'generalSubStatus1'
+                                            }).then(function (response) {
+                                                return _.mapValues(_.keyBy(response.data, 'processInstanceId'), 'value');
+                                            });                                            
+                                            var generalSubStatus2VarsPromise = $http.post($scope.baseUrl + '/variable-instance', {
+                                                processInstanceIdIn: PIDsArray,
+                                                variableName: 'generalSubStatus2'
+                                            }).then(function (response) {
+                                                return _.mapValues(_.keyBy(response.data, 'processInstanceId'), 'value');
+                                            });
+                                            $q.all([generalSubStatus1VarsPromise, generalSubStatus2VarsPromise]).then(function (results) {
+                                                $scope.fullPIDsByRegions[r.id].generalStatuses['Provisional approval by Power, Transmission & Leasing'].substatuses = {};
+                                                var pIdsMap = pIds.map( p => {
+                                                    return { 
+                                                        pid : p,
+                                                        generalSubStatus1: results[0][p],
+                                                        generalSubStatus2: results[1][p]
+                                                    }
+                                                });
+                                                pIdsMap.forEach(p => {                                                    
+                                                    if(p.generalSubStatus1 === 'Waiting regional Power approval'){
+                                                        if(!$scope.fullPIDsByRegions[r.id].generalStatuses['Provisional approval by Power, Transmission & Leasing'].substatuses['Waiting regional Power approval']){
+                                                            $scope.fullPIDsByRegions[r.id].generalStatuses['Provisional approval by Power, Transmission & Leasing'].substatuses['Waiting regional Power approval'] = [];
+                                                        }
+                                                        $scope.fullPIDsByRegions[r.id].generalStatuses['Provisional approval by Power, Transmission & Leasing'].substatuses['Waiting regional Power approval'].push(p);
+                                                    }
+                                                    if(p.generalSubStatus1 === 'Waiting Leasing approval'){
+                                                        if(!$scope.fullPIDsByRegions[r.id].generalStatuses['Provisional approval by Power, Transmission & Leasing'].substatuses['Waiting Leasing approval']){
+                                                            $scope.fullPIDsByRegions[r.id].generalStatuses['Provisional approval by Power, Transmission & Leasing'].substatuses['Waiting Leasing approval'] = [];
+                                                        }
+                                                        $scope.fullPIDsByRegions[r.id].generalStatuses['Provisional approval by Power, Transmission & Leasing'].substatuses['Waiting Leasing approval'].push(p);
+                                                    }                                                    
+                                                    if(p.generalSubStatus2 === 'Waiting regional Transmission approval'){
+                                                        if(!$scope.fullPIDsByRegions[r.id].generalStatuses['Provisional approval by Power, Transmission & Leasing'].substatuses['Waiting regional Transmission approval']){
+                                                            $scope.fullPIDsByRegions[r.id].generalStatuses['Provisional approval by Power, Transmission & Leasing'].substatuses['Waiting regional Transmission approval'] = [];
+                                                        }
+                                                        $scope.fullPIDsByRegions[r.id].generalStatuses['Provisional approval by Power, Transmission & Leasing'].substatuses['Waiting regional Transmission approval'].push(p);
+                                                    }
+                                                });
+                                            });
+                                        }                                       
+                                    }
+                                });
+                            });
+                        }
 
-                        // var taskInstancesByDefinition = _.groupBy(
-                        //     taskInstances,
-                        //     'taskDefinitionKey'
-                        // );
+                        // ******************** ncp rejected instances ******************************************************************** 
 
-                        // var tasksByIdAndRegionGrouped = _.mapValues(
-                        //     taskInstancesByDefinition,
-                        //     function (tasks) {
-                        //         return _.groupBy(
-                        //             tasks,
-                        //             function (task) {
-                        //                 var pid = task.processInstanceId;
-                        //                 if (processInstances[pid]) {
-                        //                     return $scope.getJrRegion(processInstances[pid].jrNumber);
-                        //                 } else {
-                        //                     return 'no_processinstance';
-                        //                 }
-                        //             }
-                        //         );
-                        //     }
-                        // );
+                        var rejectedPIDsArray = [];
+                        var rejectedProcessInstances = results[1];
+                        console.log(results[1]);
+                        $scope.businessKeyMap = {...$scope.businessKeyMap, ..._.mapValues(_.keyBy(rejectedProcessInstances, 'id'), 'businessKey')};
+                        $scope.ncpInsertDateMap = _.mapValues(_.keyBy(rejectedProcessInstances, 'id'), 'startTime');
+                        rejectedProcessInstances.forEach(p => {
+                            rejectedPIDsArray.push(p.id);
+                        });
+                        console.log(rejectedPIDsArray.length);
+                        
+                        // var variables = ['rbsType', 'region']
 
-                        // var tasksByIdAndRegionCounted = _.mapValues(
-                        //     tasksByIdAndRegionGrouped,
-                        //     function (tasks) {
-                        //         return _.mapValues(tasks, 'length');
-                        //     }
-                        // );
+                        if(rejectedPIDsArray.length > 0){
+                            var rejectedRbsTypesVarsPromise = $http.post($scope.baseUrl + '/history/variable-instance', {
+                                processInstanceIdIn: rejectedPIDsArray,
+                                variableName: 'rbsType'
+                            }).then(function (response) {
+                                return _.mapValues(_.keyBy(response.data, 'processInstanceId'), 'value');
+                            });
+                            
+                            var rejectedRegionsVarsPromise = $http.post($scope.baseUrl + '/history/variable-instance', {
+                                processInstanceIdIn: rejectedPIDsArray,
+                                variableName: 'region'
+                            }).then(function (response) {
+                                return _.mapValues(_.keyBy(response.data, 'processInstanceId'), 'value');
+                            });
 
-                        // $scope.tasksByIdAndRegionCounted = tasksByIdAndRegionCounted;
+                            $q.all([rejectedRbsTypesVarsPromise, rejectedRegionsVarsPromise]).then(function (results) {
+                                var rejectedFullPIDs = rejectedPIDsArray.map( p => {
+                                    return { 
+                                        pid : p,
+                                        status: 'Closed',
+                                        rbsType: results[0][p],
+                                        region: results[1][p]
+                                    }
+                                });
+                                $scope.rejectedFullPIDsByRegions = _.groupBy(rejectedFullPIDs, 'region')
+                                var rejectedFullPIDsFilteredEricsson = _.filter(rejectedFullPIDs, p => {
+                                    if (p.rbsType.startsWith(2) || p.rbsType.startsWith(3) || p.rbsType.startsWith(6)) {
+                                        return true
+                                    } return false
+                                })
+                                var rejectedFullPIDsFilteredZTE = _.filter(rejectedFullPIDs, p => {
+                                    if (p.rbsType.startsWith(8)) {
+                                        return true
+                                    } return false
+                                })
+                                $scope.rejectedFullPIDsByRegions.ericsson = rejectedFullPIDsFilteredEricsson;
+                                $scope.rejectedFullPIDsByRegions.zte = rejectedFullPIDsFilteredZTE;
+                                $scope.rejectedFullPIDsByRegions.total = rejectedFullPIDs;
+                            });
+                        }
 
-                        // let a = Object.keys(tasksByIdAndRegionCounted);
-                        // let newJson = {};
-                        // let regionJson = {};
-                        // var finalTasksCounter = 0;
-                        // var finalRegionCounter = 0;
+                        // ******************** on air closed instances ******************************************************************** 
 
-                        // for (let i = 0; i < a.length; i++) {
-                        //     if ($scope.revisionTaskDisplay[a[i]]) {
-                        //         let counter = 0;
-                        //         let b = Object.values(tasksByIdAndRegionCounted[a[i]]);
-                        //         let c = Object.keys(tasksByIdAndRegionCounted[a[i]]);
+                        var onAirPIDsArray = [];
+                        var onAirProcessInstances = results[2];
+                        $scope.businessKeyMap = {...$scope.businessKeyMap, ..._.mapValues(_.keyBy(onAirProcessInstances, 'id'), 'businessKey')};
+                        $scope.ncpInsertDateMap = {...$scope.ncpInsertDateMap, ..._.mapValues(_.keyBy(onAirProcessInstances, 'id'), 'startTime')};
+                        onAirProcessInstances.forEach(p => {
+                            onAirPIDsArray.push(p.id);
+                        });
+                        
+                        // var variables = ['rbsType', 'region']
 
-                        //         b.forEach(j => {
-                        //             counter += j;
-                        //             finalTasksCounter = finalTasksCounter + j;
-                        //         });
-                        //         c.forEach(k => {
-                        //             regionJson[k] = regionJson[k] ? regionJson[k] + tasksByIdAndRegionCounted[a[i]][k] : tasksByIdAndRegionCounted[a[i]][k];
-                        //             finalRegionCounter = finalRegionCounter + tasksByIdAndRegionCounted[a[i]][k];
-                        //         });
-                        //         newJson[a[i]] = counter;
-                        //     }
-                        // }
-                        // $scope.totalCounter = newJson;
-                        // $scope.regionCounter = regionJson;
-                        // $scope.finalRegionCounter = finalRegionCounter;
-                        // $scope.finalTasksCounter = finalTasksCounter;
+                        if(onAirProcessInstances.length > 0){
+                            var onAirRbsTypesVarsPromise = $http.post($scope.baseUrl + '/history/variable-instance', {
+                                processInstanceIdIn: onAirPIDsArray,
+                                variableName: 'rbsType'
+                            }).then(function (response) {
+                                return _.mapValues(_.keyBy(response.data, 'processInstanceId'), 'value');
+                            });
+                            
+                            var onAirRegionsVarsPromise = $http.post($scope.baseUrl + '/history/variable-instance', {
+                                processInstanceIdIn: onAirPIDsArray,
+                                variableName: 'region'
+                            }).then(function (response) {
+                                return _.mapValues(_.keyBy(response.data, 'processInstanceId'), 'value');
+                            });
+
+                            $q.all([onAirRbsTypesVarsPromise, onAirRegionsVarsPromise]).then(function (results) {
+                                var onAirFullPIDs = onAirPIDsArray.map( p => {
+                                    return { 
+                                        pid : p,
+                                        status: 'Closed',
+                                        rbsType: results[0][p],
+                                        region: results[1][p]
+                                    }
+                                });
+                                $scope.onAirFullPIDsByRegions = _.groupBy(onAirFullPIDs, 'region')
+                                var onAirFullPIDsFilteredEricsson = _.filter(onAirFullPIDs, p => {
+                                    if (p.rbsType.startsWith(2) || p.rbsType.startsWith(3) || p.rbsType.startsWith(6)) {
+                                        return true
+                                    } return false
+                                })
+                                var onAirFullPIDsFilteredZTE = _.filter(onAirFullPIDs, p => {
+                                    if (p.rbsType.startsWith(8)) {
+                                        return true
+                                    } return false
+                                })
+                                $scope.onAirFullPIDsByRegions.ericsson = onAirFullPIDsFilteredEricsson;
+                                $scope.onAirFullPIDsByRegions.zte = onAirFullPIDsFilteredZTE;
+                                $scope.onAirFullPIDsByRegions.total = onAirFullPIDs;
+                            });
+                        }
                     });
 
-                // $q.all([processInstancesPromise, taskInstancesPromise])
-                //     .then(function (results) {
-                //         var processInstances = results[0];
-                //         var taskInstances = results[1];
+                    $scope.showTable = function(status, region, list, list2){
+                        $scope.processIntancesList = [];
 
-                //         angular.forEach(taskInstances, function (t) {
-                //             if (['approve_material_list_center', 'validate_tr_bycenter', 'approve_additional_material_list_center', 'validate_additional_tr_bycenter'].indexOf(t.taskDefinitionKey) !== -1) {
-                //                 if (t.name.indexOf('P&O') != -1) {
-                //                     t.taskDefinitionKey = t.taskDefinitionKey + '_po'
-                //                 } else if (t.name.indexOf('Transmission') != -1) {
-                //                     t.taskDefinitionKey = t.taskDefinitionKey + '_tr'
-                //                 } else if (t.name.indexOf('S&FM') != -1) {
-                //                     t.taskDefinitionKey = t.taskDefinitionKey + '_fm'
-                //                 } else if (t.name.indexOf('Operation') != -1) {
-                //                     t.taskDefinitionKey = t.taskDefinitionKey + '_op'
-                //                 }
-                //             }
-                //         })
+                        $scope.currentView = 'table';
+                        $scope.status = status;
+                        $scope.region = region;
 
-                //         var taskInstancesByDefinition = _.groupBy(
-                //             taskInstances,
-                //             'taskDefinitionKey'
-                //         );
+                        if(list && list.length > 0){
+                            list.forEach(l => {
+                                $scope.processIntancesList.push({id: l.pid, region: l.region, rbsType: l.rbsType, status: l.status});
+                            });
+                        }
+                        if(list2 && list2.length > 0){
+                            list2.forEach(l => {
+                                $scope.processIntancesList.push({id: l.pid, region: l.region, rbsType: l.rbsType, status: l.status});
+                            });
+                        }
+                        var procInstIdArray = [];
+                        $scope.processIntancesList.forEach(p => {
+                            procInstIdArray.push(p.id);
+                        });
 
-                //         var tasksByIdAndRegionGrouped = _.mapValues(
-                //             taskInstancesByDefinition,
-                //             function (tasks) {
-                //                 return _.groupBy(
-                //                     tasks,
-                //                     function (task) {
-                //                         var pid = task.processInstanceId;
-                //                         if (processInstances[pid]) {
-                //                             return $scope.getJrRegion(processInstances[pid].jrNumber);
-                //                         } else {
-                //                             return 'no_processinstance';
-                //                         }
-                //                     }
-                //                 );
-                //             }
-                //         );
+                        $http.post($scope.baseUrl + '/history/variable-instance', {
+                            processInstanceIdIn: procInstIdArray,
+                            variableName: 'ncpID'
+                        }).then(function (response) {
+                            $scope.ncpMap = _.mapValues(_.keyBy(response.data, 'processInstanceId'), 'value');
+                        });
 
-                //         var tasksByIdAndRegionCounted = _.mapValues(
-                //             tasksByIdAndRegionGrouped,
-                //             function (tasks) {
-                //                 return _.mapValues(tasks, 'length');
-                //             }
-                //         );
+                        $http.post($scope.baseUrl + '/history/variable-instance', {
+                            processInstanceIdIn: procInstIdArray,
+                            variableName: 'siteName'
+                        }).then(function (response) {
+                            $scope.sitenameMap = _.mapValues(_.keyBy(response.data, 'processInstanceId'), 'value');
+                        });
 
-                //         $scope.tasksByIdAndRegionCounted = tasksByIdAndRegionCounted;
+                        $http.post($scope.baseUrl + '/history/variable-instance?deserializeValues=false', {
+                            processInstanceIdIn: procInstIdArray,
+                            variableName: 'siteType'
+                        }).then(function (response) {
+                            $scope.siteTypeMap = _.mapValues(_.keyBy(response.data, 'processInstanceId'), function(p){
+                                return p.value ? JSON.parse(p.value).name : '';
+                            });
+                        });
+                        $http.post($scope.baseUrl + '/history/variable-instance?deserializeValues=false', {
+                            processInstanceIdIn: procInstIdArray,
+                            variableName: 'project'
+                        }).then(function (response) {
+                            $scope.projectMap = _.mapValues(_.keyBy(response.data, 'processInstanceId'), function(p){
+                                return p.value ? JSON.parse(p.value).name : '';
+                            });
+                        });
 
-                //         let a = Object.keys(tasksByIdAndRegionCounted);
-                //         let newJson = {};
-                //         let regionJson = {};
-                //         var finalTasksCounter = 0;
-                //         var finalRegionCounter = 0;
+                        $http.post($scope.baseUrl + '/variable-instance', {
+                            processInstanceIdIn: procInstIdArray,
+                            variableName: 'generalStatusUpdatedDate'
+                        }).then(function (response) {
+                            $scope.generalStatusUpdatedDateMap = _.mapValues(_.keyBy(response.data, 'processInstanceId'), 'value');
+                        });
 
-                //         for (let i = 0; i < a.length; i++) {
-                //             if ($scope.revisionTaskDisplay[a[i]]) {
-                //                 let counter = 0;
-                //                 let b = Object.values(tasksByIdAndRegionCounted[a[i]]);
-                //                 let c = Object.keys(tasksByIdAndRegionCounted[a[i]]);
+                        var activeProcInstIdArray = [];
+                        $scope.processIntancesList.forEach(p => {
+                            if(p.status === 'Active'){
+                                $http.post($scope.baseUrl + '/task', {
+                                    processInstanceId: p.id,
+                                }).then(function (response) {
+                                    p.tasks = response.data;
+                                    if(p.tasks.length > 0){
+                                        p.tasks.forEach(t => {
+                                            $http.get($scope.baseUrl + '/task/' + t.id + '/identity-links').then((response) => {
+                                                var groups = response.data
+                                                var groupList = ''
+                                                for (let j = 0; j < groups.length; j++) {
+                                                    if (groups[j].groupId) {
+                                                        groupList += groups[j].groupId
+                                                        if (groups.length > 1) {
+                                                            groupList += ', '
+                                                        }
+                                                    }
+                                                }
+                                                t.groupId = groupList;
+                                            });
+                                        });                                    
+                                    }
+                                });
+                                activeProcInstIdArray.push(p.id);
+                            }
+                        });
 
-                //                 b.forEach(j => {
-                //                     counter += j;
-                //                     finalTasksCounter = finalTasksCounter + j;
-                //                 });
-                //                 c.forEach(k => {
-                //                     regionJson[k] = regionJson[k] ? regionJson[k] + tasksByIdAndRegionCounted[a[i]][k] : tasksByIdAndRegionCounted[a[i]][k];
-                //                     finalRegionCounter = finalRegionCounter + tasksByIdAndRegionCounted[a[i]][k];
-                //                 });
-                //                 newJson[a[i]] = counter;
-                //             }
-                //         }
-                //         $scope.totalCounter = newJson;
-                //         $scope.regionCounter = regionJson;
-                //         $scope.finalRegionCounter = finalRegionCounter;
-                //         $scope.finalTasksCounter = finalTasksCounter;
-                //     });
+                        $http.post($scope.baseUrl + '/variable-instance', {
+                            processInstanceIdIn: activeProcInstIdArray,
+                            variableName: 'ncpInsertDate'
+                        }).then(function (response) {
+                            $scope.ncpInsertDateMap = {...$scope.ncpInsertDateMap, ..._.mapValues(_.keyBy(response.data, 'processInstanceId'), 'value')};
+                        });
+                    }
+                }
+                $scope.init();
+
+                $scope.$watch('project', function (new_project, old_project) {
+                    if(new_project!==old_project){
+                        $scope.init();
+                    }    
+                });
+
+                $scope.change = function(p){
+                    if(p){
+                       $scope.init(); 
+                    }
+                }
             }
             
 
