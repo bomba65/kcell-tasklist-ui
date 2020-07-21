@@ -65,22 +65,22 @@ public class SendDataToAssets implements JavaDelegate {
         ObjectNode objectNode = objectMapper.createObjectNode();
 
         ObjectNode capacity = objectMapper.createObjectNode();
-        objectNode.set("capacity_id", capacity);
         capacity.put("catalog_id", 45);
         capacity.put("id", capacityId);
+        objectNode.set("capacity_id", capacity);
 
         objectNode.put("farend_id", fe_siteId);
 
         ObjectNode fe_antenna_diameter_id = objectMapper.createObjectNode();
-        objectNode.set("fe_antenna_diameter_id", fe_antenna_diameter_id);
         fe_antenna_diameter_id.put("catalog_id", 20);
         fe_antenna_diameter_id.put("id", fe_diameter);
+        objectNode.set("fe_antenna_diameter_id", fe_antenna_diameter_id);
 
         if (fe_protection_antenna_diameter != null) {
             ObjectNode fe_antenna_diameter_protect_id = objectMapper.createObjectNode();
-            objectNode.set("fe_antenna_diameter_protect_id", fe_antenna_diameter_protect_id);
             fe_antenna_diameter_protect_id.put("catalog_id", 20);
             fe_antenna_diameter_protect_id.put("id", fe_protection_antenna_diameter);
+            objectNode.set("fe_antenna_diameter_protect_id", fe_antenna_diameter_protect_id);
         }
 
 
@@ -100,15 +100,15 @@ public class SendDataToAssets implements JavaDelegate {
         objectNode.put("date", new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ").format(c.getTime()));
 
         ObjectNode fe_rau_subband_id = objectMapper.createObjectNode();
-        objectNode.set("fe_rau_subband_id", fe_rau_subband_id);
         fe_rau_subband_id.put("catalog_id", 46);
         fe_rau_subband_id.put("id", fe_rau_subband);
+        objectNode.set("fe_rau_subband_id", fe_rau_subband_id);
 
         if (fe_protection_rau_subband != null) {
             ObjectNode fe_rau_subband_protect_id = objectMapper.createObjectNode();
-            objectNode.set("fe_rau_subband_protect_id", fe_rau_subband_protect_id);
             fe_rau_subband_protect_id.put("catalog_id", 46);
             fe_rau_subband_protect_id.put("id", fe_protection_rau_subband);
+            objectNode.set("fe_rau_subband_protect_id", fe_rau_subband_protect_id);
         }
 
         objectNode.put("fe_terminalid", fe_terminal_id);
@@ -116,10 +116,9 @@ public class SendDataToAssets implements JavaDelegate {
         objectNode.put("fe_txrx_frequencies_protect", fe_protection_txrx_frequincies);
 
         ObjectNode link_type_id = objectMapper.createObjectNode();
-        objectNode.set("link_type_id", link_type_id);
         link_type_id.put("catalog_id", 47);
         link_type_id.put("id", hop_link_type);
-
+        objectNode.set("link_type_id", link_type_id);
 
         Integer ne_rau_subband = execution.getVariable("ne_rau_subband") == null ? null : Integer.parseInt(String.valueOf(execution.getVariable("ne_rau_subband")));
         Integer ne_protection_rau_subband = execution.getVariable("ne_protection_rau_subband") == null ? null : Integer.parseInt(String.valueOf(execution.getVariable("ne_protection_rau_subband")));
@@ -145,15 +144,15 @@ public class SendDataToAssets implements JavaDelegate {
         objectNode.put("nearend_id", ne_siteId);
 
         ObjectNode ne_antenna_diameter_id = objectMapper.createObjectNode();
-        objectNode.set("ne_antenna_diameter_id", ne_antenna_diameter_id);
         ne_antenna_diameter_id.put("catalog_id", 20);
         ne_antenna_diameter_id.put("id", ne_diameter);
+        objectNode.set("ne_antenna_diameter_id", ne_antenna_diameter_id);
 
         if (ne_protection_antenna_diameter != null) {
             ObjectNode ne_antenna_diameter_protect_id = objectMapper.createObjectNode();
-            objectNode.set("ne_antenna_diameter_protect_id", ne_antenna_diameter_protect_id);
             ne_antenna_diameter_protect_id.put("catalog_id", 20);
             ne_antenna_diameter_protect_id.put("id", ne_protection_antenna_diameter);
+            objectNode.set("ne_antenna_diameter_protect_id", ne_antenna_diameter_protect_id);
         }
 
 
@@ -168,15 +167,15 @@ public class SendDataToAssets implements JavaDelegate {
         objectNode.put("ne_power_levels_tx_protect", ne_protection_power_level_tx);
 
         ObjectNode ne_rau_subband_id = objectMapper.createObjectNode();
-        objectNode.set("ne_rau_subband_id", ne_rau_subband_id);
         ne_rau_subband_id.put("catalog_id", 46);
         ne_rau_subband_id.put("id", ne_rau_subband);
+        objectNode.set("ne_rau_subband_id", ne_rau_subband_id);
 
         if (ne_protection_rau_subband != null) {
             ObjectNode ne_rau_subband_protect_id = objectMapper.createObjectNode();
-            objectNode.set("ne_rau_subband_protect_id", ne_rau_subband_protect_id);
             ne_rau_subband_protect_id.put("catalog_id", 46);
             ne_rau_subband_protect_id.put("id", ne_protection_rau_subband);
+            objectNode.set("ne_rau_subband_protect_id", ne_rau_subband_protect_id);
         }
 
         objectNode.put("ne_terminalid", ne_terminal_id);
@@ -188,30 +187,31 @@ public class SendDataToAssets implements JavaDelegate {
         objectNode.put("path_distance", path_distance);
 
         ObjectNode polarization_id = objectMapper.createObjectNode();
-        objectNode.set("polarization_id", polarization_id);
         polarization_id.put("catalog_id", 48);
         polarization_id.put("id", hop_polarization);
+        objectNode.set("polarization_id", polarization_id);
 
         ObjectNode protection_mode_id = objectMapper.createObjectNode();
-        objectNode.set("protection_mode_id", protection_mode_id);
         protection_mode_id.put("catalog_id", 44);
         protection_mode_id.put("id", protection_mode);
+        objectNode.set("protection_mode_id", protection_mode_id);
 
         ObjectNode neFacilityNode = objectMapper.createObjectNode();
         neFacilityNode.put("altitude",ne_altitude );
         neFacilityNode.put("construction_height",ne_construction_height);
         ObjectNode ne_construction_type_id = objectMapper.createObjectNode();
+        ne_construction_type_id.put("catalog_id", 14);
+        ne_construction_type_id.put("id", ne_construction_type);
         neFacilityNode.set("construction_type_id", ne_construction_type_id);
-        neFacilityNode.put("catalog_id", 14);
-        neFacilityNode.put("id", ne_construction_type);
+
 
         ObjectNode feFacilityNode = objectMapper.createObjectNode();
         feFacilityNode.put("altitude",fe_altitude );
         feFacilityNode.put("construction_height",fe_construction_height);
         ObjectNode fe_construction_type_id = objectMapper.createObjectNode();
+        fe_construction_type_id.put("catalog_id", 14);
+        fe_construction_type_id.put("id", fe_construction_type);
         feFacilityNode.set("construction_type_id", fe_construction_type_id);
-        feFacilityNode.put("catalog_id", 14);
-        feFacilityNode.put("id", fe_construction_type);
 
 
         try {
