@@ -61,7 +61,7 @@ public class GenerateContractId implements JavaDelegate {
             if (ci != null && ci.hasProp("ct_acquisitionType") && ci.prop("ct_acquisitionType").value().toString() != "additionalAgreement") {
                 String contractCounterId = setContractCounter(rolloutContractCounter);
 //                log.info("contractCounterId:" + contractCounterId);
-                String powerPrefix = ci.hasProp("ct_contract_type") && ci.prop("ct_contract_type").value().toString().equals("2") ? "ES" : "AS";
+                String powerPrefix = ci.hasProp("ct_contract_type") && ci.prop("ct_contract_type").value().toString().equals("2") ? "EC" : "AS";
 //                log.info("powerPrefix: " + powerPrefix);
 //                log.info("contractCounterId:" + contractCounterId);
 
