@@ -3,6 +3,7 @@
 set -e
 
 DOCKER_COMPOSE_YML=$1
+DOCKER_COMPOSE_P=$2
 
 if [ -z "$DOCKER_COMPOSE_YML" ]; then
 	DOCKER_COMPOSE_YML="docker-compose.yml"
@@ -27,4 +28,9 @@ cd "$BASEDIR"
 echo -e "<pre>$(git log --graph -10)</pre>" > nginx/html/version.html
 
 cd "$BASEDIR"
-docker-compose -f "$DOCKER_COMPOSE_YML" build
+if [ -z "$DOCKER_COMPOSE_P" ]; then
+	docker-compose -f "$DOCKER_COMPOSE_YML" build
+else
+	docker-compose -f "$DOCKER_COMPOSE_YML" -p "$DOCKER_COMPOSE_P" build
+fi
+
