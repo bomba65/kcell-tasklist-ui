@@ -290,8 +290,8 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 					$scope.taskIds = $scope.taskIds.concat(userTasksFiltered);
 				});
 		}
-		$scope.searchForContractors = function(){
-			$scope.searchProcessesForContractors();
+		$scope.searchForContractors = function(refresh){
+			$scope.searchProcessesForContractors(refresh);
 			// if($scope.accepted){
 			// 	$scope.searchProcessesForContractors();
 			// } else {
@@ -370,17 +370,78 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 		// 	);
         // };
 		$scope.getExcelFile = function () {
-			var tbl = document.getElementById( 'revisionsSearchTask');
-			var ws = XLSX.utils.table_to_sheet(tbl, {dateNF: 'DD.MM.YYYY'});
-			var wb = XLSX.utils.book_new();
-			XLSX.utils.book_append_sheet(wb, ws, 'New Sheet Name 1');
-			return XLSX.writeFile(wb, 'revision-search-task-result.xlsx');
+			if($scope.xlsxPreparedRevision) {
+				var tbl = document.getElementById('revisionsSearchTask');
+				var ws = XLSX.utils.table_to_sheet(tbl, {dateNF: 'DD.MM.YYYY'});
+				var wb = XLSX.utils.book_new();
+				XLSX.utils.book_append_sheet(wb, ws, 'New Sheet Name 1');
+				return XLSX.writeFile(wb, 'revision-search-task-result.xlsx');
+			} else {
+				$scope.searchProcessesForContractors(false, true);
+				$scope.xlsxPreparedRevision = true;
+			}
 
 		}
 
-        $scope.searchProcessesForContractors = async function(taskInfo){
+        $scope.searchFilter = {
+            page: 1,
+            pageSize: 20
+        };
+
+		$scope.processInstancesTotal = 0;
+		$scope.processInstancesPages = 0;
+
+		$scope.nextPage = function () {
+			$scope.searchFilter.page++;
+			$scope.searchForContractors(false);
+			$scope.piIndex = undefined;
+		}
+
+		$scope.prevPage = function () {
+			$scope.searchFilter.page--;
+			$scope.searchForContractors(false);
+			$scope.piIndex = undefined;
+		}
+
+		$scope.selectPage = function (page) {
+			$scope.searchFilter.page = page;
+			$scope.searchForContractors(false);
+			$scope.piIndex = undefined;
+		}
+
+		$scope.getPages = function () {
+			var array = [];
+			if ($scope.processInstancesPages < 8) {
+				for (var i = 1; i <= $scope.processInstancesPages; i++) {
+					array.push(i);
+				}
+			} else {
+				var decrease = $scope.searchFilter.page - 1;
+				var increase = $scope.searchFilter.page + 1;
+				array.push($scope.searchFilter.page);
+				while (increase - decrease < 8) {
+					if (decrease > 0) {
+						array.unshift(decrease--);
+					}
+					if (increase < $scope.processInstancesPages) {
+						array.push(increase++);
+					}
+				}
+			}
+			return array;
+		}
+
+        $scope.searchProcessesForContractors = async function(refresh, skipPagination){
 			var queryParams = {processDefinitionKey: 'Revision', variables: []};
 			var taskDefKey;
+
+            if(refresh){
+                $scope.searchFilter = {
+                    page: 1,
+                    pageSize: 20
+                };
+				$scope.xlsxPreparedRevision = false;
+            }
 
 			if(!$scope.accepted){
 				queryParams.variables.push({name:"contractorJobAssignedDate", value:new Date(), operator: "lteq"});
@@ -425,95 +486,114 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
                 queryParams.variables.push({"name": "siteRegion", "operator": "eq", "value": 'west'});
             }
 
-        	$scope.processSearchResults = [];
-			await $http({
+			if(skipPagination){
+				$scope.processSearchResultsXsl = [];
+			} else {
+				$scope.processSearchResults = [];
+			}
+			$http({
 				method: 'POST',
 				headers:{'Accept':'application/hal+json, application/json; q=0.5'},
 				data: queryParams,
-				url: baseUrl+'/process-instance'
-			}).then(function(results){
-				$scope.processSearchResults = results.data;
-				if($scope.processSearchResults.length > 0){
-					_.forEach(['site_name', 'priority', 'validityDate', 'requestedDate','starter'], function(variable) {
-						var varSearchParams = {processInstanceIdIn: _.map($scope.processSearchResults, 'id'), variableName: variable};
-						$http({
-							method: 'POST',
-							headers:{'Accept':'application/hal+json, application/json; q=0.5'},
-							data: varSearchParams,
-							url: baseUrl+'/variable-instance'
-						}).then(
-							function(vars){
-								$scope.processSearchResults.forEach(function(el) {
-									var f =  _.filter(vars.data, function(v) {
-										return v.processInstanceId === el.id;
-									});
-									if(f){
-										el[variable] = f[0].value;
-										if(variable === 'starter'){
-											$http.get(baseUrl + '/user/' + f[0].value + '/profile').then(
-												function (result) {
-													el[variable] = result.data.firstName + " " + result.data.lastName;
-												},
-												function (error) {
-													console.log(error.data);
-												}
-											);
-										}
-
-									}
-								});
-
-							},
-							function(error){
-								console.log(error.data);
-							}
-						);
-					});
-					if(!$scope.accepted) {
-						$scope.processSearchResults.forEach(function (el) {
-							$http({
-								method: 'POST',
-								headers: {'Accept': 'application/hal+json, application/json; q=0.5'},
-								data: {processInstanceId: el.id, processDefinitionKey: 'Revision', active: true, taskDefinitionKey: taskDefKey},
-								url: baseUrl + '/task'
-							}).then(
-								function(results) {
-									el.tasks = results.data
-									results.data.forEach(async function(task) {
-										el.tasks.assigneeObject = await $scope.getUserById(task)
-									})
-								},
-								function(error) {
-									console.log('task_error: ', error)
-								}
-
-							// function(taskResult){
-							// 	if(taskResult.data._embedded && taskResult.data._embedded.group){
-							// 		e.group = taskResult.data._embedded.group[0].id;
-							// 	}
-							// },
-							// function(error){
-							// 	console.log(error.data);
-							// }
-							);
-						})
-					} else {
-						$scope.processSearchResults.forEach(function(el) {
-							$http({
-								method: 'GET',
-								headers:{'Accept':'application/hal+json, application/json; q=0.5'},
-								url: baseUrl+'/process-instance/' + el.id + '/activity-instances'
-							}).then(function(activities){
-								activities.data.childActivityInstances.forEach(function(act) {
-									if(['attach-scan-copy-of-acceptance-form','intermediate_wait_acts_passed','intermediate_wait_invoiced'].indexOf(act.activityId)!==-1){
-										el.activityName = act.activityName;
-									}
-								});
-							});
-						});
+                url: baseUrl + '/process-instance/count'
+			}).then(function(countResults){
+				$scope.processInstancesTotal = countResults.data.count;
+				$scope.processInstancesPages = Math.floor(countResults.data.count / $scope.searchFilter.pageSize) + ((countResults.data.count % $scope.searchFilter.pageSize) > 0 ? 1 : 0)
+				console.log("processInstancesTotal: " + $scope.processInstancesTotal);
+				console.log("processInstancesPages: " + $scope.processInstancesPages);
+			    $http({
+                    method: 'POST',
+                    headers:{'Accept':'application/hal+json, application/json; q=0.5'},
+                    data: queryParams,
+                    url: baseUrl + '/process-instance?firstResult=' + (!skipPagination ? (($scope.searchFilter.page - 1) * $scope.searchFilter.pageSize + '&maxResults=' + $scope.searchFilter.pageSize) : '')
+                }).then(function(results){
+					var processSearchResults = 'processSearchResults';
+                	if(skipPagination){
+						processSearchResults = 'processSearchResultsXls';
 					}
-				}
-			});
+                    $scope[processSearchResults] = results.data;
+                    if($scope[processSearchResults].length > 0){
+                        _.forEach(['site_name', 'priority', 'validityDate', 'requestedDate','starter'], function(variable) {
+                            var varSearchParams = {processInstanceIdIn: _.map($scope[processSearchResults], 'id'), variableName: variable};
+                            $http({
+                                method: 'POST',
+                                headers:{'Accept':'application/hal+json, application/json; q=0.5'},
+                                data: varSearchParams,
+                                url: baseUrl+'/variable-instance'
+                            }).then(
+                                function(vars){
+                                    $scope[processSearchResults].forEach(function(el) {
+                                        var f =  _.filter(vars.data, function(v) {
+                                            return v.processInstanceId === el.id;
+                                        });
+                                        if(f){
+                                            el[variable] = f[0].value;
+                                            if(variable === 'starter'){
+                                                $http.get(baseUrl + '/user/' + f[0].value + '/profile').then(
+                                                    function (result) {
+                                                        el[variable] = result.data.firstName + " " + result.data.lastName;
+                                                    },
+                                                    function (error) {
+                                                        console.log(error.data);
+                                                    }
+                                                );
+                                            }
+
+                                        }
+                                    });
+
+                                },
+                                function(error){
+                                    console.log(error.data);
+                                }
+                            );
+                        });
+                        if(!$scope.accepted) {
+                            $scope[processSearchResults].forEach(function (el) {
+                                $http({
+                                    method: 'POST',
+                                    headers: {'Accept': 'application/hal+json, application/json; q=0.5'},
+                                    data: {processInstanceId: el.id, processDefinitionKey: 'Revision', active: true, taskDefinitionKey: taskDefKey},
+                                    url: baseUrl + '/task'
+                                }).then(
+                                    function(results) {
+                                        el.tasks = results.data
+                                        results.data.forEach(async function(task) {
+                                            el.tasks.assigneeObject = await $scope.getUserById(task)
+                                        })
+                                    },
+                                    function(error) {
+                                        console.log('task_error: ', error)
+                                    }
+
+                                    // function(taskResult){
+                                    // 	if(taskResult.data._embedded && taskResult.data._embedded.group){
+                                    // 		e.group = taskResult.data._embedded.group[0].id;
+                                    // 	}
+                                    // },
+                                    // function(error){
+                                    // 	console.log(error.data);
+                                    // }
+                                );
+                            })
+                        } else {
+                            $scope[processSearchResults].forEach(function(el) {
+                                $http({
+                                    method: 'GET',
+                                    headers:{'Accept':'application/hal+json, application/json; q=0.5'},
+                                    url: baseUrl+'/process-instance/' + el.id + '/activity-instances'
+                                }).then(function(activities){
+                                    activities.data.childActivityInstances.forEach(function(act) {
+                                        if(['attach-scan-copy-of-acceptance-form','intermediate_wait_acts_passed','intermediate_wait_invoiced'].indexOf(act.activityId)!==-1){
+                                            el.activityName = act.activityName;
+                                        }
+                                    });
+                                });
+                            });
+                        }
+                    }
+                });
+            });
         }
 
         $scope.toggleProcessViewRevision = async function(p) {

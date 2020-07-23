@@ -177,9 +177,9 @@ left li:hover,  .left.side-blocks li.active{
 					                        <td>
 				                                <input type="checkbox" value="true" class="form-control" name="accepted" ng-model="accepted" />
 					                        </td>
-						                    <td><button type="button" class="btn btn-sm btn-primary" ng-click="searchForContractors()"><i class="glyphicon glyphicon-search"></i> Search</button></td>
+						                    <td><button type="button" class="btn btn-sm btn-primary" ng-click="searchForContractors(true)"><i class="glyphicon glyphicon-search"></i> Search ({{processInstancesTotal}})</button></td>
 											<td>
-												<button type="button" class="btn btn-sm btn-primary" ng-click="getExcelFile()">Prepare Excel</button>
+												<button type="button" class="btn btn-sm btn-primary" ng-click="getExcelFile()">{{xlsxPreparedRevision ? 'Export to Excel' : 'Prepare Excel'}}</button>
 											</td>
 					                    </ng-form>
 					                </tr>
@@ -234,35 +234,19 @@ left li:hover,  .left.side-blocks li.active{
 									<thead>
 									<tr>
 										<th></th>
-										<th>Priority
-											<i ng-click="orderByFieldName('priority')" class="glyphicon" ng-class="fieldName != 'priority' ? 'glyphicon-sort' : reverseOrder?'glyphicon-chevron-down':'glyphicon-chevron-up'"></i>
-										</th>
-										<th>JR Number
-											<i ng-click="orderByFieldName('businessKey')" class="glyphicon" ng-class="fieldName != 'businessKey' ? 'glyphicon-sort' : reverseOrder?'glyphicon-chevron-down':'glyphicon-chevron-up'"></i>
-										</th>
-										<th>Site name
-											<i ng-click="orderByFieldName('site_name')" class="glyphicon" ng-class="fieldName != 'site_name' ? 'glyphicon-sort' : reverseOrder?'glyphicon-chevron-down':'glyphicon-chevron-up'"></i>
-										</th>
-										<th>Name
-											<i ng-click="orderByFieldName('activityName')" class="glyphicon" ng-class="fieldName != 'activityName' ? 'glyphicon-sort' : reverseOrder?'glyphicon-chevron-down':'glyphicon-chevron-up'"></i>
-										</th>
-										<th>Description
-											<i ng-click="orderByFieldName('description')" class="glyphicon" ng-class="fieldName != 'description' ? 'glyphicon-sort' : reverseOrder?'glyphicon-chevron-down':'glyphicon-chevron-up'"></i>
-										</th>
-										<th>Create Date
-											<i ng-click="orderByFieldName('requestedDate')" class="glyphicon" ng-class="fieldName != 'requestedDate' ? 'glyphicon-sort' : reverseOrder?'glyphicon-chevron-down':'glyphicon-chevron-up'"></i>
-										</th>
-										<th>Validity Date
-											<i ng-click="orderByFieldName('validityDate')" class="glyphicon" ng-class="fieldName != 'validityDate' ? 'glyphicon-sort' : reverseOrder?'glyphicon-chevron-down':'glyphicon-chevron-up'"></i>
-										</th>
-										<th>Initiator
-											<i ng-click="orderByFieldName('starter')" class="glyphicon" ng-class="fieldName != 'starter' ? 'glyphicon-sort' : reverseOrder?'glyphicon-chevron-down':'glyphicon-chevron-up'"></i>
-										</th>
+										<th>Priority</th>
+										<th>JR Number</th>
+										<th>Site name</th>
+										<th>Name</th>
+										<th>Description</th>
+										<th>Create Date</th>
+										<th>Validity Date</th>
+										<th>Initiator</th>
 									</tr>
 									</thead>
 									<tbody ng-repeat="p in processSearchResults | orderBy : fieldName : reverseOrder">
 										<tr ng-repeat="task in p.tasks">
-											<td>{{$parent.$index+1}}.</td>
+											<td>{{(searchFilter.page - 1) * 20 + $parent.$index + 1}}</td>
 											<td>{{p.priority == 'emergency' ? 'Emergency' : 'Regular'}}</td>
 											<td>
 												<a ng-click="toggleProcessViewRevision(p)">{{p.businessKey}}</a>
@@ -277,6 +261,17 @@ left li:hover,  .left.side-blocks li.active{
 											<td>{{p.validityDate | date:'dd.MM.yyyy HH:mm'}}</td>
 											<td>{{p.starter}}</td>
 										</tr>
+									</tbody>
+									<tbody>
+									<tr>
+										<td colspan="9" style="text-align: center">
+											<a ng-disabled="searchFilter.page <= 1" ng-click="searchFilter.page <= 1 || selectPage(1)" class="btn btn-pagination"> << </a>
+											<a ng-disabled="searchFilter.page <= 1" ng-click="searchFilter.page <= 1 || prevPage()" class="btn btn-pagination"> < </a>
+											<a ng-repeat="page in getPages()" ng-disabled="searchFilter.page == page" ng-click="searchFilter.page == page || selectPage(page)" ng-class="searchFilter.page == page? 'btn-pagination-active':''" class="btn btn-pagination">{{page}}</a>
+											<a ng-disabled="searchFilter.page >= processInstancesPages" ng-click="searchFilter.page >= processInstancesPages || nextPage()" class="btn btn-pagination"> > </a>
+											<a ng-disabled="searchFilter.page >= processInstancesPages" ng-click="searchFilter.page >= processInstancesPages || selectPage(processInstancesPages)" class="btn btn-pagination"> >> </a>
+										</td>
+									</tr>
 									</tbody>
 								</table>
 								<table class="table" ng-show="" ng-if="!accepted" id="revisionsSearchTask">
@@ -309,9 +304,9 @@ left li:hover,  .left.side-blocks li.active{
 										</th>
 									</tr>
 									</thead>
-									<tbody ng-repeat="p in processSearchResults | orderBy : fieldName : reverseOrder">
+									<tbody ng-repeat="p in processSearchResultsXls | orderBy : fieldName : reverseOrder">
 									<tr ng-repeat="task in p.tasks">
-										<td>{{$index+1}}.</td>
+										<td>{{$parent.$index +1}}.</td>
 										<td>{{p.priority == 'emergency' ? 'Emergency' : 'Regular'}}</td>
 										<td>
 											<a ng-click="toggleProcessViewRevision(p)">{{p.businessKey}}</a>
@@ -358,7 +353,7 @@ left li:hover,  .left.side-blocks li.active{
 					                </thead>
 					                <tbody>
 						                <tr ng-repeat="p in processSearchResults | orderBy : fieldName : reverseOrder">
-					                        <td>{{$index+1}}.</td>
+											<td>{{(searchFilter.page - 1) * 20 + $index + 1}}</td>
 					                        <td>{{p.priority == 'emergency' ? 'Emergency' : 'Regular'}}</td>
 					                        <td>
 						                    	<a ng-click="toggleProcessViewRevision(p)">{{p.businessKey}}</a>
@@ -370,6 +365,17 @@ left li:hover,  .left.side-blocks li.active{
 											<td>{{p.starter}}</td>
 						                </tr>
 					                </tbody>
+									<tbody>
+									<tr>
+										<td colspan="9" style="text-align: center">
+											<a ng-disabled="searchFilter.page <= 1" ng-click="searchFilter.page <= 1 || selectPage(1)" class="btn btn-pagination"> << </a>
+											<a ng-disabled="searchFilter.page <= 1" ng-click="searchFilter.page <= 1 || prevPage()" class="btn btn-pagination"> < </a>
+											<a ng-repeat="page in getPages()" ng-disabled="searchFilter.page == page" ng-click="searchFilter.page == page || selectPage(page)" ng-class="searchFilter.page == page? 'btn-pagination-active':''" class="btn btn-pagination">{{page}}</a>
+											<a ng-disabled="searchFilter.page >= processInstancesPages" ng-click="searchFilter.page >= processInstancesPages || nextPage()" class="btn btn-pagination"> > </a>
+											<a ng-disabled="searchFilter.page >= processInstancesPages" ng-click="searchFilter.page >= processInstancesPages || selectPage(processInstancesPages)" class="btn btn-pagination"> >> </a>
+										</td>
+									</tr>
+									</tbody>
 
 					            </table>
 								<table class="table" ng-show="" ng-if="accepted" id="revisionsSearchTask">
@@ -400,7 +406,7 @@ left li:hover,  .left.side-blocks li.active{
 									</tr>
 									</thead>
 									<tbody>
-									<tr ng-repeat="p in processSearchResults | orderBy : fieldName : reverseOrder">
+									<tr ng-repeat="p in processSearchResultsXls | orderBy : fieldName : reverseOrder">
 										<td>{{$index+1}}.</td>
 										<td>{{p.priority == 'emergency' ? 'Emergency' : 'Regular'}}</td>
 										<td>
