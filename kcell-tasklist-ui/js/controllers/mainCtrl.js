@@ -44,7 +44,7 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 
 		$scope.invoiceContractorFilter = {};
         $scope.currentDate = new Date();
-		$scope.invoiceContractorFilter.beginYear = $scope.currentDate.getFullYear() - 1;		
+		$scope.invoiceContractorFilter.beginYear = $scope.currentDate.getFullYear() - 1;
         $scope.invoiceContractorFilter.endYear = $scope.currentDate.getFullYear();
         $scope.years = [];
         for (var year = 2017; year <= $scope.invoiceContractorFilter.endYear; year++) {
@@ -77,7 +77,7 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 
 		$scope.filterByFields = function() {
 			if (Object.keys($scope.fieldFilter).length !== 0) {
-				return Object.keys($scope.fieldFilter).filter(fieldName => 
+				return Object.keys($scope.fieldFilter).filter(fieldName =>
 						$scope.fieldFilter[fieldName]
 					).reduce(function(obj, val, i) {
 						obj[val] = $scope.fieldFilter[val];
@@ -146,7 +146,7 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 				$scope.selectedView = 'massapprove';
 			} else {
 				$scope.selectedView = 'tasks';
-				
+
 				var varSearchParams = {processInstanceIds: _.map($scope.currentTaskGroup.tasks, 'processInstanceId')};
 	            $http({
 	                method: 'POST',
@@ -187,7 +187,7 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 					function(vars){
 						angular.forEach($scope.currentTaskGroup.tasks, function(task){
 							var f =  _.find(vars.data, function(v) {
-								return v.processInstanceId === task.processInstanceId; 
+								return v.processInstanceId === task.processInstanceId;
 							});
 							if(f){
 								task[variable] = f.value;
@@ -442,6 +442,11 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
                 };
 				$scope.xlsxPreparedRevision = false;
             }
+
+            if(!skipPagination){
+				$scope.xlsxPreparedRevision = false;
+				$scope.xlsFilter = $scope.searchFilter;
+			}
 
 			if(!$scope.accepted){
 				queryParams.variables.push({name:"contractorJobAssignedDate", value:new Date(), operator: "lteq"});
