@@ -156,7 +156,12 @@ public class SetStatus implements JavaDelegate {
                         log.info("TR STATUS preparedStatement SQL UPDATE VALUES");
                         // set values to update
                         i = 1;
-                        updateTrStatusInNcpCreationPreparedStatement.setLong(i++, Integer.parseInt(_SET_TR_STATUS)); // TR_STATUS
+                        if(_SET_TR_STATUS.equals("null")){
+                            updateTrStatusInNcpCreationPreparedStatement.setNull(i++, Types.INTEGER);
+                            log.info("SET TR STATUS NULL " +  _SET_TR_STATUS);
+                        } else {
+                            updateTrStatusInNcpCreationPreparedStatement.setLong(i++, Integer.parseInt(_SET_TR_STATUS)); // TR_STATUS
+                        }
                         updateTrStatusInNcpCreationPreparedStatement.setLong(i++, ncpCreatedId); // ARTEFACTID
                         updateTrStatusInNcpCreationPreparedStatement.executeUpdate();
                         log.info("successfull TR STATUS updated!");
