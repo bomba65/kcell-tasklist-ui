@@ -554,33 +554,36 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
                             );
                         });
                         if(!$scope.accepted) {
-                            $scope[processSearchResults].forEach(function (el) {
-                                $http({
-                                    method: 'POST',
-                                    headers: {'Accept': 'application/hal+json, application/json; q=0.5'},
-                                    data: {processInstanceId: el.id, processDefinitionKey: 'Revision', active: true, taskDefinitionKey: taskDefKey},
-                                    url: baseUrl + '/task'
-                                }).then(
-                                    function(results) {
-                                        el.tasks = results.data
-                                        results.data.forEach(async function(task) {
-                                            el.tasks.assigneeObject = await $scope.getUserById(task)
-                                        })
-                                    },
-                                    function(error) {
-                                        console.log('task_error: ', error)
-                                    }
-
-                                    // function(taskResult){
-                                    // 	if(taskResult.data._embedded && taskResult.data._embedded.group){
-                                    // 		e.group = taskResult.data._embedded.group[0].id;
-                                    // 	}
-                                    // },
-                                    // function(error){
-                                    // 	console.log(error.data);
-                                    // }
-                                );
-                            })
+							$scope[processSearchResults].forEach(function(el) {
+								$http({
+									method: 'GET',
+									headers:{'Accept':'application/hal+json, application/json; q=0.5'},
+									url: baseUrl+'/process-instance/' + el.id + '/activity-instances'
+								}).then(function(activities){
+									el.tasks = [];
+									_.forEach(activities.data.childActivityInstances, function (firstLevel) {
+										if (firstLevel.activityType === 'subProcess') {
+											_.forEach(firstLevel.childActivityInstances, function (secondLevel) {
+												if(secondLevel.childActivityInstances && secondLevel.childActivityInstances.length > 0) {
+													_.forEach(secondLevel.childActivityInstances, function (thirdLevel) {
+														if (thirdLevel.activityName) {
+															el.tasks.push({name: thirdLevel.activityName});
+														}
+													});
+												} else {
+													if (secondLevel.activityName) {
+														el.tasks.push({name: secondLevel.activityName});
+													}
+												}
+											});
+										} else {
+											if(firstLevel.activityName){
+												el.tasks.push({name:firstLevel.activityName});
+											}
+										}
+									});
+								});
+							});
                         } else {
                             $scope[processSearchResults].forEach(function(el) {
                                 $http({
@@ -588,6 +591,7 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
                                     headers:{'Accept':'application/hal+json, application/json; q=0.5'},
                                     url: baseUrl+'/process-instance/' + el.id + '/activity-instances'
                                 }).then(function(activities){
+                                	console.log(activities);
                                     activities.data.childActivityInstances.forEach(function(act) {
                                         if(['attach-scan-copy-of-acceptance-form','intermediate_wait_acts_passed','intermediate_wait_invoiced'].indexOf(act.activityId)!==-1){
                                             el.activityName = act.activityName;
