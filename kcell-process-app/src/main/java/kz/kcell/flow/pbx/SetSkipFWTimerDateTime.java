@@ -15,7 +15,7 @@ public class SetSkipFWTimerDateTime implements ExecutionListener {
         Date today = Calendar.getInstance().getTime();
 
         Calendar cal = Calendar.getInstance();
-        cal.set(Calendar.HOUR_OF_DAY,9);
+        cal.set(Calendar.HOUR_OF_DAY,3);
         cal.set(Calendar.MINUTE,0);
         cal.set(Calendar.SECOND,0);
         cal.set(Calendar.MILLISECOND,0);
