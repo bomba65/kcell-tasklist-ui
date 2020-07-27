@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:bioc="http://bpmn.io/schema/bpmn/biocolor/1.0" id="Definitions_1" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="3.5.0">
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:bioc="http://bpmn.io/schema/bpmn/biocolor/1.0" id="Definitions_1" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="2.0.3">
   <bpmn:process id="leasing" name="Leasing Rollout Site" isExecutable="true">
     <bpmn:documentation>Send a message to start a payment</bpmn:documentation>
     <bpmn:startEvent id="StartEvent_first" camunda:formKey="embedded:app:forms/leasing/start.html" camunda:initiator="starter">
@@ -790,7 +790,7 @@
       <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${(leasingProceduresStatus == 'waitContract' || leasingProceduresStatus == 'approve') &amp;&amp; leasingProceduresStatus != 'refusal' &amp;&amp; leasingProceduresStatus != 'reject' &amp;&amp; leasingProceduresStatusFE != 'refusal' &amp;&amp; leasingProceduresStatusFE != 'reject'}</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
     <bpmn:sequenceFlow id="SequenceFlow_0xf304q" name="Verbal Agreement" sourceRef="ExclusiveGateway_19ncicm" targetRef="ServiceTask_0lm729x">
-      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${(leasingProceduresStatus == 'verbalAgreement' || leasingProceduresStatusFE == 'verbalAgreement') &amp;&amp; leasingProceduresStatus != 'refusal' &amp;&amp; leasingProceduresStatus != 'reject' &amp;&amp; leasingProceduresStatusFE != 'refusal' &amp;&amp; leasingProceduresStatusFE != 'reject'}</bpmn:conditionExpression>
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${(leasingProceduresStatus == 'verbalAgreement' || leasingProceduresStatusFE == 'verbalAgreement' || leasingProceduresStatus == 'verbalAgreementContractAfterIW' || leasingProceduresStatusFE == 'verbalAgreementContractAfterIW') &amp;&amp; leasingProceduresStatus != 'refusal' &amp;&amp; leasingProceduresStatus != 'reject' &amp;&amp; leasingProceduresStatusFE != 'refusal' &amp;&amp; leasingProceduresStatusFE != 'reject'}</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
     <bpmn:sequenceFlow id="SequenceFlow_1oo6n65" name="REFUSAL" sourceRef="ExclusiveGateway_1w5b813" targetRef="ServiceTask_1w4dm34">
       <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${leasingProceduresStatus == 'refusal' || leasingProceduresStatus == 'reject' || leasingProceduresStatusFE == 'refusal' || leasingProceduresStatusFE == 'reject'}</bpmn:conditionExpression>
@@ -1502,10 +1502,10 @@ def uploadSignedOwnerLeaseContractTaskResult = execution.getVariable('uploadSign
 def uploadCopyOfOwnerSignedLeaseContractTaskResult = execution.getVariable('uploadCopyOfOwnerSignedLeaseContractTaskResult')
 def leasingProceduresStatus = execution.getVariable('leasingProceduresStatus')
 
-if (!uploadSignedOwnerLeaseContractTaskResult || leasingProceduresStatus == "verbalAgreement") {
+if (!uploadSignedOwnerLeaseContractTaskResult || leasingProceduresStatus == "verbalAgreement" || leasingProceduresStatus == "verbalAgreementContractAfterIW") {
   execution.setVariable('uploadSignedOwnerLeaseContractTaskResult','skiped')
 }
-if (!uploadCopyOfOwnerSignedLeaseContractTaskResult || leasingProceduresStatusFE == "verbalAgreement") {
+if (!uploadCopyOfOwnerSignedLeaseContractTaskResult || leasingProceduresStatusFE == "verbalAgreement" || leasingProceduresStatusFE == "verbalAgreementContractAfterIW") {
     execution.setVariable('uploadCopyOfOwnerSignedLeaseContractTaskResult','skiped')
 }</bpmn:script>
     </bpmn:scriptTask>
@@ -1576,7 +1576,6 @@ if (!uploadCopyOfOwnerSignedLeaseContractTaskResult || leasingProceduresStatusFE
           <camunda:inputParameter name="_SET_FE_STATUS">4</camunda:inputParameter>
           <camunda:inputParameter name="_SET_GEN_STATUS">3</camunda:inputParameter>
           <camunda:inputParameter name="_SET_RR_STATUS">3</camunda:inputParameter>
-          <camunda:inputParameter name="_SET_RSD_STATUS">1</camunda:inputParameter>
         </camunda:inputOutput>
       </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_0akl87z</bpmn:incoming>
@@ -1599,7 +1598,6 @@ if (!uploadCopyOfOwnerSignedLeaseContractTaskResult || leasingProceduresStatusFE
           <camunda:inputParameter name="_SET_CAND_STATUS">3</camunda:inputParameter>
           <camunda:inputParameter name="_SET_GEN_STATUS">3</camunda:inputParameter>
           <camunda:inputParameter name="_SET_RR_STATUS">3</camunda:inputParameter>
-          <camunda:inputParameter name="_SET_RSD_STATUS">1</camunda:inputParameter>
         </camunda:inputOutput>
       </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_1woqns0</bpmn:incoming>
@@ -1937,10 +1935,8 @@ InstStatusBeforeLeasingProblem</camunda:script>
       <bpmn:extensionElements>
         <camunda:inputOutput>
           <camunda:inputParameter name="_SET_TR_STATUS">105</camunda:inputParameter>
-          <camunda:inputParameter name="_SET_POWER_STATUS">
-            <camunda:script scriptFormat="groovy">def result = connectionPossibleFromRES == 'yes' ?'7':(connectionPossibleFromLandlordNetwork=='yes'?'13':'')
-result</camunda:script>
-          </camunda:inputParameter>
+          <camunda:inputParameter name="_SET_POWER_STATUS">2</camunda:inputParameter>
+          <camunda:inputParameter name="_SET_RSD_STATUS">0</camunda:inputParameter>
         </camunda:inputOutput>
       </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_1yruxdo</bpmn:incoming>
