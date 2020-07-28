@@ -3041,7 +3041,7 @@ define(['./module', 'camundaSDK', 'lodash', 'big-js', 'jquery', 'moment'], funct
                                         if($scope.fullPIDsByRegions[r.id].generalStatuses && $scope.fullPIDsByRegions[r.id].generalStatuses['Leasing in progress']){
                                             var pIds = [];
                                             $scope.fullPIDsByRegions[r.id].generalStatuses['Leasing in progress'].forEach(p => {
-                                                pIds.push(p.id);
+                                                pIds.push(p.pid);
                                             });
                                             var generalSubStatus1VarsPromise = $http.post($scope.baseUrl + '/variable-instance', {
                                                 processInstanceIdIn: PIDsArray,
@@ -3083,7 +3083,7 @@ define(['./module', 'camundaSDK', 'lodash', 'big-js', 'jquery', 'moment'], funct
                                         if($scope.fullPIDsByRegions[r.id].generalStatuses && $scope.fullPIDsByRegions[r.id].generalStatuses['Installation in progress']){
                                             var instIds = [];
                                             $scope.fullPIDsByRegions[r.id].generalStatuses['Installation in progress'].forEach(p => {
-                                                instIds.push(p.id);
+                                                instIds.push(p.pid);
                                             });
                                             var setInstStatusFromUDBVarsPromise = $http.post($scope.baseUrl + '/variable-instance', {
                                                 processInstanceIdIn: PIDsArray,
@@ -3112,7 +3112,7 @@ define(['./module', 'camundaSDK', 'lodash', 'big-js', 'jquery', 'moment'], funct
                                         if($scope.fullPIDsByRegions[r.id].generalStatuses && $scope.fullPIDsByRegions[r.id].generalStatuses['Provisional approval by Power, Transmission & Leasing']){
                                             var pIds = [];
                                             $scope.fullPIDsByRegions[r.id].generalStatuses['Provisional approval by Power, Transmission & Leasing'].forEach(p => {
-                                                pIds.push(p.id);
+                                                pIds.push(p.pid);
                                             });
                                             var generalSubStatus1VarsPromise = $http.post($scope.baseUrl + '/variable-instance', {
                                                 processInstanceIdIn: PIDsArray,
@@ -3155,6 +3155,7 @@ define(['./module', 'camundaSDK', 'lodash', 'big-js', 'jquery', 'moment'], funct
                                                         $scope.fullPIDsByRegions[r.id].generalStatuses['Provisional approval by Power, Transmission & Leasing'].substatuses['Waiting regional Transmission approval'].push(p);
                                                     }
                                                 });
+
                                             });
                                         }                                       
                                     }
