@@ -7,6 +7,7 @@ import org.camunda.bpm.engine.delegate.DelegateExecution;
 import org.camunda.bpm.engine.delegate.JavaDelegate;
 import org.camunda.bpm.engine.impl.util.json.JSONArray;
 import org.camunda.bpm.engine.impl.util.json.JSONObject;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import javax.net.ssl.*;
@@ -28,6 +29,9 @@ import static kz.kcell.flow.firewall.FirewallCreate.*;
 @Log
 
 public class FirewallUpdate implements JavaDelegate {
+
+    @Value("${firewall.use.testGroup:true}")
+    private Boolean useTestGroup;
 
     static {
         disableSslVerification();
@@ -150,7 +154,9 @@ public class FirewallUpdate implements JavaDelegate {
             throw new Exception("Undefined process defkey" + processDefKey);
         }
 
-
+        if(useTestGroup){
+            firewallGroupName = "APITest";
+        }
 
         String lastUsedIp = delegateExecution.getVariable("lastUsedIp").toString();
         String lastUsedName = delegateExecution.getVariable("lastUsedName").toString();

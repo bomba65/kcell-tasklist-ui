@@ -7,6 +7,7 @@ import org.camunda.bpm.engine.impl.util.json.JSONObject;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -22,13 +23,19 @@ import java.util.Arrays;
 @RequestMapping("/ntlm")
 public class NtlmCheckController {
 
+    @Value("${sharepoint.forms.url.part:TCF_test}")
+    private String sharepointUrlPart;
+
+    @Value("${sharepoint.forms.requestBody:SP.Data.TCF_x005f_testListItem}")
+    private String sharepointRequestBody;
+
     @RequestMapping(value = "/check", method = RequestMethod.GET)
     @ResponseBody
     public ResponseEntity<String> getNtlm() {
 
         String result = "error";
         try {
-            String responseText = getAuthenticatedResponse("https://sp.kcell.kz/forms/_api/Lists/getbytitle('ICTD%20TCF')/items(1)", "kcell.kz", "camunda_sharepoint", "Bn12#Qaz");
+            String responseText = getAuthenticatedResponse("https://sp.kcell.kz/forms/_api/Lists/getbytitle('" + sharepointUrlPart + "')/items(1)", "kcell.kz", "camunda_sharepoint", "Bn12#Qaz");
             result = responseText;
         }catch(Exception e){
             e.printStackTrace();
@@ -75,7 +82,7 @@ public class NtlmCheckController {
 
         String result = "error";
         try {
-            String responseText = postItemsResponse("https://sp.kcell.kz/forms/_api/Lists/getbytitle('ICTD%20TCF')/items", "kcell.kz", "camunda_sharepoint", "Bn12#Qaz", reqObj.get("FormDigestValue").toString());
+            String responseText = postItemsResponse("https://sp.kcell.kz/forms/_api/Lists/getbytitle('" + sharepointUrlPart + "')/items", "kcell.kz", "camunda_sharepoint", "Bn12#Qaz", reqObj.get("FormDigestValue").toString());
             result = responseText;
         }catch(Exception e){
             e.printStackTrace();
@@ -157,7 +164,7 @@ public class NtlmCheckController {
         return jsonObject.toString();
     }
 
-    private static String postItemsResponse(
+    private String postItemsResponse(
         final String urlStr, final String domain,
         final String userName, final String password,
         final String formDigetValueStr) throws IOException {
@@ -173,7 +180,7 @@ public class NtlmCheckController {
 
         String jsonRequestBody = "{\n" +
             "    \"__metadata\": {\n" +
-            "        \"type\": \"SP.Data.ICTD_x0020_TCFListItem\"\n" +
+            "        \"type\": \"" + sharepointRequestBody + "\"\n" +
             "    },\n" +
             "    \"Subject\": \"B2B Short Numbers\",\n" +
             "    \"DateDeadline\": \"2019-02-21T00:00:00\",\n" +

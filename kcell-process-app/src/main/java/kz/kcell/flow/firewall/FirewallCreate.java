@@ -8,6 +8,7 @@ import org.camunda.bpm.engine.delegate.JavaDelegate;
 import org.camunda.bpm.engine.impl.util.json.JSONArray;
 import org.camunda.bpm.engine.impl.util.json.JSONObject;
 import org.msgpack.util.json.JSON;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import javax.net.ssl.*;
@@ -26,8 +27,10 @@ import java.util.concurrent.TimeUnit;
 
 @Service("FirewallCreate")
 @Log
-
 public class FirewallCreate implements JavaDelegate {
+
+    @Value("${firewall.use.testGroup:true}")
+    private Boolean useTestGroup;
 
     static {
         disableSslVerification();
@@ -152,6 +155,9 @@ public class FirewallCreate implements JavaDelegate {
             throw new Exception("Undefined process defkey" + processDefKey);
         }
 
+        if(useTestGroup){
+            firewallGroupName = "APITest";
+        }
 
         String lastUsedName = companyLatName+"_"+ipNumber;
         String lastUsedIp = ipNumber;

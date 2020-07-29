@@ -59,6 +59,12 @@ public class SharepointController {
     @Autowired
     private Environment environment;
 
+    @Value("${sharepoint.forms.url.part:TCF_test}")
+    private String sharepointUrlPart;
+
+    @Value("${sharepoint.forms.requestBody:SP.Data.TCF_x005f_testListItem}")
+    private String sharepointRequestBody;
+
     private final String baseUri;
     private final String username;
     private final String pwd;
@@ -78,7 +84,7 @@ public class SharepointController {
         String result = "error";
         if (isSftp) {
             try {
-                String responseText = getAuthenticatedResponse(baseUri + "/Lists/getbytitle('ICTD%20TCF')/items("+ itemId +")", "kcell.kz", this.username, this.pwd);
+                String responseText = getAuthenticatedResponse(baseUri + "/Lists/getbytitle('" + sharepointUrlPart + "')/items("+ itemId +")", "kcell.kz", this.username, this.pwd);
                 //result = responseText;
 
                 ////////////////////
@@ -143,7 +149,7 @@ public class SharepointController {
                 "            \"id\": \"Web/Lists(guid'd79e9f26-54d0-4db3-9488-d551236b0005')/Items(2914)\",\n" +
                 "            \"uri\": \"https://sp.kcell.kz/forms/_api/Web/Lists(guid'd79e9f26-54d0-4db3-9488-d551236b0005')/Items(2914)\",\n" +
                 "            \"etag\": \"\\\"21\\\"\",\n" +
-                "            \"type\": \"SP.Data.ICTD_x0020_TCFListItem \"\n" +
+                "            \"type\": \"" + sharepointRequestBody + " \"\n" +
                 "        },\n" +
                 "        \"FirstUniqueAncestorSecurableObject\": {\n" +
                 "            \"__deferred\": {\n" +
@@ -392,7 +398,7 @@ public class SharepointController {
         String result = "error";
         if (isSftp) {
             try {
-                String responseText = postItemsResponse(baseUri + "/Lists/getbytitle('ICTD%20TCF')/items", "kcell.kz", this.username, this.pwd, requestBody);
+                String responseText = postItemsResponse(baseUri + "/Lists/getbytitle('" + sharepointUrlPart + "')/items", "kcell.kz", this.username, this.pwd, requestBody);
                 result = responseText;
             } catch (Exception e) {
                 e.printStackTrace();
@@ -405,7 +411,7 @@ public class SharepointController {
                 "            \"id\": \"Web/Lists(guid'2e16f18e-95d2-4d38-bc31-a6be2ceadfe5')/Items(7)\",\n" +
                 "            \"uri\": \"https://sp.kcell.kz/forms/_api/Web/Lists(guid'2e16f18e-95d2-4d38-bc31-a6be2ceadfe5')/Items(7)\",\n" +
                 "            \"etag\": \"\\\"1\\\"\",\n" +
-                "            \"type\": \"SP.Data.ICTD_x0020_TCFListItem\"\n" +
+                "            \"type\": \"" + sharepointRequestBody + "\"\n" +
                 "        },\n" +
                 "        \"FirstUniqueAncestorSecurableObject\": {\n" +
                 "            \"__deferred\": {\n" +
@@ -674,7 +680,7 @@ public class SharepointController {
 
                 StringEntity TCFData = new StringEntity(RequestBody, ContentType.APPLICATION_JSON);
 
-                HttpPost httpPostTCF = new HttpPost(new URI(baseUri + "/getbytitle('ICTD%20TCF')"));
+                HttpPost httpPostTCF = new HttpPost(new URI(baseUri + "/getbytitle('" + sharepointUrlPart + "')"));
                 httpPostTCF.addHeader("Content-Type", "application/json;charset=UTF-8");
                 httpPostTCF.setEntity(TCFData);
 

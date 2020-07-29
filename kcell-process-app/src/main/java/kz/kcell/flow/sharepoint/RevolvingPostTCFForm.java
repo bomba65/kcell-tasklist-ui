@@ -48,8 +48,12 @@ public class RevolvingPostTCFForm implements JavaDelegate {
 
     @Autowired
     RepositoryService repositoryService;
-    @Autowired
-    private TaskService taskService;
+
+    @Value("${sharepoint.forms.url.part:TCF_test}")
+    private String sharepointUrlPart;
+
+    @Value("${sharepoint.forms.requestBody:SP.Data.TCF_x005f_testListItem}")
+    private String sharepointRequestBody;
 
     @Autowired
     public RevolvingPostTCFForm(@Value("${sharepoint.forms.url:https://sp.kcell.kz/forms/_api}") String baseUri, @Value("${sharepoint.forms.username}") String username, @Value("${sharepoint.forms.password}") String pwd,
@@ -248,7 +252,7 @@ public class RevolvingPostTCFForm implements JavaDelegate {
 
                 System.err.println("processKey: " + processKey);
                 JSONObject requestBodyJSON = new JSONObject();
-                JSONObject metadataBodyJSON = new JSONObject("{\"type\": \"SP.Data.ICTD_x0020_TCFListItem\"}");
+                JSONObject metadataBodyJSON = new JSONObject("{\"type\": \"" + sharepointRequestBody + "\"}");
                 JSONObject operatorBodyJSON = new JSONObject();
                 JSONObject departmentManagerIdJSON = new JSONObject();
                 JSONObject billingTypeBodyJSON = new JSONObject();
@@ -509,7 +513,7 @@ public class RevolvingPostTCFForm implements JavaDelegate {
                     }
                     if (contextInfoJSON.has("FormDigestValue")) {
                         try {
-                            String responseText = postItemsResponse(baseUri + "/Lists/getbytitle('ICTD%20TCF')/items", "kcell.kz", username, pwd, contextInfoJSON.get("FormDigestValue").toString(), requestBodyJSON.toString());
+                            String responseText = postItemsResponse(baseUri + "/Lists/getbytitle('" + sharepointUrlPart + "')/items", "kcell.kz", username, pwd, contextInfoJSON.get("FormDigestValue").toString(), requestBodyJSON.toString());
                             resultItems = responseText;
                         } catch (Exception e) {
                             e.printStackTrace();

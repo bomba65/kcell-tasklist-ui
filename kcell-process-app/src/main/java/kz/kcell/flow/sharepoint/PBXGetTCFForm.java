@@ -37,8 +37,12 @@ public class PBXGetTCFForm implements JavaDelegate {
 
     @Autowired
     RepositoryService repositoryService;
+
     @Autowired
     private TaskService taskService;
+
+    @Value("${sharepoint.forms.url.part:TCF_test}")
+    private String sharepointUrlPart;
 
     @Autowired
     public PBXGetTCFForm(@Value("${sharepoint.forms.url:https://sp.kcell.kz/forms/_api}") String baseUri, @Value("${sharepoint.forms.username}") String username, @Value("${sharepoint.forms.password}") String pwd,
@@ -234,8 +238,8 @@ public class PBXGetTCFForm implements JavaDelegate {
                     }
                 });
 
-                URL urlRequest = new URL(baseUri + "/Lists/getbytitle('ICTD%20TCF')/items(" + tcfFormId + ")");
-                System.out.println("URL:" + baseUri + "/Lists/getbytitle('ICTD%20TCF')/items(" + tcfFormId + ")");
+                URL urlRequest = new URL(baseUri + "/Lists/getbytitle('" + sharepointUrlPart + "')/items(" + tcfFormId + ")");
+                System.out.println("URL:" + baseUri + "/Lists/getbytitle('" + sharepointUrlPart + "')/items(" + tcfFormId + ")");
                 HttpURLConnection conn = (HttpURLConnection) urlRequest.openConnection();
                 conn.setDoOutput(true);
                 conn.setDoInput(true);

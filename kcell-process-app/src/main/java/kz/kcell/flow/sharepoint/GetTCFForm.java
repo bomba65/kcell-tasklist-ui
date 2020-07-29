@@ -35,23 +35,30 @@ import java.util.Base64;
 @Service("getTCFForm")
 @Log
 public class GetTCFForm implements JavaDelegate {
+
     @Autowired
     private Environment environment;
+
+    @Value("${sharepoint.forms.requestBody:SP.Data.TCF_x005f_testListItem}")
+    private String sharepointRequestBody;
 
     private final String baseUri;
     private final String username;
     private final String pwd;
     private final String productCatalogUrl;
     private final String productCatalogAuth;
+    private final String sharepointUrlPart;
 
     @Autowired
     public GetTCFForm(@Value("${sharepoint.forms.url:https://sp.kcell.kz/forms/_api}") String baseUri, @Value("${sharepoint.forms.username}") String username, @Value("${sharepoint.forms.password}") String pwd,
-                      @Value("${product.catalog.url:http://ldb-al-preprod.kcell.kz}") String productCatalogUrl, @Value("${product.catalog.auth:app.camunda.user:Asd123Qwerty!}") String productCatalogAuth) {
+                      @Value("${product.catalog.url:http://ldb-al-preprod.kcell.kz}") String productCatalogUrl, @Value("${product.catalog.auth:app.camunda.user:Asd123Qwerty!}") String productCatalogAuth,
+                      @Value("${sharepoint.forms.url.part:TCF_test}") String sharepointUrlPart) {
         this.baseUri = baseUri;
         this.username = username;
         this.pwd = pwd;
         this.productCatalogUrl = productCatalogUrl;
         this.productCatalogAuth = productCatalogAuth;
+        this.sharepointUrlPart = sharepointUrlPart;
     }
 
     private String getVasChargingMtsBilling(String shortNumber) {
@@ -268,7 +275,7 @@ public class GetTCFForm implements JavaDelegate {
                 }
             });
 
-            URL urlRequest = new URL(baseUri + "/Lists/getbytitle('ICTD%20TCF')/items(" + tcfFormId + ")");
+            URL urlRequest = new URL(baseUri + "/Lists/getbytitle('" + sharepointUrlPart + "')/items(" + tcfFormId + ")");
             HttpURLConnection conn = (HttpURLConnection) urlRequest.openConnection();
             conn.setDoOutput(true);
             conn.setDoInput(true);
@@ -647,7 +654,7 @@ public class GetTCFForm implements JavaDelegate {
                 "            \"id\": \"Web/Lists(guid'd79e9f26-54d0-4db3-9488-d551236b0005')/Items(2914)\",\n" +
                 "            \"uri\": \"https://sp.kcell.kz/forms/_api/Web/Lists(guid'd79e9f26-54d0-4db3-9488-d551236b0005')/Items(2914)\",\n" +
                 "            \"etag\": \"\\\"21\\\"\",\n" +
-                "            \"type\": \"SP.Data.ICTD_x0020_TCFListItem \"\n" +
+                "            \"type\": \"" + sharepointRequestBody + " \"\n" +
                 "        },\n" +
                 "        \"FirstUniqueAncestorSecurableObject\": {\n" +
                 "            \"__deferred\": {\n" +
