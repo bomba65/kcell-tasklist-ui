@@ -192,9 +192,9 @@ public class CreatePr implements JavaDelegate {
         if (execution.hasVariable("workTitlesForSearch") && execution.getVariable("workTitlesForSearch") != null) {
             variables.put("workTitlesForSearch", execution.getVariable("workTitlesForSearch"));
         }
-//        if (execution.hasVariable("starter") && execution.getVariable("starter") != null) {
-//            variables.put("starter", execution.getVariable("starter"));
-//        }
+        if (execution.hasVariable("starter") && execution.getVariable("starter") != null) {
+            variables.put("revisionStarter", execution.getVariable("starter"));
+        }
         ProcessInstance message_start_pr_2 = runtimeService.startProcessInstanceByMessage("Message_start_pr_2", "PR-" + execution.getProcessBusinessKey(), variables);
 
         if (message_start_pr_2 != null) {
