@@ -7125,7 +7125,7 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                         }
                         if (scope.filter.contractsForSearch) {
                             filter.variables.push({
-                                "name": "contractsForSearchJoinedByComma",
+                                "name": "contractsForSearch",
                                 "operator": "like",
                                 "value": '%,' + scope.filter.contractsForSearch + ',%'
                             });
