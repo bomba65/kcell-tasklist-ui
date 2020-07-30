@@ -54,7 +54,7 @@ public class GenerateContractId implements JavaDelegate {
         }
 
         String rolloutContractCounter = "ROLLOUT-CONTRACT-" + lastTwo;
-        String contractsForSearch = "| ";
+        String contractsForSearch = ",";
 
         for (int j=0; j<contractInformations.size(); j++) {
             SpinJsonNode ci = (SpinJsonNode) contractInformations.get(j);
@@ -68,12 +68,12 @@ public class GenerateContractId implements JavaDelegate {
                 String contract_id = powerPrefix + '-' + contractCounterId + '-' + lastTwo;
                 ci.prop("ct_contractid", contract_id);
 //                log.info("contract_id:" + contractCounterId);
-                contractsForSearch += contract_id + " |";
+                contractsForSearch += contract_id + ",";
             }
         }
         log.info("contractsForSearch: " + contractsForSearch);
 
-        delegateExecution.setVariable("contractsForSearchcontractsForSearch", contractsForSearch);
+        delegateExecution.setVariable("contractsForSearch", contractsForSearch);
         delegateExecution.setVariable(contractVariableName, contractInformationsJSON);
 
     }

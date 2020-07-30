@@ -7123,6 +7123,13 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                                 "value": '%,' + scope.filter.bin + ',%'
                             });
                         }
+                        if (scope.filter.contractsForSearch) {
+                            filter.variables.push({
+                                "name": "contractsForSearchJoinedByComma",
+                                "operator": "like",
+                                "value": '%,' + scope.filter.contractsForSearch + ',%'
+                            });
+                        }
                         if (scope.filter.leasingActivityId) {
                             filter.activeActivityIdIn.push(scope.filter.leasingActivityId);
                         }
