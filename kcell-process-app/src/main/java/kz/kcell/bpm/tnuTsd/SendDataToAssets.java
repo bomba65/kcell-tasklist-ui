@@ -83,7 +83,6 @@ public class SendDataToAssets implements JavaDelegate {
             objectNode.set("fe_antenna_diameter_protect_id", fe_antenna_diameter_protect_id);
         }
 
-
         objectNode.put("fe_azimuth", fe_azimuth);
         objectNode.put("fe_different_address", true);
         objectNode.set("fe_facility_id", null);
@@ -204,7 +203,6 @@ public class SendDataToAssets implements JavaDelegate {
         ne_construction_type_id.put("id", ne_construction_type);
         neFacilityNode.set("construction_type_id", ne_construction_type_id);
 
-
         ObjectNode feFacilityNode = objectMapper.createObjectNode();
         feFacilityNode.put("altitude",fe_altitude );
         feFacilityNode.put("construction_height",fe_construction_height);
@@ -224,15 +222,6 @@ public class SendDataToAssets implements JavaDelegate {
             //String path = "https://asset.test-flow.kcell.kz/asset-management/tsd_mw";
             String baseUrl = "https://asset.test-flow.kcell.kz/asset-management";
             String path = baseUrl + "/tsd_mw";
-            HttpResponse httpResponse = executePost(path, httpclient, objectNode.toString());
-            String response = EntityUtils.toString(httpResponse.getEntity());
-            log.info("json :  ----   " + objectNode.toString());
-            log.info("response :  ----   " + response);
-            if (httpResponse.getStatusLine().getStatusCode() < 200 || httpResponse.getStatusLine().getStatusCode() >= 300) {
-                throw new RuntimeException("asset.flow.kcell.kz returns code " + httpResponse.getStatusLine().getStatusCode());
-            }
-            JSONObject json = new JSONObject(response);
-            execution.setVariable("tsdMwId", json.getString("id"));
 
             String neFacilityPutPath = baseUrl + "/facilities/id/" + neFacilityId;
             HttpResponse httpNeFacilityResponse = executePut(neFacilityPutPath, httpclient, neFacilityNode.toString());
@@ -251,6 +240,16 @@ public class SendDataToAssets implements JavaDelegate {
             if (httpFeFacilityResponse.getStatusLine().getStatusCode() < 200 || httpFeFacilityResponse.getStatusLine().getStatusCode() >= 300) {
                 throw new RuntimeException("asset.flow.kcell.kz facility put returns code " + httpFeFacilityResponse.getStatusLine().getStatusCode() + " for id = " + feFacilityId);
             }
+
+            HttpResponse httpResponse = executePost(path, httpclient, objectNode.toString());
+            String response = EntityUtils.toString(httpResponse.getEntity());
+            log.info("json :  ----   " + objectNode.toString());
+            log.info("response :  ----   " + response);
+            if (httpResponse.getStatusLine().getStatusCode() < 200 || httpResponse.getStatusLine().getStatusCode() >= 300) {
+                throw new RuntimeException("asset.flow.kcell.kz returns code " + httpResponse.getStatusLine().getStatusCode());
+            }
+            JSONObject json = new JSONObject(response);
+            execution.setVariable("tsdMwId", json.getString("id"));
         } catch (Exception e) {
             throw new BpmnError("error", e.getMessage());
         }
