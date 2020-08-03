@@ -2889,6 +2889,7 @@ define(['./module', 'camundaSDK', 'lodash', 'big-js', 'jquery', 'moment'], funct
                     ]},
                     {id: 'Contract approval in progress', name: 'Contract approval in progress'},
                     {id: 'Power in progress', name: 'Power in progress'},
+                    {id: 'Waiting TSD, RSD, VSD', name: 'Waiting TSD, RSD, VSD'},
                     {id: 'Installation in progress', name: 'Installation in progress', substatuses: [
                         {id: 'Instalation problem', name: 'Installation problem'}, 
                         {id: 'Leasing problem', name: 'Leasing problem'},
