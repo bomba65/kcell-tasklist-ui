@@ -155,7 +155,7 @@ public class FirewallUpdate implements JavaDelegate {
         }
 
         if(useTestGroup){
-            firewallGroupName = "APITest";
+            firewallGroupName = "APItest_group";
         }
 
         String lastUsedIp = delegateExecution.getVariable("lastUsedIp").toString();

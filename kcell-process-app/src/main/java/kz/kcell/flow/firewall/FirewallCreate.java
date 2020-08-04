@@ -156,7 +156,7 @@ public class FirewallCreate implements JavaDelegate {
         }
 
         if(useTestGroup){
-            firewallGroupName = "APITest";
+            firewallGroupName = "APItest_group";
         }
 
         String lastUsedName = companyLatName+"_"+ipNumber;
