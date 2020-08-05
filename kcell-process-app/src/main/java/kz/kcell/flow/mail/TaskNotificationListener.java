@@ -35,6 +35,7 @@ import static java.util.stream.Collectors.toList;
 @Log
 public class TaskNotificationListener implements TaskListener {
     private static final String[] RevisionInvoiceBCC = {"Yernaz.Kalingarayev@kcell.kz"};
+    private static final String[] LeasingRolloutBCC = {"Stanislav.Li@kcell.kz"};
     private String sender;
     private String baseUrl;
     private JavaMailSender mailSender;
@@ -74,6 +75,18 @@ public class TaskNotificationListener implements TaskListener {
                 .findAny()
                 .isPresent();
 
+        boolean isLeasingProcess =
+            delegateTask
+                .getProcessEngineServices()
+                .getRepositoryService()
+                .createProcessDefinitionQuery()
+                .processDefinitionId(delegateTask.getProcessDefinitionId())
+                .list()
+                .stream()
+                .filter(e-> "Leasing".equals(e.getKey()))
+                .findAny()
+                .isPresent();
+
         boolean isTsdTnuProcess =
             delegateTask
                 .getProcessEngineServices()
@@ -96,7 +109,6 @@ public class TaskNotificationListener implements TaskListener {
         }
 
         if (recipientEmails.size() > 0) {
-
             try {
                 Collection<Process> processes = delegateTask
                     .getExecution()
@@ -202,6 +214,10 @@ public class TaskNotificationListener implements TaskListener {
 
                     if(isRevisionMonthlyActCount > 0){
                         helper.setBcc(RevisionInvoiceBCC);
+                    }
+
+                    if (isLeasingProcess){
+                        helper.setBcc(LeasingRolloutBCC);
                     }
                 });
             } catch (ScriptException e) {
