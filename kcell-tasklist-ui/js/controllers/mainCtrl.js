@@ -431,6 +431,9 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 			return array;
 		}
 
+		$scope.contractorTasksNames = ['Attach Material List', 'Upload TR', 'Fill Applied Changes Info', 'Attach Additional Material List', 'Upload additional TR'];
+		$scope.contractorTasksIds = ['attach_material_list_contractor', 'upload_tr_contractor', 'fill_applied_changes_info', 'attach_additional_material_list_contractor', 'upload_additional_tr_contractor'];
+
         $scope.searchProcessesForContractors = async function(refresh, skipPagination){
 			var queryParams = {processDefinitionKey: 'Revision', variables: []};
 			var taskDefKey;
@@ -451,7 +454,7 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 			if(!$scope.accepted){
 				queryParams.variables.push({name:"contractorJobAssignedDate", value:new Date(), operator: "lteq"});
 				queryParams.variables.push({name:"contractor", value: 4, operator: "eq"});
-				if($scope.taskId !== 'all'){
+				if($scope.taskId && $scope.taskId !== 'all'){
 					taskDefKey = $scope.taskId;
 					queryParams.activityIdIn = [$scope.taskId];
 				}
@@ -504,8 +507,6 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 			}).then(function(countResults){
 				$scope.processInstancesTotal = countResults.data.count;
 				$scope.processInstancesPages = Math.floor(countResults.data.count / $scope.searchFilter.pageSize) + ((countResults.data.count % $scope.searchFilter.pageSize) > 0 ? 1 : 0)
-				console.log("processInstancesTotal: " + $scope.processInstancesTotal);
-				console.log("processInstancesPages: " + $scope.processInstancesPages);
 			    $http({
                     method: 'POST',
                     headers:{'Accept':'application/hal+json, application/json; q=0.5'},
@@ -560,29 +561,48 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 									headers:{'Accept':'application/hal+json, application/json; q=0.5'},
 									url: baseUrl+'/process-instance/' + el.id + '/activity-instances'
 								}).then(function(activities){
-									el.tasks = [];
+									if(!el.tasks){
+										el.tasks = [];
+									}
 									_.forEach(activities.data.childActivityInstances, function (firstLevel) {
 										if (firstLevel.activityType === 'subProcess') {
 											_.forEach(firstLevel.childActivityInstances, function (secondLevel) {
 												if(secondLevel.childActivityInstances && secondLevel.childActivityInstances.length > 0) {
 													_.forEach(secondLevel.childActivityInstances, function (thirdLevel) {
-														if (thirdLevel.activityName) {
-															el.tasks.push({name: thirdLevel.activityName});
+														if (thirdLevel.activityName && $scope.contractorTasksIds.indexOf(thirdLevel.activityId) === -1) {
+															el.tasks.push({id: thirdLevel.id, name: thirdLevel.activityName});
 														}
 													});
 												} else {
-													if (secondLevel.activityName) {
-														el.tasks.push({name: secondLevel.activityName});
+													if (secondLevel.activityName && $scope.contractorTasksIds.indexOf(secondLevel.activityId) === -1) {
+														el.tasks.push({id: secondLevel.id, name: secondLevel.activityName});
 													}
 												}
 											});
 										} else {
-											if(firstLevel.activityName){
-												el.tasks.push({name:firstLevel.activityName});
+											if(firstLevel.activityName && $scope.contractorTasksIds.indexOf(firstLevel.activityId) === -1){
+												el.tasks.push({id: firstLevel.id, name:firstLevel.activityName});
 											}
 										}
 									});
 								});
+
+								$http({
+									method: 'POST',
+									headers:{'Accept':'application/hal+json, application/json; q=0.5'},
+									data: {processInstanceId: el.id, taskDefinitionKeyIn:$scope.contractorTasksIds},
+									url: baseUrl+'/task'
+								}).then(
+									function(tasks){
+										if(!el.tasks){
+											el.tasks = [];
+										}
+										_.forEach(tasks.data, function (task) {
+											el.tasks.push({id: task.id, name:task.name});
+										});
+									}
+								);
+
 							});
                         } else {
                             $scope[processSearchResults].forEach(function(el) {
