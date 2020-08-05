@@ -42,6 +42,7 @@ define(['../module', 'moment'], function (module, moment) {
                         });
                         scope.leasingCatalogs.legalTypeTitle = _.keyBy(scope.leasingCatalogs.legalType, 'id');
                         scope.leasingCatalogs.initiatorTitle = _.keyBy(scope.leasingCatalogs.initiators, 'id');
+                        
                     },
                     function (error) {
                         console.log(error.data);

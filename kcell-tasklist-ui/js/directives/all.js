@@ -6383,6 +6383,15 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                         });
                         scope.leasingCatalogs.legalTypeTitle = _.keyBy(scope.leasingCatalogs.legalType, 'id');
                         scope.leasingCatalogs.initiatorTitle = _.keyBy(scope.leasingCatalogs.initiators, 'id');
+                        scope.leasingCatalogs.allUnionProjects = [];
+                        try {
+                            scope.leasingCatalogs.projects.forEach(pbi => {
+                                scope.leasingCatalogs.allUnionProjects = _.uniqBy(scope.leasingCatalogs.allUnionProjects.concat(pbi.project.filter(p => {return (p.id !== null && p.id !== 'null')})), pr => {return pr.id + pr.name });
+                            });
+                            // console.log(scope.leasingCatalogs.allUnionProjects)
+                        } catch (error) {
+                            console.log(error)
+                        }
                     },
                     function (error) {
                         console.log(error.data);
@@ -7991,29 +8000,29 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                     }
                 }
 
-                scope.$watch('filter.leasingInitiator', function (leasingInitiator) {
-                    if (leasingInitiator) {
-                        scope.projectsByInitiator = {};
-                        scope.reasonsByProject = [];
-                        scope.projectsByInitiator = _.find(scope.leasingCatalogs.projects, function (p) {
-                            return p.initiator === scope.leasingCatalogs.initiatorTitle[leasingInitiator].name;
-                        });
-                        scope.leasingCatalogs.projectTitle = _.keyBy(scope.projectsByInitiator.project, 'id');
-                    }
-                }, true);
+                // scope.$watch('filter.leasingInitiator', function (leasingInitiator) {
+                //     if (leasingInitiator) {
+                //         scope.projectsByInitiator = {};
+                //         scope.reasonsByProject = [];
+                //         scope.projectsByInitiator = _.find(scope.leasingCatalogs.projects, function (p) {
+                //             return p.initiator === scope.leasingCatalogs.initiatorTitle[leasingInitiator].name;
+                //         });
+                //         scope.leasingCatalogs.projectTitle = _.keyBy(scope.projectsByInitiator.project, 'id');
+                //     }
+                // }, true);
 
-                scope.$watch('filter.leasingProject', function (leasingProject) {
-                    if (leasingProject) {
-                        scope.reasonsByProject = [];
-                        scope.reasonsByProject = _.filter(scope.leasingCatalogs.reasons, function (r) {
-                            if (_.find(r.project, function (p) {
-                                return p === scope.leasingCatalogs.projectTitle[leasingProject].name;
-                            })) {
-                                return true
-                            } else return false;
-                        });
-                    }
-                }, true);
+                // scope.$watch('filter.leasingProject', function (leasingProject) {
+                //     if (leasingProject) {
+                //         scope.reasonsByProject = [];
+                //         scope.reasonsByProject = _.filter(scope.leasingCatalogs.reasons, function (r) {
+                //             if (_.find(r.project, function (p) {
+                //                 return p === scope.leasingCatalogs.projectTitle[leasingProject].name;
+                //             })) {
+                //                 return true
+                //             } else return false;
+                //         });
+                //     }
+                // }, true);
 
                 scope.toggleProcessViewLeasing = function (index, processDefinitionKey, processDefinitionId, businessKey) {
                     scope.showDiagramView = false;
