@@ -69,6 +69,9 @@ define(['../module', 'moment'], function (module, moment) {
                     },
                     leasing: {
                         title: "Roll-out", value: false
+                    },
+                    CreatePR: {
+                        title: "PR Creation", value: false
                     }
                 };
                 scope.KWMSProcesses = {};
@@ -119,7 +122,7 @@ define(['../module', 'moment'], function (module, moment) {
                 }
                 function noProcessSelection(newVal) {
                     var filtered = Object.fromEntries(Object.entries(newVal).filter(([k, v]) => v.value === false));
-                    if ((filtered.Revision || filtered.Invoice) && !filtered.leasing && !filtered.Dismantle && !filtered.Replacement) {
+                    if ((filtered.Revision || filtered.Invoice || filtered.CreatePR) && !filtered.leasing && !filtered.Dismantle && !filtered.Replacement) {
                         scope.RevisionOrMonthlyAct = true;
                     }
                     if (Object.keys(filtered).length === 1) {
@@ -141,14 +144,14 @@ define(['../module', 'moment'], function (module, moment) {
                             // only one process active;
                             scope.onlyProcessActive = Object.keys(filtered)[0];
                         }
-                        if ((filtered.Revision || filtered.Invoice) && !filtered.leasing && !filtered.Dismantle && !filtered.Replacement) {
+                        if ((filtered.Revision || filtered.Invoice || filtered.CreatePR) && !filtered.leasing && !filtered.Dismantle && !filtered.Replacement) {
                             scope.RevisionOrMonthlyAct = true;
                         }
                         angular.forEach(filtered, function (process, key) {
                              scope.selectedProcessInstances.push(key);
                         });
                     }
-                    if (scope.onlyProcessActive!=='Revision') {
+                    if (scope.onlyProcessActive!=='Revision' && scope.onlyProcessActive!=='CreatePR') {
                         //clear Revision-only filters
                         scope.filter.validityDateRange = undefined;
                         $(".calendar-range-readonly").each(function () {
@@ -177,7 +180,7 @@ define(['../module', 'moment'], function (module, moment) {
                         scope.filter.businessKeyFilterType = 'all';
                         scope.filter.businessKey = undefined;
                     }
-                    if (scope.onlyProcessActive!=='Revision' && scope.onlyProcessActive!=='Dismantle' && scope.onlyProcessActive!=='Replacement') {
+                    if (scope.onlyProcessActive!=='Revision' && scope.onlyProcessActive!=='Dismantle' && scope.onlyProcessActive!=='Replacement' && scope.onlyProcessActive!=='CreatePR') {
                         scope.filter.requestedDateRange = undefined;
                         scope.filter.requestor = undefined;
                     }
@@ -274,7 +277,7 @@ define(['../module', 'moment'], function (module, moment) {
                             });
                         }
 
-                        if(process === 'Revision'){
+                        if(process === 'Revision' || process === 'CreatePR'){
                             var excludeTasks = [
                                 'signpr_by_center',
                                 'signpr_by_manager',
@@ -466,7 +469,7 @@ define(['../module', 'moment'], function (module, moment) {
                     if (scope.filter.workType) {
                         if (scope.onlyProcessActive==='Invoice')
                             filter.variables.push({"name": "workType", "operator": "eq", "value": scope.filter.workType});
-                        else if (scope.onlyProcessActive==='Revision')
+                        else if (scope.onlyProcessActive==='Revision' || scope.onlyProcessActive==='CreatePR')
                             filter.variables.push({"name": "reason", "operator": "eq", "value": scope.filter.workType});
                     }
                     if (scope.filter.unfinished) {
@@ -526,7 +529,7 @@ define(['../module', 'moment'], function (module, moment) {
 
                     if (scope.filter.requestedDateRange) {
                         var results = scope.convertStringToDate(scope.filter.requestedDateRange);
-                        if(scope.onlyProcessActive==='Revision'){
+                        if(scope.onlyProcessActive==='Revision' || scope.onlyProcessActive==='CreatePR'){
                             if (results.length === 2) {
                                 filter.variables.push({
                                     "name": "requestedDate",
@@ -607,7 +610,7 @@ define(['../module', 'moment'], function (module, moment) {
                             "value": scope.filter.replacementInitiator
                         });
                     }
-                    if (scope.filter.participation && scope.onlyProcessActive==='Revision') {
+                    if (scope.filter.participation && (scope.onlyProcessActive==='Revision' || scope.onlyProcessActive==='Revision')) {
                         if(!scope.filter.requestor){
                             toasty.error({title: "Error", msg: 'Please fill field Requestor!'});
                             return;
@@ -658,7 +661,7 @@ define(['../module', 'moment'], function (module, moment) {
                     }
 
 
-                    if (scope.filter.activityId && scope.onlyProcessActive==='Revision') {
+                    if (scope.filter.activityId && (scope.onlyProcessActive==='Revision' || scope.onlyProcessActive==='CreatePR')) {
                         filter.activeActivityIdIn.push(scope.filter.activityId);
                     }
                     if (scope.filter.dismantleActivityId && (scope.onlyProcessActive==='Dismantle' || scope.onlyProcessActive==='Replacement')) {
@@ -856,7 +859,7 @@ define(['../module', 'moment'], function (module, moment) {
                                     variables.push('contractInformations');
                                 }
                             }
-                            if(scope.selectedProcessInstances.indexOf('Revision')!==-1){
+                            if(scope.selectedProcessInstances.indexOf('Revision')!==-1 || scope.selectedProcessInstances.indexOf('CreatePR')!==-1){
                                 variables.push('monthActNumber');
                                 variables.push('invoiceRO1Number');
                                 variables.push('invoiceRO2Number');
@@ -1034,8 +1037,8 @@ define(['../module', 'moment'], function (module, moment) {
                         scope.KWMSProcesses[process].value = false;
                     } else {
                         scope.KWMSProcesses[process].value = true;
-                        if(process === 'Revision' && !scope.KWMSProcesses[process].downloaded){
-                            downloadXML('Revision');
+                        if ((process === 'Revision' || process === 'CreatePR') && !scope.KWMSProcesses[process].downloaded){
+                            downloadXML(process);
                             scope.KWMSProcesses[process].downloaded = true;
                         } else if((process === 'Dismantle' || process === 'Replacement') && !scope.KWMSProcesses[process].downloaded){
                             downloadXML('sdr_srr_request');
