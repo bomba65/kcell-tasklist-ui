@@ -3435,6 +3435,15 @@ define(['./module', 'camundaSDK', 'lodash', 'big-js', 'jquery', 'moment'], funct
                 }
             }
 
+            $scope.getRolloutXlsx = (tableName) => {
+                    var tbl = document.getElementById(tableName);
+                    var ws = XLSX.utils.table_to_sheet(tbl, {dateNF: 'DD.MM.YYYY'});
+
+                    var wb = XLSX.utils.book_new();
+                    XLSX.utils.book_append_sheet(wb, ws, 'New Sheet Name 1');
+                    return XLSX.writeFile(wb, 'rollout-statistics.xlsx');
+            };
+
             $scope.downloadExtendedByJobsReport = function () {
                 if ($rootScope.hasGroup('revision_reports')) {
                     $http.get('/camunda/reports/extended-report-by-jobs').then(function (response) {
