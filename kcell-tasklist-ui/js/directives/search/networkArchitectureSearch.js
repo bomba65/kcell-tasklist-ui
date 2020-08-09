@@ -610,7 +610,7 @@ define(['../module', 'moment'], function (module, moment) {
                             "value": scope.filter.replacementInitiator
                         });
                     }
-                    if (scope.filter.participation && (scope.onlyProcessActive==='Revision' || scope.onlyProcessActive==='Revision')) {
+                    if (scope.filter.participation && (scope.onlyProcessActive==='Revision' || scope.onlyProcessActive==='CreatePR')) {
                         if(!scope.filter.requestor){
                             toasty.error({title: "Error", msg: 'Please fill field Requestor!'});
                             return;
