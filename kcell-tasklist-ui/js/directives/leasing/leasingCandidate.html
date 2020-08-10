@@ -23,7 +23,7 @@
 <span ng-init="isCandidate = (!farEnd)">{{activeTab}}</span>
 <tabset class="my-tab-head my-tab" justified="true" id="jobRequestId">
     <tab active="isCandidate">
-        <tab-heading><span class="glyphicon glyphicon-check"></span> Candidate Information </tab-heading>
+        <tab-heading><span class="glyphicon glyphicon-check"></span> Candidate Information</tab-heading>
         <div class="well">
             <br>
             <div class="form-group">
@@ -83,7 +83,7 @@
             <div class="form-group">
                 <label class="col-sm-3 control-label">*Сonstruction type:</label>
                 <div class="col-sm-5">
-                    <input class="form-control no-event" id="transmissionType" name="transmissionType"
+                    <input class="form-control no-event" id="СonstructionType" name="СonstructionType"
                            ng-model="leasingCandidate.candidate.constructionType.name" readonly>
                 </div>
             </div>
@@ -154,10 +154,92 @@
                             Address<i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
                     </accordion-heading>
                     <div class="form-group">
-                        <div style="padding-left:30px">
-                            <textarea class="form-control no-event" ng-value="addressToString(leasingCandidate.address)" ng-model="leasingCandidate.address" name="leasingCandidate.addressString" maxlength="500" rows="3" style="resize:none"></textarea>
+                        <!-- <div style="padding-left:30px">
+                            <textarea class="form-control no-event" ng-value="leasingCandidate.transmissionAntenna.address.ca_diff_address ? addressToString(leasingCandidate.transmissionAntenna.address) : addressToString(leasingCandidate.address)" ng-model="leasingCandidate.transmissionAntenna.address" name="leasingCandidate.transmissionAntenna.addressString" maxlength="500" rows="3" style="resize:none"></textarea>
+                        </div> -->
+                        <div>
+                            <div class="col-sm-8">
+                                <input class="form-control" readonly id="leasingCandidateAddress" name="leasingCandidateAddress" ng-model="leasingCandidate.addressToString" ng-value="addressToString(leasingCandidate.address)">
+                                <br>
+                                <div class="form-group" ng-show="leasingCandidate.addressEditable">
+                                    <label class="col-sm-4 control-label">*Oblast:</label>
+                                    <div class="col-sm-8" class="form-check">
+                                        <select class="form-control" id="cn_addr_oblast" name="cn_addr_oblast" ng-model="currentFarEnd.address.cn_addr_oblast"
+                                                ng-change="filterDistrictAfterSelectObl(currentFarEnd.address.cn_addr_oblast)">
+                                            <option ng-repeat="oblast in oblastList" ng-value="oblast.name">{{oblast.name}}</option>
+                                        </select>
+                                        <label class="error" ng-show="kcell_form.cn_addr_oblast.$error.required && ( kcell_form.cn_addr_oblast.$touched || view.submitted)">Required field</label>
+                                    </div>
+                                </div>
+                                <div class="form-group" ng-show="leasingCandidate.addressEditable">
+                                    <label class="col-sm-4 control-label">*District:</label>
+                                    <div class="col-sm-8" class="form-check">
+                                        <select class="form-control" id="cn_addr_district" name="cn_addr_district" ng-model="currentFarEnd.address.cn_addr_district" disabled>
+                                            <option ng-repeat="district in filteredDistricts" ng-value="district.name">{{district.name}}</option>
+                                        </select>
+                                        <label class="error" ng-show="kcell_form.cn_addr_district.$error.required && ( kcell_form.cn_addr_district.$touched || view.submitted)">Required field</label>
+                                    </div>
+                                </div>
+                                <div class="form-group" ng-show="leasingCandidate.addressEditable">
+                                    <label class="col-sm-4 control-label">*City / Village:</label>
+                                    <div class="col-sm-8">
+                                        <input type="text" ng-model="leasingCandidate.address.cn_addr_city" ng-value='city.name' name="cn_addr_city" typeahead="city.name for city in getCity($viewValue)" typeahead-on-select="addressCitySelected($item,$model,$label)" class="form-control" required placeholder="Start typing...">
+                                        <label class="error" ng-show="kcell_form.cn_addr_city.$error.required && ( kcell_form.cn_addr_city.$touched || view.submitted)">Required field</label>
+                                    </div>
+                                </div>
+                                <div class="form-group" ng-show="leasingCandidate.addressEditable">
+                                    <div class="col-sm-12">
+                                        <div class="form-check">
+                                            <input type="checkbox" ng-model="leasingCandidate.address.ca_not_full_addres" class="form-check-input" id="ca_not_full_addres">
+                                            <label class="form-check-label" for="ca_not_full_addres">Object without address</label>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="form-group" ng-show="leasingCandidate.addressEditable">
+                                    <label class="col-sm-4 control-label">{{!leasingCandidate.address.ca_not_full_addres ? '*' : ''}}Street/Microdistrict:</label>
+                                    <div class="col-sm-8">
+                                        <input class="form-control" id="addr_street" name="cn_addr_street" ng-model="leasingCandidate.address.cn_addr_street" ng-required="!leasingCandidate.address.ca_not_full_addres" ng-disabled="leasingCandidate.address.ca_not_full_addres">
+                                        <label class="error" ng-show="kcell_form.cn_addr_street.$error.required && ( kcell_form.cn_addr_street.$touched || view.submitted)">Required field</label>
+                                    </div>
+                                </div>
+                                <div class="form-group" ng-show="leasingCandidate.addressEditable">
+                                    <label class="col-sm-4 control-label">{{!leasingCandidate.address.ca_not_full_addres ? '*' : ''}}Building:</label>
+                                    <div class="col-sm-8">
+                                        <input class="form-control" id="cn_addr_building" name="cn_addr_building" ng-model="leasingCandidate.address.cn_addr_building" ng-required="!leasingCandidate.address.ca_not_full_addres" ng-disabled="leasingCandidate.address.ca_not_full_addres">
+                                        <label class="error" ng-show="kcell_form.cn_addr_building.$error.required && ( kcell_form.cn_addr_building.$touched || view.submitted)">Required field</label>
+                                    </div>
+                                </div>
+                                <div class="form-group" ng-show="leasingCandidate.addressEditable">
+                                    <label class="col-sm-4 control-label">{{leasingCandidate.address.ca_not_full_addres ? '*' : ''}}Cadastral number:</label>
+                                    <div class="col-sm-8">
+                                        <input class="form-control" id="cn_addr_cadastral_number" name="cn_addr_cadastral_number" ng-model="leasingCandidate.address.cn_addr_cadastral_number" ng-required="leasingCandidate.address.ca_not_full_addres">
+                                        <label class="error" ng-show="kcell_form.cn_addr_cadastral_number.$error.required && ( kcell_form.cn_addr_cadastral_number.$touched || view.submitted)">Required field</label>
+                                    </div>
+                                </div>
+                                <div class="form-group" ng-show="leasingCandidate.addressEditable">
+                                    <label class="col-sm-4 control-label">{{leasingCandidate.address.ca_not_full_addres ? '*' : ''}}Note to the address:</label>
+                                    <div class="col-sm-8">
+                                        <input class="form-control" id="cn_addr_note" name="cn_addr_note" ng-model="leasingCandidate.address.cn_addr_note" ng-required="leasingCandidate.address.ca_not_full_addres">
+                                        <label class="error" ng-show="kcell_form.cn_addr_note.$error.required && ( kcell_form.cn_addr_note.$touched || view.submitted)">Required field</label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-sm-2">
+                                <span class="input-group-btn" ng-if="leasingCandidate.confirmStartLeasingTask || leasingCandidate.confirmStartLeasingNOTask">
+                                    <button type="button" class="btn btn-default" ng-click="leasingCandidate.addressEditable = !leasingCandidate.addressEditable">
+                                        <i class="glyphicon glyphicon-pencil"></i>
+                                    </button>
+                                </span>
+                            </div>
                         </div>
                     </div>
+                    <!-- <div class="form-group">
+                        <div style="padding-left:30px">
+                             <textarea class="form-control no-event" ng-value="addressToString(leasingCandidate.address)" ng-model="leasingCandidate.address" name="leasingCandidate.addressString" maxlength="500" rows="3" style="resize:none"></textarea>
+                             -->
+                             
+                        <!-- </div>
+                    </div> -->
                 </accordion-group>
             </accordion>
 
@@ -169,7 +251,7 @@
 
                     <div class="form-group col-sm-3">
                         <div class="col-sm-12">
-                            <div class="form-check" ng-class="{'no-event': !leasingCandidate.taskKey === 'uploadRSDandVSDfiles'}">
+                            <div class="form-check" ng-class="{'no-event': !leasingCandidate.taskKey === 'uploadRSDandVSDfiles' && !leasingCandidate.taskKey === 'confirmStartLeasingNOTask' && !leasingCandidate.taskKey === 'confirmStartLeasingTask'}">
                                 <input type="checkbox" ng-model="leasingCandidate.cellAntenna.address.ca_diff_address" class="form-check-input" id="check1">
                                 <label class="form-check-label" for="check1">Different address</label>
                             </div>
@@ -191,7 +273,7 @@
                                         <label class="col-sm-3 control-label">*Oblast:</label>
                                         <div class="col-sm-8" class="form-check">
                                             <select class="form-control" id="cn_addr_oblast" name="cn_addr_oblast" ng-required="leasingCandidate.cellAntenna.addOutToRollOutTaskResult.ca_diff_address" ng-model="leasingCandidate.address.cn_addr_oblast"
-                                            ng-change="filterDistrictAfterSelectObl(address.cn_addr_oblast)">
+                                            ng-change="filterDistrictAfterSelectOblCN(address.cn_addr_oblast)">
                                             <option ng-repeat="oblast in oblastList" ng-value="oblast.name">{{oblast.name}}</option>
                                         </select>
                                         <label class="error" ng-show="kcell_form.leasingCandidate.address.cn_addr_oblast.$error.required && ( kcell_form.leasingCandidate.addresscn_addr_oblast.$touched || view.submitted)">Required field</label>
@@ -210,7 +292,7 @@
                                     <div class="form-group">
                                         <label class="col-sm-3 control-label">*City / Village:</label>
                                         <div class="col-sm-8">
-                                            <input type="text" ng-model="leasingCandidatev.address.cn_addr_city" ng-value='city.name' name="cn_addr_city" typeahead="city.name for city in getCity($viewValue)" typeahead-on-select="addressCitySelected($item,$model,$label)" class="form-control" ng-required="leasingCandidate.cellAntenna.addOutToRollOutTaskResult.ca_diff_address" placeholder="Start typing...">
+                                            <input type="text" ng-model="leasingCandidatev.address.cn_addr_city" ng-value='city.name' name="cn_addr_city" typeahead="city.name for city in getCityCN($viewValue)" typeahead-on-select="addressCitySelectedCN($item,$model,$label)" class="form-control" ng-required="leasingCandidate.cellAntenna.addOutToRollOutTaskResult.ca_diff_address" placeholder="Start typing...">
                                             <label class="error" ng-show="kcell_form.leasingCandidate.address.cn_addr_city.$error.required && ( kcell_form.leasingCandidate.address.cn_addr_city.$touched || view.submitted)">Required field</label>
                                         </div>
                                     </div>
@@ -951,7 +1033,7 @@
                     <div class="form-group">
                         <label class="col-sm-3 control-label">*Legal type:</label>
                         <div class="col-sm-6">
-                            <select class="form-control no-event" id="legalType" name="legalType"
+                            <select class="form-control" ng-class="{'no-event': !leasingCandidate.taskKey === 'confirmStartLeasingNOTask' && leasingCandidate.taskKey === 'confirmStartLeasingTask'}" id="legalType" name="legalType"
                                     ng-model="leasingCandidate.renterCompany.legalType" ng-options="type.id as type.desc for type in dictionary.legalType" ng-selected="defineSiteObjectType()" required>
                             </select>
                             <label class="error" ng-show="kcell_form.legalType.$error.required && ( kcell_form.legalType.$touched || parentForm.$submitted)">Required field</label>
@@ -960,42 +1042,42 @@
                     <div class="form-group">
                         <label class="col-sm-3 control-label">*Legal name:</label>
                         <div class="col-sm-6">
-                            <input class="form-control no-event" id="RClegalName" name="RClegalName"  ng-model="leasingCandidate.renterCompany.legalName" required>
+                            <input class="form-control" ng-class="{'no-event': !leasingCandidate.taskKey === 'confirmStartLeasingNOTask' && leasingCandidate.taskKey === 'confirmStartLeasingTask'}" id="RClegalName" name="RClegalName"  ng-model="leasingCandidate.renterCompany.legalName" required>
                             <label class="error" ng-show="kcell_form.RClegalName.$error.required && ( kcell_form.RClegalName.$touched || parentForm.$submitted)">Required field</label>
                         </div>
                     </div>
                     <div class="form-group">
                         <label class="col-sm-3 control-label">*Legal address:</label>
                         <div class="col-sm-6">
-                            <input class="form-control no-event" id="legalAddress" name="legalAddress"  ng-model="leasingCandidate.renterCompany.legalAddress" required>
+                            <input class="form-control " ng-class="{'no-event': !leasingCandidate.taskKey === 'confirmStartLeasingNOTask' && leasingCandidate.taskKey === 'confirmStartLeasingTask'}" id="legalAddress" name="legalAddress"  ng-model="leasingCandidate.renterCompany.legalAddress" required>
                             <label class="error" ng-show="kcell_form.legalAddress.$error.required && ( kcell_form.legalAddress.$touched || parentForm.$submitted)">Required field</label>
                         </div>
                     </div>
                     <div class="form-group">
                         <label class="col-sm-3 control-label">*Tel./Fax:</label>
                         <div class="col-sm-6">
-                            <input class="form-control no-event" id="telFax" name="telFax"  ng-model="leasingCandidate.renterCompany.telFax" required>
+                            <input class="form-control " ng-class="{'no-event': !leasingCandidate.taskKey === 'confirmStartLeasingNOTask' && leasingCandidate.taskKey === 'confirmStartLeasingTask'}" id="telFax" name="telFax"  ng-model="leasingCandidate.renterCompany.telFax" required>
                             <label class="error" ng-show="kcell_form.telFax.$error.required && ( kcell_form.telFax.$touched || parentForm.$submitted)">Required field</label>
                         </div>
                     </div>
                     <div class="form-group">
                         <label class="col-sm-3 control-label">*Name of the 1st Leader:</label>
                         <div class="col-sm-6">
-                            <input class="form-control no-event" id="firstLeaderName" name="firstLeaderName"  ng-model="leasingCandidate.renterCompany.firstLeaderName">
+                            <input class="form-control" ng-class="{'no-event': !leasingCandidate.taskKey === 'confirmStartLeasingNOTask' && leasingCandidate.taskKey === 'confirmStartLeasingTask'}" id="firstLeaderName" name="firstLeaderName"  ng-model="leasingCandidate.renterCompany.firstLeaderName">
                             <label class="error" ng-show="kcell_form.firstLeaderName.$error.required && ( kcell_form.firstLeaderName.$touched || parentForm.$submitted)">Required field</label>
                         </div>
                     </div>
                     <div class="form-group">
                         <label class="col-sm-3 control-label">*Position of the 1st Leader:</label>
                         <div class="col-sm-6">
-                            <input class="form-control no-event" id="firstLeaderPos" name="firstLeaderPos"  ng-model="leasingCandidate.renterCompany.firstLeaderPos">
+                            <input class="form-control" ng-class="{'no-event': !leasingCandidate.taskKey === 'confirmStartLeasingNOTask' && leasingCandidate.taskKey === 'confirmStartLeasingTask'}" id="firstLeaderPos" name="firstLeaderPos"  ng-model="leasingCandidate.renterCompany.firstLeaderPos">
                             <label class="error" ng-show="kcell_form.firstLeaderPos.$error.required && ( kcell_form.firstLeaderPos.$touched || parentForm.$submitted)">Required field</label>
                         </div>
                     </div>
                     <div class="form-group">
                         <label class="col-sm-3 control-label">*Email:</label>
                         <div class="col-sm-6">
-                            <input class="form-control email no-event" id="email" name="email"  ng-model="leasingCandidate.renterCompany.email">
+                            <input class="form-control email" ng-class="{'no-event': !leasingCandidate.taskKey === 'confirmStartLeasingNOTask' && leasingCandidate.taskKey === 'confirmStartLeasingTask'}" id="email" name="email"  ng-model="leasingCandidate.renterCompany.email">
                             <label class="error" ng-show="kcell_form.email.$error.required && ( kcell_form.email.$touched || parentForm.$submitted)">Required field</label>
                         </div>
                     </div>
@@ -1006,28 +1088,28 @@
                     <div class="form-group">
                         <label class="col-sm-3 control-label">*Name:</label>
                         <div class="col-sm-6">
-                            <input class="form-control no-event" id="contactName" name="contactName"  ng-model="leasingCandidate.renterCompany.contactName" required>
+                            <input class="form-control" ng-class="{'no-event': !leasingCandidate.taskKey === 'confirmStartLeasingNOTask' && leasingCandidate.taskKey === 'confirmStartLeasingTask'}" id="contactName" name="contactName"  ng-model="leasingCandidate.renterCompany.contactName" required>
                             <label class="error" ng-show="kcell_form.contactName.$error.required && ( kcell_form.contactName.$touched || parentForm.$submitted)">Required field</label>
                         </div>
                     </div>
                     <div class="form-group">
                         <label class="col-sm-3 control-label">*LastName:</label>
                         <div class="col-sm-6">
-                            <input class="form-control no-event" id="contactLastName" name="contactLastName"  ng-model="leasingCandidate.renterCompany.contactLastName" required>
+                            <input class="form-control" ng-class="{'no-event': !leasingCandidate.taskKey === 'confirmStartLeasingNOTask' && leasingCandidate.taskKey === 'confirmStartLeasingTask'}" id="contactLastName" name="contactLastName"  ng-model="leasingCandidate.renterCompany.contactLastName" required>
                             <label class="error" ng-show="kcell_form.contactLastName.$error.required && ( kcell_form.contactLastName.$touched || parentForm.$submitted)">Required field</label>
                         </div>
                     </div>
                     <div class="form-group">
                         <label class="col-sm-3 control-label">*Position:</label>
                         <div class="col-sm-6">
-                            <input class="form-control no-event" id="position" name="position"  ng-model="leasingCandidate.renterCompany.contactPosition">
+                            <input class="form-control" ng-class="{'no-event': !leasingCandidate.taskKey === 'confirmStartLeasingNOTask' && leasingCandidate.taskKey === 'confirmStartLeasingTask'}" id="position" name="position"  ng-model="leasingCandidate.renterCompany.contactPosition">
                             <label class="error" ng-show="kcell_form.position.$error.required && ( kcell_form.position.$touched || parentForm.$submitted)">Required field</label>
                         </div>
                     </div>
                     <div class="form-group">
                         <label class="col-sm-3 control-label">Contact Information:</label>
                         <div class="col-sm-6">
-                            <input class="form-control no-event" id="contractInfo" name="contractInfo"  ng-model="leasingCandidate.renterCompany.contactInfo">
+                            <input class="form-control" ng-class="{'no-event': !leasingCandidate.taskKey === 'confirmStartLeasingNOTask' && leasingCandidate.taskKey === 'confirmStartLeasingTask'}" id="contractInfo" name="contractInfo"  ng-model="leasingCandidate.renterCompany.contactInfo">
                             <label class="error" ng-show="kcell_form.contractInfo.$error.required && ( kcell_form.contractInfo.$touched || parentForm.$submitted)">Required field</label>
                         </div>
                     </div>
@@ -1099,7 +1181,7 @@
 
                     <div class="form-group col-sm-3">
                         <div class="col-sm-12">
-                            <div class="form-check no-event">
+                            <div class="form-check" ng-class="{'no-event': !leasingCandidate.taskKey === 'confirmStartLeasingNOTask' && leasingCandidate.taskKey === 'confirmStartLeasingTask'}">
                                 <input type="checkbox" ng-model="leasingCandidate.transmissionAntenna.address.ca_diff_address" class="form-check-input" id="checkNE">
                                 <label class="form-check-label" for="checkNE">Different address</label>
                             </div>
@@ -1112,8 +1194,81 @@
                                     Address<i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
                                 </accordion-heading>
                                 <div class="form-group">
-                                    <div style="padding-left:30px">
+                                    <!-- <div style="padding-left:30px">
                                         <textarea class="form-control no-event" ng-value="leasingCandidate.transmissionAntenna.address.ca_diff_address ? addressToString(leasingCandidate.transmissionAntenna.address) : addressToString(leasingCandidate.address)" ng-model="leasingCandidate.transmissionAntenna.address" name="leasingCandidate.transmissionAntenna.addressString" maxlength="500" rows="3" style="resize:none"></textarea>
+                                    </div> -->
+                                    <div class="col-sm-10">
+                                        <input class="form-control" readonly id="nearEndAddress" name="nearEndAddress" ng-model="leasingCandidate.transmissionAntenna.addressToString" ng-value="leasingCandidate.transmissionAntenna.address.ca_diff_address ? addressToString(leasingCandidate.transmissionAntenna.address) : addressToString(leasingCandidate.address)">
+                                        <br>
+                                        <div class="form-group" ng-show="leasingCandidate.transmissionAntenna.addressEditable">
+                                            <label class="col-sm-4 control-label">*Oblast:</label>
+                                            <div class="col-sm-8" class="form-check">
+                                                <select class="form-control" id="cn_addr_oblast" name="cn_addr_oblast" ng-model="leasingCandidate.transmissionAntenna.address.cn_addr_oblast"
+                                                        ng-change="filterDistrictAfterSelectOblNE(leasingCandidate.transmissionAntenna.address.cn_addr_oblast)">
+                                                    <option ng-repeat="oblast in oblastList" ng-value="oblast.name">{{oblast.name}}</option>
+                                                </select>
+                                                <label class="error" ng-show="kcell_form.cn_addr_oblast.$error.required && ( kcell_form.cn_addr_oblast.$touched || view.submitted)">Required field</label>
+                                            </div>
+                                        </div>
+                                        <div class="form-group" ng-show="leasingCandidate.transmissionAntenna.addressEditable">
+                                            <label class="col-sm-4 control-label">*District:</label>
+                                            <div class="col-sm-8" class="form-check">
+                                                <select class="form-control" id="cn_addr_district" name="cn_addr_district" ng-model="leasingCandidate.transmissionAntenna.address.cn_addr_district" disabled>
+                                                    <option ng-repeat="district in filteredDistricts" ng-value="district.name">{{district.name}}</option>
+                                                </select>
+                                                <label class="error" ng-show="kcell_form.cn_addr_district.$error.required && ( kcell_form.cn_addr_district.$touched || view.submitted)">Required field</label>
+                                            </div>
+                                        </div>
+                                        <div class="form-group" ng-show="leasingCandidate.transmissionAntenna.addressEditable">
+                                            <label class="col-sm-4 control-label">*City / Village:</label>
+                                            <div class="col-sm-8">
+                                                <input type="text" ng-model="leasingCandidate.transmissionAntenna.address.cn_addr_city" ng-value='city.name' name="cn_addr_city" typeahead="city.name for city in getCityNE($viewValue)" typeahead-on-select="addressCitySelectedNE($item,$model,$label)" class="form-control" required placeholder="Start typing...">
+                                                <label class="error" ng-show="kcell_form.cn_addr_city.$error.required && ( kcell_form.cn_addr_city.$touched || view.submitted)">Required field</label>
+                                            </div>
+                                        </div>
+                                        <div class="form-group" ng-show="leasingCandidate.transmissionAntenna.addressEditable">
+                                            <div class="col-sm-12">
+                                                <div class="form-check">
+                                                    <input type="checkbox" ng-model="leasingCandidate.transmissionAntenna.address.ca_not_full_addres" class="form-check-input" id="ca_not_full_addres">
+                                                    <label class="form-check-label" for="ca_not_full_addres">Object without address</label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="form-group" ng-show="leasingCandidate.transmissionAntenna.addressEditable">
+                                            <label class="col-sm-4 control-label">{{!leasingCandidate.transmissionAntenna.address.ca_not_full_addres ? '*' : ''}}Street/Microdistrict:</label>
+                                            <div class="col-sm-8">
+                                                <input class="form-control" id="ne_addr_street" name="cn_addr_street" ng-model="leasingCandidate.transmissionAntenna.address.cn_addr_street" ng-required="!leasingCandidate.transmissionAntenna.address.ca_not_full_addres" ng-disabled="leasingCandidate.transmissionAntenna.address.ca_not_full_addres">
+                                                <label class="error" ng-show="kcell_form.cn_addr_street.$error.required && ( kcell_form.cn_addr_street.$touched || view.submitted)">Required field</label>
+                                            </div>
+                                        </div>
+                                        <div class="form-group" ng-show="leasingCandidate.transmissionAntenna.addressEditable">
+                                            <label class="col-sm-4 control-label">{{!leasingCandidate.transmissionAntenna.address.ca_not_full_addres ? '*' : ''}}Building:</label>
+                                            <div class="col-sm-8">
+                                                <input class="form-control" id="cn_addr_building" name="cn_addr_building" ng-model="leasingCandidate.transmissionAntenna.address.cn_addr_building" ng-required="!leasingCandidate.transmissionAntenna.address.ca_not_full_addres" ng-disabled="leasingCandidate.transmissionAntenna.address.ca_not_full_addres">
+                                                <label class="error" ng-show="kcell_form.cn_addr_building.$error.required && ( kcell_form.cn_addr_building.$touched || view.submitted)">Required field</label>
+                                            </div>
+                                        </div>
+                                        <div class="form-group" ng-show="leasingCandidate.transmissionAntenna.addressEditable">
+                                            <label class="col-sm-4 control-label">{{leasingCandidate.transmissionAntenna.address.ca_not_full_addres ? '*' : ''}}Cadastral number:</label>
+                                            <div class="col-sm-8">
+                                                <input class="form-control" id="cn_addr_cadastral_number" name="cn_addr_cadastral_number" ng-model="leasingCandidate.transmissionAntenna.address.cn_addr_cadastral_number" ng-required="leasingCandidate.transmissionAntenna.address.ca_not_full_addres">
+                                                <label class="error" ng-show="kcell_form.cn_addr_cadastral_number.$error.required && ( kcell_form.cn_addr_cadastral_number.$touched || view.submitted)">Required field</label>
+                                            </div>
+                                        </div>
+                                        <div class="form-group" ng-show="leasingCandidate.transmissionAntenna.addressEditable">
+                                            <label class="col-sm-4 control-label">{{leasingCandidate.transmissionAntenna.address.ca_not_full_addres ? '*' : ''}}Note to the address:</label>
+                                            <div class="col-sm-8">
+                                                <input class="form-control" id="cn_addr_note" name="cn_addr_note" ng-model="leasingCandidate.transmissionAntenna.address.cn_addr_note" ng-required="leasingCandidate.transmissionAntenna.address.ca_not_full_addres">
+                                                <label class="error" ng-show="kcell_form.cn_addr_note.$error.required && ( kcell_form.cn_addr_note.$touched || view.submitted)">Required field</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-2">
+                                        <span class="input-group-btn" ng-if="leasingCandidate.confirmStartLeasingTask || leasingCandidate.confirmStartLeasingNOTask">
+                                            <button type="button" class="btn btn-default" ng-click="leasingCandidate.transmissionAntenna.addressEditable = !leasingCandidate.transmissionAntenna.addressEditable">
+                                                <i class="glyphicon glyphicon-pencil"></i>
+                                            </button>
+                                        </span>
                                     </div>
                                 </div>
                             </accordion-group>
@@ -1379,7 +1534,7 @@
 
                                     <div class="col-sm-8">
                                             <input class="form-control" readonly id="farEndAddress" name="farEndAddress" ng-model="currentFarEnd.addressToString" ng-value="addressToString(currentFarEnd.address)">
-                                            <span class="input-group-btn" ng-if="leasingCandidate.checkAndApproveFETask">
+                                            <span class="input-group-btn" ng-if="leasingCandidate.checkAndApproveFETask || leasingCandidate.confirmStartLeasingTask || leasingCandidate.confirmStartLeasingNOTask">
                                                 <button type="button" class="btn btn-default" ng-click="currentFarEnd.farEndAddressEditable = !currentFarEnd.farEndAddressEditable">
                                                     <i class="glyphicon glyphicon-pencil"></i>
                                                 </button>
@@ -1398,23 +1553,23 @@
                                         <div class="form-group" ng-show="currentFarEnd.farEndAddressEditable">
                                             <label class="col-sm-4 control-label">*District:</label>
                                             <div class="col-sm-8" class="form-check">
-                                                <select class="form-control" id="cn_addr_district" name="cn_addr_district" ng-model="currentFarEnd.address.cn_addr_district" disabled>
+                                                <select class="form-control" id="fe_addr_district" name="fe_addr_district" ng-model="currentFarEnd.address.cn_addr_district" disabled>
                                                     <option ng-repeat="district in filteredDistricts" ng-value="district.name">{{district.name}}</option>
                                                 </select>
-                                                <label class="error" ng-show="kcell_form.cn_addr_district.$error.required && ( kcell_form.cn_addr_district.$touched || view.submitted)">Required field</label>
+                                                <label class="error" ng-show="kcell_form.fe_addr_district.$error.required && ( kcell_form.fe_addr_district.$touched || view.submitted)">Required field</label>
                                             </div>
                                         </div>
                                         <div class="form-group" ng-show="currentFarEnd.farEndAddressEditable">
                                             <label class="col-sm-4 control-label">*City / Village:</label>
                                             <div class="col-sm-8">
-                                                <input type="text" ng-model="currentFarEnd.address.cn_addr_city" ng-value='city.name' name="cn_addr_city" typeahead="city.name for city in getCity($viewValue)" typeahead-on-select="addressCitySelected($item,$model,$label)" class="form-control" required placeholder="Start typing...">
-                                                <label class="error" ng-show="kcell_form.cn_addr_city.$error.required && ( kcell_form.cn_addr_city.$touched || view.submitted)">Required field</label>
+                                                <input type="text" ng-model="currentFarEnd.address.cn_addr_city" ng-value='city.name' name="fe_addr_city" typeahead="city.name for city in getCity($viewValue)" typeahead-on-select="addressCitySelected($item,$model,$label)" class="form-control" required placeholder="Start typing...">
+                                                <label class="error" ng-show="kcell_form.fe_addr_city.$error.required && ( kcell_form.fe_addr_city.$touched || view.submitted)">Required field</label>
                                             </div>
                                         </div>
                                         <div class="form-group" ng-show="currentFarEnd.farEndAddressEditable">
                                             <div class="col-sm-12">
                                                 <div class="form-check">
-                                                    <input type="checkbox" ng-model="currentFarEnd.address.ca_not_full_addres" class="form-check-input" id="ca_not_full_addres">
+                                                    <input type="checkbox" ng-model="currentFarEnd.address.ca_not_full_addres" class="form-check-input" id="fe_not_full_addres">
                                                     <label class="form-check-label" for="ca_not_full_addres">Object without address</label>
                                                 </div>
                                             </div>
@@ -1422,22 +1577,22 @@
                                         <div class="form-group" ng-show="currentFarEnd.farEndAddressEditable">
                                             <label class="col-sm-4 control-label">{{!currentFarEnd.address.ca_not_full_addres ? '*' : ''}}Street/Microdistrict:</label>
                                             <div class="col-sm-8">
-                                                <input class="form-control" id="cn_addr_street" name="cn_addr_street" ng-model="currentFarEnd.address.cn_addr_street" ng-required="!currentFarEnd.address.ca_not_full_addres" ng-disabled="currentFarEnd.address.ca_not_full_addres">
-                                                <label class="error" ng-show="kcell_form.cn_addr_street.$error.required && ( kcell_form.cn_addr_street.$touched || view.submitted)">Required field</label>
+                                                <input class="form-control" id="fe_addr_street" name="fe_addr_street" ng-model="currentFarEnd.address.cn_addr_street" ng-required="!currentFarEnd.address.ca_not_full_addres" ng-disabled="currentFarEnd.address.ca_not_full_addres">
+                                                <label class="error" ng-show="kcell_form.fe_addr_street.$error.required && ( kcell_form.fe_addr_street.$touched || view.submitted)">Required field</label>
                                             </div>
                                         </div>
                                         <div class="form-group" ng-show="currentFarEnd.farEndAddressEditable">
                                             <label class="col-sm-4 control-label">{{!currentFarEnd.address.ca_not_full_addres ? '*' : ''}}Building:</label>
                                             <div class="col-sm-8">
-                                                <input class="form-control" id="cn_addr_building" name="cn_addr_building" ng-model="currentFarEnd.address.cn_addr_building" ng-required="!currentFarEnd.address.ca_not_full_addres" ng-disabled="currentFarEnd.address.ca_not_full_addres">
-                                                <label class="error" ng-show="kcell_form.cn_addr_building.$error.required && ( kcell_form.cn_addr_building.$touched || view.submitted)">Required field</label>
+                                                <input class="form-control" id="fe_addr_building" name="fe_addr_building" ng-model="currentFarEnd.address.cn_addr_building" ng-required="!currentFarEnd.address.ca_not_full_addres" ng-disabled="currentFarEnd.address.ca_not_full_addres">
+                                                <label class="error" ng-show="kcell_form.fe_addr_building.$error.required && ( kcell_form.fe_addr_building.$touched || view.submitted)">Required field</label>
                                             </div>
                                         </div>
                                         <div class="form-group" ng-show="currentFarEnd.farEndAddressEditable">
                                             <label class="col-sm-4 control-label">{{currentFarEnd.address.ca_not_full_addres ? '*' : ''}}Cadastral number:</label>
                                             <div class="col-sm-8">
-                                                <input class="form-control" id="cn_addr_cadastral_number" name="cn_addr_cadastral_number" ng-model="currentFarEnd.address.cn_addr_cadastral_number" ng-required="currentFarEnd.address.ca_not_full_addres">
-                                                <label class="error" ng-show="kcell_form.cn_addr_cadastral_number.$error.required && ( kcell_form.cn_addr_cadastral_number.$touched || view.submitted)">Required field</label>
+                                                <input class="form-control" id="fe_addr_cadastral_number" name="fe_addr_cadastral_number" ng-model="currentFarEnd.address.cn_addr_cadastral_number" ng-required="currentFarEnd.address.ca_not_full_addres">
+                                                <label class="error" ng-show="kcell_form.fe_addr_cadastral_number.$error.required && ( kcell_form.fe_addr_cadastral_number.$touched || view.submitted)">Required field</label>
                                             </div>
                                         </div>
                                         <div class="form-group" ng-show="currentFarEnd.farEndAddressEditable">
