@@ -8131,6 +8131,16 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                                     var groupasynCalls = 0;
                                     var maxGroupAsynCalls = processInstanceTasks.length;
                                     processInstanceTasks.forEach(function (e) {
+                                        $http.get("/camunda/api/engine/engine/default/history/identity-link-log?type=assignee&taskId=" + e.id + "&operationType=add&sortBy=time&sortOrder=desc").then(function (result) {
+                                            if(result.data.length > 0){
+                                                try {
+                                                   e.claimedDate = new Date(result.data[0].time);
+                                                } catch(e){
+                                                    console.log(e);
+                                                }
+                                            }
+
+                                        });
                                         if (e.assignee && tasks.data._embedded.assignee) {
                                             for (var i = 0; i < tasks.data._embedded.assignee.length; i++) {
                                                 if (tasks.data._embedded.assignee[i].id === e.assignee) {
@@ -8264,7 +8274,7 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                                 }, function (error) {
                                     console.log(error);
                                 });
-                            }
+                            },
                         },
                         templateUrl: './js/partials/leasingCardModal.html',
                         size: 'lg'
