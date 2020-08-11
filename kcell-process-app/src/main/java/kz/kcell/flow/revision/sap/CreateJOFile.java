@@ -38,11 +38,5 @@ public class CreateJOFile implements JavaDelegate {
         String json = "{\"name\" : \"" + name + "\",\"path\" : \"" + path + "\"}";
         delegateExecution.setVariable("joJrFile", SpinValues.jsonValue(json));
         log.info(" JoJr variable added with content: " + json);
-
-        int joCount  = 0;
-        if(delegateExecution.hasVariable("joCount")){
-            joCount = (int) delegateExecution.getVariable("joCount");
-        }
-        delegateExecution.setVariable("joCount", joCount + 1);
     }
 }
