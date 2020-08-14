@@ -1,6 +1,6 @@
 define(['../module', 'moment'], function (module, moment) {
     'use strict';
-    module.directive('networkArchitectureSearch', ['$http', '$timeout', '$q', '$rootScope', 'exModal', 'toasty', function ($http, $timeout, $q, $rootScope, exModal, toasty) {
+    module.directive('networkArchitectureSearch', ['$http', '$timeout', '$q', '$rootScope', 'exModal', 'toasty', '$filter', function ($http, $timeout, $q, $rootScope, exModal, toasty, $filter) {
         return {
             restrict: 'E',
             scope: false,
@@ -1094,7 +1094,12 @@ define(['../module', 'moment'], function (module, moment) {
                                                     if (groupasynCalls === maxGroupAsynCalls) {
                                                         asynCall1 = true;
                                                         if (asynCall1 && asynCall2) {
-                                                            openProcessCardModalRevision(processDefinitionId, businessKey, index);
+                                                            if (processDefinitionKey === 'CreatePR'){
+                                                                openProcessCardModalCreatePR(processDefinitionId, businessKey, index);
+                                                            } else {
+                                                                openProcessCardModalRevision(processDefinitionId, businessKey, index);
+                                                            }
+                                                            
                                                             asynCall1 = false;
                                                         } else console.log('asynCall 2 problem');
                                                     } else {
@@ -1107,7 +1112,11 @@ define(['../module', 'moment'], function (module, moment) {
                                                     if (groupasynCalls === maxGroupAsynCalls) {
                                                         asynCall1 = true;
                                                         if (asynCall1 && asynCall2) {
-                                                            openProcessCardModalRevision(processDefinitionId, businessKey, index);
+                                                            if (processDefinitionKey === 'CreatePR'){
+                                                                openProcessCardModalCreatePR(processDefinitionId, businessKey, index);
+                                                            } else {
+                                                                openProcessCardModalRevision(processDefinitionId, businessKey, index);
+                                                            }
                                                             asynCall1 = false;
                                                         } else console.log('asynCall 2 problem');
                                                     } else {
@@ -1126,7 +1135,11 @@ define(['../module', 'moment'], function (module, moment) {
                                 } else {
                                     asynCall1 = true;
                                     if (asynCall1 && asynCall2) {
-                                        openProcessCardModalRevision(processDefinitionId, businessKey, index);
+                                        if (processDefinitionKey === 'CreatePR'){
+                                            openProcessCardModalCreatePR(processDefinitionId, businessKey, index);
+                                        } else {
+                                            openProcessCardModalRevision(processDefinitionId, businessKey, index);
+                                        }
                                         asynCall1 = false;
                                     }
                                 }
@@ -1135,6 +1148,7 @@ define(['../module', 'moment'], function (module, moment) {
                                         var workFiles = [];
                                         result.data.forEach(function (el) {
                                             scope.jobModel[el.name] = el;
+                                            console.log(el.name + ' - ' + el.value)
                                             if (el.type === 'File' || el.type === 'Bytes') {
                                                 scope.jobModel[el.name].contentUrl = baseUrl + '/history/variable-instance/' + el.id + '/data';
                                             }
@@ -1144,6 +1158,9 @@ define(['../module', 'moment'], function (module, moment) {
                                             if (el.name.startsWith('works_') && el.name.includes('_file_')) {
                                                 workFiles.push(el);
                                             }
+                                            // if (processDefinitionKey == 'createPR') {
+
+                                            // }
                                         });
                                         if (scope.jobModel['siteWorksFiles']) {
                                             _.forEach(scope.jobModel['siteWorksFiles'].value, function (file) {
@@ -1185,7 +1202,11 @@ define(['../module', 'moment'], function (module, moment) {
                                                 });
                                                 asynCall2 = true;
                                                 if (asynCall1 && asynCall2) {
-                                                    openProcessCardModalRevision(processDefinitionId, businessKey, index);
+                                                    if (processDefinitionKey === 'CreatePR'){
+                                                        openProcessCardModalCreatePR(processDefinitionId, businessKey, index);
+                                                    } else {
+                                                        openProcessCardModalRevision(processDefinitionId, businessKey, index);
+                                                    }
                                                     asynCall2 = false;
                                                 } else console.log('aynCall 1 problem');
                                             });
@@ -1243,11 +1264,323 @@ define(['../module', 'moment'], function (module, moment) {
                                 });
                             },
                             compareDate: new Date('2019-02-05T06:00:00.000'),
-
-
                         },
                         templateUrl: './js/partials/processCardModal.html',
                         size: (scope.jobModel.processDefinitionKey === 'Invoice' ? 'hg' : 'lg')
+                    }).then(function (results) {
+                    });
+                }
+
+                function openProcessCardModalCreatePR(processDefinitionId, businessKey, index) {
+                    console.log('>>>>scope>>>>>')
+                    console.log(scope)
+                    console.log('<<<<scope<<<<<')
+                    try{
+                        scope.documentType = {1:"ZK73-02", 2:"ZK73-03", 3:"ZK73-04", 4:"ZK73-01"};
+                        if(!(scope.jobModel.hasOwnProperty('sapFaList') && scope.jobModel.sapFaList !== null)) {
+                            console.log('scope.jobModel.sapFaList = []')
+                            scope.jobModel.sapFaList = {
+                                value : []
+                            }
+                        }
+                        scope.capexWorks = ['1','2','3','4','5','8','10','11','12','14','15','16','17','19','20','22','23','25','26','28','29','31','32','34',
+                            '35','36','38','42','45', '46', '47', '48', '49', '50', '54', '55', '56', '57', '60', '62', '65', '66', '71', '72',
+                            '77', '78', '79', '80', '81', '86', '87', '88', '91', '94', '97', '100', '103', '104', '105', '106', '112', '113',
+                            '114', '115', '122', '131', '134', '138', '141', '144', '147', '150', '151', '155', '156', '157', '158', '159', '160',
+                            '161', '162', '165', '168', '169', '172', '173'];
+
+                        scope.undefinedWorks = ['39', '40', '41', '43', '61', '63', '67', '68', '73', '74', '82', '84', '85', '89', '92', '95', '98', '101', '107',
+                            '108', '116', '117', '118', '123', '125', '126', '127', '128', '129', '130', '132', '135', '137', '139', '142', '145',
+                            '148', '152', '153', '154', '166'];
+
+                        scope.opexWorks = ['6', '7', '9', '13', '18', '21', '24', '27', '30', '33', '37', '44', '51', '52', '53', '58', '59', '64', '69', '70', '75',
+                            '76', '83', '90', '93', '96', '99', '102', '109', '110', '111', '119', '120', '121', '124', '133', '136', '140', '143',
+                            '146', '149', '163', '164', '167', '170', '171'];
+
+                        scope.subcontructorDirectory = {
+                            "1": {
+                                "code": "949",
+                                "responsible": "GULZHAN IMANDOSOVA"
+                            },
+                            "2": {
+                                "code": "950",
+                                "responsible": "AIGERIM SATYBEKOVA"
+                            },
+                            "3": {
+                                "code": "951",
+                                "responsible": "AIGERIM SATYBEKOVA"
+                            },
+                            "4": {
+                                "code": "10",
+                                "responsible": "KEREMET IBRAGIMOVA"
+                            }
+                            }
+                        
+                        console.log('scope.jobWorksValue start')
+                        
+                        console.log(scope.jobModel.jobWorks.value)
+                        scope.jobWorksValue = scope.jobModel.jobWorks.value;
+                        console.log(scope.jobWorksValue)
+                        console.log('scope.jobWorksValue false')
+                        scope.jobWorksValue.forEach(function(work){
+                            console.log(work.sapServiceNumber)
+                            if(scope.capexWorks.indexOf(work.sapServiceNumber)!==-1){
+                                work.expenseType = 'CAPEX';
+                            } else if(scope.opexWorks.indexOf(work.sapServiceNumber)!==-1){
+                                work.expenseType = 'OPEX';
+                            }
+                        });
+                        console.log('calculateExpense start')
+                        calculateExpense(true);
+                        console.log('calculateExpense finish')
+                        scope.jobWorksValueTemp = [];
+                        scope.jobWorksValue.forEach(function(w, index) {
+                            console.log('scope.jobWorksValue.forEach(function(w, index)')
+                            console.log(w)
+                            if(scope.jobModel.reason.value != '2' || (scope.jobModel.reason.value == '2' && w.relatedSites.length == 0)) {
+                                w.r = {
+                                    site_name: scope.jobModel.site_name.value
+                                };
+                                w.prItemText = 'installation service ' + w.r.site_name;
+                                w.index = index;
+                                w.uuid = uuidv4();
+                                w.requestedDate = angular.copy(scope.requestedObjectDate);
+                                w.deliveryDate = new Date(new Date().getFullYear(), 11, 31);
+                                w.open = function($event){
+                                    $event.preventDefault();
+                                    $event.stopPropagation();
+                                    this.requestedObjectDateOpened = true;
+                                };
+                                w.deliveryDateOpen = function($event){
+                                    $event.preventDefault();
+                                    $event.stopPropagation();
+                                    this.deliveryDateOpened = true;
+                                };
+                                if(!w.price){
+                                    w.price = {};
+                                }
+                                if(!w.price.unitWorkPricePerSite) {
+                                    w.price.unitWorkPricePerSite = '0.0';
+                                }
+                                if(!w.price.unitWorkPricePlusTx) {
+                                    w.price.unitWorkPricePlusTx = '0.0';
+                                }
+                                w.amountText = scope.jobModel.reason.value == '2' ? w.price.unitWorkPricePerSite.replace('.',',') : w.price.unitWorkPricePlusTx.replace('.',',');
+                                w.headerNotes = '1.Purchase description: Revision works for site ' + scope.jobModel.site_name.value + ' JR# ' + scope.jobModel.jrNumber.value + ' dated ' + $filter('date')(w.requestedDate,'dd.MM.yyyy') + ' ' +
+                                    '2.Budgeted or not: yes ' + w.wbsElement + ' ' +
+                                    '3.Main project for Fintur: revision works ' +
+                                    '4.Describe the need of this purchase for this year: necessary for revision works ' +
+                                    '5.Contact person: ' + scope.subcontructorDirectory[scope.jobModel.reason.value].responsible + ' ' +
+                                    '6. Vendor: Line System Engineering LLP ' +
+                                    '7. Total sum: ' + scope.jobModel.jobWorksTotal.value + '';
+                                scope.jobWorksValueTemp.push(w);
+                            } else {
+                                w.relatedSites.forEach(function(r, rindex) {
+                                    w.r = r;
+                                    w.index = rindex + index;
+                                    w.uuid = uuidv4();
+                                    w.prItemText = 'installation service ' + w.r.site_name;
+                                    w.requestedDate = angular.copy(scope.requestedObjectDate);
+                                    w.deliveryDate = new Date(new Date().getFullYear(), 11, 31);
+                                    w.open = function($event){
+                                        $event.preventDefault();
+                                        $event.stopPropagation();
+                                        this.requestedObjectDateOpened = true;
+                                    };
+                                    w.deliveryDateOpen = function($event){
+                                        $event.preventDefault();
+                                        $event.stopPropagation();
+                                        this.deliveryDateOpened = true;
+                                    };
+                                    if(!w.price){
+                                        w.price = {};
+                                    }
+                                    if(!w.price.unitWorkPricePerSite) {
+                                        w.price.unitWorkPricePerSite = '0.0';
+                                    }
+                                    if(!w.price.unitWorkPricePlusTx) {
+                                        w.price.unitWorkPricePlusTx = '0.0';
+                                    }
+                                    w.amountText = scope.jobModel.reason.value == '2' ? w.price.unitWorkPricePerSite.replace('.',',') : w.price.unitWorkPricePlusTx.replace('.',',');
+                                    w.headerNotes = '1.Purchase description: Revision works for site ' + w.r.site_name + ' JR# ' + scope.jobModel.jrNumber.value + ' dated ' + $filter('date')(w.requestedDate,'dd.MM.yyyy') + ' ' +
+                                        '2.Budgeted or not: yes ' + w.wbsElement + ' ' +
+                                        '3.Main project for Fintur: revision works ' +
+                                        '4.Describe the need of this purchase for this year: necessary for revision works ' +
+                                        '5.Contact person: ' + scope.subcontructorDirectory[scope.jobModel.reason.value].responsible + ' ' +
+                                        '6. Vendor: Line System Engineering LLP ' +
+                                        '7. Total sum: ' + scope.jobModel.jobWorksTotal.value + '';
+                                    scope.jobWorksValueTemp.push(angular.copy(w));
+                                });
+                            }
+                            console.log(w)
+                            console.log('FINISH scope.jobWorksValue.forEach(function(w, index)')
+                        });
+                        console.log('>>>>>>scope.jobWorksValueTemp')
+                        console.log(scope.jobWorksValueTemp)
+                        console.log('<<<<<<scope.jobWorksValueTemp')
+                    } catch(E) {
+                        console.log(E);
+                    }
+
+
+                    function calculateExpense(isInit) {
+                        if(isInit){
+                            scope.jobWorksValue.forEach(function(work){
+                                work.price = _.find(scope.jobModel.workPrices.value, function(p){
+                                    return work.sapServiceNumber === p.sapServiceNumber
+                                });
+        
+                                if(work.expenseType==='CAPEX'){
+                                    work.activityServiceNumber = 'DUMMY';
+                                    if(scope.jobModel.reason.value === '2'){
+                                        work.wbsElement = 'TN-0502-48-0236';
+                                    } else {
+                                        work.wbsElement = 'RN-0502-33-0236';
+                                    }
+                                    work.controllingArea = 'DUMMY';
+                                } else if(work.expenseType==='OPEX'){
+                                    if(scope.jobModel.reason.value === '2'){
+                                        work.activityServiceNumber = '7016046';
+                                    } else {
+                                        work.activityServiceNumber = '7016045';
+                                    }
+                                    if(scope.jobModel.reason.value === '4'){
+                                        work.wbsElement = '252-70160-1';
+                                    } else {
+                                        work.wbsElement = '251-70160-1';
+                                    }
+                                    work.controllingArea = '3020';
+                                }
+                                work.costCenter = '25510';
+        
+                                if(work.expenseType==='CAPEX'){
+                                    console.log('CAPEX sapFaList')
+                                    if(scope.jobModel.reason.value === '2'){
+                                        angular.forEach(work.relatedSites, function (rs) {
+                                            angular.forEach(scope.jobModel.sapFaList.value, function (fa) {
+                                                if(fa.faClass == scope.workDefinitionMap[work.sapServiceNumber].faClass && fa.sloc == scope.tnuSiteLocations[rs.site_name].siteLocation){
+                                                    scope.tnuSiteLocations[rs.site_name].work[work.sapServiceNumber].fixedAssetNumber = fa.faNumber;
+                                                }
+                                            });
+                                        });
+                                    } else {
+                                        angular.forEach(scope.jobModel.sapFaList.value, function (fa) {
+                                            if(fa.faClass === scope.workDefinitionMap[work.sapServiceNumber].faClass && fa.sloc == scope.jobModel.sloc.value){
+                                                work.fixedAssetNumber = fa.faNumber;
+                                            }
+                                        });
+                                    }
+                                }
+                            });
+                        } else {
+                            scope.jobWorksValueTemp.forEach(function(work){
+                                work.price = _.find(scope.jobModel.workPrices.value, function(p){
+                                    return work.sapServiceNumber === p.sapServiceNumber
+                                });
+        
+                                if(work.expenseType==='CAPEX'){
+                                    work.activityServiceNumber = 'DUMMY';
+                                    if(scope.jobModel.reason.value === '2'){
+                                        work.wbsElement = 'TN-0502-48-0236';
+                                    } else {
+                                        work.wbsElement = 'RN-0502-33-0236';
+                                    }
+                                    work.controllingArea = 'DUMMY';
+                                } else if(work.expenseType==='OPEX'){
+                                    if(scope.jobModel.reason.value === '2'){
+                                        work.activityServiceNumber = '7016046';
+                                    } else {
+                                        work.activityServiceNumber = '7016045';
+                                    }
+                                    if(scope.jobModel.reason.value === '4'){
+                                        work.wbsElement = '252-70160-1';
+                                    } else {
+                                        work.wbsElement = '251-70160-1';
+                                    }
+                                    work.controllingArea = '3020';
+                                }
+                                work.costCenter = '25510';
+        
+                                if(work.expenseType==='CAPEX'){
+                                    if(scope.jobModel.reason.value === '2'){
+                                        angular.forEach(work.relatedSites, function (rs) {
+                                            angular.forEach(scope.jobModel.sapFaList.value, function (fa) {
+                                                if(fa.faClass == scope.workDefinitionMap[work.sapServiceNumber].faClass && fa.sloc == scope.tnuSiteLocations[rs.site_name].siteLocation){
+                                                    scope.tnuSiteLocations[rs.site_name].work[work.sapServiceNumber].fixedAssetNumber = fa.faNumber;
+                                                }
+                                            });
+                                        });
+                                    } else {
+                                        angular.forEach(scope.jobModel.sapFaList.value, function (fa) {
+                                            if(fa.faClass === scope.workDefinitionMap[work.sapServiceNumber].faClass && fa.sloc == scope.jobModel.sloc.value){
+                                                work.fixedAssetNumber = fa.faNumber;
+                                            }
+                                        });
+                                    }
+                                }
+                            });
+                        }
+                    }
+        
+                    function uuidv4() {
+                      return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+                        var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+                        return v.toString(16);
+                      });
+                    }
+                    
+                    // scope.jobDetailObject = 'REVISION ' + scope.jobModel.jrNumber.value;
+                    exModal.open({
+                        scope: {
+                            jobModel: scope.jobModel,
+                            // jobDetailObject: '',
+                            getStatus: scope.getStatus,
+                            jobDetailObject: scope.jobModel.jobDetailObject,
+                            showDiagram: scope.showDiagram,
+                            contractorsTitle: scope.contractors,
+                            contractorsService: scope.contractorsService,
+                            jobWorksValue: scope.jobWorksValue,
+                            jobWorksValueTemp: scope.jobWorksValueTemp,
+                            contractorsTitle: scope.contractorsTitle,
+                            showHistory: scope.showHistory,
+                            subcontructorDirectory: scope.subcontructorDirectory,
+                            requestedObjectDate: new Date(scope.jobModel.requestedDate.value),
+                            // showHistory: scope.showHistory,
+                            // showHistory: scope.showHistory,
+                            // showHistory: scope.showHistory,
+                            // showHistory: scope.showHistory,
+                            // showHistory: scope.showHistory,
+                            // showHistory: scope.showHistory,
+                            // showHistory: scope.showHistory,
+                            hasGroup: scope.hasGroup,
+                            showGroupDetails: scope.showGroupDetails,
+                            processDefinitionId: processDefinitionId,
+                            piIndex: scope.piIndex,
+                            $index: index,
+                            businessKey: businessKey,
+                            download: function (file) {
+                                $http({
+                                    method: 'GET',
+                                    url: '/camunda/uploads/get/' + file.path,
+                                    transformResponse: []
+                                }).then(function (response) {
+                                    document.getElementById('fileDownloadIframe').src = response.data;
+                                }, function (error) {
+                                    console.log(error);
+                                });
+                            },
+                            isFileVisible: function (file) {
+                                return !file.visibility || file.visibility == 'all' || (file.visibility == 'kcell' && $rootScope.hasGroup('kcellUsers'));
+                            },
+                            getDictNameById: function (dictionary, id) {
+                                return _.find(dictionary, function (dict) {
+                                    return dict.id === id;
+                                });
+                            },
+                            compareDate: new Date('2019-02-05T06:00:00.000'),
+                        },
+                        templateUrl: './js/partials/CreatePRProcessCardModal.html',
+                        size: ('hg')
                     }).then(function (results) {
                     });
                 }

@@ -1,0 +1,842 @@
+<style>
+    .card-modal-header {
+        background:transparent; color:black; padding:0 15px 0 15px;
+    }
+
+</style>
+<div class="card-modal-header">
+    <button type="button" class="close" ng-click="$dismiss()" aria-hidden="true">&times;</button>
+    <h4 style="margin-top:14px;">{{businessKey}}</h4>
+</div>
+<div class="modal-body new-card-search" style="padding-top:5px">
+    <div class="col-sm-3" style="padding-top: 40px;">
+        <div class="row">
+            <div class="col-md-8">
+                <span ng-if="jobModel.state" class="block-headers">Status: {{getStatus(jobModel.state,
+                        jobModel.acceptPerformedJob.value)}}</span>
+            </div>
+            <div class="col-md-4">
+                <div class="dropdown" style="position:absolute; right:15px; top:-6px;">
+                    <button class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown">More
+                        <span class="caret"></span></button>
+                    <ul class="dropdown-menu">
+                        <li ng-if="hasGroup('kcellUsers')"><a href="" ng-click="showDiagram(processDefinitionId, jobModel.tasks)" class="ng-binding"><span
+                                class="glyphicon glyphicon-indent-left" aria-hidden="true"></span>
+                            Diagram</a></li>
+                        <li><a href="" ng-click="showHistory(jobModel.resolutions.value, jobModel.processDefinitionKey)"
+                                class="ng-binding"><span class="glyphicon glyphicon-list-alt"
+                                                        aria-hidden="true"></span> History </a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-12">
+                <div class="panel panel-default" style="margin:18px 0 0 0">
+                    <div class="panel-heading block-headers">Details</div>
+                    <div class="panel-body" style="padding:10px 0 10px 0;word-break:break-word;">
+                        <div class="form-group">
+                            <div class="col-sm-12"><b>Initiator</b>: {{jobModel.initiatorFull.value.firstName}}
+                                {{jobModel.initiatorFull.value.lastName}}
+                            </div>
+                            <!-- <div class="col-sm-12"><b>JR Number</b>:
+                                <a ng-if="jobModel.processDefinitionKey === 'CreatePR'" ng-click="openProcessCardModalCreatePR(businessKey)">{{jobModel.jrNumber.value}}</a>
+                                <span ng-if="jobModel.processDefinitionKey !== 'CreatePR'">{{jobModel.jrNumber.value}}</span>
+                            </div> -->
+                            <!-- <div class="col-sm-12"><b>Priority</b>: {{jobModel.priority.value ==
+                                'emergency'?'Emergency':'Regular'}}
+                            </div> -->
+                            <div class="col-sm-12"><b>Site Name</b>: {{jobModel.site_name.value}}</div>
+                            <div class="col-sm-12"><b>Reason</b>: {{jobModel.reasonsTitle[jobModel.reason.value]}}
+                            </div>
+                            <!-- <div class="col-sm-12"><b>Materials required</b>: {{jobModel.materialsRequired.value}}
+                            </div>
+                            <div class="col-sm-12"><b>Leasing required</b>: {{jobModel.leasingRequired.value}}</div>
+                            <div class="col-sm-12"><b>Site (near end)</b>: {{jobModel.siteName.value}}</div> -->
+                            
+
+
+                        </div>
+
+
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-12">
+                <ul class="nav nav-stacked" id="accordion1">
+                    <li class="panel panel-default" style="margin:0">
+                        <a data-toggle="collapse" data-parent="#accordion1" href="#firstLink"
+                            style="background-color: #f5f5f5;" class="block-headers">User Tasks</a>
+
+                        <ul id="firstLink" class="collapse in ul-padding">
+                            <div ng-repeat="task in jobModel.tasks" >
+                                <div class="task">
+                                    <h5>
+                                        <a ng-if="hasGroup('revision_managers') || hasGroup('revision_audit')"
+                                            ui-sref="tasks.task({id:task.id})" target="_blank">{{
+                                            (task.name || task.id) }}</a></h5>
+                                    <h5><span
+                                            ng-if="!(hasGroup('revision_managers') || hasGroup('revision_audit'))"
+                                            ui-sref="tasks.task({id:task.id})" target="_blank">{{ (task.name || task.id) }}</span>
+                                    </h5>
+                                    <div class="card-task-descr" ng-if="task.description"> {{ task.description }}</div>
+                                    <small class="text-muted"
+                                            ng-if="task.group">
+                                        Group: <a
+                                            ng-click="showGroupDetails(task.group)">{{task.group}}</a>
+                                    </small>
+                                    <br/>
+                                    <small class="text-muted" ng-if="task.assignee">{{
+                                        task.assigneeObject.firstName }} {{ task.assigneeObject.lastName
+                                        }}
+                                    </small>
+                                    <small class="text-muted" ng-if="!task.assignee">Unassigned</small>
+                                </div>
+                            </div>
+                        </ul>
+                    </li>
+
+                </ul>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-9">
+        <h3>Job Order Information</h3>
+            <table class="table table-bordered">
+                <thead>
+                <tr>
+                    <th>Field</th>
+                    <th>Value</th>
+                    <th>Description</th>
+                    <th>Comment</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr>
+                    <td>JO Number</td>
+                    <td>{{ jobModel.jrNumber.value }}</td>
+                    <td>{{ jobModel.jrNumber.value }}</td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td>Sitename</td>
+                    <td>{{jobModel.siteName.value}}, {{jobModel.site_name.value}}</td>
+                    <td>{{jobModel.siteName.value}}, {{jobModel.site_name.value}}</td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td>Job Requester</td>
+                    <td>{{contractorsShortTitle[jobModel.contractor.value]}}</td>
+                    <td>{{contractorsTitle[jobModel.contractor.value]}}</td>
+                    <!-- <td>{{contractorsTitle[jobModel.contractor.value]}}</td> -->
+                    <td></td>
+                </tr>
+                <tr>
+                    <td>Job Type</td>
+                    <td>R</td>
+                    <td>{{servicesTitle[jobModel.contract.value]}}</td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td>Status</td>
+                    <td>A</td>
+                    <td>Approved</td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td>Job Detail</td>
+                    <td>
+                        <span ng-if="!jobDetailObjectEdit">{{jobDetailObject}}</span>
+                        <div class="input-group" ng-if="jobDetailObjectEdit">
+                            <input type="text" ng-model="$parent.jobDetailObject" name="jobDetailObject" required class="form-control" id="jobDetailObject" ng-change="jobDetailObjectChanged()" />
+                            <label class="error" ng-show="kcell_form.jobDetailObject.$error.required && ( kcell_form.jobDetailObject.$touched || view.submitted)">Required field</label>
+                        </div>
+                    </td>
+                    <td>{{jobDetailObject}}</td>
+                    <td>Edited by: {{jobDetailChangerAssigneeName}}</td>
+                </tr>
+                <tr>
+                    <td>Subcontructor ID</td>
+                    <td>{{subcontructorDirectory[jobModel.reason.value].code}}</td>
+                    <td>{{subcontructorDirectory[jobModel.reason.value].code + ' ' + subcontructorDirectory[jobModel.reason.value].responsible}}</td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td>Job Order Date</td>
+                    <td>
+                        <span ng-if="!requestedObjectDateEdit">{{requestedObjectDate | date:'dd.MM.yyyy'}}</span>
+                        <div class="input-group" ng-if="requestedObjectDateEdit">
+                            <input type="text" ng-model="$parent.requestedObjectDate" name="requestedObjectDate" ng-change="requestedObjectDateChanged()" required class="form-control" datepicker-popup="dd.MM.yyyy" is-open="requestedObjectDateOpened" id="requestedObjectDate" min-date="datepickerOptions.minDate" />
+                            <span class="input-group-btn">
+                                <button type="button" class="btn btn-default" ng-click="open($event)">
+                                    <i class="glyphicon glyphicon-calendar"></i>
+                                </button>
+                            </span>
+                        </div>
+                        <label class="error" ng-show="kcell_form.requestedObjectDate.$error.required && ( kcell_form.requestedObjectDate.$touched || view.submitted)">Required field</label>
+                    </td>
+                    <td>JO creation date</td>
+                    <td>Edited by: {{requestedDateChangerAssigneeName}}</td>
+                </tr>
+                <tr>
+                    <td>Plant</td>
+                    <td>0201</td>
+                    <td>Almaty</td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td>Stor. Location</td>
+                    <td>{{jobModel.reason.value == '2' ? tnuSiteLocations[jobModel.site_name.value].siteLocation : jobModel.sloc.value}}</td>
+                    <td>Storage location</td>
+                    <td></td>
+                <tr>
+                </tbody>
+            </table>
+            <h3>PR Information</h3>
+            <table class="table table-bordered" style="border: 1px solid; margin-bottom: 10px;">
+                <tr>
+                    <th colspan="3">Header note</th>
+                </tr>
+                <tr>
+                    <td ng-if="!headerNoteEdit" style="width:88%">{{jobWorksValueTemp[0].headerNotes}}</td>
+                    <td ng-if="headerNoteEdit" style="width:88%">
+                        <textarea class="form-control" rows="4" maxlength="500" ng-model="$parent.jobWorksValueTemp[0].headerNotes" name="headerNotes" required ng-change="headerNotesChanged()"></textarea>
+                        <label class="error" ng-show="kcell_form.headerNotes.$error.required && ( kcell_form.headerNotes.$touched || view.submitted)">Required field</label>
+                    </td>
+                    <td>Edited by: {{headerNoteAssigneeName}}</td>
+                </tr>
+            </table>
+
+            <div class="row">
+                <div class="col-md-12">
+                    <table class="table table-bordered">
+                        <tr style="background-color: #b6b6b6">
+                            <th>Work #</th>
+                            <th ng-repeat="w in jobWorksValueTemp track by $index" style="min-width: 300px">{{worksTitle[w.sapServiceNumber]}}</th>
+                            <th></th>
+                        </tr>
+                        <tr>
+                            <th>Field</th>
+                            <th ng-repeat="w in jobWorksValueTemp track by $index">Value</th>
+                            <th>Comment</th>
+                        </tr>
+                        <tr>
+                            <td>PR document type</td>
+                            <th ng-repeat="w in jobWorksValueTemp track by $index">{{documentType[jobModel.reason.value]}}</th>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <td>Cost Type</td>
+                            <td ng-repeat="w in jobWorksValueTemp track by $index">
+                                <span ng-if="!expenseTypeEdit">{{w.expenseType=='CAPEX'?'Y':(w.expenseType=='OPEX'?'K':'')}}</span>
+                                <div class="input-group" ng-if="expenseTypeEdit">
+                                    <select ng-model="w.expenseType" class="form-control" ng-change="expenseTypeChanged()">
+                                        <option value="CAPEX">Y</option>
+                                        <option value="OPEX">K</option>
+                                    </select>
+                                </div>
+                            </td>
+                            <td>Edited by: {{expenseTypeAssigneeName}}</td>
+                        </tr>
+                        <tr>
+                            <td>JR Number</td>
+                            <td ng-repeat="w in jobWorksValueTemp track by $index">{{jobModel.jrNumber.value}}</td>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <td>JR Status</td>
+                            <td ng-repeat="w in jobWorksValueTemp track by $index">approved</td>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <td>JR Request date</td>
+                            <td ng-repeat="w in jobWorksValueTemp track by $index">
+                                <span ng-if="!wRequestedDateEdit">{{w.requestedDate | date:'dd.MM.yyyy'}}</span>
+                                <div class="input-group" ng-if="wRequestedDateEdit">
+                                    <input type="text" ng-model="w.requestedDate" ng-change="wRequestedDateChanged()" required class="form-control" datepicker-popup="dd.MM.yyyy" is-open="w.requestedObjectDateOpened"  />
+                                    <span class="input-group-btn">
+                                        <button type="button" class="btn btn-default" ng-click="w.open($event)">
+                                            <i class="glyphicon glyphicon-calendar"></i>
+                                        </button>
+                                    </span>
+                                </div>
+                            </td>
+                            <td>Edited by: {{wRequestedDateAssigneeName}}</td>
+                        </tr>
+                        <tr>
+                            <td>Vendor</td>
+                            <td ng-repeat="w in jobWorksValueTemp track by $index">{{workDefinitionMap[w.sapServiceNumber].vendor}}</td>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <td>Region</td>
+                            <td ng-repeat="w in jobWorksValueTemp track by $index">7</td>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <td>Service Type</td>
+                            <td ng-repeat="w in jobWorksValueTemp track by $index">Y</td>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <td>PR Item text</td>
+                            <td ng-repeat="w in jobWorksValueTemp track by $index">
+                                <span ng-if="!prItemTextEdit">{{w.prItemText}}</span>
+                                <input ng-model="w.prItemText" ng-if="prItemTextEdit" class="form-control" ng-change="prItemTextChanged()" />
+                            </td>
+                            <td>Edited by: {{prItemTextAssigneeName}}</td>
+                        </tr>
+                        <tr>
+                            <td>CM Contract no</td>
+                            <td ng-repeat="w in jobWorksValueTemp track by $index">{{contractorsService[jobModel.contractor.value].contract.service}}</td>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <td>Service number</td>
+                            <td ng-repeat="w in jobWorksValueTemp track by $index">{{workDefinitionMap[w.sapServiceNumber].sapServiceNumber}}</td>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <td>Service quantity </td>
+                            <td ng-repeat="w in jobWorksValueTemp track by $index">{{w.quantity}}</td>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <td>Delivery Date</td>
+                            <td ng-repeat="w in jobWorksValueTemp track by $index">
+                                <span ng-if="!wdeliveryDateEdit">{{w.deliveryDate | date:'dd.MM.yyyy'}}</span>
+                                <div class="input-group" ng-if="wdeliveryDateEdit">
+                                    <input type="text" ng-model="w.deliveryDate" ng-change="wdeliveryDateChanged()" required class="form-control" datepicker-popup="dd.MM.yyyy" is-open="w.deliveryDateOpened"  />
+                                    <span class="input-group-btn">
+                                        <button type="button" class="btn btn-default" ng-click="w.deliveryDateOpen($event)">
+                                            <i class="glyphicon glyphicon-calendar"></i>
+                                        </button>
+                                    </span>
+                                </div>
+                            </td>
+                            <td>Edited by: {{wdeliveryDateEditAssigneeName}}</td>
+                        </tr>
+                        <tr>
+                            <td>WBS Element</td>
+                            <td ng-repeat="w in jobWorksValueTemp track by $index">
+                                <span ng-if="!wbsElementEdit">{{w.wbsElement}}</span>
+                                <input ng-model="w.wbsElement" ng-if="wbsElementEdit" class="form-control" ng-change="wbsElementChanged()" />
+                            </td>
+                            <td>Edited by: {{wbsElementAssigneeName}}</td>
+                        </tr>
+                        <tr>
+                            <td>Job Order no </td>
+                            <td ng-repeat="w in jobWorksValueTemp track by $index">{{jobModel.jrNumber.value}}</td>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <td>Stor. Location</td>
+                            <td ng-repeat="w in jobWorksValueTemp track by $index">{{jobModel.reason.value == '2' ? tnuSiteLocations[w.r.site_name].siteLocation : jobModel.sloc.value}}</td>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <td>FA number</td>
+                            <td ng-repeat="w in jobWorksValueTemp track by $index">
+                                <span>{{w.expenseType == 'CAPEX' ? 'will be provided on next steps' : 'DUMMY'}}</span>
+                            </td>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <td>Cost center </td>
+                            <td ng-repeat="w in jobWorksValueTemp track by $index">{{w.costCenter}}</td>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <td>Controlling Area</td>
+                            <td ng-repeat="w in jobWorksValueTemp track by $index">
+                                <span ng-if="!controllingAreaEdit">{{w.controllingArea}}</span>
+                                <input ng-model="w.controllingArea" ng-if="controllingAreaEdit" class="form-control" ng-change="controllingAreaChanged()" />
+                            </td>
+                            <td>Edited by: {{controllingAreaAssigneeName}}</td>
+                        </tr>
+                        <tr>
+                            <td>Activity Service Number</td>
+                            <td ng-repeat="w in jobWorksValueTemp track by $index">
+                                <span ng-if="!activityServiceNumberEdit">{{w.activityServiceNumber}}</span>
+                                <input ng-model="w.activityServiceNumber" ng-if="activityServiceNumberEdit" class="form-control" ng-change="activityServiceNumberChanged()" />
+                            </td>
+                            <td>Edited by: {{activityServiceNumberAssigneeName}}</td>
+                        </tr>
+                        <tr>
+                            <td>Amount</td>
+                            <td ng-repeat="w in jobWorksValueTemp track by $index">
+                                <span ng-if="!amountTextEdit">{{w.amountText}}</span>
+                                <input ng-model="w.amountText" ng-if="amountTextEdit" class="form-control" ng-change="amountTextChanged()" />
+                            </td>
+                            <td>Edited by: {{amountTextAssigneeName}}</td>
+                        </tr>
+                        <tr>
+                            <td>KWMS PR Req. Name</td>
+                            <td ng-repeat="w in jobWorksValueTemp track by $index">{{reasonsSubcontractorResponsible[jobModel.reason.value].responsible}}</td>
+                            <td></td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+    <!-- <div class="modal-body new-card-search" style="padding-top:5px">
+        <div class="row">
+            <div class="col-md-4">
+                <div class="row">
+                    <div class="col-md-8">
+                        <span ng-if="jobModel.state" class="block-headers">Status: {{getStatus(jobModel.state,
+                                jobModel.acceptPerformedJob.value)}}</span>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="dropdown" style="position:absolute; right:15px; top:-6px;">
+                            <button class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown">More
+                                <span class="caret"></span></button>
+                            <ul class="dropdown-menu">
+                                <li ng-if="hasGroup('kcellUsers')"><a href="" ng-click="showDiagram(processDefinitionId, jobModel.tasks)" class="ng-binding"><span
+                                        class="glyphicon glyphicon-indent-left" aria-hidden="true"></span>
+                                    Diagram</a></li>
+                                <li><a href="" ng-click="showHistory(jobModel.resolutions.value, jobModel.processDefinitionKey)"
+                                    class="ng-binding"><span class="glyphicon glyphicon-list-alt"
+                                                                aria-hidden="true"></span> History </a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="panel panel-default" style="margin:18px 0 0 0">
+                            <div class="panel-heading block-headers">Details</div>
+                            <div class="panel-body" style="padding:10px 0 10px 0;word-break:break-word;">
+                                <div class="form-group">
+                                    <div class="col-sm-12"><b>Initiator</b>: {{jobModel.initiatorFull.value.firstName}}
+                                        {{jobModel.initiatorFull.value.lastName}}
+                                    </div>
+                                    <div class="col-sm-12"><b>JR Number</b>:
+                                        <a ng-if="jobModel.processDefinitionKey === 'CreatePR'">{{jobModel.jrNumber.value}}</a>
+                                        <span ng-if="jobModel.processDefinitionKey !== 'CreatePR'">{{jobModel.jrNumber.value}}</span>
+                                    </div>
+                                    <div class="col-sm-12"><b>Priority</b>: {{jobModel.priority.value ==
+                                        'emergency'?'Emergency':'Regular'}}
+                                    </div>
+
+                                    <div class="col-sm-12"><b>Reason</b>: {{jobModel.reasonsTitle[jobModel.reason.value]}}
+                                    </div>
+                                    <div class="col-sm-12"><b>Materials required</b>: {{jobModel.materialsRequired.value}}
+                                    </div>
+                                    <div class="col-sm-12"><b>Leasing required</b>: {{jobModel.leasingRequired.value}}</div>
+                                    <div class="col-sm-12"><b>Site (near end)</b>: {{jobModel.siteName.value}}</div>
+                                    <div class="col-sm-12"><b>Site Name</b>: {{jobModel.site_name.value}}</div>
+
+
+                                </div>
+
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-12">
+                        <ul class="nav nav-stacked" id="accordion1">
+                            <li class="panel panel-default" style="margin:0">
+                                <a data-toggle="collapse" data-parent="#accordion1" href="#firstLink"
+                                style="background-color: #f5f5f5;" class="block-headers">User Tasks</a>
+
+                                <ul id="firstLink" class="collapse in ul-padding">
+                                    <div ng-repeat="task in jobModel.tasks" >
+                                        <div class="task">
+                                            <h5>
+                                                <a ng-if="hasGroup('revision_managers') || hasGroup('revision_audit')"
+                                                ui-sref="tasks.task({id:task.id})" target="_blank">{{
+                                                    (task.name || task.id) }}</a></h5>
+                                            <h5><span
+                                                    ng-if="!(hasGroup('revision_managers') || hasGroup('revision_audit'))"
+                                                    ui-sref="tasks.task({id:task.id})" target="_blank">{{ (task.name || task.id) }}</span>
+                                            </h5>
+                                            <div class="card-task-descr" ng-if="task.description"> {{ task.description }}</div>
+                                            <small class="text-muted"
+                                                ng-if="task.group">
+                                                Group: <a
+                                                    ng-click="showGroupDetails(task.group)">{{task.group}}</a>
+                                            </small>
+                                            <br/>
+                                            <small class="text-muted" ng-if="task.assignee">{{
+                                                task.assigneeObject.firstName }} {{ task.assigneeObject.lastName
+                                                }}
+                                            </small>
+                                            <small class="text-muted" ng-if="!task.assignee">Unassigned</small>
+                                        </div>
+                                    </div>
+                                </ul>
+                            </li>
+
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-8">
+                <div class="row">
+                    <div class="col-xs-4 col-md-4" ng-if="requestedDate < compareDate"><b>Requested date</b>:
+                        {{jobModel.requestedDate.value | date: 'dd.MM.yyyy HH:mm'}}
+                    </div>
+                    <div class="col-xs-4 col-md-4" ng-if="requestedDate >= compareDate"><b>Job Request date</b>:
+                        {{jobModel.contractorJobAssignedDate.value | date: 'dd.MM.yyyy HH:mm'}}
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-xs-4 col-md-4"><b>Validity date</b>: {{jobModel.validityDate.value | date:
+                        'dd.MM.yyyy'}}
+                    </div>
+                    <div class="col-xs-4 col-md-4"><b>Contract</b>: {{jobModel.mainContract.value}}
+                    </div>
+                    <div class="col-xs-4 col-md-4"><b>SA&O Complaint Id</b>: {{jobModel.soaComplaintId.value}}</div>
+                </div>
+                <div class="row">
+                    <div class="col-xs-4 col-md-4"><b>Contractor</b>:
+                        {{jobModel.contractorsTitle[jobModel.contractor.value]}}
+                    </div>
+                    <div class="col-xs-4 col-md-4"><b>Power engineering required</b>: {{jobModel.powerRequired.value}}</div>
+                    <div class="col-xs-4 col-md-4"><b>Project</b>: {{jobModel.project.value}}</div>
+
+                </div>
+                <div class="row">
+                    <div class="col-xs-4 col-md-4"><b>Perform date</b>: {{jobModel.performDate.value | date: 'dd.MM.yyyy'}}
+                    </div>
+                    <div class="col-xs-4 col-md-4"><b>Acceptance date</b>: {{jobModel.acceptanceDate.value | date:
+                        'dd.MM.yyyy'}}
+                    </div>
+                </div>
+
+                <div class="row" ng-if="jobModel.monthActNumber.value || jobModel.invoiceNumber.value">
+                    <div class="col-xs-4 col-md-4" ng-if="jobModel.monthActNumber.value"><b>Monthly Act Number</b>:
+                        #{{jobModel.monthActNumber.value}}
+                    </div>
+                    <div class="col-xs-4 col-md-4" ng-if="jobModel.invoiceNumber.value && jobModel.invoiceDate.value"><b>Invoice Number</b>: 
+                        #{{jobModel.invoiceNumber.value}} dated {{jobModel.invoiceDate.value | date:'dd.MM.yyyy'}}
+                    </div>
+                </div>
+                <div class="row" ng-if="jobModel.processTechnicalUpdates.value">
+                    <div class="col-md-12"><b>Technical updates</b>: {{jobModel.processTechnicalUpdates.value}}</div>
+                </div>
+                <div class="row" ng-if="jobModel.mainContract.value == 'Revision' && jobModel.delayInfo.value>= 0">
+                    <div class="col-md-12"><b>Delay</b>: {{jobModel.delayInfo.value}} (days)
+                        <a ng-show="jobModel.showDelayHint" role="button" data-toggle="collapse" href="#collapseDelayInfo"
+                        aria-expanded="false" aria-controls="collapseDelayInfo">
+                            <i class="glyphicon glyphicon-question-sign"></i>
+                        </a>
+                    </div>
+                </div>
+                <div class="row" ng-if="jobModel.mainContract.value == 'Roll-out'">
+                    <div class="col-xs-4 col-md-4" ng-if="!jobModel.contains13Work.value && jobModel.rolloutRO2Delay.value >= 0"><b>On-air Delay</b>: {{jobModel.rolloutRO2Delay.value}} (days)</div>
+                    <div class="col-xs-4 col-md-4" ng-if="!jobModel.contains13Work.value && jobModel.rolloutRO3Delay.value >= 0"><b>Acceptance Delay</b>: {{jobModel.rolloutRO3Delay.value}} (days)</div>
+                    <div class="col-md-12" ng-if="jobModel.contains13Work.value && jobModel.rolloutRO4Delay.value >= 0"><b>Project preparation works Delay</b>: {{jobModel.rolloutRO4Delay.value}} (days)</div>
+                </div>
+
+                <br/>
+                <div class="row">
+                    <div class="col-md-12"><b>Supplementary files</b>:</div>
+                    <iframe id="fileDownloadIframe" style="display:none;"></iframe>
+                    <div class="col-md-12" ng-repeat="file in jobModel.supplementaryFiles.value track by $index">&nbsp;&nbsp;&nbsp;&nbsp;<a
+                            ng-if="isFileVisible(file)" ng-click="download(file)">{{file.name}}</a></div>
+                </div>
+                <br/>
+                <div class="row">
+                    <div class="col-md-12"><b>Works</b>:</div>
+                    <div class="col-md-12" ng-repeat="work in jobModel.jobWorks.value track by $index">&nbsp;&nbsp;&nbsp;&nbsp;{{jobModel.worksTitle[work.sapServiceNumber]}},
+                        works qty: {{work.quantity}}, materials qty: {{work.materialQuantity}} {{work.materialUnit}}<span
+                                ng-if="work.relatedSites.length > 0">, on sites: <ul class="site-list"><li
+                                ng-repeat="rs in work.relatedSites">{{rs.site_name}}</li></ul>,</span>
+                        <span ng-if="work.reason">work request reason: {{jobModel.jobReasonTitleShort[work.reason]}}</span>
+                        <div class="col-md-12" ng-repeat="file in work.files">
+                            <div class="col-md-12" ng-if="file.valueInfo">&nbsp;&nbsp;&nbsp;&nbsp;{{$index+1}}.<a
+                                    href="/camunda/api/engine/engine/default/{{jobModel.state && jobModel.state == 'COMPLETED'?'history/':''}}variable-instance/{{file.id}}/data">{{file.valueInfo.filename}}
+                                (Old version, read only)</a></div>
+                            <div class="col-md-12" ng-if="file.value">&nbsp;&nbsp;&nbsp;&nbsp;{{$index+1}}.<a
+                                    ng-click="download(file.value)">{{file.value.name}}</a></div>
+                        </div>
+                    </div>
+                </div>
+
+                <br/>
+                <div class="row">
+                    <div class="col-md-12"><b>Explanation of works</b>: {{jobModel.explanation.value}}</div>
+                </div>
+                <div class="row" ng-if="jobModel.sapPRNo.value">
+                    <div class="col-md-12"><b>SAP Purchase Request No</b>: {{jobModel.sapPRNo.value}} <a
+                            href="{{jobModel.sapPRFileXLS.contentUrl}}" ng-if="false">(Download PR)</a></div>
+                </div>
+                <div class="row" ng-if="jobModel.sapPONo.value">
+                    <div class="col-md-12"><b>SAP PO No</b>: {{jobModel.sapPONo.value}}</div>
+                </div>
+                <div class="row" ng-if="jobModel.jrBlank.value.name">
+                    <div class="col-md-12"><b>JR Blank:</b> <a ng-click="download(jobModel.jrBlank.value)">{{jobModel.jrBlank.value.name}}</a>
+                    </div>
+                </div>
+                <div class="row" ng-if="jobModel.jrBlank.contentUrl">
+                    <div class="col-md-12"><a href="{{jobModel.jrBlank.contentUrl}}">JR Blank (Old version, read only)</a>
+                    </div>
+                </div>
+                <div class="row"
+                    ng-if="jobModel.kcellWarehouseMaterialsListName.value.name && isFileVisible(jobModel.kcellWarehouseMaterialsListName.value)">
+                    <div class="col-md-12"><b>Kcell Warehouse Materials List:</b> <a
+                            ng-click="download(jobModel.kcellWarehouseMaterialsListName.value)">{{jobModel.kcellWarehouseMaterialsListName.value.name}}</a>
+                    </div>
+                </div>
+                <div class="row"
+                    ng-if="jobModel.kcellWarehouseMaterialsListName.value && jobModel.kcellWarehouseMaterialsListName.value.length > 0">
+                    <div class="col-md-12"><b>Kcell Warehouse Materials List:</b>
+                        <a ng-if="isFileVisible(file)" ng-repeat="file in jobModel.kcellWarehouseMaterialsListName.value"
+                        ng-click="download(file)">{{file.name}}{{$last?'':', '}}</a>
+                    </div>
+                </div>
+                <div class="row" ng-if="jobModel.kcellWarehouseMaterialsList.contentUrl">
+                    <div class="col-md-12"><a href="{{jobModel.kcellWarehouseMaterialsList.contentUrl}}">Kcell Warehouse
+                        Materials List: <i>{{jobModel.kcellWarehouseMaterialsList.valueInfo.filename}}</i> (Old version,
+                        read only)</a></div>
+                </div>
+                <div class="row"
+                    ng-if="jobModel.kcellWarehouseMaterialsAdditionalList.value && jobModel.kcellWarehouseMaterialsAdditionalList.value.length>0">
+                    <div class="col-md-12"><b>Kcell Warehouse Additional Materials List:</b>
+                        <a ng-if="isFileVisible(file)"
+                        ng-repeat="file in jobModel.kcellWarehouseMaterialsAdditionalList.value"
+                        ng-click="download(file)">{{file.name}}{{$last?'':', '}}</a>
+                    </div>
+                </div>
+                <div class="row"
+                    ng-if="jobModel.contractorZIPWarehouseMaterialsListName.value.name && isFileVisible(jobModel.contractorZIPWarehouseMaterialsListName.value)">
+                    <div class="col-md-12"><b>Contractor ZIP Warehouse Materials List:</b> <a
+                            ng-click="download(jobModel.contractorZIPWarehouseMaterialsListName.value)">{{jobModel.contractorZIPWarehouseMaterialsListName.value.name}}</a>
+                    </div>
+                </div>
+                <div class="row" ng-if="jobModel.contractorZIPWarehouseMaterialsList.contentUrl">
+                    <div class="col-md-12"><a href="{{jobModel.contractorZIPWarehouseMaterialsList.contentUrl}}">Contractor
+                        ZIP Warehouse Materials List:
+                        <i>{{jobModel.contractorZIPWarehouseMaterialsList.valueInfo.filename}}</i> (Old version, read only)</a>
+                    </div>
+                </div>
+                <div class="row"
+                    ng-if="jobModel.mlApprovalAdditionalInfoFile.value.name && isFileVisible(jobModel.mlApprovalAdditionalInfoFile.value)">
+                    <div class="col-md-12"><b>Additional files for ML approval:</b> <a
+                            ng-click="download(jobModel.mlApprovalAdditionalInfoFile.value)">{{jobModel.mlApprovalAdditionalInfoFile.value.name}}</a>
+                    </div>
+                </div>
+                <div class="row" ng-if="jobModel.sapTransferRequestFile.contentUrl">
+                    <div class="col-md-12"><a href="{{jobModel.sapTransferRequestFile.contentUrl}}">SAP Transport Request
+                        File</a></div>
+                </div>
+                <div class="row" ng-if="jobModel.eLicenseResolutionFile.contentUrl">
+                    <div class="col-md-12"><a href="{{jobModel.eLicenseResolutionFile.contentUrl}}">E-License resolution
+                        file: <i>{{jobModel.eLicenseResolutionFile.valueInfo.filename}}</i> (Old version, read only)</a>
+                    </div>
+                </div>
+                <div class="row" ng-if="jobModel.eLicenseResolutionFileName.value.name">
+                    <div class="col-md-12"><b>E-License resolution file:</b> <a
+                            ng-click="download(jobModel.eLicenseResolutionFileName.value)">{{jobModel.eLicenseResolutionFileName.value.name}}</a>
+                    </div>
+                </div>
+                <div class="row" ng-if="jobModel.tssrssidFile.contentUrl">
+                    <div class="col-md-12"><a href="{{jobModel.tssrssidFile.contentUrl}}">TSSR/SSID: <i>{{jobModel.tssrssidFile.valueInfo.filename}}</i>
+                        (Old version, read only)</a></div>
+                </div>
+                <div class="row"
+                    ng-if="jobModel.tssrssidFileName.value.name && isFileVisible(jobModel.tssrssidFileName.value)">
+                    <div class="col-md-12"><b>TSSR/SSID:</b> <a ng-click="download(jobModel.tssrssidFileName.value)">{{jobModel.tssrssidFileName.value.name}}</a>
+                    </div>
+                </div>
+                <div class="row" ng-repeat="trFile in jobModel.trFiles.value">
+                    <div class="col-md-12">
+                        <a ng-if="jobModel.currentTask.id"
+                        href="/camunda/api/engine/engine/default/task/{{jobModel.currentTask.id}}/variables/{{'trFile'+$index}}/data">TR
+                            File # {{trFile.id}}: <i>{{jobModel['trFile'+$index].valueInfo.filename}}</i> (Old version, read
+                            only)</a>
+                        <a ng-if="!jobModel.currentTask.id"
+                        href="/camunda/api/engine/engine/default/{{jobModel.state && jobModel.state == 'COMPLETED'?'history/':''}}variable-instance/{{jobModel['trFile'+$index].id}}/data">TR
+                            File # {{trFile.id}}: <i>{{jobModel['trFile'+$index].valueInfo.filename}}</i> (Old version, read
+                            only)</a>
+                    </div>
+                </div>
+                <div ng-if="jobModel.trFilesName.value && jobModel.trFilesName.value.length > 0">
+                    <div class="row" ng-repeat="trFile in jobModel.trFilesName.value">
+                        <div class="col-md-12">
+                            <b>TR File #{{trFile.description}}</b>
+                            <a ng-if="isFileVisible(trFile)" ng-click="download(trFile)">{{trFile.name}}</a>
+                            <b> Warehouse:</b> {{getDictNameById(jobModel.warehouses,trFile.warehouse).name}}
+                        </div>
+                    </div>
+                </div>
+                <div ng-if="jobModel.trAdditionalFilesName.value && jobModel.trAdditionalFilesName.value.length > 0">
+                    <div class="row" ng-repeat="trFile in jobModel.trAdditionalFilesName.value">
+                        <div class="col-md-12">
+                            <b>TR Additional File #{{trFile.description}}</b>
+                            <a ng-if="isFileVisible(trFile)" ng-click="download(trFile)">{{trFile.name}}</a>
+                            <b> Warehouse:</b> {{getDictNameById(jobModel.warehouses,trFile.warehouse).name}}
+                        </div>
+                    </div>
+                </div>
+                <div class="row" ng-if="jobModel.actOfMaterialsDispatchingFile.contentUrl">
+                    <div class="col-md-12"><a href="{{jobModel.actOfMaterialsDispatchingFile.contentUrl}}">Act of Materials
+                        Dispatching file: <i>{{jobModel.actOfMaterialsDispatchingFile.valueInfo.filename}}</i> (Old version,
+                        read only)</a></div>
+                </div>
+                <div class="row"
+                    ng-if="jobModel.actOfMaterialsDispatchingFileName.value.name && isFileVisible(jobModel.actOfMaterialsDispatchingFileName.value)">
+                    <div class="col-md-12"><b>Act of Materials Dispatching file: </b><a
+                            ng-click="download(jobModel.actOfMaterialsDispatchingFileName.value)">{{jobModel.actOfMaterialsDispatchingFileName.value.name}}</a>
+                    </div>
+                </div>
+                <div ng-if="jobModel.actOfMaterialsDispatchingFiles.value">
+                    <div class="row" ng-repeat="file in jobModel.actOfMaterialsDispatchingFiles.value">
+                        <div class="col-md-12">
+                            <b>Act of Materials Dispatching file [{{file.uploader}}]: </b>
+                            <a ng-if="isFileVisible(file)" ng-click="download(file)">
+                                {{file.name}}
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <div class="row" ng-if="jobModel.initiatorFiles.value && jobModel.initiatorFiles.value.length>0">
+                    <div class="col-md-12"><b>Initiator file(s):</b>
+                        <a ng-if="isFileVisible(file.value)" ng-repeat="file in jobModel.initiatorFiles.value"
+                        ng-click="download(file.value)">{{file.value.name}}{{$last?'':', '}}</a>
+                    </div>
+                </div>
+                <div class="row" ng-if="jobModel.maintananceFiles.value && jobModel.maintananceFiles.value.length>0">
+                    <div class="col-md-12"><b>Maintanance file(s):</b>
+                        <a ng-if="isFileVisible(file.value)" ng-repeat="file in jobModel.maintananceFiles.value"
+                        ng-click="download(file.value)">{{file.value.name}}{{$last?'':', '}}</a>
+                    </div>
+                </div>
+                <div class="row" ng-if="jobModel.planningFiles.value && jobModel.planningFiles.value.length>0">
+                    <div class="col-md-12"><b>Planning file(s):</b>
+                        <a ng-if="isFileVisible(file.value)" ng-repeat="file in jobModel.planningFiles.value"
+                        ng-click="download(file.value)">{{file.value.name}}{{$last?'':', '}}</a>
+                    </div>
+                </div>
+                <div class="row" ng-if="jobModel.scanCopyFile && jobModel.scanCopyFile.value">
+                    <div class="col-md-12"><b>Attached scan copy:</b>
+                        <a ng-click="download(jobModel.scanCopyFile.value.value)">{{jobModel.scanCopyFile.value.value.name}}</a>
+                    </div>
+                </div>
+                <div class="collapse" id="collapseDelayInfo">
+                    <div class="well">
+                        <h4>Delay Info Calculations</h4>
+                        <table class="table ">
+                            <tbody>
+                            <tr>
+                                <td><b>Revision</b></td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td><b>Region</b></td>
+                                <td><b>Calculation</b></td>
+                            </tr>
+                            <tr>
+                                <td><b>Conditions:</b></td>
+                                <td><b>Alarms elimination require</b></td>
+                            </tr>
+                            <tr>
+                                <td>Almaty</td>
+                                <td>Delay = Job Acceptance Date - Job Request Date - (8 business day + holidays)</td>
+                            </tr>
+                            <tr>
+                                <td>South</td>
+                                <td>Delay = Job Acceptance Date - Job Request Date - (8 business day + holidays)</td>
+                            </tr>
+                            <tr>
+                                <td>North</td>
+                                <td>Delay = Job Acceptance Date - Job Request Date - (8 business day + holidays)</td>
+                            </tr>
+                            <tr>
+                                <td>West</td>
+                                <td>Delay = Job Acceptance Date - Job Request Date - (8 business day + holidays)</td>
+                            </tr>
+                            <tr>
+                                <td></td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td><b>Region</b></td>
+                                <td><b>Calculation</b></td>
+                            </tr>
+                            <tr>
+                                <td><b>Conditions:</b></td>
+                                <td><b>Alarms elimination not require + with Mterials from customer</b></td>
+                            </tr>
+                            <tr>
+                                <td>Almaty</td>
+                                <td>Delay = Job Acceptance Date - Material List signed Date - (7 business days + holidays)
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>South</td>
+                                <td>Delay = Job Acceptance Date - Material List signed Date - (10 business days +
+                                    holidays)
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>North</td>
+                                <td>Delay = Job Acceptance Date - Material List signed Date - (10 business days +
+                                    holidays)
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>East</td>
+                                <td>Delay = Job Acceptance Date - Material List signed Date - (13 business days +
+                                    holidays)
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>West</td>
+                                <td>Delay = Job Acceptance Date - Material List signed Date - (15 business days +
+                                    holidays)
+                                </td>
+                            </tr>
+                            <tr>
+                                <td></td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td><b>Region</b></td>
+                                <td><b>Calculation</b></td>
+                            </tr>
+                            <tr>
+                                <td><b>Conditions:</b></td>
+                                <td><b>Alarms elimination not require + w/o Mterials from customer</b></td>
+                            </tr>
+                            <tr>
+                                <td>Almaty</td>
+                                <td>Delay = Job Acceptance Date - Job Request Date - (5 business days + holidays)</td>
+                            </tr>
+                            <tr>
+                                <td>South</td>
+                                <td>Delay = Job Acceptance Date - Job Request Date - (5 business days + holidays)</td>
+                            </tr>
+                            <tr>
+                                <td>North</td>
+                                <td>Delay = Job Acceptance Date - Job Request Date - (5 business days + holidays)</td>
+                            </tr>
+                            <tr>
+                                <td>East</td>
+                                <td>Delay = Job Acceptance Date - Job Request Date - (5 business days + holidays)</td>
+                            </tr>
+                            <tr>
+                                <td>West</td>
+                                <td>Delay = Job Acceptance Date - Job Request Date - (5 business days + holidays)</td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+
+            </div>
+        </div>
+    
+    <invoice-detail invoice="jobModel" search="true" ng-if="jobModel.processDefinitionKey === 'Invoice'"></invoice-detail>
+</div> -->
+    </div>
+</div>
+<div class="modal-footer" id="modal-footer">
+    <button type="button" class="btn btn-default" style="float:right;" ng-click="$dismiss()">Close</button>
+</div>
