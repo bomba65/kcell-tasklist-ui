@@ -1148,7 +1148,7 @@ define(['../module', 'moment'], function (module, moment) {
                                         var workFiles = [];
                                         result.data.forEach(function (el) {
                                             scope.jobModel[el.name] = el;
-                                            console.log(el.name + ' - ' + el.value)
+                                            // console.log(el.name + ' - ' + el.value)
                                             if (el.type === 'File' || el.type === 'Bytes') {
                                                 scope.jobModel[el.name].contentUrl = baseUrl + '/history/variable-instance/' + el.id + '/data';
                                             }
@@ -1508,14 +1508,27 @@ define(['../module', 'moment'], function (module, moment) {
                         return v.toString(16);
                       });
                     }
-                    
+
+                    scope.jobDetailObject = '';
+                    if (scope.jobModel.hasOwnProperty('jrNumber')){
+                        if (scope.jobModel.jrNumber.hasOwnProperty('value')) {
+                            if (scope.jobModel.jrNumber.value.hasOwnProperty('value')) {
+                                scope.jobDetailObject = 'REVISION ' + scope.jobModel.jrNumber.value.value.toString()
+                            } else {
+                                scope.jobDetailObject = 'REVISION ' + scope.jobModel.jrNumber.value.toString()
+                            }
+                        } else {
+                            scope.jobDetailObject = 'REVISION ' + scope.jobModel.jrNumber.toString()
+                        }
+                    }
+                
                     // scope.jobDetailObject = 'REVISION ' + scope.jobModel.jrNumber.value;
                     exModal.open({
                         scope: {
                             jobModel: scope.jobModel,
                             // jobDetailObject: '',
                             getStatus: scope.getStatus,
-                            jobDetailObject: scope.jobModel.jobDetailObject,
+                            jobDetailObject: scope.jobDetailObject,
                             showDiagram: scope.showDiagram,
                             contractorsTitle: scope.contractors,
                             contractorsService: scope.contractorsService,
