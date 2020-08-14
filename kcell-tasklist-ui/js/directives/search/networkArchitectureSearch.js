@@ -1272,13 +1272,9 @@ define(['../module', 'moment'], function (module, moment) {
                 }
 
                 function openProcessCardModalCreatePR(processDefinitionId, businessKey, index) {
-                    console.log('>>>>scope>>>>>')
-                    console.log(scope)
-                    console.log('<<<<scope<<<<<')
                     try{
                         scope.documentType = {1:"ZK73-02", 2:"ZK73-03", 3:"ZK73-04", 4:"ZK73-01"};
                         if(!(scope.jobModel.hasOwnProperty('sapFaList') && scope.jobModel.sapFaList !== null)) {
-                            console.log('scope.jobModel.sapFaList = []')
                             scope.jobModel.sapFaList = {
                                 value : []
                             }
@@ -1316,27 +1312,17 @@ define(['../module', 'moment'], function (module, moment) {
                             }
                             }
                         
-                        console.log('scope.jobWorksValue start')
-                        
-                        console.log(scope.jobModel.jobWorks.value)
                         scope.jobWorksValue = scope.jobModel.jobWorks.value;
-                        console.log(scope.jobWorksValue)
-                        console.log('scope.jobWorksValue false')
                         scope.jobWorksValue.forEach(function(work){
-                            console.log(work.sapServiceNumber)
                             if(scope.capexWorks.indexOf(work.sapServiceNumber)!==-1){
                                 work.expenseType = 'CAPEX';
                             } else if(scope.opexWorks.indexOf(work.sapServiceNumber)!==-1){
                                 work.expenseType = 'OPEX';
                             }
                         });
-                        console.log('calculateExpense start')
                         calculateExpense(true);
-                        console.log('calculateExpense finish')
                         scope.jobWorksValueTemp = [];
                         scope.jobWorksValue.forEach(function(w, index) {
-                            console.log('scope.jobWorksValue.forEach(function(w, index)')
-                            console.log(w)
                             if(scope.jobModel.reason.value != '2' || (scope.jobModel.reason.value == '2' && w.relatedSites.length == 0)) {
                                 w.r = {
                                     site_name: scope.jobModel.site_name.value
@@ -1412,12 +1398,7 @@ define(['../module', 'moment'], function (module, moment) {
                                     scope.jobWorksValueTemp.push(angular.copy(w));
                                 });
                             }
-                            console.log(w)
-                            console.log('FINISH scope.jobWorksValue.forEach(function(w, index)')
                         });
-                        console.log('>>>>>>scope.jobWorksValueTemp')
-                        console.log(scope.jobWorksValueTemp)
-                        console.log('<<<<<<scope.jobWorksValueTemp')
                     } catch(E) {
                         console.log(E);
                     }
@@ -1454,7 +1435,6 @@ define(['../module', 'moment'], function (module, moment) {
                                 work.costCenter = '25510';
         
                                 if(work.expenseType==='CAPEX'){
-                                    console.log('CAPEX sapFaList')
                                     if(scope.jobModel.reason.value === '2'){
                                         angular.forEach(work.relatedSites, function (rs) {
                                             angular.forEach(scope.jobModel.sapFaList.value, function (fa) {
@@ -1579,7 +1559,7 @@ define(['../module', 'moment'], function (module, moment) {
                             },
                             compareDate: new Date('2019-02-05T06:00:00.000'),
                         },
-                        templateUrl: './js/partials/CreatePRProcessCardModal.html',
+                        templateUrl: './js/partials/createPRProcessCardModal.html',
                         size: ('hg')
                     }).then(function (results) {
                     });
