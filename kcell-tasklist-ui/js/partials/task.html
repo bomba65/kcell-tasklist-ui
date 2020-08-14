@@ -1,32 +1,46 @@
-<div class="container-fluid">
-	<div ng-if="currentTask" class="row b-b" style="padding-bottom: 15px; margin-bottom: 5px;">
-		<div class="col-md-8">
-			<h3>{{currentTask.description}}</h3>
-			{{currentTask.processDefinitionId.split(':')[0]}}
-			<span ng-if="currentTask.candidateObject">
-							| <span class="text-muted">Group</span>: {{currentTask.candidateObject.groupId}}</a>
-						</span>
-			<span ng-if="!currentTask.assignee">
-							| <span class="text-muted">Assignee</span>
-							<a ng-click="claim(currentTask)"><i class="glyphicon glyphicon-user ng-scope"></i> Claim</a>
-						</span>
-			<span ng-if="!currentTask.assignee && assignLinkEnabled(processDefinitionKey)">
-							| <a ng-show="!assignmentInProgress" ng-click="dispayAssignField()"> Assign</a>
-							<input ng-if="assignmentInProgress && hasGroup('revision_managers')" type="text" ng-model="newAssignee" typeahead="name as users.name for users in getTaskAssigneeUserList($viewValue)" typeahead-on-select="assign($item.id, currentTask)" autocomplete="off">
-							<select  ng-model="$parent.$parent.newLeasingAssignee" ng-options="u.id as u.firstName + ' ' + u.lastName for u in leasingUserList" ng-show="assignmentInProgress && !hasGroup('revision_managers')">
 
-							</select>
+<div class="container-fluid">
+
+	<div ng-if="currentTask" class="row b-b" style="padding-bottom: 15px; margin-bottom: 5px;">
+		<div class="col-md-4 nopadding text-right" style="padding-top: 30px; padding-right: 25px; ">
+			<span ng-if="!currentTask.assignee">
+				<a class="btn btn-default task-button" ng-click="claim(currentTask)"> Claim</a>
+				<a class="btn btn-default task-button"  ng-show="!assignmentInProgress" ng-click="dispayAssignField()"> Assign</a>
+			</span>
+			<span ng-if="!currentTask.assignee && assignLinkEnabled(processDefinitionKey)">
+				<input class="input-container" ng-if="assignmentInProgress && hasGroup('revision_managers')" type="text" ng-model="newAssignee" typeahead="name as users.name for users in getTaskAssigneeUserList($viewValue)" typeahead-on-select="assign($item.id, currentTask)" autocomplete="off">
+				<select  ng-model="$parent.$parent.newLeasingAssignee" ng-options="u.id as u.firstName + ' ' + u.lastName for u in leasingUserList" ng-show="assignmentInProgress && !hasGroup('revision_managers')">
+				</select>
 				<a ng-click="assignSelected()" ng-show="assignmentInProgress && !hasGroup('revision_managers')"><i class="glyphicon glyphicon-ok ng-scope"></i></a>
 						</span>
-			<span ng-if="currentTask.assignee">
-							| <span class="text-muted">Assignee</span> <a><i class="glyphicon glyphicon-user ng-scope"></i> {{currentTask.assigneeObject.firstName}} {{currentTask.assigneeObject.lastName}}</a> <a ng-click="unclaim(currentTask)"> x</a>
+			<a href="" class="btn btn-default task-button" ng-click="showHistory(resolutions)" class="ng-binding"><span class="glyphicon glyphicon-list" aria-hidden="true"></span> History</a>
+			<a href="" ng-if="hasGroup('kcellUsers') || hasGroup('sharing_beeline_users_group')" class="btn btn-default task-button" ng-click="selectedTab != 'diagram' ? selectTab('diagram') : selectTab('form')" class="ng-binding"><span class="glyphicon glyphicon-indent-left" aria-hidden="true"></span> Diagram</a>
+		</div>
+		<div class="col-md-8 task-container">
+			<h3>{{currentTask.description}}</h3>
+			<div class="process-container">
+				<span class="text-muted">Process</span>: {{currentTask.processDefinitionId.split(':')[0]}}
+			</div>
+			<span ng-if="currentTask.candidateObject">
+							 <span class="text-muted">Group</span>: {{currentTask.candidateObject.groupId}}</a>
 						</span>
+			<div class="task-date-container">
+				<div>
+					<span ng-if="!currentTask.assignee">
+							 <span class="text-muted">Assignee</span>: <a>nobody</a>
+
+			</span>
+					<span ng-if="currentTask.assignee">
+				<span class="text-muted">Assignee</span>: <div class="btn btn-default"> <a>{{currentTask.assigneeObject.firstName}} {{currentTask.assigneeObject.lastName}}</a><a ng-click="unclaim(currentTask)"> x</a></div>
+				</span>
+				</div>
+				<div class="task-created-date"><span class="glyphicon glyphicon-calendar"></span><p class="task-date-text">Task created date</p>: {{currentTask.created | date: 'dd/MM/yyyy HH:mm'}}</div>
+			</div>
+
 		</div>
-		<div class="col-md-4 nopadding text-right" style="padding-top: 30px; padding-right: 25px;">
-			<a href="" class="btn btn-default" ng-click="showHistory(resolutions)" class="ng-binding"><span class="glyphicon glyphicon-list" aria-hidden="true"></span> History</a>
-			<a href="" ng-if="hasGroup('kcellUsers') || hasGroup('sharing_beeline_users_group')" class="btn btn-default" ng-click="selectedTab != 'diagram' ? selectTab('diagram') : selectTab('form')" class="ng-binding"><span class="glyphicon glyphicon-indent-left" aria-hidden="true"></span> Diagram</a>
-		</div>
+
 	</div>
+
 </div>
 
 <div class="page-body container-fluid" ng-if="historyTask">
