@@ -986,8 +986,7 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 		}
 
 		$scope.toggleProcessView = function(index, id, processDefinitionKey){
-			console.log(id);
-			if($scope.piIndex === index){
+			if($scope.piIndeqx === index){
                 $scope.piIndex = undefined;
             } else {
                 $scope.piIndex = index;

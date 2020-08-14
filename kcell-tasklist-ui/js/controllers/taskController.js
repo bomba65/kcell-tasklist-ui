@@ -388,6 +388,35 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 					isFileVisible: function(file) {
 		            	return !file.visibility || file.visibility == 'all' || (file.visibility == 'kcell' && $rootScope.hasGroup('kcellUsers'));
 		            },
+					showDetailHistory: async function(resolution, resolutions) {
+						if (resolution.taskId != 'noTaskId') {
+							this.$dismiss()
+							await $http({method: 'GET', url: '/camunda/user-task-history/' + resolution.taskId}).
+							then(async function(response) {
+								for (var i = 0; i < response.data.length; i ++){
+									var el = response.data[i]
+									el.assigneeName =  await $scope.$parent.getUserById(el)
+									el.operation_responsibleName =  await $scope.$parent.getUserById(el)
+								}
+								$scope.userTaskHistoryList = response.data
+							}, function(error){
+								console.log(error);
+							});
+							qexModal.open({
+								scope: {
+									userTaskHistoryList: $scope.userTaskHistoryList,
+									close: function() {
+										this.$dismiss();
+										$scope.showHistory(resolutions)
+									}
+								},
+								templateUrl: './js/partials/detailHistoryModal.html',
+								size: 'hg'
+							}).then(function(results){
+							});
+						}
+
+					},
 		            isKcellStaff: $rootScope.hasGroup('kcellUsers')
 				},
 				templateUrl: './js/partials/resolutionsModal.html',
