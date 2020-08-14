@@ -1559,7 +1559,7 @@ define(['../module', 'moment'], function (module, moment) {
                             },
                             compareDate: new Date('2019-02-05T06:00:00.000'),
                         },
-                        templateUrl: './js/partials/createPRProcessCardModal.html',
+                        templateUrl: './js/partials/createPrProcessCardModal.html',
                         size: ('hg')
                     }).then(function (results) {
                     });
