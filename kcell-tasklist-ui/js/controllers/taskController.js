@@ -409,7 +409,6 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 							this.$dismiss()
 							await $http({method: 'GET', url: '/camunda/api/engine/engine/default/history/identity-link-log/?taskId=' + resolution.taskId}).
 							then(async function(response) {
-								console.log(response)
 								$scope.userTaskHistoryList = response.data.filter(function(el) {
 									return el.type == 'assignee'
 								})
