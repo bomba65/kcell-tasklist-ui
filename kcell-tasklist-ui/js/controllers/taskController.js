@@ -370,7 +370,23 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 	        return $scope.hasGroup('demand_uat_users');
 			}
 		};
-
+		async function getUserById (userId) {
+			var user = null
+			if (userId){
+				user = await $http({
+					method: 'GET',
+					headers:{'Accept':'application/hal+json, application/json; q=0.5'},
+					url: baseUrl+'/user/?id=' + userId
+				}).then(function(results){
+					// var index = _.findIndex($scope.jobModel.tasks, function(v){
+					// 	return v.processInstanceId = task.processInstanceId
+					// })
+					// $scope.jobModel.tasks[index].assigneeObject = results.data[0]
+					return results.data[0]
+				})
+			}
+			return user
+		}
         $scope.showHistory = function(resolutions){
 			exModal.open({
 				scope: {
@@ -391,18 +407,21 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 					showDetailHistory: async function(resolution, resolutions) {
 						if (resolution.taskId != 'noTaskId') {
 							this.$dismiss()
-							await $http({method: 'GET', url: '/camunda/user-task-history/' + resolution.taskId}).
+							await $http({method: 'GET', url: '/camunda/api/engine/engine/default/history/identity-link-log/?taskId=' + resolution.taskId}).
 							then(async function(response) {
-								for (var i = 0; i < response.data.length; i ++){
-									var el = response.data[i]
-									el.assigneeName =  await $scope.$parent.getUserById(el)
-									el.operation_responsibleName =  await $scope.$parent.getUserById(el)
+								console.log(response)
+								$scope.userTaskHistoryList = response.data.filter(function(el) {
+									return el.type == 'assignee'
+								})
+								for (var i = 0; i < $scope.userTaskHistoryList.length; i ++){
+									var el = $scope.userTaskHistoryList[i]
+									el.assigneeName =  await getUserById(el.assignerId)
+									el.operation_responsibleName =  await getUserById(el.userId)
 								}
-								$scope.userTaskHistoryList = response.data
 							}, function(error){
 								console.log(error);
 							});
-							qexModal.open({
+							exModal.open({
 								scope: {
 									userTaskHistoryList: $scope.userTaskHistoryList,
 									close: function() {
