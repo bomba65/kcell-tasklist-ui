@@ -59,11 +59,11 @@ public class CreateNCP implements JavaDelegate {
             log.info(udbOracleUrl);
             log.info(udbOracleUsername);
             log.info(udbOraclePassword);
-            Connection udbConnect = DriverManager.getConnection(
-                udbOracleUrl,
-                udbOracleUsername,
-                udbOraclePassword);
-//            Connection udbConnect = DriverManager.getConnection("jdbc:oracle:thin:@//sc2-appcl010406:1521/apexudb", "app_apexudb_camunda", "p28zt#7C");
+//            Connection udbConnect = DriverManager.getConnection(
+//                udbOracleUrl,
+//                udbOracleUsername,
+//                udbOraclePassword);
+            Connection udbConnect = DriverManager.getConnection("jdbc:oracle:thin:@//sc2-appcl010406:1521/apexudb", "app_apexudb_camunda", "p28zt#7C");
             try {
                 if (udbConnect != null) {
                     udbConnect.setAutoCommit(false);
@@ -163,8 +163,8 @@ public class CreateNCP implements JavaDelegate {
                     } else {
                         preparedStatement.setNull(i++, Types.BIGINT);
                     }
-                    preparedStatement.setString(i++, longitude); // LONGITUDE ex. E 76,890775
-                    preparedStatement.setString(i++, latitude); // LATITUDE
+                    preparedStatement.setString(i++, "E " + longitude.replace(".", ",")); // LONGITUDE ex. E 76,890775
+                    preparedStatement.setString(i++, "N " + latitude.replace(".", ",")); // LATITUDE
                     if (reasonInt != null) {
                         preparedStatement.setLong(i++, reasonInt); // REASON
                     } else {

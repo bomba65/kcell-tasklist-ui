@@ -57,8 +57,8 @@ public class UpdateTSD implements JavaDelegate {
                     String starter = delegateExecution.getVariable("starter").toString();
 
                     SpinJsonNode candidate = JSON(delegateExecution.getVariable("candidate"));
-                    String cn_longitude = candidate.prop("longitude").stringValue();
-                    String cn_latitude = candidate.prop("latitude").stringValue();
+                    String cn_longitude = "E " + candidate.prop("longitude").value().toString().replace(".", ",");
+                    String cn_latitude = "N " + candidate.prop("latitude").value().toString().replace(".", ",");
 
                     SpinJsonNode feJson = JSON(delegateExecution.getVariable("farEndInformation"));
                     SpinList farEnds = feJson.elements();

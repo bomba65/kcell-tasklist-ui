@@ -37,11 +37,11 @@ public class SetStatus implements JavaDelegate {
             log.info(udbOracleUrl);
             log.info(udbOracleUsername);
             log.info(udbOraclePassword);
-            Connection udbConnect = DriverManager.getConnection(
-                udbOracleUrl,
-                udbOracleUsername,
-                udbOraclePassword);
-//            Connection udbConnect = DriverManager.getConnection("jdbc:oracle:thin:@//sc2-appcl010406:1521/apexudb", "app_apexudb_camunda", "p28zt#7C");
+//            Connection udbConnect = DriverManager.getConnection(
+//                udbOracleUrl,
+//                udbOracleUsername,
+//                udbOraclePassword);
+            Connection udbConnect = DriverManager.getConnection("jdbc:oracle:thin:@//sc2-appcl010406:1521/apexudb", "app_apexudb_camunda", "p28zt#7C");
             try {
                 if (udbConnect != null) {
                     udbConnect.setAutoCommit(false);

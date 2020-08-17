@@ -54,11 +54,11 @@ public class CreateCandidate implements JavaDelegate {
             log.info(udbOracleUrl);
             log.info(udbOracleUsername);
             log.info(udbOraclePassword);
-            Connection udbConnect = DriverManager.getConnection(
-                udbOracleUrl,
-                udbOracleUsername,
-                udbOraclePassword);
-//            Connection udbConnect = DriverManager.getConnection("jdbc:oracle:thin:@//sc2-appcl010406:1521/apexudb", "app_apexudb_camunda", "p28zt#7C");
+//            Connection udbConnect = DriverManager.getConnection(
+//                udbOracleUrl,
+//                udbOracleUsername,
+//                udbOraclePassword);
+            Connection udbConnect = DriverManager.getConnection("jdbc:oracle:thin:@//sc2-appcl010406:1521/apexudb", "app_apexudb_camunda", "p28zt#7C");
             try {
                 if (udbConnect != null) {
                     udbConnect.setAutoCommit(false);
@@ -181,7 +181,7 @@ public class CreateCandidate implements JavaDelegate {
 
                     SpinJsonNode feJson = delegateExecution.getVariable("farEndInformation") != null ? JSON(delegateExecution.getVariable("farEndInformation")) : null;
                     SpinList farEnds = feJson != null ? feJson.elements() : null;
-                    SpinJsonNode fe = farEnds != null ? (SpinJsonNode) farEnds.get(0) : null;
+                    SpinJsonNode fe = farEnds != null && farEnds.size()>0 ? (SpinJsonNode) farEnds.get(0) : null;
 
                     Number fe_artefact_id = 0;
 
@@ -459,8 +459,8 @@ public class CreateCandidate implements JavaDelegate {
                     newArtefactCurrentStatePreparedStatement.setLong(i++, 1); // RR_STATUS first insert value mast be = 1
                     newArtefactCurrentStatePreparedStatement.setString(i++, starter); // RR_STATUS_PERSON (current user)
 //                    newArtefactCurrentStatePreparedStatement.setDate(i++, new java.sql.Date(new Date().getTime())); // RR_STATUS_DATE
-                    newArtefactCurrentStatePreparedStatement.setString(i++, cn_longitude); // LONGITUDE ex: E 80 50 42,4
-                    newArtefactCurrentStatePreparedStatement.setString(i++, cn_latitude); // LATITUDE ex: N 48 48 05,6
+                    newArtefactCurrentStatePreparedStatement.setString(i++, "E " + cn_longitude.replace(".", ",")); // LONGITUDE ex: E 80 50 42,4
+                    newArtefactCurrentStatePreparedStatement.setString(i++, "N " + cn_latitude.replace(".", ",")); // LATITUDE ex: N 48 48 05,6
                     if (rbsTypeInt != null) {
                         newArtefactCurrentStatePreparedStatement.setLong(i++, rbsTypeInt); // RBS_TYPE (cn_rbs_type)
                     } else {
@@ -605,8 +605,8 @@ public class CreateCandidate implements JavaDelegate {
                         newArtefactRRPreparedStatement.setNull(i++, Types.DATE);
                     }
                     newArtefactRRPreparedStatement.setString(i++, cn_address); //ADDRESS
-                    newArtefactRRPreparedStatement.setString(i++, latitude); //LATITUDE
-                    newArtefactRRPreparedStatement.setString(i++, longitude); //LONGITUDE
+                    newArtefactRRPreparedStatement.setString(i++, "N " + latitude.replace(".", ",")); //LATITUDE
+                    newArtefactRRPreparedStatement.setString(i++, "E " + longitude.replace(".", ",")); //LONGITUDE
                     if (cn_constructionType != null) {
                         newArtefactRRPreparedStatement.setLong(i++, Integer.parseInt(cn_constructionType)); //CONSTR_TYPE
                     } else {
@@ -817,10 +817,10 @@ public class CreateCandidate implements JavaDelegate {
                     newArtefactExtTSDPreparedStatement.setString(i++, starter); // INSERT_PERSON
 
                     if (cn_longitude != null) {
-                        newArtefactExtTSDPreparedStatement.setString(i++, cn_longitude); // NE_LONGITUDE
+                        newArtefactExtTSDPreparedStatement.setString(i++, "E " + cn_longitude.replace(".", ",")); // NE_LONGITUDE
                     }
                     if (cn_latitude != null) {
-                        newArtefactExtTSDPreparedStatement.setString(i++, cn_latitude); // NE_LATITUDE
+                        newArtefactExtTSDPreparedStatement.setString(i++, "N " + cn_latitude.replace(".", ",")); // NE_LATITUDE
                     }
                     if (fe_sitename != null) {
                         newArtefactExtTSDPreparedStatement.setString(i++, fe_sitename); // FE_SITENAME
@@ -1394,25 +1394,27 @@ public class CreateCandidate implements JavaDelegate {
                     // --Create new candidate form files:
 
 //                    for (int j=0; j<createNewCandidateSiteFiles.size(); j++) {
-                    for (int j=0; j<1; j++) {
-                        SpinJsonNode file = (SpinJsonNode) createNewCandidateSiteFiles.get(j);
-                        if (file != null) {
-                            String INSERT_ARTEFACT_RR_FILE = "INSERT INTO ARTEFACT_RR_FILE (FILE_ID, RR_ID, FILENAME, LASTUPDATED, RR_FILE) VALUES (ARTEFACT_RR_FILE_SEQ.nextval, ?, ?, SYSDATE, ?)";
-                            PreparedStatement ARTEFACT_RR_FILE_PreparedStatement = udbConnect.prepareStatement(INSERT_ARTEFACT_RR_FILE);
-                            log.info("INSERT INTO ARTEFACT_RR_FILE: #" + j + "/" + createNewCandidateSiteFiles.size() + " " + file.prop("name").value().toString());
+                    if (createNewCandidateSiteFiles != null && createNewCandidateSiteFiles.size()>0){
+                        for (int j=0; j<1; j++) {
+                            SpinJsonNode file = (SpinJsonNode) createNewCandidateSiteFiles.get(j);
+                            if (file != null) {
+                                String INSERT_ARTEFACT_RR_FILE = "INSERT INTO ARTEFACT_RR_FILE (FILE_ID, RR_ID, FILENAME, LASTUPDATED, RR_FILE) VALUES (ARTEFACT_RR_FILE_SEQ.nextval, ?, ?, SYSDATE, ?)";
+                                PreparedStatement ARTEFACT_RR_FILE_PreparedStatement = udbConnect.prepareStatement(INSERT_ARTEFACT_RR_FILE);
+                                log.info("INSERT INTO ARTEFACT_RR_FILE: #" + j + "/" + createNewCandidateSiteFiles.size() + " " + file.prop("name").value().toString());
 
-                            String rrFilePath = file.prop("path").value().toString();
-                            InputStream rrFileInputStream = minioClient.getObject(rrFilePath);
-                            byte[] rrFileBytes = IOUtils.toByteArray(rrFileInputStream);
-                            ByteArrayInputStream rrFileIs = new ByteArrayInputStream(rrFileBytes);
+                                String rrFilePath = file.prop("path").value().toString();
+                                InputStream rrFileInputStream = minioClient.getObject(rrFilePath);
+                                byte[] rrFileBytes = IOUtils.toByteArray(rrFileInputStream);
+                                ByteArrayInputStream rrFileIs = new ByteArrayInputStream(rrFileBytes);
 
-                            i = 1;
-                            ARTEFACT_RR_FILE_PreparedStatement.setLong(i++, createdArtefactRRId);// RR_ID
-                            ARTEFACT_RR_FILE_PreparedStatement.setString(i++, file.hasProp("name") ? file.prop("name").value().toString() : "");
-//                            ARTEFACT_RR_FILE_PreparedStatement.setDate(i++, new java.sql.Date(new Date().getTime())); // INSERT_DATE
-                            ARTEFACT_RR_FILE_PreparedStatement.setBinaryStream(i++, rrFileIs);
-                            ARTEFACT_RR_FILE_PreparedStatement.executeUpdate();
-                            log.info("Successfully inserted");
+                                i = 1;
+                                ARTEFACT_RR_FILE_PreparedStatement.setLong(i++, createdArtefactRRId);// RR_ID
+                                ARTEFACT_RR_FILE_PreparedStatement.setString(i++, file.hasProp("name") ? file.prop("name").value().toString() : "");
+    //                            ARTEFACT_RR_FILE_PreparedStatement.setDate(i++, new java.sql.Date(new Date().getTime())); // INSERT_DATE
+                                ARTEFACT_RR_FILE_PreparedStatement.setBinaryStream(i++, rrFileIs);
+                                ARTEFACT_RR_FILE_PreparedStatement.executeUpdate();
+                                log.info("Successfully inserted");
+                            }
                         }
                     }
 
