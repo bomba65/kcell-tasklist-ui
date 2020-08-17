@@ -787,29 +787,29 @@ define(['./module','jquery', 'camundaSDK'], function(app, $, CamSDK){
 			);
         };
 
-        $scope.showHistory = function(resolutions){
-			exModal.open({
-				scope: {
-					resolutions: resolutions.value,
-					isKcellStaff: $rootScope.hasGroup('kcellUsers'),
-					procDef: $scope.currentPD,
-					download: function(path) {
-		              $http({method: 'GET', url: '/camunda/uploads/get/' + path, transformResponse: [] }).
-		              then(function(response) {
-		                  document.getElementById('fileDownloadIframe').src = response.data;
-		              }, function(error){
-		                  console.log(error);
-		              });
-		            },
-	                isFileVisible: function(file) {
-	                  return !file.visibility || file.visibility == 'all' || (file.visibility == 'kcell' && $rootScope.hasGroup('kcellUsers'));
-	                }
-				},
-				templateUrl: './js/partials/resolutionsModal.html',
-				size: 'hg'
-			}).then(function(results){
-			});
-        };
+        // $scope.showHistory = function(resolutions){
+		// 	exModal.open({
+		// 		scope: {
+		// 			resolutions: resolutions.value,
+		// 			isKcellStaff: $rootScope.hasGroup('kcellUsers'),
+		// 			procDef: $scope.currentPD,
+		// 			download: function(path) {
+		//               $http({method: 'GET', url: '/camunda/uploads/get/' + path, transformResponse: [] }).
+		//               then(function(response) {
+		//                   document.getElementById('fileDownloadIframe').src = response.data;
+		//               }, function(error){
+		//                   console.log(error);
+		//               });
+		//             },
+	    //             isFileVisible: function(file) {
+	    //               return !file.visibility || file.visibility == 'all' || (file.visibility == 'kcell' && $rootScope.hasGroup('kcellUsers'));
+	    //             }
+		// 		},
+		// 		templateUrl: './js/partials/resolutionsModal.html',
+		// 		size: 'hg'
+		// 	}).then(function(results){
+		// 	});
+        // };
 
         $scope.hasPermissionToViewAll = function(processDefinitionKey){
 			if (processDefinitionKey === 'Revision') {

@@ -357,6 +357,79 @@ define('app',[
 				}
 			);
 		};
+		async function getUserById (userId) {
+			var user = null
+			if (userId){
+				user = await $http({
+					method: 'GET',
+					headers:{'Accept':'application/hal+json, application/json; q=0.5'},
+					url: '/camunda/api/engine/engine/default/user/?id=' + userId
+				}).then(function(results){
+					// var index = _.findIndex($scope.jobModel.tasks, function(v){
+					// 	return v.processInstanceId = task.processInstanceId
+					// })
+					// $scope.jobModel.tasks[index].assigneeObject = results.data[0]
+					return results.data[0]
+				})
+			}
+			return user
+		};
+		$rootScope.showHistory = function(resolutions, procDef){
+			console.log(procDef)
+			exModal.open({
+				scope: {
+					resolutions: procDef === 'leasing' ? _.orderBy(resolutions, ['type', 'assignDate'], ['asc', 'desc']) : resolutions,
+					// resolutions: resolutions,
+					procDef: procDef,
+					download: function(path) {
+						$http({method: 'GET', url: '/camunda/uploads/get/' + path, transformResponse: [] }).
+						then(function(response) {
+							document.getElementById('fileDownloadIframe').src = response.data;
+						}, function(error){
+							console.log(error);
+						});
+					},
+					isFileVisible: function(file) {
+						return !file.visibility || file.visibility == 'all' || (file.visibility == 'kcell' && $rootScope.hasGroup('kcellUsers'));
+					},
+					showDetailHistory: async function(resolution, resolutions) {
+						if (resolution.taskId != 'noTaskId') {
+							this.$dismiss()
+							await $http({method: 'GET', url: '/camunda/api/engine/engine/default/history/identity-link-log/?taskId=' + resolution.taskId}).
+							then(async function(response) {
+								$rootScope.userTaskHistoryList = response.data.filter(function(el) {
+									return el.type == 'assignee'
+								})
+								for (var i = 0; i < $rootScope.userTaskHistoryList.length; i ++){
+									var el = $rootScope.userTaskHistoryList[i]
+									el.assigneeName =  await getUserById(el.assignerId)
+									el.operation_responsibleName =  await getUserById(el.userId)
+								}
+							}, function(error){
+								console.log(error);
+							});
+							exModal.open({
+								scope: {
+									userTaskHistoryList: $rootScope.userTaskHistoryList,
+									close: function() {
+										this.$dismiss();
+										$rootScope.showHistory(resolutions, procDef)
+									}
+								},
+								templateUrl: './js/partials/detailHistoryModal.html',
+								size: 'hg'
+							}).then(function(results){
+							});
+						}
+
+					},
+					isKcellStaff: $rootScope.hasGroup('kcellUsers')
+				},
+				templateUrl: './js/partials/resolutionsModal.html',
+				size: 'hg'
+			}).then(function(results){
+			});
+		};
 	}]).run([ '$rootScope', '$location', 'AuthenticationService', '$q', '$state', function($rootScope, $location, AuthenticationService, $q, $state) {
 		$rootScope.$on('authentication.login.required', function(event) {
 			$rootScope.$evalAsync(function() {

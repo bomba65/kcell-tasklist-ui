@@ -478,31 +478,6 @@ define(['./module', 'jquery', 'moment', 'camundaSDK'], function (app, $, moment,
             };
 
 
-
-            $scope.showHistory = function(resolutions, procDef){
-                exModal.open({
-                    scope: {
-                        resolutions: resolutions, //resolutions.value,
-                        isKcellStaff: $rootScope.hasGroup('kcellUsers'),
-                        procDef: procDef,
-                        download: function(path) {
-                            $http({method: 'GET', url: '/camunda/uploads/get/' + path, transformResponse: [] }).
-                            then(function(response) {
-                                document.getElementById('fileDownloadIframe').src = response.data;
-                            }, function(error){
-                                console.log(error);
-                            });
-                        },
-                        isFileVisible: function(file) {
-                          return !file.visibility || file.visibility == 'all' || (file.visibility == 'kcell' && $rootScope.hasGroup('kcellUsers'));
-                        }
-                    },
-                    templateUrl: './js/partials/resolutionsModal.html',
-                    size: 'hg'
-                }).then(function(results){
-                });
-            };
-
             $scope.open = function ($event, dateFieldOpened) {
                 $event.preventDefault();
                 $event.stopPropagation();

@@ -827,30 +827,6 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 	        });
 	    }
 
-        $scope.showHistory = function(resolutions, procDef){
-            exModal.open({
-                scope: {
-                    resolutions: resolutions,
-                    isKcellStaff: $rootScope.hasGroup('kcellUsers'),
-                    procDef: procDef,
-                    download: function(path) {
-                        $http({method: 'GET', url: '/camunda/uploads/get/' + path, transformResponse: [] }).
-                        then(function(response) {
-                            document.getElementById('fileDownloadIframe').src = response.data;
-                        }, function(error){
-                            console.log(error);
-                        });
-                    },
-                    isFileVisible: function(file) {
-                      return !file.visibility || file.visibility == 'all' || (file.visibility == 'kcell' && $rootScope.hasGroup('kcellUsers'));
-                    }
-                },
-                templateUrl: 'js/partials/resolutionsModal.html',
-                size: 'hg'
-            }).then(function(results){
-            });
-        };
-
 		$scope.getVariableLabel = function(key){
 			return _.keyBy($scope.currentFilter.properties.variables, 'name')[key].label;
 		}
