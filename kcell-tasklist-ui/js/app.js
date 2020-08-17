@@ -253,6 +253,7 @@ define('app',[
 	    	};
 		}];
 	}).run(['AuthenticationService', '$rootScope', '$http', 'localStorageService', 'exModal', 'StartProcessService', function(AuthenticationService, $rootScope, $http, localStorageService, exModal, StartProcessService){
+		$rootScope.userList = []
 		$rootScope.isProjectVisible = function(projectKey){
 			if($rootScope.selectedProject.key === projectKey){
 				return true;
@@ -358,24 +359,29 @@ define('app',[
 			);
 		};
 		async function getUserById (userId) {
-			var user = null
+			var user = _.find($rootScope.userList, o => o.id == userId)
 			if (userId){
-				user = await $http({
-					method: 'GET',
-					headers:{'Accept':'application/hal+json, application/json; q=0.5'},
-					url: '/camunda/api/engine/engine/default/user/?id=' + userId
-				}).then(function(results){
-					// var index = _.findIndex($scope.jobModel.tasks, function(v){
-					// 	return v.processInstanceId = task.processInstanceId
-					// })
-					// $scope.jobModel.tasks[index].assigneeObject = results.data[0]
-					return results.data[0]
-				})
+				if (user) {
+					return user
+				} else {
+					user = await $http({
+						method: 'GET',
+						headers:{'Accept':'application/hal+json, application/json; q=0.5'},
+						url: '/camunda/api/engine/engine/default/user/?id=' + userId
+					}).then(function(results){
+						// var index = _.findIndex($scope.jobModel.tasks, function(v){
+						// 	return v.processInstanceId = task.processInstanceId
+						// })
+						// $scope.jobModel.tasks[index].assigneeObject = results.data[0]
+						$rootScope.userList.push(results.data[0])
+						return results.data[0]
+					})
+				}
+
 			}
 			return user
 		};
 		$rootScope.showHistory = function(resolutions, procDef){
-			console.log(procDef)
 			exModal.open({
 				scope: {
 					resolutions: procDef === 'leasing' ? _.orderBy(resolutions, ['type', 'assignDate'], ['asc', 'desc']) : resolutions,
