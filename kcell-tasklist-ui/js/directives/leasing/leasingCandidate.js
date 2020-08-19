@@ -43,6 +43,9 @@ define(['./../module'], function(module){
 						Object.values(scope.leasingCandidate.address).forEach((s,index) => {
 							scope.leasingCandidate.addressString += index > 0 ? ', ' + s : s
 						});
+						console.log(`scope.dictionary:`);
+						console.log(scope.dictionary);
+						console.log('----------------------------------------');
 						console.log(`scope.leasingCandidate.cellAntenna.address:`);
 						console.log(scope.leasingCandidate.cellAntenna.address);
 						console.log('----------------------------------------');

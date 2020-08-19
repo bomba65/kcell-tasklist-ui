@@ -4917,6 +4917,12 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                 $http.get('/api/leasingCatalogs').then(
                     function (result) {
                         angular.extend(scope.dictionary, result.data);
+                        console.log(`dictionary result:`);
+                        console.log(result);
+                        console.log('----------------------------------------');
+                        console.log(`scope.dictionary:`);
+                        console.log(scope.dictionary);
+                        console.log('----------------------------------------');
                         scope.dictionary.legalTypeTitle = _.keyBy(scope.dictionary.legalType, 'id');
                         scope.dictionary.antennasList = scope.dictionary.antennas;
                         scope.dictionary.antennaType = scope.dictionary.antennaType;
@@ -4948,6 +4954,9 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                         Object.values(scope.leasingCandidate.address).forEach((s, index) => {
                             scope.leasingCandidate.addressString += index > 0 ? ', ' + s : s
                         });
+                        console.log(`scope.dictionary:`);
+                        console.log(scope.dictionary);
+                        console.log('----------------------------------------');
                         console.log(`scope.leasingCandidate.cellAntenna.address:`);
                         console.log(scope.leasingCandidate.cellAntenna.address);
                         console.log('----------------------------------------');
