@@ -176,6 +176,9 @@ public class CreateCandidate implements JavaDelegate {
                     String ne_diameter = ne != null ? (ne.hasProp("diameter") ? ne.prop("diameter").value().toString() : "0") : null;
                     String ne_frequencyBand = ne != null && ne.hasProp("frequencyBand") ? ne.prop("frequencyBand").value().toString().replaceAll("[^0-9.]", "") : null;
                     Number ne_suspensionHeight = ne != null && ne.hasProp("suspensionHeight") ? (ne.prop("suspensionHeight").numberValue()) : null;
+                    String ne_longitude = ne != null && ne.hasProp("address") && ne.prop("address").hasProp("longitude") ? (ne.prop("address").prop("longitude").value().toString()) : null;
+                    String ne_latitude = ne != null && ne.hasProp("address") && ne.prop("address").hasProp("latitude") ? (ne.prop("address").prop("latitude").value().toString()) : null;
+
 
 //                    farEndInformation
 
@@ -738,11 +741,11 @@ public class CreateCandidate implements JavaDelegate {
                     String artefactExtTSDReturnStatus[] = {"TSDID"};
                     StringBuilder insertNewArtefactExtTSDbuilder = new StringBuilder("INSERT INTO ARTEFACT_TSD_EXT (TSDID, ARTEFACTID, INSERT_DATE, INSERT_PERSON");
                     StringBuilder insertNewArtefactExtTSDbuilderValues = new StringBuilder(") VALUES (ARTEFACT_TSD_SEQ.nextval, ?, SYSDATE, ?");
-                    if (cn_longitude != null) {
+                    if (ne_longitude != null) {
                         insertNewArtefactExtTSDbuilder.append(", NE_LONGITUDE");
                         insertNewArtefactExtTSDbuilderValues.append(", ?");
                     }
-                    if (cn_latitude != null) {
+                    if (ne_latitude != null) {
                         insertNewArtefactExtTSDbuilder.append(", NE_LATITUDE");
                         insertNewArtefactExtTSDbuilderValues.append(", ?");
                     }
@@ -817,10 +820,10 @@ public class CreateCandidate implements JavaDelegate {
                     newArtefactExtTSDPreparedStatement.setString(i++, starter); // INSERT_PERSON
 
                     if (cn_longitude != null) {
-                        newArtefactExtTSDPreparedStatement.setString(i++, "E " + cn_longitude.replace(".", ",")); // NE_LONGITUDE
+                        newArtefactExtTSDPreparedStatement.setString(i++, "E " + ne_longitude.replace(".", ",")); // NE_LONGITUDE
                     }
                     if (cn_latitude != null) {
-                        newArtefactExtTSDPreparedStatement.setString(i++, "N " + cn_latitude.replace(".", ",")); // NE_LATITUDE
+                        newArtefactExtTSDPreparedStatement.setString(i++, "N " + ne_latitude.replace(".", ",")); // NE_LATITUDE
                     }
                     if (fe_sitename != null) {
                         newArtefactExtTSDPreparedStatement.setString(i++, fe_sitename); // FE_SITENAME

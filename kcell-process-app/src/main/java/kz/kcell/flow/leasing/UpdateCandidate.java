@@ -40,11 +40,11 @@ public class UpdateCandidate implements JavaDelegate {
             TimeZone timeZone = TimeZone.getTimeZone("Asia/Almaty");
             TimeZone.setDefault(timeZone);
             Class.forName("oracle.jdbc.OracleDriver");
-            Connection udbConnect = DriverManager.getConnection(
-                udbOracleUrl,
-                udbOracleUsername,
-                udbOraclePassword);
-//            Connection udbConnect = DriverManager.getConnection("jdbc:oracle:thin:@//sc2-appcl010406:1521/apexudb", "app_apexudb_camunda", "p28zt#7C");
+//            Connection udbConnect = DriverManager.getConnection(
+//                udbOracleUrl,
+//                udbOracleUsername,
+//                udbOraclePassword);
+            Connection udbConnect = DriverManager.getConnection("jdbc:oracle:thin:@//sc2-appcl010406:1521/apexudb", "app_apexudb_camunda", "p28zt#7C");
             try {
                 if (udbConnect != null) {
                     udbConnect.setAutoCommit(false);
@@ -111,6 +111,8 @@ public class UpdateCandidate implements JavaDelegate {
                     String ne_diameter = ne != null ? (ne.hasProp("diameter") ? ne.prop("diameter").value().toString() : "0") : null;
                     String ne_frequencyBand = ne != null && ne.hasProp("frequencyBand") ? ne.prop("frequencyBand").value().toString().replaceAll("[^0-9.]", "") : null;
                     Number ne_suspensionHeight = ne != null && ne.hasProp("suspensionHeight") ? (ne.prop("suspensionHeight").numberValue()) : null;
+                    String ne_longitude = ne != null && ne.hasProp("address") && ne.prop("address").hasProp("longitude") ? (ne.prop("address").prop("longitude").value().toString()) : null;
+                    String ne_latitude = ne != null && ne.hasProp("address") && ne.prop("address").hasProp("latitude") ? (ne.prop("address").prop("latitude").value().toString()) : null;
 
                     SpinJsonNode feJson = delegateExecution.getVariable("farEndInformation") != null ? JSON(delegateExecution.getVariable("farEndInformation")) : null;
                     SpinList farEnds = feJson != null ? feJson.elements() : null;
@@ -412,13 +414,13 @@ public class UpdateCandidate implements JavaDelegate {
                     } else {
                         updateArtefactTSDPreparedStatement.setNull(i++, Types.BIGINT);
                     }
-                    if (cn_longitude != null) {
-                        updateArtefactTSDPreparedStatement.setString(i++, cn_longitude); // NE_LONGITUDE
+                    if (ne_longitude != null) {
+                        updateArtefactTSDPreparedStatement.setString(i++, ne_longitude); // NE_LONGITUDE
                     } else {
                         updateArtefactTSDPreparedStatement.setNull(i++, Types.VARCHAR);
                     }
-                    if (cn_latitude != null) {
-                        updateArtefactTSDPreparedStatement.setString(i++, cn_latitude); // NE_LATITUDE
+                    if (ne_latitude != null) {
+                        updateArtefactTSDPreparedStatement.setString(i++, ne_latitude); // NE_LATITUDE
                     } else {
                         updateArtefactTSDPreparedStatement.setNull(i++, Types.VARCHAR);
                     }
