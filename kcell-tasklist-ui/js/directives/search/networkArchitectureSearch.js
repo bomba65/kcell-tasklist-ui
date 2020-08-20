@@ -1274,11 +1274,13 @@ define(['../module', 'moment'], function (module, moment) {
                 function openProcessCardModalCreatePR(processDefinitionId, businessKey, index) {
                     try{
                         scope.documentType = {1:"ZK73-02", 2:"ZK73-03", 3:"ZK73-04", 4:"ZK73-01"};
+
                         if(!(scope.jobModel.hasOwnProperty('sapFaList') && scope.jobModel.sapFaList !== null)) {
                             scope.jobModel.sapFaList = {
                                 value : []
                             }
                         }
+
                         scope.capexWorks = ['1','2','3','4','5','8','10','11','12','14','15','16','17','19','20','22','23','25','26','28','29','31','32','34',
                             '35','36','38','42','45', '46', '47', '48', '49', '50', '54', '55', '56', '57', '60', '62', '65', '66', '71', '72',
                             '77', '78', '79', '80', '81', '86', '87', '88', '91', '94', '97', '100', '103', '104', '105', '106', '112', '113',
@@ -1313,6 +1315,11 @@ define(['../module', 'moment'], function (module, moment) {
                             }
                         
                         scope.jobWorksValue = scope.jobModel.jobWorks.value;
+                        scope.workDefinitionMap = scope.jobModel.hasOwnProperty("workDefinitionMap") ? scope.jobModel.workDefinitionMap.value : {};
+                        scope.tnuSiteLocations = scope.jobModel.hasOwnProperty("tnuSiteLocations") ? scope.jobModel.tnuSiteLocations.value : {};
+                        scope.workPrices = scope.jobModel.hasOwnProperty("workPrices") ? scope.jobModel.workPrices.value : {};
+                        console.log(scope.jobModel)
+                        scope.jobWorksTotal = scope.jobModel.hasOwnProperty("jobWorksTotal") && scope.jobModel.jobWorksTotal.hasOwnProperty("value") ? scope.jobModel.workPrices.value : '';
                         scope.jobWorksValue.forEach(function(work){
                             if(scope.capexWorks.indexOf(work.sapServiceNumber)!==-1){
                                 work.expenseType = 'CAPEX';
@@ -1330,7 +1337,7 @@ define(['../module', 'moment'], function (module, moment) {
                                 w.prItemText = 'installation service ' + w.r.site_name;
                                 w.index = index;
                                 w.uuid = uuidv4();
-                                w.requestedDate = angular.copy(scope.requestedObjectDate);
+                                w.requestedDate = new Date(scope.jobModel.requestedDate.value);
                                 w.deliveryDate = new Date(new Date().getFullYear(), 11, 31);
                                 w.open = function($event){
                                     $event.preventDefault();
@@ -1358,7 +1365,7 @@ define(['../module', 'moment'], function (module, moment) {
                                     '4.Describe the need of this purchase for this year: necessary for revision works ' +
                                     '5.Contact person: ' + scope.subcontructorDirectory[scope.jobModel.reason.value].responsible + ' ' +
                                     '6. Vendor: Line System Engineering LLP ' +
-                                    '7. Total sum: ' + scope.jobModel.jobWorksTotal.value + '';
+                                    '7. Total sum: ' + scope.jobWorksTotal + '';
                                 scope.jobWorksValueTemp.push(w);
                             } else {
                                 w.relatedSites.forEach(function(r, rindex) {
@@ -1366,7 +1373,8 @@ define(['../module', 'moment'], function (module, moment) {
                                     w.index = rindex + index;
                                     w.uuid = uuidv4();
                                     w.prItemText = 'installation service ' + w.r.site_name;
-                                    w.requestedDate = angular.copy(scope.requestedObjectDate);
+
+                                    w.requestedDate = new Date(scope.jobModel.requestedDate.value);
                                     w.deliveryDate = new Date(new Date().getFullYear(), 11, 31);
                                     w.open = function($event){
                                         $event.preventDefault();
@@ -1394,11 +1402,14 @@ define(['../module', 'moment'], function (module, moment) {
                                         '4.Describe the need of this purchase for this year: necessary for revision works ' +
                                         '5.Contact person: ' + scope.subcontructorDirectory[scope.jobModel.reason.value].responsible + ' ' +
                                         '6. Vendor: Line System Engineering LLP ' +
-                                        '7. Total sum: ' + scope.jobModel.jobWorksTotal.value + '';
+                                        '7. Total sum: ' + scope.jobWorksTotal + '';
                                     scope.jobWorksValueTemp.push(angular.copy(w));
                                 });
                             }
                         });
+                        console.log('scope->>>>')
+                        console.log(scope)
+                        console.log('<<<<-scope')
                     } catch(E) {
                         console.log(E);
                     }
@@ -1407,7 +1418,7 @@ define(['../module', 'moment'], function (module, moment) {
                     function calculateExpense(isInit) {
                         if(isInit){
                             scope.jobWorksValue.forEach(function(work){
-                                work.price = _.find(scope.jobModel.workPrices.value, function(p){
+                                work.price = _.find(scope.workPrices, function(p){
                                     return work.sapServiceNumber === p.sapServiceNumber
                                 });
         
@@ -1438,14 +1449,14 @@ define(['../module', 'moment'], function (module, moment) {
                                     if(scope.jobModel.reason.value === '2'){
                                         angular.forEach(work.relatedSites, function (rs) {
                                             angular.forEach(scope.jobModel.sapFaList.value, function (fa) {
-                                                if(fa.faClass == scope.workDefinitionMap[work.sapServiceNumber].faClass && fa.sloc == scope.tnuSiteLocations[rs.site_name].siteLocation){
+                                                if(scope.workDefinitionMap !== null && fa.faClass == scope.workDefinitionMap[work.sapServiceNumber].faClass && fa.sloc == scope.tnuSiteLocations[rs.site_name].siteLocation){
                                                     scope.tnuSiteLocations[rs.site_name].work[work.sapServiceNumber].fixedAssetNumber = fa.faNumber;
                                                 }
                                             });
                                         });
                                     } else {
                                         angular.forEach(scope.jobModel.sapFaList.value, function (fa) {
-                                            if(fa.faClass === scope.workDefinitionMap[work.sapServiceNumber].faClass && fa.sloc == scope.jobModel.sloc.value){
+                                            if(scope.workDefinitionMap !== null && fa.faClass === scope.workDefinitionMap[work.sapServiceNumber].faClass && fa.sloc == scope.jobModel.sloc.value){
                                                 work.fixedAssetNumber = fa.faNumber;
                                             }
                                         });
@@ -1454,7 +1465,7 @@ define(['../module', 'moment'], function (module, moment) {
                             });
                         } else {
                             scope.jobWorksValueTemp.forEach(function(work){
-                                work.price = _.find(scope.jobModel.workPrices.value, function(p){
+                                work.price = _.find(scope.workPrices, function(p){
                                     return work.sapServiceNumber === p.sapServiceNumber
                                 });
         
@@ -1538,9 +1549,10 @@ define(['../module', 'moment'], function (module, moment) {
                             showHistory: scope.showHistory,
                             subcontructorDirectory: scope.subcontructorDirectory,
                             requestedObjectDate: new Date(scope.jobModel.requestedDate.value),
-                            // showHistory: scope.showHistory,
-                            // showHistory: scope.showHistory,
-                            // showHistory: scope.showHistory,
+                            documentType: scope.documentType,
+                            reasonsSubcontractorResponsible: scope.jobModel.reasonsSubcontractorResponsible,
+                            workDefinitionMap: scope.workDefinitionMap,
+                            tnuSiteLocations: scope.tnuSiteLocations,
                             // showHistory: scope.showHistory,
                             // showHistory: scope.showHistory,
                             // showHistory: scope.showHistory,
@@ -1575,6 +1587,7 @@ define(['../module', 'moment'], function (module, moment) {
                         templateUrl: './js/partials/createPrProcessCardModal.html',
                         size: ('hg')
                     }).then(function (results) {
+                        console.log(scope)
                     });
                 }
 
