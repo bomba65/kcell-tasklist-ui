@@ -25,11 +25,9 @@ public class SetContractorJobAssignedDate implements TaskListener {
 
 
             if (afterModifyList > 0) {
-                if ((Long) delegateTask.getVariable("contractor") == 4L) {
+                if ((Integer) delegateTask.getVariable("contractor") == 4) {
                     try {
                         delegateTask.setVariable("contractorJobAssignedDate", new SimpleDateFormat("dd.MM.yyyy").parse("30.06.2020"));
-                        delegateTask.setVariable("validityDate", new SimpleDateFormat("dd.MM.yyyy").parse("30.06.2020"));
-                        delegateTask.setVariable("requestedDate", new SimpleDateFormat("dd.MM.yyyy").parse("30.06.2020"));
                     } catch (ParseException e) {
                         delegateTask.setVariable("contractorJobAssignedDate", new Date());
                     }
@@ -38,11 +36,9 @@ public class SetContractorJobAssignedDate implements TaskListener {
                 }
             }
         } else {
-            if ((Long) delegateTask.getVariable("contractor") == 4L) {
+            if ((Integer) delegateTask.getVariable("contractor") == 4) {
                 try {
                     delegateTask.setVariable("contractorJobAssignedDate", new SimpleDateFormat("dd.MM.yyyy").parse("30.06.2020"));
-                    delegateTask.setVariable("validityDate", new SimpleDateFormat("dd.MM.yyyy").parse("30.06.2020"));
-                    delegateTask.setVariable("requestedDate", new SimpleDateFormat("dd.MM.yyyy").parse("30.06.2020"));
                 } catch (ParseException e) {
                     delegateTask.setVariable("contractorJobAssignedDate", new Date());
                 }
