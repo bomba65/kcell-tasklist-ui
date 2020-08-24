@@ -146,7 +146,7 @@ public class CreateSMSGWClient implements JavaDelegate {
                 String receivingServerLogin = delegateExecution.getVariable("receivingServerLogin") != null ? String.valueOf(delegateExecution.getVariable("receivingServerLogin")) : null;
                 String receivingServerPass = delegateExecution.getVariable("receivingServerPass") != null ? String.valueOf(delegateExecution.getVariable("receivingServerPass")) : null;
 
-                String queueName = identifier + "_" + (smsServiceType.equals("MO") ? "mo_" : "") + "queue";
+                String queueName = identifier.replaceAll(" ", "_") + "_" + (smsServiceType.equals("MO") ? "mo_" : "") + "queue";
                 Integer accountConfigId = null;
 
                 if (operatorType.equals("onnet") && smsServiceType.equals("MT")) {
