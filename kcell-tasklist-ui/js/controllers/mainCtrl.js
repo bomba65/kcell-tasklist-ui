@@ -431,7 +431,7 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 			return array;
 		}
 
-		$scope.contractorTasksNames = ['Attach Material List', 'Upload TR', 'Fill Applied Changes Info', 'Attach Additional Material List', 'Upload additional TR'];
+		$scope.contractorTasksNames = ['Attach Material List', 'Upload TR', 'Fill Applied Changes Info', 'Attach Additional Material List', 'Upload Additional TR'];
 		$scope.contractorTasksIds = ['attach_material_list_contractor', 'upload_tr_contractor', 'fill_applied_changes_info', 'attach_additional_material_list_contractor', 'upload_additional_tr_contractor'];
 
         $scope.searchProcessesForContractors = async function(refresh, skipPagination){
