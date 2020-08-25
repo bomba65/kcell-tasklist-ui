@@ -139,13 +139,6 @@
                     submit: true,
                     store: true
                 },
-                //TEST ONLY
-                {
-                    name: 'ignoreSignPR',
-                    type: 'String',
-                    submit: true,
-                    store: true
-                },
                 {
                     name: 'createJRResult',
                     type: 'String',
@@ -199,15 +192,6 @@
             var catalogs = {};
             var permitWorks = ['3', '4', '5', '6', '7', '8', '9', '10', '35', '36', '37', '38', '39', '40', '41', '42', '43', '44', '65', '66', '67', '68', '69', '70', '71', '72', '73', '74', '75', '76', '77', '78', '86', '87', '91', '94', '95', '96', '155', '156', '157', '158', '159', '160'];
 
-            /*$http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
-                    function(result){
-                        $scope.processInstanceId = result.data.processInstanceId;
-                    },
-                    function (error) {
-                        console.log(error.data);
-                    }
-            );*/
-
             $scope.showJump = false;
             $scope.siteStatus = undefined;
 
@@ -223,8 +207,6 @@
                 variablesToCreate.forEach(function (el) {
                     camForm.variableManager.fetchVariable(el.name);
                 });
-
-                $scope.soaComplaintIdCorrect = false;
 
                 $scope.conts = [];
                 $http.get($rootScope.getCatalogsHttpByName('catalogs')).then(
@@ -325,11 +307,6 @@
                     camForm.variableManager.variableValue('ptype', 'prod');
                     camForm.variableManager.variableValue('createJRResult', "approved");
                 }
-                if($scope.ignoreSignPRCheckbox){
-                    camForm.variableManager.variableValue('ignoreSignPR', 'true');
-                } else {
-                    camForm.variableManager.variableValue('ignoreSignPR', 'false');
-                }
 
                 camForm.variableManager.variableValue('jrNumber', $scope.jrNumber);
                 camForm.variableManager.variableValue('site_name', $scope.site_name);
@@ -425,12 +402,9 @@
 //              '9': 'mobile'
             };
             $scope.contractorShortName = {
+                '-1': '##',
                 '4': 'LSE',
                 '5': 'KR'
-            };
-            $scope.contractorShortNameLC = {
-                '4': 'lse',
-                '5': 'kr'
             };
             $scope.reasonShortName = {
                 '1': 'P&O',
@@ -836,14 +810,6 @@
             $scope.clearFile = function(index){
                 $scope.supplementaryFiles.splice(index, 1);
             }
-            $scope.copyaddress=function(){
-
-                if($scope.sameaddress_data){
-                      $scope.copysend = $scope.sameaddress_data;
-                }else{
-                      $scope.copysend = ""
-                }
-            }
             function download(file) {
                 $http({method: 'GET', url: '/camunda/uploads/get/' + file.path, transformResponse: [] }).
                 then(function(response) {
@@ -863,11 +829,6 @@
                     }
                 }
             }
-
-            camForm.on('variables-applied', function() {
-                // var validityDate = camForm.variableManager.variableValue('validityDate');
-                // $scope.validityDate = new Date(validityDate);
-            });
 
             camForm.on('store', function() {
                 variablesToCreate.forEach(function (el) {
@@ -893,16 +854,12 @@
                         }
                     }
                 });
-                //$scope['validityDate'] = camForm.variableManager.variableValue('validityDate');
                 if(camForm.variableManager.variableValue('contract')){
                     $scope.custom.contract = parseInt(camForm.variableManager.variableValue('contract'));
                 }
                 if(camForm.variableManager.variableValue('contractor')){
                     $scope.custom.contractor = parseInt(camForm.variableManager.variableValue('contractor'));
                 }
-                /*if(camForm.variableManager.variableValue('relatedTo')){
-                 $scope.relatedTo = parseInt(camForm.variableManager.variableValue('relatedTo'));
-                 }*/
                 try{
                     if(camForm.variableManager.variableValue('requestedDate')){
                         $scope.requestedDate = new Date(camForm.variableManager.variableValue('requestedDate'));
@@ -921,7 +878,6 @@
                 } catch(e){
                     $scope.jobWorks = [{relatedSites:[]}];
                 }
-                //$scope.reason = camForm.variableManager.variableValue('reason');
                 refreshJobRequests();
                 serviceChanged();
             });
@@ -1016,17 +972,9 @@
                 $scope.tempSite = {};
             };
 
-            $scope.clearSiteId = function(){
-                $scope.site = undefined;
-            };
-
             $scope.removeRelatedSite = function(i, j){
                 $scope.jobWorks[i].relatedSites.splice(j,1);
             }
-
-            $scope.clearSiteId = function(){
-                $scope.site = undefined;
-            };
 
             $scope.siteJobWorkSelected = function($item, $index){
                 $scope.jobWorks[$index].sites.name = $item.name;
@@ -1041,11 +989,13 @@
 
             $scope.filterByContractor = function(element) {
                 if(!$scope.mainContract || !$scope.custom.contractor) return false;
-                if($scope.mainContract === 'Roll-out'){
+                if($scope.mainContract === 'Roll-outRevision2020'){
+                    return element.id >= 3000;
+                } else if($scope.mainContract === 'Roll-out'){
                     return (element.id > 1000 && element.id < 2000);
                 } else if($scope.mainContract === 'Revision'){
                     if($scope.contractorShortName[$scope.custom.contractor] === 'KR'){
-                        return (element.id < 1000 || element.id > 2000);
+                        return (element.id < 1000 || (element.id > 2000 && element.id < 3000));
                     } else {
                         return element.id < 1000;
                     }
@@ -1069,7 +1019,7 @@
                     } else {
                         return true;
                     }
-                }
+                } else return true;
             };
 
             $scope.preSubmit = function(){
@@ -1085,20 +1035,25 @@
                     deferred.reject('At least one job should contains Main Site');
                     return deferred.promise;
                 } else {
-                    var jrCounter = $scope.regionShortName+'-'+$scope.contractorShortName[$scope.custom.contractor]+'-'+$scope.reasonShortName[$scope.reason]+'-'+$scope.requestedDate.getFullYear().toString().substr(-2)+($scope.mainContract==='Roll-out'?'-Ro':'');
-                    return $http.post('/asset-management/jobrequestcounter/' + jrCounter).then(
-                        function(result){
-                            $scope.jrNumber = result.data;
-                            camForm.businessKey = result.data;
-                        }
-                    );
+                    if($scope.custom.contractor === '-1'){
+                        $scope.jrNumber = $scope.regionShortName+'-##-'+$scope.reasonShortName[$scope.reason]+'-'+$scope.requestedDate.getFullYear().toString().substr(-2)+'-####';
+                        camForm.businessKey = $scope.jrNumber;
+                        deferred.resolve();
+                        return deferred.promise;
+                    } else {
+                        var jrCounter = $scope.regionShortName+'-'+$scope.contractorShortName[$scope.custom.contractor]+'-'+$scope.reasonShortName[$scope.reason]+'-'+$scope.requestedDate.getFullYear().toString().substr(-2)+($scope.mainContract==='Roll-out'?'-Ro':'');
+                        return $http.post('/asset-management/jobrequestcounter/' + jrCounter).then(
+                            function(result){
+                                $scope.jrNumber = result.data;
+                                camForm.businessKey = result.data;
+                            }
+                        );
+                    }
                 }
             }
         }]);
     </script>
     <iframe id="fileDownloadIframe" style="display:none;"></iframe>
-
-
 
     <div class="form-group">
         <div class="col-sm-8">
@@ -1108,7 +1063,7 @@
             <label>JR Number:</label>
         </div>
         <div class="col-sm-3">
-            <span>{{regionShortName?regionShortName:'###'}}-{{contractorShortName[custom.contractor]?contractorShortName[custom.contractor]:'###'}}-{{reasonShortName[reason]?reasonShortName[reason]:'###'}}-{{requestedDate.getFullYear().toString().substr(-2)}}-{{siteCounter?siteCounter:'####'}}{{mainContract == 'Roll-out'?'-Ro':''}}</span>
+            <span>{{regionShortName?regionShortName:'###'}}-{{contractorShortName[custom.contractor]?contractorShortName[custom.contractor]:'##'}}-{{reasonShortName[reason]?reasonShortName[reason]:'###'}}-{{requestedDate.getFullYear().toString().substr(-2)}}-{{siteCounter?siteCounter:'####'}}{{mainContract == 'Roll-out'?'-Ro':''}}</span>
         </div>
     </div>
 
@@ -1117,8 +1072,9 @@
         <div class="col-sm-3">
             <select class="form-control selectpicker" select-picker title="" cam-variable-name="mainContract" name="mainContract" required cam-variable-type="String" ng-change="refreshJobRequests()">
                 <option value="">Select contract</option>
-                <option value="Revision">Revision</option>
-                <option value="Roll-out">Roll-out</option>
+                <option value="" disabled>Revision</option>
+                <option value="" disabled>Roll-out</option>
+                <option value="Roll-outRevision2020">Roll-out and Revision 2020</option>
             </select>
             <label class="error" ng-if="kcell_form.mainContract.$error.required && ( kcell_form.mainContract.$touched || view.submitted)">Required field</label>
         </div>
@@ -1126,12 +1082,11 @@
     <div class="form-group">
         <label class="col-sm-3 control-label">Job to:</label>
         <div class="col-sm-8">
-            <div ng-if="conts.length == 0 || conts == undefined">Please select Contract</div>
-            <label class="radio-inline" ng-repeat="c in conts">
-                <input type="radio" name="contractor" ng-model="custom.contractor" id="contractor{{$index}}" value="{{c.id}}" required> {{c.name}}
+            <label class="radio-inline">
+                <input type="radio" name="contractor" ng-model="custom.contractor" id="subcontractor" value="-1" required> Subcontractor
             </label>
             <label class="radio-inline">
-                <input type="radio" name="contractor" ng-model="custom.contractor" id="contractor{{conts.length}}" value="5" required> Kcell_region
+                <input type="radio" name="contractor" ng-model="custom.contractor" id="kcell_region" value="5" required> Kcell_region
             </label>
             <label class="error" ng-if="kcell_form.contractor.$error.required && ( kcell_form.contractor.$touched || view.submitted)">Required field</label>
         </div>
@@ -1153,12 +1108,6 @@
                     </button>
                 </span>
             </div>
-        </div>
-    </div>
-    <div class="form-group">
-        <label class="col-sm-3 control-label">SA&O Complaint Id:</label>
-        <div class="col-sm-3">
-            <input type="text" cam-variable-name="soaComplaintId" cam-variable-type="String" class="form-control" ng-blur="checkSOAComplaintId()" maxlength="20"/>
         </div>
     </div>
     <div class="form-group">
@@ -1349,7 +1298,6 @@
                                                                <div class="col-sm-12"><b>Priority</b>: {{job.priority ==
                                                                    'emergency'?'Emergency':'Regular'}}
                                                                </div>
-
                                                                <div class="col-sm-12"><b>Reason</b>: {{reasonsTitle[job.reason]}}
                                                                </div>
                                                                <div class="col-sm-12"><b>Materials required</b>: {{job.materialsRequired}}
@@ -1357,11 +1305,7 @@
                                                                <div class="col-sm-12"><b>Leasing required</b>: {{job.leasingRequired}}</div>
                                                                <div class="col-sm-12"><b>Site (near end)</b>: {{job.siteName}}</div>
                                                                <div class="col-sm-12"><b>Site Name</b>: {{job.site_name}}</div>
-
-
                                                            </div>
-
-
                                                        </div>
                                                    </div>
                                                </div>
@@ -1373,12 +1317,6 @@
                                                </div>
                                            </div>
                                        </div>
-
-
-
-
-
-
                                        <div class="col-md-8">
                                            <div class="row">
                                                <div class="col-xs-4 col-md-4" ng-if="requestedDate < compareDate"><b>Requested date</b>:
@@ -1411,7 +1349,6 @@
                                                    'dd.MM.yyyy'}}
                                                </div>
                                            </div>
-
                                            <div class="row" ng-if="job.monthActNumber || job.invoiceNumber">
                                                <div class="col-xs-4 col-md-4" ng-if="job.monthActNumber"><b>Monthly Act Number</b>:
                                                    #{{job.monthActNumber}}
@@ -1431,12 +1368,9 @@
                                                    </a>
                                                </div>
                                            </div>
-
-
                                            <br/>
                                            <div class="row">
                                                <div class="col-md-12"><b>Supplementary files</b>:</div>
-                                               <iframe id="fileDownloadIframe" style="display:none;"></iframe>
                                                <div class="col-md-12" ng-repeat="file in job.supplementaryFiles.value track by $index"><a
                                                        ng-if="isFileVisible(file)" ng-click="download(file)">{{file.name}}</a></div>
                                            </div>
@@ -1457,7 +1391,6 @@
                                                    </div>
                                                </div>
                                            </div>
-
                                            <br/>
                                            <div class="row">
                                                <div class="col-md-12"><b>Explanation of works</b>: {{job.explanation}}</div>
@@ -1728,8 +1661,6 @@
                                                    </table>
                                                </div>
                                            </div>
-
-
                                        </div>
                                    </div>
                                </td>
@@ -1855,12 +1786,6 @@
         <label class="col-sm-3 control-label">Jump to Fill Applied Changes (test only):</label>
         <div class="col-sm-8">
             <input type="checkbox" cam-variable-name="ptypeCheckbox" cam-variable-type="Boolean" />
-        </div>
-    </div>
-    <div class="form-group" ng-show="showJump">
-        <label class="col-sm-3 control-label">Jump to Pr Creation (test only):</label>
-        <div class="col-sm-8">
-            <input type="checkbox" cam-variable-name="ignoreSignPRCheckbox" cam-variable-type="Boolean" />
         </div>
     </div>
     <div class="form-group">
