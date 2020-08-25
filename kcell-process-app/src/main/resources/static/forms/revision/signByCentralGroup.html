@@ -162,6 +162,12 @@
                         $scope.jobDetailObject = 'REVISION '  + camForm.variableManager.variables[el].value;
                     }
                 });
+
+                try {
+                    $scope.slocObject = $scope.jobModel.reason.value == '2' ? $scope.tnuSiteLocations[$scope.jobModel.site_name.value].siteLocation : $scope.jobModel.sloc.value
+                } catch(e) {
+                }
+
                 console.log($scope.jobModel['requestedDate']);
 
                 $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name+ "/profile").then(function(result){
@@ -210,6 +216,7 @@
                             if(!w.price.unitWorkPricePlusTx) {
                                 w.price.unitWorkPricePlusTx = '0.0';
                             }
+                            w.slocObject = $scope.jobModel.reason.value == '2' ? $scope.tnuSiteLocations[w.r.site_name].siteLocation : $scope.jobModel.sloc.value;
                             w.amountText = $scope.jobModel.reason.value == '2' ? w.price.unitWorkPricePerSite.replace('.',',') : w.price.unitWorkPricePlusTx.replace('.',',');
                             w.headerNotes = '1.Purchase description: Revision works for site ' + $scope.jobModel.site_name.value + ' JR# ' + $scope.jobModel.jrNumber.value + ' dated ' + $filter('date')(w.requestedDate,'dd.MM.yyyy') + ' ' +
                                 '2.Budgeted or not: yes ' + w.wbsElement + ' ' +
@@ -560,11 +567,18 @@
                         value: $scope.wdeliveryDateAssigneeName
                     });
                 }
-                if($scope.wdeliveryDateAssigneeName){
+                if($scope.slocAssigneeName){
                     camForm.variableManager.createVariable({
                         name: 'headerNoteAssigneeName',
                         type: 'String',
-                        value: $scope.headerNoteAssigneeName
+                        value: $scope.slocAssigneeName
+                    });
+                }
+                if($scope.slocName){
+                    camForm.variableManager.createVariable({
+                        name: 'slocName',
+                        type: 'String',
+                        value: $scope.slocName
                     });
                 }
 
@@ -593,6 +607,14 @@
                     type: 'String',
                     value: hasCapexWorks
                 });
+                camForm.variableManager.createVariable({
+                    name: 'slocObject',
+                    type: 'String',
+                    value: $scope.slocObject
+                });
+                if($scope.slocObject){
+                    camForm.variableManager.variableValue('sloc', $scope.slocObject);
+                }
             });
 
             camForm.on('store', function() {
@@ -679,6 +701,15 @@
             $scope.headerNotesChanged = function() {
                 $scope.headerNoteName = $rootScope.authentication.name;
                 $scope.headerNoteAssigneeName = $rootScope.authentication.assigneeName;
+            }
+
+            $scope.slocChanged = function(a, b) {
+                console.log(a,b);
+                $scope.slocName = $rootScope.authentication.name;
+                $scope.slocAssigneeName = $rootScope.authentication.assigneeName;
+                $scope.jobWorksValue.forEach(function(w, index) {
+                    w.slocObject = $scope.slocObject;
+                });
             }
         }]);
     </script>
@@ -792,10 +823,13 @@
         </tr>
         <tr>
             <td>Stor. Location</td>
-            <td>{{jobModel.reason.value == '2' ? tnuSiteLocations[jobModel.site_name.value].siteLocation : jobModel.sloc.value}}</td>
+            <td>
+                <span ng-if="!slocObjectEdit">{{slocObject}}</span>
+                <input type="text" ng-if="slocObjectEdit" ng-model="$parent.slocObject" name="slocObject" required class="form-control" id="slocObject" ng-change="slocChanged()" />
+            </td>
             <td>Storage location</td>
-            <td></td>
-            <td></td>
+            <td><a ng-click="slocObjectEdit = true"><u>edit</u></a></td>
+            <td>Edited by: {{slocAssigneeName}}</td>
         <tr>
         </tbody>
     </table>
@@ -956,7 +990,7 @@
                 </tr>
                 <tr>
                     <td>Stor. Location</td>
-                    <td ng-repeat="w in jobWorksValueTemp track by $index">{{jobModel.reason.value == '2' ? tnuSiteLocations[w.r.site_name].siteLocation : jobModel.sloc.value}}</td>
+                    <td ng-repeat="w in jobWorksValueTemp track by $index">{{w.slocObject}}</td>
                     <td></td>
                     <td></td>
                 </tr>
