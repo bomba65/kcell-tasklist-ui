@@ -14,6 +14,8 @@ define(['../module', 'moment'], function (module, moment) {
                 $http.get($rootScope.getCatalogsHttpByName('catalogs')).then(
                     function (result) {
                         angular.extend(scope, result.data);
+                        console.log(scope.works);
+                        console.log(scope.worksTitle);
                         angular.extend(catalogs, result.data);
 
                     },
@@ -85,7 +87,10 @@ define(['../module', 'moment'], function (module, moment) {
                 };
                 scope.contractorShortName = {
                     '4': 'LSE',
-                    '5': 'Kcell_region'
+                    '5': 'Kcell_region',
+                    '6': 'Алта Телеком',
+                    '7': 'Логиком',
+                    '8': 'Arlan SI '
                 };
                 scope.reasonShortName = {
                     '1': 'P&O',
@@ -167,6 +172,7 @@ define(['../module', 'moment'], function (module, moment) {
                         scope.filter.workType = undefined;
                         scope.filter.workName = undefined;
                         scope.filter.mainContract = 'All';
+                        scope.filter.contractor = 'All';
                         scope.filter.participation = undefined;
                         scope.filter.currentAssignee = undefined;
                     }
@@ -674,6 +680,13 @@ define(['../module', 'moment'], function (module, moment) {
                             "value": scope.filter.mainContract
                         });
                     }
+                    if (scope.filter.contractor && scope.filter.contractor !== 'All') {
+                        filter.variables.push({
+                            "name": "contractor",
+                            "operator": "eq",
+                            "value": Number(scope.filter.contractor)
+                        });
+                    }                    
                     if(scope.onlyProcessActive==='leasing'){
                         if(scope.filter.leasingCandidateLegalType){
                             filter.variables.push({"name": "leasingCandidateLegalType","operator": "eq","value": scope.filter.leasingCandidateLegalType});
@@ -762,6 +775,7 @@ define(['../module', 'moment'], function (module, moment) {
                     scope.filter.unfinished = false;
                     scope.filter.finished = false;
                     scope.filter.mainContract = 'All';
+                    scope.filter.contractor = 'All';
                     scope.filter.monthOfFormalPeriod = undefined;
                     scope.filter.yearOfFormalPeriod = undefined;
                     scope.filter.dismantlingInitiator = undefined;
