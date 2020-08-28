@@ -67,6 +67,9 @@ public class SendGeneratedJRBlank implements JavaDelegate {
                 map.put("3", "ТОО Spectr energy group");
                 map.put("4", "TOO Line System Engineering");
                 map.put("5", "Kcell_region");
+                map.put("6", "Алта Телеком");
+                map.put("7", "Логиком");
+                map.put("8", "Arlan SI");
                 return Collections.unmodifiableMap(map);
             })).get();
 
@@ -78,6 +81,9 @@ public class SendGeneratedJRBlank implements JavaDelegate {
                 map.put("3", "spectr");
                 map.put("4", "lse");
                 map.put("5", "kcell");
+                map.put("6", "alta");
+                map.put("7", "logycom");
+                map.put("8", "arlan");
                 return Collections.unmodifiableMap(map);
             })).get();
 

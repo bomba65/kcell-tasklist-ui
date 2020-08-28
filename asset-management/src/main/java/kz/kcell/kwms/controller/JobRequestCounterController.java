@@ -20,7 +20,7 @@ public class JobRequestCounterController {
     @ResponseBody
     public String getNextCounter(@PathVariable("counterId") String counterId) {
         JobRequestCounter jobRequestCounter = (JobRequestCounter) em.createNativeQuery(
-                "insert into jobrequest_counter as d (id,value) values(?1,0001) on conflict(id) do update set value = d.value + 1 returning *\n",
+                "insert into jobrequest_counter as d (id,value) values(?1,7000) on conflict(id) do update set value = d.value + 1 returning *\n",
                 JobRequestCounter.class)
                 .setParameter(1, counterId).getSingleResult();
 

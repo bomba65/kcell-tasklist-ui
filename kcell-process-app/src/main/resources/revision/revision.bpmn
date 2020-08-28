@@ -481,14 +481,6 @@
         <bpmn:incoming>SequenceFlow_15lfdz8</bpmn:incoming>
         <bpmn:outgoing>SequenceFlow_0a0y9kl</bpmn:outgoing>
       </bpmn:userTask>
-      <bpmn:userTask id="approve_jr_regions" name="Approve JR" camunda:formKey="embedded:app:forms/revision/regionGroupHeadApproval.html" camunda:priority="#{priority == &#39;emergency&#39;? 100: 50}">
-        <bpmn:documentation>Region Group Head Approval</bpmn:documentation>
-        <bpmn:extensionElements>
-          <camunda:taskListener class="kz.kcell.bpm.assignments.RegionGroupAssignmentHandler" event="create" />
-        </bpmn:extensionElements>
-        <bpmn:incoming>SequenceFlow_079i5bq</bpmn:incoming>
-        <bpmn:outgoing>SequenceFlow_0bhtmw4</bpmn:outgoing>
-      </bpmn:userTask>
       <bpmn:userTask id="approve_jr" name="Approve JR" camunda:formKey="embedded:app:forms/revision/centralGroupHeadApproval.html" camunda:priority="#{priority == &#39;emergency&#39;? 100: 50}">
         <bpmn:documentation>Central Group Head Approval</bpmn:documentation>
         <bpmn:extensionElements>
@@ -543,7 +535,6 @@
         <bpmn:outgoing>SequenceFlow_1tkoxjb</bpmn:outgoing>
         <bpmn:outgoing>SequenceFlow_1ip3b6e</bpmn:outgoing>
       </bpmn:exclusiveGateway>
-      <bpmn:sequenceFlow id="SequenceFlow_0bhtmw4" sourceRef="approve_jr_regions" targetRef="IntermediateThrowEvent_approved_by_region" />
       <bpmn:sequenceFlow id="SequenceFlow_1troz3f" name="approved" sourceRef="exclgw_createjr_is_reg_approved" targetRef="exclgw_createjr_is_power_req">
         <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${regionGroupHeadApprovalTaskResult == 'approved'}</bpmn:conditionExpression>
       </bpmn:sequenceFlow>
@@ -984,7 +975,6 @@
         <bpmn:incoming>SequenceFlow_0ex1sjt</bpmn:incoming>
         <bpmn:outgoing>SequenceFlow_079i5bq</bpmn:outgoing>
       </bpmn:intermediateThrowEvent>
-      <bpmn:sequenceFlow id="SequenceFlow_079i5bq" sourceRef="IntermediateThrowEvent_wait_head" targetRef="approve_jr_regions" />
       <bpmn:exclusiveGateway id="exclgw_createpr_lse" default="SequenceFlow_04qrkso">
         <bpmn:incoming>SequenceFlow_1s723rd</bpmn:incoming>
         <bpmn:outgoing>SequenceFlow_04qrkso</bpmn:outgoing>
@@ -1009,6 +999,19 @@
       <bpmn:sequenceFlow id="SequenceFlow_1apj0p0" name="if contractor Kcell" sourceRef="exclgw_createjr_cantfix" targetRef="exclgw_createpr_kcell">
         <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${contractor == 5}</bpmn:conditionExpression>
       </bpmn:sequenceFlow>
+      <bpmn:userTask id="approve_jr_regions" name="Approve JR" camunda:formKey="embedded:app:forms/revision/regionGroupHeadApproval.html" camunda:priority="#{priority == &#39;emergency&#39;? 100: 50}">
+        <bpmn:documentation>Region Group Head Approval</bpmn:documentation>
+        <bpmn:extensionElements>
+          <camunda:taskListener class="kz.kcell.bpm.assignments.RegionGroupAssignmentHandler" event="create" />
+          <camunda:executionListener class="kz.kcell.bpm.revision.RedefineBussinessKey" event="end" />
+          <camunda:executionListener class="kz.kcell.bpm.revision.SetWorkVariables" event="end" />
+          <camunda:executionListener delegateExpression="${revisionContractorPermListener}" event="end" />
+        </bpmn:extensionElements>
+        <bpmn:incoming>SequenceFlow_079i5bq</bpmn:incoming>
+        <bpmn:outgoing>SequenceFlow_0bhtmw4</bpmn:outgoing>
+      </bpmn:userTask>
+      <bpmn:sequenceFlow id="SequenceFlow_0bhtmw4" sourceRef="approve_jr_regions" targetRef="IntermediateThrowEvent_approved_by_region" />
+      <bpmn:sequenceFlow id="SequenceFlow_079i5bq" sourceRef="IntermediateThrowEvent_wait_head" targetRef="approve_jr_regions" />
     </bpmn:subProcess>
     <bpmn:sequenceFlow id="SequenceFlow_0uvzo91" name="materials are not required" sourceRef="exclgw_materials_required" targetRef="IntermediateThrowEvent_open_not_performed1">
       <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${materialsRequired=='No'}</bpmn:conditionExpression>
@@ -1313,7 +1316,7 @@
       <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${prCreationInProgress=='false' &amp;&amp; mainContract=='Revision' &amp;&amp; contractor!=5}</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
     <bpmn:sequenceFlow id="SequenceFlow_13tgs24" name="pr creation was launched before, or contractor Kcell" sourceRef="exclgw_is_pr_creation_launched" targetRef="exclgw_materials_required">
-      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${prCreationInProgress=='true' || mainContract=='Roll-out' || contractor==5}</bpmn:conditionExpression>
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${prCreationInProgress=='true' || mainContract=='Roll-out'  || mainContract=='Roll-outRevision2020' || contractor==5}</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
     <bpmn:sendTask id="notify_create_pr" name="Send Notification to Create PR" camunda:asyncBefore="true" camunda:delegateExpression="${camundaMailer}">
       <bpmn:extensionElements>
@@ -2022,7 +2025,6 @@
       <bpmn:text>So that JR Blank will be available for download from within Process Instance Card</bpmn:text>
     </bpmn:textAnnotation>
     <bpmn:association id="Association_1r45mq2" sourceRef="update_leasing_status_general" targetRef="TextAnnotation_04juvza" />
-    <bpmn:association id="Association_0j5a8e6" sourceRef="approve_jr_regions" targetRef="TextAnnotation_0j3uh3b" />
     <bpmn:association id="Association_0qnw6yg" sourceRef="approve_jr" targetRef="TextAnnotation_1u53fp1" />
     <bpmn:association id="Association_1v6ko3l" sourceRef="approve_material_list_region" targetRef="TextAnnotation_0318hie" />
     <bpmn:association id="Association_095h8xj" sourceRef="approve_material_list_center" targetRef="TextAnnotation_0dgzl99" />
@@ -2031,6 +2033,7 @@
     <bpmn:association id="Association_1qrwgmn" sourceRef="createjr_notify_to_cancel_pr_by_email_1" targetRef="TextAnnotation_010uo03" />
     <bpmn:association id="Association_0p8o61s" sourceRef="set_pr_creation_not_in_progress_2" targetRef="TextAnnotation_1ccusbv" />
     <bpmn:association id="Association_0mtuzci" sourceRef="generate_blank_jr_and_attach_to_the_process_instance" targetRef="TextAnnotation_044d1qz" />
+    <bpmn:association id="Association_0j5a8e6" sourceRef="approve_jr_regions" targetRef="TextAnnotation_0j3uh3b" />
   </bpmn:process>
   <bpmn:message id="Message_0kawu9p" name="Message_start_pr" />
   <bpmndi:BPMNDiagram id="BPMNDiagram_1">
@@ -3235,9 +3238,9 @@
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_0e9868l_di" bpmnElement="SequenceFlow_0e9868l">
-        <di:waypoint x="954" y="1539" />
+        <di:waypoint x="953" y="1539" />
         <di:waypoint x="620" y="1539" />
-        <di:waypoint x="620" y="1635" />
+        <di:waypoint x="620" y="1640" />
         <bpmndi:BPMNLabel>
           <dc:Bounds x="-4823" y="-492.5" width="0" height="13" />
         </bpmndi:BPMNLabel>
@@ -3398,7 +3401,7 @@
         <di:waypoint x="2499" y="1635" />
         <di:waypoint x="2540" y="1582" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="2400" y="1667" width="47" height="14" />
+          <dc:Bounds x="2400" y="1667" width="48" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_0n4aumv_di" bpmnElement="SequenceFlow_0n4aumv">

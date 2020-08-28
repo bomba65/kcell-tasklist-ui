@@ -33,6 +33,9 @@ public class RevisionContractorPermListener implements ExecutionListener {
     {
         contractors = new HashMap<String, String>();
         contractors.put("4", "lse");
+        contractors.put("6", "alta");
+        contractors.put("7", "logycom");
+        contractors.put("8", "arlan");
     }
 
     @Override

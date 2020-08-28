@@ -18,6 +18,9 @@ public class ContractorAssignmentHandler implements TaskListener {
                 map.put("3", "spectr");
                 map.put("4", "lse");
                 map.put("5", "kcell");
+                map.put("6", "alta");
+                map.put("7", "logycom");
+                map.put("8", "arlan");
                 return Collections.unmodifiableMap(map);
             })).get();
 
@@ -27,8 +30,10 @@ public class ContractorAssignmentHandler implements TaskListener {
         String siteRegion = delegateTask.getVariable("siteRegion").toString();
         if(contractor.equals("5")){
             delegateTask.addCandidateGroup(siteRegion + "_engineer");
-        } else {
+        } else if(contractor.equals("4")) {
             delegateTask.addCandidateGroup(("nc".equals(siteRegion)?"astana":siteRegion) + "_contractor_" + contractorsTitle.get(contractor));
+        } else {
+            delegateTask.addCandidateGroup(siteRegion + "_contractor_" + contractorsTitle.get(contractor));
         }
     }
 }
