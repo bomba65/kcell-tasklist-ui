@@ -328,7 +328,7 @@ define('app',[
 			}
 		}
 		$rootScope.getCatalogsHttpByName = function(name){
-			return '/api/' + name + '?v=11';
+			return '/api/' + name + '?v=12';
 		}
 		$rootScope.modalStartProcess = function() {
 			var processList = [];

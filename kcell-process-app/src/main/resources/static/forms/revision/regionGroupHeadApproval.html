@@ -36,8 +36,7 @@
 
             $scope.contractorCodes = {
                 4: 'Line_Eng',
-                6: '
-                ',
+                6: 'ALTA_Tel',
                 7: 'Logycom',
                 8: 'Arlan_SI'
             }
@@ -144,6 +143,9 @@
                 });
                 if ($scope.regionGroupHeadApprovalTaskResult === 'approved') {
                     camForm.variableManager.variableValue('createJRResult', 'approved');
+                    camForm.variableManager.variableValue('jrNumber', $scope.jrNumber);
+                    camForm.variableManager.variableValue('materialsProvidedBySubcontrator', $scope.materialsProvidedBySubcontrator);
+                    camForm.variableManager.variableValue('contractor', $scope.newContractor);
                 } else {
                     camForm.variableManager.variableValue('createJRResult', 'rejected');
                 }
@@ -175,9 +177,6 @@
                 camForm.variableManager.variableValue('regionApproval', $scope.regionApproval);
                 camForm.variableManager.variableValue('cancelPrComment', $scope.regionGroupHeadApprovalComment);
                 camForm.variableManager.variableValue('jobWorks', $scope.jobWorks);
-                camForm.variableManager.variableValue('jrNumber', $scope.jrNumber);
-                camForm.variableManager.variableValue('materialsProvidedBySubcontrator', $scope.materialsProvidedBySubcontrator);
-                camForm.variableManager.variableValue('contractor', $scope.newContractor);
                 camForm.variableManager.destroyVariable('resolutions');
             });
 
@@ -211,7 +210,7 @@
 
             $scope.preSubmit = function(){
                 var deferred = $q.defer();
-                if($scope.contractor === -1){
+                if($scope.contractor === -1 && $scope.regionGroupHeadApprovalTaskResult === 'approved' && $scope.jrNumber.indexOf('##')!==-1){
                     var jrCounter = $scope.jrNumber.replace('-##-', '-'+$scope.contractorCodes[$scope.newContractor]+'-').replace('-####', '');
                     return $http.post('/asset-management/jobrequestcounter/' + jrCounter).then(
                         function(result){
@@ -298,16 +297,16 @@
         <label class="col-sm-4 control-label">Please choose Subcontractor:</label>
         <div class="col-sm-8">
             <label class="radio-inline">
-                <input type="radio" name="newContractor" ng-model="$parent.newContractor" value="4" required> Line System Engineering
+                <input type="radio" name="newContractor" ng-model="$parent.newContractor" value="4" ng-required="regionGroupHeadApprovalTaskResult === 'approved'"> Line System Engineering
             </label>
             <label class="radio-inline">
-                <input type="radio" name="newContractor" ng-model="$parent.newContractor" value="6" required> Алта Телеком
+                <input type="radio" name="newContractor" ng-model="$parent.newContractor" value="6" ng-required="regionGroupHeadApprovalTaskResult === 'approved'"> Алта Телеком
             </label>
             <label class="radio-inline">
-                <input type="radio" name="newContractor" ng-model="$parent.newContractor" value="7" required> Логиком
+                <input type="radio" name="newContractor" ng-model="$parent.newContractor" value="7" ng-required="regionGroupHeadApprovalTaskResult === 'approved'"> Логиком
             </label>
             <label class="radio-inline">
-                <input type="radio" name="newContractor" ng-model="$parent.newContractor" value="8" required> Arlan SI
+                <input type="radio" name="newContractor" ng-model="$parent.newContractor" value="8" ng-required="regionGroupHeadApprovalTaskResult === 'approved'"> Arlan SI
             </label>
             <label class="error" ng-show="kcell_form.newContractor.$error.required && ( kcell_form.newContractor.$touched || view.submitted)">Required field</label>
         </div>
@@ -316,10 +315,10 @@
         <label class="col-sm-4 control-label">Materials will be provided by Subcontrator:</label>
         <div class="col-sm-8">
             <label class="radio-inline">
-                <input type="radio" name="materialsProvidedBySubcontrator" ng-model="materialsProvidedBySubcontrator" value="yes" required> Yes
+                <input type="radio" name="materialsProvidedBySubcontrator" ng-model="materialsProvidedBySubcontrator" value="yes" ng-required="regionGroupHeadApprovalTaskResult === 'approved'"> Yes
             </label>
             <label class="radio-inline">
-                <input type="radio" name="materialsProvidedBySubcontrator" ng-model="materialsProvidedBySubcontrator" value="no" required> No
+                <input type="radio" name="materialsProvidedBySubcontrator" ng-model="materialsProvidedBySubcontrator" value="no" ng-required="regionGroupHeadApprovalTaskResult === 'approved'"> No
             </label>
             <label class="error" ng-show="kcell_form.materialsProvidedBySubcontrator.$error.required && ( kcell_form.materialsProvidedBySubcontrator.$touched || view.submitted)">Required field</label>
         </div>

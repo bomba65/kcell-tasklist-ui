@@ -148,7 +148,6 @@
                     camForm.variableManager.fetchVariable(el);
                 });
 
-                $scope.soaComplaintIdCorrect = false;
                 $http.get($rootScope.getCatalogsHttpByName('catalogs')).then(
                         function(result){
                             angular.extend($scope, result.data);
@@ -191,16 +190,12 @@
                 if($scope['powerRequired'] === 'Yes'){
                     $scope.powerRequiredCheckbox = true;
                 }
-                //$scope['validityDate'] = camForm.variableManager.variableValue('validityDate');
                 if(camForm.variableManager.variableValue('contract')){
                     $scope.custom.contract = parseInt(camForm.variableManager.variableValue('contract'));
                 }
                 if(camForm.variableManager.variableValue('contractor')){
                     $scope.custom.contractor = parseInt(camForm.variableManager.variableValue('contractor'));
                 }
-                /*if(camForm.variableManager.variableValue('relatedTo')){
-                 $scope.relatedTo = parseInt(camForm.variableManager.variableValue('relatedTo'));
-                 }*/
                 try{
                     if(camForm.variableManager.variableValue('requestedDate')){
                         $scope.requestedDate = new Date(camForm.variableManager.variableValue('requestedDate'));
@@ -219,7 +214,6 @@
                 } catch(e){
                     $scope.jobWorks = [{relatedSites:[]}];
                 }
-                //$scope.reason = camForm.variableManager.variableValue('reason');
                 refreshJobRequests();
                 serviceChanged();
                 $scope.oldWorks = angular.copy($scope.jobWorks);
@@ -256,19 +250,6 @@
                         name: 'createJRResult',
                         type: 'String',
                         value: 'approved'
-                    });
-                }
-                if($scope.ignoreSignPRCheckbox){
-                    camForm.variableManager.createVariable({
-                        name: 'ignoreSignPR',
-                        type: 'String',
-                        value: 'true'
-                    });
-                } else {
-                    camForm.variableManager.createVariable({
-                        name: 'ignoreSignPR',
-                        type: 'String',
-                        value: 'false'
                     });
                 }
 
@@ -429,12 +410,9 @@
                 '9': 'alm'
             };
             $scope.contractorShortName = {
+                '-1': '##',
                 '4': 'LSE',
                 '5': 'KR'
-            };
-            $scope.contractorShortNameLC = {
-                '4': 'lse',
-                '5': 'kr'
             };
             $scope.reasonShortName = {
                 '1': 'P&O',
@@ -585,7 +563,6 @@
             }
 
             function download(file) {
-                console.log(file);
                 $http({method: 'GET', url: '/camunda/uploads/get/' + file.path, transformResponse: [] }).
                 then(function(response) {
                     document.getElementById('fileDownloadIframe').src = response.data;
@@ -660,17 +637,9 @@
                 $scope.tempSite = {};
             };
 
-            $scope.clearSiteId = function(){
-                $scope.site = undefined;
-            };
-
             $scope.removeRelatedSite = function(i, j){
                 $scope.jobWorks[i].relatedSites.splice(j,1);
             }
-
-            $scope.clearSiteId = function(){
-                $scope.site = undefined;
-            };
 
             $scope.siteJobWorkSelected = function($item, $index){
                 $scope.jobWorks[$index].sites.name = $item.name;
@@ -690,7 +659,6 @@
             }
 
             $scope.preSubmit = function(){
-                console.log(diff);
                 var deferred = $q.defer();
                 var a = JSON.stringify($scope.oldWorks, function(key, value) {
                     if (typeof key === 'string' && (key.charAt(0) === '$' || key === 'this')) {
@@ -744,15 +712,17 @@
 
             $scope.filterByContractor = function(element) {
                 if(!$scope.mainContract || !$scope.custom.contractor) return false;
-                if($scope.mainContract === 'Roll-out'){
+                if($scope.mainContract === 'Roll-outRevision2020'){
+                    return element.id >= 3000;
+                } else if($scope.mainContract === 'Roll-out'){
                     return (element.id > 1000 && element.id < 2000);
                 } else if($scope.mainContract === 'Revision'){
                     if($scope.contractorShortName[$scope.custom.contractor] === 'KR'){
-                        return (element.id < 1000 || element.id > 2000);
+                        return (element.id < 1000 || (element.id > 2000 && element.id < 3000));
                     } else {
                         return element.id < 1000;
                     }
-                }
+                } else return true;
             };
 
             $scope.filterByStatus = function(element) {
@@ -780,7 +750,7 @@
                     } else {
                         return true;
                     }
-                }
+                } else return true;
             };
         }]);
     </script>
@@ -794,7 +764,7 @@
     <div class="form-group">
         <label class="col-sm-4 control-label">Contract</label>
         <div class="col-sm-3">
-            <div class="form-control disabled">{{mainContract}}</div>
+            <div class="form-control disabled">{{mainContract === 'Roll-outRevision2020' ? 'Roll-out and Revision 2020' : mainContract}}</div>
         </div>
     </div>
     <div class="form-group">
@@ -820,12 +790,6 @@
                     </button>
                 </span>
             </div>
-        </div>
-    </div>
-    <div class="form-group">
-        <label class="col-sm-4 control-label">SA&O Complaint Id:</label>
-        <div class="col-sm-3">
-            <input type="text" ng-model="soaComplaintId" class="form-control" ng-blur="checkSOAComplaintId()" maxlength="20"/>
         </div>
     </div>
     <div class="form-group">
@@ -928,7 +892,7 @@
         <label class="col-sm-4 control-label">Supplementary files:</label>
         <div class="col-sm-8">
             <div class="input-group" ng-repeat="file in supplementaryFiles.value">
-                <a ng-click="download(file)">{{file.name}}</a> | <a ng-click="clearFile($index)"><i class="glyphicon glyphicon-trash" /></a>
+                <a ng-click="download(file)">{{file.name}}</a>| <a ng-click="clearFile($index)"><i class="glyphicon glyphicon-trash"></i></a>
                 <div class="input-group-addon" ng-show="file.name && hasGroup('kcellUsers')">
                     <label class="radio-inline">
                         <input type="radio" name="supplementaryFile_{{$index}}" ng-model="file.visibility"
@@ -941,7 +905,6 @@
                     <label class="error" ng-show="kcell_form['supplementaryFile_'+$index].$error.required && ( kcell_form['supplementaryFile_'+$index].$touched || view.submitted)">Required field</label>
                 </div>
             </div>
-            <!--<input type="file" class="form-control" name="supplementaryFiles" id="supplementaryFiles" onchange="angular.element(this).scope().fileSelected(this)" />-->
             <div class="input-group">
                 <label class="input-group-btn">
                     <span class="btn btn-default">
@@ -1129,12 +1092,6 @@
         <label class="col-sm-4 control-label">Jump to Fill applied changed (test only):</label>
         <div class="col-sm-8">
             <input type="checkbox" ng-model="ptypeCheckbox" />
-        </div>
-    </div>
-    <div class="form-group" ng-show="showJump">
-        <label class="col-sm-4 control-label">Jump to Pr Creation (test only):</label>
-        <div class="col-sm-8">
-            <input type="checkbox" cam-variable-name="ignoreSignPRCheckbox" cam-variable-type="Boolean" />
         </div>
     </div>
     <div class="form-group">
