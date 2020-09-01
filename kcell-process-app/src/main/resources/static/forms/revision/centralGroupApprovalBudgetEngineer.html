@@ -36,6 +36,13 @@
                 'mainContract'
             ];
 
+            $scope.contractorCodes = {
+                4: 'Line_Eng',
+                6: 'ALTA_Tel',
+                7: 'Logycom',
+                8: 'Arlan_SI'
+            }
+
             $scope.jobModel = {};
 
             $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
@@ -82,6 +89,11 @@
                     type: 'Json',
                     value: {}
                 });
+                camForm.variableManager.createVariable({
+                    name: 'materialsProvidedBySubcontrator',
+                    type: 'String',
+                    value: undefined
+                });
 
                 $scope.jobModel.showPrice = true;
             });
@@ -114,6 +126,9 @@
                 });
                 if ($scope.centralGroupApprovalBudgetEngineerTaskResult === 'approved') {
                     camForm.variableManager.variableValue('createJRResult', 'approved');
+                    camForm.variableManager.variableValue('jrNumber', $scope.jrNumber);
+                    camForm.variableManager.variableValue('materialsProvidedBySubcontrator', $scope.materialsProvidedBySubcontrator);
+                    camForm.variableManager.variableValue('contractor', $scope.newContractor);
                 } else {
                     camForm.variableManager.variableValue('createJRResult', 'rejected');
                 }
@@ -164,6 +179,21 @@
                 });
                 return total.toFixed(2).replace('.',',');
             }
+
+            $scope.preSubmit = function(){
+                var deferred = $q.defer();
+                if($scope.contractor === -1 && $scope.centralGroupApprovalBudgetEngineerTaskResult === 'approved' && $scope.jrNumber.indexOf('##')!==-1){
+                    var jrCounter = $scope.jrNumber.replace('-##-', '-'+$scope.contractorCodes[$scope.newContractor]+'-').replace('-####', '');
+                    return $http.post('/asset-management/jobrequestcounter/' + jrCounter).then(
+                        function(result){
+                            $scope.jrNumber = result.data;
+                        }
+                    );
+                } else {
+                    deferred.resolve();
+                    return deferred.promise;
+                }
+            }
         }]);
     </script>
     <job-request job-model="jobModel"></job-request>
@@ -211,6 +241,36 @@
         </table>
     </div>
     <br/>
+    <div class="form-group" ng-if="contractor === -1">
+        <label class="col-sm-4 control-label">Please choose Subcontractor:</label>
+        <div class="col-sm-8">
+            <label class="radio-inline">
+                <input type="radio" name="newContractor" ng-model="$parent.newContractor" value="4" ng-required="centralGroupApprovalBudgetEngineerTaskResult === 'approved'"> Line System Engineering
+            </label>
+            <label class="radio-inline">
+                <input type="radio" name="newContractor" ng-model="$parent.newContractor" value="6" ng-required="centralGroupApprovalBudgetEngineerTaskResult === 'approved'"> Алта Телеком
+            </label>
+            <label class="radio-inline">
+                <input type="radio" name="newContractor" ng-model="$parent.newContractor" value="7" ng-required="centralGroupApprovalBudgetEngineerTaskResult === 'approved'"> Логиком
+            </label>
+            <label class="radio-inline">
+                <input type="radio" name="newContractor" ng-model="$parent.newContractor" value="8" ng-required="centralGroupApprovalBudgetEngineerTaskResult === 'approved'"> Arlan SI
+            </label>
+            <label class="error" ng-show="kcell_form.newContractor.$error.required && ( kcell_form.newContractor.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-4 control-label">Materials will be provided by Subcontrator:</label>
+        <div class="col-sm-8">
+            <label class="radio-inline">
+                <input type="radio" name="materialsProvidedBySubcontrator" ng-model="materialsProvidedBySubcontrator" value="yes" ng-required="centralGroupApprovalBudgetEngineerTaskResult === 'approved'"> Yes
+            </label>
+            <label class="radio-inline">
+                <input type="radio" name="materialsProvidedBySubcontrator" ng-model="materialsProvidedBySubcontrator" value="no" ng-required="centralGroupApprovalBudgetEngineerTaskResult === 'approved'"> No
+            </label>
+            <label class="error" ng-show="kcell_form.materialsProvidedBySubcontrator.$error.required && ( kcell_form.materialsProvidedBySubcontrator.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
     <div class="form-group">
         <label class="col-sm-4 control-label">Resolution</label>
         <div class="col-sm-8">

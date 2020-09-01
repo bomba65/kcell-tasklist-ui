@@ -40,6 +40,26 @@ INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Arlan_Revision_West
 INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Arlan_Revision_South', 'contractor_users');
 INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Arlan_Revision_NC', 'contractor_users');
 
+
+INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Logycom_Revision_Alm', 'infrastructure_revision_users');
+INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Logycom_Revision_Astana', 'infrastructure_revision_users');
+INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Logycom_Revision_East', 'infrastructure_revision_users');
+INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Logycom_Revision_West', 'infrastructure_revision_users');
+INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Logycom_Revision_South', 'infrastructure_revision_users');
+INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Logycom_Revision_NC', 'infrastructure_revision_users');
+INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('ALTA_Revision_Alm', 'infrastructure_revision_users');
+INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('ALTA_Revision_Astana', 'infrastructure_revision_users');
+INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('ALTA_Revision_East', 'infrastructure_revision_users');
+INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('ALTA_Revision_West', 'infrastructure_revision_users');
+INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('ALTA_Revision_South', 'infrastructure_revision_users');
+INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('ALTA_Revision_NC', 'infrastructure_revision_users');
+INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Arlan_Revision_Alm', 'infrastructure_revision_users');
+INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Arlan_Revision_Astana', 'infrastructure_revision_users');
+INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Arlan_Revision_East', 'infrastructure_revision_users');
+INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Arlan_Revision_West', 'infrastructure_revision_users');
+INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Arlan_Revision_South', 'infrastructure_revision_users');
+INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Arlan_Revision_NC', 'infrastructure_revision_users');
+
 INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('contractor_users_logycom', 1, 'contractor_users_logycom', 'WORKFLOW');
 INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('contractor_users_alta', 1, 'contractor_users_alta', 'WORKFLOW');
 INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('contractor_users_arlan', 1, 'contractor_users_arlan', 'WORKFLOW'); 
