@@ -244,7 +244,12 @@
                 $scope.cai_addr_oblast = '';
                 $scope.alphabet = 'abcdefghijklmnopqrstuvwxyz'.split('');
 
-                $scope.cellAntenna.sectors = [{"antennas":[{}], "active": "active"}, {"antennas":[{}]}, {"antennas":[{}]}];
+                $scope.cellAntenna.sectors = []; //[{"antennas":[{}], "active": "active"}, {"antennas":[{}]}, {"antennas":[{}]}];
+
+                $scope.sector = {
+                    "antennas":[{}],
+                }
+
                 $scope.selectedAntennaSector = {};
                 $scope.selectedSectorTab = 0;
 
@@ -253,25 +258,25 @@
                 $scope.maxTab = 3;
 
                 //default values is cellAntennaInformations
-                $scope.cellAntenna.cn_gsm900 = 'No';
-                $scope.cellAntenna.cn_dcs1800 = 'No';
-                $scope.cellAntenna.cn_wcdma2100 = 'No';
-                $scope.cellAntenna.cn_umts900 = 'No';
-                $scope.cellAntenna.cn_lte800 = 'No';
-                $scope.cellAntenna.cn_ret_lte800 = 'No';
-                $scope.cellAntenna.cn_lte1800 = 'No';
-                $scope.cellAntenna.cn_ret_lte1800 = 'No';
-                $scope.cellAntenna.cn_lte2100 = 'No';
-                $scope.cellAntenna.cn_ret_lte2100 = 'No';
-                $scope.cellAntenna.cn_duplex_gsm = 'No/No';
-                $scope.cellAntenna.cn_diversity = 'No/No';
-                $scope.cellAntenna.cn_power_splitter = 'No/No';
-                $scope.cellAntenna.cn_hcu = 'No/No';
-                $scope.cellAntenna.cn_asc = 'No';
-                $scope.cellAntenna.cn_ret = 'Yes';
-                $scope.cellAntenna.cn_tma_gsm = 'No/No/No';
-                $scope.cellAntenna.cn_tcc = 'No/No';
-                $scope.cellAntenna.cn_gsm_range = 'No/No';
+                $scope.sector.cn_gsm900 = 'No';
+                $scope.sector.cn_dcs1800 = 'No';
+                $scope.sector.cn_wcdma2100 = 'No';
+                $scope.sector.cn_umts900 = 'No';
+                $scope.sector.cn_lte800 = 'No';
+                $scope.sector.cn_ret_lte800 = 'No';
+                $scope.sector.cn_lte1800 = 'No';
+                $scope.sector.cn_ret_lte1800 = 'No';
+                $scope.sector.cn_lte2100 = 'No';
+                $scope.sector.cn_ret_lte2100 = 'No';
+                $scope.sector.cn_duplex_gsm = 'No/No';
+                $scope.sector.cn_diversity = 'No/No';
+                $scope.sector.cn_power_splitter = 'No/No';
+                $scope.sector.cn_hcu = 'No/No';
+                $scope.sector.cn_asc = 'No';
+                $scope.sector.cn_ret = 'Yes';
+                $scope.sector.cn_tma_gsm = 'No/No/No';
+                $scope.sector.cn_tcc = 'No/No';
+                $scope.sector.cn_gsm_range = 'No/No';
 
                 $scope.variablesFetched = false;
                 $scope.catalogsFetched = false;
@@ -432,6 +437,10 @@
                         }
                     });
                 }
+                $scope.newSector();
+                $scope.newSector();
+                $scope.newSector();
+
             });
 
             camForm.on('submit', function (evt) {
@@ -756,6 +765,23 @@
                 $scope.newFe = {};
 
             };
+
+            $scope.newSector = function () {
+                let newS = JSON.parse(angular.toJson($scope.sector));
+                $scope.cellAntenna.sectors.push(newS);
+                console.log($scope.cellAntenna.sectors)
+                if ($scope.selectedSectorTab+1 < $scope.cellAntenna.sectors.length) {
+                    $scope.selectedSectorTab = $scope.cellAntenna.sectors.length - 1;
+                    $scope.cellAntenna.sectors[$scope.selectedSectorTab].active = 'active';
+
+                    if ($scope.selectedSectorTab === $scope.maxTab) {
+                        $scope.minTab= $scope.minTab + 1;
+                        $scope.maxTab= $scope.maxTab + 1;
+                    }
+                } else {
+                    $scope.cellAntenna.sectors[$scope.selectedSectorTab].active = 'active';
+                }
+            }
 
             $scope.$watch('address', function (project) {
                 if (!$scope.cellAntenna.address.ca_diff_address){
@@ -1420,7 +1446,7 @@
                     </div>
                 </div>
                 <div class="form-group">
-                    <label class="col-sm-3 control-label">*BSC:</label>
+                    <label class="col-sm-3 control-label">*BCS/RNC:</label>
                     <div class="col-sm-5">
                         <input type="text" ng-model="candidate.bsc" name="candidateBsc"
                                typeahead="s as s.name for s in getFilteredBSC($viewValue)" class="form-control"
@@ -1774,22 +1800,299 @@
                                                 <option ng-repeat="a in dictionary.antennaTypes" ng-value="a.name">{{a.name}}</option>
                                             </select>
                                             <label style="margin-right: -105px;" class="col-sm-3"><b>*Antenna location</b></label>
-                                            <select class="col-sm-2" id="antennaLocation" name="antennaLocation" ng-model="ant.cn_antenna_loc" required>
+                                            <select class="col-sm-2" id="antennaLocation" name="{{'antennaLocation_' + $parent.$index + '_' + $index}}" ng-model="ant.cn_antenna_loc" required>
                                                 <option ng-repeat="a in dictionary.antennaLocation" ng-value="a.name">{{a.name}}</option>
                                             </select>
-                                            <label class="error" ng-show="kcell_form.antennaLocation.$error.required && ( kcell_form.antennaLocation.$touched || view.submitted)">Required field</label>
+                                            <label class="error" ng-show="kcell_form.{{'antennaLocation_' + $parent.$index + '_' + $index}}.$error.required && ( kcell_form.{{'antennaLocation_' + $parent.$index + '_' + $index}}.$touched || view.submitted)">Required field</label>
                                         </div>
                                     </div>
                                     <div class="col-sm-12">
                                         <input type="button" ng-click="s.antennas.push({})" value="Add Cell Antenna" class="btn btn-primary pull-right">
                                     </div>
-                                    
-                                    <!-- <div class="col-sm-6"> left column -->
-                                    
-                                    <!-- </div> -->
+
+                                    <div class="form-group">
+                                        <label class="col-sm-4 control-label">GSM 900:</label>
+                                        <div class="col-sm-2">
+                                            <label class="radio-inline">
+                                                <input type="radio" name="{{$index}}_cn_gsm900" ng-model="s.cn_gsm900"
+                                                       value="Yes"> Yes
+                                            </label>
+                                            <label class="radio-inline">
+                                                <input type="radio" name="{{$index}}_cn_gsm900" ng-model="s.cn_gsm900"
+                                                       value="No"> No
+                                            </label>
+                                        </div>
+                                        <label class="col-sm-4 control-label">LTE 800:</label>
+                                        <div class="col-sm-2">
+                                            <label class="radio-inline">
+                                                <input type="radio" name="{{$index}}_cn_lte800" ng-model="s.cn_lte800"
+                                                       value="Yes"> Yes
+                                            </label>
+                                            <label class="radio-inline">
+                                                <input type="radio" name="{{$index}}_cn_lte800" ng-model="s.cn_lte800"
+                                                       value="No"> No
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="col-sm-4 control-label">DCS 1800:</label>
+                                        <div class="col-sm-2">
+                                            <label class="radio-inline">
+                                                <input type="radio" name="{{$index}}_cn_dcs1800" ng-model="s.cn_dcs1800"
+                                                       value="Yes"> Yes
+                                            </label>
+                                            <label class="radio-inline">
+                                                <input type="radio" name="{{$index}}_cn_dcs1800" ng-model="s.cn_dcs1800"
+                                                       value="No"> No
+                                            </label>
+                                        </div>
+                                        <label class="col-sm-4 control-label">RET LTE 800:</label>
+                                        <div class="col-sm-2">
+                                            <label class="radio-inline">
+                                                <input type="radio" name="{{$index}}_cn_ret_lte800" ng-model="s.cn_ret_lte800"
+                                                       value="Yes"> Yes
+                                            </label>
+                                            <label class="radio-inline">
+                                                <input type="radio" name="{{$index}}_cn_ret_lte800" ng-model="s.cn_ret_lte800"
+                                                       value="No"> No
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="col-sm-4 control-label">WCDMA 2100:</label>
+                                        <div class="col-sm-2">
+                                            <label class="radio-inline">
+                                                <input type="radio" name="{{$index}}_cn_wcdma2100" ng-model="s.cn_wcdma2100"
+                                                       value="Yes"> Yes
+                                            </label>
+                                            <label class="radio-inline">
+                                                <input type="radio" name="{{$index}}_cn_wcdma2100" ng-model="s.cn_wcdma2100"
+                                                       value="No"> No
+                                            </label>
+                                        </div>
+                                        <label class="col-sm-4 control-label">LTE 1800:</label>
+                                        <div class="col-sm-2">
+                                            <label class="radio-inline">
+                                                <input type="radio" name="{{$index}}_cn_lte1800" ng-model="s.cn_lte1800"
+                                                       value="Yes"> Yes
+                                            </label>
+                                            <label class="radio-inline">
+                                                <input type="radio" name="{{$index}}_cn_lte1800" ng-model="s.cn_lte1800"
+                                                       value="No"> No
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="col-sm-4 control-label">UMTS 900:</label>
+                                        <div class="col-sm-2">
+                                            <label class="radio-inline">
+                                                <input type="radio" name="{{$index}}_cn_umts900" ng-model="s.cn_umts900"
+                                                       value="Yes"> Yes
+                                            </label>
+                                            <label class="radio-inline">
+                                                <input type="radio" name="{{$index}}_cn_umts900" ng-model="s.cn_umts900"
+                                                       value="No"> No
+                                            </label>
+                                        </div>
+                                        <label class="col-sm-4 control-label">RET LTE 1800:</label>
+                                        <div class="col-sm-2">
+                                            <label class="radio-inline">
+                                                <input type="radio" name="{{$index}}_cn_ret_lte1800" ng-model="s.cn_ret_lte1800"
+                                                       value="Yes"> Yes
+                                            </label>
+                                            <label class="radio-inline">
+                                                <input type="radio" name="{{$index}}_cn_ret_lte1800" ng-model="s.cn_ret_lte1800" ng-checked="true"
+                                                       value="No"> No
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="col-sm-4 control-label">Required TRX 900/1800:</label>
+                                        <div class="col-sm-2">
+                                            <input class="form-control" type="text" id="cn_trx" name="{{$index}}_cn_trx"
+                                                   ng-model="s.cn_trx">
+                                        </div>
+                                        <label class="col-sm-4 control-label">LTE 2100:</label>
+                                        <div class="col-sm-2">
+                                            <label class="radio-inline">
+                                                <input type="radio" name="{{$index}}_cn_lte2100" ng-model="s.cn_lte2100" ng-change="s.cn_ret_lte2100 = s.cn_lte2100"
+                                                       value="Yes"> Yes
+                                            </label>
+                                            <label class="radio-inline">
+                                                <input type="radio" name="{{$index}}_cn_lte2100" ng-model="s.cn_lte2100" ng-change="s.cn_ret_lte2100 = s.cn_lte2100"
+                                                       value="No"> No
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="col-sm-4 control-label">WCDMA Carrier:</label>
+                                        <div class="col-sm-2">
+                                            <input class="form-control" type="text" id="cn_wcdma_carrier" name="{{$index}}_cn_wcdma_carrier"
+                                                   ng-model="s.cn_wcdma_carrier">
+                                        </div>
+                                        <label class="col-sm-4 control-label">RET LTE 2100:</label>
+                                        <div class="col-sm-2">
+                                            <label class="radio-inline">
+                                                <input type="radio" name="{{$index}}_cn_ret_lte2100" ng-model="s.cn_ret_lte2100"
+                                                       value="Yes"> Yes
+                                            </label>
+                                            <label class="radio-inline">
+                                                <input type="radio" name="{{$index}}_cn_ret_lte2100" ng-model="s.cn_ret_lte2100" ng-checked="true"
+                                                       value="No"> No
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="col-sm-4 control-label">Antenna Quantity 900/1800/WCDMA:</label>
+                                        <div class="col-sm-2">
+                                            <input class="form-control" type="text" id="cn_gsm_antenna_quantity" name="{{$index}}_cn_gsm_antenna_quantity"
+                                                   ng-model="s.cn_gsm_antenna_quantity">
+                                        </div>
+                                        <label class="col-sm-4 control-label">Antenna Quantity LTE 800/1800:</label>
+                                        <div class="col-sm-2">
+                                            <input class="form-control" type="text" id="cn_lte_antenna_quantity" name="{{$index}}_cn_lte_antenna_quantity"
+                                                   ng-model="s.cn_lte_antenna_quantity">
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="col-sm-4 control-label">Tilt [deg] mechanical 900/1800/WCDMA:</label>
+                                        <div class="col-sm-2">
+                                            <input class="form-control" type="text" id="cn_tilt_mech_gsm" name="{{$index}}_cn_tilt_mech_gsm"
+                                                   ng-model="s.square">
+                                        </div>
+                                        <label class="col-sm-4 control-label">Tilt [deg] mechanical LTE 800/1800:</label>
+                                        <div class="col-sm-2">
+                                            <input class="form-control" type="text" id="cn_tilt_mech_lte" name="{{$index}}_cn_tilt_mech_lte"
+                                                   ng-model="s.cn_tilt_mech_lte">
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="col-sm-4 control-label">Tilt [deg] electrical 900/1800/WCDMA:</label>
+                                        <div class="col-sm-2">
+                                            <input class="form-control" type="text" id="cn_tilt_electr_gsm" name="{{$index}}_cn_tilt_electr_gsm"
+                                                   ng-model="s.cn_tilt_electr_gsm">
+                                        </div>
+                                        <label class="col-sm-4 control-label">Tilt [deg] electrical LTE 800/1800:</label>
+                                        <div class="col-sm-2">
+                                            <input class="form-control" type="text" id="cn_tilt_electr_lte" name="{{$index}}_cn_tilt_electr_lte"
+                                                   ng-model="s.cn_tilt_electr_lte">
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="col-sm-4 control-label">Direction [deg] 900/1800/WCDMA:</label>
+                                        <div class="col-sm-2">
+                                            <input class="form-control" type="text" id="cn_direction_gsm" name="{{$index}}_cn_direction_gsm"
+                                                   ng-model="s.cn_direction_gsm">
+                                        </div>
+                                        <label class="col-sm-4 control-label">Direction [deg] LTE 800/1800:</label>
+                                        <div class="col-sm-2">
+                                            <input class="form-control" type="text" id="cn_direction_lte" name="{{$index}}_cn_direction_lte"
+                                                   ng-model="s.cn_direction_lte">
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="col-sm-4 control-label">Height (top of ant) [m] 900/1800/WCDMA:</label>
+                                        <div class="col-sm-2">
+                                            <input class="form-control" type="text" id="cn_height_gsm" name="{{$index}}_cn_height_gsm"
+                                                   ng-model="s.cn_height_gsm">
+                                        </div>
+                                        <label class="col-sm-4 control-label">Height (top of ant) [m] LTE 800/1800:</label>
+                                        <div class="col-sm-2">
+                                            <input class="form-control" type="text" id="cn_height_lte" name="{{$index}}_cn_height_lte"
+                                                   ng-model="s.cn_height_lte">
+                                        </div>
+                                    </div>
+                                    <br>
+                                    <div class="form-group">
+                                        <label class="col-sm-4 control-label">Duplex Filter 900/1800:</label>
+                                        <div class="col-sm-2">
+                                            <input class="form-control" type="text" id="cn_duplex_gsm" name="{{$index}}_cn_duplex_gsm"
+                                                   ng-model="s.cn_duplex_gsm">
+                                        </div>
+                                        <label class="col-sm-4 control-label">Radio Unit type:</label>
+                                        <div class="col-sm-2">
+                                            <select class="form-control col-sm-2" id="radioUnit" name="{{$index}}_radioUnit" ng-model="s.cn_radio_unit" >
+                                                <option ng-repeat="a in dictionary.radioUnit" ng-value="a.name">{{a.name}}</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="col-sm-4 control-label">Diversity 900/1800:</label>
+                                        <div class="col-sm-2">
+                                            <input class="form-control" type="text" id="cn_diversity" name="{{$index}}_cn_diversity"
+                                                   ng-model="s.cn_diversity">
+                                        </div>
+                                        <label class="col-sm-4 control-label">DU type:</label>
+                                        <div class="col-sm-2">
+                                            <select class="form-control col-sm-2" id="dUnit" name="{{$index}}_dUnit" ng-model="s.cn_du" >
+                                                <option ng-repeat="a in dictionary.dUnit" ng-value="a.name">{{a.name}}</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="col-sm-4 control-label">Power Splitter 900/1800:</label>
+                                        <div class="col-sm-2">
+                                            <input class="form-control" type="text" id="cn_power_splitter" name="{{$index}}_cn_power_splitter"
+                                                   ng-model="s.cn_power_splitter">
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="col-sm-4 control-label">Hybrid Combiner Unit (HCU) 900/1800:</label>
+                                        <div class="col-sm-2">
+                                            <input class="form-control" type="text" id="cn_hcu" name="{{$index}}_cn_hcu"
+                                                   ng-model="s.cn_hcu">
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="col-sm-4 control-label">ASC:</label>
+                                        <div class="col-sm-2">
+                                            <label class="radio-inline">
+                                                <input type="radio" name="{{$index}}_cn_asc" ng-model="s.cn_asc"
+                                                       value="Yes"> Yes
+                                            </label>
+                                            <label class="radio-inline">
+                                                <input type="radio" name="{{$index}}_cn_asc" ng-model="s.cn_asc"
+                                                       value="No"> No
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="col-sm-4 control-label">Remote Electrical Tilt (RET):</label>
+                                        <div class="col-sm-2">
+                                            <label class="radio-inline">
+                                                <input type="radio" name="{{$index}}_cn_ret" ng-model="s.cn_ret"
+                                                       value="Yes"> Yes
+                                            </label>
+                                            <label class="radio-inline">
+                                                <input type="radio" name="{{$index}}_cn_ret" ng-model="s.cn_ret"
+                                                       value="No"> No
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="col-sm-4 control-label">TMA 900/1800/WCDMA::</label>
+                                        <div class="col-sm-2">
+                                            <input class="form-control" type="text" id="cn_tma_gsm" name="{{$index}}_cn_tma_gsm"
+                                                   ng-model="s.cn_tma_gsm">
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="col-sm-4 control-label">TCC 900/1800:</label>
+                                        <div class="col-sm-2">
+                                            <input class="form-control" type="text" id="cn_tcc" name="{{$index}}_cn_tcc"
+                                                   ng-model="s.cn_tcc">
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="col-sm-4 control-label">Extended range 900/1800:</label>
+                                        <div class="col-sm-2">
+                                            <input class="form-control" type="text" id="cn_gsm_range" name="{{$index}}_cn_gsm_range"
+                                                   ng-model="s.cn_gsm_range">
+                                        </div>
+                                    </div>
                                 </div>
                             </tab>
-                            <tab ng-click="cellAntenna.sectors.push({'antennas':[{}]}); tabStepRight();">
+                            <tab ng-click="newSector();">
                                 <tab-heading height="50px"><b>+</b></tab-heading>
                             </tab>
                             <tab ng-click="tabStepRight()">
@@ -1798,286 +2101,7 @@
                         </tabset>
                         <br>
                         <!-- <p>from {{minTab}} to {{maxTab}}</p> -->
-                        <div class="form-group">
-                            <label class="col-sm-4 control-label">GSM 900:</label>
-                            <div class="col-sm-2">
-                                <label class="radio-inline">
-                                    <input type="radio" name="cn_gsm900" ng-model="cellAntenna.cn_gsm900"
-                                            value="Yes"> Yes
-                                </label>
-                                <label class="radio-inline">
-                                    <input type="radio" name="cn_gsm900" ng-model="cellAntenna.cn_gsm900" ng-checked="true"
-                                            value="No"> No
-                                </label>
-                            </div>
-                            <label class="col-sm-4 control-label">LTE 800:</label>
-                            <div class="col-sm-2">
-                                <label class="radio-inline">
-                                    <input type="radio" name="cn_lte800" ng-model="cellAntenna.cn_lte800"
-                                            value="Yes"> Yes
-                                </label>
-                                <label class="radio-inline">
-                                    <input type="radio" name="cn_lte800" ng-model="cellAntenna.cn_lte800" ng-checked="true"
-                                            value="No"> No
-                                </label>
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label class="col-sm-4 control-label">DCS 1800:</label>
-                            <div class="col-sm-2">
-                                <label class="radio-inline">
-                                    <input type="radio" name="cn_dcs1800" ng-model="cellAntenna.cn_dcs1800"
-                                            value="Yes"> Yes
-                                </label>
-                                <label class="radio-inline">
-                                    <input type="radio" name="cn_dcs1800" ng-model="cellAntenna.cn_dcs1800" ng-checked="true"
-                                            value="No"> No
-                                </label>
-                            </div>
-                            <label class="col-sm-4 control-label">RET LTE 800:</label>
-                            <div class="col-sm-2">
-                                <label class="radio-inline">
-                                    <input type="radio" name="cn_ret_lte800" ng-model="cellAntenna.cn_ret_lte800"
-                                            value="Yes"> Yes
-                                </label>
-                                <label class="radio-inline">
-                                    <input type="radio" name="cn_ret_lte800" ng-model="cellAntenna.cn_ret_lte800" ng-checked="true"
-                                            value="No"> No
-                                </label>
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label class="col-sm-4 control-label">WCDMA 2100:</label>
-                            <div class="col-sm-2">
-                                <label class="radio-inline">
-                                    <input type="radio" name="cn_wcdma2100" ng-model="cellAntenna.cn_wcdma2100"
-                                            value="Yes"> Yes
-                                </label>
-                                <label class="radio-inline">
-                                    <input type="radio" name="cn_wcdma2100" ng-model="cellAntenna.cn_wcdma2100" ng-checked="true"
-                                            value="No"> No
-                                </label>
-                            </div>
-                            <label class="col-sm-4 control-label">LTE 1800:</label>
-                            <div class="col-sm-2">
-                                <label class="radio-inline">
-                                    <input type="radio" name="cn_lte1800" ng-model="cellAntenna.cn_lte1800"
-                                            value="Yes"> Yes
-                                </label>
-                                <label class="radio-inline">
-                                    <input type="radio" name="cn_lte1800" ng-model="cellAntenna.cn_lte1800" ng-checked="true"
-                                            value="No"> No
-                                </label>
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label class="col-sm-4 control-label">UMTS 900:</label>
-                            <div class="col-sm-2">
-                                <label class="radio-inline">
-                                    <input type="radio" name="cn_umts900" ng-model="cellAntenna.cn_umts900"
-                                            value="Yes"> Yes
-                                </label>
-                                <label class="radio-inline">
-                                    <input type="radio" name="cn_umts900" ng-model="cellAntenna.cn_umts900" ng-checked="true"
-                                            value="No"> No
-                                </label>
-                            </div>
-                            <label class="col-sm-4 control-label">RET LTE 1800:</label>
-                            <div class="col-sm-2">
-                                <label class="radio-inline">
-                                    <input type="radio" name="cn_ret_lte1800" ng-model="cellAntenna.cn_ret_lte1800"
-                                            value="Yes"> Yes
-                                </label>
-                                <label class="radio-inline">
-                                    <input type="radio" name="cn_ret_lte1800" ng-model="cellAntenna.cn_ret_lte1800" ng-checked="true"
-                                            value="No"> No
-                                </label>
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label class="col-sm-4 control-label">Required TRX 900/1800:</label>
-                            <div class="col-sm-2">
-                                <input class="form-control" type="number" id="cn_trx" name="cn_trx"
-                                        ng-model="cellAntenna.cn_trx">
-                            </div>
-                            <label class="col-sm-4 control-label">LTE 2100:</label>
-                            <div class="col-sm-2">
-                                <label class="radio-inline">
-                                    <input type="radio" name="cn_lte2100" ng-model="cellAntenna.cn_lte2100" ng-change="cellAntenna.cn_ret_lte2100 = cellAntenna.cn_lte2100"
-                                            value="Yes"> Yes
-                                </label>
-                                <label class="radio-inline">
-                                    <input type="radio" name="cn_lte2100" ng-model="cellAntenna.cn_lte2100" ng-checked="true" ng-change="cellAntenna.cn_ret_lte2100 = cellAntenna.cn_lte2100"
-                                            value="No"> No
-                                </label>
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label class="col-sm-4 control-label">WCDMA Carrier:</label>
-                            <div class="col-sm-2">
-                                <input class="form-control" type="number" id="cn_wcdma_carrier" name="cn_wcdma_carrier"
-                                        ng-model="cellAntenna.cn_wcdma_carrier">
-                            </div>
-                            <label class="col-sm-4 control-label">RET LTE 2100:</label>
-                            <div class="col-sm-2">
-                                <label class="radio-inline">
-                                    <input type="radio" name="cn_ret_lte2100" ng-model="cellAntenna.cn_ret_lte2100"
-                                            value="Yes"> Yes
-                                </label>
-                                <label class="radio-inline">
-                                    <input type="radio" name="cn_ret_lte2100" ng-model="cellAntenna.cn_ret_lte2100" ng-checked="true"
-                                            value="No"> No
-                                </label>
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label class="col-sm-4 control-label">Antenna Quantity 900/1800/WCDMA:</label>
-                            <div class="col-sm-2">
-                                <input class="form-control" type="number" id="cn_gsm_antenna_quantity" name="cn_gsm_antenna_quantity"
-                                        ng-model="cellAntenna.cn_gsm_antenna_quantity">
-                            </div>
-                            <label class="col-sm-4 control-label">Antenna Quantity LTE 800/1800:</label>
-                            <div class="col-sm-2">
-                                <input class="form-control" type="number" id="cn_lte_antenna_quantity" name="cn_lte_antenna_quantity"
-                                        ng-model="cellAntenna.cn_lte_antenna_quantity">
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label class="col-sm-4 control-label">Tilt [deg] mechanical 900/1800/WCDMA:</label>
-                            <div class="col-sm-2">
-                                <input class="form-control" type="number" id="cn_tilt_mech_gsm" name="cn_tilt_mech_gsm"
-                                        ng-model="cellAntenna.square">
-                            </div>
-                            <label class="col-sm-4 control-label">Tilt [deg] mechanical LTE 800/1800:</label>
-                            <div class="col-sm-2">
-                                <input class="form-control" type="number" id="cn_tilt_mech_lte" name="cn_tilt_mech_lte"
-                                        ng-model="cellAntenna.cn_tilt_mech_lte">
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label class="col-sm-4 control-label">Tilt [deg] electrical 900/1800/WCDMA:</label>
-                            <div class="col-sm-2">
-                                <input class="form-control" type="number" id="cn_tilt_electr_gsm" name="cn_tilt_electr_gsm"
-                                        ng-model="cellAntenna.cn_tilt_electr_gsm">
-                            </div>
-                            <label class="col-sm-4 control-label">Tilt [deg] electrical LTE 800/1800:</label>
-                            <div class="col-sm-2">
-                                <input class="form-control" type="number" id="cn_tilt_electr_lte" name="cn_tilt_electr_lte"
-                                        ng-model="cellAntenna.cn_tilt_electr_lte">
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label class="col-sm-4 control-label">Direction [deg] 900/1800/WCDMA:</label>
-                            <div class="col-sm-2">
-                                <input class="form-control" type="number" id="cn_direction_gsm" name="cn_direction_gsm"
-                                        ng-model="cellAntenna.cn_direction_gsm">
-                            </div>
-                            <label class="col-sm-4 control-label">Direction [deg] LTE 800/1800:</label>
-                            <div class="col-sm-2">
-                                <input class="form-control" type="number" id="cn_direction_lte" name="cn_direction_lte"
-                                        ng-model="cellAntenna.cn_direction_lte">
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label class="col-sm-4 control-label">Height (top of ant) [m] 900/1800/WCDMA:</label>
-                            <div class="col-sm-2">
-                                <input class="form-control" type="number" id="cn_height_gsm" name="cn_height_gsm"
-                                        ng-model="cellAntenna.cn_height_gsm">
-                            </div>
-                            <label class="col-sm-4 control-label">Height (top of ant) [m] LTE 800/1800:</label>
-                            <div class="col-sm-2">
-                                <input class="form-control" type="number" id="cn_height_lte" name="cn_height_lte"
-                                        ng-model="cellAntenna.cn_height_lte">
-                            </div>
-                        </div>
-                        <br>
-                        <div class="form-group">
-                            <label class="col-sm-4 control-label">Duplex Filter 900/1800:</label>
-                            <div class="col-sm-2">
-                                <input class="form-control" type="text" id="cn_duplex_gsm" name="cn_duplex_gsm"
-                                        ng-model="cellAntenna.cn_duplex_gsm">
-                            </div>
-                            <label class="col-sm-4 control-label">Radio Unit type:</label>
-                            <div class="col-sm-2">
-                                <select class="form-control col-sm-2" id="radioUnit" name="radioUnit" ng-model="cellAntenna.cn_radio_unit" >
-                                    <option ng-repeat="a in dictionary.radioUnit" ng-value="a.name">{{a.name}}</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label class="col-sm-4 control-label">Diversity 900/1800:</label>
-                            <div class="col-sm-2">
-                                <input class="form-control" type="text" id="cn_diversity" name="cn_diversity"
-                                        ng-model="cellAntenna.cn_diversity">
-                            </div>
-                            <label class="col-sm-4 control-label">DU type:</label>
-                            <div class="col-sm-2">
-                                <select class="form-control col-sm-2" id="dUnit" name="dUnit" ng-model="cellAntenna.cn_du" >
-                                    <option ng-repeat="a in dictionary.dUnit" ng-value="a.name">{{a.name}}</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label class="col-sm-4 control-label">Power Splitter 900/1800:</label>
-                            <div class="col-sm-2">
-                                <input class="form-control" type="text" id="cn_power_splitter" name="cn_power_splitter"
-                                        ng-model="cellAntenna.cn_power_splitter">
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label class="col-sm-4 control-label">Hybrid Combiner Unit (HCU) 900/1800:</label>
-                            <div class="col-sm-2">
-                                <input class="form-control" type="text" id="cn_hcu" name="cn_hcu"
-                                        ng-model="cellAntenna.cn_hcu">
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label class="col-sm-4 control-label">ASC:</label>
-                            <div class="col-sm-2">
-                                <label class="radio-inline">
-                                    <input type="radio" name="cn_asc" ng-model="cellAntenna.cn_asc"
-                                            value="Yes"> Yes
-                                </label>
-                                <label class="radio-inline">
-                                    <input type="radio" name="cn_asc" ng-model="cellAntenna.cn_asc"  ng-checked="true"
-                                            value="No"> No
-                                </label>
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label class="col-sm-4 control-label">Remote Electrical Tilt (RET):</label>
-                            <div class="col-sm-2">
-                                <label class="radio-inline">
-                                    <input type="radio" name="cn_ret" ng-model="cellAntenna.cn_ret" ng-checked="true"
-                                            value="Yes"> Yes
-                                </label>
-                                <label class="radio-inline">
-                                    <input type="radio" name="cn_ret" ng-model="cellAntenna.cn_ret"
-                                            value="No"> No
-                                </label>
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label class="col-sm-4 control-label">TMA 900/1800/WCDMA::</label>
-                            <div class="col-sm-2">
-                                <input class="form-control" type="text" id="cn_tma_gsm" name="cn_tma_gsm"
-                                        ng-model="cellAntenna.cn_tma_gsm">
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label class="col-sm-4 control-label">TCC 900/1800:</label>
-                            <div class="col-sm-2">
-                                <input class="form-control" type="text" id="cn_tcc" name="cn_tcc"
-                                        ng-model="cellAntenna.cn_tcc">
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label class="col-sm-4 control-label">Extended range 900/1800:</label>
-                            <div class="col-sm-2">
-                                <input class="form-control" type="text" id="cn_gsm_range" name="cn_gsm_range"
-                                        ng-model="cellAntenna.cn_gsm_range">
-                            </div>
-                        </div>
+
                     </accordion-group>
                 </accordion>
 
