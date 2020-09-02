@@ -187,6 +187,14 @@ class GenerateLeasingRSD implements ExecutionListener {
                             td (width:"20%", style:"border-top:none; vertical-align:top;" )
                             td (width:"23%", style:"border:none vertical-align:top;" )
                         }
+                        tr (style:"border-bottom:none"){
+                            td (width:"20%", style:"font-weight: bold;border:1px solid", "Site type:")
+                            td (width:"23%", colspan:"2", style:"border:1px solid", data[0].siteType)
+                            td (width:"7%", style:"border-bottom:none; border-right:none solid black; border-top:none; vertical-align:top;")
+                            td (width:"7%", style:"border-top:none; vertical-align:top;" )
+                            td (width:"20%", style:"border-top:none; vertical-align:top;" )
+                            td (width:"23%", style:"border:none vertical-align:top;" )
+                        }
                     }
                 def cycles = cycles;
                 def a = cycles % 3
@@ -832,6 +840,7 @@ class GenerateLeasingRSD implements ExecutionListener {
         }
 
         def candidateJson = new JsonSlurper().parseText(execution.getVariable('candidate').toString());
+        def siteTypeJson = new JsonSlurper().parseText(execution.getVariable('siteType').toString());
         def cellAntennaJson = new JsonSlurper().parseText(execution.getVariable('cellAntenna').toString());
         def renterCompanyJson = new JsonSlurper().parseText(execution.getVariable('renterCompany').toString());
         def address = new JsonSlurper().parseText(execution.getVariable('address').toString());
@@ -860,11 +869,50 @@ class GenerateLeasingRSD implements ExecutionListener {
             def antennaLTE1800 = "";
             def antennaLTE2100 = "";
             def antennaLTE2600 = "";
+
+            def cn_tilt_mech_gsm = "";
+            def cn_tilt_electr_gsm = "";
+            def cn_tilt_mech_lte = "";
+            def cn_tilt_electr_lte = "";
+            def cn_direction_gsm = "";
+            def cn_height_gsm = "";
+            def cn_height_lte = "";
+            def cn_duplex_gsm = "";
+            def cn_diversity = "";
+            def cn_power_splitter = "";
+            def cn_hcu = "";
+            def cn_ret = "";
+            def cn_asc = "";
+            def cn_tma_gsm = "";
+            def cn_tcc = "";
+            def cn_gsm_range = "";
             
             for(int k=0;k<sectorsArr[j].antennas.size();k++){
             antennaQuantity += sectorsArr[j].antennas[k].quantity
             def antennaItem = sectorsArr[j].antennas[k].antennaType
             def antennaName = sectorsArr[j].antennas[k].antennaName
+
+
+
+            cn_tilt_mech_gsm = sectorsArr[j].square ? sectorsArr[j].square : "";
+            cn_tilt_electr_gsm = sectorsArr[j].cn_tilt_electr_gsm ? sectorsArr[j].cn_tilt_electr_gsm : "";
+            cn_tilt_mech_lte = sectorsArr[j].cn_tilt_mech_lte ? sectorsArr[j].cn_tilt_mech_lte : "";
+            cn_tilt_electr_lte = sectorsArr[j].cn_tilt_electr_lte ? sectorsArr[j].cn_tilt_electr_lte : "";
+            cn_direction_gsm = sectorsArr[j].cn_direction_gsm ? sectorsArr[j].cn_direction_gsm : "";
+            cn_height_gsm = sectorsArr[j].cn_height_gsm ? sectorsArr[j].cn_height_gsm : "";
+            cn_height_lte = sectorsArr[j].cn_height_lte ? sectorsArr[j].cn_height_lte : "";
+            cn_duplex_gsm = sectorsArr[j].cn_duplex_gsm ? sectorsArr[j].cn_duplex_gsm : "";
+            cn_diversity = sectorsArr[j].cn_diversity ? sectorsArr[j].cn_diversity : "";
+            cn_power_splitter = sectorsArr[j].cn_power_splitter ? sectorsArr[j].cn_power_splitter : "";
+            cn_hcu = sectorsArr[j].cn_hcu ? sectorsArr[j].cn_hcu : "";
+            cn_ret = sectorsArr[j].cn_ret ? sectorsArr[j].cn_ret : "";
+            cn_asc = sectorsArr[j].cn_asc ? sectorsArr[j].cn_asc : "";
+            cn_tma_gsm = sectorsArr[j].cn_tma_gsm ? sectorsArr[j].cn_tma_gsm : "";
+            cn_tcc = sectorsArr[j].cn_tcc ? sectorsArr[j].cn_tcc : "";
+            cn_gsm_range = sectorsArr[j].cn_gsm_range ? sectorsArr[j].cn_gsm_range : "";
+//            def cn_diversity = sectorsArr[j].cn_diversity ? sectorsArr[j].cn_diversity : "";
+
+
             for(String item : antennaNames){
                 if(antennaItem == "G900"){
                     antennaGSM900 = antennaName
@@ -889,7 +937,7 @@ class GenerateLeasingRSD implements ExecutionListener {
                 } 
                 if(antennaItem == "L2600"){
                     antennaLTE2600 = antennaName
-                } 
+                }
             }
             }
             
@@ -911,22 +959,23 @@ class GenerateLeasingRSD implements ExecutionListener {
                     "cn_du": cellAntennaJson.cn_du ? cellAntennaJson.cn_du : '',
                     "sector_cell_antenna":"sector_cell_antenna",
                     "cn_antenna_loc": antennaLocation ? antennaLocation : '',
-                    "cn_tilt_mech_gsm": cellAntennaJson.square ? cellAntennaJson.square : '',
-                    "cn_tilt_electr_gsm": cellAntennaJson.cn_tilt_electr_gsm ? cellAntennaJson.cn_tilt_electr_gsm : '',
-                    "cn_tilt_mech_lte": cellAntennaJson.cn_tilt_mech_lte ? cellAntennaJson.cn_tilt_mech_lte : '',
-                    "cn_tilt_electr_lte": cellAntennaJson.cn_tilt_electr_lte ? cellAntennaJson.cn_tilt_electr_lte : '',
-                    "cn_direction_gsm": cellAntennaJson.cn_direction_gsm ? cellAntennaJson.cn_direction_gsm : '',
-                    "cn_height_gsm": cellAntennaJson.cn_height_gsm ? cellAntennaJson.cn_height_gsm : '',
-                    "cn_height_lte": cellAntennaJson.cn_height_lte ? cellAntennaJson.cn_height_lte : '',
-                    "cn_duplex_gsm": cellAntennaJson.cn_duplex_gsm ? cellAntennaJson.cn_duplex_gsm : '',
-                    "cn_diversity": cellAntennaJson.cn_diversity ? cellAntennaJson.cn_diversity : '',
-                    "cn_power_splitter": cellAntennaJson.cn_power_splitter ? cellAntennaJson.cn_power_splitter : '',
-                    "cn_hcu": cellAntennaJson.cn_hcu ? cellAntennaJson.cn_hcu : '',
-                    "cn_ret": cellAntennaJson.cn_ret ? cellAntennaJson.cn_ret : '',
-                    "cn_asc": cellAntennaJson.cn_asc ? cellAntennaJson.cn_asc : '',
-                    "cn_tma_gsm": cellAntennaJson.cn_tma_gsm ? cellAntennaJson.cn_tma_gsm : '',
-                    "cn_tcc": cellAntennaJson.cn_tcc ? cellAntennaJson.cn_tcc : '',
-                    "cn_gsm_range": cellAntennaJson.cn_gsm_range ? cellAntennaJson.cn_gsm_range : '',
+                    "cn_tilt_mech_gsm": cn_tilt_mech_gsm,
+                    "cn_tilt_electr_gsm": cn_tilt_electr_gsm,
+                    "cn_tilt_mech_lte": cn_tilt_mech_lte,
+                    "cn_tilt_electr_lte": cn_tilt_electr_lte,
+                    "cn_direction_gsm": cn_direction_gsm,
+                    "cn_height_gsm": cn_height_gsm,
+                    "cn_height_lte": cn_height_lte,
+                    "cn_duplex_gsm": cn_duplex_gsm,
+                    "cn_diversity": cn_diversity,
+                    "siteType": siteTypeJson.name ? siteTypeJson.name : '',
+                    "cn_power_splitter": cn_power_splitter,
+                    "cn_hcu": cn_hcu,
+                    "cn_ret": cn_ret,
+                    "cn_asc": cn_asc,
+                    "cn_tma_gsm": cn_tma_gsm,
+                    "cn_tcc": cn_tcc,
+                    "cn_gsm_range": cn_gsm_range,
                     "cn_name_contact_person": renterCompanyJson.contactName ? renterCompanyJson.contactName : '',
                     "cn_lastname_contact_person": renterCompanyJson.firstLeaderName ? renterCompanyJson.firstLeaderName : '',
                     "cn_position_contact_person": renterCompanyJson.contactPosition ? renterCompanyJson.contactPosition : '',
