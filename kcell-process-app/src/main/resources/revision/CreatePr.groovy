@@ -117,7 +117,7 @@ if (reason == '2') {
         yieldUnescaped '' + documentType + '\t' + (w.expenseType == 'CAPEX'?'Y':(w.expenseType == 'OPEX'?'K':'')) + '\t' + jrNumber + '\tapproved\t' + 
               w.requestedDate.substring(8,10) + '.' + w.requestedDate.substring(5,7) + '.'+w.requestedDate.substring(0,4) + '\t' + workDefinitionMap[w.sapServiceNumber].vendor + '\t' + 
               '7\tY\t' + w.prItemText + '\t' + w.contractorNo + '\t' + workDefinitionMap[w.sapServiceNumber].sapServiceNumber + '\t' + w.price.quantity + '\t' +
-              w.deliveryDate.substring(8,10) + '.' + w.deliveryDate.substring(5,7) + '.'+w.deliveryDate.substring(0,4) + '\t' + w.wbsElement + '\t' + jrNumber + '\t' + tnuSiteLocations[w.r.site_name].siteLocation + '\t' + 
+              w.deliveryDate.substring(8,10) + '.' + w.deliveryDate.substring(5,7) + '.'+w.deliveryDate.substring(0,4) + '\t' + w.wbsElement + '\t' + jrNumber + '\t' + w.slocObject + '\t' + 
               (w.expenseType == 'CAPEX'?tnuSiteLocations[w.r.site_name].work[w.sapServiceNumber].fixedAssetNumber:'DUMMY') + '\t' +
               w.costCenter + '\t' + w.controllingArea + '\t' + w.activityServiceNumber + '\t' + w.amountText.replace(',','.') + '\t' +
               subcontructerName + '\t131\t' + requestedBy + '\t' + w.headerNotes
