@@ -8202,6 +8202,9 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                                 $http.get(baseUrl + '/history/variable-instance?deserializeValues=false&processInstanceId=' + scope.processInstances[index].id).then(
                                     function (result) {
                                         var files = [];
+                                        var uploadRSDandVSDfilesFiles = [];
+                                        var uploadTSDfileFiles = [];
+                                        var createdRSDFile = [];
                                         result.data.forEach(function (el) {
                                             scope.leasingInfo[el.name] = el;
                                             if (el.type === 'File' || el.type === 'Bytes') {
@@ -8211,7 +8214,20 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                                                 try {
                                                     scope.leasingInfo[el.name].value = JSON.parse(el.value);
                                                     if (el.name.toLowerCase().includes('file')) {
-                                                        files = files.concat(scope.leasingInfo[el.name].value);
+                                                        if (el.name === 'createdRSDFile') {
+                                                            createdRSDFile = createdRSDFile.concat(scope.leasingInfo[el.name].value)
+                                                        } else if (el.name === 'uploadRSDandVSDfilesFiles') {
+                                                            uploadRSDandVSDfilesFiles = uploadRSDandVSDfilesFiles.concat(scope.leasingInfo[el.name].value)
+                                                        } else if (el.name === 'uploadTSDfileFiles') {
+                                                            uploadTSDfileFiles = uploadTSDfileFiles.concat(scope.leasingInfo[el.name].value)
+                                                        } else {
+                                                            files = files.concat(scope.leasingInfo[el.name].value);
+                                                        }
+                                                        console.log('>> TSD VSD RSD >>')
+                                                        console.log(createdRSDFile)
+                                                        console.log(uploadRSDandVSDfilesFiles)
+                                                        console.log(uploadTSDfileFiles)
+                                                        console.log('<< TSD VSD RSD <<')
                                                     }
                                                 } catch (e) {
                                                     console.log(e);
@@ -8219,6 +8235,9 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                                             }
                                         });
                                         scope.leasingInfo.files = files;
+                                        scope.leasingInfo.createdRSDFile = createdRSDFile;
+                                        scope.leasingInfo.uploadRSDandVSDfilesFiles = uploadRSDandVSDfilesFiles;
+                                        scope.leasingInfo.uploadTSDfileFiles = uploadTSDfileFiles;
                                         if (scope.leasingInfo.resolutions && scope.leasingInfo.resolutions.value) {
                                             $q.all(scope.leasingInfo.resolutions.value.map(function (resolution) {
                                                 return $http.get("/camunda/api/engine/engine/default/history/task?processInstanceId=" + resolution.processInstanceId + "&taskId=" + resolution.taskId);
