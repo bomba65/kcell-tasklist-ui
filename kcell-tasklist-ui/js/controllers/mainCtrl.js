@@ -453,7 +453,7 @@ define(['./module','camundaSDK', 'lodash', 'big-js'], function(module, CamSDK, _
 
 			if(!$scope.accepted){
 				queryParams.variables.push({name:"contractorJobAssignedDate", value:new Date(), operator: "lteq"});
-				queryParams.variables.push({name:"contractor", value: 4, operator: "eq"});
+//				queryParams.variables.push({name:"contractor", value: 4, operator: "eq"});
 				if($scope.taskId && $scope.taskId !== 'all'){
 					taskDefKey = $scope.taskId;
 					queryParams.activityIdIn = [$scope.taskId];

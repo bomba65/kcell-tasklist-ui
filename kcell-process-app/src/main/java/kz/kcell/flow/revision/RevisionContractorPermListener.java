@@ -44,13 +44,24 @@ public class RevisionContractorPermListener implements ExecutionListener {
         String contractor = String.valueOf(delegateExecution.getVariable("contractor"));
 
         if(contractors.containsKey(contractor)){
-            Authorization authorization = authorizationService.createNewAuthorization(Authorization.AUTH_TYPE_GRANT);
-            authorization.setResourceType(8); //ProcessInstance
-            authorization.setResourceId(delegateExecution.getProcessInstanceId());
-            authorization.addPermission(Permissions.READ);
-            authorization.setGroupId("contractor_users_" + contractors.get(contractor));
+            int authorizationSize = authorizationService
+                .createAuthorizationQuery()
+                .resourceType(8)
+                .resourceId(delegateExecution.getProcessInstanceId())
+                .hasPermission(Permissions.READ)
+                .groupIdIn("contractor_users_" + contractors.get(contractor))
+                .list()
+                .size();
 
-            authorizationService.saveAuthorization(authorization);
+            if(authorizationSize == 0){
+                Authorization authorization = authorizationService.createNewAuthorization(Authorization.AUTH_TYPE_GRANT);
+                authorization.setResourceType(8); //ProcessInstance
+                authorization.setResourceId(delegateExecution.getProcessInstanceId());
+                authorization.addPermission(Permissions.READ);
+                authorization.setGroupId("contractor_users_" + contractors.get(contractor));
+
+                authorizationService.saveAuthorization(authorization);
+            }
         } else {
             if(!"5".equals(contractor)){
                 log.warning("No value found for contractor: " + contractor + " in contractors map in process id " + delegateExecution.getProcessInstanceId());

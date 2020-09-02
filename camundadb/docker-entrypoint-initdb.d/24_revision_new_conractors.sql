@@ -7,12 +7,12 @@ INSERT INTO act_id_user (id_, rev_, first_, last_, email_, pwd_, picture_id_) VA
 INSERT INTO act_id_user (id_, rev_, first_, last_, email_, pwd_, picture_id_) VALUES ('Logycom_Revision_South', 1, 'Logycom_Revision', 'South', 'MSokov@logycom.kz', '{SHA}ieSV55Qc+eQOaYDRSha/AjzNTJE=', NULL);
 INSERT INTO act_id_user (id_, rev_, first_, last_, email_, pwd_, picture_id_) VALUES ('Logycom_Revision_NC', 1, 'Logycom_Revision', 'NC', 'MSokov@logycom.kz', '{SHA}ieSV55Qc+eQOaYDRSha/AjzNTJE=', NULL);
 
-INSERT INTO act_id_user (id_, rev_, first_, last_, email_, pwd_, picture_id_) VALUES ('ALTA_Revision_Alm', 1, 'ALTA_Revision', 'Alm', 'support@altatelecom.kz,service@altatelecom', '{SHA}ieSV55Qc+eQOaYDRSha/AjzNTJE=', NULL);
-INSERT INTO act_id_user (id_, rev_, first_, last_, email_, pwd_, picture_id_) VALUES ('ALTA_Revision_Astana', 1, 'ALTA_Revision', 'Astana', 'support@altatelecom.kz,service@altatelecom', '{SHA}ieSV55Qc+eQOaYDRSha/AjzNTJE=', NULL);
-INSERT INTO act_id_user (id_, rev_, first_, last_, email_, pwd_, picture_id_) VALUES ('ALTA_Revision_East', 1, 'ALTA_Revision', 'East', 'support@altatelecom.kz,service@altatelecom', '{SHA}ieSV55Qc+eQOaYDRSha/AjzNTJE=', NULL);
-INSERT INTO act_id_user (id_, rev_, first_, last_, email_, pwd_, picture_id_) VALUES ('ALTA_Revision_West', 1, 'ALTA_Revision', 'West', 'support@altatelecom.kz,service@altatelecom', '{SHA}ieSV55Qc+eQOaYDRSha/AjzNTJE=', NULL);
-INSERT INTO act_id_user (id_, rev_, first_, last_, email_, pwd_, picture_id_) VALUES ('ALTA_Revision_South', 1, 'ALTA_Revision', 'South', 'support@altatelecom.kz,service@altatelecom', '{SHA}ieSV55Qc+eQOaYDRSha/AjzNTJE=', NULL);
-INSERT INTO act_id_user (id_, rev_, first_, last_, email_, pwd_, picture_id_) VALUES ('ALTA_Revision_NC', 1, 'ALTA_Revision', 'NC', 'support@altatelecom.kz,service@altatelecom', '{SHA}ieSV55Qc+eQOaYDRSha/AjzNTJE=', NULL);
+INSERT INTO act_id_user (id_, rev_, first_, last_, email_, pwd_, picture_id_) VALUES ('ALTA_Revision_Alm', 1, 'ALTA_Revision', 'Alm', 'support@altatelecom.kz', '{SHA}ieSV55Qc+eQOaYDRSha/AjzNTJE=', NULL);
+INSERT INTO act_id_user (id_, rev_, first_, last_, email_, pwd_, picture_id_) VALUES ('ALTA_Revision_Astana', 1, 'ALTA_Revision', 'Astana', 'support@altatelecom.kz', '{SHA}ieSV55Qc+eQOaYDRSha/AjzNTJE=', NULL);
+INSERT INTO act_id_user (id_, rev_, first_, last_, email_, pwd_, picture_id_) VALUES ('ALTA_Revision_East', 1, 'ALTA_Revision', 'East', 'support@altatelecom.kz', '{SHA}ieSV55Qc+eQOaYDRSha/AjzNTJE=', NULL);
+INSERT INTO act_id_user (id_, rev_, first_, last_, email_, pwd_, picture_id_) VALUES ('ALTA_Revision_West', 1, 'ALTA_Revision', 'West', 'support@altatelecom.kz', '{SHA}ieSV55Qc+eQOaYDRSha/AjzNTJE=', NULL);
+INSERT INTO act_id_user (id_, rev_, first_, last_, email_, pwd_, picture_id_) VALUES ('ALTA_Revision_South', 1, 'ALTA_Revision', 'South', 'support@altatelecom.kz', '{SHA}ieSV55Qc+eQOaYDRSha/AjzNTJE=', NULL);
+INSERT INTO act_id_user (id_, rev_, first_, last_, email_, pwd_, picture_id_) VALUES ('ALTA_Revision_NC', 1, 'ALTA_Revision', 'NC', 'support@altatelecom.kz', '{SHA}ieSV55Qc+eQOaYDRSha/AjzNTJE=', NULL);
 
 INSERT INTO act_id_user (id_, rev_, first_, last_, email_, pwd_, picture_id_) VALUES ('Arlan_Revision_Alm', 1, 'Arlan_Revision', 'Alm', 'arman.dossov@arlan-si.kz', '{SHA}ieSV55Qc+eQOaYDRSha/AjzNTJE=', NULL);
 INSERT INTO act_id_user (id_, rev_, first_, last_, email_, pwd_, picture_id_) VALUES ('Arlan_Revision_Astana', 1, 'Arlan_Revision', 'Astana', 'arman.dossov@arlan-si.kz', '{SHA}ieSV55Qc+eQOaYDRSha/AjzNTJE=', NULL);
