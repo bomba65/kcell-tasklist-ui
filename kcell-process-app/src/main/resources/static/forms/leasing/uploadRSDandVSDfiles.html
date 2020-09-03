@@ -147,7 +147,9 @@
                 });
                 files.forEach(function (f) {
                     if(camForm.variableManager.variables[f] && camForm.variableManager.variables[f].value){
-                        if ( f.toLowerCase().includes('file') ) {
+                        if (f === 'uploadRSDandVSDfilesFiles') {
+                            $scope[f] = camForm.variableManager.variables[f].value;
+                        } else if ( f.toLowerCase().includes('file') ) {
                             $scope.leasingFiles = $scope.leasingFiles.concat(camForm.variableManager.variables[f].value)
                         }
                     }
@@ -173,19 +175,16 @@
                 camForm.variableManager.variableValue('uploadRSDandVSDfilesTaskResult', $scope.uploadRSDandVSDfilesTaskResult);
                 camForm.variableManager.variableValue('uploadRSDandVSDfilesTaskComment', $scope.uploadRSDandVSDfilesTaskComment);
 
-                var thisTaskFiles = $scope.leasingFiles.filter(f => {return f.varName === 'uploadRSDandVSDfilesFiles'});
-                console.log('--thisTaskFiles--')
-                console.log(thisTaskFiles)
-                console.log('-----------------')
+                // var thisTaskFiles = $scope.leasingFiles.filter(f => {return f.varName === 'uploadRSDandVSDfilesFiles'});
                 if(!camForm.variableManager.variables['uploadRSDandVSDfilesFiles'].type){
                     camForm.variableManager.destroyVariable('uploadRSDandVSDfilesFiles');
                     camForm.variableManager.createVariable({
                         name: 'uploadRSDandVSDfilesFiles',
                         type: 'Json',
-                        value: thisTaskFiles
+                        value: $scope.uploadRSDandVSDfilesFiles
                     });
                 } else {
-                    camForm.variableManager.variableValue('uploadRSDandVSDfilesFiles', thisTaskFiles);
+                    camForm.variableManager.variableValue('uploadRSDandVSDfilesFiles', $scope.uploadRSDandVSDfilesFiles);
                 }
                 camForm.variableManager.destroyVariable('resolutions');
             });
@@ -215,8 +214,8 @@
                     $http.put(response.data, file, {headers: {'Content-Type': undefined}}).then(
                             function () {
                                 fileToUpload.varName = 'uploadRSDandVSDfilesFiles';
-                                $scope.leasingFiles.push(fileToUpload);
-                                //$scope[fileName].push(fileToUpload);
+                                // $scope.leasingFiles.push(fileToUpload);
+                                $scope[fileName].push(fileToUpload);
                                 angular.element(document.querySelector('#' + fileName)).val(null);
                                 console.log($scope.leasingFiles)
                             },
@@ -262,13 +261,42 @@
 
     <leasing-attachments leasing-files="leasingFiles" task-key="taskKey" modify="'false'"></leasing-attachments>
     <iframe id="fileDownloadIframe" style="display:none;"></iframe>
+<!--    <div class="form-group">-->
+<!--        <label class="col-sm-3 control-label"></label>-->
+<!--        <div class="col-sm-9">-->
+<!--            <input type="file" class="form-control" id="uploadRSDandVSDfilesFiles"-->
+<!--                   name="uploadRSDandVSDfilesFiles" ng-model="file.file" required-file="!hasUploadedThisTaskFile()"-->
+<!--                   onchange="angular.element(this).scope().fileSelected(this, 'uploadRSDandVSDfilesFiles')"/>-->
+<!--            <label class="has-error" ng-show="kcell_form.uploadRSDandVSDfilesFiles.$error.validFile">File is required</label>-->
+<!--        </div>-->
+<!--    </div>-->
     <div class="form-group">
-        <label class="col-sm-3 control-label"></label>
+        <label class="col-sm-3 control-label">VSD file:</label>
         <div class="col-sm-9">
+            <div class="row">
+                <table class="table table-condensed" ng-show="uploadRSDandVSDfilesFiles.length > 0">
+                    <thead>
+                    <tr>
+                        <td><b>File Name</b></td>
+                        <td><b>Created date</b></td>
+                        <td><b>Created By</b></td>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr ng-repeat="file in uploadRSDandVSDfilesFiles track by $index">
+                        <td><a ng-click="fileDownload(file)">{{file.name}}</a><a ng-click="clearFile('uploadRSDandVSDfilesFiles', $index)"><i
+                                class="glyphicon glyphicon-trash"></i></a></td>
+                        <td>{{file.date | date : 'dd.MM.yyyy'}}</td>
+                        <td>{{file.author}}</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+
             <input type="file" class="form-control" id="uploadRSDandVSDfilesFiles"
-                   name="uploadRSDandVSDfilesFiles" ng-model="file.file" required-file="!hasUploadedThisTaskFile()"
+                   name="uploadRSDandVSDfilesFiles" ng-model="file.file" required-file="uploadRSDandVSDfilesFiles.length < 1"
                    onchange="angular.element(this).scope().fileSelected(this, 'uploadRSDandVSDfilesFiles')"/>
-            <label class="has-error" ng-show="kcell_form.uploadRSDandVSDfilesFiles.$error.validFile">File is required</label>
+            <label class="has-error" ng-show="kcell_form.uploadRSDandVSDfilesFiles.$error.validFile && (kcell_form.uploadRSDandVSDfilesFiles.$touched || view.submitted)">File is required</label>
         </div>
     </div>
 
