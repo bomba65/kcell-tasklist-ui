@@ -53,13 +53,15 @@ public class PBXController {
 
         if (sipProtocol.getString("authorizationType").startsWith("SIP-авторизация")) {
             replaceText(doc, "connectionLevel", "Внутрисетевой, SIP Proxy");
-            replaceText(doc, "sipLevel1", "SIP Proxy");
+           //replaceText(doc, "sipLevel1", "SIP Proxy");
         } else if (sipProtocol.getString("authorizationType").startsWith("SIP-транк")) {
             replaceText(doc, "connectionLevel", "Внутрисетевой, SBC");
-            replaceText(doc, "sipLevel1", "SBC");
-        } else {
+            //replaceText(doc, "sipLevel1", "SBC");
+        }/* else {
             replaceText(doc, "sipLevel1", "");
         }
+        */
+        replaceText(doc, "sipLevel1", technicalSpecifications.getString("connectionPoint"));
 
         String numbers = technicalSpecifications.getString("pbxNumbers");
         numbers = numbers.replaceAll("\n", ",").replaceAll("\r", ",").replaceAll(";", ",").replaceAll(",,", ",");
