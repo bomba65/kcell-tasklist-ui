@@ -415,12 +415,12 @@ public class UpdateCandidate implements JavaDelegate {
                         updateArtefactTSDPreparedStatement.setNull(i++, Types.BIGINT);
                     }
                     if (ne_longitude != null) {
-                        updateArtefactTSDPreparedStatement.setString(i++, ne_longitude); // NE_LONGITUDE
+                        updateArtefactTSDPreparedStatement.setString(i++, "E " + ne_longitude.replace(".", ",")); // NE_LONGITUDE
                     } else {
                         updateArtefactTSDPreparedStatement.setNull(i++, Types.VARCHAR);
                     }
                     if (ne_latitude != null) {
-                        updateArtefactTSDPreparedStatement.setString(i++, ne_latitude); // NE_LATITUDE
+                        updateArtefactTSDPreparedStatement.setString(i++, "N " + ne_latitude.replace(".", ",")); // NE_LATITUDE
                     } else {
                         updateArtefactTSDPreparedStatement.setNull(i++, Types.VARCHAR);
                     }
