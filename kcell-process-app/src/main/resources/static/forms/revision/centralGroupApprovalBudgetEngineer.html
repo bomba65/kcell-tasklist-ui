@@ -33,7 +33,9 @@
                 'tssrssidFileName',
                 'priority',
                 'contractorJobAssignedDate',
-                'mainContract'
+                'mainContract',
+                'worksPriceList',
+                'siteRegion'
             ];
 
             $scope.contractorCodes = {
@@ -194,6 +196,61 @@
                     return deferred.promise;
                 }
             }
+
+            $scope.correctPrice = function(){
+               if($scope.materialsProvidedBySubcontrator){
+                    var workPrices = [];
+                    var siteRegion = $scope.siteRegion;
+                    if('nc' === siteRegion || 'east' === siteRegion){
+                        siteRegion = 'astana';
+                    }
+                    var jobWorksTotal = Big(0.0);
+                    angular.forEach($scope.jobWorks, function(work){
+                        var workPrice = angular.copy(work);
+                        if(!workPrice.relatedSites){
+                            workPrice.relatedSites = [];
+                        }
+                        var price = _.filter($scope.worksPriceList, function(wpl){
+                            if(wpl.sapServiceNumber === work.sapServiceNumber){
+                                return true;
+                            }
+                        })[0][$scope.materialsProvidedBySubcontrator === 'yes'?'priceWithMaterial':'priceWithoutMaterial'];
+                        var unitWorkPrice = Big(price);
+                        var unitTransportationPrice = Big(0.0);
+                        unitTransportationPrice = unitTransportationPrice.toFixed(2);
+
+                        var unitWorkPricePlusTx = Big(price);
+
+                        if (workPrice.relatedSites.length > 0) {
+                            var unitWorkPricePerSite = unitWorkPricePlusTx.div(Big(workPrice.relatedSites.length));
+                            var netWorkPricePerSite = unitWorkPricePerSite.times(Big(workPrice.quantity));
+                            workPrice.unitWorkPricePerSite = unitWorkPricePerSite.toFixed(2);
+                            workPrice.netWorkPricePerSite  = netWorkPricePerSite.toFixed(2);
+                        } else {
+                            var unitWorkPricePerSite = unitWorkPricePlusTx.div(Big(1));
+                            var netWorkPricePerSite = unitWorkPricePerSite.times(Big(workPrice.quantity));
+                            workPrice.unitWorkPricePerSite = unitWorkPricePerSite.toFixed(2);
+                            workPrice.netWorkPricePerSite = netWorkPricePerSite.toFixed(2);
+                        }
+
+                        var basePriceByQuantity = unitWorkPrice.times(Big(workPrice.quantity));
+
+                        var total = unitWorkPricePlusTx.times(Big(workPrice.quantity));
+                        workPrice.unitWorkPrice = unitWorkPrice.toFixed(2);
+                        workPrice.unitWorkPricePlusTx = unitWorkPricePlusTx.toFixed(2);
+                        workPrice.basePriceByQuantity = basePriceByQuantity.toFixed(2);
+                        workPrice.total = total.toFixed(2);
+
+                        jobWorksTotal = jobWorksTotal.plus(total);
+
+                        workPrice.basePrice = Big(price).toFixed(2);
+                        workPrices.push(workPrice);
+                    });
+
+                    $scope.jobModel.workPrices = workPrices;
+                    $scope.jobModel.jobWorksTotal.value = jobWorksTotal.toFixed(2);
+               }
+            }
         }]);
     </script>
     <job-request job-model="jobModel"></job-request>
@@ -263,10 +320,10 @@
         <label class="col-sm-4 control-label">Materials will be provided by Subcontrator:</label>
         <div class="col-sm-8">
             <label class="radio-inline">
-                <input type="radio" name="materialsProvidedBySubcontrator" ng-model="materialsProvidedBySubcontrator" value="yes" ng-required="centralGroupApprovalBudgetEngineerTaskResult === 'approved'"> Yes
+                <input type="radio" name="materialsProvidedBySubcontrator" ng-model="materialsProvidedBySubcontrator" value="yes" ng-required="centralGroupApprovalBudgetEngineerTaskResult === 'approved'" ng-change="correctPrice()"> Yes
             </label>
             <label class="radio-inline">
-                <input type="radio" name="materialsProvidedBySubcontrator" ng-model="materialsProvidedBySubcontrator" value="no" ng-required="centralGroupApprovalBudgetEngineerTaskResult === 'approved'"> No
+                <input type="radio" name="materialsProvidedBySubcontrator" ng-model="materialsProvidedBySubcontrator" value="no" ng-required="centralGroupApprovalBudgetEngineerTaskResult === 'approved'" ng-change="correctPrice()"> No
             </label>
             <label class="error" ng-show="kcell_form.materialsProvidedBySubcontrator.$error.required && ( kcell_form.materialsProvidedBySubcontrator.$touched || view.submitted)">Required field</label>
         </div>

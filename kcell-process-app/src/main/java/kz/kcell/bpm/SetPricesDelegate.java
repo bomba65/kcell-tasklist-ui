@@ -135,12 +135,13 @@ public class SetPricesDelegate implements TaskListener {
 
                     if (!uniqueWorks.containsKey(work.get("sapServiceNumber").textValue())) {
                         JsonNode priceJson = worksPriceMap.get(work.get("sapServiceNumber").textValue());
-                        String price = priceJson.get(siteRegion).get(materialsProvidedBySubcontrator.equals("yes")?"with_material":"without_material").textValue();
                         String title = worksTitleMap.get(work.get("sapServiceNumber").textValue());
 
                         ObjectNode workPriceJson = mapper.createObjectNode();
                         workPriceJson.put("sapServiceNumber", work.get("sapServiceNumber").textValue());
-                        workPriceJson.put("price", price);
+                        workPriceJson.put("priceWithMaterial", priceJson.get(siteRegion).get("with_material").textValue());
+                        workPriceJson.put("priceWithoutMaterial", priceJson.get(siteRegion).get("without_material").textValue());
+                        workPriceJson.put("price", priceJson.get(siteRegion).get(materialsProvidedBySubcontrator.equals("yes")?"with_material":"without_material").textValue());
                         workPriceJson.put("title", title);
                         worksPriceList.add(workPriceJson);
                         uniqueWorks.put(work.get("sapServiceNumber").textValue(), "");
@@ -168,9 +169,6 @@ public class SetPricesDelegate implements TaskListener {
                     BigDecimal basePriceByQuantity = unitWorkPrice.multiply(new BigDecimal(workPrice.get("quantity").asText()));
 
                     BigDecimal total = unitWorkPricePlusTx.multiply(new BigDecimal(workPrice.get("quantity").asText()));
-                    if ("Roll-out".equals(mainContract)) {
-                        total = unitWorkPrice.multiply(new BigDecimal(workPrice.get("quantity").asText()));
-                    }
                     workPrice.put("unitWorkPrice", unitWorkPrice.setScale(2, RoundingMode.DOWN).toString());
                     workPrice.put("unitWorkPricePlusTx", unitWorkPricePlusTx.setScale(2, RoundingMode.DOWN).toString());
                     workPrice.put("basePriceByQuantity", basePriceByQuantity.setScale(2, RoundingMode.DOWN).toString());
@@ -178,7 +176,7 @@ public class SetPricesDelegate implements TaskListener {
 
                     jobWorksTotal = jobWorksTotal.add(total);
 
-                    workPrice.put("basePrice", worksPriceMap.get(work.get("sapServiceNumber").asText()));
+                    workPrice.put("basePrice", worksPriceMap.get(work.get("sapServiceNumber").asText()).get(siteRegion).get(materialsProvidedBySubcontrator.equals("yes")?"with_material":"without_material").textValue());
                     workPrices.add(workPrice);
                 }
                 JsonValue jsonValue = SpinValues.jsonValue(workPrices.toString()).create();
