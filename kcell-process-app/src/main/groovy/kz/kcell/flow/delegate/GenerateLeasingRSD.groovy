@@ -915,7 +915,7 @@ class GenerateLeasingRSD implements ExecutionListener {
             cn_gsm_range = sectorsArr[j].cn_gsm_range ? sectorsArr[j].cn_gsm_range : "";
             cn_trx = sectorsArr[j].cn_trx ? sectorsArr[j].cn_trx : "";
             cn_wcdma_carrier = sectorsArr[j].cn_wcdma_carrier ? sectorsArr[j].cn_wcdma_carrier : "";
-            cn_radio_unitcn_radio_unit = sectorsArr[j].cn_radio_unit ? sectorsArr[j].cn_radio_unit : "";
+            cn_radio_unit = sectorsArr[j].cn_radio_unit ? sectorsArr[j].cn_radio_unit : "";
 //            def cn_diversity = sectorsArr[j].cn_diversity ? sectorsArr[j].cn_diversity : "";
 
 
