@@ -886,7 +886,10 @@ class GenerateLeasingRSD implements ExecutionListener {
             def cn_tma_gsm = "";
             def cn_tcc = "";
             def cn_gsm_range = "";
-            
+            def cn_trx = "";
+            def cn_radio_unit = "";
+            def cn_wcdma_carrier = "";
+
             for(int k=0;k<sectorsArr[j].antennas.size();k++){
             antennaQuantity += sectorsArr[j].antennas[k].quantity
             def antennaItem = sectorsArr[j].antennas[k].antennaType
@@ -910,6 +913,9 @@ class GenerateLeasingRSD implements ExecutionListener {
             cn_tma_gsm = sectorsArr[j].cn_tma_gsm ? sectorsArr[j].cn_tma_gsm : "";
             cn_tcc = sectorsArr[j].cn_tcc ? sectorsArr[j].cn_tcc : "";
             cn_gsm_range = sectorsArr[j].cn_gsm_range ? sectorsArr[j].cn_gsm_range : "";
+            cn_trx = sectorsArr[j].cn_trx ? sectorsArr[j].cn_trx : "";
+            cn_wcdma_carrier = sectorsArr[j].cn_wcdma_carrier ? sectorsArr[j].cn_wcdma_carrier : "";
+            cn_radio_unitcn_radio_unit = sectorsArr[j].cn_radio_unit ? sectorsArr[j].cn_radio_unit : "";
 //            def cn_diversity = sectorsArr[j].cn_diversity ? sectorsArr[j].cn_diversity : "";
 
 
@@ -953,9 +959,9 @@ class GenerateLeasingRSD implements ExecutionListener {
                     "cn_date_visit": candidateJson.dateOfVisit ? candidateJson.dateOfVisit : '',
                     "ncp_band":bandList ? bandList : '',
                     "ncp_rbs_type": candidateJson.rbsType ? candidateJson.rbsType : '',
-                    "cn_radio_unit": cellAntennaJson.cn_radio_unit ? cellAntennaJson.cn_radio_unit : '',
-                    "cn_wcdma_carrier": cellAntennaJson.cn_wcdma_carrier ? cellAntennaJson.cn_wcdma_carrier : '',
-                    "cn_trx": cellAntennaJson.cn_trx ? cellAntennaJson.cn_trx : '',
+                    "cn_radio_unit": cn_radio_unit,
+                    "cn_wcdma_carrier": cn_wcdma_carrier,
+                    "cn_trx": cn_trx,
                     "cn_du": cellAntennaJson.cn_du ? cellAntennaJson.cn_du : '',
                     "sector_cell_antenna":"sector_cell_antenna",
                     "cn_antenna_loc": antennaLocation ? antennaLocation : '',
