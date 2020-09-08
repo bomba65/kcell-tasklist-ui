@@ -344,20 +344,7 @@ class GenerateLeasingRSD implements ExecutionListener {
                             }
                             tr {
                                 td (style:"font-weight: bold;",width:"25%",colspan:"2", "DU type")
-                                for(int j =1;j<=3;j++){
-                                    int indx = (i-1)*3+(j-1)
-                                    if(indx<=data.size()){
-
-                                    if(indx<cycles){
-                                        td (width:"25%", data[indx].cn_du)
-
-                                    } else {
-                                        td (width:"25%", "")
-                                    }
-                                    }else {
-                                        td (width:"25%", "")
-                                    }
-                                }
+                                td (width:"75%", colspan:"3", data[0].cn_du)
                             }
                             tr {
                                 td (style:"font-weight: bold;",width:"15%", rowspan:"8", "Antenna Type")
@@ -890,6 +877,9 @@ class GenerateLeasingRSD implements ExecutionListener {
             def cn_radio_unit = "";
             def cn_wcdma_carrier = "";
 
+            def cn_duArray = [];
+            def cn_du = "";
+
             for(int k=0;k<sectorsArr[j].antennas.size();k++){
             antennaQuantity += sectorsArr[j].antennas[k].quantity
             def antennaItem = sectorsArr[j].antennas[k].antennaType
@@ -916,7 +906,8 @@ class GenerateLeasingRSD implements ExecutionListener {
             cn_trx = sectorsArr[j].cn_trx ? sectorsArr[j].cn_trx : "";
             cn_wcdma_carrier = sectorsArr[j].cn_wcdma_carrier ? sectorsArr[j].cn_wcdma_carrier : "";
             cn_radio_unit = sectorsArr[j].cn_radio_unit ? sectorsArr[j].cn_radio_unit : "";
-//            def cn_diversity = sectorsArr[j].cn_diversity ? sectorsArr[j].cn_diversity : "";
+            cn_duArray = cellAntennaJson.cn_du ? cellAntennaJson.cn_du : [];
+            cn_du = cn_duArray.size() > 1 ? cn_duArray.join(", ") : ""
 
 
             for(String item : antennaNames){
@@ -962,7 +953,7 @@ class GenerateLeasingRSD implements ExecutionListener {
                     "cn_radio_unit": cn_radio_unit,
                     "cn_wcdma_carrier": cn_wcdma_carrier,
                     "cn_trx": cn_trx,
-                    "cn_du": cellAntennaJson.cn_du ? cellAntennaJson.cn_du : '',
+                    "cn_du": cn_du,
                     "sector_cell_antenna":"sector_cell_antenna",
                     "cn_antenna_loc": antennaLocation ? antennaLocation : '',
                     "cn_tilt_mech_gsm": cn_tilt_mech_gsm,
