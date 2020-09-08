@@ -177,7 +177,7 @@
             $scope.form = {};
             $scope.editableForm = false;
             $scope.newFe = {};
-            $scope.caDUforAdd = {};
+            $scope.caDUforAdd = '';
             $scope.selectedAntennas = [];
             $scope.trFrequencyBands = '';
             $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
@@ -1209,8 +1209,11 @@
 
             $scope.antennaNameSelected = function (sector, antenna, a) {
                 const obj = $scope.antennasList.find(b=>{ return b.antenna === a});
+                console.log("obj>>>>")
+                console.log(obj)
                 $scope.cellAntenna.sectors[sector].antennas[antenna].dimension = obj.dimension;
                 $scope.cellAntenna.sectors[sector].antennas[antenna].weight = obj.weight;
+                console.log("<<<<obj")
             }
 
             $scope.tabStepRight = function () {
@@ -1705,15 +1708,16 @@
                                     <option ng-repeat="a in dictionary.dUnit" ng-value="a.name">{{a.name}}</option>
                                 </select>
                             </div>
-                            <div class="col-sm-10">
+                            <div class="col-sm-8">
+                                <input type="button" ng-disabled="!caDUforAdd || caDUforAdd === ''" ng-click="cellAntenna.cn_du.push(caDUforAdd); caDUforAdd=''; " value="Add to list" class="btn btn-primary">
+                            </div>
+                            <label class="col-sm-2 control-label">DU type list ({{cellAntenna.cn_du ? cellAntenna.cn_du.length : 0}}):</label>
+                            <div class="col-sm-10" stydimensionle="margin-top: 5px">
                                 <p>
-                                    <span ng-repeat="du in cellAntenna.cn_du track by $index">
-                                        {{du + (!$last ? ',&nbsp;' : '') }}
+                                    <span style="margin-right: 5px; margin-top: 5px" class="label label-warning" ng-repeat="du in cellAntenna.cn_du track by $index">
+                                        {{ du }} <a ng-click="cellAntenna.cn_du.splice($index, 1)">x</a>
                                     </span>
                                 </p>
-                            </div>
-                            <div class="col-sm-12">
-                                <input type="button" ng-click="cellAntenna.cn_du.push(caDUforAdd); caDUforAdd=''; " value="Add DU type" class="btn btn-primary">
                             </div>
                         </div>
                         <tabset class="my-tab" justified="true" id="cellAntenna.sectors" >
@@ -1820,28 +1824,21 @@
                                                 </tr>
                                                 </tbody>
                                             </table>
-                                        </div>
-                                        <!-- <option ng-repeat="a in dictionary.antennaType" value="{{a.name}}">{{a.name}} -->
-                                        <!-- <div style="background-color: white;" class="col-sm-12" >
-                                            <label class="control-label col-sm-3"><b>Antenna type</b></label>
-                                            <div class="form-check col-sm-2"
-                                                ng-repeat="a in ['GSM900','DCS1800', 'WCDMA', 'LTE800', 'LTE1800', 'LTE2100'] track by $index">
-                                                <input type="checkbox" ng-model="ant.antennaType[a]" class="form-check-input"
-                                                    id="{{'check_' + $parent.$index + '_' + $index}}">
-                                                <label class="form-check-label" for="{{'check_' + $parent.$index + '_' + $index}}">{{a}}</label>
+                                            <div class="form-group col-sm-12" style="background-color: white;">
+                                                <label class="col-sm-3" ><b>*Antenna type</b></label>
+                                                <div class="col-sm-2">
+                                                    <select class="form-control" id="{{'check_' + $parent.$index + '_' + $index}}" name="{{'check_' + $parent.$index + '_' + $index}}" ng-model="ant.antennaType" >
+                                                        <option ng-repeat="a in dictionary.antennaTypes" ng-value="a.name">{{a.name}}</option>
+                                                    </select>
+                                                </div>
+                                                <label class="col-sm-3 control-label"><b>*Antenna location</b></label>
+                                                <div class="col-sm-2">
+                                                    <select class="form-control" name="{{'antennaLocation_' + $parent.$index + '_' + $index}}" id="{{'antennaLocation_' + $parent.$index + '_' + $index}}" ng-model="ant.cn_antenna_loc" required>
+                                                        <option ng-repeat="a in dictionary.antennaLocation" ng-value="a.name">{{a.name}}</option>
+                                                    </select>
+                                                </div>
+                                                <label class="error" ng-show="kcell_form.{{'antennaLocation_' + $parent.$index + '_' + $index}}.$error.required && ( kcell_form.{{'antennaLocation_' + $parent.$index + '_' + $index}}.$touched || view.submitted)">Required field</label>
                                             </div>
-                                        </div> -->
-
-                                        <div style="background-color: white;" class="col-sm-12" >
-                                            <label style="margin-left: 230px; margin-right: -130px;" class="col-sm-3"><b>*Antenna type</b></label>
-                                            <select class="col-sm-2" id="{{'check_' + $parent.$index + '_' + $index}}" name="{{'check_' + $parent.$index + '_' + $index}}" ng-model="ant.antennaType" >
-                                                <option ng-repeat="a in dictionary.antennaTypes" ng-value="a.name">{{a.name}}</option>
-                                            </select>
-                                            <label style="margin-right: -105px;" class="col-sm-3"><b>*Antenna location</b></label>
-                                            <select class="col-sm-2" name="{{'antennaLocation_' + $parent.$index + '_' + $index}}" id="{{'antennaLocation_' + $parent.$index + '_' + $index}}" ng-model="ant.cn_antenna_loc" required>
-                                                <option ng-repeat="a in dictionary.antennaLocation" ng-value="a.name">{{a.name}}</option>
-                                            </select>
-                                            <label class="error" ng-show="kcell_form.{{'antennaLocation_' + $parent.$index + '_' + $index}}.$error.required && ( kcell_form.{{'antennaLocation_' + $parent.$index + '_' + $index}}.$touched || view.submitted)">Required field</label>
                                         </div>
                                     </div>
                                     <div class="col-sm-12">

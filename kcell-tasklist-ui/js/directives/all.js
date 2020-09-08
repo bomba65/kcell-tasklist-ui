@@ -4914,6 +4914,16 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                 scope.selectedIndex = -1;
                 scope.defaultFarEndCard = false;
                 scope.loadCurrentFarEnd = true;
+                if (scope.leasingCandidate.cellAntenna) {
+                    console.log('scope.leasingCandidate.cellAntenna')
+                    console.log(scope.leasingCandidate.cellAntenna)
+                    if (scope.leasingCandidate.cellAntenna.cn_du !== null && typeof scope.leasingCandidate.cellAntenna.cn_du == 'string') {
+                        scope.leasingCandidate.cellAntenna.cn_du = [scope.leasingCandidate.cellAntenna.cn_du]
+                    }
+                    if (!scope.leasingCandidate.cellAntenna.hasOwnProperty('cn_du')) {
+                        scope.leasingCandidate.cellAntenna.cn_du = [];
+                    }
+                }
                 $http.get('/api/leasingCatalogs').then(
                     function (result) {
                         angular.extend(scope.dictionary, result.data);
