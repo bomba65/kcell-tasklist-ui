@@ -177,6 +177,7 @@
             $scope.form = {};
             $scope.editableForm = false;
             $scope.newFe = {};
+            $scope.caDUforAdd = {};
             $scope.selectedAntennas = [];
             $scope.trFrequencyBands = '';
             $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
@@ -215,7 +216,8 @@
                 $scope.leasingInfo.files = [];
                 $scope.dictionary = {};
                 $scope.cellAntenna = {
-                    selectedAntennas: []
+                    selectedAntennas: [],
+                    cn_du: []
                 };
                 $scope.cellAntenna.address = {
                     ca_diff_address:false
@@ -353,6 +355,16 @@
                             $scope.candidate.constructionType = JSON.parse(angular.toJson($scope.candidate.constructionType))
                             delete $scope.candidate.constructionType.$$hashKey
 
+                        } else if (el == 'cellAntenna') {
+                            let cellAntenna = camForm.variableManager.variables[el].value;
+                            if (camForm.variableManager.variables[el].value.cn_du) {
+                                if (typeof camForm.variableManager.variables[el].value.cn_du === 'string') {
+                                    cellAntenna.cn_du = [camForm.variableManager.variables[el].value.cn_du]
+                                }
+                            } else {
+                                cellAntenna.cn_du = [];
+                            }
+                            $scope.cellAntenna = cellAntenna;
                         } else {
                             $scope[el] = camForm.variableManager.variables[el].value;
                             $scope.leasingInfo[el] = camForm.variableManager.variables[el].value;
@@ -1677,11 +1689,25 @@
                             </accordion>
                         </div>
                         <div class="form-group">
+<!--                            <div class="col-sm-12">-->
+<!--                                <p>cellAntenna.cn_du: {{cellAntenna.cn_du}}</p>-->
+<!--                                <p>caDUforAdd: {{caDUforAdd}}</p>cellAntenna.cn_du-->
+<!--                            </div>-->
                             <label class="col-sm-2 control-label">DU type:</label>
                             <div class="col-sm-2">
-                                <select class="form-control col-sm-2" id="dUnit" name="dUnit" ng-model="cellAntenna.cn_du" >
+                                <select class="form-control col-sm-2" id="dUnit" name="dUnit" ng-model="caDUforAdd" >
                                     <option ng-repeat="a in dictionary.dUnit" ng-value="a.name">{{a.name}}</option>
                                 </select>
+                            </div>
+                            <div class="col-sm-10">
+                                <p>
+                                    <span ng-repeat="du in cellAntenna.cn_du track by $index">
+                                        {{du + (!$last ? ',&nbsp;' : '') }}
+                                    </span>
+                                </p>
+                            </div>
+                            <div class="col-sm-12">
+                                <input type="button" ng-click="cellAntenna.cn_du.push(caDUforAdd); caDUforAdd=''; " value="Add DU type" class="btn btn-primary">
                             </div>
                         </div>
                         <tabset class="my-tab" justified="true" id="cellAntenna.sectors" >
