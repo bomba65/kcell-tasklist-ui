@@ -29,13 +29,19 @@ public class NtlmCheckController {
     @Value("${sharepoint.forms.requestBody:SP.Data.TCF_x005f_testListItem}")
     private String sharepointRequestBody;
 
+    @Value("${sharepoint.forms.username:camunda_sharepoint}")
+    private String sharepoint_forms_username;
+
+    @Value("${sharepoint.forms.password:camunda_sharepoint:Bn12#Qaz}")
+    private String sharepoint_forms_password;
+
     @RequestMapping(value = "/check", method = RequestMethod.GET)
     @ResponseBody
     public ResponseEntity<String> getNtlm() {
 
         String result = "error";
         try {
-            String responseText = getAuthenticatedResponse("https://sp.kcell.kz/forms/_api/Lists/getbytitle('" + sharepointUrlPart + "')/items(1)", "kcell.kz", "camunda_sharepoint", "Bn12#Qaz");
+            String responseText = getAuthenticatedResponse("https://sp.kcell.kz/forms/_api/Lists/getbytitle('" + sharepointUrlPart + "')/items(1)", "kcell.kz", sharepoint_forms_username, sharepoint_forms_password);
             result = responseText;
         }catch(Exception e){
             e.printStackTrace();
@@ -50,7 +56,7 @@ public class NtlmCheckController {
 
         String result = "error";
         try {
-            String responseText = postAuthenticatedResponse("https://sp.kcell.kz/forms/_api/contextinfo", "kcell.kz", "camunda_sharepoint", "Bn12#Qaz");
+            String responseText = postAuthenticatedResponse("https://sp.kcell.kz/forms/_api/contextinfo", "kcell.kz", sharepoint_forms_username, sharepoint_forms_password);
             result = responseText;
         }catch(Exception e){
             e.printStackTrace();
@@ -82,7 +88,7 @@ public class NtlmCheckController {
 
         String result = "error";
         try {
-            String responseText = postItemsResponse("https://sp.kcell.kz/forms/_api/Lists/getbytitle('" + sharepointUrlPart + "')/items", "kcell.kz", "camunda_sharepoint", "Bn12#Qaz", reqObj.get("FormDigestValue").toString());
+            String responseText = postItemsResponse("https://sp.kcell.kz/forms/_api/Lists/getbytitle('" + sharepointUrlPart + "')/items", "kcell.kz", sharepoint_forms_username, sharepoint_forms_password, reqObj.get("FormDigestValue").toString());
             result = responseText;
         }catch(Exception e){
             e.printStackTrace();
