@@ -1009,10 +1009,6 @@ class GenerateLeasingRSD implements ExecutionListener {
         // }
         print (result);
 
-        InputStream is = new ByteArrayInputStream(result.getBytes());
-        def path = pid + "/createdRSDFile.doc"
-        minioClient.saveFile(path, is, "application/msword");
-
         JSONArray createdRSDFiles = new JSONArray();
         JSONObject createdRSDFile = new JSONObject();
         def regionCode = execution.getVariable('regionCode').toString();
@@ -1038,6 +1034,10 @@ class GenerateLeasingRSD implements ExecutionListener {
         String dateString = s;
 
         def fileName = "RSD_" + regionStr + "_" + siteName + "_" + dateString + ".doc";
+
+        InputStream is = new ByteArrayInputStream(result.getBytes());
+        def path = pid + "/" + fileName + ".doc"
+        minioClient.saveFile(path, is, "application/msword");
         createdRSDFile.put("date", new Date().getTime());
         createdRSDFile.put("author", "");
         createdRSDFile.put("name", fileName);
