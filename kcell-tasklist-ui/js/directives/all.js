@@ -5009,6 +5009,18 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                 };
 
 
+                scope.cellAntennaTypeChanged = function (val, parent, index) {
+                    const pIndex = parent.$index
+                    if(scope.leasingCandidate.cellAntenna) {
+                        if(scope.leasingCandidate.cellAntenna.sectors && scope.leasingCandidate.cellAntenna.sectors.length >0){
+                            if(scope.leasingCandidate.cellAntenna.sectors[pIndex].antennas && scope.leasingCandidate.cellAntenna.sectors[pIndex].antennas.length >0) {
+                                scope.leasingCandidate.cellAntenna.sectors[pIndex].antennas[index].frequencyBand = parseInt(val.replace(/[^0-9.]/gi, ''));
+                            }
+                        }
+                    }
+                };
+
+
                 scope.tabStepRight = function () {
                     if (scope.selectedSectorTab + 1 < scope.leasingCandidate.cellAntenna.sectors.length) {
                         scope.selectedSectorTab = scope.selectedSectorTab + 1;
