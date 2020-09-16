@@ -77,48 +77,8 @@ public class LeasingController {
             if (udbConnect != null) {
                 udbConnect.setAutoCommit(false);
                 int i;
-
-//                String SelectContract = "select c.cid,\n" +
                 String SelectContract = "select c.* \n" +
-////                    "       cas.action_id,\n" +
-////                    "       csr.csrelid,\n" +
-////                    "       ca.aaid,\n" +
-//                    "       c.RENTSUM,\n" +
-//                    "       c.rentsum_vat,\n" +
-//                    "       c.contractid,\n" +
-//                    "       c.incomingdate,\n" +
-//                    "       c.incomingweek,\n" +
-//                    "       c.contracttype,\n" +
-//                    "       c.powersupply,\n" +
-//                    "       c.legaltype,\n" +
-//                    "       c.legalname,\n" +
-//                    "       c.legaladdress,\n" +
-//                    "       c.contactperson,\n" +
-//                    "       c.contactphone,\n" +
-//                    "       c.access_status,\n" +
-//                    "       c.contract_sap_no,\n" +
-//                    "       c.vendor_sap_no,\n" +
-//                    "       c.contract_executor,\n" +
-//                    "       c.vat,\n" +
-//                    "       c.needvat,\n" +
-//                    "       c.paymentperiod,\n" +
-//                    "       c.paymentway,\n" +
-//                    "       c.contractstartdate,\n" +
-//                    "       c.contractenddate,\n" +
-//                    "       c.autoprolongation,\n" +
-//                    "       c.username,\n" +
-//                    "       c.oblast_villageid,\n" +
-//                    "       c.area_act_accept_date,\n" +
-//                    "       c.RNN,\n" +
-//                    "       c.INN,\n" +
-//                    "       c.IBAN,\n" +
-////                    "       ca.aa_type,\n" +
-////                    "       ca.autoprolongation,\n" +
-//                    "       c.BANK_RNN,\n" +
-//                    "       c.BANK_ACCOUNT\n" +
                     "       from contracts c\n" +
-//                    "  left join contract_aa ca on c.CID = ca.CID\n" +
-//                    "  left join CONTRACT_AA_STATUS cas on cas.AAID = ca.AAID and cas.statusid != 40\n" +
                     "  left join CONTRACT_STATUS_REL csr on csr.contractid = c.cid where c.contractid = ?";
                 PreparedStatement selectContractPreparedStatement = udbConnect.prepareStatement(SelectContract);
 
@@ -346,5 +306,122 @@ public class LeasingController {
         }
 
         return str.toString();
+    }
+
+    @RequestMapping(value = "/artefact/{type}/sitename/{sitename}", method = RequestMethod.GET)
+    @ResponseBody
+    public ResponseEntity<String> getArtefactBySitename(@PathVariable("sitename") String sitename, @PathVariable("type") String type) throws Exception {
+        TimeZone timeZone = TimeZone.getTimeZone("Asia/Almaty");
+        TimeZone.setDefault(timeZone);
+        Class.forName("oracle.jdbc.OracleDriver");
+        Connection udbConnect = DriverManager.getConnection(
+            udbOracleUrl,
+            udbOracleUsername,
+            udbOraclePassword);
+        try {
+            if (udbConnect != null) {
+                udbConnect.setAutoCommit(false);
+                String SelectArtefactBySite = "";
+                if (type.equals("Contract")) {
+                    SelectArtefactBySite = "select * from (select C.* from ARTEFACT ART, CONTRACT_ARTEFACT CART, CONTRACTS C where art.sitename = '46003ARALSKTV' and art.ARTEFACTID = CART.ARTEFACTID and C.cid = cart.cid order by cart.cid desc) where ROWNUM <=2";
+                } else {
+                    SelectArtefactBySite = "select C.* from ARTEFACT ART, CONTRACT_ARTEFACT CART, CONTRACT_AA C where art.sitename = '46003ARALSKTV' and art.ARTEFACTID = CART.ARTEFACTID and C.cid = cart.cid order by cart.cid desc";
+                }
+                PreparedStatement selectArtefactBySitePreparedStatement = udbConnect.prepareStatement(SelectArtefactBySite);
+                log.info("get artefact_id by fe_sitename...");
+                log.info(sitename);
+                //selectArtefactBySitePreparedStatement.setString(1, sitename); // sitename
+                ResultSet resultSet = selectArtefactBySitePreparedStatement.executeQuery();
+                JSONArray json = new JSONArray();
+                ResultSetMetaData rsmd = resultSet.getMetaData();
+                while (resultSet.next()) {
+                    int numColumns = rsmd.getColumnCount();
+                    JSONObject obj = new JSONObject();
+                    for (int j = 1; j <= numColumns; j++) {
+                        String column_name = rsmd.getColumnName(j);
+                        obj.put(column_name, resultSet.getObject(column_name));
+                    }
+                    json.put(obj);
+                }
+
+
+                udbConnect.commit();
+                udbConnect.close();
+                return ResponseEntity.ok(json.toString());
+            } else {
+                udbConnect.close();
+                JSONArray json = new JSONArray();
+                JSONObject obj = new JSONObject();
+                obj.put("result", "No sitename found");
+                json.put(obj);
+                log.warning("Failed to make connection!");
+                return ResponseEntity.ok("No sitename found!");
+            }
+        } catch (Exception e) {
+            udbConnect.rollback();
+            udbConnect.close();
+            log.warning("connection Exception!");
+            log.warning(e.getMessage());
+            throw e;
+        }
+    }
+
+    @RequestMapping(value = "/feCoordinates/{feName}", method = RequestMethod.GET)
+    @ResponseBody
+    public ResponseEntity<String> getFarEndCoordinates(@PathVariable("feName") String feName, HttpServletRequest request) throws InvalidEndpointException, InvalidPortException, InvalidKeyException, InvalidBucketNameException, NoSuchAlgorithmException, InsufficientDataException, NoResponseException, ErrorResponseException, InternalException, InvalidExpiresRangeException, IOException, XmlPullParserException, ClassNotFoundException, SQLException {
+        TimeZone timeZone = TimeZone.getTimeZone("Asia/Almaty");
+        TimeZone.setDefault(timeZone);
+        Class.forName("oracle.jdbc.OracleDriver");
+        Connection udbConnect = DriverManager.getConnection(
+            udbOracleUrl,
+            udbOracleUsername,
+            udbOraclePassword);
+        try {
+            if (udbConnect != null) {
+                udbConnect.setAutoCommit(false);
+                int i;
+                String SelectTsd = "select TSDID, FE_SITENAME, ne_latitude, ne_longitude from ARTEFACT_TSD_EXT where FE_SITENAME = ? order by UPDATE_DATE, INSERT_DATE desc";
+                PreparedStatement selectTsdPreparedStatement = udbConnect.prepareStatement(SelectTsd);
+
+                i = 1;
+                log.info("try to get contracts...");
+                selectTsdPreparedStatement.setString(i++, feName); // contactId
+                ResultSet resultSet = selectTsdPreparedStatement.executeQuery();
+
+                JSONArray json = new JSONArray();
+                ResultSetMetaData rsmd = resultSet.getMetaData();
+                resultSet.next();
+                int numColumns = rsmd.getColumnCount();
+                JSONObject obj = new JSONObject();
+                String longitude = resultSet.getObject("NE_LONGITUDE") != null ? resultSet.getObject("NE_LONGITUDE").toString().replaceAll("[^0-9(.,)]", "").replaceAll(",", ".") : "";
+                String latitude = resultSet.getObject("NE_LATITUDE") != null ? resultSet.getObject("NE_LATITUDE").toString().replaceAll("[^0-9(.,)]", "").replaceAll(",", ".") : "";
+                obj.put("longitude", longitude);
+                obj.put("latitude", latitude);
+//                for (int j = 1; j <= numColumns; j++) {
+//                    String column_name = rsmd.getColumnName(j);
+//                    log.info(column_name);
+//                    obj.put(column_name, resultSet.getObject(column_name));
+//                }
+//                json.put(obj);
+
+                udbConnect.commit();
+                udbConnect.close();
+                return ResponseEntity.ok(obj.toString());
+            } else {
+                udbConnect.close();
+                JSONArray json = new JSONArray();
+                JSONObject obj = new JSONObject();
+                obj.put("result", "not found");
+                json.put(obj);
+                log.warning("Failed to make connection!");
+                return ResponseEntity.ok("Failed to make connection!");
+            }
+        } catch (Exception e) {
+            udbConnect.rollback();
+            udbConnect.close();
+            log.warning("connection Exception!");
+            log.warning(e.getMessage());
+            throw e;
+        }
     }
 }

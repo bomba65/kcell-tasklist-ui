@@ -639,8 +639,29 @@
                 */
 
             };
+
+            $scope.getCoordinatesByFE = function(feName, index) {
+                return $http.get('/camunda/leasing/feCoordinates/' + feName).then(function (res) {
+                    $scope.currentFarEnd.fe_longitude = res.data.longitude
+                    $scope.currentFarEnd.fe_latitude = res.data.latitude
+                   return res.data
+                }, function (error) {
+                    console.log(error);
+                });
+            }
+
             $scope.openFarEndInformation = function(index) {
                 $scope.currentFarEnd = $scope.farEndInformation[index];
+                if($scope.currentFarEnd.farEndName !== null && (!($scope.currentFarEnd.hasOwnProperty('fe_longitude') && $scope.currentFarEnd.fe_longitude !== null) || !($scope.currentFarEnd.hasOwnProperty('fe_latitude') && $scope.currentFarEnd.fe_latitude !== null))) {
+                    $scope.getCoordinatesByFE($scope.currentFarEnd.farEndName);
+                    // if(coordinates && coordinates.$state && coordinates.$state.status === 1) {
+                    //     console.log('coordinates')
+                    //     console.log(coordinates)
+                    //     $scope.currentFarEnd.fe_longitude = coordinates.$state.value.longitude
+                    //     $scope.currentFarEnd.fe_latitude = coordinates.$state.value.latitude
+                    // }
+
+                }
                 if ($scope.currentFarEnd.surveyDate) {
                     $scope.currentFarEnd.surveyDate = new Date($scope.currentFarEnd.surveyDate);
                 }
@@ -650,7 +671,7 @@
                 $scope.currentFarEnd.dictionary = {};
                 $scope.currentFarEnd.dictionary.filteredDistricts = $scope.districtList;
                 $scope.currentFarEnd.dictionary.cityList = _.uniqBy($scope.dictionary.addresses, 'city').map( (e, index) => { return {"name" : e.city, "id" : index} });
-            }
+            };
 
             var currentDate = new Date();
             $scope.datepickerOptions = {
@@ -794,6 +815,13 @@
                 if($scope.newFe.index===0) $scope.newFe.priority = true;
                 $scope.farEndInformation.push($scope.newFe);
                 $scope.currentFarEnd = $scope.newFe;
+                if($scope.currentFarEnd.farEndName !== null && (!($scope.currentFarEnd.hasOwnProperty('fe_longitude') && $scope.currentFarEnd.fe_longitude !== null) || !($scope.currentFarEnd.hasOwnProperty('fe_latitude') && $scope.currentFarEnd.fe_latitude !== null))) {
+                    $scope.getCoordinatesByFE($scope.currentFarEnd.farEndName);
+                    // console.log('coordinates')
+                    // console.log(coordinates)
+                    // $scope.currentFarEnd.fe_longitude = coordinates.longitude
+                    // $scope.currentFarEnd.fe_latitude = coordinates.latitude
+                }
                 $scope.newFe = {};
 
             };
@@ -1752,7 +1780,9 @@
                                     <div class="form-group" ng-repeat="ant in s.antennas">
                                         <div style="background-color: whitesmoke;" class="col-sm-12">
                                             <label class="control-label"><b>Cell Antenna {{$index+1}}</b></label>
-                                            <a ng-click="s.antennas.splice($index,1)" class="pull-right"><span style="margin-top: 5px" class="glyphicon glyphicon-remove"></span><a/>
+                                            <a ng-click="s.antennas.splice($index,1)" class="pull-right">
+                                                <span style="margin-top: 5px" class="glyphicon glyphicon-remove"></span>
+                                            <a/>
                                         </div>
                                         <div class="col-sm-12" style="background-color: white; margin-bottom:-3%;">
                                             <br>
@@ -2665,6 +2695,36 @@
                                 <div class="form-group">
                                     <label class="col-sm-3 control-label">Far End name:</label>
                                     <label class="col-sm-8 control-label">{{currentFarEnd.farEndName}}</label>
+                                </div>
+                                <div class="form-group">
+                                    <label class="col-sm-3 control-label">Latitude:</label>
+                                    <div class="col-sm-8">
+                                        <input class="form-control" id="fe_latitude" placeholder="ХХ.ХХХХХХ" name="ne_latitude"
+                                               ng-pattern="latitudePattern" ng-disabled="true"
+                                               ng-model="currentFarEnd.fe_latitude" maxlength="11">
+                                        <label class="error"
+                                               ng-show="kcell_form.fe_latitude.$error.required && ( kcell_form.fe_latitude.$touched || view.submitted)">Required
+                                            field</label>
+                                        <!-- <label class="error" ng-show="invalidLatitude">Latitude must be in [40.568, 55.440] range</label>-->
+                                        <label class="error"
+                                               ng-if="kcell_form.fe_latitude.$error.pattern && ( kcell_form.fe_latitude.$touched || view.submitted)">Expected: 40.568000 <- Latitude <- 55.440000</label>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="col-sm-3 control-label">Longitude:</label>
+                                    <div class="col-sm-8">
+                                        <input class="form-control" id="fe_longitude" placeholder="ХХ.ХХХХХХ" name="ne_longitude"
+                                               ng-pattern="longitudePattern" ng-disabled="true"
+                                               ng-model="currentFarEnd.fe_longitude"
+                                               maxlength="11">
+                                        <label class="error"
+                                               ng-show="kcell_form.fe_longitude.$error.required && ( kcell_form.fe_longitude.$touched || view.submitted)">Required
+                                            field</label>
+                                        <!--<label class="error" ng-show="invalidLongitude">Longitude must be in [46.493, 87.315] range</label>-->
+                                        <label class="error"
+                                               ng-if="kcell_form.fe_longitude.$error.pattern && ( kcell_form.fe_longitude.$touched || view.submitted)">Expected: 46.493000 <- Longitude <-87.315000</label>
+
+                                    </div>
                                 </div>
                                 <accordion class="content-visible-accordion background-yellow-accordion">
                                     <accordion-group is-open="false">
