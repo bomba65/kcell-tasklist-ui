@@ -236,6 +236,8 @@
                     w.headerNotes = angular.copy(headerNotes);
                 });
                 camForm.variableManager.variableValue('jobWorksValueTemp', $scope.jobWorksValueTemp);
+                camForm.variableManager.variableValue('slocObjectName', $scope.slocObjectName);
+                camForm.variableManager.variableValue('slocObjectAssigneeName', $scope.slocObjectAssigneeName);
                 camForm.variableManager.variableValue('tnuSiteLocations', $scope.tnuSiteLocations);
             });
 
@@ -370,6 +372,18 @@
                         }
                     }
                 });
+            }
+
+            $scope.slocObjectChanged = function(index) {
+                $scope.slocObjectName = $rootScope.authentication.name;
+                $scope.slocObjectAssigneeName = $rootScope.authentication.assigneeName;
+                for(var i=0;i<$scope.jobWorksValueTemp.length;i++){
+                    if(i!== index && index < $scope.jobWorksValueTemp.length ){
+                        if($scope.jobWorksValueTemp[i].r.site_name === $scope.jobWorksValueTemp[index].r.site_name){
+                            $scope.jobWorksValueTemp[i].slocObject = $scope.jobWorksValueTemp[index].slocObject;
+                        }
+                    }
+                }
             }
         }]);
     </script>
@@ -549,9 +563,12 @@
                 </tr>
                 <tr>
                     <td>Stor. Location</td>
-                    <td ng-repeat="w in jobWorksValueTemp track by $index">{{jobModel.reason.value == '2' ? tnuSiteLocations[w.r.site_name].siteLocation : jobModel.sloc.value}}</td>
-                    <td></td>
-                    <td></td>
+                    <td ng-repeat="w in jobWorksValueTemp track by $index">
+                        <span ng-if="!wSlocObjectEdit">{{w.slocObject}}</span>
+                        <input ng-model="w.slocObject" ng-if="wSlocObjectEdit" class="form-control" ng-change="slocObjectChanged($index)" />
+                    </td>
+                    <td><a ng-click="wSlocObjectEdit = true"><u>edit</u></a></td>
+                    <td>Edited by: {{slocObjectAssigneeName}}</td>
                 </tr>
                 <tr>
                     <td>FA number</td>
