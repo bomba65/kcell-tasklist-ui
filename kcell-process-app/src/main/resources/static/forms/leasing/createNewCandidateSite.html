@@ -651,16 +651,48 @@
                 });
             }
 
+            $scope.getRadians = function (val) {
+                const pi = 3.14159265358979;
+                return pi*val/180;
+            }
+
+            $scope.autoSetAzimuth = function () {
+                const primaryFE = $scope.farEndInformation && $scope.farEndInformation.length >0 ? $scope.farEndInformation[0] : null
+                const NE_address = $scope.transmissionAntenna && $scope.transmissionAntenna.address ? $scope.transmissionAntenna.address : null
+                if (primaryFE && NE_address) {
+                    if ( primaryFE.fe_longitude && primaryFE.fe_latitude && NE_address.latitude && NE_address.longitude) {
+                        const pi = 3.14159265358979;
+                        let fe_long = parseFloat(primaryFE.fe_longitude) //'77.507694')
+                        let fe_lat = parseFloat(primaryFE.fe_latitude )//'52.648194')
+                        let ne_long = parseFloat(NE_address.latitude) //'77.233417')
+                        let ne_lat = parseFloat(NE_address.longitude) //'52.782889')
+                        const ne_long_radians = $scope.getRadians(ne_long)
+                        const ne_lat_radians = $scope.getRadians(ne_lat)
+                        const fe_long_radians = $scope.getRadians(fe_long)
+                        const fe_lat_radians = $scope.getRadians(fe_lat)
+                        // Math.cos(x)
+                        const cosNeLat = Math.cos(ne_lat_radians)
+                        const cosFeLat = Math.cos(fe_lat_radians)
+                        const sinNeLat = Math.sin(ne_lat_radians)
+                        const sinFeLat = Math.sin(fe_lat_radians)
+                        const deltaLong = Math.abs(ne_long_radians - fe_long_radians);
+                        const cosDeltaLong = Math.cos(deltaLong)
+                        const sinDeltaLongNE = Math.sin(fe_long_radians - ne_long_radians)
+                        const sinDeltaLongFE = Math.sin(ne_long_radians - fe_long_radians)
+                        const angleDelta = Math.acos(sinNeLat*sinFeLat + cosFeLat*cosNeLat*cosDeltaLong)
+                        const angleDiff = Math.atan2(sinDeltaLongNE*cosFeLat, (cosNeLat*sinFeLat-cosFeLat*sinNeLat*cosDeltaLong) )
+                        const neAzimuth = Math.round(180*(angleDiff % (2*pi))/pi*100)/100
+                        $scope.transmissionAntenna.azimuth = neAzimuth;
+                    } else {
+                        alert('Заполните корректно поля FE Longitude, FE Latitude, NE Longitude, NE Latitude')
+                    }
+                }
+            }
+
             $scope.openFarEndInformation = function(index) {
                 $scope.currentFarEnd = $scope.farEndInformation[index];
                 if($scope.currentFarEnd.farEndName !== null && (!($scope.currentFarEnd.hasOwnProperty('fe_longitude') && $scope.currentFarEnd.fe_longitude !== null) || !($scope.currentFarEnd.hasOwnProperty('fe_latitude') && $scope.currentFarEnd.fe_latitude !== null))) {
                     $scope.getCoordinatesByFE($scope.currentFarEnd.farEndName);
-                    // if(coordinates && coordinates.$state && coordinates.$state.status === 1) {
-                    //     console.log('coordinates')
-                    //     console.log(coordinates)
-                    //     $scope.currentFarEnd.fe_longitude = coordinates.$state.value.longitude
-                    //     $scope.currentFarEnd.fe_latitude = coordinates.$state.value.latitude
-                    // }
 
                 }
                 if ($scope.currentFarEnd.surveyDate) {
@@ -2355,13 +2387,21 @@
                         </div>
                         <div class="form-group">
                             <label class="col-sm-3 control-label">Azimuth:</label>
-                            <div class="col-sm-6">
+                            <div class="col-sm-3">
                                 <input class="form-control" type="number" id="TRazimuth" name="TRazimuth"
                                        ng-model="transmissionAntenna.azimuth"
-                                       ng-pattern="azimuthPattern"
+                                       disabled
                                        placeholder="(0-360)">
                                 <label class="error"
-                                       ng-show="kcell_form.TRazimuth.$error.pattern && ( kcell_form.TRazimuth.$touched || view.submitted)">Неверный формат</div>
+                                       ng-show="kcell_form.TRazimuth.$error.pattern && ( kcell_form.TRazimuth.$touched || view.submitted)">Неверный формат</label>
+<!--                                <label class="error"-->
+<!--                                       ng-show="kcell_form.TRazimuth.$error.pattern && ( kcell_form.TRazimuth.$touched || view.submitted)">Введите все поля для расчета</label>-->
+                            </div>
+                            <div class="col-sm-3">
+                                <button type="button" class="btn btn-default" ng-click="autoSetAzimuth()">
+                                    Расчитать
+                                </button>
+                            </div>
                         </div>
 
                         <div class="form-group col-sm-3">

@@ -315,19 +315,19 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
 
             templateUrl: './js/directives/cam-widget-bpmn-viewer.html',
 
-            link: function ($scope, $element) {
+            link: function (scope, $element) {
 
                 var definitions;
 
-                $scope.grabbing = false;
+                scope.grabbing = false;
 
                 // parse boolean
-                $scope.disableNavigation = $scope.$eval($scope.disableNavigation);
+                scope.disableNavigation = scope.$eval(scope.disableNavigation);
 
                 // --- CONTROL FUNCTIONS ---
-                $scope.control = $scope.control || {};
+                scope.control = scope.control || {};
 
-                $scope.control.highlight = function (id) {
+                scope.control.highlight = function (id) {
                     canvas.addMarker(id, 'highlight');
 
                     $element.find('[data-element-id="' + id + '"]>.djs-outline').attr({
@@ -336,16 +336,16 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                     });
                 };
 
-                $scope.control.clearHighlight = function (id) {
+                scope.control.clearHighlight = function (id) {
                     canvas.removeMarker(id, 'highlight');
                 };
 
-                $scope.control.isHighlighted = function (id) {
+                scope.control.isHighlighted = function (id) {
                     return canvas.hasMarker(id, 'highlight');
                 };
 
                 // config: text, tooltip, color, position
-                $scope.control.createBadge = function (id, config) {
+                scope.control.createBadge = function (id, config) {
                     var overlays = viewer.get('overlays');
 
                     var htmlElement;
@@ -377,26 +377,26 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                         html: htmlElement
                     });
 
-                    $compile(htmlElement)($scope);
+                    $compile(htmlElement)(scope);
 
                     return overlayId;
                 };
 
                 // removes all badges for an element with a given id
-                $scope.control.removeBadges = function (id) {
+                scope.control.removeBadges = function (id) {
                     viewer.get('overlays').remove({element: id});
                 };
 
                 // removes a single badge with a given id
-                $scope.control.removeBadge = function (id) {
+                scope.control.removeBadge = function (id) {
                     viewer.get('overlays').remove(id);
                 };
 
-                $scope.control.getViewer = function () {
+                scope.control.getViewer = function () {
                     return viewer;
                 };
 
-                $scope.control.scrollToElement = function (element) {
+                scope.control.scrollToElement = function (element) {
                     var height, width, x, y;
 
                     var elem = viewer.get('elementRegistry').get(element);
@@ -416,27 +416,27 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                     });
                 };
 
-                $scope.control.getElement = function (elementId) {
+                scope.control.getElement = function (elementId) {
                     return viewer.get('elementRegistry').get(elementId);
                 };
 
-                $scope.control.getElements = function (filter) {
+                scope.control.getElements = function (filter) {
                     return viewer.get('elementRegistry').filter(filter);
                 };
 
-                $scope.loaded = false;
-                $scope.control.isLoaded = function () {
-                    return $scope.loaded;
+                scope.loaded = false;
+                scope.control.isLoaded = function () {
+                    return scope.loaded;
                 };
 
-                $scope.control.addAction = function (config) {
+                scope.control.addAction = function (config) {
                     var container = $element.find('.actions');
                     var htmlElement = config.html;
                     container.append(htmlElement);
-                    $compile(htmlElement)($scope);
+                    $compile(htmlElement)(scope);
                 };
 
-                $scope.control.addImage = function (image, x, y) {
+                scope.control.addImage = function (image, x, y) {
                     return preloadImage(image)
                         .then(
                             function (preloadedElement) {
@@ -484,7 +484,7 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                 }
 
                 var BpmnViewer = BpmnNavigatedViewer;
-                if ($scope.disableNavigation) {
+                if (scope.disableNavigation) {
                     BpmnViewer = Object.getPrototypeOf(Viewer.prototype).constructor;
                 }
                 var viewer = new BpmnViewer({
@@ -526,7 +526,7 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                 var diagramData = null;
                 var canvas = null;
 
-                $scope.$watch('diagramData', function (newValue) {
+                scope.$watch('diagramData', function (newValue) {
                     if (newValue) {
                         diagramData = newValue;
                         renderDiagram();
@@ -536,7 +536,7 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                 function renderDiagram() {
                     if (diagramData) {
 
-                        $scope.loaded = false;
+                        scope.loaded = false;
 
                         var useDefinitions = (typeof diagramData === 'object');
 
@@ -546,20 +546,20 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
 
                             var applyFunction = useDefinitions ? function (fn) {
                                 fn();
-                            } : $scope.$apply.bind($scope);
+                            } : scope.$apply.bind(scope);
 
                             applyFunction(function () {
                                 if (err) {
-                                    $scope.error = err;
+                                    scope.error = err;
                                     return;
                                 }
-                                $scope.warn = warn;
+                                scope.warn = warn;
                                 canvas = viewer.get('canvas');
                                 definitions = viewer.definitions;
                                 zoom();
                                 setupEventListeners();
-                                $scope.loaded = true;
-                                $scope.onLoad();
+                                scope.loaded = true;
+                                scope.onLoad();
                             });
                         });
                     }
@@ -578,9 +578,9 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                 }
 
                 var mouseReleaseCallback = function () {
-                    $scope.grabbing = false;
+                    scope.grabbing = false;
                     document.removeEventListener('mouseup', mouseReleaseCallback);
-                    $scope.$apply();
+                    scope.$apply();
                 };
 
                 function setupEventListeners() {
@@ -588,20 +588,20 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                     eventBus.on('element.click', function (e) {
                         // e.element = the model element
                         // e.gfx = the graphical element
-                        $scope.onClick({element: e.element, $event: e.originalEvent});
+                        scope.onClick({element: e.element, $event: e.originalEvent});
                     });
                     eventBus.on('element.hover', function (e) {
-                        $scope.onMouseEnter({element: e.element, $event: e.originalEvent});
+                        scope.onMouseEnter({element: e.element, $event: e.originalEvent});
                     });
                     eventBus.on('element.out', function (e) {
-                        $scope.onMouseLeave({element: e.element, $event: e.originalEvent});
+                        scope.onMouseLeave({element: e.element, $event: e.originalEvent});
                     });
                     eventBus.on('element.mousedown', function () {
-                        $scope.grabbing = true;
+                        scope.grabbing = true;
 
                         document.addEventListener('mouseup', mouseReleaseCallback);
 
-                        $scope.$apply();
+                        scope.$apply();
                     });
                     eventBus.on('canvas.viewbox.changed', debounce(function (e) {
                         var viewbox = JSON.parse(($location.search() || {}).viewbox || '{}');
@@ -619,7 +619,7 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
 
                         var phase = $rootScope.$$phase;
                         if (phase !== '$apply' && phase !== '$digest') {
-                            $scope.$apply(function () {
+                            scope.$apply(function () {
                                 $location.replace();
                             });
                         } else {
@@ -628,28 +628,28 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                     }, 500));
                 }
 
-                $scope.zoomIn = function () {
+                scope.zoomIn = function () {
                     viewer.get('zoomScroll').zoom(1, {
                         x: $element[0].offsetWidth / 2,
                         y: $element[0].offsetHeight / 2
                     });
                 };
 
-                $scope.zoomOut = function () {
+                scope.zoomOut = function () {
                     viewer.get('zoomScroll').zoom(-1, {
                         x: $element[0].offsetWidth / 2,
                         y: $element[0].offsetHeight / 2
                     });
                 };
 
-                $scope.resetZoom = function () {
+                scope.resetZoom = function () {
                     canvas.resized();
                     canvas.zoom('fit-viewport', 'auto');
                 };
 
-                $scope.control.resetZoom = $scope.resetZoom;
+                scope.control.resetZoom = scope.resetZoom;
 
-                $scope.control.refreshZoom = function () {
+                scope.control.refreshZoom = function () {
                     canvas.resized();
                     canvas.zoom(canvas.zoom(), 'auto');
                 };
@@ -5020,6 +5020,47 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                     }
                 };
 
+                scope.getRadians = function (val) {
+                    const pi = 3.14159265358979;
+                    return pi*val/180;
+                }
+
+                scope.latitudePattern = '(4([1-9]{1}.[0-9]{6}|0.([6-9]{1}[0-9]{5}|5([7-9]{1}[0-9]{4}|6(9[0-9]{3}|8[0-9]{3}))))|5([0-4]{1}.[0-9]{6}|5.([0-3]{1}[0-9]{5}|4([0-3]{1}[0-9]{4}|40000))))';
+                scope.longitudePattern = '([5-7]{1}[0-9]{1}.[0-9]{6}|4([7-9]{1}.[0-9]{6}|6.([5-9]{1}[0-9]{5}|49([4-9]{1}|3)[0-9]{3}))|8([0-6]{1}.[0-9]{6}|7.([0-2]{1}[0-9]{5}|3(0[0-9]{4}|1([0-4]{1}[0-9]{3}|5000)))))';
+
+                scope.autoSetAzimuth = function () {
+                    const primaryFE = scope.leasingCandidate.farEndInformation && scope.leasingCandidate.farEndInformation.length >0 ? scope.leasingCandidate.farEndInformation[0] : null
+                    const NE_address = scope.leasingCandidate.transmissionAntenna && scope.leasingCandidate.transmissionAntenna.address ? scope.leasingCandidate.transmissionAntenna.address : null
+                    if (primaryFE && NE_address) {
+                        if ( primaryFE.fe_longitude && primaryFE.fe_latitude && NE_address.latitude && NE_address.longitude) {
+                            const pi = 3.14159265358979;
+                            let fe_long = parseFloat(primaryFE.fe_longitude) //'77.507694')
+                            let fe_lat = parseFloat(primaryFE.fe_latitude )//'52.648194')
+                            let ne_long = parseFloat(NE_address.latitude) //'77.233417')
+                            let ne_lat = parseFloat(NE_address.longitude) //'52.782889')
+                            const ne_long_radians = scope.getRadians(ne_long)
+                            const ne_lat_radians = scope.getRadians(ne_lat)
+                            const fe_long_radians = scope.getRadians(fe_long)
+                            const fe_lat_radians = scope.getRadians(fe_lat)
+                            // Math.cos(x)
+                            const cosNeLat = Math.cos(ne_lat_radians)
+                            const cosFeLat = Math.cos(fe_lat_radians)
+                            const sinNeLat = Math.sin(ne_lat_radians)
+                            const sinFeLat = Math.sin(fe_lat_radians)
+                            const deltaLong = Math.abs(ne_long_radians - fe_long_radians);
+                            const cosDeltaLong = Math.cos(deltaLong)
+                            const sinDeltaLongNE = Math.sin(fe_long_radians - ne_long_radians)
+                            const sinDeltaLongFE = Math.sin(ne_long_radians - fe_long_radians)
+                            const angleDelta = Math.acos(sinNeLat*sinFeLat + cosFeLat*cosNeLat*cosDeltaLong)
+                            const angleDiff = Math.atan2(sinDeltaLongNE*cosFeLat, (cosNeLat*sinFeLat-cosFeLat*sinNeLat*cosDeltaLong) )
+                            const neAzimuth = Math.round(180*(angleDiff % (2*pi))/pi*100)/100
+                            scope.leasingCandidate.transmissionAntenna.azimuth = neAzimuth;
+                        } else {
+                            alert('Заполните корректно поля FE Longitude, FE Latitude, NE Longitude, NE Latitude')
+                        }
+                    }
+                }
+
 
                 scope.tabStepRight = function () {
                     if (scope.selectedSectorTab + 1 < scope.leasingCandidate.cellAntenna.sectors.length) {
@@ -8511,7 +8552,7 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                         scope.filterDP.salesReprId = $item.id;
                     };
                     scope.getXlsxProcessInstancesDP = function () {
-                        //return $scope.ExcellentExport.convert({anchor: 'xlsxClick',format: 'xlsx',filename: 'delivery-portal'}, [{name: 'Process Instances',from: {table: 'xlsxDeliveryPortalTable'}}]);
+                        //return scope.ExcellentExport.convert({anchor: 'xlsxClick',format: 'xlsx',filename: 'delivery-portal'}, [{name: 'Process Instances',from: {table: 'xlsxDeliveryPortalTable'}}]);
 
                         var tbl = document.getElementById('xlsxDeliveryPortalTable');
                         var ws = XLSX.utils.table_to_sheet(tbl, {dateNF: 'DD.MM.YYYY'});
