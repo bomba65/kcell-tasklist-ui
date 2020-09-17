@@ -380,29 +380,27 @@ public class LeasingController {
             if (udbConnect != null) {
                 udbConnect.setAutoCommit(false);
                 int i;
-                String SelectTsd = "select TSDID, FE_SITENAME, ne_latitude, ne_longitude from ARTEFACT_TSD_EXT where FE_SITENAME = ? order by UPDATE_DATE, INSERT_DATE desc";
-                PreparedStatement selectTsdPreparedStatement = udbConnect.prepareStatement(SelectTsd);
+//                String SelectTsd = "select TSDID, FE_SITENAME, ne_latitude, ne_longitude from ARTEFACT_TSD_EXT where FE_SITENAME = ? order by UPDATE_DATE, INSERT_DATE desc";
+                String SelectTsd = "select a.ARTEFACTID, a.SITENAME, ate.NE_LONGITUDE, ate.NE_LATITUDE from ARTEFACT a join ARTEFACT_TSD_EXT ate on a.ARTEFACTID = ate.ARTEFACTID where a.SITENAME = ? order by a.ARTEFACTID desc";
+                PreparedStatement selectTsdPreparedStatement = udbConnect.prepareStatement(SelectTsd, ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
 
                 i = 1;
-                log.info("try to get contracts...");
+                log.info("try to get far end site coordinates...");
                 selectTsdPreparedStatement.setString(i++, feName); // contactId
                 ResultSet resultSet = selectTsdPreparedStatement.executeQuery();
 
                 JSONArray json = new JSONArray();
                 ResultSetMetaData rsmd = resultSet.getMetaData();
-                resultSet.next();
+
                 int numColumns = rsmd.getColumnCount();
                 JSONObject obj = new JSONObject();
-                String longitude = resultSet.getObject("NE_LONGITUDE") != null ? resultSet.getObject("NE_LONGITUDE").toString().replaceAll("[^0-9(.,)]", "").replaceAll(",", ".") : "";
-                String latitude = resultSet.getObject("NE_LATITUDE") != null ? resultSet.getObject("NE_LATITUDE").toString().replaceAll("[^0-9(.,)]", "").replaceAll(",", ".") : "";
-                obj.put("longitude", longitude);
-                obj.put("latitude", latitude);
-//                for (int j = 1; j <= numColumns; j++) {
-//                    String column_name = rsmd.getColumnName(j);
-//                    log.info(column_name);
-//                    obj.put(column_name, resultSet.getObject(column_name));
-//                }
-//                json.put(obj);
+                resultSet.first();
+                if(resultSet.isFirst()) {
+                    String longitude = resultSet.getObject("NE_LONGITUDE") != null ? resultSet.getObject("NE_LONGITUDE").toString() : "";
+                    String latitude = resultSet.getObject("NE_LATITUDE") != null ? resultSet.getObject("NE_LATITUDE").toString() : "";
+                    obj.put("longitude", longitude);
+                    obj.put("latitude", latitude);
+                }
 
                 udbConnect.commit();
                 udbConnect.close();

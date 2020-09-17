@@ -40,11 +40,11 @@ public class UpdateCandidate implements JavaDelegate {
             TimeZone timeZone = TimeZone.getTimeZone("Asia/Almaty");
             TimeZone.setDefault(timeZone);
             Class.forName("oracle.jdbc.OracleDriver");
-//            Connection udbConnect = DriverManager.getConnection(
-//                udbOracleUrl,
-//                udbOracleUsername,
-//                udbOraclePassword);
-            Connection udbConnect = DriverManager.getConnection("jdbc:oracle:thin:@//sc2-appcl010406:1521/apexudb", "app_apexudb_camunda", "p28zt#7C");
+            Connection udbConnect = DriverManager.getConnection(
+                udbOracleUrl,
+                udbOracleUsername,
+                udbOraclePassword);
+//            Connection udbConnect = DriverManager.getConnection("jdbc:oracle:thin:@//sc2-appcl010406:1521/apexudb", "app_apexudb_camunda", "p28zt#7C");
             try {
                 if (udbConnect != null) {
                     udbConnect.setAutoCommit(false);

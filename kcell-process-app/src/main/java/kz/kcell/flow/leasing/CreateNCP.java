@@ -56,9 +56,6 @@ public class CreateNCP implements JavaDelegate {
             TimeZone timeZone = TimeZone.getTimeZone("Asia/Almaty");
             TimeZone.setDefault(timeZone);
             Class.forName("oracle.jdbc.OracleDriver");
-            log.info(udbOracleUrl);
-            log.info(udbOracleUsername);
-            log.info(udbOraclePassword);
             Connection udbConnect = DriverManager.getConnection(
                 udbOracleUrl,
                 udbOracleUsername,
