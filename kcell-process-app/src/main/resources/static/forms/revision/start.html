@@ -889,6 +889,13 @@
                     }
                 }
             };
+            $scope.getWorks = function(val) {
+              var result = _.filter($scope.works, function(work){
+                    return work.displayServiceName.indexOf(val) !== -1;
+              })
+              return result;
+            }
+
 
             $scope.defineExpenseType = function(index){
                 for(var i=0;i<$scope.jobWorkReasons.length;i++){
@@ -901,6 +908,8 @@
                     $('[data-toggle="tooltip"]').tooltip('fixTitle');
                 });
             };
+
+
 
             $scope.getSite = function(val) {
                 return $http.get('/asset-management/api/sites/search/findByNameIgnoreCaseContaining?name='+val).then(
@@ -1072,8 +1081,6 @@
         <div class="col-sm-3">
             <select class="form-control selectpicker" select-picker title="" cam-variable-name="mainContract" name="mainContract" required cam-variable-type="String" ng-change="refreshJobRequests()">
                 <option value="">Select contract</option>
-                <option value="" disabled>Revision</option>
-                <option value="" disabled>Roll-out</option>
                 <option value="Roll-outRevision2020">Roll-out and Revision 2020</option>
             </select>
             <label class="error" ng-if="kcell_form.mainContract.$error.required && ( kcell_form.mainContract.$touched || view.submitted)">Required field</label>
@@ -1696,11 +1703,10 @@
                 <tbody ng-repeat="jobWork in jobWorks">
                     <tr>
                         <td>
-                            <select ng-model="jobWork.sapServiceNumber" name="sapServiceNumber{{$index}}" required class="form-control selectpicker" select-picker select-model="works" title="" ng-change="getUnits($index)" ng-disabled="!mainContract || !siteName || !custom.contractor">
-                                <option value="">Select work</option>
-                                <option ng-repeat="work in works | filter: filterByContractor | filter: filterByStatus" ng-selected="{{work.sapServiceNumber == jobWork.sapServiceNumber}}" value="{{work.sapServiceNumber}}">{{work.displayServiceName}}</option>
-                            </select>
-                            <label class="error" ng-if="kcell_form['sapServiceNumber'+$index].$error.required && ( kcell_form['sapServiceNumber'+$index].$touched || view.submitted)">Required field</label>
+                                <div class="">
+                                    <input type="text" ng-model="jobWork.displayServiceName" name="sapServiceNumber{{$index}}" ng-disabled="!mainContract || !siteName || !custom.contractor" typeahead="works as works.displayServiceName for works in getWorks($viewValue)" typeahead-on-select="jobWork.sapServiceNumber = $item.sapServiceNumber; jobWork.displayServiceName = $item.displayServiceName" class="form-control works-container"  required autocomplete="off" placeholder="Select works">
+                                </div>
+                                <label class="error" ng-if="kcell_form['sapServiceNumber'+$index].$error.required && ( kcell_form['sapServiceNumber'+$index].$touched || view.submitted)">Required field</label>
                         </td>
                         <td>
                             <input type="number" class="form-control" name="quantity{{$index}}" required ng-model="jobWork.quantity" min="1"/>
