@@ -25,26 +25,10 @@ public class SetContractorJobAssignedDate implements TaskListener {
 
 
             if (afterModifyList > 0) {
-                if ((Integer) delegateTask.getVariable("contractor") == 4) {
-                    try {
-                        delegateTask.setVariable("contractorJobAssignedDate", new SimpleDateFormat("dd.MM.yyyy").parse("30.06.2020"));
-                    } catch (ParseException e) {
-                        delegateTask.setVariable("contractorJobAssignedDate", new Date());
-                    }
-                } else {
-                    delegateTask.setVariable("contractorJobAssignedDate", new Date());
-                }
-            }
-        } else {
-            if ((Integer) delegateTask.getVariable("contractor") == 4) {
-                try {
-                    delegateTask.setVariable("contractorJobAssignedDate", new SimpleDateFormat("dd.MM.yyyy").parse("30.06.2020"));
-                } catch (ParseException e) {
-                    delegateTask.setVariable("contractorJobAssignedDate", new Date());
-                }
-            } else {
                 delegateTask.setVariable("contractorJobAssignedDate", new Date());
             }
+        } else {
+            delegateTask.setVariable("contractorJobAssignedDate", new Date());
         }
 
         String mainContract = String.valueOf(delegateTask.getVariable("mainContract"));
