@@ -6603,9 +6603,18 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                 };
                 var KWMSproject = _.find($rootScope.projects, {'key': 'NetworkInfrastructure'});
                 angular.forEach(allKWMSProcesses, function (value, processKey) {
+                    console.log('processKey>>>>')
+                    console.log(processKey)
+                    console.log('<<<<processKey')
                     if (_.find(KWMSproject.processes, {'key': processKey})) {
                         scope.KWMSProcesses[processKey] = value;
                     }
+                    console.log('KWMSproject>>>>')
+                    console.log(KWMSproject)
+                    console.log('<<<<KWMSproject')
+                    console.log('scope.KWMSProcesses>>>>')
+                    console.log(scope.KWMSProcesses)
+                    console.log('<<<<scope.KWMSProcesses')
                 });
 
                 function isEmpty(obj) {
