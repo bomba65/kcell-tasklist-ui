@@ -424,7 +424,7 @@ public class RevolvingPostTCFForm implements JavaDelegate {
                     "  <tr>\n") : "") +
 
                     (firstDayConnection ?
-                        ("    <td colspan=\"3\" style=\"border: 1px dotted #d3d3d3;color:#333333;background-color:#ffffff;\">To set one time payment for " + legalInformationJSON.get("ticName").toString() + " from " + sdf.format(calendarNext.getTime()) + " - " + a + " tg</td>\n") :
+                        ("    <td colspan=\"3\" style=\"border: 1px dotted #d3d3d3;color:#333333;background-color:#ffffff;\">To set monthly fee (doesn't depend on voice traffic) for " + legalInformationJSON.get("ticName").toString() + " from " + sdf.format(calendarNext.getTime()) + " - " + a + " tg</td>\n") :
                         ("    <td colspan=\"3\" style=\"border: 1px dotted #d3d3d3;color:#333333;background-color:#ffffff;\">Please set a new tariff for " + legalInformationJSON.get("ticName").toString() + " from " + sdf.format(calendarNext.getTime()) + " - " + a + " tg</td>\n")
                     ) +
                     "  </tr>\n" +
