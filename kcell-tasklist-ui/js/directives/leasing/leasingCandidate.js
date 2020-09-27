@@ -225,6 +225,59 @@ define(['./../module'], function(module){
 					}
 				};
 
+				scope.isError = function(block) {
+					try {
+						var error = false;
+						if($scope.kcell_form){
+							var keys = Object.keys($scope.kcell_form);
+							console.log(keys)
+							var fields = [];
+							if(block === 'candidateInformation') {
+								fields = ['siteName', 'latitude', 'longitude', 'constructionType', 'transmissionType', 'square', 'rbsLocation', 'radio', 'createNewCandidateSiteTaskComment', 'leasingCandidate', 'cn_addr_oblast', 'cn_addr_district', 'cn_addr_city', 'cn_addr_street', 'cn_addr_building', 'cn_addr_cadastral_number', 'cn_addr_note', 'cai_addr_oblast', 'cai_addr_district', 'cai_addr_street', 'cai_addr_building', 'cai_addr_cadastral_number', 'cai_addr_note', 'antennaName', 'quantity_', 'dimensions_', 'frequencyBand_', 'weight_', 'azimuth_', 'suspensionHeight_', 'check_', 'antennaLocation', 'cn_gsm900', 'cn_lte800', 'cn_dcs1800', 'cn_ret_lte800', 'cn_wcdma2100', 'cn_lte1800', 'cn_umts900', 'cn_ret_lte1800', 'cn_trx', 'cn_lte2100', 'cn_wcdma_carrier', 'cn_ret_lte2100', 'cn_gsm_antenna_quantity', 'cn_lte_antenna_quantity', 'cn_tilt_mech_gsm', 'cn_tilt_mech_lte', 'cn_tilt_electr_gsm', 'cn_tilt_electr_lte', 'cn_direction_gsm', 'cn_direction_lte', 'cn_height_gsm', 'cn_height_lte', 'cn_duplex_gsm', 'cn_diversity', 'cn_power_splitter', 'cn_hcu', 'cn_asc', 'cn_ret', 'cn_tma_gsm', 'cn_tcc', 'cn_gsm_range', 'selectedAntennas', 'antennasQuantity', 'address', 'legalType', 'RClegalName', 'legalAddress', 'telFax', 'firstLeaderName', 'firstLeaderPos', 'email', 'contactName', 'position', 'contractInfo', 'antennaType', 'antennaQuantity', 'frequencyBand', 'TRSuspensionHeight', 'TRazimuth', 'provideUs3Phase', 'cableLength', 'cableLayingType', 'agreeToReceiveMonthlyPayment', 'closestPublic04', 'closestPublic10', 'cn_tps', 'cn_tps_belongs', 'cn_tps_belongs_commentary', 'cn_tps_distance'];
+							} else if(block === 'address') {
+								fields = ['cn_addr_oblast' ,'cn_addr_district' ,'cn_addr_city' ,'cn_addr_street' ,'cn_addr_building' ,'cn_addr_cadastral_number' ,'cn_addr_note'];
+							} else if(block === 'cellAntennaInformation'){
+								fields = ['antennaLocation', 'antennaNameInSector_', 'azimuth_', 'cai_addr_building', 'cai_addr_cadastral_number', 'cai_addr_district', 'cai_addr_note', 'cai_addr_oblast', 'cai_addr_street', 'check_', 'cai_addr_city', 'cn_asc', 'cn_dcs1800_', 'cn_direction_gsm_', 'cn_direction_lte_', 'cn_diversity_', 'cn_duplex_gsm_', 'cn_gsm900_', 'cn_gsm_antenna_quantity_', 'cn_gsm_range_', 'cn_hcu_', 'cn_height_gsm_', 'cn_height_lte_', 'cn_lte1800_', 'cn_lte2100_', 'cn_lte800_', 'cn_lte_antenna_quantity_', 'cn_power_splitter_', 'cn_ret_', 'cn_ret_lte1800_', 'cn_ret_lte2100_', 'cn_ret_lte800_', 'cn_tcc_', 'cn_tilt_electr_gsm_', 'cn_tilt_electr_lte_', 'cn_tilt_mech_gsm_', 'cn_tilt_mech_lte_', 'cn_tma_gsm_', 'cn_trx_', 'cn_umts900_', 'cn_wcdma2100_', 'cn_wcdma_carrier_', 'dimensions_', 'dUnit', 'frequencyBand_', 'quantity_', 'radioUnit_', 'suspensionHeight_', 'weight_'];
+							} else if(block === 'renterCompany') {
+								fields = ['legalType', 'RClegalName', 'legalAddress', 'telFax', 'firstLeaderName', 'firstLeaderPos', 'email', 'contactName', 'position', 'contractInfo'];
+							} else if(block === 'nearEndInformation') {
+								fields = ['antennaType', 'antennaQuantity', 'frequencyBand', 'TRSuspensionHeight', 'TRazimuth', 'nei_addr_oblast', 'nei_addr_district', 'nei_addr_city', 'nei_addr_street', 'nei_addr_building', 'nei_addr_cadastral_number', 'nei_addr_note'];
+							} else if(block === 'powerSource') {
+								fields = ['agreeToReceiveMonthlyPayment', 'cableLength', 'closestPublic04', 'closestPublic10', 'cn_tps', 'cn_tps_belongs', 'cn_tps_belongs_commentary', 'cn_tps_distance', 'provideUs3Phase'];
+							} else if(block === 'farEndInformation') {
+								fields = ['farEndName', 'threeFarEndNotNecessaryCheck', 'threeFarEndNotNecessaryCheckComment', 'fe_form_contractInformation', 'fe_form_equipmentType', 'fe_form_FarEnd_cn_addr_building', 'fe_form_FarEnd_cn_addr_cadastral_number', 'fe_form_FarEnd_cn_addr_district', 'fe_form_FarEnd_cn_addr_note', 'fe_form_FarEnd_cn_addr_oblast', 'fe_form_FarEnd_cn_addr_street', 'fe_form_FarEnd_n_addr_city', 'fe_form_farEndAddress', 'fe_form_farEndLegalType', 'fe_form_FeAntennasQuantity', 'fe_form_feAntennaType', 'fe_form_FeAzimuth', 'fe_form_FeComments', 'fe_form_FeConstructionType', 'fe_form_FeDiameter', 'fe_form_FeFrequencyBand', 'fe_form_FERC_ContractInformation', 'fe_form_FERC_Name', 'fe_form_FERC_Position', 'fe_form_FERCemail', 'fe_form_FERCFirstLeaderName', 'fe_form_FERCFirstLeaderPosition', 'fe_form_FERCLegalAddress', 'fe_form_FERClegalName', 'fe_form_FERCTelFax', 'fe_form_FeSquare', 'fe_form_FeSuspensionHeight', 'fe_form_FeWeight', 'fe_form_ResultsOfVisit', 'fe_form_surveyDate'];
+							} else if(block === 'farEndInformationAccordion') {
+								fields = ['fe_form_contractInformation', 'fe_form_equipmentType', 'fe_form_FarEnd_cn_addr_building', 'fe_form_FarEnd_cn_addr_cadastral_number', 'fe_form_FarEnd_cn_addr_district', 'fe_form_FarEnd_cn_addr_note', 'fe_form_FarEnd_cn_addr_oblast', 'fe_form_FarEnd_cn_addr_street', 'fe_form_FarEnd_n_addr_city', 'fe_form_farEndAddress', 'fe_form_farEndLegalType', 'fe_form_FeAntennasQuantity', 'fe_form_feAntennaType', 'fe_form_FeAzimuth', 'fe_form_FeComments', 'fe_form_FeConstructionType', 'fe_form_FeDiameter', 'fe_form_FeFrequencyBand', 'fe_form_FERC_ContractInformation', 'fe_form_FERC_Name', 'fe_form_FERC_Position', 'fe_form_FERCemail', 'fe_form_FERCFirstLeaderName', 'fe_form_FERCFirstLeaderPosition', 'fe_form_FERCLegalAddress', 'fe_form_FERClegalName', 'fe_form_FERCTelFax', 'fe_form_FeSquare', 'fe_form_FeSuspensionHeight', 'fe_form_FeWeight', 'fe_form_ResultsOfVisit', 'fe_form_surveyDate'];
+							} else if(block === 'farEndAddress') {
+								fields = ['fe_form_FarEnd_cn_addr_oblast', 'fe_form_FarEnd_cn_addr_district', 'fe_form_FarEnd_n_addr_city', 'fe_form_FarEnd_cn_addr_street', 'fe_form_FarEnd_cn_addr_building', 'fe_form_FarEnd_cn_addr_cadastral_number', 'fe_form_FarEnd_cn_addr_note'];
+							}
+							keys.forEach(function (key) {
+								if (!key.startsWith('$')) {
+									fields.forEach(function (field) {
+										if(block === 'nearEndInformation'){
+											if (key === field) {
+												if ($scope.kcell_form[key].$error) {
+													error = error || ($scope.kcell_form[key].$error.required && ($scope.kcell_form[key].$touched || $scope.view.submitted));
+												}
+											}
+										} else {
+											if (key.startsWith(field)) {
+												if ($scope.kcell_form[key].$error) {
+													error = error || ($scope.kcell_form[key].$error.required && ($scope.kcell_form[key].$touched || $scope.view.submitted));
+												}
+											}
+										}
+									});
+								}
+							});
+						}
+						return error;
+					} catch (e) {
+						console.log(e);
+					}
+					return false;
+				}
+
                	scope.selectIndex = function(index){
 	                if(scope.selectedIndex == index){
 	                    scope.selectedIndex = undefined;
