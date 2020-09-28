@@ -187,7 +187,13 @@
                     type: 'String',
                     submit: true,
                     store: true
-                }
+                },
+                {
+                    name: 'sendNotifyToRegionHeads',
+                    type: 'Boolean',
+                    submit: true,
+                    store: true
+                },
             ];
             var catalogs = {};
             var permitWorks = ['3', '4', '5', '6', '7', '8', '9', '10', '35', '36', '37', '38', '39', '40', '41', '42', '43', '44', '65', '66', '67', '68', '69', '70', '71', '72', '73', '74', '75', '76', '77', '78', '86', '87', '91', '94', '95', '96', '155', '156', '157', '158', '159', '160'];
@@ -286,6 +292,12 @@
                         camForm.variableManager.variableValue(el.name, $scope[el.name]);
                     }
                 });
+                var sendNotifyToRegionHeads = false
+                if ($scope.jobWorks.length > 0){
+                    sendNotifyToRegionHeads = !!$scope.jobWorks.filter(work => ['9.9', '9.10', '9.11', '9.20', '9.21', '9.22', '9.23', '9.24', '9.25','9.26', '9.27', '9.28']
+                    .includes(work.displayServiceName.slice(0, work.displayServiceName.indexOf(' ')))).length
+                }
+                camForm.variableManager.variableValue('sendNotifyToRegionHeads', sendNotifyToRegionHeads)
                 if($scope.materialsRequiredCheckbox){
                     camForm.variableManager.variableValue('materialsRequired', 'Yes');
                 } else {
@@ -891,19 +903,22 @@
                 }
             };
             $scope.getWorks = function(val) {
-              var result = _.filter($scope.works, function(work){
+                if ($scope.siteStatus !== 'will be dismantled') {
+                    $scope.works =  _.filter($scope.works, work => work.displayServiceName.indexOf('2.4 ') === -1)
+                }
+                var result = _.filter($scope.works, function(work){
                     return work.displayServiceName.indexOf(val) !== -1;
-              })
+                })
 
-              result = _.filter(result, function(element){
+                result = _.filter(result, function(element){
                 if(!$scope.mainContract || !$scope.custom.contractor){
                     return false;
                 } else {
                      return element.id >= 3000;
-              }
-              });
+                }
+                });
 
-              return result;
+                return result;
             }
 
 
@@ -949,6 +964,7 @@
                 if($item.params.status){
                     $scope.siteStatus = $item.params.status[$item.site_name];
                 } else {
+<!--                    $scope.siteStatus = "will be dismantled";-->
                     $scope.siteStatus = "working site";
                 }
                 if($scope.siteName.startsWith('11')){
