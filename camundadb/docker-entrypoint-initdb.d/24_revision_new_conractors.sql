@@ -127,4 +127,22 @@ INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Arlan_Revision_NC',
 INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Arlan_Revision_West', 'west_contractor_arlan');
 INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('Arlan_Revision_South', 'south_contractor_arlan');
 
+INSERT INTO public.act_ru_authorization (id_, rev_, type_, group_id_, user_id_, resource_type_, resource_id_, perms_) VALUES (uuid_generate_v4(), 1, 1, null, 'Logycom_Revision_Alm', 1, 'Logycom_Revision_Alm', 2147483647);
+INSERT INTO public.act_ru_authorization (id_, rev_, type_, group_id_, user_id_, resource_type_, resource_id_, perms_) VALUES (uuid_generate_v4(), 1, 1, null, 'Logycom_Revision_Astana', 1, 'Logycom_Revision_Astana', 2147483647);
+INSERT INTO public.act_ru_authorization (id_, rev_, type_, group_id_, user_id_, resource_type_, resource_id_, perms_) VALUES (uuid_generate_v4(), 1, 1, null, 'Logycom_Revision_East', 1, 'Logycom_Revision_East', 2147483647);
+INSERT INTO public.act_ru_authorization (id_, rev_, type_, group_id_, user_id_, resource_type_, resource_id_, perms_) VALUES (uuid_generate_v4(), 1, 1, null, 'Logycom_Revision_West', 1, 'Logycom_Revision_West', 2147483647);
+INSERT INTO public.act_ru_authorization (id_, rev_, type_, group_id_, user_id_, resource_type_, resource_id_, perms_) VALUES (uuid_generate_v4(), 1, 1, null, 'Logycom_Revision_South', 1, 'Logycom_Revision_South', 2147483647);
+INSERT INTO public.act_ru_authorization (id_, rev_, type_, group_id_, user_id_, resource_type_, resource_id_, perms_) VALUES (uuid_generate_v4(), 1, 1, null, 'Logycom_Revision_NC', 1, 'Logycom_Revision_NC', 2147483647);
+INSERT INTO public.act_ru_authorization (id_, rev_, type_, group_id_, user_id_, resource_type_, resource_id_, perms_) VALUES (uuid_generate_v4(), 1, 1, null, 'ALTA_Revision_Alm', 1, 'ALTA_Revision_Alm', 2147483647);
+INSERT INTO public.act_ru_authorization (id_, rev_, type_, group_id_, user_id_, resource_type_, resource_id_, perms_) VALUES (uuid_generate_v4(), 1, 1, null, 'ALTA_Revision_Astana', 1, 'ALTA_Revision_Astana', 2147483647);
+INSERT INTO public.act_ru_authorization (id_, rev_, type_, group_id_, user_id_, resource_type_, resource_id_, perms_) VALUES (uuid_generate_v4(), 1, 1, null, 'ALTA_Revision_East', 1, 'ALTA_Revision_East', 2147483647);
+INSERT INTO public.act_ru_authorization (id_, rev_, type_, group_id_, user_id_, resource_type_, resource_id_, perms_) VALUES (uuid_generate_v4(), 1, 1, null, 'ALTA_Revision_NC', 1, 'ALTA_Revision_NC', 2147483647);
+INSERT INTO public.act_ru_authorization (id_, rev_, type_, group_id_, user_id_, resource_type_, resource_id_, perms_) VALUES (uuid_generate_v4(), 1, 1, null, 'ALTA_Revision_West', 1, 'ALTA_Revision_West', 2147483647);
+INSERT INTO public.act_ru_authorization (id_, rev_, type_, group_id_, user_id_, resource_type_, resource_id_, perms_) VALUES (uuid_generate_v4(), 1, 1, null, 'ALTA_Revision_South', 1, 'ALTA_Revision_South', 2147483647);
+INSERT INTO public.act_ru_authorization (id_, rev_, type_, group_id_, user_id_, resource_type_, resource_id_, perms_) VALUES (uuid_generate_v4(), 1, 1, null, 'Arlan_Revision_Alm', 1, 'Arlan_Revision_Alm', 2147483647);
+INSERT INTO public.act_ru_authorization (id_, rev_, type_, group_id_, user_id_, resource_type_, resource_id_, perms_) VALUES (uuid_generate_v4(), 1, 1, null, 'Arlan_Revision_Astana', 1, 'Arlan_Revision_Astana', 2147483647);
+INSERT INTO public.act_ru_authorization (id_, rev_, type_, group_id_, user_id_, resource_type_, resource_id_, perms_) VALUES (uuid_generate_v4(), 1, 1, null, 'Arlan_Revision_East', 1, 'Arlan_Revision_East', 2147483647);
+INSERT INTO public.act_ru_authorization (id_, rev_, type_, group_id_, user_id_, resource_type_, resource_id_, perms_) VALUES (uuid_generate_v4(), 1, 1, null, 'Arlan_Revision_NC', 1, 'Arlan_Revision_NC', 2147483647);
+INSERT INTO public.act_ru_authorization (id_, rev_, type_, group_id_, user_id_, resource_type_, resource_id_, perms_) VALUES (uuid_generate_v4(), 1, 1, null, 'Arlan_Revision_West', 1, 'Arlan_Revision_West', 2147483647);
+INSERT INTO public.act_ru_authorization (id_, rev_, type_, group_id_, user_id_, resource_type_, resource_id_, perms_) VALUES (uuid_generate_v4(), 1, 1, null, 'Arlan_Revision_South', 1, 'Arlan_Revision_South', 2147483647);
 commit;

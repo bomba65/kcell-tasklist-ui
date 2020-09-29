@@ -903,19 +903,50 @@
                 }
             };
             $scope.getWorks = function(val) {
-                if ($scope.siteStatus !== 'will be dismantled') {
-                    $scope.works =  _.filter($scope.works, work => work.displayServiceName.indexOf('2.4 ') === -1)
-                }
                 var result = _.filter($scope.works, function(work){
                     return work.displayServiceName.indexOf(val) !== -1;
                 })
 
                 result = _.filter(result, function(element){
-                if(!$scope.mainContract || !$scope.custom.contractor){
-                    return false;
-                } else {
-                     return element.id >= 3000;
-                }
+                    if(!$scope.mainContract || !$scope.custom.contractor){
+                        return false;
+                    } else {
+                        if($scope.mainContract === 'Roll-outRevision2020'){
+                            return element.id >= 3000;
+                        } else if($scope.mainContract === 'Roll-out'){
+                            return (element.id > 1000 && element.id < 2000);
+                        } else if($scope.mainContract === 'Revision'){
+                            if($scope.contractorShortName[$scope.custom.contractor] === 'KR'){
+                                return (element.id < 1000 || (element.id > 2000 && element.id < 3000));
+                            } else {
+                                return element.id < 1000;
+                            }
+                        }
+                    }
+                });
+
+                result = _.filter(result, function(element){
+                    if($scope.mainContract === 'Roll-out') {
+                        if(element.id !== 1013 && _.some($scope.jobWorks, function(w){ return w.sapServiceNumber === 'RO13' })){
+                            return false;
+                        } else if(element.id === 1013 && _.some($scope.jobWorks, function(w){ return w.sapServiceNumber && w.sapServiceNumber !== 'RO13' })) {
+                            return false;
+                        } else {
+                            return true;
+                        }
+                    } else if($scope.mainContract === 'Revision') {
+                        if(element.id === 9){
+                            return $scope.siteStatus && $scope.siteStatus === 'will be dismantled';
+                        } else if(element.id === 8){
+                            return $scope.siteStatus && $scope.siteStatus === 'will be replacement';
+                        } else {
+                            return true;
+                        }
+                    } else if($scope.mainContract === 'Roll-outRevision2020') {
+                        if ($scope.siteStatus !== 'will be dismantled') {
+                            return element.id !== 3007
+                        }
+                    } else return true;
                 });
 
                 return result;
@@ -1076,6 +1107,8 @@
         <div class="col-sm-3">
             <select class="form-control selectpicker" select-picker title="" cam-variable-name="mainContract" name="mainContract" required cam-variable-type="String" ng-change="refreshJobRequests()">
                 <option value="Roll-outRevision2020">Roll-out and Revision 2020</option>
+                <option ng-if="$root.authentication.name === 'demo'" value="Revision">Revision</option>
+                <option ng-if="$root.authentication.name === 'demo'"value="Roll-out">Roll-out</option>
             </select>
             <label class="error" ng-if="kcell_form.mainContract.$error.required && ( kcell_form.mainContract.$touched || view.submitted)">Required field</label>
         </div>
@@ -1083,6 +1116,9 @@
     <div class="form-group">
         <label class="col-sm-3 control-label">Job to:</label>
         <div class="col-sm-8">
+            <label class="radio-inline">
+                <input ng-if="$root.authentication.name === 'demo'" type="radio" name="contractor" ng-model="custom.contractor" id="lse" value="4" required> TOO Line System Engineering
+            </label>
             <label class="radio-inline">
                 <input type="radio" name="contractor" ng-model="custom.contractor" id="subcontractor" value="-1" required> Subcontractor
             </label>
