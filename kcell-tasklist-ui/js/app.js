@@ -48,7 +48,7 @@ define('app',[
 	]);
 	var preLoginUrl;
 	var resolve = {
-		baseUrl: function(){;
+		baseUrl: function(){
 			return '/camunda/api/engine/engine/default';
 		},
 		projects: function(baseUrl, $http){

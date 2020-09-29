@@ -1,0 +1,1233 @@
+<style>
+    .my-group .form-control{
+        width:50%;
+    }
+    .modal-lg.modal-dialog{
+        width: 90%;
+    }
+    .background-yellow-accordion .panel-body {
+        background-color: #ffffcc;
+        border: 1px solid #b3b3b3;
+        color: #333;
+    }
+</style>
+
+<form role="form" class="form-horizontal" name="kcell_form" novalidate>
+    <script cam-script type="text/form-script">
+        inject(['$scope', '$http', '$rootScope', '$q', '$timeout', function ($scope, $http, $rootScope, $q, $timeout) {
+            var variablesToCreate = [
+                {
+                    name: 'region_name',
+                    type: 'String',
+                    submit: true,
+                    store: true
+                },
+                {
+                    name: 'ne_site_id',
+                    type: 'String',
+                    submit: true,
+                    store: true
+                },
+                {
+                    name: 'ne_siteId',
+                    type: 'String',
+                    submit: true,
+                    store: true
+                },
+                {
+                    name: 'ne_sitename',
+                    type: 'String',
+                    submit: true,
+                    store: true
+                },
+                {
+                    name: 'ne_addressJson',
+                    type: 'Json',
+                    submit: true,
+                    store: true
+                },
+                {
+                    name: 'fe_site_id',
+                    type: 'String',
+                    submit: true,
+                    store: true
+                },
+                {
+                    name: 'fe_siteId',
+                    type: 'String',
+                    submit: true,
+                    store: true
+                },
+                {
+                    name: 'fe_sitename',
+                    type: 'String',
+                    submit: true,
+                    store: true
+                },
+                {
+                    name: 'fe_addressJson',
+                    type: 'Json',
+                    submit: true,
+                    store: true
+                },
+                {
+                    name: 'resolutions',
+                    type: 'Json',
+                    submit: true,
+                    store: true
+                },
+                {
+                    name: 'date_of_visit',
+                    type: 'Date',
+                    submit: true,
+                    store: true
+                },
+                {
+                    name: 'ne_construction_type',
+                    type: 'String',
+                    submit: true,
+                    store: true
+                },
+                {
+                    name: 'fe_construction_type',
+                    type: 'String',
+                    submit: true,
+                    store: true
+                },
+                {
+                    name: 'protection_mode',
+                    type: 'String',
+                    submit: true,
+                    store: true
+                },
+                {
+                    name: 'ne_diameter',
+                    type: 'String',
+                    submit: true,
+                    store: true
+                },
+                {
+                    name: 'fe_diameter',
+                    type: 'String',
+                    submit: true,
+                    store: true
+                },
+                {
+                    name: 'ne_protection_antenna_diameter',
+                    type: 'String',
+                    submit: true,
+                    store: true
+                },
+                {
+                    name: 'fe_protection_antenna_diameter',
+                    type: 'String',
+                    submit: true,
+                    store: true
+                },
+                {
+                    name: 'hop_link_capacity',
+                    type: 'String',
+                    submit: true,
+                    store: true
+                },
+                {
+                    name: 'startType',
+                    type: 'String',
+                    submit: true,
+                    store: true
+                },
+                {
+                    name: 'neFacilityId',
+                    type: 'Long',
+                    submit: true,
+                    store: true
+                },
+                {
+                    name: 'feFacilityId',
+                    type: 'Long',
+                    submit: true,
+                    store: true
+                }
+            ];
+            $scope.date_of_visit = new Date();
+            $scope.startType = 'manually';
+            var catalogsServerUrl = "https://catalogs.test-flow.kcell.kz";
+            var assetsServerUrl = "https://asset.test-flow.kcell.kz";
+
+            $scope.ne_address_fetched = false;
+            $scope.protection_mode_fetched = false;
+            $scope.creatingNewSite = false
+            $scope.ne_addressJson = {};
+            $scope.new_siteJson = {};
+            $scope.fe_addressJson = {};
+
+            $scope.latitudePattern = '(4([1-9]{1}.[0-9]{6}|0.([6-9]{1}[0-9]{5}|5([7-9]{1}[0-9]{4}|6(9[0-9]{3}|8[0-9]{3}))))|5([0-4]{1}.[0-9]{6}|5.([0-3]{1}[0-9]{5}|4([0-3]{1}[0-9]{4}|40000))))';
+            $scope.longitudePattern = '([5-7]{1}[0-9]{1}.[0-9]{6}|4([7-9]{1}.[0-9]{6}|6.([5-9]{1}[0-9]{5}|49([4-9]{1}|3)[0-9]{3}))|8([0-6]{1}.[0-9]{6}|7.([0-2]{1}[0-9]{5}|3(0[0-9]{4}|1([0-4]{1}[0-9]{3}|5000)))))';
+            $scope.numbersPattern = '[-]?[0-9]+';
+            $scope.altitudePattern = '(-[1-9]{1}[0-9]{0,1}[0-9]{0,1}|-[1-9]{1}[0-9]{0,1}[0-9]{0,1}\\.[0-9]{1}|[1-9]{1}[0-9]?[0-9]{0,1}[0-9]{0,1}|[1-9]{1}[0-9]?[0-9]{0,1}[0-9]{0,1}\\.[0-9]{1}|0)';
+            $scope.azimuthPattern = '((?:[012]?[0-9]{1,2}|3(?:[0-5][0-9]|60))(?:\.[0-9]{0,2})?)';
+            $scope.linkNxePattern = '([0-9]|[1-9][0-9])';
+            $scope.suspensionPattern = '([1-9]|[1-9][0-9]|[1-9][0-9][0-9])';
+            $scope.heightPattern = '[-]?[0-9]+';
+
+            $scope.regionsTitle = {
+                'alm': 'Almaty',
+                'astana': 'Astana',
+                'nc': 'N&C',
+                'east': 'East',
+                'south': 'South',
+                'west': 'West'
+            };
+
+            $scope.regionsBussinesKey = {
+                'alm': 'ALM',
+                'astana': 'AST',
+                'nc': 'NOR',
+                'east': 'EAS',
+                'south': 'SOU',
+                'west': 'WES'
+            };
+
+            $scope.catalogToRegion = {
+                '1': 'alm',
+                '2': 'astana',
+                '3': 'nc',
+                '4': 'east',
+                '5': 'south',
+                '6': 'west'
+            }
+
+            $scope.getSites = function(val) {
+                return $http.get('/asset-management/api/sites/search/findByNameIgnoreCaseContaining?name='+val).then(
+                        function(response){
+                            var sites = _.flatMap(response.data._embedded.sites, function(s){
+                                if(s.params.site_name){
+                                    return s.params.site_name.split(',').map(function(sitename){
+                                        return {
+                                            name: s.name,
+                                            id: s._links.self.href.substring(s._links.self.href.lastIndexOf('/')+1),
+                                            site_name: sitename,
+                                            params: s.params
+                                        };
+                                    })
+                                } else {
+                                    return [];
+                                }
+                            });
+                            return sites;
+                        }
+                );
+            };
+            $scope.siteSelected = function($item){
+                $scope.siteName = $item.name;
+                $scope.site = $item.id;
+                $scope.site_name = $item.site_name;
+            };
+
+
+
+            camForm.on('form-loaded', function () {
+            });
+
+            camForm.on('variables-fetched', function () {
+                $http.get('/camunda/api/engine/engine/default/user/' + $rootScope.authentication.name + '/profile').then(
+                        function (result) {
+                            $scope.initiatorFull = result.data;
+                        }, function (error) {
+                        }
+                );
+                /* angular.forEach($rootScope.authUser.groups, function (group) {
+                    if (group.id.endsWith('_tn_engineer') && "!alm!astana!nc!east!south!west".indexOf('!' + group.id.replace('_tn_engineer','')) > -1) {
+                        $scope.region_name = group.id.replace('_tn_engineer', '');
+                    }
+                }); */
+            });
+
+            camForm.on('submit', function (e) {
+                if($scope.ne_altitude){
+                    $scope.ne_altitude = parseFloat($scope.ne_altitude.toFixed(1)) * 1.0;
+                }
+                if($scope.fe_altitude){
+                    $scope.fe_altitude = parseFloat($scope.fe_altitude.toFixed(1)) * 1.0;
+                }
+                variablesToCreate.forEach(function (el) {
+                    if (el.name === 'resolutions') {
+                        $scope.resolutions = [];
+                        $scope.resolutions.push({
+                            processInstanceId: 'noProcessInstanceId',
+                            assignee: $rootScope.authentication.name,
+                            assigneeName: $rootScope.authentication.assigneeName,
+                            resolution: 'created',
+                            comment: $scope.startComment,
+                            taskId: 'noTaskId',
+                            taskName: 'TNU Start',
+                            taskEndDate: new Date(),
+                            visibility: 'all'
+                        });
+                    }
+                    if (el.submit && $scope[el.name]) {
+                        camForm.variableManager.createVariable({
+                            name: el.name,
+                            type: el.type,
+                            value: $scope[el.name]
+                        });
+                    }
+                });
+                if (!$scope.ne_address_fetched && !$scope.ne_address) {
+                    if ($scope.ne_addressJson.cn_addr_oblast) {
+                        var oblast = _.filter($scope.oblastCatalogList, function (c) {
+                            return c.id === $scope.ne_addressJson.cn_addr_oblast;
+                        });
+                        if (oblast && oblast.length > 0) {
+                            $scope.ne_address = oblast[0].value;
+                        }
+                    }
+                    if ($scope.ne_addressJson.cn_addr_district) {
+                        var district = _.filter($scope.districtCatalogList, function (c) {
+                            return c.id === $scope.ne_addressJson.cn_addr_district;
+                        });
+                        if (district && district.length > 0) {
+                            $scope.ne_address = $scope.ne_address + ($scope.ne_address ? ', ' : '') + district[0].value;
+                        }
+                    }
+                    if ($scope.ne_addressJson.cn_addr_city) {
+                        var city = _.filter($scope.cityCatalogList, function (c) {
+                            return c.id === $scope.ne_addressJson.cn_addr_city;
+                        });
+                        if (city && city.length > 0) {
+                            $scope.ne_address = $scope.ne_address + ($scope.ne_address ? ', ' : '') + city[0].value;
+                        }
+                    }
+                    if ($scope.ne_addressJson.ca_not_full_addres) {
+                        if ($scope.ne_addressJson.cn_addr_cadastral_number) {
+                            $scope.ne_address = $scope.ne_address +  ($scope.ne_address ? ', ' : '') + $scope.ne_addressJson.cn_addr_cadastral_number;
+                        }
+                        if ($scope.ne_addressJson.cn_addr_note) {
+                            $scope.ne_address = $scope.ne_address + ($scope.ne_address ? ', ' : '') + $scope.ne_addressJson.cn_addr_note;
+                        }
+                    } else {
+                        if ($scope.ne_addressJson.cn_addr_street) {
+                            $scope.ne_address = $scope.ne_address + ($scope.ne_address ? ', ' : '') + $scope.ne_addressJson.cn_addr_street;
+                        }
+                        if ($scope.ne_addressJson.cn_addr_building) {
+                            $scope.ne_address = $scope.ne_address + ($scope.ne_address ? ', ' : '') + $scope.ne_addressJson.cn_addr_building;
+                        }
+                    }
+                }
+                if (!$scope.fe_address_fetched && !$scope.fe_address) {
+                    if ($scope.fe_addressJson.cn_addr_oblast) {
+                        var oblast = _.filter($scope.oblastCatalogList, function (c) {
+                            return c.id === $scope.fe_addressJson.cn_addr_oblast;
+                        });
+                        if (oblast && oblast.length > 0) {
+                            $scope.fe_address = oblast[0].value;
+                        }
+                    }
+                    if ($scope.fe_addressJson.cn_addr_district) {
+                        var district = _.filter($scope.districtCatalogList, function (c) {
+                            return c.id === $scope.fe_addressJson.cn_addr_district;
+                        });
+                        if (district && district.length > 0) {
+                            $scope.fe_address = $scope.fe_address + ($scope.fe_address ? ', ' : '') + district[0].value;
+                        }
+                    }
+                    if ($scope.fe_addressJson.cn_addr_city) {
+                        var city = _.filter($scope.cityCatalogList, function (c) {
+                            return c.id === $scope.fe_addressJson.cn_addr_city;
+                        });
+                        if (city && city.length > 0) {
+                            $scope.fe_address = $scope.fe_address + ($scope.fe_address ? ', ' : '') + city[0].value;
+                        }
+                    }
+                    if ($scope.fe_addressJson.ca_not_full_addres) {
+                        if ($scope.fe_addressJson.cn_addr_cadastral_number) {
+                            $scope.fe_address = $scope.fe_address + ($scope.fe_address ? ', ' : '') + $scope.fe_addressJson.cn_addr_cadastral_number;
+                        }
+                        if ($scope.fe_addressJson.cn_addr_note) {
+                            $scope.fe_address = $scope.fe_address + ($scope.fe_address ? ', ' : '') + $scope.fe_addressJson.cn_addr_note;
+                        }
+                    } else {
+                        if ($scope.fe_addressJson.cn_addr_street) {
+                            $scope.fe_address = $scope.fe_address + ($scope.fe_address ? ', ' : '') + $scope.fe_addressJson.cn_addr_street;
+                        }
+                        if ($scope.fe_addressJson.cn_addr_building) {
+                            $scope.fe_address = $scope.fe_address + ($scope.fe_address ? ', ' : '') + $scope.fe_addressJson.cn_addr_building;
+                        }
+                    }
+                }
+
+                camForm.variableManager.createVariable({
+                    name: 'ne_address',
+                    type: 'String',
+                    value: $scope.ne_address
+                });
+                camForm.variableManager.createVariable({
+                    name: 'fe_address',
+                    type: 'String',
+                    value: $scope.fe_address
+                });
+            });
+
+            $scope.getSite = function (val) {
+                return $http.get(assetsServerUrl + '/asset-management/sites/name/contains/' + val).then(
+                        function (response) {
+                            var sites = _.flatMap(response.data, function (s) {
+                                return {
+                                    name: s.siteid,
+                                    id: s.id,
+                                    site_name: s.site_name
+                                };
+                            });
+                            return sites;
+                        }
+                );
+            };
+
+            $scope.fillAddress = function (siteId, site, fetched, position) {
+                $http.get(assetsServerUrl + '/asset-management/sites/id/' + siteId).then(
+                        function (response) {
+                            if (response.data.facility_id && response.data.facility_id.address_id) {
+                                if(position === 'ne'){
+                                    $scope.region_name = $scope.catalogToRegion[response.data.facility_id.address_id.region_id.id];
+                                    $scope.neFacilityId = response.data.facility_id.id;
+                                }else if(position === 'fe'){
+                                    $scope.feFacilityId = response.data.facility_id.id;
+                                }
+                                $scope[fetched] = true;
+
+                                if(position === 'ne') {
+                                    $scope.ne_latitude = response.data.facility_id.latitude
+                                    $scope.ne_longitude = response.data.facility_id.longitude
+                                    $scope.ne_altitude = response.data.facility_id.altitude
+                                    if($scope.ne_altitude){
+                                        $scope.ne_altitude = parseFloat($scope.ne_altitude.toFixed(1))
+                                    }
+                                    $scope.ne_construction_type = response.data.facility_id.construction_type_id.id
+                                    $scope.ne_construction_height = response.data.facility_id.construction_height
+                                }
+
+                                if(position === 'fe') {
+                                    $scope.fe_latitude = response.data.facility_id.latitude
+                                    $scope.fe_longitude = response.data.facility_id.longitude
+                                    $scope.fe_altitude = response.data.facility_id.altitude
+                                    if($scope.fe_altitude){
+                                        $scope.fe_altitude = parseFloat($scope.fe_altitude.toFixed(1))
+                                    }
+                                    $scope.fe_construction_type = response.data.facility_id.construction_type_id.id
+                                    $scope.fe_construction_height = response.data.facility_id.construction_height
+                                }
+
+                                if($scope.ne_latitude && $scope.ne_longitude && $scope.fe_latitude && $scope.fe_longitude) {
+                                    $scope.path_distance = parseFloat((6372795 * Math.acos(Math.sin($scope.ne_latitude.replace(",", '.') * (3.14159265358979/180)) * Math.sin($scope.fe_latitude.replace(",", '.') * (3.14159265358979/180)) + Math.cos($scope.ne_latitude.replace(",", '.') * (3.14159265358979/180)) *  Math.cos($scope.fe_latitude.replace(",", '.') * (3.14159265358979/180)) * Math.cos(Math.abs($scope.ne_longitude.replace(",", '.') * (3.14159265358979/180) - $scope.fe_longitude.replace(",", '.') * (3.14159265358979/180)))) / 1000).toFixed(3))
+
+                                    $scope.ne_azimuth = parseFloat((180 * (Math.atan2(Math.sin($scope.fe_longitude.replace(",", '.') * (3.14159265358979/180) - $scope.ne_longitude.replace(",", '.') * (3.14159265358979/180)) * Math.cos($scope.fe_latitude.replace(",", '.') * (3.14159265358979/180)), Math.cos($scope.ne_latitude.replace(",", '.') * (3.14159265358979/180)) * Math.sin($scope.fe_latitude.replace(",", '.') * (3.14159265358979/180)) - Math.cos($scope.fe_latitude.replace(",", '.') * (3.14159265358979/180)) * Math.sin($scope.ne_latitude.replace(",", '.') * (3.14159265358979/180)) * Math.cos(Math.abs($scope.ne_longitude.replace(",", '.') * (3.14159265358979/180) - $scope.fe_longitude.replace(",", '.') * (3.14159265358979/180)))) % (2 * 3.14159265358979) / 3.14159265358979)).toFixed(2))
+                                    if($scope.ne_azimuth < 0) {
+                                        $scope.ne_azimuth = 360 - $scope.ne_azimuth * -1
+                                    }
+                                    $scope.ne_azimuth = parseFloat($scope.ne_azimuth.toFixed(2))
+
+                                    $scope.fe_azimuth = parseFloat((180 * (Math.atan2(Math.sin($scope.ne_longitude.replace(",", '.') * (3.14159265358979/180) - $scope.fe_longitude.replace(",", '.') * (3.14159265358979/180)) * Math.cos($scope.ne_latitude.replace(",", '.') * (3.14159265358979/180)), Math.cos($scope.fe_latitude.replace(",", '.') * (3.14159265358979/180)) * Math.sin($scope.ne_latitude.replace(",", '.') * (3.14159265358979/180)) - Math.cos($scope.ne_latitude.replace(",", '.') * (3.14159265358979/180)) * Math.sin($scope.fe_latitude.replace(",", '.') * (3.14159265358979/180)) * Math.cos(Math.abs($scope.ne_longitude.replace(",", '.') * (3.14159265358979/180) - $scope.fe_longitude.replace(",", '.') * (3.14159265358979/180)))) % (2 * 3.14159265358979) / 3.14159265358979)).toFixed(2))
+                                    if($scope.fe_azimuth < 0) {
+                                        $scope.fe_azimuth = 360 - $scope.fe_azimuth * -1
+                                    }
+
+                                    $scope.fe_azimuth = parseFloat($scope.fe_azimuth.toFixed(2))
+
+                                }
+
+                                var address = response.data.facility_id.address_id;
+
+                                $scope[site] = '';
+                                if (address.city_id && address.city_id.name) {
+                                    if (address.city_id.district_id && address.city_id.district_id.name) {
+                                        if (address.city_id.district_id.oblast_id && address.city_id.district_id.oblast_id.name) {
+                                            if (address.city_id.district_id.oblast_id && address.city_id.district_id.oblast_id.region_id && address.city_id.district_id.oblast_id && address.city_id.district_id.oblast_id.region_id.name) {
+                                                $scope[site] = address.city_id.district_id.oblast_id && address.city_id.district_id.oblast_id.region_id.name;
+                                            }
+                                            $scope[site] = $scope[site] + ($scope[site] ? ', ' : '') + address.city_id.district_id.oblast_id.name;
+                                        }
+                                        $scope[site] = $scope[site] + ($scope[site] ? ', ' : '') + address.city_id.district_id.name;
+                                    }
+                                    $scope[site] = $scope[site] + ($scope[site] ? ', ' : '') + (address.city_id.city_type_id.name ? address.city_id.city_type_id.name + ' ' : '') + address.city_id.name;
+                                    console.log($scope[site]);
+                                }
+                                if (address.street) {
+                                    $scope[site] = $scope[site] + ($scope[site] ? ', ' : '') + address.street;
+                                }
+                                if (address.building){
+                                    $scope[site] = $scope[site] + ($scope[site] ? ', ' : '') + address.building;
+                                }
+                                if (address.note) {
+                                    $scope[site] = $scope[site] + ($scope[site] ? ', ' : '') + address.note;
+                                }
+                                if (address.cadastral_number) {
+                                    $scope[site] = $scope[site] + ($scope[site] ? ', ' : '') + address.cadastral_number;
+                                }
+                            } else {
+                                $scope[site] = undefined;
+                                $scope[fetched] = false;
+                            }
+                        }
+                );
+            }
+
+
+
+            $scope.neSelected = function ($item) {
+                $scope.ne_site_id = $item.name;
+                $scope.ne_siteId = $item.id;
+                $scope.ne_sitename = $item.site_name;
+                $scope.fillAddress($item.id, 'ne_address', 'ne_address_fetched', 'ne');
+            };
+            $scope.farendSelected = function ($item) {
+                $scope.fe_site_id = $item.name;
+                $scope.fe_siteId = $item.id;
+                $scope.fe_sitename = $item.site_name;
+                $scope.fillAddress($item.id, 'fe_address', 'fe_address_fetched', 'fe');
+            };
+
+            $scope.populateSelectFromCatalog = function (containers, id,) {
+                $http.get(catalogsServerUrl + '/camunda/catalogs/api/get/id/' + id).then(function (result) {
+                    if (result && result.data) {
+                        angular.forEach(containers, function (container) {
+                            $scope[container] = result.data.data.$list;
+                        });
+                    }
+                });
+            }
+
+            $scope.populateSelectFromCatalog(['oblastCatalogList', 'oblastList'], 30);   // Oblast
+            $scope.populateSelectFromCatalog(['districtCatalogList', 'filteredDistricts', 'farendFilteredDistricts'], 31); // District
+            $scope.populateSelectFromCatalog(['cityCatalogList', 'cityList', 'farendCityList'], 32);     // CityVillage
+            $scope.populateSelectFromCatalog(['siteTypeList'], 2);   // Site_type
+            $scope.populateSelectFromCatalog(['constructionTypeList'], 14);   // Construction_type
+            $scope.populateSelectFromCatalog(['protectionModeList'], 44);     // Protection mode
+            $scope.populateSelectFromCatalog(['trAntennasTypeList'], 20);     // TR Antennas Type
+            $scope.populateSelectFromCatalog(['linkCapacityList'], 45);       // Link capacity
+
+            $scope.filterDistrictAfterSelectObl = function (cn_addr_oblast) {
+                $scope.ne_addressJson.cn_addr_oblast = cn_addr_oblast;
+                $scope.ne_addressJson.cn_addr_district = '';
+                $scope.ne_addressJson.cn_addr_city = '';
+                if ($scope.ne_addressJson.cn_addr_oblast && $scope.ne_addressJson.cn_addr_oblast !== '') {
+                    $scope.filteredDistricts = $scope.districtCatalogList.filter(d => {return d.parent === $scope.ne_addressJson.cn_addr_oblast}
+                )
+                    ;
+                    $scope.cityList = $scope.cityCatalogList.filter(c => {
+                        return _.some($scope.filteredDistricts, function (d) {
+                            return d.id === c.parent
+                        });
+                })
+                    ;
+                } else {
+                    $scope.filteredDistricts = $scope.districtCatalogList;
+                    $scope.cityList = $scope.cityCatalogList;
+                }
+            };
+
+            $scope.getCity = function (val) {
+                if (val.length < 2) {
+                    return []
+                }
+                return _.filter($scope.cityList, function (o) {
+                    return o.value.toLowerCase().includes(val.toLowerCase());
+                })
+            };
+
+            $scope.ne_addressJsonCitySelected = function ($item) {
+                $scope.ne_addressJson.cn_addr_city = $item.id;
+                $scope.ne_addressJson.cn_addr_district = $item.parent;
+                if (!$scope.ne_addressJson.cn_addr_oblast || $scope.ne_addressJson.cn_addr_oblast !== $item.grandparent) {
+                    $scope.ne_addressJson.cn_addr_oblast = $item.grandparent;
+                }
+            };
+
+            $scope.filterDistrictAfterSelectOblFE = function (cn_addr_oblast) {
+                $scope.fe_addressJson.cn_addr_oblast = cn_addr_oblast;
+                $scope.fe_addressJson.cn_addr_district = '';
+                $scope.fe_addressJson.cn_addr_city = '';
+                if ($scope.fe_addressJson.cn_addr_oblast && $scope.fe_addressJson.cn_addr_oblast !== '') {
+                    $scope.farendFilteredDistricts = $scope.districtCatalogList.filter(d => {return d.parent === $scope.fe_addressJson.cn_addr_oblast}
+                )
+                    ;
+                    $scope.farendCityList = $scope.cityCatalogList.filter(c => {
+                        return _.some($scope.farendFilteredDistricts, function (d) {
+                            return d.id === c.parent
+                        });
+                })
+                    ;
+                } else {
+                    $scope.farendFilteredDistricts = $scope.districtCatalogList;
+                    $scope.farendCityList = $scope.cityCatalogList;
+                }
+            };
+
+            $scope.getFarendCity = function (val) {
+                if (val.length < 2) {
+                    return []
+                }
+                return _.filter($scope.farendCityList, function (o) {
+                    return o.value.toLowerCase().includes(val.toLowerCase());
+                })
+            };
+
+            $scope.new_siteJson_CitySelected = function ($item) {
+                $scope.new_siteJson.cn_addr_city = $item.id;
+                $scope.new_siteJson.cn_addr_district = $item.parent;
+                if (!$scope.new_siteJson.cn_addr_oblast || $scope.new_siteJson.cn_addr_oblast !== $item.grandparent) {
+                    $scope.new_siteJson.cn_addr_oblast = $item.grandparent;
+                }
+            };
+
+            $scope.fe_addressJsonCitySelected = function ($item) {
+                $scope.fe_addressJson.cn_addr_city = $item.id;
+                $scope.fe_addressJson.cn_addr_district = $item.parent;
+                if (!$scope.fe_addressJson.cn_addr_oblast || $scope.fe_addressJson.cn_addr_oblast !== $item.grandparent) {
+                    $scope.fe_addressJson.cn_addr_oblast = $item.grandparent;
+                }
+            };
+
+            $scope.hopLinkCapacitySelected = function () {
+                var obj = _.filter($scope.linkCapacityList, function (c) {
+                    return c.id === $scope.hop_link_capacity;
+                });
+                if (obj && obj.length > 0) {
+                    $scope.hop_modulation_type = obj[0]['Modulation'].value;
+                    $scope.hop_channel_bandwidth = obj[0]['Channel Bandwidth'].value;
+                }
+            }
+
+            $scope.protectionMode = function () {
+                if($scope.protection_mode === 1 || $scope.protection_mode === 2 || $scope.protection_mode === 3 || $scope.protection_mode === 4) {
+                    $scope.protection_mode_fetched = true
+                    $scope.ne_protection_antenna_diameter = undefined
+                    $scope.fe_protection_antenna_diameter = undefined
+                    $scope.ne_protection_suspension_height = undefined
+                    $scope.fe_protection_suspension_height = undefined
+                } else {
+                    $scope.protection_mode_fetched = false
+                }
+            };
+
+            $scope.antennaDiameter = function () {
+                $scope.fe_diameter = $scope.ne_diameter
+            };
+
+            $scope.protectionAntennaDiameter = function () {
+                $scope.fe_protection_antenna_diameter = $scope.ne_protection_antenna_diameter
+            };
+
+            $scope.createNewSite = function () {
+                $scope.creatingNewSite = true
+            };
+
+            $scope.cancelCreateNewSite = function () {
+                $scope.creatingNewSite = false
+            };
+        }]);
+    </script>
+    <iframe id="fileDownloadIframe" style="display:none;"></iframe>
+
+    <div class="form-group">
+        <div class="col-sm-6">
+            <h4>Change Transmission Survey Data</h4>
+        </div>
+    </div>
+    <div class="well">
+        <div class="form-group">
+            <div class="col-sm-4">
+                <div class="input-group">
+                    <input type="text" ng-model="site_name" name="site_name" typeahead="site as sites.site_name for sites in getSites($viewValue)" typeahead-on-select="siteSelected($item,$model,$label)" class="form-control" required autocomplete="off" placeholder="Site Name">
+                    <input type="hidden" ng-model="site" name="siteId" required/>
+                    <span class="input-group-btn" ng-if="siteName">
+                    <button type="button" class="btn btn-default">Check</button>
+                </span>
+                </div>
+            </div>
+        </div>
+
+    </div>
+    <div class="form-group">
+        <label class="col-sm-2 control-label"><b>TSD number:</b></label>
+        <label class="col-sm-6 control-label">{{ne_sitename?ne_sitename:'##########'}}-{{fe_sitename?fe_sitename:'##########'}}({{region_name?regionsBussinesKey[region_name]:'###'}}####-{{date_of_visit? (date_of_visit | date: 'ddMMyy') : '######'}})</label>
+    </div>
+
+    <div class="form-group">
+        <label class="col-sm-2 control-label"><b>Region name:</b></label>
+        <label class="col-sm-4 control-label">{{regionsTitle[region_name]}}</label>
+        <label class="col-sm-2 control-label"><b>Date:</b></label>
+        <div class="col-sm-3">
+            <div class="input-group">
+                <input type="text" ng-model="date_of_visit" name="dateOfVisit" class="form-control" datepicker-popup="dd.MM.yyyy" is-open="date_of_visitFieldOpened" id="dateOfVisit" required />
+                <span class="input-group-btn">
+                    <button type="button" class="btn btn-default" ng-click="date_of_visitFieldOpened = true">
+                        <i class="glyphicon glyphicon-calendar"></i>
+                    </button>
+                </span>
+            </div>
+            <label class="error" ng-if="kcell_form.dateOfVisit.$error.required && ( kcell_form.dateOfVisit.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label class="col-sm-2 control-label">Sitename:</label>
+        <div class="col-sm-2">
+            <div class="input-group">
+                <input type="text" ng-model="ne_sitename" name="ne_sitename" typeahead="site as sites.site_name for sites in getSite($viewValue)" typeahead-on-select="neSelected($item,$model,$label)" class="form-control" required autocomplete="off" placeholder="Site Name">
+                <input type="hidden" ng-model="ne_siteId" name="ne_siteId" required/>
+            </div>
+            <label class="error" ng-if="kcell_form.ne_sitename.$error.required && ( kcell_form.ne_sitename.$touched || view.submitted)">Required field</label>
+            <label class="error" ng-if="kcell_form.ne_siteId.$error.required && ( kcell_form.ne_sitename.$touched || view.submitted)">Необходимо выбрать сайт из списка</label>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-2 control-label">Site Address:</label>
+        <div class="col-sm-10">
+            <textarea class="form-control" name="ne_address" cam-variable-name="ne_address" disabled cam-variable-type="String" maxlength="1500" rows="2"  ng-if="!creatingNewSite"></textarea>
+            <accordion class="content-visible-accordion background-yellow-accordion" ng-show="creatingNewSite">
+                <accordion-group is-open="true">
+                    <accordion-heading>
+                        Creating new Site <i class="pull-right glyphicon"
+                                             ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
+                    </accordion-heading>
+                    <div class="form-group">
+                        <label class="col-sm-2 control-label">Site name</label>
+                        <label class="col-sm-2 control-label">Id</label>
+                        <div class="col-sm-6">
+                            <input type="text" class="form-control" ng-model="new_siteJson.assets_site_id" id="assets_site_id" name="assets_site_id" cam-variable-name="assets_site_id" cam-variable-type="String" placeholder="5 digits">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-sm-2 control-label"></label>
+                        <label class="col-sm-2 control-label">Name</label>
+                        <div class="col-sm-6">
+                            <input type="text" class="form-control" ng-model="new_siteJson.assets_site_name" id="assets_site_name" name="assets_site_name" cam-variable-name="assets_site_name" cam-variable-type="String" placeholder="ex: ALGSMAK">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-sm-2 control-label">Longtitude</label>
+                        <label class="col-sm-2 control-label">N</label>
+                        <div class="col-sm-6">
+                            <input type="text" class="form-control" ng-model="new_siteJson.assets_longitude" id="assets_longitude" name="assets_longitude" ng-pattern="longitudePattern" ui-mask="E9.999999" ui-mask-placeholder ui-mask-placeholder-char="_" cam-variable-name="assets_longitude" cam-variable-type="String">
+                            <label class="error" ng-if="kcell_form.assets_longitude.$error.pattern && ( kcell_form.assets_longitude.$touched || view.submitted)">Expected: 46.493000 <- Longtitude <- 87.315000</label>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-sm-2 control-label">Latitude</label>
+                        <label class="col-sm-2 control-label">E</label>
+                        <div class="col-sm-6">
+                            <input type="text" class="form-control" ng-model="new_siteJson.assets_latitude" id="assets_latitude" name="assets_latitude" ng-pattern="latitudePattern" ui-mask="N9.999999" ui-mask-placeholder ui-mask-placeholder-char="_" cam-variable-name="assets_latitude" cam-variable-type="String">
+                            <label class="error" ng-if="kcell_form.assets_latitude.$error.pattern && ( kcell_form.assets_latitude.$touched || view.submitted)">Expected: 40.568000 <- Latitude <- 55.440000</label>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="col-sm-2 control-label">Altitude</label>
+                        <label class="col-sm-2 control-label">(m)</label>
+                        <div class="col-sm-6">
+                            <input type="number" class="form-control" ng-model="new_siteJson.assets_altitude" id="assets_altitude" name="assets_altitude" ng-pattern="numbersPattern" cam-variable-name="assets_altitude" cam-variable-type="String">
+                            <label class="error" ng-if="kcell_form.assets_altitude.$error.pattern && ( kcell_form.assets_altitude.$touched || view.submitted)">Uncorrect format</label>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-sm-2 control-label">Site type</label>
+                        <label class="col-sm-2 control-label"></label>
+                        <div class="col-sm-6">
+                            <select class="form-control" id="assets_site_type" name="assets_site_type" ng-model="new_siteJson.assets_site_type">
+                                <option ng-repeat="st in siteTypeList" ng-value="st.id">{{st.value}}</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-sm-2 control-label">Construction type</label>
+                        <label class="col-sm-2 control-label"></label>
+                        <div class="col-sm-6">
+                            <select class="form-control" id="assets_construction_type" name="assets_construction_type" ng-model="new_siteJson.assets_construction_type">
+                                <option ng-repeat="ct in constructionTypeList" ng-value="ct.id">{{ct.value}}</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-sm-2 control-label">Height of construction</label>
+                        <label class="col-sm-2 control-label">(m)</label>
+                        <div class="col-sm-6">
+                            <input type="number" class="form-control" id="assets_construction_height" name="assets_construction_height" ng-model="new_siteJson.assets_construction_height" cam-variable-name="assets_construction_height" cam-variable-type="String">
+                        </div>
+                    </div>
+                </accordion-group>
+                <accordion-group is-open="true">
+                    <accordion-heading>
+                        Site Address <i class="pull-right glyphicon"
+                                        ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
+                    </accordion-heading>
+                    <div class="form-group">
+                        <label class="col-sm-3 control-label">Oblast:</label>
+                        <div class="col-sm-8" class="form-check">
+                            <select class="form-control" id="cn_addr_oblast" name="cn_addr_oblast" ng-model="new_siteJson.cn_addr_oblast"
+                                    ng-change="filterDistrictAfterSelectObl(new_siteJson.cn_addr_oblast)">
+                                <option ng-repeat="oblast in oblastList" ng-value="oblast.id">{{oblast.value}}</option>
+                            </select>
+                            <label class="error" ng-show="kcell_form.cn_addr_oblast.$error.required && ( kcell_form.cn_addr_oblast.$touched || view.submitted)">Required field</label>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-sm-3 control-label">District:</label>
+                        <div class="col-sm-8" class="form-check">
+                            <select class="form-control" id="cn_addr_district" name="cn_addr_district" ng-model="new_siteJson.cn_addr_district" ng-disabled="!new_siteJson.cn_addr_oblast">
+                                <option ng-repeat="district in filteredDistricts" ng-value="district.id">{{district.value}}</option>
+                            </select>
+                            <label class="error" ng-show="kcell_form.cn_addr_district.$error.required && ( kcell_form.cn_addr_district.$touched || view.submitted)">Required field</label>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="col-sm-3 control-label">City / Village:</label>
+                        <div class="col-sm-8">
+                            <input type="text" ng-model="new_siteJson.cn_addr_city_name" name="cn_addr_city" typeahead="city.value for city in getCity($viewValue)" typeahead-on-select="new_siteJson_CitySelected($item,$model,$label)" class="form-control" placeholder="Start typing...">
+                            <input type="hidden" ng-model="new_siteJson.cn_addr_city" name="cityId"/>
+                            <label class="error" ng-show="kcell_form.cn_addr_city.$error.required && ( kcell_form.cn_addr_city.$touched || view.submitted)">Required field</label>
+                            <label class="error" ng-show="kcell_form.cityId.$error.required && ( kcell_form.cn_addr_city.$touched || view.submitted)">Please select from list</label>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-sm-3 control-label"></label>
+                        <div class="col-sm-8">
+                            <div class="form-check">
+                                <input type="checkbox" ng-model="new_siteJson.ca_not_full_addres" class="form-check-input" id="ca_not_full_addres">
+                                <label class="form-check-label" for="ca_not_full_addres">Object without address</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-sm-3 control-label">{{!new_siteJson.ca_not_full_addres ? '*' : ''}}Street/microdistrict:</label>
+                        <div class="col-sm-8">
+                            <input class="form-control" id="cn_addr_street" name="cn_addr_street" ng-model="new_siteJson.cn_addr_street" ng-disabled="new_siteJson.ca_not_full_addres">
+                            <label class="error" ng-show="kcell_form.cn_addr_street.$error.required && ( kcell_form.cn_addr_street.$touched || view.submitted)">Required field</label>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-sm-3 control-label">{{!new_siteJson.ca_not_full_addres ? '*' : ''}}Building:</label>
+                        <div class="col-sm-8">
+                            <input class="form-control" id="cn_addr_building" name="cn_addr_building" ng-model="new_siteJson.cn_addr_building" ng-disabled="new_siteJson.ca_not_full_addres">
+                            <label class="error" ng-show="kcell_form.cn_addr_building.$error.required && ( kcell_form.cn_addr_building.$touched || view.submitted)">Required field</label>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-sm-3 control-label">{{new_siteJson.ca_not_full_addres ? '*' : ''}}Cadastral number:</label>
+                        <div class="col-sm-8">
+                            <input class="form-control" id="cn_addr_cadastral_number" name="cn_addr_cadastral_number" ng-model="new_siteJson.cn_addr_cadastral_number">
+                            <label class="error" ng-show="kcell_form.cn_addr_cadastral_number.$error.required && ( kcell_form.cn_addr_cadastral_number.$touched || view.submitted)">Required field</label>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-sm-3 control-label">{{new_siteJson.ca_not_full_addres ? '*' : ''}}Note to the address:</label>
+                        <div class="col-sm-8">
+                            <input class="form-control" id="cn_addr_note" name="cn_addr_note" ng-model="new_siteJson.cn_addr_note">
+                            <label class="error" ng-show="kcell_form.cn_addr_note.$error.required && ( kcell_form.cn_addr_note.$touched || view.submitted)">Required field</label>
+                        </div>
+                    </div>
+                </accordion-group>
+            </accordion>
+        </div>
+
+        <div class="col-sm-10"></div>
+    </div>
+
+    <div class="form-group">
+        <label class="col-sm-2 control-label">Farend name:</label>
+        <div class="col-sm-3">
+            <div class="input-group">
+                <input type="text" ng-model="fe_sitename" name="fe_sitename" typeahead="site as sites.site_name for sites in getSite($viewValue)" typeahead-on-select="farendSelected($item,$model,$label)" class="form-control" required autocomplete="off" placeholder="Farend Name">
+                <input type="hidden" ng-model="fe_siteId" name="fe_siteId" required/>
+            </div>
+            <label class="error" ng-if="kcell_form.fe_sitename.$error.required && ( kcell_form.fe_sitename.$touched || view.submitted)">Required field</label>
+            <label class="error" ng-if="kcell_form.fe_siteId.$error.required && ( kcell_form.fe_sitename.$touched || view.submitted)">Необходимо выбрать сайт из списка</label>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-2 control-label">Farend Address:</label>
+        <div class="col-sm-10">
+            <textarea class="form-control" name="fe_address" cam-variable-name="fe_address" disabled cam-variable-type="String" maxlength="1500" rows="2"  ng-if="!fe_siteId || fe_address_fetched"></textarea>
+            <accordion class="content-visible-accordion background-yellow-accordion" ng-if="fe_siteId && !fe_address_fetched">
+                <accordion-group is-open="true">
+                    <accordion-heading>
+                        Farend Address <i class="pull-right glyphicon"
+                                          ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
+                    </accordion-heading>
+                    <div class="form-group">
+                        <label class="col-sm-3 control-label">Oblast:</label>
+                        <div class="col-sm-8" class="form-check">
+                            <select class="form-control" id="fe_cn_addr_oblast" name="fe_cn_addr_oblast" ng-model="fe_addressJson.cn_addr_oblast"
+                                    ng-change="filterDistrictAfterSelectOblFE(fe_addressJson.cn_addr_oblast)">
+                                <option ng-repeat="oblast in oblastList" ng-value="oblast.id">{{oblast.value}}</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-sm-3 control-label">District:</label>
+                        <div class="col-sm-8" class="form-check">
+                            <select class="form-control" id="fe_cn_addr_district" name="fe_cn_addr_district" ng-model="fe_addressJson.cn_addr_district" ng-disabled="!fe_addressJson.cn_addr_oblast">
+                                <option ng-repeat="district in farendFilteredDistricts" ng-value="district.id">{{district.value}}</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="col-sm-3 control-label">City / Village:</label>
+                        <div class="col-sm-8">
+                            <input type="text" ng-model="fe_addressJson.cn_addr_city_name" name="fe_cn_addr_city" typeahead="city.value for city in getFarendCity($viewValue)" typeahead-on-select="fe_addressJsonCitySelected($item,$model,$label)" class="form-control" placeholder="Start typing...">
+                            <input type="hidden" ng-model="fe_addressJson.cn_addr_city" name="feCityId" ng-required="fe_addressJson.cn_addr_city_name"/>
+                            <label class="error" ng-show="kcell_form.feCityId.$error.required && ( kcell_form.cn_addr_city.$touched || view.submitted)">Please select from list</label>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-sm-3 control-label"></label>
+                        <div class="col-sm-8">
+                            <div class="form-check">
+                                <input type="checkbox" ng-model="fe_addressJson.ca_not_full_addres" class="form-check-input" id="fe_ca_not_full_addres">
+                                <label class="form-check-label" for="ca_not_full_addres">Object without address</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-sm-3 control-label">Street/microdistrict:</label>
+                        <div class="col-sm-8">
+                            <input class="form-control" id="fe_cn_addr_street" name="fe_cn_addr_street" ng-model="fe_addressJson.cn_addr_street" ng-disabled="fe_addressJson.ca_not_full_addres">
+                            <label class="error" ng-show="kcell_form.cn_addr_street.$error.required && ( kcell_form.cn_addr_street.$touched || view.submitted)">Required field</label>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-sm-3 control-label">{{!address.ca_not_full_addres ? '*' : ''}}Building:</label>
+                        <div class="col-sm-8">
+                            <input class="form-control" id="fe_cn_addr_building" name="fe_cn_addr_building" ng-model="fe_addressJson.cn_addr_building" ng-disabled="fe_addressJson.ca_not_full_addres">
+                            <label class="error" ng-show="kcell_form.cn_addr_building.$error.required && ( kcell_form.cn_addr_building.$touched || view.submitted)">Required field</label>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-sm-3 control-label">Cadastral number:</label>
+                        <div class="col-sm-8">
+                            <input class="form-control" id="fe_cn_addr_cadastral_number" name="fe_cn_addr_cadastral_number" ng-model="fe_addressJson.cn_addr_cadastral_number">
+                            <label class="error" ng-show="kcell_form.cn_addr_cadastral_number.$error.required && ( kcell_form.cn_addr_cadastral_number.$touched || view.submitted)">Required field</label>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-sm-3 control-label">Note to the address:</label>
+                        <div class="col-sm-8">
+                            <input class="form-control" id="fe_cn_addr_note" name="fe_cn_addr_note" ng-model="fe_addressJson.cn_addr_note">
+                            <label class="error" ng-show="kcell_form.cn_addr_note.$error.required && ( kcell_form.cn_addr_note.$touched || view.submitted)">Required field</label>
+                        </div>
+                    </div>
+                </accordion-group>
+            </accordion>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="col-sm-12">
+
+            <table class="table table-bordered">
+                <thead>
+                <tr align="center">
+                    <td colspan="2">Position</td>
+                    <td colspan="4">Near End</td>
+                    <td colspan="4">Far End</td>
+                </tr>
+                </thead>
+                <tbody>
+                <tr>
+                    <td align="right" colspan="2">Basic information</td>
+                    <td align="center" colspan="4">{{ne_sitename}}</td>
+                    <td align="center" colspan="4">{{fe_sitename}}</td>
+                </tr>
+                <tr>
+                    <td align="right" colspan="2">Coordinates (degree):</td>
+                    <td>N</td>
+                    <td align="center">
+                        <input type="text" class="form-control" ng-model="ne_latitude" id="ne_latitude" name="ne_latitude" ng-pattern="latitudePattern" ui-mask="N9.999999"  ui-mask-placeholder ui-mask-placeholder-char="_"
+                               required cam-variable-name="ne_latitude" cam-variable-type="String">
+                        <label class="error" ng-if="kcell_form.ne_latitude.$error.required && ( kcell_form.ne_latitude.$touched || view.submitted)">Required field</label>
+                        <label class="error" ng-if="kcell_form.ne_latitude.$error.pattern && ( kcell_form.ne_latitude.$touched || view.submitted)">Expected: 40.568000 <- Latitude <- 55.440000</label>
+                    </td>
+                    <td>E</td>
+                    <td align="center">
+                        <input type="text" class="form-control" ng-model="ne_longitude" id="ne_longitude" name="ne_longitude" ng-pattern="longitudePattern" ui-mask="E9.999999"  ui-mask-placeholder ui-mask-placeholder-char="_"
+                               required cam-variable-name="ne_longitude" cam-variable-type="String">
+                        <label class="error" ng-if="kcell_form.ne_longitude.$error.required && ( kcell_form.ne_longitude.$touched || view.submitted)">Required field</label>
+                        <label class="error" ng-if="kcell_form.ne_longitude.$error.pattern && ( kcell_form.ne_longitude.$touched || view.submitted)">Expected: 46.493000 <- Longtitude <- 87.315000</label>
+                    </td>
+                    <td>N</td>
+                    <td align="center">
+                        <input type="text" class="form-control" ng-model="fe_latitude" id="fe_latitude" name="fe_latitude" ng-pattern="latitudePattern" ui-mask="N9.999999"  ui-mask-placeholder ui-mask-placeholder-char="_"
+                               required cam-variable-name="fe_latitude" cam-variable-type="String">
+                        <label class="error" ng-if="kcell_form.fe_latitude.$error.required && ( kcell_form.fe_latitude.$touched || view.submitted)">Required field</label>
+                        <label class="error" ng-if="kcell_form.fe_latitude.$error.pattern && ( kcell_form.fe_latitude.$touched || view.submitted)">Expected: 40.568000 <- Latitude <- 55.440000</label>
+                    </td>
+                    <td>E</td>
+                    <td align="center">
+                        <input type="text" class="form-control" ng-model="fe_longitude" id="fe_longitude" name="fe_longitude" ng-pattern="longitudePattern" ui-mask="E9.999999"  ui-mask-placeholder ui-mask-placeholder-char="_"
+                               required cam-variable-name="fe_longitude" cam-variable-type="String">
+                        <label class="error" ng-if="kcell_form.fe_longitude.$error.required && ( kcell_form.fe_longitude.$touched || view.submitted)">Required field</label>
+                        <label class="error" ng-if="kcell_form.fe_longitude.$error.pattern && ( kcell_form.fe_latitude.$touched || view.submitted)">Expected: 46.493000 <- Longtitude <- 87.315000</label>
+                    </td>
+                </tr>
+                <tr>
+                    <td align="right" colspan="2">Altitude (m):</td>
+                    <td align="center" colspan="4">
+                        <input type="number" class="form-control" ng-model="ne_altitude" name="ne_altitude" ng-pattern="altitudePattern" required cam-variable-name="ne_altitude" cam-variable-type="Double" required>
+                        <label class="error" ng-if="kcell_form.ne_altitude.$error.required && ( kcell_form.ne_altitude.$touched || view.submitted)">Required field(-xxx.y to +xxxx.y)</label>
+                        <label class="error" ng-if="kcell_form.ne_altitude.$error.pattern && ( kcell_form.ne_altitude.$touched || view.submitted)">Uncorrect format(-xxx.y to +xxxx.y)</label>
+                        <label class="error" ng-if="kcell_form.ne_altitude.$error.number && ( kcell_form.ne_altitude.$touched || view.submitted)">Uncorrect format(-xxx.y to +xxxx.y)</label>
+                    </td>
+                    <td align="center" colspan="4">
+                        <input type="number" class="form-control" ng-model="fe_altitude" name="fe_altitude" ng-pattern="altitudePattern" cam-variable-name="fe_altitude" cam-variable-type="Double" required>
+                        <label class="error" ng-if="kcell_form.fe_altitude.$error.required && ( kcell_form.fe_altitude.$touched || view.submitted)">Required field(-xxx.y to +xxxx.y)</label>
+                        <label class="error" ng-if="kcell_form.fe_altitude.$error.pattern && ( kcell_form.fe_altitude.$touched || view.submitted)">Uncorrect format(-xxx.y to +xxxx.y)</label>
+                        <label class="error" ng-if="kcell_form.fe_altitude.$error.number && ( kcell_form.fe_altitude.$touched || view.submitted)">Uncorrect format(-xxx.y to +xxxx.y)</label>
+                    </td>
+                </tr>
+                <tr>
+                    <td align="right" colspan="2">Azimuth (degree):</td>
+                    <td align="center" colspan="4">
+                        <input type="number" class="form-control" ng-model="ne_azimuth" name="ne_azimuth" ng-pattern="azimuthPattern" cam-variable-name="ne_azimuth" cam-variable-type="Double" required>
+                        <label class="error" ng-if="kcell_form.ne_azimuth.$error.required && ( kcell_form.ne_azimuth.$touched || view.submitted)">Required field</label>
+                        <label class="error" ng-if="kcell_form.ne_azimuth.$error.pattern && ( kcell_form.ne_azimuth.$touched || view.submitted)">Expected: 0 <- Azimuth(XXX.YY) <- 360</label>
+                    </td>
+                    <td align="center" colspan="4">
+                        <input type="number" class="form-control" ng-model="fe_azimuth" name="fe_azimuth" ng-pattern="azimuthPattern" cam-variable-name="fe_azimuth" cam-variable-type="Double" required>
+                        <label class="error" ng-if="kcell_form.fe_azimuth.$error.required && ( kcell_form.fe_azimuth.$touched || view.submitted)">Required field</label>
+                        <label class="error" ng-if="kcell_form.fe_azimuth.$error.pattern && ( kcell_form.fe_azimuth.$touched || view.submitted)">Expected: 0 <- Azimuth(XXX.YY) <- 360</label>
+                    </td>
+                </tr>
+                <tr>
+                    <td align="right" colspan="2">Path distance (km):</td>
+                    <td align="center" colspan="8">
+                        <input type="number" class="form-control" ng-model="path_distance" name="path_distance" cam-variable-name="path_distance" cam-variable-type="Double" required>
+                        <label class="error" ng-if="kcell_form.path_distance.$error.required && ( kcell_form.path_distance.$touched || view.submitted)">Required field</label>
+                    </td>
+                </tr>
+                <tr>
+                    <td align="right" colspan="2">Type of construction:</td>
+                    <td align="center" colspan="4">
+                        <select class="form-control" id="ne_construction_type" name="ne_construction_type" ng-model="ne_construction_type" required>
+                            <option ng-repeat="ct in constructionTypeList" ng-value="ct.id">{{ct.value}}</option>
+                        </select>
+                        <label class="error" ng-if="kcell_form.ne_construction_type.$error.required && ( kcell_form.ne_construction_type.$touched || view.submitted)">Required field</label>
+                    </td>
+                    <td align="center" colspan="4">
+                        <select class="form-control" id="fe_construction_type" name="fe_construction_type" ng-model="fe_construction_type" required>
+                            <option ng-repeat="ct in constructionTypeList" ng-value="ct.id">{{ct.value}}</option>
+                        </select>
+                        <label class="error" ng-if="kcell_form.fe_construction_type.$error.required && ( kcell_form.fe_construction_type.$touched || view.submitted)">Required field</label>
+                    </td>
+                </tr>
+
+
+                <tr>
+                    <td align="right" colspan="2">Height of construction (m):</td>
+                    <td align="center" colspan="4">
+                        <input type="text" class="form-control" ng-model="ne_construction_height" name="ne_construction_height" required cam-variable-name="ne_construction_height" ng-pattern="heightPattern" cam-variable-type="String">
+                        <label class="error" ng-if="kcell_form.ne_construction_height.$error.required && ( kcell_form.ne_construction_height.$touched || view.submitted)">Required field</label>
+                        <label class="error" ng-if="kcell_form.ne_construction_height.$error.pattern && ( kcell_form.ne_construction_height.$touched || view.submitted)">Uncorrect format</label>
+                    </td>
+                    <td align="center" colspan="4">
+                        <input type="text" class="form-control" ng-model="fe_construction_height" name="fe_construction_height" required cam-variable-name="fe_construction_height" ng-pattern="heightPattern" cam-variable-type="String">
+                        <label class="error" ng-if="kcell_form.fe_construction_height.$error.required && ( kcell_form.fe_construction_height.$touched || view.submitted)">Required field</label>
+                        <label class="error" ng-if="kcell_form.fe_construction_height.$error.pattern && ( kcell_form.fe_construction_height.$touched || view.submitted)">Uncorrect format</label>
+                    </td>
+                </tr>
+                <tr>
+                    <td align="right" colspan="2">Protection mode:</td>
+                    <td align="center" colspan="8">
+                        <select class="form-control" id="protection_mode" name="protection_mode" ng-model="protection_mode" required ng-change="protectionMode()">
+                            <option ng-repeat="ct in protectionModeList" ng-value="ct.id">{{ct.value}}</option>
+                        </select>
+                        <label class="error" ng-if="kcell_form.protection_mode.$error.required && ( kcell_form.protection_mode.$touched || view.submitted)">Required field</label>
+                    </td>
+                </tr>
+                <tr>
+                    <td align="right" colspan="2">Antenna diameter:</td>
+                    <td align="center" colspan="4">
+                        <select class="form-control" id="ne_diameter" name="ne_diameter" ng-model="ne_diameter" ng-change="antennaDiameter()">
+                            <option ng-repeat="ct in trAntennasTypeList" ng-value="ct.id">{{ct.value}}</option>
+                        </select>
+                        <label class="error" ng-if="kcell_form.ne_diameter.$error.required && ( kcell_form.ne_diameter.$touched || view.submitted)">Required field</label>
+                    </td>
+                    <td align="center" colspan="4">
+                        <select class="form-control" id="fe_diameter" name="fe_diameter" ng-model="fe_diameter">
+                            <option ng-repeat="ct in trAntennasTypeList" ng-value="ct.id">{{ct.value}}</option>
+                        </select>
+                        <label class="error" ng-if="kcell_form.fe_diameter.$error.required && ( kcell_form.fe_diameter.$touched || view.submitted)">Required field</label>
+                    </td>
+                </tr>
+                <tr>
+                    <td align="right" colspan="2">Protection antenna diameter:</td>
+                    <td align="center" colspan="4">
+                        <select class="form-control" id="ne_protection_antenna_diameter" name="ne_protection_antenna_diameter" ng-model="ne_protection_antenna_diameter" ng-change="protectionAntennaDiameter()">
+                            <option ng-repeat="ct in trAntennasTypeList" ng-value="ct.id">{{ct.value}}</option>
+                        </select>
+                        <label class="error" ng-if="kcell_form.ne_protection_antenna_diameter.$error.required && ( kcell_form.ne_protection_antenna_diameter.$touched || view.submitted)">Required field</label>
+                    </td>
+                    <td align="center" colspan="4">
+                        <select class="form-control" id="fe_protection_antenna_diameter" name="fe_protection_antenna_diameter" ng-model="fe_protection_antenna_diameter">
+                            <option ng-repeat="ct in trAntennasTypeList" ng-value="ct.id">{{ct.value}}</option>
+                        </select>
+                        <label class="error" ng-if="kcell_form.fe_protection_antenna_diameter.$error.required && ( kcell_form.fe_protection_antenna_diameter.$touched || view.submitted)">Required field</label>
+                    </td>
+                </tr>
+                <tr>
+                    <td align="right" colspan="2">Height of suspension of MW ant (m):</td>
+                    <td align="center" colspan="4">
+                        <input type="number" class="form-control" ng-model="ne_suspension_height_antennas" name="ne_suspension_height_antennas" ng-pattern="suspensionPattern" required cam-variable-name="ne_suspension_height_antennas" cam-variable-type="Integer">
+                        <label class="error" ng-if="kcell_form.ne_suspension_height_antennas.$error.required && ( kcell_form.ne_suspension_height_antennas.$touched || view.submitted)">Required field</label>
+                        <label class="error" ng-if="kcell_form.ne_suspension_height_antennas.$error.pattern && ( kcell_form.ne_suspension_height_antennas.$touched || view.submitted)">Expected: 1 <- Height of suspension of MW ant <- 999</label>
+                    </td>
+                    <td align="center" colspan="4">
+                        <input type="number" class="form-control" ng-model="fe_suspension_height" name="fe_suspension_height" ng-pattern="suspensionPattern" required cam-variable-name="fe_suspension_height" cam-variable-type="Integer">
+                        <label class="error" ng-if="kcell_form.fe_suspension_height.$error.required && ( kcell_form.fe_suspension_height.$touched || view.submitted)">Required field</label>
+                        <label class="error" ng-if="kcell_form.fe_suspension_height.$error.pattern && ( kcell_form.fe_suspension_height.$touched || view.submitted)">Expected: 1 <- Height of suspension of MW ant <- 999</label>
+                    </td>
+                </tr>
+                <tr>
+                    <td align="right" colspan="2">Height of suspension of prot. MW ant (m).:</td>
+                    <td align="center" colspan="4">
+                        <input type="number" class="form-control" ng-model="ne_protection_suspension_height" name="ne_protection_suspension_height" ng-pattern="suspensionPattern" ng-disabled="protection_mode_fetched" cam-variable-name="ne_protection_suspension_height" cam-variable-type="Integer">
+                        <label class="error" ng-if="kcell_form.ne_protection_suspension_height.$error.required && ( kcell_form.ne_protection_suspension_height.$touched || view.submitted)">Required field</label>
+                        <label class="error" ng-if="kcell_form.ne_protection_suspension_height.$error.pattern && ( kcell_form.ne_protection_suspension_height.$touched || view.submitted)">Expected: 1 <- Height of suspension of prot. MW ant. <- 999</label>
+                    </td>
+                    <td align="center" colspan="4">
+                        <input type="number" class="form-control" ng-model="fe_protection_suspension_height" name="fe_protection_suspension_height" ng-pattern="suspensionPattern" ng-disabled="protection_mode_fetched" cam-variable-name="fe_protection_suspension_height" cam-variable-type="Integer">
+                        <label class="error" ng-if="kcell_form.fe_protection_suspension_height.$error.required && ( kcell_form.fe_protection_suspension_height.$touched || view.submitted)">Required field</label>
+                        <label class="error" ng-if="kcell_form.fe_protection_suspension_height.$error.pattern && ( kcell_form.fe_protection_suspension_height.$touched || view.submitted)">Expected: 1 <- Height of suspension of prot. MW ant. <- 999</label>
+                    </td>
+                </tr>
+                <tr>
+                    <td align="right" colspan="2">Polarization:</td>
+                    <td align="center" colspan="8"></td>
+                </tr>
+                <tr>
+                    <td align="right" colspan="2">Link type:</td>
+                    <td align="center" colspan="8"></td>
+                </tr>
+                <tr>
+                    <td align="right" rowspan="2">Link capacity :</td>
+                    <td align="right">Capacity</td>
+                    <td align="center" colspan="8">
+                        <select class="form-control" id="hop_link_capacity" name="hop_link_capacity" ng-model="hop_link_capacity" required ng-change="hopLinkCapacitySelected()">
+                            <option ng-repeat="ct in linkCapacityList" ng-value="ct.id">{{ct.value}}</option>
+                        </select>
+                        <label class="error" ng-if="kcell_form.hop_link_capacity.$error.required && ( kcell_form.hop_link_capacity.$touched || view.submitted)">Required field</label>
+                    </td>
+                </tr>
+                <tr>
+                    <td align="right">nxE1</td>
+                    <td align="center" colspan="8">
+                        <input type="text" class="form-control" name="hop_link_nxe1" ng-model="hop_link_nxe1" ng-pattern="linkNxePattern" cam-variable-name="hop_link_nxe1" cam-variable-type="String">
+                        <label class="error" ng-if="kcell_form.hop_link_nxe1.$error.pattern && ( kcell_form.hop_link_nxe1.$touched || view.submitted)">Expected: 0 <- nxE1 <- 99</label>
+                    </td>
+                </tr>
+                <tr>
+                    <td align="right" colspan="2">Modulation type:</td>
+                    <td align="center" colspan="8">
+                        <input type="text" class="form-control" name="hop_modulation_type" ng-model="hop_modulation_type" cam-variable-name="hop_modulation_type" cam-variable-type="String" required>
+                    </td>
+                </tr>
+                <tr>
+                    <td align="right" colspan="2">Channel bandwidth:</td>
+                    <td align="center" colspan="8">
+                        <input type="text" class="form-control" name="hop_channel_bandwidth" ng-model="hop_channel_bandwidth" cam-variable-name="hop_channel_bandwidth" cam-variable-type="String" required>
+                    </td>
+                </tr>
+                <tr>
+                    <td align="right" colspan="2">RAU subband:</td>
+                    <td align="center" colspan="4">
+                        <input type="text" class="form-control" name="ne_rau_subband" ng-model="ne_rau_subband" cam-variable-name="ne_rau_subband" cam-variable-type="String">
+                    </td>
+                    <td align="center" colspan="4">
+                        <input type="text" class="form-control" name="fe_rau_subband" ng-model="fe_rau_subband" cam-variable-name="fe_rau_subband" cam-variable-type="String">
+                    </td>
+                </tr>
+                <tr>
+                    <td align="right" colspan="2">protection RAU subband:</td>
+                    <td align="center" colspan="4">
+                        <input type="text" class="form-control" name="ne_protection_rau_subband" ng-model="ne_protection_rau_subband" cam-variable-name="ne_protection_rau_subband" cam-variable-type="String">
+                    </td>
+                    <td align="center" colspan="4">
+                        <input type="text" class="form-control" name="fe_protection_rau_subband" ng-model="fe_protection_rau_subband" cam-variable-name="fe_protection_rau_subband" cam-variable-type="String">
+                    </td>
+                </tr>
+                <tr>
+                    <td align="right" colspan="2">Tx/Rx frequencies, Mhz:</td>
+                    <td align="center" colspan="4">
+                        <input type="text" class="form-control" name="ne_txrx_frequincies" ng-model="ne_txrx_frequincies" cam-variable-name="ne_txrx_frequincies" cam-variable-type="String">
+                    </td>
+                    <td align="center" colspan="4">
+                        <input type="text" class="form-control" name="fe_txrx_frequincies" ng-model="fe_txrx_frequincies" cam-variable-name="fe_txrx_frequincies" cam-variable-type="String">
+                    </td>
+                </tr>
+                <tr>
+                    <td align="right" colspan="2">Protection Tx/Rx frequencies, Mhz:</td>
+                    <td align="center" colspan="4">
+                        <input type="text" class="form-control" name="ne_protection_txrx_frequincies" ng-model="ne_protection_txrx_frequincies" cam-variable-name="ne_protection_txrx_frequincies" cam-variable-type="String">
+                    </td>
+                    <td align="center" colspan="4">
+                        <input type="text" class="form-control" name="fe_protection_txrx_frequincies" ng-model="fe_protection_txrx_frequincies" cam-variable-name="fe_protection_txrx_frequincies" cam-variable-type="String">
+                    </td>
+                </tr>
+                <tr>
+                    <td align="right" colspan="2">Terminal ID:</td>
+                    <td align="center" colspan="4">
+                        <input type="text" class="form-control" name="ne_terminal_id" ng-model="ne_terminal_id" cam-variable-name="ne_terminal_id" cam-variable-type="String">
+                    </td>
+                    <td align="center" colspan="4">
+                        <input type="text" class="form-control" name="fe_terminal_id" ng-model="fe_terminal_id" cam-variable-name="fe_terminal_id" cam-variable-type="String">
+                    </td>
+                </tr>
+                <tr>
+                    <td align="right" colspan="2">Power levels:</td>
+                    <td>Tx</td>
+                    <td align="center">
+                        <input type="text" class="form-control" name="ne_power_level_tx" ng-model="ne_power_level_tx" cam-variable-name="ne_power_level_tx" cam-variable-type="String">
+                    </td>
+                    <td>Rx</td>
+                    <td align="center">
+                        <input type="text" class="form-control" name="ne_power_level_rx" ng-model="ne_power_level_rx" cam-variable-name="ne_power_level_rx" cam-variable-type="String">
+                    </td>
+                    <td>Tx</td>
+                    <td align="center">
+                        <input type="text" class="form-control" name="fe_power_level_tx" ng-model="fe_power_level_tx" cam-variable-name="fe_power_level_tx" cam-variable-type="String">
+                    </td>
+                    <td>Rx</td>
+                    <td align="center">
+                        <input type="text" class="form-control" name="fe_power_level_rx" ng-model="fe_power_level_rx" cam-variable-name="fe_power_level_rx" cam-variable-type="String">
+                    </td>
+                </tr>
+                <tr>
+                    <td align="right" colspan="2">Protection line power levels:</td>
+                    <td>Tx</td>
+                    <td align="center">
+                        <input type="text" class="form-control" name="ne_protection_power_level_tx" ng-model="ne_protection_power_level_tx" cam-variable-name="ne_protection_power_level_tx" cam-variable-type="String">
+                    </td>
+                    <td>Rx</td>
+                    <td align="center">
+                        <input type="text" class="form-control" name="ne_protection_power_level_rx" ng-model="ne_protection_power_level_rx" cam-variable-name="ne_protection_power_level_rx" cam-variable-type="String">
+                    </td>
+                    <td>Tx</td>
+                    <td align="center">
+                        <input type="text" class="form-control" name="fe_protection_power_level_tx" ng-model="fe_protection_power_level_tx" cam-variable-name="fe_protection_power_level_tx" cam-variable-type="String">
+                    </td>
+                    <td>Rx</td>
+                    <td align="center">
+                        <input type="text" class="form-control" name="fe_protection_power_level_rx" ng-model="fe_protection_power_level_rx" cam-variable-name="fe_protection_power_level_rx" cam-variable-type="String">
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-2 control-label">Comments</label>
+        <div class="col-sm-10">
+            <textarea class="form-control" name="startComment" cam-variable-name="startComment" cam-variable-type="String" maxlength="1500" rows="4"></textarea>
+        </div>
+    </div>
+</form>
