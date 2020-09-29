@@ -291,23 +291,23 @@
 
 
             $scope.contract = {type : "Contract"};
-            $scope.selectedContracts = [];
+            $scope.selectedTsd = [];
 
             $scope.checkSite = function(){
-                return $http.get('https://asset.test-flow.kcell.kz/assets-management/tsd_mw?nearend_id=' + $scope.site).then(
+                return $http.get('/asset-management/tsd_mw?nearend_id=' + $scope.site).then(
                 function(response) {
-                console.log(response);
+                       $scope.result = response.data;
                 });
             }
 
-            $scope.addContract = function(e){
+            $scope.addTsd = function(e){
                 e.selected = true;
-                $scope.selectedContracts.push(e);
+                $scope.selectedTsd.push(e);
             }
 
-            $scope.removeContract = function(index){
-                $scope.selectedContracts[index].selected = false;
-                $scope.selectedContracts.splice(index,1);
+            $scope.removeTsd = function(index){
+                $scope.selectedTsd[index].selected = false;
+                $scope.selectedTsd.splice(index,1);
             }
 
 
@@ -322,14 +322,18 @@
                         }, function (error) {
                         }
                 );
-                /* angular.forEach($rootScope.authUser.groups, function (group) {
-                    if (group.id.endsWith('_tn_engineer') && "!alm!astana!nc!east!south!west".indexOf('!' + group.id.replace('_tn_engineer','')) > -1) {
-                        $scope.region_name = group.id.replace('_tn_engineer', '');
+                $scope.isRegion = true;
+
+                 angular.forEach($rootScope.authUser.groups, function (group) {
+                    if(group.id === 'hq_tn_engineer'){
+                        $scope.isRegion = false;
                     }
-                }); */
+                });
+
             });
 
             camForm.on('submit', function (e) {
+
                 if($scope.ne_altitude){
                     $scope.ne_altitude = parseFloat($scope.ne_altitude.toFixed(1)) * 1.0;
                 }
@@ -451,6 +455,11 @@
                     name: 'fe_address',
                     type: 'String',
                     value: $scope.fe_address
+                });
+                camForm.variableManager.createVariable({
+                            name: 'isRegion',
+                            type: 'Boolean',
+                            value: $scope.isRegion
                 });
             });
 
@@ -742,83 +751,60 @@
                        ng-if="contract.type === 'Contract' && result.length > 0">
                     <tr>
                         <th>Region</th>
-                        <th>Sitename</th>
-                        <th>Existing Contracts</th>
-                        <th>Start date</th>
-                        <th>End date</th>
+                        <th>Near End Site</th>
+                        <th>Far End Site</th>
+                        <th>Business key</th>
+                        <th>TSD version</th>
                         <th>Add to list</th>
                     </tr>
                     <tr ng-repeat="c in result">
-                        <td>{{c.region}}</td>
-                        <td>{{c.site_name}}</td>
-                        <td>{{c.CONTRACTID}}</td>
-                        <td>{{c.CONTRACTSTARTDATE | date : 'dd.MM.yyyy'}}</td>
+                        <td>{{c.nearend_id.facility_id.address_id.city_id.district_id.oblast_id.region_id.name}}</td>
+                        <td>{{c.nearend_id.site_name}}</td>
+                        <td>{{c.farend_id.site_name}}</td>
+                        <td>{{c.business_key}}</td>
                         <td>{{c.CONTRACTENDDATE | date : 'dd.MM.yyyy'}}</td>
-                        <td><a ng-click="addContract(c)" ng-if="!c.selected">add</a></td>
+                        <td><a ng-click="addTsd(c)" ng-if="!c.selected">add</a></td>
                     </tr>
                 </table>
                 <table class="table table-striped table-bordered"
                        ng-if="contract.type === 'Additional' && result.length > 0">
                     <tr>
                         <th>Region</th>
-                        <th>Sitename</th>
-                        <th>Existing Agreements</th>
-                        <th>Start date</th>
-                        <th>End date</th>
+                        <th>Near End Site</th>
+                        <th>Far End Site</th>
+                        <th>Business key</th>
+                        <th>TSD version</th>
                         <th>Add to list</th>
                     </tr>
                     <tr ng-repeat="c in result">
-                        <td>{{c.region}}</td>
-                        <td>{{c.site_name}}</td>
-                        <td>{{c.AAID}}</td>
-                        <td>{{c.CONTRACT_START_DATE | date : 'dd.MM.yyyy'}}</td>
-                        <td>{{c.CONTRACT_END_DATE | date : 'dd.MM.yyyy'}}</td>
-                        <td><a ng-click="addContract(c)" ng-if="!c.selected">add</a></td>
+                        <td>{{c.nearend_id.facility_id.address_id.city_id.district_id.oblast_id.region_id.name}}</td>
+                        <td>{{c.nearend_id.site_name}}</td>
+                        <td>{{c.farend_id.site_name}}</td>
+                        <td>{{c.business_key}}</td>
+                        <td>{{c.CONTRACTENDDATE | date : 'dd.MM.yyyy'}}</td>
+                        <td><a ng-click="addTsd(c)" ng-if="!c.selected">add</a></td>
                     </tr>
                 </table>
             </div>
         </div>
         <div class="row">
             <div class="col-md-8">
-                <table class="table table-striped table-bordered" ng-if="selectedContracts.length > 0">
+                <table class="table table-striped table-bordered" ng-if="selectedTsd.length > 0">
                     <tr>
                         <th>Region</th>
-                        <th>Sitename</th>
-                        <th>Existing Contracts</th>
-                        <th>Start date</th>
-                        <th>End date</th>
+                        <th>Near End Site</th>
+                        <th>Far End Site</th>
+                        <th>Business key</th>
+                        <th>TSD version</th>
                         <th>Add to list</th>
                     </tr>
-                    <tr ng-repeat="c in selectedContracts">
-                        <td>{{c.region}}</td>
-                        <td>{{c.site_name}}</td>
-                        <td>{{c.CONTRACTID}}</td>
-                        <td>{{c.CONTRACTSTARTDATE | date : 'dd.MM.yyyy'}}</td>
+                    <tr ng-repeat="c in selectedTsd">
+                        <td>{{c.nearend_id.facility_id.address_id.city_id.district_id.oblast_id.region_id.name}}</td>
+                        <td>{{c.nearend_id.site_name}}</td>
+                        <td>{{c.farend_id.site_name}}</td>
+                        <td>{{c.business_key}}</td>
                         <td>{{c.CONTRACTENDDATE | date : 'dd.MM.yyyy'}}</td>
-                        <td><i class="glyphicon glyphicon-trash" ng-click="removeContract($index)"></i></td>
-                    </tr>
-                </table>
-            </div>
-            <div class="col-md-4">
-                <table class="table table-striped table-bordered"
-                       ng-if="selectedContracts.length > 0 && contract.reason && contract.reason !== 'Изменение арендной платы'">
-                    <tr>
-                        <th>Sitename</th>
-                        <th>FE Status</th>
-                        <th>Power from</th>
-                    </tr>
-                    <tr ng-repeat="c in selectedContracts">
-                        <td>{{c.site_name}}</td>
-                        <td>
-                            <select class="" ng-model="c.feStatus">
-                            </select>
-                        </td>
-                        <td>
-                            <select class="" ng-model="c.powerFrom">
-                                <option value="Owner">Owner</option>
-                                <option value="RES">RES</option>
-                            </select>
-                        </td>
+                        <td><i class="glyphicon glyphicon-trash" ng-click="removeTsd($index)"></i></td>
                     </tr>
                 </table>
             </div>
