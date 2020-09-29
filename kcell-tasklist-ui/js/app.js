@@ -63,6 +63,7 @@ define('app',[
 						},
 						{key:'CreatePR', name:'Create PR', group:'infrastructure_pr_users'},
 						{key:'Invoice', name:'Monthly Act', group:'infrastructure_monthly_act_users'},
+						{key:'change-tsd', name:'Change TSD', group:'infrastructure_change_tsd_users'},
 						{key:'leasing', name:'Leasing Rollout Site', group:'infrastructure_leasing_users'},
 						{key:'SiteSharingTopProcess', name:'4G Site Sharing', group:'infrastructure_sharing_users', 
 							subprocesses:[{key:'BeelineHostBeelineSite'},{key:'BeelineHostKcellSite'},{key:'KcellHostBeelineSite'},{key:'ReplanSiteAP'},{key:'KcellHostKcellSite'}]
