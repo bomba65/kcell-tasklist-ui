@@ -55,43 +55,22 @@ public class SetSiteStatus implements JavaDelegate {
         CloseableHttpClient httpclient = HttpClients.custom().setSSLSocketFactory(
             sslsf).build();
 
-        HttpGet httpGet = new HttpGet(baseUri + "/asset-management/api/sites/" + siteId);
-        httpGet.addHeader("Content-Type", "application/json;charset=UTF-8");
-        httpGet.addHeader("Referer", baseUri);
-        HttpResponse response = httpclient.execute(httpGet);
+        JSONObject newStatus = new JSONObject();
+        JSONObject value = new JSONObject();
+        value.put("catalog_id", 3);
+        value.put("id", Long.parseLong(status));
+        newStatus.put("site_status_id", value);
 
-        log.info("get response code: " + response.getStatusLine().getStatusCode());
-        if(response.getStatusLine().getStatusCode() < 200 || response.getStatusLine().getStatusCode() >= 300){
-            throw new RuntimeException("Site get by id " + siteId + " returns code " + response.getStatusLine().getStatusCode());
-        }
-
-        HttpEntity entity = response.getEntity();
-        String content = EntityUtils.toString(entity);
-
-        JSONObject site = new JSONObject(content);
-        EntityUtils.consume(response.getEntity());
-
-        JSONObject params = site.getJSONObject("params");
-        if(params.has("status")){
-            JSONObject old_status = params.getJSONObject("status");
-            old_status.put(site_name, status);
-            params.put("status", old_status);
-        } else {
-            JSONObject new_status = new JSONObject();
-            new_status.put(site_name, status);
-            params.put("status", new_status);
-        }
-        site.put("params", params);
-
-        HttpPut httpPut = new HttpPut(new URI(baseUri + "/asset-management/api/sites/" + siteId));
+        HttpPut httpPut = new HttpPut(new URI("https://asset.test-flow.kcell.kz/asset-management/sites/id/" + siteId));
         httpPut.addHeader("Content-Type", "application/json;charset=UTF-8");
         httpPut.addHeader("Referer", baseUri);
-        StringEntity inputData = new StringEntity(site.toString());
+        StringEntity inputData = new StringEntity(newStatus.toString());
+        System.out.println(newStatus.toString());
         httpPut.setEntity(inputData);
 
         CloseableHttpResponse putResponse = httpclient.execute(httpPut);
         log.info("put response code: " + putResponse.getStatusLine().getStatusCode());
-        if(putResponse.getStatusLine().getStatusCode() < 200 || putResponse.getStatusLine().getStatusCode() >= 300){
+        if (putResponse.getStatusLine().getStatusCode() < 200 || putResponse.getStatusLine().getStatusCode() >= 300) {
             throw new RuntimeException("Site put by id " + siteId + " returns code " + putResponse.getStatusLine().getStatusCode());
         }
 

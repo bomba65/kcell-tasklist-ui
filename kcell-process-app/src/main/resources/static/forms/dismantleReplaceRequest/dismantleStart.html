@@ -252,50 +252,49 @@
             });
 
             $scope.getSite = function(val) {
-                return $http.get('/asset-management/api/sites/search/findByNameIgnoreCaseContaining?name='+val).then(
-                        function(response){
-                            var sites = _.flatMap(response.data._embedded.sites, function(s){
-                                if(s.params.site_name){
-                                    return s.params.site_name.split(',').map(function(sitename){
-                                        return {
-                                            name: s.name,
-                                            id: s._links.self.href.substring(s._links.self.href.lastIndexOf('/')+1),
-                                            site_name: sitename,
-                                            params: s.params
-                                        };
-                                    })
-                                } else {
-                                    return [];
-                                }
-                            });
-                            return sites;
-                        }
+                return $http.get('https://asset.test-flow.kcell.kz/asset-management/sites/name/contains/'+val).then(
+                    function(response){
+                        response.data.forEach(function(e){
+                            e.name = e.site_name;
+                        });
+                        return response.data;
+                    }
                 );
             };
 
             $scope.siteSelected = function ($item) {
-                $scope.siteName = $item.name;
+                $scope.siteName = $item.site_name;
                 $scope.site = $item.id;
                 $scope.site_name = $item.site_name;
-                if($item.params.status && $item.params.status[$item.site_name]){
-                    $scope.siteStatus = $item.params.status[$item.site_name];
-                } else {
-                    $scope.siteStatus = "working site";
-                }
-                if ($scope.siteName.startsWith('11')) {
-                    $scope.regionShortName = $scope.regionsMap['11'];
-                    $scope.siteRegion = $scope.regionsMapLC['11'];
-                    refreshJobRequests();
-                } else if ($scope.siteName.startsWith('9')) {
-                    $scope.regionShortName = undefined;
-                    $scope.siteRegion = undefined;
-                } else {
-                    $scope.regionShortName = $scope.regionsMap[$scope.siteName.substring(0, 1)];
-                    $scope.siteRegion = $scope.regionsMapLC[$scope.siteName.substring(0, 1)];
-                }
-                $(function () {
-                    $('[data-toggle="tooltip"]').tooltip('fixTitle');
-                });
+                $http.get('https://asset.test-flow.kcell.kz/asset-management/sites/id/'+$scope.site).then(
+                    function(response){
+                        $scope.siteStatus = response.data.site_status_id.name.toLowerCase();
+                        if ($scope.siteName.startsWith('11')) {
+                            $scope.regionShortName = $scope.regionsMap['11'];
+                            $scope.siteRegion = $scope.regionsMapLC['11'];
+                            refreshJobRequests();
+                        } else if ($scope.siteName.startsWith('9')) {
+                            $scope.regionShortName = undefined;
+                            $scope.siteRegion = undefined;
+                        } else {
+                            $scope.regionShortName = $scope.regionsMap[$scope.siteName.substring(0, 1)];
+                            $scope.siteRegion = $scope.regionsMapLC[$scope.siteName.substring(0, 1)];
+                        }
+                        $scope.siteAddress = (response.data.facility_id.address_id.city_id.district_id.oblast_id.region_id.name ? response.data.facility_id.address_id.city_id.district_id.oblast_id.region_id.name: '') +
+                        (response.data.facility_id.address_id.city_id.district_id.oblast_id.name ? ', ' + response.data.facility_id.address_id.city_id.district_id.oblast_id.name : '') +
+                        (response.data.facility_id.address_id.city_id.district_id.name ? ', ' + response.data.facility_id.address_id.city_id.district_id.name : '') +
+                        (response.data.facility_id.address_id.city_id.name ? ', ' + response.data.facility_id.address_id.city_id.name : '') +
+                        (response.data.facility_id.address_id.city_id.city_type_id.name ? ' (' + response.data.facility_id.address_id.city_id.city_type_id.name + ')' : '') +
+                        (response.data.facility_id.address_id.street ? ', ' + response.data.facility_id.address_id.street : '') +
+                        (response.data.facility_id.address_id.building ? ', ' + response.data.facility_id.address_id.building : '')+
+                        (response.data.facility_id.address_id.note ? ', ' + response.data.facility_id.address_id.note : '')+
+                        (response.data.facility_id.address_id.cadastral_number ? ', ' + response.data.facility_id.address_id.cadastral_number : '');
+
+                        $(function () {
+                            $('[data-toggle="tooltip"]').tooltip('fixTitle');
+                        });
+                    }
+                );
             };
 
             $scope.regionSelected = function(siteRegion){
@@ -478,29 +477,7 @@
         </div>
     </div>
     <div class="form-group">
-        <label class="col-sm-2 control-label">Site:</label>
-        <div class="col-sm-3">
-            <div class="input-group">
-                <input type="text" ng-model="site_name" name="site_name" typeahead="site as sites.site_name for sites in getSite($viewValue)" typeahead-on-select="siteSelected($item,$model,$label)" class="form-control" required autocomplete="off" placeholder="Site Name">
-                <input type="hidden" ng-model="site" name="siteId" required/>
-                <span class="input-group-btn" ng-if="siteName" data-toggle="tooltip" data-placement="right" title="Site status">
-                    <button type="button" class="btn btn-default">
-                        {{siteStatus ? siteStatus : 'working site'}}
-                    </button>
-                </span>
-            </div>
-            <label class="error" ng-if="kcell_form.site_name.$error.required && ( kcell_form.site_name.$touched || view.submitted)">Required field</label>
-            <label class="error" ng-if="kcell_form.siteId.$error.required && ( kcell_form.siteName.$touched || view.submitted)">Please choose site from list</label>
-            <label class="error" ng-if="site_name && siteStatus !== 'working site'">Only working site allowed to be dismantled</label>
-        </div>
 
-        <label class="col-sm-2 control-label">Type of Project:</label>
-        <div class="col-sm-3">
-            <select class="form-control" id="project" name="project" ng-model="project" ng-options="pr as pr for pr in catalogs.projects">
-            </select>
-        </div>
-    </div>
-    <div class="form-group">
         <label class="col-sm-2 control-label">Priority:</label>
         <div class="col-sm-3">
             <select cam-variable-name="priority" name="priority" cam-variable-type="String" class="form-control selectpicker" select-picker title="" required>
@@ -519,6 +496,31 @@
                 </select>
                 <label class="error" ng-if="siteName.startsWith('9') && kcell_form.siteRegion.$error.required && ( kcell_form.siteRegion.$touched || view.submitted)">Required field</label>
             </div>
+        </div>
+        <label class="col-sm-2 control-label">Type of Project:</label>
+        <div class="col-sm-3">
+            <select class="form-control" id="project" name="project" ng-model="project" ng-options="pr as pr for pr in catalogs.projects">
+            </select>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-2 control-label">Site:</label>
+        <div class="col-sm-3">
+            <div class="input-group">
+                <input type="text" ng-model="site_name" name="site_name" typeahead="site as sites.site_name for sites in getSite($viewValue)" typeahead-on-select="siteSelected($item,$model,$label)" class="form-control" required autocomplete="off" placeholder="Site Name">
+                <input type="hidden" ng-model="site" name="siteId" required/>
+                <span class="input-group-btn" ng-if="siteName" data-toggle="tooltip" data-placement="right" title="Site status">
+                    <button type="button" class="btn btn-default">
+                        {{siteStatus ? siteStatus : 'working site'}}
+                    </button>
+                </span>
+            </div>
+            <label class="error" ng-if="kcell_form.site_name.$error.required && ( kcell_form.site_name.$touched || view.submitted)">Required field</label>
+            <label class="error" ng-if="kcell_form.siteId.$error.required && ( kcell_form.siteName.$touched || view.submitted)">Please choose site from list</label>
+            <label class="error" ng-if="site_name && siteStatus !== 'working site'">Only working site allowed to be dismantled</label>
+        </div>
+        <div class="col-sm-7">
+            <input type="tel" class="form-control" name="siteAddress" cam-variable-name="siteAddress" cam-variable-type="String" maxlength="1500" rows="4" required />
         </div>
     </div>
 
