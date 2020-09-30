@@ -52,6 +52,16 @@
                     type: 'String',
                     value: ''
                 });
+                 camForm.variableManager.createVariable({
+                    name: 'checkByCenterEngineerTaskResult',
+                    type: 'String',
+                    value: ''
+                });
+                camForm.variableManager.createVariable({
+                    name: 'createEngineerResult',
+                    type: 'String',
+                    value: undefined
+                });
             });
 
             var catalogsServerUrl = "https://catalogs.test-flow.kcell.kz";
@@ -168,7 +178,13 @@
 
 
             camForm.on('store', function () {
+                   camForm.variableManager.variableValue('checkByCenterEngineerTaskResult', $scope.checkByCenterEngineerTaskResult);
             });
+
+            camForm.on('variables-restored', function() {
+                $scope.checkByCenterEngineerTaskResult = camForm.variableManager.variableValue('checkByCenterEngineerTaskResult');
+            });
+
 
             camForm.on('variables-fetched', function () {
                 variables.forEach(function (el) {
@@ -348,6 +364,17 @@
             camForm.on('submit', function (e) {
                 camForm.variableManager.variableValue('ne_terminal_id', $scope.ne_terminal_id);
                 camForm.variableManager.variableValue('fe_terminal_id', $scope.fe_terminal_id);
+                camForm.variableManager.variableValue('checkByCenterEngineerTaskResult', $scope.checkByCenterEngineerTaskResult);
+                camForm.variableManager.createVariable({
+                    name: 'approve_jr_budgetTaskResult',
+                    type: 'String',
+                    value: $scope.checkByCenterEngineerTaskResult
+                });
+                if ($scope.checkByCenterEngineerTaskResult === 'approved') {
+                    camForm.variableManager.variableValue('createEngineerResult', 'approved');
+                } else {
+                    camForm.variableManager.variableValue('createEngineerResult', 'rejected');
+                }
 
                 var newVars = [
                     'hop_polarization',
@@ -403,6 +430,11 @@
                     type: 'String',
                     value: $scope.tnutsd_fill_tsd_by_centerTaskComment
                 });
+                camForm.variableManager.createVariable({
+                    name: 'checkByCenterEngineerTaskResult',
+                    type: 'String',
+                    value: ''
+                });
             });
         }]);
     </script>
@@ -411,11 +443,11 @@
 
     <div class="form-group">
         <div class="col-sm-6">
-            <h4>Transmission Survey Data (process file in Mentum)</h4>
+            <h4>Approve by Center TNU Group</h4>
         </div>
     </div>
     <div class="form-group">
-        <label class="col-sm-2 control-label"><b>Process number:</b></label>
+        <label class="col-sm-2 control-label"><b>TSD number:</b></label>
         <label class="col-sm-6 control-label">{{tnuTsdNumber}}</label>
     </div>
 
@@ -426,7 +458,12 @@
         <div class="col-sm-4">
             <div class="input-group">
                 <input type="text" ng-model="date_of_visit" name="dateOfVisit" class="form-control"
-                       datepicker-popup="dd.MM.yyyy" id="dateOfVisit" disabled/>
+                       datepicker-popup="dd.MM.yyyy" id="dateOfVisit"/>
+                <span class="input-group-btn">
+                    <button type="button" class="btn btn-default" ng-click="date_of_visitFieldOpened = true">
+                        <i class="glyphicon glyphicon-calendar"></i>
+                    </button>
+                </span>
             </div>
             <label class="error"
                    ng-if="kcell_form.dateOfVisit.$error.required && ( kcell_form.dateOfVisit.$touched || view.submitted)">Required
@@ -458,10 +495,6 @@
         </div>
     </div>
 
-
-    <div class="form-group">
-        <label class="col-sm-12 control-label">Please, process csv file in Mentum and fill result:</label>
-    </div>
 
     <div class="form-group">
         <div class="col-sm-12">
@@ -514,11 +547,6 @@
                     <td align="right" colspan="2">Path distance (km):</td>
                     <td align="center" colspan="8">{{path_distance}}</td>
                 </tr>
-                <!--                <tr>-->
-                <!--                    <td align="right" colspan="2">Type of construction:</td>-->
-                <!--                    <td align="center" colspan="4">{{titles.constructionTypeList[ne_construction_type]}}</td>-->
-                <!--                    <td align="center" colspan="4">{{titles.constructionTypeList[fe_construction_type]}}</td>-->
-                <!--                </tr>-->
                 <tr>
                     <td align="right" colspan="2">Type of construction:</td>
                     <td align="center" colspan="4">
@@ -590,13 +618,13 @@
                 <tr>
                     <td align="right" colspan="2">Protection antenna diameter:</td>
                     <td align="center" colspan="4">
-                        <select class="form-control" id="ne_protection_antenna_diameter" name="ne_protection_antenna_diameter" ng-model="ne_protection_antenna_diameter" ng-change="protectionAntennaDiameter()" ng-disabled="protection_mode_fetched">
+                        <select class="form-control" id="ne_protection_antenna_diameter" name="ne_protection_antenna_diameter" ng-model="ne_protection_antenna_diameter" ng-change="protectionAntennaDiameter()">
                             <option ng-repeat="ct in trAntennasTypeList" ng-value="ct.id">{{ct.value}}</option>
                         </select>
                         <label class="error" ng-if="kcell_form.ne_protection_antenna_diameter.$error.required && ( kcell_form.ne_protection_antenna_diameter.$touched || view.submitted)">Required field</label>
                     </td>
                     <td align="center" colspan="4">
-                        <select class="form-control" id="fe_protection_antenna_diameter" name="fe_protection_antenna_diameter" ng-model="fe_protection_antenna_diameter" ng-disabled="protection_mode_fetched">
+                        <select class="form-control" id="fe_protection_antenna_diameter" name="fe_protection_antenna_diameter" ng-model="fe_protection_antenna_diameter" >
                             <option ng-repeat="ct in trAntennasTypeList" ng-value="ct.id">{{ct.value}}</option>
                         </select>
                         <label class="error" ng-if="kcell_form.fe_protection_antenna_diameter.$error.required && ( kcell_form.fe_protection_antenna_diameter.$touched || view.submitted)">Required field</label>
@@ -632,7 +660,6 @@
                     <td align="center" colspan="4">
                         <input type="number" class="form-control" ng-model="ne_protection_suspension_height"
                                name="ne_protection_suspension_height" ng-pattern="suspensionPattern"
-                               ng-disabled="protection_mode_fetched"
                                cam-variable-type="Integer">
                         <label class="error"
                                ng-if="kcell_form.ne_protection_suspension_height.$error.required && ( kcell_form.ne_protection_suspension_height.$touched || view.submitted)">Required
@@ -644,7 +671,6 @@
                     <td align="center" colspan="4">
                         <input type="number" class="form-control" ng-model="fe_protection_suspension_height"
                                name="fe_protection_suspension_height" ng-pattern="suspensionPattern"
-                               ng-disabled="protection_mode_fetched"
                                cam-variable-type="Integer">
                         <label class="error"
                                ng-if="kcell_form.fe_protection_suspension_height.$error.required && ( kcell_form.fe_protection_suspension_height.$touched || view.submitted)">Required
@@ -707,7 +733,7 @@
                     <td align="right" colspan="2">RAU subband:</td>
                     <td align="center" colspan="4">
                         <select class="form-control" id="ne_rau_subband" name="ne_rau_subband" ng-model="ne_rau_subband"
-                                required ng-change="rauSubbandSelected()">
+                                 ng-change="rauSubbandSelected()">
                             <option ng-repeat="ct in rauSubbandList" ng-value="ct.id">{{ct.value}}</option>
                         </select>
                         <label class="error"
@@ -715,8 +741,7 @@
                             field</label>
                     </td>
                     <td align="center" colspan="4">
-                        <select class="form-control" id="fe_rau_subband" name="fe_rau_subband" ng-model="fe_rau_subband"
-                                required>
+                        <select class="form-control" id="fe_rau_subband" name="fe_rau_subband" ng-model="fe_rau_subband">
                             <option ng-repeat="ct in rauSubbandList" ng-value="ct.id">{{ct.value}}</option>
                         </select>
                         <label class="error"
@@ -728,14 +753,13 @@
                     <td align="right" colspan="2">protection RAU subband:</td>
                     <td align="center" colspan="4">
                         <select class="form-control" id="ne_protection_rau_subband" name="ne_protection_rau_subband"
-                                ng-model="ne_protection_rau_subband" ng-change="protectRauSubbandSelected()"
-                                ng-disabled="protection_mode_fetched">
+                                ng-model="ne_protection_rau_subband" ng-change="protectRauSubbandSelected()">
                             <option ng-repeat="ct in rauSubbandList" ng-value="ct.id">{{ct.value}}</option>
                         </select>
                     </td>
                     <td align="center" colspan="4">
                         <select class="form-control" id="fe_protection_rau_subband" name="fe_protection_rau_subband"
-                                ng-model="fe_protection_rau_subband" ng-disabled="protection_mode_fetched">
+                                ng-model="fe_protection_rau_subband">
                             <option ng-repeat="ct in rauSubbandList" ng-value="ct.id">{{ct.value}}</option>
                         </select>
                     </td>
@@ -745,8 +769,7 @@
                     <td align="center" colspan="4">
                         <input type="number" class="form-control" name="ne_txrx_frequincies"
                                ng-model="ne_txrx_frequincies" cam-variable-name="ne_txrx_frequincies"
-                               cam-variable-type="String" required ng-blur="ne_txrx_frequinciesValuesCheck()"
-                               ng-disabled="!ne_rau_subband">
+                               cam-variable-type="String" required ng-blur="ne_txrx_frequinciesValuesCheck()">
                         <label class="error"
                                ng-if="kcell_form.ne_txrx_frequincies.$error.required && ( kcell_form.ne_txrx_frequincies.$touched || view.submitted)">Required
                             field</label>
@@ -757,8 +780,7 @@
                     <td align="center" colspan="4">
                         <input type="number" class="form-control" name="fe_txrx_frequincies"
                                ng-model="fe_txrx_frequincies" cam-variable-name="fe_txrx_frequincies"
-                               cam-variable-type="String" required ng-blur="fe_txrx_frequinciesValuesCheck()"
-                               ng-disabled="!fe_rau_subband">
+                               cam-variable-type="String" required ng-blur="fe_txrx_frequinciesValuesCheck()">
                         <label class="error"
                                ng-if="kcell_form.fe_txrx_frequincies.$error.required && ( kcell_form.fe_txrx_frequincies.$touched || view.submitted)">Required
                             field</label>
@@ -773,8 +795,7 @@
                         <input type="number" class="form-control" name="ne_protection_txrx_frequincies"
                                ng-model="ne_protection_txrx_frequincies"
                                cam-variable-name="ne_protection_txrx_frequincies" cam-variable-type="String"
-                               ng-blur="ne_protection_txrx_frequinciesValuesCheck()"
-                               ng-disabled="protection_mode_fetched || !ne_protection_rau_subband">
+                               ng-blur="ne_protection_txrx_frequinciesValuesCheck()">
                         <label class="error"
                                ng-if="ne_protection_rau_subband && ne_protection_txrx_frequincies && ne_protection_txrx_frequinciesInvalid">Expected
                             between {{rauRelations[ne_protection_rau_subband].minFrequency}} and
@@ -784,8 +805,7 @@
                         <input type="number" class="form-control" name="fe_protection_txrx_frequincies"
                                ng-model="fe_protection_txrx_frequincies"
                                cam-variable-name="fe_protection_txrx_frequincies" cam-variable-type="String"
-                               ng-blur="fe_protection_txrx_frequinciesValuesCheck()"
-                               ng-disabled="protection_mode_fetched || !fe_protection_rau_subband">
+                               ng-blur="fe_protection_txrx_frequinciesValuesCheck()">
                         <label class="error"
                                ng-if="fe_protection_rau_subband && fe_protection_txrx_frequincies && fe_protection_txrx_frequinciesInvalid">Expected
                             between {{rauRelations[fe_protection_rau_subband].minFrequency}} and
@@ -830,12 +850,12 @@
                     <td>Tx</td>
                     <td align="center">
                         <input type="number" class="form-control" name="fe_power_level_tx" ng-model="fe_power_level_tx"
-                               cam-variable-name="fe_power_level_tx" cam-variable-type="String" disabled>
+                               cam-variable-name="fe_power_level_tx" cam-variable-type="String">
                     </td>
                     <td>Rx</td>
                     <td align="center">
                         <input type="number" class="form-control" name="fe_power_level_rx" ng-model="fe_power_level_rx"
-                               cam-variable-name="fe_power_level_rx" cam-variable-type="String" disabled>
+                               cam-variable-name="fe_power_level_rx" cam-variable-type="String">
                     </td>
                 </tr>
                 <tr>
@@ -845,7 +865,7 @@
                         <input type="number" class="form-control" name="ne_protection_power_level_tx"
                                ng-model="ne_protection_power_level_tx" cam-variable-name="ne_protection_power_level_tx"
                                cam-variable-type="String" ng-pattern="ne_power_level_txPattern"
-                               ng-change="ne_protection_power_level_txChanged()" ng-disabled="protection_mode_fetched">
+                               ng-change="ne_protection_power_level_txChanged()">
                         <label class="error"
                                ng-if="kcell_form.ne_protection_power_level_tx.$error.pattern && ( kcell_form.ne_protection_power_level_tx.$touched || view.submitted)">Invalid
                             format (XX or -XX required)</label>
@@ -855,7 +875,7 @@
                         <input type="number" class="form-control" name="ne_protection_power_level_rx"
                                ng-model="ne_protection_power_level_rx" cam-variable-name="ne_protection_power_level_rx"
                                cam-variable-type="String" ng-pattern="ne_power_level_rxPattern"
-                               ng-change="ne_protection_power_level_rxChanged()" ng-disabled="protection_mode_fetched">
+                               ng-change="ne_protection_power_level_rxChanged()">
                         <label class="error"
                                ng-if="kcell_form.ne_protection_power_level_rx.$error.pattern && ( kcell_form.ne_protection_power_level_rx.$touched || view.submitted)">Invalid
                             format (format -XX required)</label>
@@ -864,17 +884,30 @@
                     <td align="center">
                         <input type="number" class="form-control" name="fe_protection_power_level_tx"
                                ng-model="fe_protection_power_level_tx" cam-variable-name="fe_protection_power_level_tx"
-                               cam-variable-type="String" disabled>
+                               cam-variable-type="String">
                     </td>
                     <td>Rx</td>
                     <td align="center">
                         <input type="number" class="form-control" name="fe_protection_power_level_rx"
                                ng-model="fe_protection_power_level_rx" cam-variable-name="fe_protection_power_level_rx"
-                               cam-variable-type="String" disabled>
+                               cam-variable-type="String">
                     </td>
                 </tr>
                 </tbody>
             </table>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label class="col-sm-4 control-label">Resolution</label>
+        <div class="col-sm-8">
+            <label class="radio-inline">
+                <input type="radio" ng-model="checkByCenterEngineerTaskResult" name="checkByCenterEngineerTaskResult" value="approved" required> Approve
+            </label>
+            <label class="radio-inline">
+                <input type="radio" ng-model="checkByCenterEngineerTaskResult" name="checkByCenterEngineerTaskResult" value="rejected" required> Return for correction
+            </label>
+            <label class="error" ng-show="kcell_form.checkByCenterEngineerTaskResult.$error.required && ( kcell_form.checkByCenterEngineerTaskResult.$touched || view.submitted)">Required field</label>
         </div>
     </div>
 
