@@ -70,7 +70,7 @@ public class SharepointController {
     private final String pwd;
 
     @Autowired
-    public SharepointController(@Value("${sharepoint.forms.url:https://sp.kcell.kz/forms/_api}") String baseUri, @Value("${sharepoint.forms.username}") String username, @Value("${sharepoint.forms.password}") String pwd) {
+    public SharepointController(@Value("${sharepoint.forms.url:https://sp19.kcell.kz/forms/_api}") String baseUri, @Value("${sharepoint.forms.username}") String username, @Value("${sharepoint.forms.password}") String pwd) {
         this.baseUri = baseUri;
         this.username = username;
         this.pwd = pwd;
@@ -147,58 +147,58 @@ public class SharepointController {
                 "    \"d\": {\n" +
                 "        \"__metadata\": {\n" +
                 "            \"id\": \"Web/Lists(guid'd79e9f26-54d0-4db3-9488-d551236b0005')/Items(2914)\",\n" +
-                "            \"uri\": \"https://sp.kcell.kz/forms/_api/Web/Lists(guid'd79e9f26-54d0-4db3-9488-d551236b0005')/Items(2914)\",\n" +
+                "            \"uri\": \"https://sp19.kcell.kz/forms/_api/Web/Lists(guid'd79e9f26-54d0-4db3-9488-d551236b0005')/Items(2914)\",\n" +
                 "            \"etag\": \"\\\"21\\\"\",\n" +
                 "            \"type\": \"" + sharepointRequestBody + " \"\n" +
                 "        },\n" +
                 "        \"FirstUniqueAncestorSecurableObject\": {\n" +
                 "            \"__deferred\": {\n" +
-                "                \"uri\": \"https://sp.kcell.kz/forms/_api/Web/Lists(guid'd79e9f26-54d0-4db3-9488-d551236b0005')/Items(2914)/FirstUniqueAncestorSecurableObject\"\n" +
+                "                \"uri\": \"https://sp19.kcell.kz/forms/_api/Web/Lists(guid'd79e9f26-54d0-4db3-9488-d551236b0005')/Items(2914)/FirstUniqueAncestorSecurableObject\"\n" +
                 "            }\n" +
                 "        },\n" +
                 "        \"RoleAssignments\": {\n" +
                 "            \"__deferred\": {\n" +
-                "                \"uri\": \"https://sp.kcell.kz/forms/_api/Web/Lists(guid'd79e9f26-54d0-4db3-9488-d551236b0005')/Items(2914)/RoleAssignments\"\n" +
+                "                \"uri\": \"https://sp19.kcell.kz/forms/_api/Web/Lists(guid'd79e9f26-54d0-4db3-9488-d551236b0005')/Items(2914)/RoleAssignments\"\n" +
                 "            }\n" +
                 "        },\n" +
                 "        \"AttachmentFiles\": {\n" +
                 "            \"__deferred\": {\n" +
-                "                \"uri\": \"https://sp.kcell.kz/forms/_api/Web/Lists(guid'd79e9f26-54d0-4db3-9488-d551236b0005')/Items(2914)/AttachmentFiles\"\n" +
+                "                \"uri\": \"https://sp19.kcell.kz/forms/_api/Web/Lists(guid'd79e9f26-54d0-4db3-9488-d551236b0005')/Items(2914)/AttachmentFiles\"\n" +
                 "            }\n" +
                 "        },\n" +
                 "        \"ContentType\": {\n" +
                 "            \"__deferred\": {\n" +
-                "                \"uri\": \"https://sp.kcell.kz/forms/_api/Web/Lists(guid'd79e9f26-54d0-4db3-9488-d551236b0005')/Items(2914)/ContentType\"\n" +
+                "                \"uri\": \"https://sp19.kcell.kz/forms/_api/Web/Lists(guid'd79e9f26-54d0-4db3-9488-d551236b0005')/Items(2914)/ContentType\"\n" +
                 "            }\n" +
                 "        },\n" +
                 "        \"FieldValuesAsHtml\": {\n" +
                 "            \"__deferred\": {\n" +
-                "                \"uri\": \"https://sp.kcell.kz/forms/_api/Web/Lists(guid'd79e9f26-54d0-4db3-9488-d551236b0005')/Items(2914)/FieldValuesAsHtml\"\n" +
+                "                \"uri\": \"https://sp19.kcell.kz/forms/_api/Web/Lists(guid'd79e9f26-54d0-4db3-9488-d551236b0005')/Items(2914)/FieldValuesAsHtml\"\n" +
                 "            }\n" +
                 "        },\n" +
                 "        \"FieldValuesAsText\": {\n" +
                 "            \"__deferred\": {\n" +
-                "                \"uri\": \"https://sp.kcell.kz/forms/_api/Web/Lists(guid'd79e9f26-54d0-4db3-9488-d551236b0005')/Items(2914)/FieldValuesAsText\"\n" +
+                "                \"uri\": \"https://sp19.kcell.kz/forms/_api/Web/Lists(guid'd79e9f26-54d0-4db3-9488-d551236b0005')/Items(2914)/FieldValuesAsText\"\n" +
                 "            }\n" +
                 "        },\n" +
                 "        \"FieldValuesForEdit\": {\n" +
                 "            \"__deferred\": {\n" +
-                "                \"uri\": \"https://sp.kcell.kz/forms/_api/Web/Lists(guid'd79e9f26-54d0-4db3-9488-d551236b0005')/Items(2914)/FieldValuesForEdit\"\n" +
+                "                \"uri\": \"https://sp19.kcell.kz/forms/_api/Web/Lists(guid'd79e9f26-54d0-4db3-9488-d551236b0005')/Items(2914)/FieldValuesForEdit\"\n" +
                 "            }\n" +
                 "        },\n" +
                 "        \"File\": {\n" +
                 "            \"__deferred\": {\n" +
-                "                \"uri\": \"https://sp.kcell.kz/forms/_api/Web/Lists(guid'd79e9f26-54d0-4db3-9488-d551236b0005')/Items(2914)/File\"\n" +
+                "                \"uri\": \"https://sp19.kcell.kz/forms/_api/Web/Lists(guid'd79e9f26-54d0-4db3-9488-d551236b0005')/Items(2914)/File\"\n" +
                 "            }\n" +
                 "        },\n" +
                 "        \"Folder\": {\n" +
                 "            \"__deferred\": {\n" +
-                "                \"uri\": \"https://sp.kcell.kz/forms/_api/Web/Lists(guid'd79e9f26-54d0-4db3-9488-d551236b0005')/Items(2914)/Folder\"\n" +
+                "                \"uri\": \"https://sp19.kcell.kz/forms/_api/Web/Lists(guid'd79e9f26-54d0-4db3-9488-d551236b0005')/Items(2914)/Folder\"\n" +
                 "            }\n" +
                 "        },\n" +
                 "        \"ParentList\": {\n" +
                 "            \"__deferred\": {\n" +
-                "                \"uri\": \"https://sp.kcell.kz/forms/_api/Web/Lists(guid'd79e9f26-54d0-4db3-9488-d551236b0005')/Items(2914)/ParentList\"\n" +
+                "                \"uri\": \"https://sp19.kcell.kz/forms/_api/Web/Lists(guid'd79e9f26-54d0-4db3-9488-d551236b0005')/Items(2914)/ParentList\"\n" +
                 "            }\n" +
                 "        },\n" +
                 "        \"FileSystemObjectType\": 0,\n" +
@@ -373,7 +373,7 @@ public class SharepointController {
                 "            \"FormDigestTimeoutSeconds\": 1800,\n" +
                 "            \"FormDigestValue\": \"0x922140642AAA754D46D74E9608EB072E93AA387D808026D4BD8DFE1B3FBE5339ECFA8A0FE7786DC24EA6484D475C6F28CAA9BC9DF4D178F9BC25264650EB300A,22 Feb 2019 09:44:01 -0000\",\n" +
                 "            \"LibraryVersion\": \"15.0.5085.1000\",\n" +
-                "            \"SiteFullUrl\": \"https://sp.kcell.kz/forms\",\n" +
+                "            \"SiteFullUrl\": \"https://sp19.kcell.kz/forms\",\n" +
                 "            \"SupportedSchemaVersions\": {\n" +
                 "                \"__metadata\": {\n" +
                 "                    \"type\": \"Collection(Edm.String)\"\n" +
@@ -383,7 +383,7 @@ public class SharepointController {
                 "                    \"15.0.0.0\"\n" +
                 "                ]\n" +
                 "            },\n" +
-                "            \"WebFullUrl\": \"https://sp.kcell.kz/forms\"\n" +
+                "            \"WebFullUrl\": \"https://sp19.kcell.kz/forms\"\n" +
                 "        }\n" +
                 "    }\n" +
                 "}";
@@ -409,58 +409,58 @@ public class SharepointController {
                 "    \"d\": {\n" +
                 "        \"__metadata\": {\n" +
                 "            \"id\": \"Web/Lists(guid'2e16f18e-95d2-4d38-bc31-a6be2ceadfe5')/Items(7)\",\n" +
-                "            \"uri\": \"https://sp.kcell.kz/forms/_api/Web/Lists(guid'2e16f18e-95d2-4d38-bc31-a6be2ceadfe5')/Items(7)\",\n" +
+                "            \"uri\": \"https://sp19.kcell.kz/forms/_api/Web/Lists(guid'2e16f18e-95d2-4d38-bc31-a6be2ceadfe5')/Items(7)\",\n" +
                 "            \"etag\": \"\\\"1\\\"\",\n" +
                 "            \"type\": \"" + sharepointRequestBody + "\"\n" +
                 "        },\n" +
                 "        \"FirstUniqueAncestorSecurableObject\": {\n" +
                 "            \"__deferred\": {\n" +
-                "                \"uri\": \"https://sp.kcell.kz/forms/_api/Web/Lists(guid'2e16f18e-95d2-4d38-bc31-a6be2ceadfe5')/Items(7)/FirstUniqueAncestorSecurableObject\"\n" +
+                "                \"uri\": \"https://sp19.kcell.kz/forms/_api/Web/Lists(guid'2e16f18e-95d2-4d38-bc31-a6be2ceadfe5')/Items(7)/FirstUniqueAncestorSecurableObject\"\n" +
                 "            }\n" +
                 "        },\n" +
                 "        \"RoleAssignments\": {\n" +
                 "            \"__deferred\": {\n" +
-                "                \"uri\": \"https://sp.kcell.kz/forms/_api/Web/Lists(guid'2e16f18e-95d2-4d38-bc31-a6be2ceadfe5')/Items(7)/RoleAssignments\"\n" +
+                "                \"uri\": \"https://sp19.kcell.kz/forms/_api/Web/Lists(guid'2e16f18e-95d2-4d38-bc31-a6be2ceadfe5')/Items(7)/RoleAssignments\"\n" +
                 "            }\n" +
                 "        },\n" +
                 "        \"AttachmentFiles\": {\n" +
                 "            \"__deferred\": {\n" +
-                "                \"uri\": \"https://sp.kcell.kz/forms/_api/Web/Lists(guid'2e16f18e-95d2-4d38-bc31-a6be2ceadfe5')/Items(7)/AttachmentFiles\"\n" +
+                "                \"uri\": \"https://sp19.kcell.kz/forms/_api/Web/Lists(guid'2e16f18e-95d2-4d38-bc31-a6be2ceadfe5')/Items(7)/AttachmentFiles\"\n" +
                 "            }\n" +
                 "        },\n" +
                 "        \"ContentType\": {\n" +
                 "            \"__deferred\": {\n" +
-                "                \"uri\": \"https://sp.kcell.kz/forms/_api/Web/Lists(guid'2e16f18e-95d2-4d38-bc31-a6be2ceadfe5')/Items(7)/ContentType\"\n" +
+                "                \"uri\": \"https://sp19.kcell.kz/forms/_api/Web/Lists(guid'2e16f18e-95d2-4d38-bc31-a6be2ceadfe5')/Items(7)/ContentType\"\n" +
                 "            }\n" +
                 "        },\n" +
                 "        \"FieldValuesAsHtml\": {\n" +
                 "            \"__deferred\": {\n" +
-                "                \"uri\": \"https://sp.kcell.kz/forms/_api/Web/Lists(guid'2e16f18e-95d2-4d38-bc31-a6be2ceadfe5')/Items(7)/FieldValuesAsHtml\"\n" +
+                "                \"uri\": \"https://sp19.kcell.kz/forms/_api/Web/Lists(guid'2e16f18e-95d2-4d38-bc31-a6be2ceadfe5')/Items(7)/FieldValuesAsHtml\"\n" +
                 "            }\n" +
                 "        },\n" +
                 "        \"FieldValuesAsText\": {\n" +
                 "            \"__deferred\": {\n" +
-                "                \"uri\": \"https://sp.kcell.kz/forms/_api/Web/Lists(guid'2e16f18e-95d2-4d38-bc31-a6be2ceadfe5')/Items(7)/FieldValuesAsText\"\n" +
+                "                \"uri\": \"https://sp19.kcell.kz/forms/_api/Web/Lists(guid'2e16f18e-95d2-4d38-bc31-a6be2ceadfe5')/Items(7)/FieldValuesAsText\"\n" +
                 "            }\n" +
                 "        },\n" +
                 "        \"FieldValuesForEdit\": {\n" +
                 "            \"__deferred\": {\n" +
-                "                \"uri\": \"https://sp.kcell.kz/forms/_api/Web/Lists(guid'2e16f18e-95d2-4d38-bc31-a6be2ceadfe5')/Items(7)/FieldValuesForEdit\"\n" +
+                "                \"uri\": \"https://sp19.kcell.kz/forms/_api/Web/Lists(guid'2e16f18e-95d2-4d38-bc31-a6be2ceadfe5')/Items(7)/FieldValuesForEdit\"\n" +
                 "            }\n" +
                 "        },\n" +
                 "        \"File\": {\n" +
                 "            \"__deferred\": {\n" +
-                "                \"uri\": \"https://sp.kcell.kz/forms/_api/Web/Lists(guid'2e16f18e-95d2-4d38-bc31-a6be2ceadfe5')/Items(7)/File\"\n" +
+                "                \"uri\": \"https://sp19.kcell.kz/forms/_api/Web/Lists(guid'2e16f18e-95d2-4d38-bc31-a6be2ceadfe5')/Items(7)/File\"\n" +
                 "            }\n" +
                 "        },\n" +
                 "        \"Folder\": {\n" +
                 "            \"__deferred\": {\n" +
-                "                \"uri\": \"https://sp.kcell.kz/forms/_api/Web/Lists(guid'2e16f18e-95d2-4d38-bc31-a6be2ceadfe5')/Items(7)/Folder\"\n" +
+                "                \"uri\": \"https://sp19.kcell.kz/forms/_api/Web/Lists(guid'2e16f18e-95d2-4d38-bc31-a6be2ceadfe5')/Items(7)/Folder\"\n" +
                 "            }\n" +
                 "        },\n" +
                 "        \"ParentList\": {\n" +
                 "            \"__deferred\": {\n" +
-                "                \"uri\": \"https://sp.kcell.kz/forms/_api/Web/Lists(guid'2e16f18e-95d2-4d38-bc31-a6be2ceadfe5')/Items(7)/ParentList\"\n" +
+                "                \"uri\": \"https://sp19.kcell.kz/forms/_api/Web/Lists(guid'2e16f18e-95d2-4d38-bc31-a6be2ceadfe5')/Items(7)/ParentList\"\n" +
                 "            }\n" +
                 "        },\n" +
                 "        \"FileSystemObjectType\": 0,\n" +

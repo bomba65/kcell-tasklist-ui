@@ -41,7 +41,7 @@ public class NtlmCheckController {
 
         String result = "error";
         try {
-            String responseText = getAuthenticatedResponse("https://sp.kcell.kz/forms/_api/Lists/getbytitle('" + sharepointUrlPart + "')/items(1)", "kcell.kz", sharepoint_forms_username, sharepoint_forms_password);
+            String responseText = getAuthenticatedResponse("https://sp19.kcell.kz/forms/_api/Lists/getbytitle('" + sharepointUrlPart + "')/items(1)", "kcell.kz", sharepoint_forms_username, sharepoint_forms_password);
             result = responseText;
         }catch(Exception e){
             e.printStackTrace();
@@ -56,7 +56,7 @@ public class NtlmCheckController {
 
         String result = "error";
         try {
-            String responseText = postAuthenticatedResponse("https://sp.kcell.kz/forms/_api/contextinfo", "kcell.kz", sharepoint_forms_username, sharepoint_forms_password);
+            String responseText = postAuthenticatedResponse("https://sp19.kcell.kz/forms/_api/contextinfo", "kcell.kz", sharepoint_forms_username, sharepoint_forms_password);
             result = responseText;
         }catch(Exception e){
             e.printStackTrace();
@@ -88,7 +88,7 @@ public class NtlmCheckController {
 
         String result = "error";
         try {
-            String responseText = postItemsResponse("https://sp.kcell.kz/forms/_api/Lists/getbytitle('" + sharepointUrlPart + "')/items", "kcell.kz", sharepoint_forms_username, sharepoint_forms_password, reqObj.get("FormDigestValue").toString());
+            String responseText = postItemsResponse("https://sp19.kcell.kz/forms/_api/Lists/getbytitle('" + sharepointUrlPart + "')/items", "kcell.kz", sharepoint_forms_username, sharepoint_forms_password, reqObj.get("FormDigestValue").toString());
             result = responseText;
         }catch(Exception e){
             e.printStackTrace();

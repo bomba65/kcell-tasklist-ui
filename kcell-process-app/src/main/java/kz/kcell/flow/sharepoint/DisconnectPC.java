@@ -49,7 +49,7 @@ public class DisconnectPC implements JavaDelegate {
     private final String productCatalogAuth;
 
     @Autowired
-    public DisconnectPC(@Value("${sharepoint.forms.url:https://sp.kcell.kz/forms/_api}") String baseUri, @Value("${sharepoint.forms.username}") String username, @Value("${sharepoint.forms.password}") String pwd,
+    public DisconnectPC(@Value("${sharepoint.forms.url:https://sp19.kcell.kz/forms/_api}") String baseUri, @Value("${sharepoint.forms.username}") String username, @Value("${sharepoint.forms.password}") String pwd,
                         @Value("${product.catalog.url:http://ldb-al-preprod.kcell.kz}") String productCatalogUrl, @Value("${product.catalog.auth:app.camunda.user:Asd123Qwerty!}") String productCatalogAuth) {
         this.baseUri = baseUri;
         this.username = username;
@@ -159,58 +159,58 @@ public class DisconnectPC implements JavaDelegate {
                 "    \"d\": {\n" +
                 "        \"__metadata\": {\n" +
                 "            \"id\": \"Web/Lists(guid'd79e9f26-54d0-4db3-9488-d551236b0005')/Items(2914)\",\n" +
-                "            \"uri\": \"https://sp.kcell.kz/forms/_api/Web/Lists(guid'd79e9f26-54d0-4db3-9488-d551236b0005')/Items(2914)\",\n" +
+                "            \"uri\": \"https://sp19.kcell.kz/forms/_api/Web/Lists(guid'd79e9f26-54d0-4db3-9488-d551236b0005')/Items(2914)\",\n" +
                 "            \"etag\": \"\\\"21\\\"\",\n" +
                 "            \"type\": \"" + sharepointRequestBody + " \"\n" +
                 "        },\n" +
                 "        \"FirstUniqueAncestorSecurableObject\": {\n" +
                 "            \"__deferred\": {\n" +
-                "                \"uri\": \"https://sp.kcell.kz/forms/_api/Web/Lists(guid'd79e9f26-54d0-4db3-9488-d551236b0005')/Items(2914)/FirstUniqueAncestorSecurableObject\"\n" +
+                "                \"uri\": \"https://sp19.kcell.kz/forms/_api/Web/Lists(guid'd79e9f26-54d0-4db3-9488-d551236b0005')/Items(2914)/FirstUniqueAncestorSecurableObject\"\n" +
                 "            }\n" +
                 "        },\n" +
                 "        \"RoleAssignments\": {\n" +
                 "            \"__deferred\": {\n" +
-                "                \"uri\": \"https://sp.kcell.kz/forms/_api/Web/Lists(guid'd79e9f26-54d0-4db3-9488-d551236b0005')/Items(2914)/RoleAssignments\"\n" +
+                "                \"uri\": \"https://sp19.kcell.kz/forms/_api/Web/Lists(guid'd79e9f26-54d0-4db3-9488-d551236b0005')/Items(2914)/RoleAssignments\"\n" +
                 "            }\n" +
                 "        },\n" +
                 "        \"AttachmentFiles\": {\n" +
                 "            \"__deferred\": {\n" +
-                "                \"uri\": \"https://sp.kcell.kz/forms/_api/Web/Lists(guid'd79e9f26-54d0-4db3-9488-d551236b0005')/Items(2914)/AttachmentFiles\"\n" +
+                "                \"uri\": \"https://sp19.kcell.kz/forms/_api/Web/Lists(guid'd79e9f26-54d0-4db3-9488-d551236b0005')/Items(2914)/AttachmentFiles\"\n" +
                 "            }\n" +
                 "        },\n" +
                 "        \"ContentType\": {\n" +
                 "            \"__deferred\": {\n" +
-                "                \"uri\": \"https://sp.kcell.kz/forms/_api/Web/Lists(guid'd79e9f26-54d0-4db3-9488-d551236b0005')/Items(2914)/ContentType\"\n" +
+                "                \"uri\": \"https://sp19.kcell.kz/forms/_api/Web/Lists(guid'd79e9f26-54d0-4db3-9488-d551236b0005')/Items(2914)/ContentType\"\n" +
                 "            }\n" +
                 "        },\n" +
                 "        \"FieldValuesAsHtml\": {\n" +
                 "            \"__deferred\": {\n" +
-                "                \"uri\": \"https://sp.kcell.kz/forms/_api/Web/Lists(guid'd79e9f26-54d0-4db3-9488-d551236b0005')/Items(2914)/FieldValuesAsHtml\"\n" +
+                "                \"uri\": \"https://sp19.kcell.kz/forms/_api/Web/Lists(guid'd79e9f26-54d0-4db3-9488-d551236b0005')/Items(2914)/FieldValuesAsHtml\"\n" +
                 "            }\n" +
                 "        },\n" +
                 "        \"FieldValuesAsText\": {\n" +
                 "            \"__deferred\": {\n" +
-                "                \"uri\": \"https://sp.kcell.kz/forms/_api/Web/Lists(guid'd79e9f26-54d0-4db3-9488-d551236b0005')/Items(2914)/FieldValuesAsText\"\n" +
+                "                \"uri\": \"https://sp19.kcell.kz/forms/_api/Web/Lists(guid'd79e9f26-54d0-4db3-9488-d551236b0005')/Items(2914)/FieldValuesAsText\"\n" +
                 "            }\n" +
                 "        },\n" +
                 "        \"FieldValuesForEdit\": {\n" +
                 "            \"__deferred\": {\n" +
-                "                \"uri\": \"https://sp.kcell.kz/forms/_api/Web/Lists(guid'd79e9f26-54d0-4db3-9488-d551236b0005')/Items(2914)/FieldValuesForEdit\"\n" +
+                "                \"uri\": \"https://sp19.kcell.kz/forms/_api/Web/Lists(guid'd79e9f26-54d0-4db3-9488-d551236b0005')/Items(2914)/FieldValuesForEdit\"\n" +
                 "            }\n" +
                 "        },\n" +
                 "        \"File\": {\n" +
                 "            \"__deferred\": {\n" +
-                "                \"uri\": \"https://sp.kcell.kz/forms/_api/Web/Lists(guid'd79e9f26-54d0-4db3-9488-d551236b0005')/Items(2914)/File\"\n" +
+                "                \"uri\": \"https://sp19.kcell.kz/forms/_api/Web/Lists(guid'd79e9f26-54d0-4db3-9488-d551236b0005')/Items(2914)/File\"\n" +
                 "            }\n" +
                 "        },\n" +
                 "        \"Folder\": {\n" +
                 "            \"__deferred\": {\n" +
-                "                \"uri\": \"https://sp.kcell.kz/forms/_api/Web/Lists(guid'd79e9f26-54d0-4db3-9488-d551236b0005')/Items(2914)/Folder\"\n" +
+                "                \"uri\": \"https://sp19.kcell.kz/forms/_api/Web/Lists(guid'd79e9f26-54d0-4db3-9488-d551236b0005')/Items(2914)/Folder\"\n" +
                 "            }\n" +
                 "        },\n" +
                 "        \"ParentList\": {\n" +
                 "            \"__deferred\": {\n" +
-                "                \"uri\": \"https://sp.kcell.kz/forms/_api/Web/Lists(guid'd79e9f26-54d0-4db3-9488-d551236b0005')/Items(2914)/ParentList\"\n" +
+                "                \"uri\": \"https://sp19.kcell.kz/forms/_api/Web/Lists(guid'd79e9f26-54d0-4db3-9488-d551236b0005')/Items(2914)/ParentList\"\n" +
                 "            }\n" +
                 "        },\n" +
                 "        \"FileSystemObjectType\": 0,\n" +

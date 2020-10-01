@@ -76,7 +76,7 @@ public class PostTCFForm implements ExecutionListener {
     private String sharepointRequestBody;
 
     @Autowired
-    public PostTCFForm(@Value("${sharepoint.forms.url:https://sp.kcell.kz/forms/_api}") String baseUri, @Value("${sharepoint.forms.username}") String username, @Value("${sharepoint.forms.password}") String pwd) {
+    public PostTCFForm(@Value("${sharepoint.forms.url:https://sp19.kcell.kz/forms/_api}") String baseUri, @Value("${sharepoint.forms.username}") String username, @Value("${sharepoint.forms.password}") String pwd) {
         this.baseUri = baseUri;
         this.username = username;
         this.pwd = pwd;

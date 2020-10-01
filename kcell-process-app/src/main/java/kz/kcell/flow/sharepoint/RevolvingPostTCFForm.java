@@ -56,7 +56,7 @@ public class RevolvingPostTCFForm implements JavaDelegate {
     private String sharepointRequestBody;
 
     @Autowired
-    public RevolvingPostTCFForm(@Value("${sharepoint.forms.url:https://sp.kcell.kz/forms/_api}") String baseUri, @Value("${sharepoint.forms.username}") String username, @Value("${sharepoint.forms.password}") String pwd,
+    public RevolvingPostTCFForm(@Value("${sharepoint.forms.url:https://sp19.kcell.kz/forms/_api}") String baseUri, @Value("${sharepoint.forms.username}") String username, @Value("${sharepoint.forms.password}") String pwd,
                                 @Value("${product.catalog.url:http://ldb-al-preprod.kcell.kz}") String productCatalogUrl, @Value("${product.catalog.auth:app.camunda.user:Asd123Qwerty!}") String productCatalogAuth) {
         this.baseUri = baseUri;
         this.username = username;
