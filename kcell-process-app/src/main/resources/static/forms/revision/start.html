@@ -895,12 +895,10 @@
                 serviceChanged();
             });
 
-            $scope.getUnits = function(index){
-                for(var i=0;i<$scope.works.length;i++){
-                    if($scope.jobWorks[index].sapServiceNumber === $scope.works[i].sapServiceNumber){
-                        $scope.jobWorks[index].materialUnit = $scope.works[i].units;
-                    }
-                }
+            $scope.getUnits = function($item, index){
+                $scope.jobWorks[index].sapServiceNumber = $item.sapServiceNumber;
+                $scope.jobWorks[index].displayServiceName = $item.displayServiceName;
+                $scope.jobWorks[index].materialUnit = $item.units
             };
             $scope.getWorks = function(val) {
                 var result = _.filter($scope.works, function(work){
@@ -1116,8 +1114,8 @@
     <div class="form-group">
         <label class="col-sm-3 control-label">Job to:</label>
         <div class="col-sm-8">
-            <label class="radio-inline">
-                <input ng-if="$root.authentication.name === 'demo'" type="radio" name="contractor" ng-model="custom.contractor" id="lse" value="4" required> TOO Line System Engineering
+            <label class="radio-inline" ng-if="$root.authentication.name === 'demo'">
+                <input type="radio" name="contractor" ng-model="custom.contractor" id="lse" value="4" required> TOO Line System Engineering
             </label>
             <label class="radio-inline">
                 <input type="radio" name="contractor" ng-model="custom.contractor" id="subcontractor" value="-1" required> Subcontractor
@@ -1733,10 +1731,16 @@
                 <tbody ng-repeat="jobWork in jobWorks">
                     <tr>
                         <td>
-                                <div class="">
-                                    <input type="text" ng-model="jobWork.displayServiceName" name="sapServiceNumber{{$index}}" ng-disabled="!mainContract || !siteName || !custom.contractor" typeahead="works as works.displayServiceName for works in getWorks($viewValue)" typeahead-on-select="jobWork.sapServiceNumber = $item.sapServiceNumber; jobWork.displayServiceName = $item.displayServiceName" class="form-control works-container"  required autocomplete="off" placeholder="Select works">
+                                <div>
+                                    <input type="text" ng-model="jobWork.displayServiceName" name="displayServiceName{{$index}}"
+                                           ng-disabled="!mainContract || !siteName || !custom.contractor"
+                                           typeahead="works as works.displayServiceName for works in getWorks($viewValue)"
+                                           typeahead-on-select="getUnits($item, $index)"
+                                           class="form-control works-container"  required autocomplete="off" placeholder="Select works">
+                                    <input type="hidden" ng-model="jobWork.sapServiceNumber" name="sapServiceNumber{{$index}}" required>
                                 </div>
-                                <label class="error" ng-if="kcell_form['sapServiceNumber'+$index].$error.required && ( kcell_form['sapServiceNumber'+$index].$touched || view.submitted)">Required field</label>
+                                <label class="error" ng-if="kcell_form['displayServiceName'+$index].$error.required && ( kcell_form['displayServiceName'+$index].$touched || view.submitted)">Required field</label>
+                                <label class="error" ng-if="kcell_form['sapServiceNumber'+$index].$error.required && ( kcell_form['displayServiceName'+$index].$touched || view.submitted)">Please select from list</label>
                         </td>
                         <td>
                             <input type="number" class="form-control" name="quantity{{$index}}" required ng-model="jobWork.quantity" min="1"/>
