@@ -2,66 +2,20 @@
     <script cam-script type="text/form-script">
         inject(['$scope', '$http', 'Uri', '$rootScope', '$q', '$timeout', function ($scope, $http, Uri, $rootScope, $q, $timeout) {
             var variables = [
-                'region_name',
-                'ne_sitename',
-                'fe_sitename',
-                'resolutions',
-                'date_of_visit',
-                'ne_construction_type',
-                'fe_construction_type',
-                'protection_mode',
-                'ne_diameter',
-                'fe_diameter',
-                'hop_link_capacity',
-                'ne_address',
-                'fe_address',
-                'ne_latitude',
-                'ne_longitude',
-                'fe_latitude',
-                'fe_longitude',
-                'ne_altitude',
-                'fe_altitude',
-                'ne_azimuth',
-                'fe_azimuth',
-                'path_distance',
-                'ne_construction_height',
-                'fe_construction_height',
-                'ne_suspension_height_antennas',
-                'fe_suspension_height',
-                'hop_link_nxe1',
-                'hop_modulation_type',
-                'hop_channel_bandwidth',
-                'tnuTsdNumber',
-                'ne_terminal_id',
-                'fe_terminal_id',
-                'ne_protection_rau_subband',
-                'fe_protection_rau_subband',
-                'ne_protection_suspension_height',
-                'fe_protection_suspension_height',
-                'ne_protection_antenna_diameter',
-                'fe_protection_antenna_diameter',
+                'oldTsd',
+                'selectedTsd',
             ];
 
             camForm.on('form-loaded', function () {
                 variables.forEach(function (el) {
                     camForm.variableManager.fetchVariable(el);
                 });
-
                 camForm.variableManager.createVariable({
-                    name: 'tnutsd_fill_tsd_by_centerTaskResult',
-                    type: 'String',
-                    value: ''
-                });
-                 camForm.variableManager.createVariable({
                     name: 'checkByCenterEngineerTaskResult',
                     type: 'String',
                     value: ''
                 });
-                camForm.variableManager.createVariable({
-                    name: 'createEngineerResult',
-                    type: 'String',
-                    value: undefined
-                });
+
             });
 
             var catalogsServerUrl = "https://catalogs.test-flow.kcell.kz";
@@ -82,6 +36,8 @@
             $scope.suspensionPattern = '([1-9]|[1-9][0-9]|[1-9][0-9][0-9])';
             $scope.heightPattern = '[-]?[0-9]+';
             $scope.altitudePattern = '(-[1-9]{1}[0-9]{0,1}[0-9]{0,1}|-[1-9]{1}[0-9]{0,1}[0-9]{0,1}\\.[0-9]{1}|[1-9]{1}[0-9]?[0-9]{0,1}[0-9]{0,1}|[1-9]{1}[0-9]?[0-9]{0,1}[0-9]{0,1}\\.[0-9]{1}|0)';
+            $scope.latitudePattern = '(4([1-9]{1}.[0-9]{6}|0.([6-9]{1}[0-9]{5}|5([7-9]{1}[0-9]{4}|6(9[0-9]{3}|8[0-9]{3}))))|5([0-4]{1}.[0-9]{6}|5.([0-3]{1}[0-9]{5}|4([0-3]{1}[0-9]{4}|40000))))';
+            $scope.longitudePattern = '([5-7]{1}[0-9]{1}.[0-9]{6}|4([7-9]{1}.[0-9]{6}|6.([5-9]{1}[0-9]{5}|49([4-9]{1}|3)[0-9]{3}))|8([0-6]{1}.[0-9]{6}|7.([0-2]{1}[0-9]{5}|3(0[0-9]{4}|1([0-4]{1}[0-9]{3}|5000)))))';
 
             $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
                     function (result) {
@@ -200,6 +156,8 @@
                 $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name + "/profile").then(function (result) {
                     $rootScope.authentication.assigneeName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
                 });
+
+                $scope.startTsd = angular.copy($scope.selectedTsd);
             });
 
             $scope.populateSelectFromCatalog = function (containers, id) {
@@ -344,7 +302,7 @@
                 }
             }
 
-            $scope.preSubmit = function () {
+            /*$scope.preSubmit = function () {
                 var deferred = $q.defer();
 
                 if ($scope.ne_rau_subband && $scope.ne_txrx_frequincies && (isNaN($scope.ne_txrx_frequincies) || $scope.rauRelations[$scope.ne_rau_subband].minFrequency > $scope.ne_txrx_frequincies || $scope.rauRelations[$scope.ne_rau_subband].maxFrequency < $scope.ne_txrx_frequincies)) {
@@ -359,82 +317,20 @@
                     deferred.resolve();
                 }
                 return deferred.promise;
-            }
+            } */
+
 
             camForm.on('submit', function (e) {
-                camForm.variableManager.variableValue('ne_terminal_id', $scope.ne_terminal_id);
-                camForm.variableManager.variableValue('fe_terminal_id', $scope.fe_terminal_id);
                 camForm.variableManager.variableValue('checkByCenterEngineerTaskResult', $scope.checkByCenterEngineerTaskResult);
-                camForm.variableManager.createVariable({
-                    name: 'approve_jr_budgetTaskResult',
-                    type: 'String',
-                    value: $scope.checkByCenterEngineerTaskResult
-                });
+                camForm.variableManager.variableValue('oldTsd', $scope.oldTsd);
+                camForm.variableManager.variableValue('selectedTsd', $scope.selectedTsd);
+
                 if ($scope.checkByCenterEngineerTaskResult === 'approved') {
                     camForm.variableManager.variableValue('createEngineerResult', 'approved');
                 } else {
                     camForm.variableManager.variableValue('createEngineerResult', 'rejected');
                 }
 
-                var newVars = [
-                    'hop_polarization',
-                    'hop_link_type',
-                    'ne_rau_subband',
-                    'fe_rau_subband',
-                    'ne_protection_rau_subband',
-                    'fe_protection_rau_subband',
-                    'ne_txrx_frequincies',
-                    'fe_txrx_frequincies',
-                    'ne_protection_txrx_frequincies',
-                    'fe_protection_txrx_frequincies',
-                    'ne_power_level_tx',
-                    'ne_power_level_rx',
-                    'fe_power_level_tx',
-                    'fe_power_level_rx',
-                    'ne_protection_power_level_tx',
-                    'ne_protection_power_level_rx',
-                    'fe_protection_power_level_tx',
-                    'fe_protection_power_level_rx',
-                    'ne_protection_antenna_diameter',
-                    'fe_protection_antenna_diameter',
-                    'ne_diameter',
-                    'fe_diameter'
-                ];
-
-                angular.forEach(newVars, function (t) {
-                    if(camForm.variableManager.variables[t]){
-                        camForm.variableManager.variableValue(t, $scope[t]);
-                    } else {
-                        camForm.variableManager.createVariable({
-                            name: t,
-                            type: 'String',
-                            value: $scope[t]
-                        });
-                    }
-                });
-                camForm.variableManager.variableValue('ne_altitude', $scope.ne_altitude);
-                camForm.variableManager.variableValue('fe_altitude', $scope.fe_altitude);
-                camForm.variableManager.variableValue('ne_construction_type', $scope.ne_construction_type);
-                camForm.variableManager.variableValue('fe_construction_type', $scope.fe_construction_type);
-                camForm.variableManager.variableValue('ne_construction_height', $scope.ne_construction_height);
-                camForm.variableManager.variableValue('fe_construction_height', $scope.fe_construction_height);
-                camForm.variableManager.variableValue('protection_mode', $scope.protection_mode);
-                camForm.variableManager.variableValue('ne_suspension_height_antennas', $scope.ne_suspension_height_antennas);
-                camForm.variableManager.variableValue('fe_suspension_height', $scope.fe_suspension_height);
-                camForm.variableManager.variableValue('ne_protection_suspension_height', $scope.ne_protection_suspension_height);
-                camForm.variableManager.variableValue('fe_protection_suspension_height', $scope.fe_protection_suspension_height);
-                camForm.variableManager.variableValue('hop_link_capacity', $scope.hop_link_capacity);
-
-                camForm.variableManager.createVariable({
-                    name: 'tnutsd_fill_tsd_by_centerTaskComment',
-                    type: 'String',
-                    value: $scope.tnutsd_fill_tsd_by_centerTaskComment
-                });
-                camForm.variableManager.createVariable({
-                    name: 'checkByCenterEngineerTaskResult',
-                    type: 'String',
-                    value: ''
-                });
             });
         }]);
     </script>
@@ -448,22 +344,17 @@
     </div>
     <div class="form-group">
         <label class="col-sm-2 control-label"><b>TSD number:</b></label>
-        <label class="col-sm-6 control-label">{{tnuTsdNumber}}</label>
+        <label class="col-sm-6 control-label">{{selectedTsd.business_key}}</label>
     </div>
 
     <div class="form-group">
         <label class="col-sm-2 control-label"><b>Region name:</b></label>
-        <label class="col-sm-4 control-label">{{regionsTitle[region_name]}}</label>
+        <label class="col-sm-4 control-label">{{selectedTsd.nearend_id.facility_id.address_id.city_id.district_id.oblast_id.region_id.name}}</label>
         <label class="col-sm-2 control-label"><b>Date:</b></label>
         <div class="col-sm-4">
             <div class="input-group">
-                <input type="text" ng-model="date_of_visit" name="dateOfVisit" class="form-control"
-                       datepicker-popup="dd.MM.yyyy" id="dateOfVisit"/>
-                <span class="input-group-btn">
-                    <button type="button" class="btn btn-default" ng-click="date_of_visitFieldOpened = true">
-                        <i class="glyphicon glyphicon-calendar"></i>
-                    </button>
-                </span>
+                <input type="text" ng-model="date_of_visit" ng-value="selectedTsd.date | date: 'dd.MM.yyyy'" name="dateOfVisit" class="form-control"
+                       datepicker-popup="dd.MM.yyyy" id="dateOfVisit" disabled/>
             </div>
             <label class="error"
                    ng-if="kcell_form.dateOfVisit.$error.required && ( kcell_form.dateOfVisit.$touched || view.submitted)">Required
@@ -473,25 +364,44 @@
 
     <div class="form-group">
         <label class="col-sm-2 control-label">Sitename:</label>
-        <label class="col-sm-3 control-label">{{ne_sitename}}</label>
+        <label class="col-sm-3 control-label">{{selectedTsd.nearend_id.site_name}}</label>
     </div>
     <div class="form-group">
         <label class="col-sm-2 control-label">Site Address:</label>
         <div class="col-sm-10">
-            <textarea class="form-control" name="ne_address" cam-variable-name="ne_address" cam-variable-type="String"
-                      maxlength="1500" rows="2" disabled ng-if="!ne_siteId || ne_address_fetched"></textarea>
+            <div class="form-control" style="background-color: #eee; width: 100%; height: 54px"> {{  (selectedTsd.nearend_id.facility_id.address_id.city_id.district_id.oblast_id.region_id.name ? selectedTsd.nearend_id.facility_id.address_id.city_id.district_id.oblast_id.region_id.name: '') +
+                (selectedTsd.nearend_id.facility_id.address_id.city_id.district_id.oblast_id.name ? ', ' + selectedTsd.nearend_id.facility_id.address_id.city_id.district_id.oblast_id.name : '') +
+                (selectedTsd.nearend_id.facility_id.address_id.city_id.district_id.name ? ', ' + selectedTsd.nearend_id.facility_id.address_id.city_id.district_id.name : '') +
+                (selectedTsd.nearend_id.facility_id.address_id.city_id.name ? ', ' + selectedTsd.nearend_id.facility_id.address_id.city_id.name : '') +
+                (selectedTsd.nearend_id.facility_id.address_id.city_id.city_type_id.name ? ' (' + selectedTsd.nearend_id.facility_id.address_id.city_id.city_type_id.name + ')' : '') +
+                (selectedTsd.nearend_id.facility_id.address_id.street ? ', ' + selectedTsd.nearend_id.facility_id.address_id.street : '') +
+                (selectedTsd.nearend_id.facility_id.address_id.building ? ', ' + selectedTsd.nearend_id.facility_id.address_id.building : '')+
+                (selectedTsd.nearend_id.facility_id.address_id.note ? ', ' + selectedTsd.nearend_id.facility_id.address_id.note : '')+
+                (selectedTsd.nearend_id.facility_id.address_id.cadastral_number ? ', ' + selectedTsd.nearend_id.facility_id.address_id.cadastral_number : '')
+                }}
+            </div>
         </div>
     </div>
 
     <div class="form-group">
         <label class="col-sm-2 control-label">Farend name:</label>
-        <label class="col-sm-3 control-label">{{fe_sitename}}</label>
+        <label class="col-sm-3 control-label">{{selectedTsd.farend_id.site_name}}</label>
     </div>
     <div class="form-group">
         <label class="col-sm-2 control-label">Farend Address:</label>
         <div class="col-sm-10">
-            <textarea class="form-control" name="fe_address" cam-variable-name="fe_address" cam-variable-type="String"
-                      maxlength="1500" rows="2" disabled ng-if="!fe_siteId || fe_address_fetched"></textarea>
+            <div class="form-control" style="background-color: #eee; width: 100%; height: 54px">
+                {{  (selectedTsd.farend_id.facility_id.address_id.city_id.district_id.oblast_id.region_id.name ? selectedTsd.farend_id.facility_id.address_id.city_id.district_id.oblast_id.region_id.name : '') +
+                (selectedTsd.farend_id.facility_id.address_id.city_id.district_id.oblast_id.name ? ', ' + selectedTsd.farend_id.facility_id.address_id.city_id.district_id.oblast_id.name : '') +
+                (selectedTsd.farend_id.facility_id.address_id.city_id.district_id.name ? ', ' + selectedTsd.farend_id.facility_id.address_id.city_id.district_id.name : '') +
+                (selectedTsd.farend_id.facility_id.address_id.city_id.name ? ', ' + selectedTsd.farend_id.facility_id.address_id.city_id.name : '') +
+                (selectedTsd.farend_id.facility_id.address_id.city_id.city_type_id.name ? ' (' + selectedTsd.farend_id.facility_id.address_id.city_id.city_type_id.name + ')' : '') +
+                (selectedTsd.farend_id.facility_id.address_id.street ? ', ' + selectedTsd.farend_id.facility_id.address_id.street : '') +
+                (selectedTsd.farend_id.facility_id.address_id.building ? ', ' + selectedTsd.farend_id.facility_id.address_id.building : '') +
+                (selectedTsd.farend_id.facility_id.address_id.note ? ', ' + selectedTsd.farend_id.facility_id.address_id.note : '')  +
+                (selectedTsd.farend_id.facility_id.address_id.cadastral_number ? ', ' + selectedTsd.farend_id.facility_id.address_id.cadastral_number : '')
+                }}
+            </div>
         </div>
     </div>
 
@@ -509,82 +419,210 @@
                 <tbody>
                 <tr>
                     <td align="right" colspan="2">Basic information</td>
-                    <td align="center" colspan="4">{{ne_sitename}}</td>
-                    <td align="center" colspan="4">{{fe_sitename}}</td>
+                    <td align="center" colspan="4">{{selectedTsd.nearend_id.site_name}}</td>
+                    <td align="center" colspan="4">{{selectedTsd.farend_id.site_name}}</td>
                 </tr>
                 <tr>
                     <td align="right" colspan="2">Coordinates (degree):</td>
                     <td>N</td>
-                    <td align="center">{{ne_latitude}}</td>
+                    <td align="center">
+                        <input type="text" class="form-control"  ng-if="startTsd.nearend_id.facility_id.latitude === oldTsd.nearend_id.facility_id.latitude" ng-model="selectedTsd.nearend_id.facility_id.latitude" name="ne_latitude" required ng-pattern="latitudePattern"/>
+                        <div class="input-group" style="width: 100%" ng-show="startTsd.nearend_id.facility_id.latitude !== oldTsd.nearend_id.facility_id.latitude">
+                            <input type="text" class="form-control" name="ne_latitude"
+                                   ng-model="selectedTsd.nearend_id.facility_id.latitude" required/>
+                            <span class="input-group-addon">{{oldTsd.nearend_id.facility_id.latitude}}</span>
+                        </div>
+                        <label class="error" ng-if="kcell_form.ne_latitude.$error.required && ( kcell_form.ne_latitude.$touched || view.submitted)">Required field</label>
+                    </td>
                     <td>E</td>
-                    <td align="center">{{ne_longitude}}</td>
+                    <td align="center">
+                        <input type="text" class="form-control" ng-if="startTsd.nearend_id.facility_id.longitude === oldTsd.nearend_id.facility_id.longitude" ng-model="selectedTsd.nearend_id.facility_id.longitude" name="ne_longitude" required ng-pattern="longitudePattern"/>
+                        <div class="input-group" style="width: 100%" ng-show="startTsd.nearend_id.facility_id.longitude !== oldTsd.nearend_id.facility_id.longitude">
+                            <input type="text" class="form-control" name="ne_longitude"
+                                   ng-model="selectedTsd.nearend_id.facility_id.longitude" required/>
+                            <span class="input-group-addon">{{oldTsd.nearend_id.facility_id.longitude}}</span>
+                        </div>
+                        <label class="error" ng-if="kcell_form.ne_longitude.$error.required && ( kcell_form.ne_longitude.$touched || view.submitted)">Required field</label>
+                    </td>
                     <td>N</td>
-                    <td align="center">{{fe_latitude}}</td>
+                    <td align="center">
+                        <input type="text" class="form-control"  ng-if="startTsd.farend_id.facility_id.latitude === oldTsd.farend_id.facility_id.latitude" ng-model="selectedTsd.farend_id.facility_id.latitude" name="fe_latitude" required ng-pattern="latitudePattern"/>
+                        <div class="input-group" style="width: 100%" ng-show="startTsd.farend_id.facility_id.latitude !== oldTsd.farend_id.facility_id.latitude">
+                            <input type="text" class="form-control" name="fe_latitude"
+                                   ng-model="selectedTsd.farend_id.facility_id.latitude" required/>
+                            <span class="input-group-addon">{{oldTsd.farend_id.facility_id.latitude.replace(",", '.')}}</span>
+                        </div>
+                        <label class="error" ng-if="kcell_form.fe_latitude.$error.required && ( kcell_form.fe_latitude.$touched || view.submitted)">Required field</label>
+                    </td>
                     <td>E</td>
-                    <td align="center">{{fe_longitude}}</td>
+                    <td align="center">
+                        <input type="text" class="form-control" ng-if="startTsd.farend_id.facility_id.longitude === oldTsd.farend_id.facility_id.longitude" ng-model="selectedTsd.farend_id.facility_id.longitude" name="fe_longitude" required ng-pattern="longitudePattern"/>
+                        <div class="input-group" style="width: 100%" ng-show="startTsd.farend_id.facility_id.longitude !== oldTsd.farend_id.facility_id.longitude">
+                            <input type="text" class="form-control" name="fe_longitude"
+                                   ng-model="selectedTsd.farend_id.facility_id.longitude" required/>
+                            <span class="input-group-addon">{{oldTsd.farend_id.facility_id.longitude.replace(",", '.')}}</span>
+                        </div>
+                        <label class="error" ng-if="kcell_form.fe_longitude.$error.required && ( kcell_form.fe_longitude.$touched || view.submitted)">Required field</label>
                 </tr>
                 <tr>
                     <td align="right" colspan="2">Altitude (m):</td>
                     <td align="center" colspan="4">
-                        <input type="number" class="form-control" ng-model="ne_altitude" name="ne_altitude" ng-pattern="altitudePattern" required>
-                        <label class="error" ng-if="kcell_form.ne_altitude.$error.required && ( kcell_form.ne_altitude.$touched || view.submitted)">Required field(-xxx.y to +xxxx.y)</label>
-                        <label class="error" ng-if="kcell_form.ne_altitude.$error.pattern && ( kcell_form.ne_altitude.$touched || view.submitted)">Uncorrect format(-xxx.y to +xxxx.y)</label>
-                        <label class="error" ng-if="kcell_form.ne_altitude.$error.number && ( kcell_form.ne_altitude.$touched || view.submitted)">Uncorrect format(-xxx.y to +xxxx.y)</label>
+                        <input type="number" class="form-control" ng-if="startTsd.nearend_id.facility_id.altitude === oldTsd.nearend_id.facility_id.altitude" ng-model="selectedTsd.nearend_id.facility_id.altitude" name="ne_altitude"
+                               ng-pattern="altitudePattern" required/>
+                        <div class="input-group" style="width: 100%" ng-show="startTsd.nearend_id.facility_id.altitude !== oldTsd.nearend_id.facility_id.altitude">
+                            <input type="text" class="form-control" name="ne_altitude"
+                                   ng-model="selectedTsd.nearend_id.facility_id.altitude" required/>
+                            <span class="input-group-addon">original: {{oldTsd.nearend_id.facility_id.altitude}}</span>
+                        </div>
+                        <label class="error"
+                               ng-if="kcell_form.ne_altitude.$error.required && ( kcell_form.ne_altitude.$touched || view.submitted)">Required
+                            field(-xxx.y to +xxxx.y)</label>
+                        <label class="error"
+                               ng-if="kcell_form.ne_altitude.$error.pattern && ( kcell_form.ne_altitude.$touched || view.submitted)">Uncorrect
+                            format(-xxx.y to +xxxx.y)</label>
+                        <label class="error"
+                               ng-if="kcell_form.ne_altitude.$error.number && ( kcell_form.ne_altitude.$touched || view.submitted)">Uncorrect
+                            format(-xxx.y to +xxxx.y)</label>
                     </td>
                     <td align="center" colspan="4">
-                        <input type="number" class="form-control" ng-model="fe_altitude" name="fe_altitude" ng-pattern="altitudePattern" required>
-                        <label class="error" ng-if="kcell_form.fe_altitude.$error.required && ( kcell_form.fe_altitude.$touched || view.submitted)">Required field(-xxx.y to +xxxx.y)</label>
-                        <label class="error" ng-if="kcell_form.fe_altitude.$error.pattern && ( kcell_form.fe_altitude.$touched || view.submitted)">Uncorrect format(-xxx.y to +xxxx.y)</label>
-                        <label class="error" ng-if="kcell_form.fe_altitude.$error.number && ( kcell_form.fe_altitude.$touched || view.submitted)">Uncorrect format(-xxx.y to +xxxx.y)</label>
+                        <input type="number" class="form-control" ng-if="startTsd.farend_id.facility_id.altitude === oldTsd.farend_id.facility_id.altitude" ng-model="selectedTsd.farend_id.facility_id.altitude" name="fe_altitude"
+                               ng-pattern="altitudePattern" required>
+                        <div class="input-group" style="width: 100%" ng-show="startTsd.farend_id.facility_id.altitude !== oldTsd.farend_id.facility_id.altitude">
+                            <input type="text" class="form-control" name="fe_altitude"
+                                   ng-model="selectedTsd.farend_id.facility_id.altitude" required/>
+                            <span class="input-group-addon">original: {{oldTsd.farend_id.facility_id.altitude}}</span>
+                        </div>
+                        <label class="error"
+                               ng-if="kcell_form.fe_altitude.$error.required && ( kcell_form.fe_altitude.$touched || view.submitted)">Required
+                            field(-xxx.y to +xxxx.y)</label>
+                        <label class="error"
+                               ng-if="kcell_form.fe_altitude.$error.pattern && ( kcell_form.fe_altitude.$touched || view.submitted)">Uncorrect
+                            format(-xxx.y to +xxxx.y)</label>
+                        <label class="error"
+                               ng-if="kcell_form.fe_altitude.$error.number && ( kcell_form.fe_altitude.$touched || view.submitted)">Uncorrect
+                            format(-xxx.y to +xxxx.y)</label>
                     </td>
                 </tr>
+
+
                 <tr>
                     <td align="right" colspan="2">Azimuth (degree):</td>
-                    <td align="center" colspan="4">{{ne_azimuth}}</td>
-                    <td align="center" colspan="4">{{fe_azimuth}}</td>
+                    <td align="center" colspan="4">
+                        <input type="number" class="form-control" ng-if="startTsd.ne_azimuth === oldTsd.ne_azimuth" ng-model="selectedTsd.ne_azimuth" name="ne_azimuth"
+                               ng-pattern="azimuthPattern"  required>
+                        <div class="input-group" style="width: 100%" ng-show="startTsd.ne_azimuth !== oldTsd.ne_azimuth">
+                            <input type="text" class="form-control" name="ne_azimuth"
+                                   ng-model="selectedTsd.ne_azimuth" required/>
+                            <span class="input-group-addon">original: {{oldTsd.ne_azimuth}}</span>
+                        </div>
+                        <label class="error"
+                               ng-if="kcell_form.ne_azimuth.$error.required && ( kcell_form.ne_azimuth.$touched || view.submitted)">Required
+                            field</label>
+                        <label class="error"
+                               ng-if="kcell_form.ne_azimuth.$error.pattern && ( kcell_form.ne_azimuth.$touched || view.submitted)">Expected:
+                            0 <- Azimuth(XXX.YY) <- 360</label>
+                    </td>
+                    <td align="center" colspan="4">
+                        <input type="number" class="form-control" ng-if="startTsd.fe_azimuth === oldTsd.fe_azimuth" ng-model="selectedTsd.fe_azimuth" name="fe_azimuth"
+                               ng-pattern="azimuthPattern"  required>
+                        <div class="input-group" style="width: 100%" ng-show="startTsd.ne_azimuth !== oldTsd.ne_azimuth">
+                            <input type="text" class="form-control" name="fe_azimuth"
+                                   ng-model="selectedTsd.fe_azimuth" required/>
+                            <span class="input-group-addon">original: {{oldTsd.fe_azimuth}}</span>
+                        </div>
+                        <label class="error"
+                               ng-if="kcell_form.fe_azimuth.$error.required && ( kcell_form.fe_azimuth.$touched || view.submitted)">Required
+                            field</label>
+                        <label class="error"
+                               ng-if="kcell_form.fe_azimuth.$error.pattern && ( kcell_form.fe_azimuth.$touched || view.submitted)">Expected:
+                            0 <- Azimuth(XXX.YY) <- 360</label>
+                    </td>
                 </tr>
                 <tr>
                     <td align="right" colspan="2">Path distance (km):</td>
-                    <td align="center" colspan="8">{{path_distance}}</td>
+                    <td align="center" colspan="8">
+                        <input type="number" class="form-control" ng-if="startTsd.path_distance === oldTsd.path_distance" ng-model="selectedTsd.path_distance" name="path_distance" required>
+                        <div class="input-group" style="width: 100%" ng-show="startTsd.path_distance !== oldTsd.path_distance">
+                            <input type="text" class="form-control" name="path_distance"
+                                   ng-model="selectedTsd.path_distance" required/>
+                            <span class="input-group-addon">original: {{oldTsd.path_distance}}</span>
+                        </div>
+                        <label class="error"
+                               ng-if="kcell_form.path_distance.$error.required && ( kcell_form.path_distance.$touched || view.submitted)">Required
+                            field</label>
+                    </td>
                 </tr>
+
                 <tr>
                     <td align="right" colspan="2">Type of construction:</td>
                     <td align="center" colspan="4">
-                        <select class="form-control" id="ne_construction_type" name="ne_construction_type" ng-model="ne_construction_type" >
+                        <select class="form-control" id="ne_construction_type" ng-if="startTsd.nearend_id.facility_id.construction_type_id.id === oldTsd.nearend_id.facility_id.construction_type_id.id" name="ne_construction_type" ng-model="selectedTsd.nearend_id.facility_id.construction_type_id.id">
                             <option ng-repeat="ct in constructionTypeList"  ng-selected="ct.id.toString() === ne_construction_type" ng-value="ct.id">{{ct.value}}</option>
                         </select>
+                        <div class="input-group" style="width: 100%" ng-show="startTsd.nearend_id.facility_id.construction_type_id.id !== oldTsd.nearend_id.facility_id.construction_type_id.id">
+                            <select class="form-control"  name="ne_construction_type" ng-model="selectedTsd.nearend_id.facility_id.construction_type_id.id">
+                                <option ng-repeat="ct in constructionTypeList"  ng-selected="ct.id.toString() === ne_construction_type" ng-value="ct.id">{{ct.value}}</option>
+                            </select>
+                            <span class="input-group-addon">original: {{oldTsd.nearend_id.facility_id.construction_type_id.name}}</span>
+                        </div>
                         <label class="error" ng-if="kcell_form.ne_construction_type.$error.required && ( kcell_form.ne_construction_type.$touched || view.submitted)">Required field</label>
                     </td>
                     <td align="center" colspan="4">
-                        <select class="form-control" id="fe_construction_type" name="fe_construction_type" ng-model="fe_construction_type" >
+                        <select class="form-control" id="fe_construction_type" ng-if="startTsd.farend_id.facility_id.construction_type_id.id === oldTsd.farend_id.facility_id.construction_type_id.id" name="fe_construction_type" ng-model="selectedTsd.farend_id.facility_id.construction_type_id.id" >
                             <option ng-repeat="ct in constructionTypeList" ng-selected="ct.id.toString() === fe_construction_type" ng-value="ct.id">{{ct.value}}</option>
                         </select>
+                        <div class="input-group" style="width: 100%" ng-show="startTsd.farend_id.facility_id.construction_type_id.id !== oldTsd.farend_id.facility_id.construction_type_id.id">
+                            <select class="form-control"  name="fe_construction_type" ng-model="selectedTsd.farend_id.facility_id.construction_type_id.id">
+                                <option ng-repeat="ct in constructionTypeList"  ng-selected="ct.id.toString() === fe_construction_type" ng-value="ct.id">{{ct.value}}</option>
+                            </select>
+                            <span class="input-group-addon">original: {{oldTsd.farend_id.facility_id.construction_type_id.name}}</span>
+                        </div>
                         <label class="error" ng-if="kcell_form.fe_construction_type.$error.required && ( kcell_form.fe_construction_type.$touched || view.submitted)">Required field</label>
                     </td>
                 </tr>
                 <tr>
                     <td align="right" colspan="2">Height of construction (m):</td>
                     <td align="center" colspan="4">
-                        <input type="text" class="form-control" ng-model="ne_construction_height" name="ne_construction_height" required ng-pattern="heightPattern">
+                        <input type="text" class="form-control" ng-if="startTsd.nearend_id.facility_id.construction_height === oldTsd.nearend_id.facility_id.construction_height" ng-model="selectedTsd.nearend_id.facility_id.construction_height" name="ne_construction_height" required ng-pattern="heightPattern">
+                        <div class="input-group" style="width: 100%" ng-show="startTsd.nearend_id.facility_id.construction_height !== oldTsd.nearend_id.facility_id.construction_height">
+                            <input type="text" class="form-control" name="ne_construction_height"
+                                   ng-model="selectedTsd.nearend_id.facility_id.construction_height" required/>
+                            <span class="input-group-addon">original: {{oldTsd.nearend_id.facility_id.construction_height}}</span>
+                        </div>
                         <label class="error" ng-if="kcell_form.ne_construction_height.$error.required && ( kcell_form.ne_construction_height.$touched || view.submitted)">Required field</label>
-                        <label class="error" ng-if="kcell_form.ne_construction_height.$error.pattern && ( kcell_form.ne_construction_height.$touched || view.submitted)">Uncorrect format</label
+                        <label class="error" ng-if="kcell_form.ne_construction_height.$error.pattern && ( kcell_form.ne_construction_height.$touched || view.submitted)">Uncorrect format</label>
                     </td>
                     <td align="center" colspan="4">
-                        <input type="text" class="form-control" ng-model="fe_construction_height" name="fe_construction_height" required ng-pattern="heightPattern">
+                        <input type="text" class="form-control" ng-if="startTsd.farend_id.facility_id.construction_height === oldTsd.farend_id.facility_id.construction_height" ng-model="selectedTsd.farend_id.facility_id.construction_height" name="fe_construction_height" required ng-pattern="heightPattern">
+                        <div class="input-group" style="width: 100%" ng-show="startTsd.farend_id.facility_id.construction_height !== oldTsd.farend_id.facility_id.construction_height">
+                            <input type="text" class="form-control" name="fe_construction_height"
+                                   ng-model="selectedTsd.farend_id.facility_id.construction_height" required/>
+                            <span class="input-group-addon">original: {{oldTsd.farend_id.facility_id.construction_height}}</span>
+                        </div>
                         <label class="error" ng-if="kcell_form.fe_construction_height.$error.required && ( kcell_form.fe_construction_height.$touched || view.submitted)">Required field</label>
-                        <label class="error" ng-if="kcell_form.fe_construction_height.$error.pattern && ( kcell_form.fe_construction_height.$touched || view.submitted)">Uncorrect format</label
+                        <label class="error" ng-if="kcell_form.fe_construction_height.$error.pattern && ( kcell_form.fe_construction_height.$touched || view.submitted)">Uncorrect format</label>
                     </td>
                 </tr>
                 <tr>
                     <td align="right" colspan="2">Protection mode:</td>
                     <td align="center" colspan="8">
-                        <select class="form-control" id="protection_mode" name="protection_mode"
-                                ng-model="protection_mode" required ng-change="protectionMode()">
+                        <select class="form-control" ng-if="startTsd.protection_mode_id.id === oldTsd.protection_mode_id.id" id="protection_mode" name="protection_mode"
+                                ng-model="selectedTsd.protection_mode_id.id" required ng-change="protectionMode()">
                             <option ng-repeat="ct in protectionModeList"
                                     ng-selected="ct.id.toString() === protection_mode"
                                     value="{{ct.id}}" ng-value="ct.id">{{ct.value}}
                             </option>
                         </select>
+                        <div class="input-group" style="width: 100%" ng-show="startTsd.farend_id.facility_id.construction_type_id.id !== oldTsd.farend_id.facility_id.construction_type_id.id">
+                            <select class="form-control" id="protection_mode" name="protection_mode"
+                                    ng-model="selectedTsd.protection_mode_id.id" required ng-change="protectionMode()">
+                                <option ng-repeat="ct in protectionModeList"
+                                        ng-selected="ct.id.toString() === protection_mode"
+                                        value="{{ct.id}}" ng-value="ct.id">{{ct.value}}
+                                </option>
+                            </select>
+                            <span class="input-group-addon">original: {{oldTsd.protection_mode_id.name}}</span>
+                        </div>
                         <label class="error"
                                ng-if="kcell_form.protection_mode.$error.required && ( kcell_form.protection_mode.$touched || view.submitted)">Required
                             field</label>
@@ -593,23 +631,41 @@
                 <tr>
                     <td align="right" colspan="2">Antenna diameter:</td>
                     <td align="center" colspan="4">
-                        <select class="form-control" id="ne_diameter" name="ne_diameter" ng-model="ne_diameter" required
+                        <select class="form-control" id="ne_diameter" name="ne_diameter" ng-if="startTsd.ne_antenna_diameter_id.id=== oldTsd.ne_antenna_diameter_id.id" ng-model="selectedTsd.ne_antenna_diameter_id.id" required
                                 ng-change="antennaDiameter()">
                             <option ng-repeat="ct in trAntennasTypeList" ng-selected="ct.id.toString() === ne_diameter"
                                     ng-value="ct.id">{{ct.value}}
                             </option>
                         </select>
+                        <div class="input-group" style="width: 100%" ng-show="startTsd.ne_antenna_diameter_id.id !== oldTsd.ne_antenna_diameter_id.id">
+                            <select class="form-control" id="ne_diameter" name="ne_diameter" ng-model="selectedTsd.ne_antenna_diameter_id.id" required
+                                    ng-change="antennaDiameter()">
+                                <option ng-repeat="ct in trAntennasTypeList" ng-selected="ct.id.toString() === ne_diameter"
+                                        ng-value="ct.id">{{ct.value}}
+                                </option>
+                            </select>
+                            <span class="input-group-addon">original: {{oldTsd.ne_antenna_diameter_id.name}}</span>
+                        </div>
                         <label class="error"
                                ng-if="kcell_form.ne_diameter.$error.required && ( kcell_form.ne_diameter.$touched || view.submitted)">Required
                             field</label>
                     </td>
                     <td align="center" colspan="4">
-                        <select class="form-control" id="fe_diameter" name="fe_diameter" ng-model="fe_diameter"
+                        <select class="form-control" id="fe_diameter" ng-if="startTsd.fe_antenna_diameter_id.id === oldTsd.fe_antenna_diameter_id.id" name="fe_diameter" ng-model="selectedTsd.fe_antenna_diameter_id.id"
                                 required>
                             <option ng-repeat="ct in trAntennasTypeList" ng-selected="ct.id.toString() === fe_diameter"
                                     ng-value="ct.id">{{ct.value}}
                             </option>
                         </select>
+                        <div class="input-group" style="width: 100%" ng-show="startTsd.fe_antenna_diameter_id.id !== oldTsd.fe_antenna_diameter_id.id">
+                            <select class="form-control" id="ne_diameter" name="fe_diameter" ng-model="selectedTsd.fe_antenna_diameter_id.id" required
+                                    ng-change="antennaDiameter()" disabled>
+                                <option ng-repeat="ct in trAntennasTypeList" ng-selected="ct.id.toString() === fe_diameter"
+                                        ng-value="ct.id">{{ct.value}}
+                                </option>
+                            </select>
+                            <span class="input-group-addon">original: {{oldTsd.fe_antenna_diameter_id.name}}</span>
+                        </div>
                         <label class="error"
                                ng-if="kcell_form.fe_diameter.$error.required && ( kcell_form.fe_diameter.$touched || view.submitted)">Required
                             field</label>
@@ -618,24 +674,41 @@
                 <tr>
                     <td align="right" colspan="2">Protection antenna diameter:</td>
                     <td align="center" colspan="4">
-                        <select class="form-control" id="ne_protection_antenna_diameter" name="ne_protection_antenna_diameter" ng-model="ne_protection_antenna_diameter" ng-change="protectionAntennaDiameter()">
+                        <select class="form-control" id="ne_protection_antenna_diameter" ng-if="startTsd.ne_antenna_diameter_protect_id.id === oldTsd.ne_antenna_diameter_protect_id.id" name="ne_protection_antenna_diameter" ng-model="selectedTsd.ne_antenna_diameter_protect_id.id" ng-change="protectionAntennaDiameter()">
                             <option ng-repeat="ct in trAntennasTypeList" ng-value="ct.id">{{ct.value}}</option>
                         </select>
+                        <div class="input-group" style="width: 100%" ng-show="startTsd.ne_antenna_diameter_protect_id.id !== oldTsd.ne_antenna_diameter_protect_id.id">
+                            <select class="form-control" id="ne_protection_antenna_diameter" name="ne_protection_antenna_diameter" ng-model="selectedTsd.ne_antenna_diameter_protect_id.id" ng-change="protectionAntennaDiameter()">
+                                <option ng-repeat="ct in trAntennasTypeList" ng-value="ct.id">{{ct.value}}</option>
+                            </select>
+                            <span class="input-group-addon">original: {{oldTsd.ne_antenna_diameter_protect_id.name}}</span>
+                        </div>
                         <label class="error" ng-if="kcell_form.ne_protection_antenna_diameter.$error.required && ( kcell_form.ne_protection_antenna_diameter.$touched || view.submitted)">Required field</label>
                     </td>
                     <td align="center" colspan="4">
-                        <select class="form-control" id="fe_protection_antenna_diameter" name="fe_protection_antenna_diameter" ng-model="fe_protection_antenna_diameter" >
+                        <select class="form-control" id="fe_protection_antenna_diameter" ng-if="startTsd.fe_antenna_diameter_protect_id.id === oldTsd.fe_antenna_diameter_protect_id.id" name="fe_protection_antenna_diameter" ng-model="selectedTsd.fe_antenna_diameter_id.id" >
                             <option ng-repeat="ct in trAntennasTypeList" ng-value="ct.id">{{ct.value}}</option>
                         </select>
+                        <div class="input-group" style="width: 100%" ng-show="startTsd.fe_antenna_diameter_protect_id.id !== oldTsd.fe_antenna_diameter_protect_id.id">
+                            <select class="form-control" id="ne_protection_antenna_diameter" name="fe_protection_antenna_diameter" ng-model="selectedTsd.fe_antenna_diameter_protect_id.id" ng-change="protectionAntennaDiameter()">
+                                <option ng-repeat="ct in trAntennasTypeList" ng-value="ct.id">{{ct.value}}</option>
+                            </select>
+                            <span class="input-group-addon">original: {{oldTsd.fe_antenna_diameter_protect_id.name}}</span>
+                        </div>
                         <label class="error" ng-if="kcell_form.fe_protection_antenna_diameter.$error.required && ( kcell_form.fe_protection_antenna_diameter.$touched || view.submitted)">Required field</label>
                     </td>
                 </tr>
                 <tr>
                     <td align="right" colspan="2">Height of suspension of MW ant (m):</td>
                     <td align="center" colspan="4">
-                        <input type="number" class="form-control" ng-model="ne_suspension_height_antennas"
-                               name="ne_suspension_height_antennas" ng-pattern="suspensionPattern" required
-                               cam-variable-type="Integer">
+                        <input type="number" class="form-control" ng-if="startTsd.ne_height_susp_antenna === oldTsd.ne_height_susp_antenna" ng-model="selectedTsd.ne_height_susp_antenna"
+                               name="ne_suspension_height_antennas" ng-pattern="suspensionPattern" required>
+
+                        <div class="input-group" style="width: 100%" ng-show="startTsd.ne_height_susp_antenna !== oldTsd.ne_height_susp_antenna">
+                            <input type="number" class="form-control" ng-model="selectedTsd.ne_height_susp_antenna"
+                                   name="ne_suspension_height_antennas" ng-pattern="suspensionPattern" required>
+                            <span class="input-group-addon">original: {{oldTsd.ne_height_susp_antenna}}</span>
+                        </div>
                         <label class="error"
                                ng-if="kcell_form.ne_suspension_height_antennas.$error.required && ( kcell_form.ne_suspension_height_antennas.$touched || view.submitted)">Required
                             field</label>
@@ -644,9 +717,13 @@
                             1 <- Height of suspension of MW ant <- 999</label>
                     </td>
                     <td align="center" colspan="4">
-                        <input type="number" class="form-control" ng-model="fe_suspension_height"
-                               name="fe_suspension_height" ng-pattern="suspensionPattern" required
-                               cam-variable-type="Integer">
+                        <input type="number" class="form-control" ng-if="startTsd.fe_height_susp_antenna === oldTsd.fe_height_susp_antenna" ng-model="selectedTsd.fe_height_susp_antenna"
+                               name="fe_suspension_height" ng-pattern="suspensionPattern" required>
+                        <div class="input-group" style="width: 100%" ng-show="startTsd.fe_height_susp_antenna !== oldTsd.fe_height_susp_antenna">
+                            <input type="number" class="form-control" ng-model="selectedTsd.fe_height_susp_antenna"
+                                   name="fe_suspension_height" ng-pattern="suspensionPattern" required>
+                            <span class="input-group-addon">original: {{oldTsd.fe_height_susp_antenna}}</span>
+                        </div>
                         <label class="error"
                                ng-if="kcell_form.fe_suspension_height.$error.required && ( kcell_form.fe_suspension_height.$touched || view.submitted)">Required
                             field</label>
@@ -658,9 +735,13 @@
                 <tr>
                     <td align="right" colspan="2">Height of suspension of prot. MW ant (m).:</td>
                     <td align="center" colspan="4">
-                        <input type="number" class="form-control" ng-model="ne_protection_suspension_height"
-                               name="ne_protection_suspension_height" ng-pattern="suspensionPattern"
-                               cam-variable-type="Integer">
+                        <input type="number" class="form-control" ng-if="startTsd.ne_height_susp_antenna_protect === oldTsd.ne_height_susp_antenna_protect" ng-model="selectedTsd.ne_height_susp_antenna_protect"
+                               name="ne_protection_suspension_height" ng-pattern="suspensionPattern">
+                        <div class="input-group" style="width: 100%" ng-show="startTsd.ne_height_susp_antenna_protect !== oldTsd.ne_height_susp_antenna_protect">
+                            <input type="number" class="form-control" ng-model="selectedTsd.ne_height_susp_antenna_protect"
+                                   name="ne_protection_suspension_height" ng-pattern="suspensionPattern">
+                            <span class="input-group-addon">original: {{oldTsd.ne_height_susp_antenna_protect}}</span>
+                        </div>
                         <label class="error"
                                ng-if="kcell_form.ne_protection_suspension_height.$error.required && ( kcell_form.ne_protection_suspension_height.$touched || view.submitted)">Required
                             field</label>
@@ -669,9 +750,13 @@
                             1 <- Height of suspension of prot. MW ant. <- 999</label>
                     </td>
                     <td align="center" colspan="4">
-                        <input type="number" class="form-control" ng-model="fe_protection_suspension_height"
-                               name="fe_protection_suspension_height" ng-pattern="suspensionPattern"
-                               cam-variable-type="Integer">
+                        <input type="number" class="form-control" ng-if="startTsd.fe_height_susp_antenna_protect === oldTsd.fe_height_susp_antenna_protect" ng-model="selectedTsd.fe_height_susp_antenna_protect"
+                               name="fe_protection_suspension_height" ng-pattern="suspensionPattern">
+                        <div class="input-group" style="width: 100%" ng-show="startTsd.fe_height_susp_antenna_protect !== oldTsd.fe_height_susp_antenna_protect">
+                            <input type="number" class="form-control" ng-model="selectedTsd.fe_height_susp_antenna_protect"
+                                   name="fe_protection_suspension_height" ng-pattern="suspensionPattern">
+                            <span class="input-group-addon">original: {{oldTsd.fe_height_susp_antenna_protect}}</span>
+                        </div>
                         <label class="error"
                                ng-if="kcell_form.fe_protection_suspension_height.$error.required && ( kcell_form.fe_protection_suspension_height.$touched || view.submitted)">Required
                             field</label>
@@ -683,10 +768,17 @@
                 <tr>
                     <td align="right" colspan="2">Polarization:</td>
                     <td align="center" colspan="8">
-                        <select class="form-control" id="hop_polarization" name="hop_polarization"
-                                ng-model="hop_polarization" required>
+                        <select class="form-control" ng-if="startTsd.polarization_id.id === oldTsd.polarization_id.id" id="hop_polarization" name="hop_polarization"
+                                ng-model="selectedTsd.polarization_id.id" required>
                             <option ng-repeat="ct in polarizationList" ng-value="ct.id">{{ct.value}}</option>
                         </select>
+                        <div class="input-group" style="width: 100%" ng-show="startTsd.polarization_id.id !== oldTsd.polarization_id.id">
+                            <select class="form-control" id="hop_polarization" name="hop_polarization"
+                                    ng-model="selectedTsd.polarization_id.id" required>
+                                <option ng-repeat="ct in polarizationList" ng-value="ct.id">{{ct.value}}</option>
+                            </select>
+                            <span class="input-group-addon">original: {{oldTsd.polarization_id.name}}</span>
+                        </div>
                         <label class="error"
                                ng-if="kcell_form.hop_polarization.$error.required && ( kcell_form.hop_polarization.$touched || view.submitted)">Required
                             field</label>
@@ -695,10 +787,17 @@
                 <tr>
                     <td align="right" colspan="2">Link type:</td>
                     <td align="center" colspan="8">
-                        <select class="form-control" id="hop_link_type" name="hop_link_type" ng-model="hop_link_type"
+                        <select class="form-control" id="hop_link_type" ng-if="startTsd.link_type_id.id === oldTsd.link_type_id.id" name="hop_link_type" ng-model="selectedTsd.link_type_id.id"
                                 required>
                             <option ng-repeat="ct in linkTypeList" ng-value="ct.id">{{ct.value}}</option>
                         </select>
+                        <div class="input-group" style="width: 100%" ng-show="startTsd.link_type_id.id !== oldTsd.link_type_id.id">
+                            <select class="form-control" id="hop_link_type" name="hop_link_type" ng-model="selectedTsd.link_type_id.id"
+                                    required>
+                                <option ng-repeat="ct in linkTypeList" ng-value="ct.id">{{ct.value}}</option>
+                            </select>
+                            <span class="input-group-addon">original: {{oldTsd.link_type_id.name}}</span>
+                        </div>
                         <label class="error"
                                ng-if="kcell_form.hop_link_type.$error.required && ( kcell_form.hop_link_type.$touched || view.submitted)">Required
                             field</label>
@@ -708,10 +807,17 @@
                     <td align="right" rowspan="2">Link capacity :</td>
                     <td align="right">Capacity</td>
                     <td align="center" colspan="8">
-                        <select class="form-control" id="hop_link_capacity" name="hop_link_capacity"
-                                ng-model="hop_link_capacity" required ng-change="hopLinkCapacitySelected()">
+                        <select class="form-control" ng-if="startTsd.capacity_id.id === oldTsd.capacity_id.id" id="hop_link_capacity" name="hop_link_capacity"
+                                ng-model="selectedTsd.capacity_id.id" required ng-change="hopLinkCapacitySelected()">
                             <option ng-repeat="ct in linkCapacityList" ng-value="ct.id">{{ct.value}}</option>
                         </select>
+                        <div class="input-group" style="width: 100%" ng-show="startTsd.capacity_id.id !== oldTsd.capacity_id.id">
+                            <select class="form-control"  name="hop_link_capacity"
+                                    ng-model="selectedTsd.capacity_id.id" required ng-change="hopLinkCapacitySelected()">
+                                <option ng-repeat="ct in linkCapacityList" ng-value="ct.id">{{ct.value}}</option>
+                            </select>
+                            <span class="input-group-addon">original: {{oldTsd.capacity_id.name}}</span>
+                        </div>
                         <label class="error"
                                ng-if="kcell_form.hop_link_capacity.$error.required && ( kcell_form.hop_link_capacity.$touched || view.submitted)">Required
                             field</label>
@@ -719,31 +825,72 @@
                 </tr>
                 <tr>
                     <td align="right">nxE1</td>
-                    <td align="center" colspan="8">{{hop_link_nxe1}}</td>
+                    <td align="center" colspan="8">
+                        <input type="text" class="form-control" ng-if="startTsd.nxe1 === oldTsd.nxe1" name="hop_link_nxe1" ng-model="selectedtsd.nxe1"
+                               ng-pattern="linkNxePattern">
+                        <div class="input-group" style="width: 100%" ng-show="startTsd.nxe1 !== oldTsd.nxe1">
+                            <input type="text" class="form-control" name="hop_link_nxe1" ng-model="selectedtsd.nxe1"
+                                   ng-pattern="linkNxePattern">
+                            <span class="input-group-addon">original: {{oldTsd.nxe1}}</span>
+                        </div>
+                        <label class="error"
+                               ng-if="kcell_form.hop_link_nxe1.$error.pattern && ( kcell_form.hop_link_nxe1.$touched || view.submitted)">Expected:
+                            0 <- nxE1 <- 99</label>
+                    </td>
                 </tr>
                 <tr>
                     <td align="right" colspan="2">Modulation type:</td>
-                    <td align="center" colspan="8">{{hop_modulation_type}}</td>
+                    <td align="center" colspan="8">
+                        <input type="text" class="form-control" ng-if="startTsd.capacity_id.modulation === oldTsd.capacity_id.modulation"  name="hop_modulation_type"
+                               ng-model="selectedTsd.capacity_id.modulation" >
+                        <div class="input-group" style="width: 100%" ng-show="startTsd.capacity_id.modulation !== oldTsd.capacity_id.modulation">
+                            <input type="text" class="form-control" name="hop_modulation_type"
+                                   ng-model="selectedTsd.capacity_id.modulation">
+                            <span class="input-group-addon">original: {{oldTsd.capacity_id.modulation}}</span>
+                        </div>
+                    </td>
                 </tr>
                 <tr>
                     <td align="right" colspan="2">Channel bandwidth:</td>
-                    <td align="center" colspan="8">{{hop_channel_bandwidth}}</td>
+                    <td align="center" colspan="8">
+                        <input type="text" class="form-control" ng-if="startTsd.capacity_id.channel_bandwidth === oldTsd.capacity_id.channel_bandwidth" name="hop_channel_bandwidth"
+                               ng-model="selectedTsd.capacity_id.channel_bandwidth" >
+                        <div class="input-group" style="width: 100%" ng-show="startTsd.capacity_id.channel_bandwidth !== oldTsd.capacity_id.channel_bandwidth">
+                            <input type="text" class="form-control" name="hop_channel_bandwidth"
+                                   ng-model="selectedTsd.capacity_id.channel_bandwidth" />
+                            <span class="input-group-addon">original: {{oldTsd.capacity_id.channel_bandwidth}}</span>
+                        </div>
+                    </td>
+
                 </tr>
                 <tr>
-                    <td align="right" colspan="2">RAU subband:</td>
+                    <td align="right" colspan="2">RAU subband:{{startTsd.ne_rau_subband_id.id}} {{oldTsd.ne_rau_subband_id.id}}</td>
                     <td align="center" colspan="4">
-                        <select class="form-control" id="ne_rau_subband" name="ne_rau_subband" ng-model="ne_rau_subband"
-                                 ng-change="rauSubbandSelected()">
+                        <select class="form-control" id="ne_rau_subband" ng-if="startTsd.ne_rau_subband_id.id === oldTsd.ne_rau_subband_id.id" name="ne_rau_subband"  ng-model="selectedTsd.ne_rau_subband_id.id"
+                                ng-change="rauSubbandSelected()">
                             <option ng-repeat="ct in rauSubbandList" ng-value="ct.id">{{ct.value}}</option>
                         </select>
+                        <div class="input-group" style="width: 100%" ng-show="startTsd.ne_rau_subband_id.id !== oldTsd.ne_rau_subband_id.id">
+                            <select class="form-control"  name="ne_rau_subband" ng-model="selectedTsd.ne_rau_subband_id.id"
+                                    ng-change="rauSubbandSelected()">
+                                <option ng-repeat="ct in rauSubbandList" ng-value="ct.id">{{ct.value}}</option>
+                            </select>
+                            <span class="input-group-addon">original: {{oldTsd.ne_rau_subband_id.name}}</span>
+                        </div>
                         <label class="error"
                                ng-if="kcell_form.ne_rau_subband.$error.required && ( kcell_form.ne_rau_subband.$touched || view.submitted)">Required
                             field</label>
                     </td>
                     <td align="center" colspan="4">
-                        <select class="form-control" id="fe_rau_subband" name="fe_rau_subband" ng-model="fe_rau_subband">
+                        <select class="form-control" id="fe_rau_subband" ng-if="startTsd.fe_rau_subband_id.id === oldTsd.fe_rau_subband_id.id" name="fe_rau_subband" ng-model="selectedTsd.fe_rau_subband_id.id">
                             <option ng-repeat="ct in rauSubbandList" ng-value="ct.id">{{ct.value}}</option>
                         </select>
+                        <div class="input-group" style="width: 100%" ng-show="startTsd.fe_rau_subband_id.id !== oldTsd.fe_rau_subband_id.id">
+                            <select class="form-control"  name="fe_rau_subband" ng-model="selectedTsd.fe_rau_subband_id.id">
+                                <option ng-repeat="ct in rauSubbandList" ng-value="ct.id">{{ct.value}}</option>
+                            </select>
+                            <span class="input-group-addon">original: {{oldTsd.fe_rau_subband_id.name}}</span>
+                        </div>
                         <label class="error"
                                ng-if="kcell_form.fe_rau_subband.$error.required && ( kcell_form.fe_rau_subband.$touched || view.submitted)">Required
                             field</label>
@@ -752,24 +899,42 @@
                 <tr>
                     <td align="right" colspan="2">protection RAU subband:</td>
                     <td align="center" colspan="4">
-                        <select class="form-control" id="ne_protection_rau_subband" name="ne_protection_rau_subband"
-                                ng-model="ne_protection_rau_subband" ng-change="protectRauSubbandSelected()">
+                        <select class="form-control" id="ne_protection_rau_subband" ng-if="startTsd.ne_rau_subband_protect_id.id === oldTsd.ne_rau_subband_protect_id.id" name="ne_protection_rau_subband"
+                                ng-model="selectedTsd.ne_rau_subband_protect_id.id" ng-change="protectRauSubbandSelected()">
                             <option ng-repeat="ct in rauSubbandList" ng-value="ct.id">{{ct.value}}</option>
                         </select>
+                        <div class="input-group" style="width: 100%" ng-show="startTsd.ne_rau_subband_protect_id.id !== oldTsd.ne_rau_subband_protect_id.id">
+                            <select class="form-control"  name="ne_protection_rau_subband"
+                                    ng-model="selectedTsd.ne_rau_subband_protect_id.id" ng-change="protectRauSubbandSelected()">
+                                <option ng-repeat="ct in rauSubbandList" ng-value="ct.id">{{ct.value}}</option>
+                            </select>
+                            <span class="input-group-addon">original: {{oldTsd.ne_rau_subband_protect_id.name}}</span>
+                        </div>
                     </td>
                     <td align="center" colspan="4">
-                        <select class="form-control" id="fe_protection_rau_subband" name="fe_protection_rau_subband"
-                                ng-model="fe_protection_rau_subband">
+                        <select class="form-control" id="fe_protection_rau_subband" ng-if="startTsd.fe_rau_subband_protect_id.id === oldTsd.fe_rau_subband_protect_id.id" name="fe_protection_rau_subband"
+                                ng-model="selectedTsd.fe_rau_subband_protect_id.id">
                             <option ng-repeat="ct in rauSubbandList" ng-value="ct.id">{{ct.value}}</option>
                         </select>
+                        <div class="input-group" style="width: 100%" ng-show="startTsd.fe_rau_subband_protect_id.id !== oldTsd.fe_rau_subband_protect_id.id">
+                            <select class="form-control"   name="fe_protection_rau_subband"
+                                    ng-model="selectedTsd.fe_rau_subband_protect_id.id">
+                                <option ng-repeat="ct in rauSubbandList" ng-value="ct.id">{{ct.value}}</option>
+                            </select>
+                            <span class="input-group-addon">original: {{oldTsd.fe_rau_subband_protect_id.name}}</span>
+                        </div>
                     </td>
                 </tr>
                 <tr>
                     <td align="right" colspan="2">Tx/Rx frequencies, Mhz:</td>
                     <td align="center" colspan="4">
-                        <input type="number" class="form-control" name="ne_txrx_frequincies"
-                               ng-model="ne_txrx_frequincies" cam-variable-name="ne_txrx_frequincies"
-                               cam-variable-type="String" required ng-blur="ne_txrx_frequinciesValuesCheck()">
+                        <input type="number" class="form-control" ng-if="startTsd.ne_txrx_frequencies === oldTsd.ne_txrx_frequencies" name="ne_txrx_frequincies"
+                               ng-model="selectedTsd.ne_txrx_frequencies" required ng-blur="ne_txrx_frequinciesValuesCheck()">
+                        <div class="input-group" style="width: 100%" ng-show="startTsd.ne_txrx_frequencies !== oldTsd.ne_txrx_frequencies">
+                            <input type="number" class="form-control" name="ne_txrx_frequincies"
+                                   ng-model="selectedTsd.ne_txrx_frequencies" required ng-blur="ne_txrx_frequinciesValuesCheck()">
+                            <span class="input-group-addon">original: {{oldTsd.ne_txrx_frequencies}}</span>
+                        </div>
                         <label class="error"
                                ng-if="kcell_form.ne_txrx_frequincies.$error.required && ( kcell_form.ne_txrx_frequincies.$touched || view.submitted)">Required
                             field</label>
@@ -778,9 +943,13 @@
                             {{rauRelations[ne_rau_subband].maxFrequency}}</label>
                     </td>
                     <td align="center" colspan="4">
-                        <input type="number" class="form-control" name="fe_txrx_frequincies"
-                               ng-model="fe_txrx_frequincies" cam-variable-name="fe_txrx_frequincies"
-                               cam-variable-type="String" required ng-blur="fe_txrx_frequinciesValuesCheck()">
+                        <input type="number" class="form-control" ng-if="startTsd.fe_txrx_frequencies === oldTsd.fe_txrx_frequencies" name="fe_txrx_frequincies"
+                               ng-model="selectedTsd.fe_txrx_frequencies" required ng-blur="fe_txrx_frequinciesValuesCheck()">
+                        <div class="input-group" style="width: 100%" ng-show="startTsd.fe_txrx_frequencies !== oldTsd.fe_txrx_frequencies">
+                            <input type="number" class="form-control" name="fe_txrx_frequincies"
+                                   ng-model="selectedTsd.fe_txrx_frequencies" required ng-blur="fe_txrx_frequinciesValuesCheck()">
+                            <span class="input-group-addon">original: {{oldTsd.fe_txrx_frequencies}}</span>
+                        </div>
                         <label class="error"
                                ng-if="kcell_form.fe_txrx_frequincies.$error.required && ( kcell_form.fe_txrx_frequincies.$touched || view.submitted)">Required
                             field</label>
@@ -792,20 +961,30 @@
                 <tr>
                     <td align="right" colspan="2">Protection Tx/Rx frequencies, Mhz:</td>
                     <td align="center" colspan="4">
-                        <input type="number" class="form-control" name="ne_protection_txrx_frequincies"
-                               ng-model="ne_protection_txrx_frequincies"
-                               cam-variable-name="ne_protection_txrx_frequincies" cam-variable-type="String"
+                        <input type="number" class="form-control" ng-if="startTsd.ne_txrx_frequencies_protect === oldTsd.ne_txrx_frequencies_protect" name="ne_protection_txrx_frequincies"
+                               ng-model="selectedTsd.ne_txrx_frequencies_protect"
                                ng-blur="ne_protection_txrx_frequinciesValuesCheck()">
+                        <div class="input-group" style="width: 100%" ng-show="startTsd.ne_txrx_frequencies_protect !== oldTsd.ne_txrx_frequencies_protect">
+                            <input type="number" class="form-control" name="ne_protection_txrx_frequincies"
+                                   ng-model="selectedTsd.ne_txrx_frequencies_protect"
+                                   ng-blur="ne_protection_txrx_frequinciesValuesCheck()">
+                            <span class="input-group-addon">original: {{oldTsd.ne_txrx_frequencies_protect}}</span>
+                        </div>
                         <label class="error"
                                ng-if="ne_protection_rau_subband && ne_protection_txrx_frequincies && ne_protection_txrx_frequinciesInvalid">Expected
                             between {{rauRelations[ne_protection_rau_subband].minFrequency}} and
                             {{rauRelations[ne_protection_rau_subband].maxFrequency}}</label>
                     </td>
                     <td align="center" colspan="4">
-                        <input type="number" class="form-control" name="fe_protection_txrx_frequincies"
-                               ng-model="fe_protection_txrx_frequincies"
-                               cam-variable-name="fe_protection_txrx_frequincies" cam-variable-type="String"
+                        <input type="number" class="form-control" ng-if="startTsd.fe_txrx_frequencies_protect === oldTsd.fe_txrx_frequencies_protect" name="fe_protection_txrx_frequincies"
+                               ng-model="selectedTsd.fe_txrx_frequencies_protect"
                                ng-blur="fe_protection_txrx_frequinciesValuesCheck()">
+                        <div class="input-group" style="width: 100%" ng-show="startTsd.fe_txrx_frequencies_protect !== oldTsd.fe_txrx_frequencies_protect">
+                            <input type="number" class="form-control" name="fe_protection_txrx_frequincies"
+                                   ng-model="selectedTsd.fe_txrx_frequencies_protect"
+                                   ng-blur="fe_protection_txrx_frequinciesValuesCheck()">
+                            <span class="input-group-addon">original: {{oldTsd.fe_txrx_frequencies_protect}}</span>
+                        </div>
                         <label class="error"
                                ng-if="fe_protection_rau_subband && fe_protection_txrx_frequincies && fe_protection_txrx_frequinciesInvalid">Expected
                             between {{rauRelations[fe_protection_rau_subband].minFrequency}} and
@@ -815,19 +994,31 @@
                 <tr>
                     <td align="right" colspan="2">Terminal ID:</td>
                     <td align="center" colspan="4">
-                        <input type="text" class="form-control" name="ne_terminal_id" ng-model="ne_terminal_id">
+                        <input type="text" class="form-control" ng-if="startTsd.ne_terminalid === oldTsd.ne_terminalid" name="ne_terminal_id" ng-model="selectedTsd.ne_terminalid">
+                        <div class="input-group" style="width: 100%" ng-show="startTsd.ne_terminalid !== oldTsd.ne_terminalid">
+                            <input type="text" class="form-control" name="ne_terminal_id" ng-model="selectedTsd.ne_terminalid">
+                            <span class="input-group-addon">original: {{oldTsd.ne_terminalid}}</span>
+                        </div>
                     </td>
                     <td align="center" colspan="4">
-                        <input type="text" class="form-control" name="fe_terminal_id" ng-model="fe_terminal_id">
+                        <input type="text" class="form-control" ng-if="startTsd.fe_terminalid === oldTsd.fe_terminalid" name="fe_terminal_id" ng-model="selectedTsd.fe_terminalid">
+                        <div class="input-group" style="width: 100%" ng-show="startTsd.fe_terminalid !== oldTsd.fe_terminalid">
+                            <input type="text" class="form-control" name="fe_terminal_id" ng-model="selectedTsd.fe_terminalid">
+                            <span class="input-group-addon">original: {{oldTsd.fe_terminalid}}</span>
+                        </div>
                     </td>
                 </tr>
                 <tr>
                     <td align="right" colspan="2">Power levels:</td>
                     <td>Tx</td>
                     <td align="center">
-                        <input type="number" class="form-control" name="ne_power_level_tx" ng-model="ne_power_level_tx"
-                               cam-variable-name="ne_power_level_tx" cam-variable-type="String" required
+                        <input type="number" class="form-control" name="ne_power_level_tx" ng-if="startTsd.ne_power_levels_tx === oldTsd.ne_power_levels_tx" ng-model="selectedTsd.ne_power_levels_tx" required
                                ng-pattern="ne_power_level_txPattern" ng-change="ne_power_level_txChanged()">
+                        <div class="input-group" style="width: 100%" ng-show="startTsd.ne_power_levels_tx !== oldTsd.ne_power_levels_tx">
+                            <input type="number" class="form-control" name="ne_power_level_tx" ng-model="selectedTsd.ne_power_levels_tx" required
+                                   ng-pattern="ne_power_level_txPattern" ng-change="ne_power_level_txChanged()">
+                            <span class="input-group-addon">original: {{oldTsd.ne_power_levels_tx}}</span>
+                        </div>
                         <label class="error"
                                ng-if="kcell_form.ne_power_level_tx.$error.required && ( kcell_form.ne_power_level_tx.$touched || view.submitted)">Required
                             field</label>
@@ -837,9 +1028,13 @@
                     </td>
                     <td>Rx</td>
                     <td align="center">
-                        <input type="number" class="form-control" name="ne_power_level_rx" ng-model="ne_power_level_rx"
-                               cam-variable-name="ne_power_level_rx" cam-variable-type="String" required
+                        <input type="number" class="form-control" ng-if="startTsd.ne_power_levels_rx === oldTsd.ne_power_levels_rx" name="ne_power_level_rx" ng-model="selectedTsd.ne_power_levels_rx" required
                                ng-pattern="ne_power_level_rxPattern" ng-change="ne_power_level_rxChanged()">
+                        <div class="input-group" style="width: 100%" ng-show="startTsd.ne_power_levels_rx !== oldTsd.ne_power_levels_rx">
+                            <input type="number" class="form-control" name="ne_power_level_rx" ng-model="selectedTsd.ne_power_levels_rx" required
+                                   ng-pattern="ne_power_level_rxPattern" ng-change="ne_power_level_rxChanged()">
+                            <span class="input-group-addon">original: {{oldTsd.ne_power_levels_rx}}</span>
+                        </div>
                         <label class="error"
                                ng-if="kcell_form.ne_power_level_rx.$error.required && ( kcell_form.ne_power_level_rx.$touched || view.submitted)">Required
                             field</label>
@@ -849,48 +1044,72 @@
                     </td>
                     <td>Tx</td>
                     <td align="center">
-                        <input type="number" class="form-control" name="fe_power_level_tx" ng-model="fe_power_level_tx"
-                               cam-variable-name="fe_power_level_tx" cam-variable-type="String">
+                        <input type="number" class="form-control" ng-if="startTsd.fe_power_levels_tx === oldTsd.fe_power_levels_tx" name="fe_power_level_tx" ng-model="selectedTsd.fe_power_levels_tx">
+                        <div class="input-group" style="width: 100%" ng-show="startTsd.fe_power_levels_tx !== oldTsd.fe_power_levels_tx">
+                            <input type="number" class="form-control" name="fe_power_level_tx" ng-model="selectedTsd.fe_power_levels_tx">
+                            <span class="input-group-addon">original: {{oldTsd.fe_power_levels_tx}}</span>
+                        </div>
                     </td>
                     <td>Rx</td>
                     <td align="center">
-                        <input type="number" class="form-control" name="fe_power_level_rx" ng-model="fe_power_level_rx"
-                               cam-variable-name="fe_power_level_rx" cam-variable-type="String">
+                        <input type="number" class="form-control" ng-if="startTsd.fe_power_levels_rx === oldTsd.fe_power_levels_rx" name="fe_power_level_rx" ng-model="selectedTsd.fe_power_levels_rx">
+                        <div class="input-group" style="width: 100%" ng-show="startTsd.fe_power_levels_rx !== oldTsd.fe_power_levels_rx">
+                            <input type="number" class="form-control" name="fe_power_level_rx" ng-model="selectedTsd.fe_power_levels_rx">
+                            <span class="input-group-addon">original: {{oldTsd.fe_power_levels_rx}}</span>
+                        </div>
                     </td>
                 </tr>
                 <tr>
                     <td align="right" colspan="2">Protection line power levels:</td>
                     <td>Tx</td>
                     <td align="center">
-                        <input type="number" class="form-control" name="ne_protection_power_level_tx"
-                               ng-model="ne_protection_power_level_tx" cam-variable-name="ne_protection_power_level_tx"
-                               cam-variable-type="String" ng-pattern="ne_power_level_txPattern"
+                        <input type="number" class="form-control"  ng-if="startTsd.ne_power_levels_tx_protect === oldTsd.ne_power_levels_tx_protect" name="ne_protection_power_level_tx"
+                               ng-model="selectedTsd.ne_power_levels_tx_protect"  ng-pattern="ne_power_level_txPattern"
                                ng-change="ne_protection_power_level_txChanged()">
+                        <div class="input-group" style="width: 100%" ng-show="startTsd.ne_power_levels_tx_protect !== oldTsd.ne_power_levels_tx_protect">
+                            <input type="number" class="form-control" name="ne_protection_power_level_tx"
+                                   ng-model="selectedTsd.ne_power_levels_tx_protect"  ng-pattern="ne_power_level_txPattern"
+                                   ng-change="ne_protection_power_level_txChanged()">
+                            <span class="input-group-addon">original: {{oldTsd.ne_power_levels_tx_protect}}</span>
+                        </div>
                         <label class="error"
                                ng-if="kcell_form.ne_protection_power_level_tx.$error.pattern && ( kcell_form.ne_protection_power_level_tx.$touched || view.submitted)">Invalid
                             format (XX or -XX required)</label>
                     </td>
                     <td>Rx</td>
                     <td align="center">
-                        <input type="number" class="form-control" name="ne_protection_power_level_rx"
-                               ng-model="ne_protection_power_level_rx" cam-variable-name="ne_protection_power_level_rx"
-                               cam-variable-type="String" ng-pattern="ne_power_level_rxPattern"
+                        <input type="number" class="form-control" ng-if="startTsd.ne_power_levels_rx_protect === oldTsd.ne_power_levels_rx_protect" name="ne_protection_power_level_rx"
+                               ng-model="selectedTsd.ne_power_levels_rx_protect" ng-pattern="ne_power_level_rxPattern"
                                ng-change="ne_protection_power_level_rxChanged()">
+                        <div class="input-group" style="width: 100%" ng-show="startTsd.ne_power_levels_rx_protect !== oldTsd.ne_power_levels_rx_protect">
+                            <input type="number" class="form-control" name="ne_protection_power_level_rx"
+                                   ng-model="selectedTsd.ne_power_levels_rx_protect" ng-pattern="ne_power_level_rxPattern"
+                                   ng-change="ne_protection_power_level_rxChanged()">
+                            <span class="input-group-addon">original: {{oldTsd.ne_power_levels_rx_protect}}</span>
+                        </div>
                         <label class="error"
                                ng-if="kcell_form.ne_protection_power_level_rx.$error.pattern && ( kcell_form.ne_protection_power_level_rx.$touched || view.submitted)">Invalid
                             format (format -XX required)</label>
                     </td>
                     <td>Tx</td>
                     <td align="center">
-                        <input type="number" class="form-control" name="fe_protection_power_level_tx"
-                               ng-model="fe_protection_power_level_tx" cam-variable-name="fe_protection_power_level_tx"
-                               cam-variable-type="String">
+                        <input type="number" class="form-control" ng-if="startTsd.fe_power_levels_tx_protect === oldTsd.fe_power_levels_tx_protect" name="fe_protection_power_level_tx"
+                               ng-model="selectedTsd.fe_power_levels_tx_protect">
+                        <div class="input-group" style="width: 100%" ng-show="startTsd.fe_power_levels_tx_protect !== oldTsd.fe_power_levels_tx_protect">
+                            <input type="number" class="form-control" name="fe_protection_power_level_tx"
+                                   ng-model="selectedTsd.fe_power_levels_tx_protect">
+                            <span class="input-group-addon">original: {{oldTsd.fe_power_levels_tx_protect}}</span>
+                        </div>
                     </td>
                     <td>Rx</td>
                     <td align="center">
-                        <input type="number" class="form-control" name="fe_protection_power_level_rx"
-                               ng-model="fe_protection_power_level_rx" cam-variable-name="fe_protection_power_level_rx"
-                               cam-variable-type="String">
+                        <input type="number" class="form-control" ng-if="startTsd.fe_power_levels_rx_protect === oldTsd.fe_power_levels_rx_protect" name="fe_protection_power_level_rx"
+                               ng-model="selectedTsd.fe_power_levels_rx_protect">
+                        <div class="input-group" style="width: 100%" ng-show="startTsd.fe_power_levels_rx_protect !== oldTsd.fe_power_levels_rx_protect">
+                            <input type="number" class="form-control" name="fe_protection_power_level_rx"
+                                   ng-model="selectedTsd.fe_power_levels_rx_protect">
+                            <span class="input-group-addon">original: {{oldTsd.fe_power_levels_rx_protect}}</span>
+                        </div>
                     </td>
                 </tr>
                 </tbody>
