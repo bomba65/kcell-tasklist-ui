@@ -131,6 +131,9 @@ define('app',[
 					'4/5/2019', '5/1/2020','11/5/2020', '20/12/2020'];
             $rootScope.doNotMarkNextHoliday = ['9/5/2020'];
 
+            $rootScope.catalogsServerUrl = "https://catalogs.test-flow.kcell.kz";
+            $rootScope.assetsServerUrl = "https://asset.test-flow.kcell.kz";
+
 			function hasGroup(group){
 				if(groups){
 					return _.some($rootScope.authUser.groups, function(value){
