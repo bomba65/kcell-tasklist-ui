@@ -7,6 +7,7 @@ define('app',[
 	'angular-translate-storage-cookie',
 	'angular-ui-bootstrap',
 	'./controllers/all',
+	'./directives/index',
 	'./directives/all',
 	'./services/all',
 	'camundaSDK',
