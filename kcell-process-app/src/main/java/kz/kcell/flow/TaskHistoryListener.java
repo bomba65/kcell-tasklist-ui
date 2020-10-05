@@ -71,7 +71,8 @@ public class TaskHistoryListener implements TaskListener {
       "Revision",
       "PreparePermitDocs",
       "Invoice",
-      "tnu_tsd_db"
+      "tnu_tsd_db",
+      "change-tsd"
     );
 
     @Override
