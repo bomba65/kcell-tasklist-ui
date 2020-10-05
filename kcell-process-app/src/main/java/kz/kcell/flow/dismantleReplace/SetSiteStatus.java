@@ -35,10 +35,12 @@ public class SetSiteStatus implements JavaDelegate {
 
     Expression status;
     private final String baseUri;
+    private final String assetsUri;
 
     @Autowired
-    public SetSiteStatus(@Value("${mail.message.baseurl:http://localhost}") String baseUri) {
+    public SetSiteStatus(@Value("${mail.message.baseurl:http://localhost}") String baseUri, @Value("${asset.url:https://asset.test-flow.kcell.kz}") String assetsUri) {
         this.baseUri = baseUri;
+        this.assetsUri = assetsUri;
     }
 
     @Override
@@ -61,7 +63,7 @@ public class SetSiteStatus implements JavaDelegate {
         value.put("id", Long.parseLong(status));
         newStatus.put("site_status_id", value);
 
-        HttpPut httpPut = new HttpPut(new URI("https://asset.test-flow.kcell.kz/asset-management/sites/id/" + siteId));
+        HttpPut httpPut = new HttpPut(new URI(this.assetsUri + "/asset-management/sites/id/" + siteId));
         httpPut.addHeader("Content-Type", "application/json;charset=UTF-8");
         httpPut.addHeader("Referer", baseUri);
         StringEntity inputData = new StringEntity(newStatus.toString());
