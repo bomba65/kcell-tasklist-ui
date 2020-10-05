@@ -21,6 +21,7 @@ import org.camunda.bpm.model.bpmn.instance.Process;
 import org.camunda.bpm.model.bpmn.instance.camunda.CamundaProperties;
 import org.camunda.bpm.model.bpmn.instance.camunda.CamundaProperty;
 import org.camunda.spin.SpinList;
+import org.camunda.spin.impl.SpinListImpl;
 import org.camunda.spin.json.SpinJsonNode;
 import org.camunda.spin.plugin.variable.SpinValues;
 import org.camunda.spin.plugin.variable.value.JsonValue;
@@ -93,7 +94,10 @@ public class TaskHistoryListener implements TaskListener {
                 .isPresent();
 
         if(isEnabledBackendResolution){
-            SpinList<SpinJsonNode> resolutions = delegateTask.<JsonValue>getVariableTyped("resolutions").getValue().elements();
+            SpinList<SpinJsonNode> resolutions = new SpinListImpl<>();
+            if (delegateTask.hasVariable("resolutions")){
+                resolutions = delegateTask.<JsonValue>getVariableTyped("resolutions").getValue().elements();
+            }
 
             ObjectMapper mapper = new ObjectMapper();
 
