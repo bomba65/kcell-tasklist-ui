@@ -1,6 +1,9 @@
 -- отчет для Семенова
 select
-    mainContract.text_ as mainContract,
+    case mainContract.text_
+        when 'Roll-outRevision2020' then 'Roll-out and Revision 2020'
+        else mainContract.text_
+        end as mainContract,
     substring(pi.business_key_ from '^[^-]+') as region,
     case
         when relatedSites.site_names is not null then
@@ -18,6 +21,10 @@ select
         when '3' then 'spectr'
         when '4' then 'lse'
         when '5' then 'kcell'
+        when '6' then 'Алта Телеком'
+        when '7' then 'Логиком'
+        when '8' then 'Arlan SI'
+        when '-1' then 'Не выбран'
         else null
         end as "JR To",
     case reason.text_
@@ -27,16 +34,16 @@ select
         when '4' then 'Operation works'
         else null
         end as "JR Reason",
-    pi.start_time_ as "Requested Date",
+    pi.start_time_ + interval '6 hour' as "Requested Date",
     pi.start_user_id_ as "Requested By",
-    to_timestamp(validityDate.long_/1000) as "Validity Date",
-    mtListSignDate.value_ as "Material List Signing Date",
-    acceptanceByInitiatorDate.value_ as "Accept by Initiator",
-    acceptMaint.value_ as "Accept by Work Maintenance",
-    acceptPlan.value_ as "Accept by Work Planning",
-    acceptanceDate.value_ as "Acceptance Date",
+    to_timestamp(validityDate.long_/1000) + interval '6 hour' as "Validity Date",
+    mtListSignDate.value_ + interval '6 hour' as "Material List Signing Date",
+    acceptanceByInitiatorDate.value_ + interval '6 hour' as "Accept by Initiator",
+    acceptMaint.value_ + interval '6 hour' as "Accept by Work Maintenance",
+    acceptPlan.value_ + interval '6 hour' as "Accept by Work Planning",
+    acceptanceDate.value_ + interval '6 hour' as "Acceptance Date",
     -- сюда еще нужно состав работ разбитый на строки
-    title.value_ as "Job Description",
+    worksJson.value->>'displayServiceName' as "Job Description",
     worksJson.value ->>'quantity' as "Quantity",
     explanation.text_ as "Comments",
     case materialsRequired.text_
@@ -105,18 +112,6 @@ from act_hi_procinst pi
          left join act_ge_bytearray jobWorksBytes
                    on jobWorks.bytearray_id_ = jobWorksBytes.id_
          left join json_array_elements(CAST(convert_from(jobWorksBytes.bytes_, 'UTF8') AS json)) as worksJson
-                   on true
-
-         left join lateral (
-    select distinct worksPriceListJson.value->>'title' as value_
-    from act_hi_varinst worksPriceList
-             inner join act_ge_bytearray worksPriceListBytes
-                        on worksPriceList.bytearray_id_ = worksPriceListBytes.id_
-             inner join json_array_elements(CAST(convert_from(worksPriceListBytes.bytes_, 'UTF8') AS json)) as worksPriceListJson
-                        on true and worksJson.value->>'sapServiceNumber' = worksPriceListJson.value->>'sapServiceNumber'
-    where pi.id_ = worksPriceList.proc_inst_id_ and worksPriceList.name_ = 'worksPriceList'
-    )
-    as title
                    on true
     -------------------------------------------------------------
     -- relatedSites

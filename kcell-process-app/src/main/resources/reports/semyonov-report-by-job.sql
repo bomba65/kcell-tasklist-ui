@@ -1,5 +1,8 @@
 select
-    mainContract.text_ as mainContract,
+    case mainContract.text_
+        when 'Roll-outRevision2020' then 'Roll-out and Revision 2020'
+        else mainContract.text_
+        end as mainContract,
     substring(pi.business_key_ from '^[^-]+') as region,
     case
         when relatedSites.site_names is not null then
@@ -17,6 +20,10 @@ select
         when '3' then 'spectr'
         when '4' then 'lse'
         when '5' then 'kcell'
+        when '6' then 'Алта Телеком'
+        when '7' then 'Логиком'
+        when '8' then 'Arlan SI'
+        when '-1' then 'Не выбран'
         else null
         end as "JR To",
     case reason.text_
@@ -26,14 +33,14 @@ select
         when '4' then 'Operation works'
         else null
         end as "JR Reason",
-    pi.start_time_ as "Requested Date",
+    pi.start_time_ + interval '6 hour' as "Requested Date",
     pi.start_user_id_ as "Requested By",
-    to_timestamp(validityDate.long_/1000) as "Validity Date",
-    mtListSignDate.value_ as "Material List Signing Date",
-    acceptanceByInitiatorDate.value_ as "Accept by Initiator",
-    acceptMaint.value_ as "Accept by Work Maintenance",
-    acceptPlan.value_ as "Accept by Work Planning",
-    acceptanceDate.value_ as "Acceptance Date",
+    to_timestamp(validityDate.long_/1000) + interval '6 hour' as "Validity Date",
+    mtListSignDate.value_ + interval '6 hour' as "Material List Signing Date",
+    acceptanceByInitiatorDate.value_ + interval '6 hour' as "Accept by Initiator",
+    acceptMaint.value_ + interval '6 hour' as "Accept by Work Maintenance",
+    acceptPlan.value_ + interval '6 hour' as "Accept by Work Planning",
+    acceptanceDate.value_ + interval '6 hour' as "Acceptance Date",
     aggregatedWorks.title as "Job Description",
     aggregatedWorks.quantity as "Quantity",
     explanation.text_ as "Comments",
@@ -105,12 +112,13 @@ from act_hi_procinst pi
            string_agg( (case rownum when 1 then cast(works.totalQuantityPerWorkType as text) end), ', ' order by works.sapServiceNumber)  as quantity
     from (
              select jobWorks.proc_inst_id_ as proc_inst_id_,
-                    worksPriceListJson.value->>'title' as title, --"Job Description",
+                    coalesce(worksPriceListJson.value->>'title', worksJson.value->>'displayServiceName') as title, --"Job Description",
                     row_number() OVER (PARTITION BY worksPriceListJson.value->>'title' order by worksPriceListBytes.id_) as rownum,
                     cast(case
                              when worksJson.value->>'sapServiceNumber' like 'RO%' then replace(worksJson.value->>'sapServiceNumber','RO','100')
                              when worksJson.value->>'sapServiceNumber' like 'FO-%' then replace(worksJson.value->>'sapServiceNumber','FO-','200')
                              when worksJson.value->>'sapServiceNumber' like 'SERV-%' then replace(worksJson.value->>'sapServiceNumber','SERV-','300')
+                             when worksJson.value->>'sapServiceNumber' like '%.%' then replace(worksJson.value->>'sapServiceNumber','.','000')
                              else worksJson.value->>'sapServiceNumber'
                         end as int) as sapServiceNumber,
                     sum(cast(worksJson.value ->>'quantity' as int)) OVER (PARTITION BY worksJson.value->>'sapServiceNumber') as totalQuantityPerWorkType
