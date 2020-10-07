@@ -43,7 +43,7 @@ select
     acceptPlan.value_ + interval '6 hour' as "Accept by Work Planning",
     acceptanceDate.value_ + interval '6 hour' as "Acceptance Date",
     -- сюда еще нужно состав работ разбитый на строки
-    worksJson.value->>'displayServiceName' as "Job Description",
+    coalesce(title.value_, worksJson.value->>'displayServiceName') as "Job Description",
     worksJson.value ->>'quantity' as "Quantity",
     explanation.text_ as "Comments",
     case materialsRequired.text_
@@ -113,6 +113,18 @@ from act_hi_procinst pi
                    on jobWorks.bytearray_id_ = jobWorksBytes.id_
          left join json_array_elements(CAST(convert_from(jobWorksBytes.bytes_, 'UTF8') AS json)) as worksJson
                    on true
+
+         left join lateral (
+            select distinct worksPriceListJson.value->>'title' as value_
+            from act_hi_varinst worksPriceList
+                     inner join act_ge_bytearray worksPriceListBytes
+                                on worksPriceList.bytearray_id_ = worksPriceListBytes.id_
+                     inner join json_array_elements(CAST(convert_from(worksPriceListBytes.bytes_, 'UTF8') AS json)) as worksPriceListJson
+                                on true and worksJson.value->>'sapServiceNumber' = worksPriceListJson.value->>'sapServiceNumber'
+            where pi.id_ = worksPriceList.proc_inst_id_ and worksPriceList.name_ = 'worksPriceList'
+            )
+            as title
+                    on true
     -------------------------------------------------------------
     -- relatedSites
          left join LATERAL (
