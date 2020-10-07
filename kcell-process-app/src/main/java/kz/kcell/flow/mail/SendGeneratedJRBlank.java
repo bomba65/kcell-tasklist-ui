@@ -19,9 +19,7 @@ import org.camunda.bpm.engine.IdentityService;
 import org.camunda.bpm.engine.delegate.DelegateExecution;
 import org.camunda.bpm.engine.delegate.JavaDelegate;
 import org.camunda.bpm.engine.identity.User;
-import org.camunda.bpm.engine.impl.context.Context;
-import org.camunda.bpm.engine.variable.Variables;
-import org.camunda.bpm.engine.variable.value.FileValue;
+import org.camunda.bpm.engine.impl.context.Context
 import org.camunda.spin.plugin.variable.SpinValues;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -90,8 +88,9 @@ public class SendGeneratedJRBlank implements JavaDelegate {
     protected void sendMail(DelegateExecution delegateExecution, String assignee, String recipient) {
         try {
             if (worksTitle.size() == 0) {
+                String mainContract = (String) delegateExecution.getVariable("mainContract");
                 ObjectMapper mapper = new ObjectMapper();
-                InputStream fis = SetPricesDelegate.class.getResourceAsStream("/revision/workPrice.json");
+                InputStream fis = SetPricesDelegate.class.getResourceAsStream("/revision/" + ("Roll-outRevision2020".equals(mainContract)?"newWorkPrice.json":"workPrice.json"));
                 InputStreamReader reader = new InputStreamReader(fis, "utf-8");
                 ArrayNode json = (ArrayNode) mapper.readTree(reader);
                 for (JsonNode workPrice : json) {
@@ -216,7 +215,7 @@ public class SendGeneratedJRBlank implements JavaDelegate {
             if(requestDate.after(compareDate)){
                 cell.setCellValue("Job Request date :");
                 cell.setCellStyle(alignRight);
-                row.createCell(2).setCellValue(contractorJobAssignedDate!=null?sdf.format(contractorJobAssignedDate):"");
+                row.createCell(2).setCellValue(contractorJobAssignedDate!=null?sdf.format(contractorJobAssignedDate):sdf.format(requestDate));
             } else {
                 cell.setCellValue("Request Date :");
                 cell.setCellStyle(alignRight);
@@ -305,7 +304,7 @@ public class SendGeneratedJRBlank implements JavaDelegate {
             row.createCell(2).setCellValue("Approved by:");
 
             row = sheet.createRow(24 + jobWorks.size());
-            row.createCell(2).setCellValue(((regionApproval != null && !regionApproval.isEmpty()) ? centralApproval : "") + ((centralApproval != null && !centralApproval.isEmpty()) ? (", " + centralApproval) : ""));
+            row.createCell(2).setCellValue(((regionApproval != null && !regionApproval.isEmpty() && !regionApproval.equals("null")) ? centralApproval : "") + ((centralApproval != null && !centralApproval.isEmpty() && !centralApproval.equals("null")) ? (", " + centralApproval) : ""));
 
             row = sheet.createRow(25 + jobWorks.size());
             row.createCell(2).setCellValue("             (position, name & signature)");
@@ -521,13 +520,13 @@ public class SendGeneratedJRBlank implements JavaDelegate {
 //            FileValue jrBlank = Variables.fileValue("jrBlank.xlsx").file(out.toByteArray()).mimeType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet").create();
 //            delegateExecution.setVariable("jrBlank", jrBlank);
 
-            String path = delegateExecution.getProcessInstanceId() + "/" + jrNumber + ".xlsx";
+            String path = delegateExecution.getProcessInstanceId() + "/" + jrNumber.replace("-####","").replace("-##","") + ".xlsx";
 
             ByteArrayInputStream bis = new ByteArrayInputStream(out.toByteArray());
             minioClient.saveFile(path, bis, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
             bis.close();
 
-            String json = "{\"name\" : \"" + jrNumber + ".xlsx\",\"path\" : \"" + path + "\"}";
+            String json = "{\"name\" : \"" + jrNumber.replace("-####","").replace("-##","") + ".xlsx\",\"path\" : \"" + path + "\"}";
             delegateExecution.setVariable("jrBlank", SpinValues.jsonValue(json));
 
             delegateExecution.setVariable("isNewProcessCreated", "false");
