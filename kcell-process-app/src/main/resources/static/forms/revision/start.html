@@ -896,9 +896,15 @@
             });
 
             $scope.getUnits = function($item, index){
-                $scope.jobWorks[index].sapServiceNumber = $item.sapServiceNumber;
-                $scope.jobWorks[index].displayServiceName = $item.displayServiceName;
-                $scope.jobWorks[index].materialUnit = $item.units
+                if($item.id === -1){
+                    $scope.jobWorks[index].sapServiceNumber = undefined;
+                    $scope.jobWorks[index].displayServiceName = undefined;
+                    $scope.jobWorks[index].materialUnit = undefined;
+                } else {
+                    $scope.jobWorks[index].sapServiceNumber = $item.sapServiceNumber;
+                    $scope.jobWorks[index].displayServiceName = $item.displayServiceName;
+                    $scope.jobWorks[index].materialUnit = $item.units;
+                }
             };
             $scope.getWorks = function(val) {
                 var result = _.filter($scope.works, function(work){
@@ -943,10 +949,22 @@
                     } else if($scope.mainContract === 'Roll-outRevision2020') {
                         if ($scope.siteStatus !== 'will be dismantled') {
                             return element.id !== 3007
+                        } else {
+                            return true;
                         }
                     } else return true;
                 });
 
+                if(result.length === 0){
+                    result.push({
+                        "id":-1,
+                        "sapServiceNumber":"",
+                        "sapPOServiceName":"Не найдено",
+                        "displayServiceName":"Не найдено",
+                        "currency":"",
+                        "units":""
+                    });
+                }
                 return result;
             }
 
@@ -1736,7 +1754,7 @@
                                            ng-disabled="!mainContract || !siteName || !custom.contractor"
                                            typeahead="works as works.displayServiceName for works in getWorks($viewValue)"
                                            typeahead-on-select="getUnits($item, $index)"
-                                           class="form-control works-container"  required autocomplete="off" placeholder="Select works">
+                                           class="form-control works-container"  required autocomplete="off" placeholder="Search works">
                                     <input type="hidden" ng-model="jobWork.sapServiceNumber" name="sapServiceNumber{{$index}}" required>
                                 </div>
                                 <label class="error" ng-if="kcell_form['displayServiceName'+$index].$error.required && ( kcell_form['displayServiceName'+$index].$touched || view.submitted)">Required field</label>
