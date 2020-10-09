@@ -24,6 +24,12 @@ return module.controller('mainCtrl', ['$scope', '$rootScope', 'toasty', 'Authent
     $scope.selectedView = 'task';
     $scope.camForm = null;
 
+    $rootScope.logout = function () {
+        AuthenticationService.logout().then(function () {
+            $scope.authentication = null;
+        });
+    }
+
     if ($routeParams.task) {
         $scope.tryToOpen = {
             id: $routeParams.task
