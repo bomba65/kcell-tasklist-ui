@@ -1,0 +1,700 @@
+<style>
+    .my-group .form-control {
+        width: 50%;
+    }
+
+    .modal-lg.modal-dialog {
+        width: 90%;
+    }
+
+    .background-yellow-accordion .panel-body {
+        background-color: #ffffcc;
+        border: 1px solid #b3b3b3;
+        color: #333;
+    }
+
+    .start-table tbody {
+        max-height: 470px;
+        overflow-y: overlay;
+        width: 100%;
+    }
+
+    .start-table thead, .start-table tbody, .start-table tr, .start-table td, .start-table th {
+        display: block;
+    }
+
+    .start-table tbody tr td, .start-table thead tr th {
+        float: left;
+    }
+
+    .my-group .form-control {
+        width: 50%;
+    }
+
+    .modal-lg.modal-dialog {
+        width: 90%;
+    }
+
+    input[type=number]::-webkit-inner-spin-button,
+    input[type=number]::-webkit-outer-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+    }
+
+    .resolution .bolder {
+        font-size: 16px;
+        font-weight: bold;
+        color: #000000;
+        min-width: 200px;
+    }
+    .resolution .input-group-btn {
+        vertical-align: top !important;
+    }
+    .resolution .input-group span {
+        display: table-cell;
+        vertical-align: top;
+    }
+    .elicense {
+        line-height: 2;
+        margin: 20px 0;
+    }
+</style>
+
+<form role="form" class="form-horizontal" name="kcell_form" novalidate>
+    <script cam-script type="text/form-script">
+        inject(['$scope', '$http', 'Uri', '$rootScope', '$q', '$timeout', function ($scope, $http, Uri, $rootScope, $q, $timeout) {
+            var variables = [
+                'oldTsd',
+                'selectedTsd',
+                'resolutions',
+                'eLicenseNumber',
+                'eLicenseDate'
+            ];
+
+            camForm.on('form-loaded', function () {
+                variables.forEach(function (el) {
+                    camForm.variableManager.fetchVariable(el);
+                });
+                camForm.variableManager.createVariable({
+                    name: 'rfsPermissionResultTaskResult',
+                    type: 'String',
+                    value: ''
+                });
+            });
+
+            $scope.titles = {};
+            $scope.regionsTitle = {
+                'alm': 'Alm',
+                'astana': 'Astana',
+                'nc': 'N&C',
+                'east': 'East',
+                'south': 'South',
+                'west': 'West'
+            };
+
+            $scope.protectionModeSetted = false;
+            $scope.antenaSetted = false;
+            $scope.linkCapacitySetted = false;
+            $scope.variablesFetched = false;
+
+            $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
+                    function (result) {
+                        $scope.processInstanceId = result.data.processInstanceId;
+                    },
+                    function (error) {
+                        console.log(error.data);
+                    }
+            );
+            $scope.protection_mode_fetched = false;
+            $scope.hop_link_type = 3;
+
+            $scope.setValues = function () {
+                if (!$scope.protectionModeSetted && $scope.variablesFetched && $scope.protectionModeList) {
+                    var i = $scope.protectionModeList.findIndex(function (e) {
+                        $scope.protectionModeSetted = true;
+                        return e.id.toString() === $scope.protection_mode
+                    });
+
+                    if (i > -1) {
+                        $scope.protection_mode = $scope.protectionModeList[i].id;
+                        if ($scope.protection_mode === 2) {
+                            $scope.hop_polarization = 3;
+                        }
+                    }
+                }
+
+                if (!$scope.linkCapacitySetted && $scope.variablesFetched && $scope.linkCapacityList) {
+                    var i = $scope.linkCapacityList.findIndex(function (e) {
+                        $scope.linkCapacitySetted = true;
+                        return e.id.toString() === $scope.hop_link_capacity
+                    });
+
+                    if (i > -1) {
+                        $scope.hop_link_capacity = $scope.linkCapacityList[i].id;
+                    }
+                }
+
+                if (!$scope.antenaSetted && $scope.variablesFetched && $scope.trAntennasTypeList) {
+                    var neI = $scope.trAntennasTypeList.findIndex(function (e) {
+                        $scope.antenaSetted = true;
+                        return e.id.toString() === $scope.ne_diameter
+                    });
+                    var feI = $scope.trAntennasTypeList.findIndex(function (e) {
+                        $scope.antenaSetted = true;
+                        return e.id.toString() === $scope.fe_diameter
+                    });
+
+                    if (neI > -1) {
+                        $scope.ne_diameter = $scope.trAntennasTypeList[neI].id
+                    }
+                    if (feI > -1) {
+                        $scope.fe_diameter = $scope.trAntennasTypeList[feI].id
+                    }
+
+                    var nePI = $scope.trAntennasTypeList.findIndex(function (e) {
+                        $scope.antenaSetted = true;
+                        return e.id.toString() === $scope.ne_protection_antenna_diameter
+                    });
+                    var fePI = $scope.trAntennasTypeList.findIndex(function (e) {
+                        $scope.antenaSetted = true;
+                        return e.id.toString() === $scope.fe_protection_antenna_diameter
+                    });
+
+                    if (nePI > -1) {
+                        $scope.ne_protection_antenna_diameter = $scope.trAntennasTypeList[nePI].id
+                    }
+                    if (fePI > -1) {
+                        $scope.fe_protection_antenna_diameter = $scope.trAntennasTypeList[fePI].id
+                    }
+                }
+
+            };
+
+            camForm.on('store', function () {
+                   camForm.variableManager.variableValue('rfsPermissionResultTaskResult', $scope.rfsPermissionResultTaskResult);
+            });
+
+            camForm.on('variables-restored', function() {
+                $scope.rfsPermissionResultTaskResult = camForm.variableManager.variableValue('rfsPermissionResultTaskResult');
+            });
+
+
+            camForm.on('variables-fetched', function () {
+                variables.forEach(function (el) {
+                    if (camForm.variableManager.variables[el].type === 'Date') {
+                        $scope[el] = new Date(camForm.variableManager.variables[el].value);
+                    } else {
+                        $scope[el] = camForm.variableManager.variables[el].value;
+                    }
+                });
+                $scope.variablesFetched = true;
+                $scope.setValues();
+
+                $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name + "/profile").then(function (result) {
+                    $rootScope.authentication.assigneeName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
+                });
+            });
+
+            $scope.populateSelectFromCatalog = function (containers, id) {
+                $http.get($rootScope.catalogsServerUrl + '/camunda/catalogs/api/get/id/' + id).then(function (result) {
+                    if (result && result.data && result.data.data && result.data.data.$list) {
+                        angular.forEach(containers, function (container) {
+                            $scope[container] = result.data.data.$list;
+                        });
+                        angular.forEach(result.data.data.$list, function (item) {
+                            if (!$scope.titles[containers[0]]) {
+                                $scope.titles[containers[0]] = {};
+                            }
+                            $scope.titles[containers[0]][item.id] = item.value;
+                        });
+                    }
+                    if ($scope.protectionModeList && !$scope.protectionModeSetted) {
+                        $scope.setValues()
+                    }
+                    if ($scope.trAntennasTypeList && !$scope.antenaSetted) {
+                        $scope.setValues()
+                    }
+
+                    if ($scope.linkCapacityList && !$scope.linkCapacitySetted) {
+                        $scope.setValues()
+                    }
+                });
+            };
+
+            $scope.populateSelectFromCatalog(['protectionModeList'], 44); // Protection mode
+            $scope.populateSelectFromCatalog(['trAntennasTypeList'], 20); // TR Antennas Type
+            $scope.populateSelectFromCatalog(['constructionTypeList'], 14); // Construction_type
+            $scope.populateSelectFromCatalog(['linkCapacityList'], 45);   // Link capacity
+            $scope.populateSelectFromCatalog(['polarizationList'], 48);   // Polarization
+            $scope.populateSelectFromCatalog(['linkTypeList'], 47);       // Link type
+            $scope.populateSelectFromCatalog(['rauSubbandList'], 46);     // Rau subband
+
+            camForm.on('submit', function (e) {
+                camForm.variableManager.variableValue('rfsPermissionResultTaskResult', $scope.rfsPermissionResultTaskResult);
+                camForm.variableManager.createVariable({
+                    name: 'rfsPermissionNumber',
+                    type: 'String',
+                    value: $scope.rfsPermissionNumber
+                });
+                camForm.variableManager.createVariable({
+                    name: 'rfsPermissionDate',
+                    type: 'String',
+                    value: $scope.rfsPermissionDate
+                });
+            });
+        }]);
+    </script>
+
+    <iframe id="fileDownloadIframe" style="display:none;"></iframe>
+
+    <div class="form-group">
+        <label class="col-sm-2 control-label"><b>Process number:</b></label>
+        <label class="col-sm-7 control-label">{{selectedTsd.business_key}}</label>
+        <label class="col-sm-1 control-label"><b>Version:</b></label>
+        <label class="col-sm-2 control-label">{{selectedTsd.version}}</label>
+    </div>
+
+    <div class="form-group">
+        <label class="col-sm-2 control-label"><b>Region name:</b></label>
+        <label class="col-sm-7 control-label">{{selectedTsd.nearend_id.facility_id.address_id.city_id.district_id.oblast_id.region_id.name}}</label>
+        <label class="col-sm-1 control-label"><b>Date:</b></label>
+        <div class="col-sm-2">
+            <input type="text" ng-model="date_of_visit" ng-value="selectedTsd.date | date: 'dd.MM.yyyy'" name="dateOfVisit" class="form-control"
+                   datepicker-popup="dd.MM.yyyy" id="dateOfVisit" disabled/>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label class="col-sm-2 control-label">Sitename:</label>
+        <label class="col-sm-3 control-label">{{selectedTsd.nearend_id.site_name}}</label>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-2 control-label">Site Address:</label>
+        <div class="col-sm-10">
+            <div class="form-control" style="background-color: #eee; width: 100%; height: 54px"> {{  (selectedTsd.nearend_id.facility_id.address_id.city_id.district_id.oblast_id.region_id.name ? selectedTsd.nearend_id.facility_id.address_id.city_id.district_id.oblast_id.region_id.name: '') +
+            (selectedTsd.nearend_id.facility_id.address_id.city_id.district_id.oblast_id.name ? ', ' + selectedTsd.nearend_id.facility_id.address_id.city_id.district_id.oblast_id.name : '') +
+            (selectedTsd.nearend_id.facility_id.address_id.city_id.district_id.name ? ', ' + selectedTsd.nearend_id.facility_id.address_id.city_id.district_id.name : '') +
+            (selectedTsd.nearend_id.facility_id.address_id.city_id.name ? ', ' + selectedTsd.nearend_id.facility_id.address_id.city_id.name : '') +
+            (selectedTsd.nearend_id.facility_id.address_id.city_id.city_type_id.name ? ' (' + selectedTsd.nearend_id.facility_id.address_id.city_id.city_type_id.name + ')' : '') +
+            (selectedTsd.nearend_id.facility_id.address_id.street ? ', ' + selectedTsd.nearend_id.facility_id.address_id.street : '') +
+            (selectedTsd.nearend_id.facility_id.address_id.building ? ', ' + selectedTsd.nearend_id.facility_id.address_id.building : '')+
+            (selectedTsd.nearend_id.facility_id.address_id.note ? ', ' + selectedTsd.nearend_id.facility_id.address_id.note : '')+
+            (selectedTsd.nearend_id.facility_id.address_id.cadastral_number ? ', ' + selectedTsd.nearend_id.facility_id.address_id.cadastral_number : '')
+                }}
+            </div>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label class="col-sm-2 control-label">Farend name:</label>
+        <label class="col-sm-3 control-label">{{selectedTsd.farend_id.site_name}}</label>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-2 control-label">Farend Address:</label>
+        <div class="col-sm-10">
+            <div class="form-control" style="background-color: #eee; width: 100%; height: 54px">
+                {{  (selectedTsd.farend_id.facility_id.address_id.city_id.district_id.oblast_id.region_id.name ? selectedTsd.farend_id.facility_id.address_id.city_id.district_id.oblast_id.region_id.name : '') +
+            (selectedTsd.farend_id.facility_id.address_id.city_id.district_id.oblast_id.name ? ', ' + selectedTsd.farend_id.facility_id.address_id.city_id.district_id.oblast_id.name : '') +
+            (selectedTsd.farend_id.facility_id.address_id.city_id.district_id.name ? ', ' + selectedTsd.farend_id.facility_id.address_id.city_id.district_id.name : '') +
+            (selectedTsd.farend_id.facility_id.address_id.city_id.name ? ', ' + selectedTsd.farend_id.facility_id.address_id.city_id.name : '') +
+            (selectedTsd.farend_id.facility_id.address_id.city_id.city_type_id.name ? ' (' + selectedTsd.farend_id.facility_id.address_id.city_id.city_type_id.name + ')' : '') +
+            (selectedTsd.farend_id.facility_id.address_id.street ? ', ' + selectedTsd.farend_id.facility_id.address_id.street : '') +
+            (selectedTsd.farend_id.facility_id.address_id.building ? ', ' + selectedTsd.farend_id.facility_id.address_id.building : '') +
+            (selectedTsd.farend_id.facility_id.address_id.note ? ', ' + selectedTsd.farend_id.facility_id.address_id.note : '')  +
+            (selectedTsd.farend_id.facility_id.address_id.cadastral_number ? ', ' + selectedTsd.farend_id.facility_id.address_id.cadastral_number : '')
+                }}
+            </div>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="col-sm-12">
+            <table class="table table-bordered">
+                <thead>
+                <tr align="center">
+                    <td colspan="2">Position</td>
+                    <td colspan="4">Near End</td>
+                    <td colspan="4">Far End</td>
+                </tr>
+                </thead>
+                <tbody>
+                <tr>
+                    <td align="right" colspan="2">Basic information</td>
+                    <td align="center" colspan="4">{{selectedTsd.nearend_id.site_name}}</td>
+                    <td align="center" colspan="4">{{selectedTsd.farend_id.site_name}}</td>
+                </tr>
+                <tr>
+                    <td align="right" colspan="2">Coordinates (degree):</td>
+                    <td>N</td>
+                    <td align="center">
+                        <input disabled type="text" class="form-control" ng-model="selectedTsd.nearend_id.facility_id.latitude"  name="ne_latitude">
+                    </td>
+                    <td>E</td>
+                    <td align="center">
+                        <input disabled type="text" class="form-control"  ng-model="selectedTsd.nearend_id.facility_id.longitude"  name="ne_longitude">
+                    </td>
+                    <td>N</td>
+                    <td align="center">
+                        <input disabled type="text" class="form-control" ng-model="selectedTsd.farend_id.facility_id.latitude" name="fe_latitude" >
+                    </td>
+                    <td>E</td>
+                    <td align="center">
+                        <input disabled type="text" class="form-control"  ng-model="selectedTsd.farend_id.facility_id.longitude"  name="fe_longitude" />
+                    </td>
+                </tr>
+                <tr>
+                    <td align="right" colspan="2">Altitude (m):</td>
+                    <td align="center" colspan="4">
+                        <input disabled type="number" class="form-control" ng-model="selectedTsd.nearend_id.facility_id.altitude" name="ne_altitude"
+                        >
+                    </td>
+                    <td align="center" colspan="4">
+                        <input disabled type="number" class="form-control" ng-model="selectedTsd.farend_id.facility_id.altitude" name="fe_altitude"
+                        >
+                    </td>
+                </tr>
+
+
+                <tr>
+                    <td align="right" colspan="2">Azimuth (degree):</td>
+                    <td align="center" colspan="4">
+                        <input disabled type="number" class="form-control" ng-model="selectedTsd.ne_azimuth" name="ne_azimuth"
+                        >
+                    </td>
+                    <td align="center" colspan="4">
+                        <input disabled type="number" class="form-control" ng-model="selectedTsd.fe_azimuth" name="fe_azimuth"
+                        >
+                    </td>
+                </tr>
+                <tr>
+                    <td align="right" colspan="2">Path distance (km):</td>
+                    <td align="center" colspan="8">
+                        <input disabled type="number" class="form-control" ng-model="selectedTsd.path_distance" name="path_distance" >
+                    </td>
+                </tr>
+
+                <tr>
+                    <td align="right" colspan="2">Type of construction:</td>
+                    <td align="center" colspan="4">
+                        <select disabled class="form-control" id="ne_construction_type" name="ne_construction_type" ng-model="selectedTsd.nearend_id.facility_id.construction_type_id.id">
+                            <option ng-repeat="ct in constructionTypeList"  ng-selected="ct.id.toString() === ne_construction_type" ng-value="ct.id">{{ct.value}}</option>
+                        </select>
+                    </td>
+                    <td align="center" colspan="4">
+                        <select disabled class="form-control" id="fe_construction_type" name="fe_construction_type" ng-model="selectedTsd.farend_id.facility_id.construction_type_id.id" >
+                            <option ng-repeat="ct in constructionTypeList" ng-selected="ct.id.toString() === fe_construction_type" ng-value="ct.id">{{ct.value}}</option>
+                        </select>
+                    </td>
+                </tr>
+                <tr>
+                    <td align="right" colspan="2">Height of construction (m):</td>
+                    <td align="center" colspan="4">
+                        <input disabled type="text" class="form-control" ng-model="selectedTsd.nearend_id.facility_id.construction_height" name="ne_construction_height" >
+                    </td>
+                    <td align="center" colspan="4">
+                        <input disabled type="text" class="form-control" ng-model="selectedTsd.farend_id.facility_id.construction_height" name="fe_construction_height" >
+                    </td>
+                </tr>
+                <tr>
+                    <td align="right" colspan="2">Protection mode:</td>
+                    <td align="center" colspan="8">
+                        <select disabled class="form-control" id="protection_mode" name="protection_mode"
+                                ng-model="selectedTsd.protection_mode_id.id">
+                            <option ng-repeat="ct in protectionModeList"
+                                    ng-selected="ct.id.toString() === protection_mode"
+                                    value="{{ct.id}}" ng-value="ct.id">{{ct.value}}
+                            </option>
+                        </select>
+                    </td>
+                </tr>
+                <tr>
+                    <td align="right" colspan="2">Antenna diameter:</td>
+                    <td align="center" colspan="4">
+                        <select disabled class="form-control" id="ne_diameter" name="ne_diameter" ng-model="selectedTsd.ne_antenna_diameter_id.id">
+                            <option ng-repeat="ct in trAntennasTypeList" ng-selected="ct.id.toString() === ne_diameter"
+                                    ng-value="ct.id">{{ct.value}}
+                            </option>
+                        </select>
+                    </td>
+                    <td align="center" colspan="4">
+                        <select disabled class="form-control" id="fe_diameter" name="fe_diameter" ng-model="selectedTsd.fe_antenna_diameter_id.id">
+                            <option ng-repeat="ct in trAntennasTypeList" ng-selected="ct.id.toString() === fe_diameter"
+                                    ng-value="ct.id">{{ct.value}}
+                            </option>
+                        </select>
+                    </td>
+                </tr>
+                <tr>
+                    <td align="right" colspan="2">Protection antenna diameter:</td>
+                    <td align="center" colspan="4">
+                        <select disabled class="form-control" id="ne_protection_antenna_diameter" name="ne_protection_antenna_diameter" ng-model="selectedTsd.ne_antenna_diameter_protect_id.id" ng-change="protectionAntennaDiameter()">
+                            <option ng-repeat="ct in trAntennasTypeList" ng-value="ct.id">{{ct.value}}</option>
+                        </select>
+                    </td>
+                    <td align="center" colspan="4">
+                        <select disabled class="form-control" id="fe_protection_antenna_diameter" name="fe_protection_antenna_diameter" ng-model="selectedTsd.fe_antenna_diameter_protect_id.id" >
+                            <option ng-repeat="ct in trAntennasTypeList" ng-value="ct.id">{{ct.value}}</option>
+                        </select>
+                    </td>
+                </tr>
+                <tr>
+                    <td align="right" colspan="2">Height of suspension of MW ant (m):</td>
+                    <td align="center" colspan="4">
+                        <input disabled type="number" class="form-control" ng-model="selectedTsd.ne_height_susp_antenna"
+                               name="ne_suspension_height_antennas"  cam-variable-type="Integer">
+                    </td>
+                    <td align="center" colspan="4">
+                        <input disabled type="number" class="form-control" ng-model="selectedTsd.fe_height_susp_antenna"
+                               name="fe_suspension_height"  cam-variable-type="Integer">
+                    </td>
+                </tr>
+                <tr>
+                    <td align="right" colspan="2">Height of suspension of prot. MW ant (m).:</td>
+                    <td align="center" colspan="4">
+                        <input disabled type="number" class="form-control" ng-model="selectedTsd.ne_height_susp_antenna_protect"
+                               name="ne_protection_suspension_height"
+                               cam-variable-type="Integer">
+                    </td>
+                    <td align="center" colspan="4">
+                        <input disabled type="number" class="form-control" ng-model="selectedTsd.fe_height_susp_antenna_protect"
+                               name="fe_protection_suspension_height"
+                               cam-variable-type="Integer">
+                    </td>
+                </tr>
+                <tr>
+                    <td align="right" colspan="2">Polarization:</td>
+                    <td align="center" colspan="8">
+                        <select disabled class="form-control" id="hop_polarization" name="hop_polarization"
+                                ng-model="selectedTsd.polarization_id.id">
+                            <option ng-repeat="ct in polarizationList" ng-value="ct.id">{{ct.value}}</option>
+                        </select>
+                    </td>
+                </tr>
+                <tr>
+                    <td align="right" colspan="2">Link type:</td>
+                    <td align="center" colspan="8">
+                        <select disabled class="form-control" id="hop_link_type" name="hop_link_type" ng-model="selectedTsd.link_type_id.id">
+                            <option ng-repeat="ct in linkTypeList" ng-value="ct.id">{{ct.value}}</option>
+                        </select>
+                    </td>
+                </tr>
+                <tr>
+                    <td align="right" rowspan="2">Link capacity :</td>
+                    <td align="right">Capacity</td>
+                    <td align="center" colspan="8">
+                        <select disabled class="form-control" id="hop_link_capacity" name="hop_link_capacity"
+                                ng-model="selectedTsd.capacity_id.id" ng-change="hopLinkCapacitySelected()">
+                            <option ng-repeat="ct in linkCapacityList" ng-value="ct.id">{{ct.value}}</option>
+                        </select>
+                    </td>
+                </tr>
+                <tr>
+                    <td align="right">nxE1</td>
+                    <td align="center" colspan="8">
+                        <input disabled type="text" class="form-control" name="hop_link_nxe1" ng-model="selectedtsd.nxe1"
+                        >
+                    </td>
+                </tr>
+                <tr>
+                    <td align="right" colspan="2">Modulation type:</td>
+                    <td align="center" colspan="8">
+                        <input disabled type="text" class="form-control" name="hop_modulation_type"
+                               ng-model="selectedTsd.capacity_id.modulation" >
+                    </td>
+                </tr>
+                <tr>
+                    <td align="right" colspan="2">Channel bandwidth:</td>
+                    <td align="center" colspan="8">
+                        <input disabled type="text" class="form-control" name="hop_channel_bandwidth"
+                               ng-model="selectedTsd.capacity_id.channel_bandwidth" >
+                    </td>
+                </tr>
+                <tr>
+                    <td align="right" colspan="2">RAU subband:</td>
+                    <td align="center" colspan="4">
+                        <select disabled class="form-control" id="ne_rau_subband" name="ne_rau_subband"  ng-model="selectedTsd.ne_rau_subband_id.id"
+                                ng-change="rauSubbandSelected()">
+                            <option ng-repeat="ct in rauSubbandList" ng-value="ct.id">{{ct.value}}</option>
+                        </select>
+                    </td>
+                    <td align="center" colspan="4">
+                        <select disabled class="form-control" id="fe_rau_subband" name="fe_rau_subband" ng-model="selectedTsd.fe_rau_subband_id.id">
+                            <option ng-repeat="ct in rauSubbandList" ng-value="ct.id">{{ct.value}}</option>
+                        </select>
+                    </td>
+                </tr>
+                <tr>
+                    <td align="right" colspan="2">protection RAU subband:</td>
+                    <td align="center" colspan="4">
+                        <select disabled class="form-control" id="ne_protection_rau_subband" name="ne_protection_rau_subband"
+                                ng-model="selectedTsd.ne_rau_subband_protect_id.id" ng-change="protectRauSubbandSelected()">
+                            <option ng-repeat="ct in rauSubbandList" ng-value="ct.id">{{ct.value}}</option>
+                        </select>
+                    </td>
+                    <td align="center" colspan="4">
+                        <select disabled class="form-control" id="fe_protection_rau_subband" name="fe_protection_rau_subband"
+                                ng-model="selectedTsd.fe_rau_subband_protect_id.id">
+                            <option ng-repeat="ct in rauSubbandList" ng-value="ct.id">{{ct.value}}</option>
+                        </select>
+                    </td>
+                </tr>
+                <tr>
+                    <td align="right" colspan="2">Tx/Rx frequencies, Mhz:</td>
+                    <td align="center" colspan="4">
+                        <input disabled type="number" class="form-control" name="ne_txrx_frequincies"
+                               ng-model="selectedTsd.ne_txrx_frequencies" ng-blur="ne_txrx_frequinciesValuesCheck()">
+                        <label class="error" ng-if="ne_rau_subband && ne_txrx_frequinciesInvalid">Expected between
+                            {{rauRelations[ne_rau_subband].minFrequency}} and
+                            {{rauRelations[ne_rau_subband].maxFrequency}}</label>
+                    </td>
+                    <td align="center" colspan="4">
+                        <input disabled type="number" class="form-control" name="fe_txrx_frequincies"
+                               ng-model="selectedTsd.fe_txrx_frequencies" ng-blur="fe_txrx_frequinciesValuesCheck()">
+                        <label class="error" ng-if="fe_rau_subband && fe_txrx_frequinciesInvalid">Expected between
+                            {{rauRelations[fe_rau_subband].minFrequency}} and
+                            {{rauRelations[fe_rau_subband].maxFrequency}}</label>
+                    </td>
+                </tr>
+                <tr>
+                    <td align="right" colspan="2">Protection Tx/Rx frequencies, Mhz:</td>
+                    <td align="center" colspan="4">
+                        <input disabled type="number" class="form-control" name="ne_protection_txrx_frequincies"
+                               ng-model="selectedTsd.ne_txrx_frequencies_protect"
+                               ng-blur="ne_protection_txrx_frequinciesValuesCheck()">
+                        <label class="error"
+                               ng-if="ne_protection_rau_subband && ne_protection_txrx_frequincies && ne_protection_txrx_frequinciesInvalid">Expected
+                            between {{rauRelations[ne_protection_rau_subband].minFrequency}} and
+                            {{rauRelations[ne_protection_rau_subband].maxFrequency}}</label>
+                    </td>
+                    <td align="center" colspan="4">
+                        <input disabled type="number" class="form-control" name="fe_protection_txrx_frequincies"
+                               ng-model="selectedTsd.fe_txrx_frequencies_protect"
+                               ng-blur="fe_protection_txrx_frequinciesValuesCheck()">
+                        <label class="error"
+                               ng-if="fe_protection_rau_subband && fe_protection_txrx_frequincies && fe_protection_txrx_frequinciesInvalid">Expected
+                            between {{rauRelations[fe_protection_rau_subband].minFrequency}} and
+                            {{rauRelations[fe_protection_rau_subband].maxFrequency}}</label>
+                    </td>
+                </tr>
+                <tr>
+                    <td align="right" colspan="2">Terminal ID:</td>
+                    <td align="center" colspan="4">
+                        <input disabled type="text" class="form-control" name="ne_terminal_id" ng-model="selectedTsd.ne_terminalid">
+                    </td>
+                    <td align="center" colspan="4">
+                        <input disabled type="text" class="form-control" name="fe_terminal_id" ng-model="selectedTsd.fe_terminalid">
+                    </td>
+                </tr>
+                <tr>
+                    <td align="right" colspan="2">Power levels:</td>
+                    <td>Tx</td>
+                    <td align="center">
+                        <input disabled type="number" class="form-control" name="ne_power_level_tx" ng-model="selectedTsd.ne_power_levels_tx"
+                               ng-change="ne_power_level_txChanged()">
+                    </td>
+                    <td>Rx</td>
+                    <td align="center">
+                        <input disabled type="number" class="form-control" name="ne_power_level_rx" ng-model="selectedTsd.ne_power_levels_rx"
+                               ng-change="ne_power_level_rxChanged()">
+                    </td>
+                    <td>Tx</td>
+                    <td align="center">
+                        <input disabled type="number" class="form-control" name="fe_power_level_tx" ng-model="selectedTsd.fe_power_levels_tx">
+                    </td>
+                    <td>Rx</td>
+                    <td align="center">
+                        <input disabled type="number" class="form-control" name="fe_power_level_rx" ng-model="selectedTsd.fe_power_levels_rx">
+                    </td>
+                </tr>
+                <tr>
+                    <td align="right" colspan="2">Protection line power levels:</td>
+                    <td>Tx</td>
+                    <td align="center">
+                        <input disabled type="number" class="form-control" name="ne_protection_power_level_tx"
+                               ng-model="selectedTsd.ne_power_levels_tx_protect"
+                               ng-change="ne_protection_power_level_txChanged()">
+                    </td>
+                    <td>Rx</td>
+                    <td align="center">
+                        <input disabled type="number" class="form-control" name="ne_protection_power_level_rx"
+                               ng-model="selectedTsd.ne_power_levels_rx_protect"
+                               ng-change="ne_protection_power_level_rxChanged()">
+                    </td>
+                    <td>Tx</td>
+                    <td align="center">
+                        <input disabled type="number" class="form-control" name="fe_protection_power_level_tx"
+                               ng-model="selectedTsd.fe_power_levels_tx_protect">
+                    </td>
+                    <td>Rx</td>
+                    <td align="center">
+                        <input disabled type="number" class="form-control" name="fe_protection_power_level_rx"
+                               ng-model="selectedTsd.fe_power_levels_rx_protect">
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label class="col-sm-3 control-label">E-license request number:</label>
+        <div class="col-sm-3">
+            <input type="text" class="form-control" name="eLicenseNumber" ng-model="eLicenseNumber" disabled>
+        </div>
+        <label class="col-sm-1 control-label">Date:</label>
+        <div class="col-sm-5">
+            <div class="input-group">
+                <input type="text" ng-model="eLicenseDate" name="eLicenseDate" class="form-control" datepicker-popup="dd.MM.yyyy" id="eLicenseDate" disabled />
+                <span class="input-group-btn">
+                    <button type="button" class="btn btn-default">
+                        <i class="glyphicon glyphicon-calendar"></i>
+                    </button>
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label class="col-sm-3 control-label">Resolution</label>
+        <div class="col-sm-9">
+            <label class="radio-inline">
+                <input type="radio" name="rfsPermissionResultTaskResult" ng-model="rfsPermissionResultTaskResult" value="approved" required> RFS approved
+            </label>
+            <label class="radio-inline">
+                <input type="radio" name="rfsPermissionResultTaskResult" ng-model="rfsPermissionResultTaskResult" value="rejected" required> RFS rejected
+            </label>
+            <label class="error" ng-show="kcell_form.rfsPermissionResultTaskResult.$error.required && ( kcell_form.rfsPermissionResultTaskResult.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+
+    <div class="form-group" ng-if="rfsPermissionResultTaskResult === 'approved'">
+        <label class="col-sm-3 control-label">E-license request number:</label>
+        <div class="col-sm-3">
+            <input type="text" class="form-control" name="rfsPermissionNumber" ng-model="$parent.rfsPermissionNumber" ng-required="rfsPermissionResultTaskResult === 'approved'">
+            <label class="error" ng-show="kcell_form.rfsPermissionNumber.$error.required && ( kcell_form.rfsPermissionNumber.$touched || view.submitted)">Required field</label>
+        </div>
+        <label class="col-sm-1 control-label">Date:</label>
+        <div class="col-sm-5">
+            <div class="input-group">
+                <input type="text" ng-model="$parent.rfsPermissionDate" name="rfsPermissionDate" ng-required="rfsPermissionResultTaskResult === 'approved'" class="form-control" datepicker-popup="dd.MM.yyyy" is-open="dateOpened" id="rfsPermissionDate" />
+                <span class="input-group-btn">
+                    <button type="button" class="btn btn-default" ng-click="dateOpened = true">
+                        <i class="glyphicon glyphicon-calendar"></i>
+                    </button>
+                </span>
+            </div>
+            <label class="error" ng-show="kcell_form.rfsPermissionDate.$error.required && ( kcell_form.rfsPermissionDate.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label class="col-sm-3 control-label">Comments</label>
+        <div class="col-sm-9">
+            <textarea class="form-control" rows="4" maxlength="500" name="rfsPermissionResultTaskComment" cam-variable-name="rfsPermissionResultTaskComment" cam-variable-type="String"
+                      ng-model="rfsPermissionResultTaskComment"></textarea>
+            <label class="error"
+                   ng-show="kcell_form.rfsPermissionResultTaskComment.$error.required && ( kcell_form.rfsPermissionResultTaskComment.$touched || view.submitted)">Required
+                field</label>
+        </div>
+    </div>
+</form>
