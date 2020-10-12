@@ -67,6 +67,7 @@ define('app',[
 						{key:'change-tsd', name:'Change TSD', group:'infrastructure_change_tsd_users'},
 						{key:'get-rfs-by-permit', name:'Get RFS by Permit', group:'infrastructure_get_rfs_by_permit'},
 						{key:'leasing', name:'Leasing Rollout Site', group:'infrastructure_leasing_users'},
+						{key:'hop-delete', name:'Hop Delete', group:'infrastructure_hop_delete_users'},
 						{key:'SiteSharingTopProcess', name:'4G Site Sharing', group:'infrastructure_sharing_users', 
 							subprocesses:[{key:'BeelineHostBeelineSite'},{key:'BeelineHostKcellSite'},{key:'KcellHostBeelineSite'},{key:'ReplanSiteAP'},{key:'KcellHostKcellSite'}]
 						},
