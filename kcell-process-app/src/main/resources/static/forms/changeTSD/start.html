@@ -179,6 +179,7 @@
                 $scope.selectedTsd.fe_antenna_diameter_protect_id.id = $scope.selectedTsd.ne_antenna_diameter_protect_id.id
             };
 
+
             $scope.setValues = function () {
                 if ($scope.selectedTsd && $scope.selectedTsd.protection_mode_id && (!$scope.protectionModeSetted && $scope.variablesFetched && $scope.protectionModeList)) {
                     var i = $scope.protectionModeList.findIndex(function (e) {
@@ -195,18 +196,18 @@
                     }
                 }
 
-                if (!$scope.linkCapacitySetted && $scope.variablesFetched && $scope.linkCapacityList) {
+                if ($scope.selectedTsd && $scope.selectedTsd.capacity_id && (!$scope.linkCapacitySetted && $scope.variablesFetched && $scope.linkCapacityList)) {
                     var i = $scope.linkCapacityList.findIndex(function (e) {
                         $scope.linkCapacitySetted = true;
                         return e.id.toString() === $scope.selectedTsd.capacity_id.id
                     });
 
-                    if (i > -1) {
+                    if ($scope.selectedTsd && $scope.selectedTsd.capacity_id && (i > -1)) {
                         $scope.selectedTsd.capacity_id.id = $scope.linkCapacityList[i].id;
                     }
                 }
 
-                if (!$scope.antenaSetted && $scope.variablesFetched && $scope.trAntennasTypeList) {
+                if ($scope.selectedTsd && $scope.selectedTsd.ne_antenna_diameter_id && (!$scope.antenaSetted && $scope.variablesFetched && $scope.trAntennasTypeList)) {
                     var neI = $scope.trAntennasTypeList.findIndex(function (e) {
                         $scope.antenaSetted = true;
                         return e.id.toString() === $scope.selectedTsd.ne_antenna_diameter_id.id
@@ -216,7 +217,7 @@
                         return e.id.toString() === $scope.selectedTsd.fe_antenna_diameter_id.id
                     });
 
-                    if (neI > -1) {
+                    if ($scope.selectedTsd && (neI > -1)) {
                         $scope.selectedTsd.ne_antenna_diameter_id.id = $scope.trAntennasTypeList[neI].id
                     }
                     if (feI > -1) {
@@ -241,6 +242,21 @@
                 }
             };
 
+            $scope.changeParams = function () {
+                if($scope.selectedTsd && ($scope.selectedTsd.nearend_id.facility_id.latitude && $scope.selectedTsd.nearend_id.facility_id.longitude && $scope.selectedTsd.farend_id.facility_id.latitude && $scope.selectedTsd.farend_id.facility_id.longitude)) {
+                    $scope.selectedTsd.path_distance = parseFloat((6372795 * Math.acos(Math.sin($scope.selectedTsd.nearend_id.facility_id.latitude.replace(",", '.') * (3.14159265358979/180)) * Math.sin($scope.selectedTsd.farend_id.facility_id.latitude.replace(",", '.') * (3.14159265358979/180)) + Math.cos($scope.selectedTsd.nearend_id.facility_id.latitude.replace(",", '.') * (3.14159265358979/180)) *  Math.cos($scope.selectedTsd.farend_id.facility_id.latitude.replace(",", '.') * (3.14159265358979/180)) * Math.cos(Math.abs($scope.selectedTsd.nearend_id.facility_id.longitude.replace(",", '.') * (3.14159265358979/180) - $scope.selectedTsd.farend_id.facility_id.longitude.replace(",", '.') * (3.14159265358979/180)))) / 1000).toFixed(3))
+                    $scope.selectedTsd.ne_azimuth = parseFloat((180 * (Math.atan2(Math.sin($scope.selectedTsd.farend_id.facility_id.longitude.replace(",", '.') * (3.14159265358979/180) - $scope.selectedTsd.nearend_id.facility_id.longitude.replace(",", '.') * (3.14159265358979/180)) * Math.cos($scope.selectedTsd.farend_id.facility_id.latitude.replace(",", '.') * (3.14159265358979/180)), Math.cos($scope.selectedTsd.nearend_id.facility_id.latitude.replace(",", '.') * (3.14159265358979/180)) * Math.sin($scope.selectedTsd.farend_id.facility_id.latitude.replace(",", '.') * (3.14159265358979/180)) - Math.cos($scope.selectedTsd.farend_id.facility_id.latitude.replace(",", '.') * (3.14159265358979/180)) * Math.sin($scope.selectedTsd.nearend_id.facility_id.latitude.replace(",", '.') * (3.14159265358979/180)) * Math.cos(Math.abs($scope.selectedTsd.nearend_id.facility_id.longitude.replace(",", '.') * (3.14159265358979/180) - $scope.selectedTsd.farend_id.facility_id.longitude.replace(",", '.') * (3.14159265358979/180)))) % (2 * 3.14159265358979) / 3.14159265358979)).toFixed(2))
+                    if($scope.selectedTsd.ne_azimuth < 0) {
+                       $scope.selectedTsd.ne_azimuth = 360 - $scope.selectedTsd.ne_azimuth * -1
+                    }
+                    $scope.selectedTsd.ne_azimuth = parseFloat($scope.selectedTsd.ne_azimuth.toFixed(2))
+                    $scope.selectedTsd.fe_azimuth = parseFloat((180 * (Math.atan2(Math.sin($scope.selectedTsd.nearend_id.facility_id.longitude.replace(",", '.') * (3.14159265358979/180) - $scope.selectedTsd.farend_id.facility_id.longitude.replace(",", '.') * (3.14159265358979/180)) * Math.cos($scope.selectedTsd.nearend_id.facility_id.latitude.replace(",", '.') * (3.14159265358979/180)), Math.cos($scope.selectedTsd.farend_id.facility_id.latitude.replace(",", '.') * (3.14159265358979/180)) * Math.sin($scope.selectedTsd.nearend_id.facility_id.latitude.replace(",", '.') * (3.14159265358979/180)) - Math.cos($scope.selectedTsd.nearend_id.facility_id.latitude.replace(",", '.') * (3.14159265358979/180)) * Math.sin($scope.selectedTsd.farend_id.facility_id.latitude.replace(",", '.') * (3.14159265358979/180)) * Math.cos(Math.abs($scope.selectedTsd.nearend_id.facility_id.longitude.replace(",", '.') * (3.14159265358979/180) - $scope.selectedTsd.farend_id.facility_id.longitude.replace(",", '.') * (3.14159265358979/180)))) % (2 * 3.14159265358979) / 3.14159265358979)).toFixed(2))
+                    if($scope.selectedTsd.fe_azimuth < 0) {
+                       $scope.selectedTsd.fe_azimuth = 360 - $scope.selectedTsd.fe_azimuth * -1
+                    }
+                    $scope.selectedTsd.fe_azimuth = parseFloat($scope.selectedTsd.fe_azimuth.toFixed(2))
+                }
+            }
             $scope.protectionMode = function () {
                 if ($scope.selectedTsd.protection_mode_id  && ($scope.selectedTsd.protection_mode_id.id === 1 || $scope.selectedTsd.protection_mode_id.id === 2 || $scope.selectedTsd.protection_mode_id.id === 3 || $scope.selectedTsd.protection_mode_id.id === 4)) {
                     $scope.protection_mode_fetched = true
@@ -383,10 +399,13 @@
             };
 
             $scope.hopLinkCapacitySelected = function () {
+                if($scope.selectedTsd.capacity_id) {
+                    $scope.selectedTsd.capacity_id = {}
+                }
                 var obj = _.filter($scope.linkCapacityList, function (c) {
                     return c.id === $scope.selectedTsd.capacity_id.id;
                 });
-                if (obj && obj.length > 0) {
+                if ($scope.selectedTsd.capacity_id && (obj && obj.length > 0)) {
                     $scope.selectedTsd.capacity_id.modulation = obj[0]['Modulation'].value;
                     $scope.selectedTsd.capacity_id.channel_bandwidth = obj[0]['Channel Bandwidth'].value;
                 }
@@ -497,7 +516,12 @@
             }
 
             camForm.on('submit', function (e) {
-
+                if($scope.selectedTsd.nearend_id.facility_id.altitude){
+                    $scope.selectedTsd.nearend_id.facility_id.altitude = parseFloat($scope.selectedTsd.nearend_id.facility_id.altitude.toFixed(1)) * 1.0;
+                }
+                if($scope.selectedTsd.farend_id.facility_id.altitude){
+                    $scope.selectedTsd.farend_id.facility_id.altitude = parseFloat($scope.selectedTsd.farend_id.facility_id.altitude.toFixed(1)) * 1.0;
+                }
                 camForm.variableManager.createVariable({
                     name: 'tnutsd_fill_tsd_by_centerTaskComment',
                     type: 'String',
@@ -521,6 +545,7 @@
 
             });
         }]);
+
 
 
 
@@ -700,7 +725,7 @@
                     <td>N</td>
                     <td align="center">
                         <input type="text" class="form-control" ng-model="selectedTsd.nearend_id.facility_id.latitude"
-                               name="ne_latitude" required ng-pattern="latitudePattern">
+                               name="ne_latitude" required ng-pattern="latitudePattern" ng-change="changeParams()"/>
                         <label class="error"
                                ng-if="kcell_form.ne_latitude.$error.required && ( kcell_form.ne_latitude.$touched || view.submitted)">Required
                             field</label>
@@ -711,7 +736,7 @@
                     <td>E</td>
                     <td align="center">
                         <input type="text" class="form-control" ng-model="selectedTsd.nearend_id.facility_id.longitude"
-                               name="ne_longitude" required ng-pattern="longitudePattern">
+                               name="ne_longitude" required ng-pattern="longitudePattern" ng-change="changeParams()"/>
                         <label class="error"
                                ng-if="kcell_form.ne_longitude.$error.required && ( kcell_form.ne_longitude.$touched || view.submitted)">Required
                             field</label>
@@ -722,7 +747,7 @@
                     <td>N</td>
                     <td align="center">
                         <input type="text" class="form-control" ng-model="selectedTsd.farend_id.facility_id.latitude"
-                               name="fe_latitude" required ng-pattern="latitudePattern">
+                               name="fe_latitude" required ng-pattern="latitudePattern" ng-change="changeParams()"/>
                         <label class="error"
                                ng-if="kcell_form.fe_latitude.$error.required && ( kcell_form.fe_latitude.$touched || view.submitted)">Required
                             field</label>
@@ -733,7 +758,7 @@
                     <td>E</td>
                     <td align="center">
                         <input type="text" class="form-control" ng-model="selectedTsd.farend_id.facility_id.longitude"
-                               name="fe_longitude" required ng-pattern="longitudePattern"/>
+                               name="fe_longitude" required ng-pattern="longitudePattern" ng-change="changeParams()"/>
                         <label class="error"
                                ng-if="kcell_form.fe_longitude.$error.required && ( kcell_form.fe_longitude.$touched || view.submitted)">Required
                             field</label>
@@ -1052,7 +1077,7 @@
                             <option ng-repeat="ct in rauSubbandList" ng-value="ct.id">{{ct.value}}</option>
                         </select>
                         <label class="error"
-                               ng-if="kcell_form.selectedTsd.ne_rau_subband_id.id.$error.required && ( kcell_form.selectedTsd.ne_rau_subband_id.id.$touched || view.submitted)">Required
+                               ng-if="kcell_form.selectedTsd.ne_rau_subband.$error.required && ( kcell_form.ne_rau_subband.$touched || view.submitted)">Required
                             field</label>
                     </td>
                     <td align="center" colspan="4">
@@ -1088,9 +1113,9 @@
                                ng-model="selectedTsd.ne_txrx_frequencies" required
                                ng-blur="ne_txrx_frequinciesValuesCheck()" ng-disabled="!selectedTsd.ne_rau_subband_id">
                         <label class="error"
-                               ng-if="kcell_form.selectedTsd.ne_txrx_frequencies.$error.required && ( kcell_form.selectedTsd.ne_txrx_frequencies.$touched || view.submitted)">Required
+                               ng-if="kcell_form.ne_txrx_frequincies.$error.required && ( kcell_form.ne_txrx_frequincies.$touched || view.submitted)">Required
                             field</label>
-                        <label class="error" ng-if="selectedTsd.ne_rau_subband_id.id && ne_txrx_frequinciesInvalid">Expected
+                        <label class="error" ng-if="ne_rau_subband && ne_txrx_frequinciesInvalid">Expected
                             between
                             {{rauRelations[selectedTsd.ne_rau_subband_id.id].minFrequency}} and
                             {{rauRelations[selectedTsd.ne_rau_subband_id.id].maxFrequency}}</label>
@@ -1099,12 +1124,12 @@
                         <input type="number" class="form-control" name="fe_txrx_frequincies"
                                ng-model="selectedTsd.fe_txrx_frequencies" required
                                ng-blur="fe_txrx_frequinciesValuesCheck()"
-                               ng-disabled="!selectedTsd.fe_rau_subband_protect_id">
+                               ng-disabled="!selectedTsd.fe_rau_subband_id">
                         <label class="error"
-                               ng-if="kcell_form.selectedTsd.fe_txrx_frequencies.$error.required && ( kcell_form.selectedTsd.fe_txrx_frequencies.$touched || view.submitted)">Required
+                               ng-if="kcell_form.fe_txrx_frequincies.$error.required && ( kcell_form.fe_txrx_frequincies.$touched || view.submitted)">Required
                             field</label>
                         <label class="error"
-                               ng-if="selectedTsd.fe_rau_subband_protect_id.id && fe_txrx_frequinciesInvalid">Expected
+                               ng-if="fe_rau_subband && fe_txrx_frequinciesInvalid">Expected
                             between
                             {{rauRelations[selectedTsd.fe_rau_subband_protect_id.id].minFrequency}} and
                             {{rauRelations[selectedTsd.fe_rau_subband_protect_id.id].maxFrequency}}</label>
@@ -1118,9 +1143,9 @@
                                ng-blur="ne_protection_txrx_frequinciesValuesCheck()"
                                ng-disabled="protection_mode_fetched || !selectedTsd.ne_rau_subband_protect_id">
                         <label class="error"
-                               ng-if="selectedTsd.ne_rau_subband_protect_id.id && selectedTsd.ne_txrx_frequencies_protect && ne_protection_txrx_frequinciesInvalid">Expected
-                            between {{rauRelations[selectedTsd.ne_rau_subband_protect_id.id].minFrequency}} and
-                            {{rauRelations[selectedTsd.ne_rau_subband_protect_id.id].maxFrequency}}</label>
+                               ng-if="ne_protection_rau_subband && ne_protection_txrx_frequincies && ne_protection_txrx_frequinciesInvalid">Expected
+                            between {{rauRelations[selectedTsd.ne_rau_subband_protect_id].minFrequency}} and
+                            {{rauRelations[selectedTsd.ne_rau_subband_protect_id].maxFrequency}}</label>
                     </td>
                     <td align="center" colspan="4">
                         <input type="number" class="form-control" name="fe_protection_txrx_frequincies"
@@ -1128,9 +1153,9 @@
                                ng-blur="fe_protection_txrx_frequinciesValuesCheck()"
                                ng-disabled="protection_mode_fetched || !selectedTsd.fe_rau_subband_protect_id">
                         <label class="error"
-                               ng-if="selectedTsd.fe_rau_subband_protect_id.id && selectedTsd.fe_txrx_frequencies_protect && fe_protection_txrx_frequinciesInvalid">Expected
-                            between {{rauRelations[selectedTsd.fe_rau_subband_protect_id.id].minFrequency}} and
-                            {{rauRelations[selectedTsd.fe_rau_subband_protect_id.id].maxFrequency}}</label>
+                               ng-if="fe_protection_rau_subband && fe_protection_txrx_frequincies && fe_protection_txrx_frequinciesInvalid">Expected
+                            between {{rauRelations[selectedTsd.fe_rau_subband_protect_id].minFrequency}} and
+                            {{rauRelations[selectedTsd.fe_rau_subband_protect_id].maxFrequency}}</label>
                     </td>
                 </tr>
                 <tr>
