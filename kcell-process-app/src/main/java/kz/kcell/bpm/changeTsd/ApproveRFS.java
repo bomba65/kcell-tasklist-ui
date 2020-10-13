@@ -36,7 +36,7 @@ public class ApproveRFS implements JavaDelegate {
 
     @Override
     public void execute(DelegateExecution execution) {
-        log.info("sending data to Assets");
+        log.info("UpdateRFS");
 
         ObjectMapper objectMapper = new ObjectMapper();
         ObjectNode objectNode = objectMapper.createObjectNode();

@@ -1,4 +1,4 @@
-package kz.kcell.bpm.changeTsd;
+package kz.kcell.flow.changeTsd;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -23,6 +23,8 @@ import org.json.JSONObject;
 import org.camunda.spin.json.SpinJsonNode;
 import org.camunda.spin.plugin.variable.value.JsonValue;
 import static org.camunda.spin.Spin.*;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -31,8 +33,11 @@ import java.util.Random;
 import java.util.*;
 
 @Log
+@Service("RejectTsd")
 public class RejectTsd implements JavaDelegate {
-    private static String baseUri = "https://asset.test-flow.kcell.kz";
+
+    @Value("${asset.url:https://asset.test-flow.kcell.kz}")
+    private String assetsUri;
 
     @Override
     public void execute(DelegateExecution execution) {
@@ -54,7 +59,7 @@ public class RejectTsd implements JavaDelegate {
             SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(builder.build());
             CloseableHttpClient httpclient = HttpClients.custom().setSSLSocketFactory(sslsf).build();
 
-            String path = baseUri + "/asset-management/tsd_mw/id/" + String.valueOf(newTsdId) + "/nearend_id/%7Bnearend_id%7D/farend_id/%7Bfarend_id%7D";
+            String path = assetsUri + "/asset-management/tsd_mw/id/" + String.valueOf(newTsdId) + "/nearend_id/%7Bnearend_id%7D/farend_id/%7Bfarend_id%7D";
             HttpResponse httpResponse = executePut(path, httpclient, objectNode.toString());
             String response = EntityUtils.toString(httpResponse.getEntity());
             log.info("json:  ----   " + objectNode.toString());

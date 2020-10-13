@@ -36,7 +36,7 @@ public class Informed implements JavaDelegate {
 
     @Override
     public void execute(DelegateExecution execution) {
-        log.info("sending data to Assets");
+        log.info("Inform Regional Engineer");
 
         ObjectMapper objectMapper = new ObjectMapper();
         ObjectNode objectNode = objectMapper.createObjectNode();

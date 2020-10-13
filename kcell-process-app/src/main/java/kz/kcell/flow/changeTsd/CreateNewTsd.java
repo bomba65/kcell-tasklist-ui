@@ -1,4 +1,4 @@
-package kz.kcell.bpm.changeTsd;
+package kz.kcell.flow.changeTsd;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -23,6 +23,8 @@ import org.json.JSONObject;
 import org.camunda.spin.json.SpinJsonNode;
 import org.camunda.spin.plugin.variable.value.JsonValue;
 import static org.camunda.spin.Spin.*;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
 
 import java.math.BigInteger;
 import java.text.SimpleDateFormat;
@@ -32,18 +34,22 @@ import java.util.Random;
 import java.util.*;
 
 @Log
+@Service("CreateNewTsd")
 public class CreateNewTsd implements JavaDelegate {
-    private static String baseUri = "https://asset.test-flow.kcell.kz";
+
+    @Value("${asset.url:https://asset.test-flow.kcell.kz}")
+    private String assetsUri;
 
     @Override
     public void execute(DelegateExecution execution) {
 
         log.info("Add new data into DB");
-
+        log.info(assetsUri);
         ObjectMapper objectMapper = new ObjectMapper();
         ObjectNode objectNode = objectMapper.createObjectNode();
 
         SpinJsonNode newTsd = execution.<JsonValue>getVariableTyped("selectedTsd").getValue();
+
         String tsdId = String.valueOf(newTsd.prop("id"));
 
         SpinJsonNode capacityObj = newTsd.prop("capacity_id") == null ? null : newTsd.prop("capacity_id");
@@ -315,7 +321,7 @@ public class CreateNewTsd implements JavaDelegate {
             SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(builder.build());
             CloseableHttpClient httpclient = HttpClients.custom().setSSLSocketFactory(sslsf).build();
 
-            String path = baseUri + "/asset-management/tsd_mw/id/" + tsdId + "/nearend_id/%7Bnearend_id%7D/farend_id/%7Bfarend_id%7D";
+            String path = assetsUri + "/asset-management/tsd_mw/id/" + tsdId + "/nearend_id/%7Bnearend_id%7D/farend_id/%7Bfarend_id%7D";
             HttpResponse httpResponse = executePut(path, httpclient, objectNode.toString());
             String response = EntityUtils.toString(httpResponse.getEntity());
             log.info("json:  ----   " + objectNode.toString());
@@ -326,7 +332,7 @@ public class CreateNewTsd implements JavaDelegate {
             JSONObject json = new JSONObject(response);
             execution.setVariable("newTsdId", json.getString("id"));
 
-            String pathFacilities = baseUri + "/asset-management/facilities";
+            String pathFacilities = assetsUri + "/asset-management/facilities";
             HttpResponse httpResponseFarEndFacilities = executePut(pathFacilities + "/id/" + String.valueOf(farEndFacilityId), httpclient, farEndFacility.toString());
             String responseFarEndFacilities = EntityUtils.toString(httpResponseFarEndFacilities.getEntity());
             log.info("responsePutFarEndFacilities :  ----   " + responseFarEndFacilities);

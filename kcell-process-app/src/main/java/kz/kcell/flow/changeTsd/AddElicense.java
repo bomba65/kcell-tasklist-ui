@@ -1,4 +1,4 @@
-package kz.kcell.bpm.changeTsd;
+package kz.kcell.flow.changeTsd;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -23,6 +23,8 @@ import org.json.JSONObject;
 import org.camunda.spin.json.SpinJsonNode;
 import org.camunda.spin.plugin.variable.value.JsonValue;
 import static org.camunda.spin.Spin.*;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -31,22 +33,40 @@ import java.util.Random;
 import java.util.*;
 
 @Log
-public class RejectTsd implements JavaDelegate {
-    private static String baseUri = "https://asset.test-flow.kcell.kz";
+@Service("AddElicense")
+public class AddElicense implements JavaDelegate {
+
+    @Value("${asset.url:https://asset.test-flow.kcell.kz}")
+    private String assetsUri;
 
     @Override
     public void execute(DelegateExecution execution) {
-        log.info("Set status Rejected");
+        log.info("Insert ELicense");
 
         ObjectMapper objectMapper = new ObjectMapper();
         ObjectNode objectNode = objectMapper.createObjectNode();
 
         Integer newTsdId = Integer.parseInt(String.valueOf(execution.getVariable("newTsdId")));
 
+        String eLicenseNumber = String.valueOf(execution.getVariable("eLicenseNumber"));
+        objectNode.put("elicense_number", eLicenseNumber);
+
+        Calendar c = Calendar.getInstance();
+        String eLicenseDate = String.valueOf(execution.getVariable("eLicenseDate"));
+        try {
+            Date eLicenseDateFormatted = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").parse(eLicenseDate);
+            c.setTime(eLicenseDateFormatted);
+            c.add(Calendar.HOUR, 6);
+            objectNode.put("elicense_date", new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ").format(c.getTime()));
+        } catch(Exception e){
+            throw new BpmnError("dateError: ", e.getMessage());
+        }
+
+
         ObjectNode rfs_status_id = objectMapper.createObjectNode();
         objectNode.set("rfs_status_id", rfs_status_id);
         rfs_status_id.put("catalog_id", 92);
-        rfs_status_id.put("id", 2);
+        rfs_status_id.put("id", 3);
 
         try {
             SSLContextBuilder builder = new SSLContextBuilder();
@@ -54,13 +74,13 @@ public class RejectTsd implements JavaDelegate {
             SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(builder.build());
             CloseableHttpClient httpclient = HttpClients.custom().setSSLSocketFactory(sslsf).build();
 
-            String path = baseUri + "/asset-management/tsd_mw/id/" + String.valueOf(newTsdId) + "/nearend_id/%7Bnearend_id%7D/farend_id/%7Bfarend_id%7D";
+            String path = assetsUri + "/asset-management/tsd_mw/id/" + String.valueOf(newTsdId) + "/nearend_id/%7Bnearend_id%7D/farend_id/%7Bfarend_id%7D";
             HttpResponse httpResponse = executePut(path, httpclient, objectNode.toString());
             String response = EntityUtils.toString(httpResponse.getEntity());
             log.info("json:  ----   " + objectNode.toString());
             log.info("response:  ----   " + response);
             if (httpResponse.getStatusLine().getStatusCode() < 200 || httpResponse.getStatusLine().getStatusCode() >= 300) {
-                throw new RuntimeException("asset.flow.kcell.kz returns code(rfs rejected) " + httpResponse.getStatusLine().getStatusCode());
+                throw new RuntimeException("asset.flow.kcell.kz returns code(put elicense) " + httpResponse.getStatusLine().getStatusCode());
             }
 
         } catch (Exception e) {
