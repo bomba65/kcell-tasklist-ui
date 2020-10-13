@@ -9,11 +9,17 @@ import groovy.json.JsonSlurper
 def formatDateTime = new SimpleDateFormat("dd.MM.yyyy HH:mm")
 def jrNumberObj = (jrNumber != null ? jrNumber : '########')
 
+def calendar = Calendar.getInstance();
+calendar.setTime(acceptanceDate);
+calendar.add(Calendar.HOUR, 6);
+def acceptanceDate = formatDateTime.format(calendar.getTime())
+
+calendar.setTime(requestedDate);
+calendar.add(Calendar.HOUR, 6);
+def startTimeObj = formatDateTime.format(calendar.getTime())
 
 def initiatorFullObj = new JsonSlurper().parseText(initiatorFull.toString())
-def startTimeObj = formatDateTime.format(requestedDate)
 def jobWorksObj = new JsonSlurper().parseText(jobWorks.toString())
-def acceptanceDate = formatDateTime.format(acceptanceDate)
 
 def binding = ["jrNumber" : jrNumberObj, "site_name" : site_name, "explanation" : explanation, "jobWorks": jobWorksObj, "startTime" : startTimeObj, "initiatorFull": initiatorFullObj, "acceptanceDate" : acceptanceDate]
 
