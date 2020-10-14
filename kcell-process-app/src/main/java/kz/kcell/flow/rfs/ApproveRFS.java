@@ -1,4 +1,4 @@
-package kz.kcell.bpm.rfs;
+package kz.kcell.flow.rfs;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -23,6 +23,8 @@ import org.json.JSONObject;
 import org.camunda.spin.json.SpinJsonNode;
 import org.camunda.spin.plugin.variable.value.JsonValue;
 import static org.camunda.spin.Spin.*;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -31,12 +33,15 @@ import java.util.Random;
 import java.util.*;
 
 @Log
+@Service("ApproveRFSRFS")
 public class ApproveRFS implements JavaDelegate {
-    private static String baseUri = "https://asset.test-flow.kcell.kz";
+
+    @Value("${asset.url:https://asset.test-flow.kcell.kz}")
+    private String assetsUri;
 
     @Override
     public void execute(DelegateExecution execution) {
-        log.info("sending data to Assets");
+        log.info("UpdateRFS // RFS");
 
         ObjectMapper objectMapper = new ObjectMapper();
         ObjectNode objectNode = objectMapper.createObjectNode();
@@ -71,13 +76,13 @@ public class ApproveRFS implements JavaDelegate {
             SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(builder.build());
             CloseableHttpClient httpclient = HttpClients.custom().setSSLSocketFactory(sslsf).build();
 
-            String path = baseUri + "/asset-management/tsd_mw/id/" + tsdId + "/nearend_id/%7Bnearend_id%7D/farend_id/%7Bfarend_id%7D";
+            String path = assetsUri + "/asset-management/tsd_mw/id/" + tsdId + "/nearend_id/%7Bnearend_id%7D/farend_id/%7Bfarend_id%7D";
             HttpResponse httpResponse = executePut(path, httpclient, objectNode.toString());
             String response = EntityUtils.toString(httpResponse.getEntity());
             log.info("json:  ----   " + objectNode.toString());
             log.info("response:  ----   " + response);
             if (httpResponse.getStatusLine().getStatusCode() < 200 || httpResponse.getStatusLine().getStatusCode() >= 300) {
-                throw new RuntimeException("asset.flow.kcell.kz returns code(rfs approved) " + httpResponse.getStatusLine().getStatusCode());
+                throw new RuntimeException("asset.flow.kcell.kz returns code(ApproveRFS rfs) " + httpResponse.getStatusLine().getStatusCode());
             }
 
         } catch (Exception e) {
