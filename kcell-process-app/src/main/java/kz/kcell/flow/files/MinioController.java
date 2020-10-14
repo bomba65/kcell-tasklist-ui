@@ -182,6 +182,22 @@ public class MinioController {
         return ResponseEntity.ok(url);
     }
 
+    @RequestMapping(value = "/admin/put/{processId}/{fileName:.+}", method = RequestMethod.GET)
+    @ResponseBody
+    public ResponseEntity<String> getAdminPresignedPutObjectUrl(@PathVariable("processId") String processId, @PathVariable("fileName") String fileName, HttpServletRequest request) throws InvalidEndpointException, InvalidPortException, InvalidKeyException, InvalidBucketNameException, NoSuchAlgorithmException, InsufficientDataException, NoResponseException, ErrorResponseException, InternalException, InvalidExpiresRangeException, IOException, XmlPullParserException{
+
+        if (identityService.getCurrentAuthentication() == null || !(identityService.getCurrentAuthentication().getUserId().equals("demo") || identityService.createGroupQuery().groupId("revisionAdmin").groupMember(identityService.getCurrentAuthentication().getUserId()).count() > 0)) {
+            log.warning("Not demo user or not logged in");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Not demo user or not logged in");
+        }
+
+        MinioClient minioClient = new MinioClient(getLocation(request), this.minioAccessKey, this.minioSecretKey, "us-east-1");
+
+        String url = minioClient.presignedPutObject(minio.getBucketName(), processId + "/" + fileName, 60 * 60 * 1);
+
+        return ResponseEntity.ok(url);
+    }
+
     private String getLocation(HttpServletRequest request){
         
         String location = request.getRequestURL().toString().replace(request.getRequestURI(), "");
