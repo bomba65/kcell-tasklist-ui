@@ -25,62 +25,8 @@ class GenerateLeasingRSD implements ExecutionListener {
         this.minioClient = minioClient;
     }
 
-//    public static void main(String[] args) {
-//
-//        def jsonSlurper = new JsonSlurper()
-//        def object = jsonSlurper.parseText('{"cn_addr_city": "cellAntennaJson.address.cn_addr_city", "cn_sitename": "candidateJson.siteName","cn_bsc": "candidateJson.bsc.name"}')
-////                '               \'                "cn_latitude": "candidateJson.latitude",\\n\' +\n' +
-////                '               \'                "cn_longitude": "candidateJson.longitude",\\n\' +\n' +
-////                '               \'                "cn_altidude":"cn_altidude",\\n\' +\n' +
-////                '               \'                "cn_height_constr": "cellAntennaJson.cn_height_gsm",\\n\' +\n' +
-////                '               \'                "sysdate": "new Date()",\\n\' +\n' +
-////                '               \'                "cn_date_visit": "candidateJson.dateOfVisit",\\n\' +\n' +
-////                '               \'                "ncp_band":"ncp_band",\\n\' +\n' +
-////                '               \'                "ncp_rbs_type": "candidateJson.rbsType",\\n\' +\n' +
-////                '               \'                "cn_radio_unit": "cn_radio_unit",\\n\' +\n' +
-////                '               \'                "cn_wcdma_carrier": "cellAntennaJson.cn_wcdma_carrier",\\n\' +\n' +
-////                '               \'                "cn_trx": "cellAntennaJson.cn_trx",\\n\' +\n' +
-////                '               \'                "cn_du":"cn_du",\\n\' +\n' +
-////                '               \'                "sector_cell_antenna":"sector_cell_antenna",\\n\' +\n' +
-////                '               \'                "cn_antenna_loc": "cn_antenna_loc",\\n\' +\n' +
-////                '               \'                "cn_tilt_mech_gsm": "cn_tilt_mech_gsm",\\n\' +\n' +
-////                '               \'                "cn_tilt_electr_gsm": "cellAntennaJson.cn_tilt_electr_gsmv",\\n\' +\n' +
-////                '               \'                "cn_tilt_mech_lte": "cellAntennaJson.cn_tilt_mech_lte",\\n\' +\n' +
-////                '               \'                "cn_tilt_electr_lte": "cellAntennaJson.cn_tilt_electr_lte",\\n\' +\n' +
-////                '               \'                "cn_direction_gsm": "cellAntennaJson.cn_direction_gsm",\\n\' +\n' +
-////                '               \'                "cn_height_gsm": "cellAntennaJson.cn_height_gsm",\\n\' +\n' +
-////                '               \'                "cn_height_lte": "cellAntennaJson.cn_height_lte",\\n\' +\n' +
-////                '               \'                "cn_duplex_gsm": "cellAntennaJson.cn_duplex_gsm",\\n\' +\n' +
-////                '               \'                "cn_diversity": "cellAntennaJson.cn_diversity",\\n\' +\n' +
-////                '               \'                "cn_power_splitter": "cellAntennaJson.cn_power_splitter",\\n\' +\n' +
-////                '               \'                "cn_hcu": "cellAntennaJson.cn_hcu",\\n\' +\n' +
-////                '               \'                "cn_ret": "cellAntennaJson.cn_ret",\\n\' +\n' +
-////                '               \'                "cn_asc": "cellAntennaJson.cn_asc",\\n\' +\n' +
-////                '               \'                "cn_tma_gsm": "cellAntennaJson.cn_tma_gsm",\\n\' +\n' +
-////                '               \'                "cn_tcc": "cellAntennaJson.cn_tcc",\\n\' +\n' +
-////                '               \'                "cn_gsm_range": "cellAntennaJson.cn_gsm_range",\\n\' +\n' +
-////                '               \'                "cn_name_contact_person": "renterCompanyJson.contactName",\\n\' +\n' +
-////                '               \'                "cn_lastname_contact_person": "renterCompanyJson.firstLeaderName",\\n\' +\n' +
-////                '               \'                "cn_position_contact_person": "renterCompanyJson.contactPosition",\\n\' +\n' +
-////                '               \'                "cn_contact_information": "renterCompanyJson.contactInfo",\\n\' +\n' +
-////                '               \'                "cn_comments": "candidateJson.comments",\\n\' +\n' +
-////                '               \'                "cn_addr_district": "candidateJson.address.cn_addr_district",\\n\' +\n' +
-////                '               \'                "cn_addr_oblast": "candidateJson.address.cn_addr_oblast",\\n\' +\n' +
-////                '               \'                "cn_addr_city": "candidateJson.address.cn_addr_city",\\n\' +\n' +
-////                '               \'                "cn_addr_street": "candidateJson.address.cn_addr_street",\\n\' +\n' +
-////                '               \'                "cn_addr_building": "candidateJson.address.cn_addr_building",\\n\' +\n' +
-////                '               \'                "cn_addr_cadastral_number": "candidateJson.address.cn_addr_cadastral_number",\\n\' +\n' +
-////                '               \'                "cn_addr_note": "candidateJson.address.cn_addr_note"}')
-//
-//
-//
-//
-//        def result = gest(object)
-////        println(result)
-//    }
-
     static String render (Map binding ) {
-        // println(binding)
+        println(binding)
         def template = '''\
             
             yieldUnescaped '<!DOCTYPE html>\'
@@ -147,12 +93,20 @@ class GenerateLeasingRSD implements ExecutionListener {
                             td (width:"23%",style:"border:1px solid",data[0].cn_date_visit)
                         }
                         tr {
-                            td (width:"20%",style:"font-weight: bold;border:1px solid", "BSC/RNC Name:")
-                            td (width:"23%",colspan:"2", style:"border:1px solid", data[0].cn_bsc)
+                            td (width:"20%",style:"font-weight: bold;border:1px solid", "Site type:")
+                            td (width:"23%",colspan:"2", style:"border:1px solid", data[0].ncp_type)
                             td (width:"7%",style:"vertical-align:top;")
                             td (width:"7%", style:"vertical-align:top;")
                             td (width:"20%",style:"font-weight: bold;border:1px solid", "Planning Engineer:")
                             td (width:"23%",style:"border:1px solid","Regional planning engineer")
+                        }
+                        tr {
+                            td (width:"20%",style:"font-weight: bold;border:1px solid", "BSC/RNC Name:")
+                            td (width:"23%",colspan:"2", style:"border:1px solid", data[0].cn_bsc)
+                            td (width:"7%",style:"vertical-align:top;")
+                            td (width:"7%", style:"vertical-align:top;")
+                            td (width:"20%",style:"font-weight: bold;border:1px solid", "Band:")
+                            td (width:"23%",style:"border:1px solid", data[0].ncp_band)
                         }
                         tr {
                             td (width:"20%",style:"font-weight: bold;border:1px solid", "Coordinates:")
@@ -160,8 +114,8 @@ class GenerateLeasingRSD implements ExecutionListener {
                             td (width:"11.5%", style:"border:1px solid", "E "+data[0].cn_latitude)
                             td (width:"7%",style:"vertical-align:top;")
                             td (width:"7%", style:"vertical-align:top;")
-                            td (width:"20%", style:"font-weight: bold; border:1px solid", "GSM-WCDMA Band:")
-                            td (width:"23%", style:"border:1px solid", data[0].ncp_band)
+                            td (width:"20%", style:"font-weight: bold; border:1px solid")
+                            td (width:"23%", style:"border:1px solid")
                         }
                         tr {
                             td (width:"20%", style:"font-weight: bold;border:1px solid", "Altitude, m.:")
@@ -180,602 +134,41 @@ class GenerateLeasingRSD implements ExecutionListener {
                             td (width:"23%", style:"border-top:none; vertical-align:top;")
                         }
                         tr (style:"border-bottom:none"){
-                            td (width:"20%", style:"font-weight: bold;border:1px solid", "Total # Of Cabinets:")
-                            td (width:"23%", colspan:"2", style:"border:1px solid", "1")
+                            td (width:"20%", style:"font-weight: bold;border:1px solid", "RBS type:")
+                            td (width:"23%", colspan:"2", style:"border:1px solid", data[0].ncp_rbs_type)
                             td (width:"7%", style:"border-bottom:none; border-right:none solid black; border-top:none; vertical-align:top;")
                             td (width:"7%", style:"border-top:none; vertical-align:top;" )
                             td (width:"20%", style:"border-top:none; vertical-align:top;" )
                             td (width:"23%", style:"border:none vertical-align:top;" )
                         }
                         tr (style:"border-bottom:none"){
-                            td (width:"20%", style:"font-weight: bold;border:1px solid", "Site type:")
-                            td (width:"23%", colspan:"2", style:"border:1px solid", data[0].siteType)
+                            td (width:"20%", style:"font-weight: bold;border:1px solid", "DU type:")
+                            td (width:"23%", colspan:"2", style:"border:1px solid", data[0].cn_du)
+                            td (width:"7%", style:"border-bottom:none; border-right:none solid black; border-top:none; vertical-align:top;")
+                            td (width:"7%", style:"border-top:none; vertical-align:top;" )
+                            td (width:"20%", style:"border-top:none; vertical-align:top;" )
+                            td (width:"23%", style:"border:none vertical-align:top;" )
+                        }
+                        tr (style:"border-bottom:none"){
+                            td (width:"20%", style:"font-weight: bold;border:1px solid", "Region:")
+                            td (width:"23%", colspan:"2", style:"border:1px solid", data[0].region_name)
                             td (width:"7%", style:"border-bottom:none; border-right:none solid black; border-top:none; vertical-align:top;")
                             td (width:"7%", style:"border-top:none; vertical-align:top;" )
                             td (width:"20%", style:"border-top:none; vertical-align:top;" )
                             td (width:"23%", style:"border:none vertical-align:top;" )
                         }
                     }
-                def cycles = cycles;
-                def a = cycles % 3
-                def cycleCount = 1
-                if (a > 0) {
-                    cycleCount = (int) (cycles/3)+1;
-                } else {
-                     cycleCount = (int) cycles/3;
-                }
-                for(int i = 1;i <= cycleCount;i++){
-                        table(class:"table", style:"font-size:12px;", border:"1") {
-                            tr {
-                                td (width:"25%",style:"background-color:#8b8e94;font-weight: bold",colspan:"2", "Sector №")
-                                for(int j =1;j<=3;j++){
-                                    int indx = (i-1)*3+(j-1)
-                                    if(indx<=data.size()){
 
-                                    if(indx<cycles){
-                                        td (width:"25%",style:"background-color:#8b8e94", indx + 1)
-
-                                    } else {
-                                        td (width:"25%",style:"background-color:#8b8e94", indx + 1)
-                                    }
-                                    }else {
-                                        td (width:"25%",style:"background-color:#8b8e94", indx + 1)
-                                    }
-                                }
-                            }
-                            tr {
-                                td (style:"font-weight: bold;",width:"25%",colspan:"2", "Site type")
-                                for(int j =1;j<=3;j++){
-                                    int indx = (i-1)*3+(j-1)
-                                    if(indx<=data.size()){
-
-                                    if(indx<cycles){
-                                        td (width:"25%", " " )
-
-                                    } else {
-                                        td (width:"25%", "")
-                                    }
-                                    }else {
-                                        td (width:"25%", "")
-                                    }
-                                }
-                            }
-                            tr {
-                                td (style:"font-weight: bold;",width:"25%",colspan:"2", "RBS №")
-                                for(int j =1;j<=3;j++){
-                                    int indx = (i-1)*3+(j-1)
-                                    if(indx<=data.size()){
-
-                                    if(indx<cycles){
-                                        td (width:"25%", " " )
-
-                                    } else {
-                                        td (width:"25%", "")
-                                    }
-                                    }else {
-                                        td (width:"25%", "")
-                                    }
-                                }
-                            }
-                            tr {
-                                td (style:"font-weight: bold;",width:"25%",colspan:"2", "RBS Type")
-                                for(int j =1;j<=3;j++){
-                                    int indx = (i-1)*3+(j-1)
-                                    if(indx<=data.size()){
-
-                                    if(indx<cycles){
-                                        td (width:"25%", data[indx].ncp_rbs_type)
-
-                                    } else {
-                                        td (width:"25%", "")
-                                    }
-                                    }else {
-                                        td (width:"25%", "")
-                                    }
-                                }
-                            }
-                            tr {
-                                td (style:"font-weight: bold;",width:"25%",colspan:"2", "GSM-WCDMA Band")
-                                for(int j =1;j<=3;j++){
-                                    int indx = (i-1)*3+(j-1)
-                                    if(indx<=data.size()){
-
-                                    if(indx<cycles){
-                                        td (width:"25%", data[indx].ncp_band)
-
-                                    } else {
-                                        td (width:"25%", "")
-                                    }
-                                    }else {
-                                        td (width:"25%", "")
-                                    }
-                                }
-                            }
-                            tr {
-                                td (style:"font-weight: bold;",width:"25%",colspan:"2", "Radio Unit type (RU)")
-                                for(int j =1;j<=3;j++){
-                                    int indx = (i-1)*3+(j-1)
-                                    if(indx<=data.size()){
-
-                                    if(indx<cycles){
-                                        td (width:"25%", data[indx].cn_radio_unit)
-
-                                    } else {
-                                        td (width:"25%", "")
-                                    }
-                                    }else {
-                                        td (width:"25%", "")
-                                    }
-                                }
-                            }
-                            tr {
-                                td (style:"font-weight: bold;",width:"25%",colspan:"2", "Carrier")
-                                for(int j =1;j<=3;j++){
-                                    int indx = (i-1)*3+(j-1)
-                                    if(indx<=data.size()){
-
-                                    if(indx<cycles){
-                                        td (width:"25%", data[indx].cn_wcdma_carrier)
-
-                                    } else {
-                                        td (width:"25%", "")
-                                    }
-                                    }else {
-                                        td (width:"25%", "")
-                                    }
-                                }
-                            }
-                            tr {
-                                td (style:"font-weight: bold;",width:"25%",colspan:"2", "Required TRX")
-                                for(int j =1;j<=3;j++){
-                                    int indx = (i-1)*3+(j-1)
-                                    if(indx<=data.size()){
-
-                                    if(indx<cycles){
-                                        td (width:"25%", data[indx].cn_trx)
-
-                                    } else {
-                                        td (width:"25%", "")
-                                    }
-                                    }else {
-                                        td (width:"25%", "")
-                                    }
-                                }
-                            }
-                            tr {
-                                td (style:"font-weight: bold;",width:"25%",colspan:"2", "DU type")
-                                td (width:"75%", colspan:"3", data[0].cn_du)
-                            }
-                            tr {
-                                td (style:"font-weight: bold;",width:"15%", rowspan:"8", "Antenna Type")
-                                td (style:"font-weight: bold;",width:"10%", "G900")
-                                for(int j =1;j<=3;j++){
-                                    int indx = (i-1)*3+(j-1)
-                                    if(indx<=data.size()){
-
-                                    if(indx<cycles){
-                                        td (width:"25%", data[indx].antennaGSM900 )
-
-                                    } else {
-                                        td (width:"25%", "")
-                                    }
-                                    }else {
-                                        td (width:"25%", "")
-                                    }
-                                }
-                            }
-                            tr {
-                
-                                td (style:"font-weight: bold;",width:"10%", "G1800")
-                                for(int j =1;j<=3;j++){
-                                    int indx = (i-1)*3+(j-1)
-                                    if(indx<=data.size()){
-
-                                    if(indx<cycles){
-                                        td (width:"25%", data[indx].antennaGSM1800 )
-
-                                    } else {
-                                        td (width:"25%", "")
-                                    }
-                                    }else {
-                                        td (width:"25%", "")
-                                    }
-                                }
-                            }
-                            tr {
-                                td (style:"font-weight: bold;",width:"10%", "U900")
-                                for(int j =1;j<=3;j++){
-                                    int indx = (i-1)*3+(j-1)
-                                    if(indx<=data.size()){
-
-                                    if(indx<cycles){
-                                        td (width:"25%", data[indx].antennaU900 )
-
-                                    } else {
-                                        td (width:"25%", "")
-                                    }
-                                    }else {
-                                        td (width:"25%", "")
-                                    }
-                                }
-                            }
-                            tr {
-                                td (style:"font-weight: bold;",width:"10%", "U2100")
-                                for(int j =1;j<=3;j++){
-                                    int indx = (i-1)*3+(j-1)
-                                    if(indx<=data.size()){
-
-                                    if(indx<cycles){
-                                        td (width:"25%", data[indx].antennaU2100 )
-
-                                    } else {
-                                        td (width:"25%", "")
-                                    }
-                                    }else {
-                                        td (width:"25%", "")
-                                    }
-                                }
-                            }
-                            tr {
-                                td (style:"font-weight: bold;",width:"10%", "L800")
-                                for(int j =1;j<=3;j++){
-                                    int indx = (i-1)*3+(j-1)
-                                    if(indx<=data.size()){
-
-                                    if(indx<cycles){
-                                        td (width:"25%", data[indx].antennaLTE800 )
-
-                                    } else {
-                                        td (width:"25%", "")
-                                    }
-                                    }else {
-                                        td (width:"25%", "")
-                                    }
-                                }
-                            }
-                            tr {
-                                td (style:"font-weight: bold;",width:"10%", "L1800")
-                                for(int j =1;j<=3;j++){
-                                    int indx = (i-1)*3+(j-1)
-                                    if(indx<=data.size()){
-
-                                    if(indx<cycles){
-                                        td (width:"25%", data[indx].antennaLTE1800 )
-
-                                    } else {
-                                        td (width:"25%", "")
-                                    }
-                                    }else {
-                                        td (width:"25%", "")
-                                    }
-                                }
-                            }
-                            tr {
-                                td (style:"font-weight: bold;",width:"10%", "L2100")
-                                for(int j =1;j<=3;j++){
-                                    int indx = (i-1)*3+(j-1)
-                                    if(indx<=data.size()){
-
-                                    if(indx<cycles){
-                                        td (width:"25%", data[indx].antennaLTE2100 )
-
-                                    } else {
-                                        td (width:"25%", "")
-                                    }
-                                    }else {
-                                        td (width:"25%", "")
-                                    }
-                                }
-                            }
-                            tr {
-                                td (style:"font-weight: bold;",width:"10%", "L2600")
-                                for(int j =1;j<=3;j++){
-                                    int indx = (i-1)*3+(j-1)
-                                    if(indx<=data.size()){
-
-                                    if(indx<cycles){
-                                        td (width:"25%", data[indx].antennaLTE2600 )
-
-                                    } else {
-                                        td (width:"25%", "")
-                                    }
-                                    }else {
-                                        td (width:"25%", "")
-                                    }
-                                }
-                            }
-                            tr {
-                                td (style:"font-weight: bold;",width:"25%",colspan:"2", "Antenna Quantity")
-                                for(int j =1;j<=3;j++){
-                                    int indx = (i-1)*3+(j-1)
-                                    if(indx<=data.size()){
-
-                                    if(indx<cycles){
-                                        td (width:"25%", data[indx].antennaQuantity )
-
-                                    } else {
-                                        td (width:"25%", "")
-                                    }
-                                    }else {
-                                        td (width:"25%", "")
-                                    }
-                                }
-                            }
-                            tr {
-                                td (style:"font-weight: bold;",width:"25%",colspan:"2", "Antenna Location")
-                                for(int j =1;j<=3;j++){
-                                    int indx = (i-1)*3+(j-1)
-                                    if(indx<=data.size()){
-
-                                    if(indx<cycles){
-                                        td (width:"25%", data[indx].cn_antenna_loc)
-
-                                    } else {
-                                        td (width:"25%", "")
-                                    }
-                                    }else {
-                                        td (width:"25%", "")
-                                    }
-                                }
-                            }
-                            tr {
-                                td (style:"font-weight: bold;",width:"25%",colspan:"2", "Tilt [deg] mechanical 900/1800/WCDMA")
-                                for(int j =1;j<=3;j++){
-                                    int indx = (i-1)*3+(j-1)
-                                    if(indx<=data.size()){
-
-                                    if(indx<cycles){
-                                        td (width:"25%", data[indx].cn_tilt_mech_gsm)
-
-                                    } else {
-                                        td (width:"25%", "")
-                                    }
-                                    }else {
-                                        td (width:"25%", "")
-                                    }
-                                }
-                            }
-                            tr {
-                                td (style:"font-weight: bold;",width:"25%",colspan:"2", "Tilt [deg] electrical 900/1800/WCDMA ")
-                                for(int j =1;j<=3;j++){
-                                    int indx = (i-1)*3+(j-1)
-                                    if(indx<=data.size()){
-
-                                    if(indx<cycles){
-                                        td (width:"25%", data[indx].cn_tilt_electr_gsm)
-
-                                    } else {
-                                        td (width:"25%", "")
-                                    }
-                                    }else {
-                                        td (width:"25%", "")
-                                    }
-                                }
-                            }
-                            tr {
-                                td (style:"font-weight: bold;",width:"25%",colspan:"2", "Tilt [deg] mechanical LTE 800/1800/2100")
-                                for(int j =1;j<=3;j++){
-                                    int indx = (i-1)*3+(j-1)
-                                    if(indx<=data.size()){
-
-                                    if(indx<cycles){
-                                        td (width:"25%", data[indx].cn_tilt_mech_lte)
-
-                                    } else {
-                                        td (width:"25%", "")
-                                    }
-                                    }else {
-                                        td (width:"25%", "")
-                                    }
-                                }
-                            }
-                            tr {
-                                td (style:"font-weight: bold;",width:"25%",colspan:"2", "Tilt [deg] electrical LTE 800/1800/2100")
-                                for(int j =1;j<=3;j++){
-                                    int indx = (i-1)*3+(j-1)
-                                    if(indx<=data.size()){
-
-                                    if(indx<cycles){
-                                        td (width:"25%", data[indx].cn_tilt_electr_lte)
-
-                                    } else {
-                                        td (width:"25%", "")
-                                    }
-                                    }else {
-                                        td (width:"25%", "")
-                                    }
-                                }
-                            }
-                            tr {
-                                td (style:"font-weight: bold;",width:"25%",colspan:"2", "Direction [deg]")
-                                for(int j =1;j<=3;j++){
-                                    int indx = (i-1)*3+(j-1)
-                                    if(indx<=data.size()){
-
-                                    if(indx<cycles){
-                                        td (width:"25%", data[indx].cn_direction_gsm)
-
-                                    } else {
-                                        td (width:"25%", "")
-                                    }
-                                    }else {
-                                        td (width:"25%", "")
-                                    }
-                                }
-                            }
-                            tr {
-                                td (style:"font-weight: bold;",width:"25%",colspan:"2", "Height (top of ant) [m]")
-                                for(int j =1;j<=3;j++){
-                                    int indx = (i-1)*3+(j-1)
-                                    if(indx<=data.size()){
-
-                                    if(indx<cycles){
-                                        td (width:"25%", "GSM "+data[indx].cn_height_gsm +"/ LTE "+data[indx].cn_height_lte)
-
-                                    } else {
-                                        td (width:"25%", "")
-                                    }
-                                    }else {
-                                        td (width:"25%", "")
-                                    }
-                                }
-                            }
-                            tr {
-                                td (style:"font-weight: bold;",width:"25%",colspan:"2", "Duplex Filter")
-                                for(int j =1;j<=3;j++){
-                                    int indx = (i-1)*3+(j-1)
-                                    if(indx<=data.size()){
-
-                                    if(indx<cycles){
-                                        td (width:"25%", data[indx].cn_duplex_gsm)
-
-                                    } else {
-                                        td (width:"25%", "")
-                                    }
-                                    }else {
-                                        td (width:"25%", "")
-                                    }
-                                }
-                            }
-                            tr {
-                                td (style:"font-weight: bold;",width:"25%",colspan:"2", "Diversity")
-                                for(int j =1;j<=3;j++){
-                                    int indx = (i-1)*3+(j-1)
-                                    if(indx<=data.size()){
-
-                                    if(indx<cycles){
-                                        td (width:"25%", data[indx].cn_diversity)
-
-                                    } else {
-                                        td (width:"25%", "")
-                                    }
-                                    }else {
-                                        td (width:"25%", "")
-                                    }
-                                }
-                            }
-                            tr {
-                                td (style:"font-weight: bold;",width:"25%",colspan:"2", "Power Splitter")
-                                for(int j =1;j<=3;j++){
-                                    int indx = (i-1)*3+(j-1)
-                                    if(indx<=data.size()){
-
-                                    if(indx<cycles){
-                                        td (width:"25%", data[indx].cn_power_splitter)
-
-                                    } else {
-                                        td (width:"25%", "")
-                                    }
-                                    }else {
-                                        td (width:"25%", "")
-                                    }
-                                }
-                            }
-                            tr {
-                                td (style:"font-weight: bold;",width:"25%",colspan:"2", "HCU")
-                                for(int j =1;j<=3;j++){
-                                    int indx = (i-1)*3+(j-1)
-                                    if(indx<=data.size()){
-
-                                    if(indx<cycles){
-                                        td (width:"25%", data[indx].cn_hcu)
-
-                                    } else {
-                                        td (width:"25%", "")
-                                    }
-                                    }else {
-                                        td (width:"25%", "")
-                                    }
-                                }
-                            }
-                            tr {
-                                td (style:"font-weight: bold;",width:"25%",colspan:"2", "RET")
-                                for(int j =1;j<=3;j++){
-                                    int indx = (i-1)*3+(j-1)
-                                    if(indx<=data.size()){
-
-                                    if(indx<cycles){
-                                        td (width:"25%", data[indx].cn_ret)
-
-                                    } else {
-                                        td (width:"25%", "")
-                                    }
-                                    }else {
-                                        td (width:"25%", "")
-                                    }
-                                }
-                            }
-                            tr {
-                                td (style:"font-weight: bold;",width:"25%",colspan:"2", "ASC")
-                                for(int j =1;j<=3;j++){
-                                    int indx = (i-1)*3+(j-1)
-                                    if(indx<=data.size()){
-
-                                    if(indx<cycles){
-                                        td (width:"25%", data[indx].cn_asc)
-
-                                    } else {
-                                        td (width:"25%", "")
-                                    }
-                                    }else {
-                                        td (width:"25%", "")
-                                    }
-                                }
-                            }
-                            tr {
-                                td (style:"font-weight: bold;",width:"25%",colspan:"2", "TMA")
-                                for(int j =1;j<=3;j++){
-                                    int indx = (i-1)*3+(j-1)
-                                    if(indx<=data.size()){
-
-                                    if(indx<cycles){
-                                        td (width:"25%", data[indx].cn_tma_gsm)
-
-                                    } else {
-                                        td (width:"25%", "")
-                                    }
-                                    }else {
-                                        td (width:"25%", "")
-                                    }
-                                }
-                            }
-                            tr {
-                                td (style:"font-weight: bold;",width:"25%", colspan:"2", "TCC")
-                                for(int j =1;j<=3;j++){
-                                    int indx = (i-1)*3+(j-1)
-                                    if(indx<=data.size()){
-
-                                    if(indx<cycles){
-                                        td (width:"25%", data[indx].cn_tcc)
-
-                                    } else {
-                                        td (width:"25%", "")
-                                    }
-                                    }else {
-                                        td (width:"25%", "")
-                                    }
-                                }
-                            }
-                            tr {
-                                td (style:"font-weight: bold;",width:"25%",colspan:"2", "Extended range")
-                                for(int j =1;j<=3;j++){
-                                    int indx = (i-1)*3+(j-1)
-                                    if(indx<=data.size()){
-
-                                    if(indx<cycles){
-                                        td (width:"25%", data[indx].cn_gsm_range)
-
-                                    } else {
-                                        td (width:"25%", "")
-                                    }
-                                    }else {
-                                        td (width:"25%", "")
-                                    }
-                                }
-                            }
-                        }  
-                        newLine()
-          
+                    table(class:"table", style:"font-size:12px;", border:"1") {
+                        tr {
+                            td (width:"14.2%",style:"background-color:#8b8e94;font-weight: bold",colspan:"2", "Sector №")
+                            td (width:"14.2%",style:"background-color:#8b8e94;font-weight: bold",colspan:"2", "Antenna name")
+                            td (width:"14.2%",style:"background-color:#8b8e94;font-weight: bold",colspan:"2", "Antenna type")
+                            td (width:"14.2%",style:"background-color:#8b8e94;font-weight: bold",colspan:"2", "Quantity")
+                            td (width:"14.2%",style:"background-color:#8b8e94;font-weight: bold",colspan:"2", "Suspension height")
+                            td (width:"14.2%",style:"background-color:#8b8e94;font-weight: bold",colspan:"2", "Azimuth")
+                            td (width:"14.2%",style:"background-color:#8b8e94;font-weight: bold",colspan:"2", "Antenna location")
+                        }
                     }
                 newLine()
         table(class:"table", style:"font-size:12px;", border:"1") {
@@ -997,7 +390,7 @@ class GenerateLeasingRSD implements ExecutionListener {
             ]
             data.add(test)
         }
-
+        
         def binding = [
                 "data":data,
                 "cycles":cycle,
@@ -1007,7 +400,7 @@ class GenerateLeasingRSD implements ExecutionListener {
         // if (checkingByGuestResult && checkingByGuestResult == "approved") {
         //     execution.setVariable("acceptanceDate", taskSubmitDate)
         // }
-        print (result);
+        // print (result);
 
         JSONArray createdRSDFiles = new JSONArray();
         JSONObject createdRSDFile = new JSONObject();
