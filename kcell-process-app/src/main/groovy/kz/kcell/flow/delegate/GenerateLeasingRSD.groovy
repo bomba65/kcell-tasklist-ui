@@ -78,7 +78,7 @@ class GenerateLeasingRSD implements ExecutionListener {
                     table(class:"table", style:"font-size:12px;") {
                         tr {
                             td (width:"20%", style:"font-weight: bold; border:1px solid", "City Name:")
-                            td (width:"23%", colspan:"2", style:"border:1px solid", data[0].cn_addr_city)
+                            td (width:"23%", colspan:"2", style:"border:1px solid", header.cityName)
                             td (width:"7%", style:"border-bottom:1;border-top:none; vertical-align:top;")
                             td (width:"7%", style:"border-bottom:1;border-top:none; border-left:none; vertical-align:top;")
                             td (width:"20%", style:"font-weight: bold;border:1px solid", "Date:")
@@ -86,32 +86,32 @@ class GenerateLeasingRSD implements ExecutionListener {
                         }
                         tr {
                             td (width:"20%",style:"font-weight: bold;border:1px solid", "Site Name:")
-                            td (width:"23%",colspan:"2", style:"border:1px solid", data[0].cn_sitename)
+                            td (width:"23%",colspan:"2", style:"border:1px solid", header.siteName)
                             td (width:"7%",style:"vertical-align:top;")
                             td (width:"7%", style:"vertical-align:top;")
                             td (width:"20%",style:"font-weight: bold;border:1px solid", "Visiting Date:")
-                            td (width:"23%",style:"border:1px solid",data[0].cn_date_visit)
+                            td (width:"23%",style:"border:1px solid",header.dateOfVisit)
                         }
                         tr {
                             td (width:"20%",style:"font-weight: bold;border:1px solid", "Site type:")
-                            td (width:"23%",colspan:"2", style:"border:1px solid", data[0].ncp_type)
+                            td (width:"23%",colspan:"2", style:"border:1px solid", header.siteType)
                             td (width:"7%",style:"vertical-align:top;")
                             td (width:"7%", style:"vertical-align:top;")
                             td (width:"20%",style:"font-weight: bold;border:1px solid", "Planning Engineer:")
-                            td (width:"23%",style:"border:1px solid","Regional planning engineer")
+                            td (width:"23%",style:"border:1px solid", header.planningEngineer)
                         }
                         tr {
                             td (width:"20%",style:"font-weight: bold;border:1px solid", "BSC/RNC Name:")
-                            td (width:"23%",colspan:"2", style:"border:1px solid", data[0].cn_bsc)
+                            td (width:"23%",colspan:"2", style:"border:1px solid", header.bsc)
                             td (width:"7%",style:"vertical-align:top;")
                             td (width:"7%", style:"vertical-align:top;")
                             td (width:"20%",style:"font-weight: bold;border:1px solid", "Band:")
-                            td (width:"23%",style:"border:1px solid", data[0].ncp_band)
+                            td (width:"23%",style:"border:1px solid", header.band)
                         }
                         tr {
                             td (width:"20%",style:"font-weight: bold;border:1px solid", "Coordinates:")
-                            td (width:"11.5%", style:"border:1px solid", "N "+data[0].cn_longitude)
-                            td (width:"11.5%", style:"border:1px solid", "E "+data[0].cn_latitude)
+                            td (width:"11.5%", style:"border:1px solid", "N "+header.coordinatesN)
+                            td (width:"11.5%", style:"border:1px solid", "E "+header.coordinatesE)
                             td (width:"7%",style:"vertical-align:top;")
                             td (width:"7%", style:"vertical-align:top;")
                             td (width:"20%", style:"font-weight: bold; border:1px solid")
@@ -119,7 +119,7 @@ class GenerateLeasingRSD implements ExecutionListener {
                         }
                         tr {
                             td (width:"20%", style:"font-weight: bold;border:1px solid", "Altitude, m.:")
-                            td (width:"23%", colspan:"2", style:"border:1px solid", data[0].cn_altidude)
+                            td (width:"23%", colspan:"2", style:"border:1px solid", header.altitude)
                             td (width:"7%", style:"vertical-align:top;")
                             td (width:"7%", style:"vertical-align:top;" )
                             td (width:"20%", style:"vertical-align:top;" )
@@ -127,7 +127,7 @@ class GenerateLeasingRSD implements ExecutionListener {
                         }
                         tr {
                             td (width:"20%", style:"font-weight: bold;border:1px solid", "Height Of Construction, m:")
-                            td (width:"23%", colspan:"2", style:"border:1px solid", data[0].cn_height_constr)
+                            td (width:"23%", colspan:"2", style:"border:1px solid", header.heightOfConstruction)
                             td (width:"7%", style:" vertical-align:top;")
                             td (width:"7%", style:"border-top:none; vertical-align:top;")
                             td (width:"20%", style:"border-top:none; vertical-align:top;")
@@ -135,7 +135,7 @@ class GenerateLeasingRSD implements ExecutionListener {
                         }
                         tr (style:"border-bottom:none"){
                             td (width:"20%", style:"font-weight: bold;border:1px solid", "RBS type:")
-                            td (width:"23%", colspan:"2", style:"border:1px solid", data[0].ncp_rbs_type)
+                            td (width:"23%", colspan:"2", style:"border:1px solid", header.rbsType)
                             td (width:"7%", style:"border-bottom:none; border-right:none solid black; border-top:none; vertical-align:top;")
                             td (width:"7%", style:"border-top:none; vertical-align:top;" )
                             td (width:"20%", style:"border-top:none; vertical-align:top;" )
@@ -143,7 +143,7 @@ class GenerateLeasingRSD implements ExecutionListener {
                         }
                         tr (style:"border-bottom:none"){
                             td (width:"20%", style:"font-weight: bold;border:1px solid", "DU type:")
-                            td (width:"23%", colspan:"2", style:"border:1px solid", data[0].cn_du)
+                            td (width:"23%", colspan:"2", style:"border:1px solid", header.duType)
                             td (width:"7%", style:"border-bottom:none; border-right:none solid black; border-top:none; vertical-align:top;")
                             td (width:"7%", style:"border-top:none; vertical-align:top;" )
                             td (width:"20%", style:"border-top:none; vertical-align:top;" )
@@ -151,7 +151,7 @@ class GenerateLeasingRSD implements ExecutionListener {
                         }
                         tr (style:"border-bottom:none"){
                             td (width:"20%", style:"font-weight: bold;border:1px solid", "Region:")
-                            td (width:"23%", colspan:"2", style:"border:1px solid", data[0].region_name)
+                            td (width:"23%", colspan:"2", style:"border:1px solid", header.regionName)
                             td (width:"7%", style:"border-bottom:none; border-right:none solid black; border-top:none; vertical-align:top;")
                             td (width:"7%", style:"border-top:none; vertical-align:top;" )
                             td (width:"20%", style:"border-top:none; vertical-align:top;" )
@@ -171,25 +171,7 @@ class GenerateLeasingRSD implements ExecutionListener {
                         }
                     }
                 newLine()
-        table(class:"table", style:"font-size:12px;", border:"1") {
-            tr {
-                td (width:"20%", style:"font-weight:bold", "Address of Site:")
-                td (width:"80%", data[0].cn_addr_district + ", " + data[0].cn_addr_oblast + ", " + data[0].cn_addr_city + ", " + data[0].cn_addr_street + ", " + data[0].cn_addr_building)
-            }
-            tr {
-                td (width:"20%", style:"font-weight:bold", "Contact Person:")
-                td (width:"80%", data[0].cn_name_contact_person +", " +data[0].cn_lastname_contact_person  +", " + data[0].cn_position_contact_person  +", " + data[0].cn_contact_information)
-            }
-            tr {
-                td (width:"20%", style:"font-weight:bold", "Comments:")
-                td (width:"80%", data[0].cn_comments)
-            }
-            tr {
-                td (width:"20%", style:"font-weight:bold", "Planning Target")
-                td (width:"80%",  " ")
-            }
-        
-        }
+      
                 }
             }
 
@@ -212,186 +194,57 @@ class GenerateLeasingRSD implements ExecutionListener {
 
         def bandJson = new JsonSlurper().parseText(execution.getVariable('bands').toString());
 
-        def bandList = "";
-        for(int l=0;l<bandJson.size();l++){
-            if(bandJson[l].value == true){
-                bandList += bandJson[l].title + ", "
-            }
-        }
+//        def bandList = "";
+//        for(int l=0;l<bandJson.size();l++){
+//            if(bandJson[l].value == true){
+//                bandList += bandJson[l].title + ", "
+//            }
+//        }
 
         def candidateJson = new JsonSlurper().parseText(execution.getVariable('candidate').toString());
         def siteTypeJson = new JsonSlurper().parseText(execution.getVariable('siteType').toString());
         def cellAntennaJson = new JsonSlurper().parseText(execution.getVariable('cellAntenna').toString());
         def renterCompanyJson = new JsonSlurper().parseText(execution.getVariable('renterCompany').toString());
         def address = new JsonSlurper().parseText(execution.getVariable('address').toString());
+        JSONArray bandsArr = new JSONArray(execution.getVariable("bands").toString())
         def data = [];
         def sectorsArr = cellAntennaJson.sectors
         def cycle = sectorsArr.size()
-//        def String[] antennaNames = ['G900', 'G1800', 'U900', 'U2100', 'L800', 'L1800','L2100', 'L2600']
-        ArrayList<String> antennaNames = new ArrayList<String>();
-        antennaNames.add("G900");
-        antennaNames.add("G1800");
-        antennaNames.add("U900");
-        antennaNames.add("U2100");
-        antennaNames.add("L800");
-        antennaNames.add("L1800");
-        antennaNames.add("L2100");
-        antennaNames.add("L2600");
+       
+        def bandNames = ""
+        for(int i=0;i<bandsArr.length();i++){
+            JSONObject obj = bandsArr.getJSONObject(i);
+            bandNames += obj.get("title")
 
-        for (int j =0;j<cycle;j++){
-            def antennaLocation = sectorsArr[j].antennas[0].cn_antenna_loc
-            def antennaQuantity = 0;
-            def antennaGSM900 = "";
-            def antennaGSM1800 = "";
-            def antennaU900 = "";
-            def antennaU2100 = "";
-            def antennaLTE800 = "";
-            def antennaLTE1800 = "";
-            def antennaLTE2100 = "";
-            def antennaLTE2600 = "";
-
-            def cn_tilt_mech_gsm = "";
-            def cn_tilt_electr_gsm = "";
-            def cn_tilt_mech_lte = "";
-            def cn_tilt_electr_lte = "";
-            def cn_direction_gsm = "";
-            def cn_height_gsm = "";
-            def cn_height_lte = "";
-            def cn_duplex_gsm = "";
-            def cn_diversity = "";
-            def cn_power_splitter = "";
-            def cn_hcu = "";
-            def cn_ret = "";
-            def cn_asc = "";
-            def cn_tma_gsm = "";
-            def cn_tcc = "";
-            def cn_gsm_range = "";
-            def cn_trx = "";
-            def cn_radio_unit = "";
-            def cn_wcdma_carrier = "";
-
-            def cn_duArray = [];
-            def cn_du = "";
-
-            for(int k=0;k<sectorsArr[j].antennas.size();k++){
-            antennaQuantity += sectorsArr[j].antennas[k].quantity
-            def antennaItem = sectorsArr[j].antennas[k].antennaType
-            def antennaName = sectorsArr[j].antennas[k].antennaName
-
-
-
-            cn_tilt_mech_gsm = sectorsArr[j].square ? sectorsArr[j].square : "";
-            cn_tilt_electr_gsm = sectorsArr[j].cn_tilt_electr_gsm ? sectorsArr[j].cn_tilt_electr_gsm : "";
-            cn_tilt_mech_lte = sectorsArr[j].cn_tilt_mech_lte ? sectorsArr[j].cn_tilt_mech_lte : "";
-            cn_tilt_electr_lte = sectorsArr[j].cn_tilt_electr_lte ? sectorsArr[j].cn_tilt_electr_lte : "";
-            cn_direction_gsm = sectorsArr[j].cn_direction_gsm ? sectorsArr[j].cn_direction_gsm : "";
-            cn_height_gsm = sectorsArr[j].cn_height_gsm ? sectorsArr[j].cn_height_gsm : "";
-            cn_height_lte = sectorsArr[j].cn_height_lte ? sectorsArr[j].cn_height_lte : "";
-            cn_duplex_gsm = sectorsArr[j].cn_duplex_gsm ? sectorsArr[j].cn_duplex_gsm : "";
-            cn_diversity = sectorsArr[j].cn_diversity ? sectorsArr[j].cn_diversity : "";
-            cn_power_splitter = sectorsArr[j].cn_power_splitter ? sectorsArr[j].cn_power_splitter : "";
-            cn_hcu = sectorsArr[j].cn_hcu ? sectorsArr[j].cn_hcu : "";
-            cn_ret = sectorsArr[j].cn_ret ? sectorsArr[j].cn_ret : "";
-            cn_asc = sectorsArr[j].cn_asc ? sectorsArr[j].cn_asc : "";
-            cn_tma_gsm = sectorsArr[j].cn_tma_gsm ? sectorsArr[j].cn_tma_gsm : "";
-            cn_tcc = sectorsArr[j].cn_tcc ? sectorsArr[j].cn_tcc : "";
-            cn_gsm_range = sectorsArr[j].cn_gsm_range ? sectorsArr[j].cn_gsm_range : "";
-            cn_trx = sectorsArr[j].cn_trx ? sectorsArr[j].cn_trx : "";
-            cn_wcdma_carrier = sectorsArr[j].cn_wcdma_carrier ? sectorsArr[j].cn_wcdma_carrier : "";
-            cn_radio_unit = sectorsArr[j].cn_radio_unit ? sectorsArr[j].cn_radio_unit : "";
-            cn_duArray = cellAntennaJson.cn_du ? cellAntennaJson.cn_du : [];
-            cn_du = cn_duArray.size() > 1 ? cn_duArray.join(", ") : ""
-
-
-            for(String item : antennaNames){
-                if(antennaItem == "G900"){
-                    antennaGSM900 = antennaName
-                } 
-                if(antennaItem == "G1800"){
-                    antennaGSM1800 = antennaName
-                } 
-                if(antennaItem == "U900"){
-                    antennaU900 = antennaName
-                } 
-                if(antennaItem == "U2100"){
-                    antennaU2100 = antennaName
-                } 
-                if(antennaItem == "L800"){
-                    antennaLTE800 = antennaName
-                } 
-                if(antennaItem == "L1800"){
-                    antennaLTE1800 = antennaName
-                } 
-                if(antennaItem == "L2100"){
-                    antennaLTE2100 = antennaName
-                } 
-                if(antennaItem == "L2600"){
-                    antennaLTE2600 = antennaName
-                }
+            if(i < bandsArr.length()-1) {
+                bandNames += ", "
             }
-            }
-            
-            def test = [
-                    "cn_addr_city": cellAntennaJson.address ? cellAntennaJson.address.cn_addr_city : '',
-                    "cn_sitename": candidateJson.siteName ? candidateJson.siteName : '',
-                    "cn_bsc": candidateJson.bsc ?  (candidateJson.bsc instanceof LazyMap? candidateJson.bsc.name : candidateJson.bsc) : '',
-                    "cn_latitude": candidateJson.latitude ? candidateJson.latitude : '',
-                    "cn_longitude": candidateJson.longitude ? candidateJson.longitude : '',
-                    "cn_altidude": candidateJson.cn_altitude ? candidateJson.cn_altitude : '',
-                    "cn_height_constr": candidateJson.cn_height_constr ? candidateJson.cn_height_constr : '',
-                    "sysdate": new Date(),
-                    "cn_date_visit": candidateJson.dateOfVisit ? candidateJson.dateOfVisit : '',
-                    "ncp_band":bandList ? bandList : '',
-                    "ncp_rbs_type": candidateJson.rbsType ? candidateJson.rbsType : '',
-                    "cn_radio_unit": cn_radio_unit,
-                    "cn_wcdma_carrier": cn_wcdma_carrier,
-                    "cn_trx": cn_trx,
-                    "cn_du": cn_du,
-                    "sector_cell_antenna":"sector_cell_antenna",
-                    "cn_antenna_loc": antennaLocation ? antennaLocation : '',
-                    "cn_tilt_mech_gsm": cn_tilt_mech_gsm,
-                    "cn_tilt_electr_gsm": cn_tilt_electr_gsm,
-                    "cn_tilt_mech_lte": cn_tilt_mech_lte,
-                    "cn_tilt_electr_lte": cn_tilt_electr_lte,
-                    "cn_direction_gsm": cn_direction_gsm,
-                    "cn_height_gsm": cn_height_gsm,
-                    "cn_height_lte": cn_height_lte,
-                    "cn_duplex_gsm": cn_duplex_gsm,
-                    "cn_diversity": cn_diversity,
-                    "siteType": siteTypeJson.name ? siteTypeJson.name : '',
-                    "cn_power_splitter": cn_power_splitter,
-                    "cn_hcu": cn_hcu,
-                    "cn_ret": cn_ret,
-                    "cn_asc": cn_asc,
-                    "cn_tma_gsm": cn_tma_gsm,
-                    "cn_tcc": cn_tcc,
-                    "cn_gsm_range": cn_gsm_range,
-                    "cn_name_contact_person": renterCompanyJson.contactName ? renterCompanyJson.contactName : '',
-                    "cn_lastname_contact_person": renterCompanyJson.firstLeaderName ? renterCompanyJson.firstLeaderName : '',
-                    "cn_position_contact_person": renterCompanyJson.contactPosition ? renterCompanyJson.contactPosition : '',
-                    "cn_contact_information": renterCompanyJson.contactInfo ? renterCompanyJson.contactInfo : '',
-                    "cn_comments": candidateJson.comments ? candidateJson.comments : '',
-                    "cn_addr_district": address.cn_addr_district ? address.cn_addr_district : '',
-                    "cn_addr_oblast": address.cn_addr_oblast ? address.cn_addr_oblast : '',
-                    "cn_addr_city": address.cn_addr_city ? address.cn_addr_city : '',
-                    "cn_addr_street": address.cn_addr_street ? address.cn_addr_street : '',
-                    "cn_addr_building": address.cn_addr_building ? address.cn_addr_building : '',
-                    "cn_addr_cadastral_number": address.cn_addr_cadastral_number ? address.cn_addr_cadastral_number : '',
-                    "cn_addr_note": address.cn_addr_note ? address.cn_addr_note : '',
-                    "antennaGSM900": antennaGSM900,
-                    "antennaGSM1800": antennaGSM1800,
-                    "antennaU900": antennaU900,
-                    "antennaU2100": antennaU2100,
-                    "antennaLTE800": antennaLTE800,
-                    "antennaLTE1800": antennaLTE1800,
-                    "antennaLTE2100": antennaLTE2100,
-                    "antennaLTE2600": antennaLTE2600,
-                    "antennaQuantity": antennaQuantity
-            ]
-            data.add(test)
         }
+
+
+        print(cellAntennaJson)
+
+        def headerInfo = [
+            cityName: cellAntennaJson.address.cn_addr_city,
+            siteName: execution.getVariable("siteName").toString(),
+            siteType: siteTypeJson.name,
+            bsc: candidateJson.bsc.name,
+            coordinatesN: candidateJson.latitude,
+            coordinatesE: candidateJson.longitude,
+            altitude: candidateJson.cn_altitude,
+            heightOfConstruction: candidateJson.cn_height_constr,
+            rbsType: candidateJson.rbsType,
+            duType: cellAntennaJson.cn_du.toString(),
+            regionName: execution.getVariable("regionName").toString(),
+            date: new Date(),
+            visitingDate: candidateJson.dateOfVisit,
+            planningEngineer: "Regional planning engineer",
+            band: bandNames,
+
+        ]
         
         def binding = [
+                "header": headerInfo,
                 "data":data,
                 "cycles":cycle,
         ]
