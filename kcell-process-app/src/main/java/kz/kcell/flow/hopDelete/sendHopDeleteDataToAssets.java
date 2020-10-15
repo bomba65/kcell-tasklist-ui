@@ -72,7 +72,7 @@ public class sendHopDeleteDataToAssets implements JavaDelegate {
             log.info("json:  ----   " + objectNode.toString());
             log.info("response:  ----   " + response);
             if (httpResponse.getStatusLine().getStatusCode() < 200 || httpResponse.getStatusLine().getStatusCode() >= 300) {
-                throw new RuntimeException("asset.flow.kcell.kz returns code(insert elicense rfs) " + httpResponse.getStatusLine().getStatusCode());
+                throw new RuntimeException("asset.flow.kcell.kz returns code(hop delete) " + httpResponse.getStatusLine().getStatusCode());
             }
 
         } catch (Exception e) {
