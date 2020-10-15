@@ -807,28 +807,12 @@
     </bpmn:sequenceFlow>
     <bpmn:sequenceFlow id="SequenceFlow_1rieuf2" sourceRef="SubProcess_0zu8jyb" targetRef="ExclusiveGateway_1fmzu87" />
     <bpmn:sequenceFlow id="SequenceFlow_04xttpw" name="PERFORMED" sourceRef="ExclusiveGateway_0h8nbb4" targetRef="ServiceTask_1lcg2ff" />
-    <bpmn:parallelGateway id="ParallelGateway_0le7fnu">
-      <bpmn:extensionElements>
-        <camunda:executionListener class="kz.kcell.bpm.leasing.VariableSetStatus" event="start">
-          <camunda:field name="variable">
-            <camunda:string>generalStatus</camunda:string>
-          </camunda:field>
-          <camunda:field name="value">
-            <camunda:string>Provisional approval by Power, Transmission &amp; Leasing</camunda:string>
-          </camunda:field>
-        </camunda:executionListener>
-      </bpmn:extensionElements>
-      <bpmn:incoming>SequenceFlow_0dz6q5c</bpmn:incoming>
-      <bpmn:outgoing>SequenceFlow_0pjyoj9</bpmn:outgoing>
-      <bpmn:outgoing>SequenceFlow_1u8yw9f</bpmn:outgoing>
-    </bpmn:parallelGateway>
-    <bpmn:sequenceFlow id="SequenceFlow_0pjyoj9" sourceRef="ParallelGateway_0le7fnu" targetRef="ServiceTask_1khc38t" />
-    <bpmn:sequenceFlow id="SequenceFlow_1u8yw9f" sourceRef="ParallelGateway_0le7fnu" targetRef="ServiceTask_1i0xslv" />
-    <bpmn:parallelGateway id="ParallelGateway_0201vgh">
-      <bpmn:incoming>Flow_0l6buy3</bpmn:incoming>
-      <bpmn:incoming>Flow_1d40mns</bpmn:incoming>
-      <bpmn:outgoing>SequenceFlow_116lgvb</bpmn:outgoing>
-    </bpmn:parallelGateway>
+    <bpmn:sequenceFlow id="SequenceFlow_0pjyoj9" name="TR type = Microwae / Microwave + Sattelite or Provider" sourceRef="ParallelGateway_0le7fnu" targetRef="ServiceTask_1khc38t">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${S(candidate).prop('transmissionType').stringValue().equals("Microwave") || S(candidate).prop('transmissionType').stringValue().equals("Microwave + Sattelite or Provider")}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="SequenceFlow_1u8yw9f" name="TR type = Microwae / Microwave + Sattelite or Provider" sourceRef="ParallelGateway_0le7fnu" targetRef="ServiceTask_1i0xslv">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${S(candidate).prop('transmissionType').stringValue().equals("Microwave") || S(candidate).prop('transmissionType').stringValue().equals("Microwave + Sattelite or Provider")}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
     <bpmn:sequenceFlow id="SequenceFlow_0vur415" sourceRef="estimateTechnicalCapabilityRes" targetRef="Activity_13ucoms" />
     <bpmn:sequenceFlow id="SequenceFlow_0ixzzp0" sourceRef="checkAndApproveFE" targetRef="Activity_1gcjkc8" />
     <bpmn:sequenceFlow id="SequenceFlow_116lgvb" sourceRef="ParallelGateway_0201vgh" targetRef="ServiceTask_19q0cx8" />
@@ -2093,6 +2077,37 @@ InstStatusBeforeLeasingProblem</camunda:script>
       <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${fillDetailsOfTheCandidateContractTaskResult == 'refusal'}</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
     <bpmn:sequenceFlow id="SequenceFlow_0oe5k9o" sourceRef="ExclusiveGateway_0dxmhhn" targetRef="ExclusiveGateway_0dw7utf" />
+    <bpmn:sequenceFlow id="SequenceFlow_0302z62" name="TR type = Sattelite or Provider / Microwave + Sattelite or Provider&#10;" sourceRef="ParallelGateway_0le7fnu" targetRef="approveByCentralTR">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${S(candidate).prop('transmissionType').stringValue().equals("Sattelite or Provider") || S(candidate).prop('transmissionType').stringValue().equals("Microwave + Sattelite or Provider")}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="SequenceFlow_0xxk1uj" sourceRef="approveByCentralTR" targetRef="ParallelGateway_0201vgh" />
+    <bpmn:inclusiveGateway id="ParallelGateway_0le7fnu">
+      <bpmn:extensionElements>
+        <camunda:executionListener class="kz.kcell.bpm.leasing.VariableSetStatus" event="start">
+          <camunda:field name="variable">
+            <camunda:string>generalStatus</camunda:string>
+          </camunda:field>
+          <camunda:field name="value">
+            <camunda:string>Provisional approval by Power, Transmission &amp; Leasing</camunda:string>
+          </camunda:field>
+        </camunda:executionListener>
+      </bpmn:extensionElements>
+      <bpmn:incoming>SequenceFlow_0dz6q5c</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_0pjyoj9</bpmn:outgoing>
+      <bpmn:outgoing>SequenceFlow_1u8yw9f</bpmn:outgoing>
+      <bpmn:outgoing>SequenceFlow_0302z62</bpmn:outgoing>
+    </bpmn:inclusiveGateway>
+    <bpmn:userTask id="approveByCentralTR" name="Approve by Central TR" camunda:formKey="embedded:app:forms/leasing/approveByCentralTR.html">
+      <bpmn:documentation>Confirm the possibility of organizing a transmission channel</bpmn:documentation>
+      <bpmn:incoming>SequenceFlow_0302z62</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_0xxk1uj</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:inclusiveGateway id="ParallelGateway_0201vgh">
+      <bpmn:incoming>Flow_0l6buy3</bpmn:incoming>
+      <bpmn:incoming>Flow_1d40mns</bpmn:incoming>
+      <bpmn:incoming>SequenceFlow_0xxk1uj</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_116lgvb</bpmn:outgoing>
+    </bpmn:inclusiveGateway>
     <bpmn:textAnnotation id="TextAnnotation_1afyvrl">
       <bpmn:text>Central Planner group</bpmn:text>
     </bpmn:textAnnotation>
@@ -2153,6 +2168,10 @@ InstStatusBeforeLeasingProblem</camunda:script>
       <bpmn:text>Central / Region Site Leasing</bpmn:text>
     </bpmn:textAnnotation>
     <bpmn:association id="Association_1v308iv" sourceRef="fillDetailsOfTheCandidateContract" targetRef="TextAnnotation_0cpc8h5" />
+    <bpmn:textAnnotation id="TextAnnotation_1o7l9fy">
+      <bpmn:text>Central Transmission</bpmn:text>
+    </bpmn:textAnnotation>
+    <bpmn:association id="Association_1nxpafa" sourceRef="approveByCentralTR" targetRef="TextAnnotation_1o7l9fy" />
   </bpmn:process>
   <bpmn:message id="Message_15wikbm" name="Message_16tuqrh" />
   <bpmndi:BPMNDiagram id="BPMNDiagram_1">
@@ -2246,8 +2265,8 @@ InstStatusBeforeLeasingProblem</camunda:script>
         <di:waypoint x="10945" y="1050" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_1d40mns_di" bpmnElement="Flow_1d40mns">
-        <di:waypoint x="3760" y="1273" />
-        <di:waypoint x="3790" y="1273" />
+        <di:waypoint x="3760" y="1289" />
+        <di:waypoint x="3790" y="1289" />
         <di:waypoint x="3790" y="1220" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_0l6buy3_di" bpmnElement="Flow_0l6buy3">
@@ -2260,11 +2279,11 @@ InstStatusBeforeLeasingProblem</camunda:script>
         <di:waypoint x="4057" y="1193" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_1qtnaoy_di" bpmnElement="SequenceFlow_1qtnaoy">
-        <di:waypoint x="3400" y="1273" />
-        <di:waypoint x="3488" y="1273" />
+        <di:waypoint x="3418" y="1289" />
+        <di:waypoint x="3488" y="1289" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_0t1ore9_di" bpmnElement="SequenceFlow_0t1ore9">
-        <di:waypoint x="3400" y="1122" />
+        <di:waypoint x="3418" y="1122" />
         <di:waypoint x="3488" y="1122" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_1ltcga7_di" bpmnElement="SequenceFlow_1ltcga7">
@@ -2558,8 +2577,8 @@ InstStatusBeforeLeasingProblem</camunda:script>
         <di:waypoint x="3870" y="1195" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_0ixzzp0_di" bpmnElement="SequenceFlow_0ixzzp0">
-        <di:waypoint x="3588" y="1273" />
-        <di:waypoint x="3660" y="1273" />
+        <di:waypoint x="3588" y="1289" />
+        <di:waypoint x="3660" y="1289" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_0vur415_di" bpmnElement="SequenceFlow_0vur415">
         <di:waypoint x="3588" y="1122" />
@@ -2567,13 +2586,19 @@ InstStatusBeforeLeasingProblem</camunda:script>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_1u8yw9f_di" bpmnElement="SequenceFlow_1u8yw9f">
         <di:waypoint x="3246" y="1220" />
-        <di:waypoint x="3246" y="1273" />
-        <di:waypoint x="3300" y="1273" />
+        <di:waypoint x="3246" y="1289" />
+        <di:waypoint x="3318" y="1289" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="3251" y="1217" width="63" height="66" />
+        </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_0pjyoj9_di" bpmnElement="SequenceFlow_0pjyoj9">
         <di:waypoint x="3246" y="1170" />
         <di:waypoint x="3246" y="1122" />
-        <di:waypoint x="3300" y="1122" />
+        <di:waypoint x="3318" y="1122" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="3248" y="1050" width="63" height="66" />
+        </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_04xttpw_di" bpmnElement="SequenceFlow_04xttpw">
         <di:waypoint x="9734" y="1040" />
@@ -2651,7 +2676,7 @@ InstStatusBeforeLeasingProblem</camunda:script>
         <dc:Bounds x="3488" y="1082" width="100" height="80" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="UserTask_0lq9qua_di" bpmnElement="checkAndApproveFE" bioc:stroke="#E53935" bioc:fill="#FFCDD2">
-        <dc:Bounds x="3488" y="1233" width="100" height="80" />
+        <dc:Bounds x="3488" y="1249" width="100" height="80" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="SubProcess_0iqjr7a_di" bpmnElement="SubProcess_0iqjr7a" isExpanded="true" bioc:stroke="#43A047" bioc:fill="#C8E6C9">
         <dc:Bounds x="4890" y="419" width="2721" height="2234" />
@@ -3722,12 +3747,6 @@ InstStatusBeforeLeasingProblem</camunda:script>
           <dc:Bounds x="10709" y="1006" width="83" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="ParallelGateway_0le7fnu_di" bpmnElement="ParallelGateway_0le7fnu">
-        <dc:Bounds x="3221" y="1170" width="50" height="50" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="ParallelGateway_0201vgh_di" bpmnElement="ParallelGateway_0201vgh">
-        <dc:Bounds x="3765" y="1170" width="50" height="50" />
-      </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="SubProcess_0oq53qg_di" bpmnElement="SubProcess_0oq53qg" isExpanded="true" bioc:stroke="#FB8C00" bioc:fill="#FFE0B2">
         <dc:Bounds x="830" y="919" width="1793" height="552" />
       </bpmndi:BPMNShape>
@@ -3753,12 +3772,13 @@ InstStatusBeforeLeasingProblem</camunda:script>
         <di:waypoint x="2529" y="1318" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_0src7tl_di" bpmnElement="SequenceFlow_0src7tl">
-        <di:waypoint x="2460" y="1098" />
+        <di:waypoint x="2410" y="1058" />
+        <di:waypoint x="2460" y="1058" />
         <di:waypoint x="2460" y="1293" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_1tg2ew2_di" bpmnElement="SequenceFlow_1tg2ew2">
         <di:waypoint x="2224" y="1058" />
-        <di:waypoint x="2399" y="1058" />
+        <di:waypoint x="2310" y="1058" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_1kz9fn6_di" bpmnElement="SequenceFlow_1kz9fn6">
         <di:waypoint x="1280" y="1150" />
@@ -3873,7 +3893,7 @@ InstStatusBeforeLeasingProblem</camunda:script>
         <dc:Bounds x="2168" y="1278" width="100" height="80" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="ServiceTask_15vtfns_di" bpmnElement="ServiceTask_15vtfns" bioc:stroke="#8E24AA" bioc:fill="#E1BEE7">
-        <dc:Bounds x="2399" y="1018" width="100" height="80" />
+        <dc:Bounds x="2310" y="1018" width="100" height="80" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="ServiceTask_18omi2h_di" bpmnElement="ServiceTask_18omi2h" bioc:stroke="#8E24AA" bioc:fill="#E1BEE7">
         <dc:Bounds x="1230" y="1150" width="100" height="80" />
@@ -3900,12 +3920,12 @@ InstStatusBeforeLeasingProblem</camunda:script>
         <dc:Bounds x="1088" y="1037" width="100" height="41" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="TextAnnotation_03quhgf_di" bpmnElement="TextAnnotation_03quhgf">
-        <dc:Bounds x="2497" y="941" width="100" height="77" />
+        <dc:Bounds x="2410" y="939" width="100" height="77" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="Association_0ipjc9m_di" bpmnElement="Association_0ipjc9m">
-        <di:waypoint x="2416" y="1018" />
-        <di:waypoint x="2413" y="979" />
-        <di:waypoint x="2497" y="979" />
+        <di:waypoint x="2330" y="1018" />
+        <di:waypoint x="2330" y="977" />
+        <di:waypoint x="2410" y="977" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Association_096390i_di" bpmnElement="Association_096390i">
         <di:waypoint x="1136" y="1358" />
@@ -4476,16 +4496,16 @@ InstStatusBeforeLeasingProblem</camunda:script>
         <dc:Bounds x="640" y="1153" width="100" height="80" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="ServiceTask_1khc38t_di" bpmnElement="ServiceTask_1khc38t" bioc:stroke="#1E88E5" bioc:fill="#BBDEFB">
-        <dc:Bounds x="3300" y="1082" width="100" height="80" />
+        <dc:Bounds x="3318" y="1082" width="100" height="80" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="ServiceTask_1i0xslv_di" bpmnElement="ServiceTask_1i0xslv" bioc:stroke="#1E88E5" bioc:fill="#BBDEFB">
-        <dc:Bounds x="3300" y="1233" width="100" height="80" />
+        <dc:Bounds x="3318" y="1249" width="100" height="80" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="ServiceTask_19q0cx8_di" bpmnElement="ServiceTask_19q0cx8" bioc:stroke="#1E88E5" bioc:fill="#BBDEFB">
         <dc:Bounds x="3870" y="1153" width="100" height="80" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Activity_1ri4tfu_di" bpmnElement="Activity_1gcjkc8" bioc:stroke="rgb(142, 36, 170)" bioc:fill="rgb(225, 190, 231)">
-        <dc:Bounds x="3660" y="1233" width="100" height="80" />
+        <dc:Bounds x="3660" y="1249" width="100" height="80" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Activity_1x0xfw9_di" bpmnElement="Activity_13ucoms" bioc:stroke="rgb(142, 36, 170)" bioc:fill="rgb(225, 190, 231)">
         <dc:Bounds x="3660" y="1082" width="100" height="80" />
@@ -4545,7 +4565,7 @@ InstStatusBeforeLeasingProblem</camunda:script>
         <dc:Bounds x="160" y="1170" width="91" height="45" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="TextAnnotation_1nuc1x0_di" bpmnElement="TextAnnotation_1nuc1x0">
-        <dc:Bounds x="3519" y="1337" width="129" height="37" />
+        <dc:Bounds x="3519" y="1353" width="129" height="37" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="TextAnnotation_0dc4a5v_di" bpmnElement="TextAnnotation_0dc4a5v">
         <dc:Bounds x="3420" y="1007" width="156" height="30" />
@@ -4595,16 +4615,18 @@ InstStatusBeforeLeasingProblem</camunda:script>
         <di:waypoint x="251" y="1191" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Association_045sq6p_di" bpmnElement="Association_045sq6p">
-        <di:waypoint x="3522" y="1082" />
-        <di:waypoint x="3504" y="1037" />
+        <di:waypoint x="3538" y="1082" />
+        <di:waypoint x="3538" y="1055" />
+        <di:waypoint x="3486" y="1055" />
+        <di:waypoint x="3486" y="1037" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Association_0a7q585_di" bpmnElement="Association_0a7q585">
         <di:waypoint x="3538" y="1162" />
         <di:waypoint x="3538" y="1188" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Association_13we5y4_di" bpmnElement="Association_13we5y4">
-        <di:waypoint x="3559" y="1313" />
-        <di:waypoint x="3571" y="1337" />
+        <di:waypoint x="3539" y="1329" />
+        <di:waypoint x="3539" y="1352" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Association_08rvkrm_di" bpmnElement="Association_08rvkrm">
         <di:waypoint x="11112" y="915" />
@@ -4642,6 +4664,35 @@ InstStatusBeforeLeasingProblem</camunda:script>
       <bpmndi:BPMNEdge id="Association_1v308iv_di" bpmnElement="Association_1v308iv">
         <di:waypoint x="13885" y="1389" />
         <di:waypoint x="13885" y="1351" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_0302z62_di" bpmnElement="SequenceFlow_0302z62">
+        <di:waypoint x="3246" y="1220" />
+        <di:waypoint x="3246" y="1439" />
+        <di:waypoint x="3488" y="1439" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="3254" y="1353" width="63" height="93" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_0xxk1uj_di" bpmnElement="SequenceFlow_0xxk1uj">
+        <di:waypoint x="3588" y="1439" />
+        <di:waypoint x="3790" y="1439" />
+        <di:waypoint x="3790" y="1220" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="InclusiveGateway_0xd5i8m_di" bpmnElement="ParallelGateway_0le7fnu">
+        <dc:Bounds x="3221" y="1170" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="UserTask_0oupgkz_di" bpmnElement="approveByCentralTR" bioc:stroke="#43A047" bioc:fill="#C8E6C9">
+        <dc:Bounds x="3488" y="1399" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="InclusiveGateway_1n4u2cn_di" bpmnElement="ParallelGateway_0201vgh">
+        <dc:Bounds x="3765" y="1170" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="TextAnnotation_1o7l9fy_di" bpmnElement="TextAnnotation_1o7l9fy">
+        <dc:Bounds x="3490" y="1519" width="95" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Association_1nxpafa_di" bpmnElement="Association_1nxpafa">
+        <di:waypoint x="3538" y="1479" />
+        <di:waypoint x="3538" y="1519" />
       </bpmndi:BPMNEdge>
     </bpmndi:BPMNPlane>
   </bpmndi:BPMNDiagram>
