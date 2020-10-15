@@ -292,7 +292,7 @@
 
                 //----------------------------------------
 
-                $http.get('/api/leasingCatalogs?version=1').then(
+                $http.get('/api/leasingCatalogs?version=8').then(
                     function(result){
                         angular.extend($scope.dictionary, result.data);
                         $scope.antennasList = $scope.dictionary.antennas;
@@ -300,14 +300,13 @@
                         $scope.availableBands = $scope.dictionary.bands;
                         $scope.BSC = $scope.dictionary.BSC;
                         $scope.frequencyBand = $scope.dictionary.frequencyBand;
-                        $scope.constructionTypesList = $scope.dictionary.constructionType;
+                        $scope.çsList = $scope.dictionary.constructionType;
                         $scope.addressesList = $scope.dictionary.addresses;
                         $scope.oblastList = _.uniqBy($scope.dictionary.addresses, 'oblast').map( (e, index) => { return {"name" : e.oblast, "id" : index} });
                         $scope.cityList = _.uniqBy($scope.dictionary.addresses, 'city').map( (e, index) => { return {"name" : e.city, "id" : index} });
                         $scope.districtList = _.uniqBy($scope.dictionary.addresses, 'district').map( (e, index) => { return {"name" : e.district, "id" : index} });
                         $scope.filteredDistricts = $scope.districtList;
                         $scope.filteredDistrictsInCAI = $scope.districtList;
-                        console.log(result.data)
 
                         $scope.catalogsFetched = true;
 
@@ -403,7 +402,9 @@
                             }
                         });
                     }
-                if ($scope.candidate) $scope.candidate.transmissionType = "Microwave";
+                if ($scope.candidate && !$scope.candidate.transmissionType) {
+                    $scope.candidate.transmissionType = "Microwave";
+                }
                 console.log('$scope.leasingInfo: ')
                 console.log($scope.leasingInfo)
                 if(!$scope.newCandidateRRFiles){
@@ -1617,8 +1618,10 @@
                 <div class="form-group">
                     <label class="col-sm-3 control-label">Transmission type:</label>
                     <div class="col-sm-5">
-                        <input class="form-control" id="transmissionType" name="transmissionType"
-                               ng-model="candidate.transmissionType" readonly>
+                        <select class="form-control" id="transmissionType" name="transmissionType"
+                                ng-model="candidate.transmissionType">
+                            <option ng-repeat="c in dictionary.transmissionType" value="{{c.name}}">{{c.name}}</option>
+                        </select>
                     </div>
                 </div>
                 <div class="form-group">
@@ -2574,7 +2577,7 @@
                 </accordion>
 
 
-                <accordion class="content-visible-accordion">
+                <accordion class="content-visible-accordion" ng-show="candidate.transmissionType!=='Sattelite or Provider'">
                     <accordion-group is-open="false">
                         <accordion-heading>
                             <span ng-class="{'error' : isError('nearEndInformation')}">Near End Information <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i></span>
@@ -2754,6 +2757,28 @@
                             </accordion>
                         </div>
 
+                    </accordion-group>
+                </accordion>
+
+                <accordion class="content-visible-accordion" ng-show="candidate.transmissionType==='Sattelite or Provider'">
+                    <accordion-group is-open="false">
+                        <accordion-heading>
+                            <span ng-class="{'error' : false}">Transmission Information <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i></span>
+                        </accordion-heading>
+                        <div class="form-group">
+                            <label class="col-sm-3 control-label">Channel capacity (Mbps):</label>
+                            <div class="col-sm-6">
+                                <input type="number" class="form-control" id="channelCapacity" name="channelCapacity"
+                                       ng-model="candidate.channelCapacity">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="col-sm-3 control-label">Description:</label>
+                            <div class="col-sm-6">
+                                <textarea class="form-control" ng-model="candidate.transmissionDescription" name="transmissionDescription"
+                                    maxlength="500" rows="4" style="resize:none"></textarea>
+                            </div>
+                        </div>
                     </accordion-group>
                 </accordion>
 
