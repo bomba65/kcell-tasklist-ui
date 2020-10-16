@@ -120,6 +120,37 @@
                 }
             });
 
+            $scope.preSubmit = function(){
+                var deferred = $q.defer();
+                if($scope.contractor === -1 && $scope.centralGroupHeadApprovalTaskResult === 'approved' && $scope.jrNumber.indexOf('##')!==-1){
+                    if($scope.jrNumber.startsWith('East')){
+                        $scope.jrNumber = $scope.jrNumber.replace('East','E');
+                    }
+                    if($scope.jrNumber.startsWith('South')){
+                        $scope.jrNumber = $scope.jrNumber.replace('South','S');
+                    }
+                    if($scope.jrNumber.startsWith('West')){
+                        $scope.jrNumber = $scope.jrNumber.replace('West','W');
+                    }
+                    if($scope.jrNumber.startsWith('Astana')){
+                        $scope.jrNumber = $scope.jrNumber.replace('Astana','Ast');
+                    }
+                    if($scope.jrNumber.startsWith('Almaty')){
+                        $scope.jrNumber = $scope.jrNumber.replace('Almaty','Alm');
+                    }
+                    var jrCounter = $scope.jrNumber.replace('-##-', '-'+$scope.contractorCodes[$scope.newContractor]+'-').replace('-####', '');
+                    return $http.post('/asset-management/jobrequestcounter/' + jrCounter).then(
+                        function(result){
+                            $scope.jrNumber = result.data;
+                        }
+                    );
+                } else {
+                    deferred.resolve();
+                    return deferred.promise;
+                }
+            }
+
+
             camForm.on('submit', function () {
                 camForm.variableManager.variableValue('workPrices', JSON.parse(angular.toJson($scope.jobModel.workPrices)));
                 camForm.variableManager.variableValue('centralGroupHeadApprovalTaskResult', $scope.centralGroupHeadApprovalTaskResult);
@@ -188,20 +219,6 @@
                 return total.toFixed(2).replace('.',',');
             }
 
-            $scope.preSubmit = function(){
-                var deferred = $q.defer();
-                if($scope.contractor === -1 && $scope.centralGroupHeadApprovalTaskResult === 'approved' && $scope.jrNumber.indexOf('##')!==-1){
-                    var jrCounter = $scope.jrNumber.replace('-##-', '-'+$scope.contractorCodes[$scope.newContractor]+'-').replace('-####', '');
-                    return $http.post('/asset-management/jobrequestcounter/' + jrCounter).then(
-                        function(result){
-                            $scope.jrNumber = result.data;
-                        }
-                    );
-                } else {
-                    deferred.resolve();
-                    return deferred.promise;
-                }
-            }
 
             $scope.correctPrice = function(){
                 var siteRegion = $scope.siteRegion;
