@@ -18,7 +18,7 @@ import java.util.TimeZone;
 import static org.camunda.spin.Spin.JSON;
 
 @Log
-@Service("UpdateNCP")
+@Service("UpdateAssets")
 public class UpdateAssets implements JavaDelegate {
 
     @Autowired
