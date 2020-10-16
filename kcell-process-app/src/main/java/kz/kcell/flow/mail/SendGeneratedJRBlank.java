@@ -500,7 +500,7 @@ public class SendGeneratedJRBlank implements JavaDelegate {
                 bindings.put("execution", delegateExecution);
                 bindings.put("status", delegateExecution.getVariable("status"));
                 bindings.put("starter", delegateExecution.getVariable("starter"));
-                messageHelper.setText(String.valueOf(template.eval(bindings)));
+                messageHelper.setText(String.valueOf(template.eval(bindings)), true);
             } else {
                 messageHelper.setText("Your JR Approved. JR Blank attached\n" +
                     "\n" +

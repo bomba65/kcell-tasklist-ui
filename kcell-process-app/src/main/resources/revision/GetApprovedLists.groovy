@@ -12,7 +12,8 @@ def getUserEmail(DelegateExecution execution) {
                     .map{it.assignee}
                     .filter {it!=null && !it.isEmpty()}
                     .collect(Collectors.toSet())
-    def result = identityService.createUserQuery().userIdIn(assignees.stream().collect(Collectors.joining())).list().stream()
+    def result = assignees.stream()
+                    .flatMap{identityService.createUserQuery().userId(it).list().stream()}
                     .map{it.getEmail()}
                     .filter{it != null && !it.isEmpty()}
                     .collect(Collectors.joining(","))
