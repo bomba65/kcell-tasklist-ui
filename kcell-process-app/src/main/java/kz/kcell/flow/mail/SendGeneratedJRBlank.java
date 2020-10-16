@@ -308,7 +308,7 @@ public class SendGeneratedJRBlank implements JavaDelegate {
             row.createCell(2).setCellValue("Approved by:");
 
             row = sheet.createRow(24 + jobWorks.size());
-            row.createCell(2).setCellValue(((regionApproval != null && !regionApproval.isEmpty() && !regionApproval.equals("null")) ? centralApproval : "") + ((centralApproval != null && !centralApproval.isEmpty() && !centralApproval.equals("null")) ? (", " + centralApproval) : ""));
+            row.createCell(2).setCellValue(((regionApproval != null && !regionApproval.isEmpty() && !regionApproval.equals("null")) ? regionApproval : "") + ((centralApproval != null && !centralApproval.isEmpty() && !centralApproval.equals("null")) ? (", " + centralApproval) : ""));
 
             row = sheet.createRow(25 + jobWorks.size());
             row.createCell(2).setCellValue("             (position, name & signature)");
@@ -528,19 +528,22 @@ public class SendGeneratedJRBlank implements JavaDelegate {
             } else {
                 messageHelper.setTo(InternetAddress.parse(ccList.stream().collect(Collectors.joining(","))));
             }
-            messageHelper.addAttachment("jr-blank.xlsx", source);
+
+            String path = delegateExecution.getProcessInstanceId() + "/" + jrNumber.replace("-####","").replace("-##","") + ".xlsx";
+            String fileName = jrNumber.replace("-####","").replace("-##","") + ".xlsx";
+
+            messageHelper.addAttachment(fileName, source);
 
             mailSender.send(message);
 
             log.info("Task Assignment Email successfully sent to user '" + assignee + "' with address '" + recipient + "'.");
 
-            String path = delegateExecution.getProcessInstanceId() + "/" + jrNumber.replace("-####","").replace("-##","") + ".xlsx";
 
             ByteArrayInputStream bis = new ByteArrayInputStream(out.toByteArray());
             minioClient.saveFile(path, bis, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
             bis.close();
 
-            String json = "{\"name\" : \"" + jrNumber.replace("-####","").replace("-##","") + ".xlsx\",\"path\" : \"" + path + "\"}";
+            String json = "{\"name\" :\"" + fileName + ",\"path\" : \"" + path + "\"}";
             delegateExecution.setVariable("jrBlank", SpinValues.jsonValue(json));
 
             delegateExecution.setVariable("isNewProcessCreated", "false");
