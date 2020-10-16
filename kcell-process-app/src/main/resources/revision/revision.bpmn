@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" xmlns:bioc="http://bpmn.io/schema/bpmn/biocolor/1.0" id="Definitions_1" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="3.1.0">
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" xmlns:bioc="http://bpmn.io/schema/bpmn/biocolor/1.0" id="Definitions_1" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="4.3.0">
   <bpmn:process id="Revision" name="Revision" isExecutable="true">
     <bpmn:subProcess id="SubProcess_0cwj4g6" name="Revision Leasing Procedures">
       <bpmn:incoming>SequenceFlow_1d23qig</bpmn:incoming>
@@ -451,8 +451,7 @@
       <bpmn:association id="Association_0i9c9uk" sourceRef="fill_applied_changes_info" targetRef="TextAnnotation_0zdrz4s" />
     </bpmn:subProcess>
     <bpmn:exclusiveGateway id="exclgw_materials_required">
-      <bpmn:incoming>SequenceFlow_13tgs24</bpmn:incoming>
-      <bpmn:incoming>Flow_0qo2zje</bpmn:incoming>
+      <bpmn:incoming>Flow_1i20wfk</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_0uvzo91</bpmn:outgoing>
       <bpmn:outgoing>SequenceFlow_10nsvzs</bpmn:outgoing>
     </bpmn:exclusiveGateway>
@@ -1022,15 +1021,14 @@
     <bpmn:sequenceFlow id="SequenceFlow_0xqu1s7" sourceRef="SubProcess_0eah6dm" targetRef="IntermediateThrowEvent_open_not_performed3">
       <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${materialsNotAvailable==false}</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
-    <bpmn:sequenceFlow id="SequenceFlow_01s02ho" name="jr approved" sourceRef="SubProcess_0cd7y34" targetRef="exclgw_istest">
+    <bpmn:sequenceFlow id="SequenceFlow_01s02ho" name="jr approved" sourceRef="SubProcess_0cd7y34" targetRef="send_notification_revision">
       <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${createJRResult=='approved'}</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
     <bpmn:sequenceFlow id="SequenceFlow_17n684j" name="leasing done" sourceRef="SubProcess_0cwj4g6" targetRef="exclgw_is_pr_creation_launched">
       <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${leasingDone==true}</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
     <bpmn:exclusiveGateway id="exclgw_leasingreq">
-      <bpmn:incoming>SequenceFlow_0imqr4i</bpmn:incoming>
-      <bpmn:incoming>SequenceFlow_1rfvru8</bpmn:incoming>
+      <bpmn:incoming>SequenceFlow_1w6xl96</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_0jidb3c</bpmn:outgoing>
       <bpmn:outgoing>SequenceFlow_0xhyefk</bpmn:outgoing>
     </bpmn:exclusiveGateway>
@@ -1313,30 +1311,20 @@
       <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${acceptPerformedJob== 'accepted'}</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
     <bpmn:exclusiveGateway id="exclgw_istest">
-      <bpmn:incoming>SequenceFlow_01s02ho</bpmn:incoming>
+      <bpmn:incoming>Flow_018y07t</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_1w6xl96</bpmn:outgoing>
       <bpmn:outgoing>SequenceFlow_0d3icf7</bpmn:outgoing>
     </bpmn:exclusiveGateway>
-    <bpmn:sequenceFlow id="SequenceFlow_1w6xl96" sourceRef="exclgw_istest" targetRef="generate_jr_blank_and_save">
+    <bpmn:sequenceFlow id="SequenceFlow_1w6xl96" sourceRef="exclgw_istest" targetRef="exclgw_leasingreq">
       <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${ptype=='prod'}</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
     <bpmn:sequenceFlow id="SequenceFlow_0d3icf7" sourceRef="exclgw_istest" targetRef="SubProcess_0a0tcem">
       <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${ptype=='test'}</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
-    <bpmn:sequenceFlow id="SequenceFlow_1rfvru8" sourceRef="generate_jr_blank_and_save" targetRef="exclgw_leasingreq" />
-    <bpmn:serviceTask id="generate_jr_blank_and_save" name="Generate JR Blank and attach to the process instance" camunda:delegateExpression="${sendJobRequestBlank}">
-      <bpmn:extensionElements>
-        <camunda:inputOutput>
-          <camunda:inputParameter name="sendToContractor">yes</camunda:inputParameter>
-        </camunda:inputOutput>
-      </bpmn:extensionElements>
-      <bpmn:incoming>SequenceFlow_1w6xl96</bpmn:incoming>
-      <bpmn:outgoing>SequenceFlow_1rfvru8</bpmn:outgoing>
-    </bpmn:serviceTask>
     <bpmn:sequenceFlow id="SequenceFlow_13wqeej" name="pr creation was NOT launched before" sourceRef="exclgw_is_pr_creation_launched" targetRef="set_pr_creations_in_progress">
       <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${prCreationInProgress=='false' &amp;&amp; mainContract=='Revision' &amp;&amp; contractor!=5}</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
-    <bpmn:sequenceFlow id="SequenceFlow_13tgs24" name="pr creation was launched before, or contractor Kcell" sourceRef="exclgw_is_pr_creation_launched" targetRef="exclgw_materials_required">
+    <bpmn:sequenceFlow id="SequenceFlow_13tgs24" name="pr creation was launched before, or contractor Kcell" sourceRef="exclgw_is_pr_creation_launched" targetRef="exclgw_is_pr_creation_revision">
       <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${prCreationInProgress=='true' || mainContract=='Roll-out'  || mainContract=='Roll-outRevision2020' || contractor==5}</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
     <bpmn:sendTask id="notify_create_pr" name="Send Notification to Create PR" camunda:asyncBefore="true" camunda:delegateExpression="${camundaMailer}">
@@ -1359,17 +1347,6 @@
       <bpmn:outgoing>SequenceFlow_1oozt23</bpmn:outgoing>
       <bpmn:script>${execution.setVariable('prCreationInProgress','true')}</bpmn:script>
     </bpmn:scriptTask>
-    <bpmn:sequenceFlow id="SequenceFlow_0imqr4i" sourceRef="send_jr_blank_to_contractor" targetRef="exclgw_leasingreq" />
-    <bpmn:sendTask id="send_jr_blank_to_contractor" name="Send JR Blank to Contractor" camunda:delegateExpression="${camundaMailer}">
-      <bpmn:extensionElements>
-        <camunda:inputOutput>
-          <camunda:inputParameter name="to">
-            <camunda:script scriptFormat="groovy" resource="revision/GetStarterEmail.groovy" />
-          </camunda:inputParameter>
-        </camunda:inputOutput>
-      </bpmn:extensionElements>
-      <bpmn:outgoing>SequenceFlow_0imqr4i</bpmn:outgoing>
-    </bpmn:sendTask>
     <bpmn:sequenceFlow id="SequenceFlow_0go8umh" name="approved" sourceRef="SubProcess_1okaxp7" targetRef="SubProcess_0v7hq1m">
       <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${revisionPrepare == 'approved'}</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
@@ -2004,13 +1981,45 @@
       <bpmn:outgoing>Flow_0qo2zje</bpmn:outgoing>
       <bpmn:messageEventDefinition id="MessageEventDefinition_04fjwaz" messageRef="Message_0kawu9p" camunda:class="kz.kcell.bpm.revision.CreatePr" />
     </bpmn:intermediateThrowEvent>
-    <bpmn:sequenceFlow id="Flow_0qo2zje" sourceRef="Event_069ff80" targetRef="exclgw_materials_required" />
+    <bpmn:sequenceFlow id="Flow_0qo2zje" sourceRef="Event_069ff80" targetRef="exclgw_is_pr_creation_revision" />
     <bpmn:sequenceFlow id="Flow_0cyz635" sourceRef="notify_create_pr" targetRef="Event_069ff80" />
     <bpmn:exclusiveGateway id="ExclusiveGateway_0gr4gnr" default="SequenceFlow_0xh45df">
       <bpmn:incoming>Flow_0acp2ee</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_0xh45df</bpmn:outgoing>
     </bpmn:exclusiveGateway>
     <bpmn:sequenceFlow id="SequenceFlow_0xh45df" sourceRef="ExclusiveGateway_0gr4gnr" targetRef="SubProcess_0cd7y34" />
+    <bpmn:sequenceFlow id="Flow_018y07t" sourceRef="send_notification_revision" targetRef="exclgw_istest" />
+    <bpmn:sendTask id="send_notification_revision" name="Send notification" camunda:delegateExpression="${camundaMailer}">
+      <bpmn:extensionElements>
+        <camunda:inputOutput>
+          <camunda:inputParameter name="html">
+            <camunda:script scriptFormat="groovy" resource="revision/SendNotificationHtml.groovy" />
+          </camunda:inputParameter>
+          <camunda:inputParameter name="subject">${jrNumber}</camunda:inputParameter>
+          <camunda:inputParameter name="to">
+            <camunda:script scriptFormat="groovy" resource="revision/GetApprovedLists.groovy" />
+          </camunda:inputParameter>
+        </camunda:inputOutput>
+      </bpmn:extensionElements>
+      <bpmn:incoming>SequenceFlow_01s02ho</bpmn:incoming>
+      <bpmn:outgoing>Flow_018y07t</bpmn:outgoing>
+    </bpmn:sendTask>
+    <bpmn:serviceTask id="send_notification_jr_blank_revision" name="Send notification and JR blank" camunda:delegateExpression="${sendJobRequestBlank}">
+      <bpmn:extensionElements>
+        <camunda:inputOutput>
+          <camunda:inputParameter name="sendToContractor">yes</camunda:inputParameter>
+        </camunda:inputOutput>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_0afosx9</bpmn:incoming>
+      <bpmn:outgoing>Flow_1i20wfk</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:exclusiveGateway id="exclgw_is_pr_creation_revision">
+      <bpmn:incoming>SequenceFlow_13tgs24</bpmn:incoming>
+      <bpmn:incoming>Flow_0qo2zje</bpmn:incoming>
+      <bpmn:outgoing>Flow_0afosx9</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:sequenceFlow id="Flow_0afosx9" sourceRef="exclgw_is_pr_creation_revision" targetRef="send_notification_jr_blank_revision" />
+    <bpmn:sequenceFlow id="Flow_1i20wfk" sourceRef="send_notification_jr_blank_revision" targetRef="exclgw_materials_required" />
     <bpmn:textAnnotation id="TextAnnotation_189rkq0">
       <bpmn:text>Infrormation is taken from step "Fill Applied Changes Info by Contractor"</bpmn:text>
     </bpmn:textAnnotation>
@@ -2064,14 +2073,18 @@
   <bpmn:message id="Message_0kawu9p" name="Message_start_pr" />
   <bpmndi:BPMNDiagram id="BPMNDiagram_1">
     <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Revision">
+      <bpmndi:BPMNEdge id="SequenceFlow_0xh45df_di" bpmnElement="SequenceFlow_0xh45df">
+        <di:waypoint x="363" y="1762" />
+        <di:waypoint x="395" y="1762" />
+      </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_0cyz635_di" bpmnElement="Flow_0cyz635">
         <di:waypoint x="3772" y="2828" />
         <di:waypoint x="3882" y="2828" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_0qo2zje_di" bpmnElement="Flow_0qo2zje">
         <di:waypoint x="3900" y="2810" />
-        <di:waypoint x="3900" y="2190" />
-        <di:waypoint x="3813" y="2002" />
+        <di:waypoint x="3900" y="2248" />
+        <di:waypoint x="3830" y="2248" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_0acp2ee_di" bpmnElement="Flow_0acp2ee">
         <di:waypoint x="296" y="1762" />
@@ -2279,20 +2292,12 @@
           <dc:Bounds x="9425" y="1498" width="46" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="SequenceFlow_0imqr4i_di" bpmnElement="SequenceFlow_0imqr4i">
-        <di:waypoint x="3143" y="1575" />
-        <di:waypoint x="3143" y="1620" />
-        <di:waypoint x="3264" y="1620" />
-        <bpmndi:BPMNLabel>
-          <dc:Bounds x="-2452" y="-418.5" width="0" height="12" />
-        </bpmndi:BPMNLabel>
-      </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_13tgs24_di" bpmnElement="SequenceFlow_13tgs24">
         <di:waypoint x="3331" y="2487" />
         <di:waypoint x="3805" y="2487" />
-        <di:waypoint x="3805" y="2010" />
+        <di:waypoint x="3805" y="2273" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="3515" y="2438" width="90" height="40" />
+          <dc:Bounds x="3516" y="2438" width="89" height="40" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_13wqeej_di" bpmnElement="SequenceFlow_13wqeej">
@@ -2301,14 +2306,6 @@
         <di:waypoint x="3440" y="2828" />
         <bpmndi:BPMNLabel>
           <dc:Bounds x="3328" y="2784" width="76" height="40" />
-        </bpmndi:BPMNLabel>
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="SequenceFlow_1rfvru8_di" bpmnElement="SequenceFlow_1rfvru8">
-        <di:waypoint x="3193" y="1399" />
-        <di:waypoint x="3289" y="1399" />
-        <di:waypoint x="3289" y="1595" />
-        <bpmndi:BPMNLabel>
-          <dc:Bounds x="-2414" y="-626" width="90" height="0" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_0d3icf7_di" bpmnElement="SequenceFlow_0d3icf7">
@@ -2322,7 +2319,8 @@
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_1w6xl96_di" bpmnElement="SequenceFlow_1w6xl96">
         <di:waypoint x="3143" y="1286" />
-        <di:waypoint x="3143" y="1359" />
+        <di:waypoint x="3143" y="1620" />
+        <di:waypoint x="3264" y="1620" />
         <bpmndi:BPMNLabel>
           <dc:Bounds x="-2497" y="-687.5" width="90" height="0" />
         </bpmndi:BPMNLabel>
@@ -2441,12 +2439,10 @@
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_01s02ho_di" bpmnElement="SequenceFlow_01s02ho">
-        <di:waypoint x="2867" y="1691" />
-        <di:waypoint x="3012" y="1691" />
-        <di:waypoint x="3012" y="1261" />
-        <di:waypoint x="3118" y="1261" />
+        <di:waypoint x="2867" y="1531" />
+        <di:waypoint x="2962" y="1531" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="2949" y="1669" width="55" height="14" />
+          <dc:Bounds x="2892" y="1513" width="55" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_0xqu1s7_di" bpmnElement="SequenceFlow_0xqu1s7">
@@ -2470,6 +2466,28 @@
           <dc:Bounds x="4030" y="1949" width="83" height="27" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_018y07t_di" bpmnElement="Flow_018y07t">
+        <di:waypoint x="3012" y="1491" />
+        <di:waypoint x="3012" y="1261" />
+        <di:waypoint x="3118" y="1261" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0afosx9_di" bpmnElement="Flow_0afosx9">
+        <di:waypoint x="3805" y="2223" />
+        <di:waypoint x="3805" y="2150" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1i20wfk_di" bpmnElement="Flow_1i20wfk">
+        <di:waypoint x="3805" y="2070" />
+        <di:waypoint x="3805" y="2010" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="Activity_1nxpn8a_di" bpmnElement="send_notification_revision">
+        <dc:Bounds x="2962" y="1491" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_0ktehwi_di" bpmnElement="exclgw_is_pr_creation_revision" isMarkerVisible="true">
+        <dc:Bounds x="3780" y="2223" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="ServiceTask_0hxdxvx_di" bpmnElement="send_notification_jr_blank_revision">
+        <dc:Bounds x="3755" y="2070" width="100" height="80" />
+      </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="SubProcess_0cwj4g6_di" bpmnElement="SubProcess_0cwj4g6" isExpanded="true">
         <dc:Bounds x="2940" y="2030" width="698" height="297" />
       </bpmndi:BPMNShape>
@@ -3781,6 +3799,19 @@
       <bpmndi:BPMNShape id="SubProcess_0v7hq1m_di" bpmnElement="SubProcess_0v7hq1m" isExpanded="true">
         <dc:Bounds x="9518" y="1325" width="2026" height="684" />
       </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_0z66mxc_di" bpmnElement="SequenceFlow_0z66mxc">
+        <di:waypoint x="10109" y="1434" />
+        <di:waypoint x="10092" y="1434" />
+        <di:waypoint x="10092" y="1508" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_1y93xpv_di" bpmnElement="SequenceFlow_1y93xpv">
+        <di:waypoint x="9944" y="1508" />
+        <di:waypoint x="9944" y="1434" />
+        <di:waypoint x="10109" y="1434" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="9919" y="1468" width="83" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_0bjxcgu_di" bpmnElement="SequenceFlow_0bjxcgu">
         <di:waypoint x="10035" y="1876" />
         <di:waypoint x="9785" y="1876" />
@@ -4028,6 +4059,9 @@
           <dc:Bounds x="10017" y="1897" width="75" height="40" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="SendTask_0y6qbks_di" bpmnElement="send_notification_tn">
+        <dc:Bounds x="10109" y="1394" width="100" height="80" />
+      </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="TextAnnotation_03pk2rp_di" bpmnElement="TextAnnotation_03pk2rp">
         <dc:Bounds x="10169" y="1602" width="100" height="63" />
       </bpmndi:BPMNShape>
@@ -4081,17 +4115,11 @@
           <dc:Bounds x="-2432" y="-749" width="90" height="0" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="ServiceTask_0hxdxvx_di" bpmnElement="generate_jr_blank_and_save">
-        <dc:Bounds x="3093" y="1359" width="100" height="80" />
-      </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="SendTask_0qo39q4_di" bpmnElement="notify_create_pr">
         <dc:Bounds x="3672" y="2788" width="100" height="80" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="ScriptTask_1mlmd0d_di" bpmnElement="set_pr_creations_in_progress">
         <dc:Bounds x="3440" y="2788" width="100" height="80" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="SendTask_1bu0dws_di" bpmnElement="send_jr_blank_to_contractor">
-        <dc:Bounds x="3093" y="1495" width="100" height="80" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="ExclusiveGateway_1pbx6qs_di" bpmnElement="exclgw_permidocs_needed" isMarkerVisible="true">
         <dc:Bounds x="8296" y="1546" width="50" height="50" />
@@ -4588,6 +4616,9 @@
       <bpmndi:BPMNShape id="Event_069ff80_di" bpmnElement="Event_069ff80" bioc:stroke="rgb(251, 140, 0)" bioc:fill="rgb(255, 224, 178)">
         <dc:Bounds x="3882" y="2810" width="36" height="36" />
       </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="ExclusiveGateway_0gr4gnr_di" bpmnElement="ExclusiveGateway_0gr4gnr" isMarkerVisible="true">
+        <dc:Bounds x="313" y="1737" width="50" height="50" />
+      </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="TextAnnotation_189rkq0_di" bpmnElement="TextAnnotation_189rkq0">
         <dc:Bounds x="8225" y="1133" width="278" height="57" />
       </bpmndi:BPMNShape>
@@ -4666,29 +4697,6 @@
       <bpmndi:BPMNEdge id="Association_0j5a8e6_di" bpmnElement="Association_0j5a8e6">
         <di:waypoint x="1243" y="1641" />
         <di:waypoint x="1286" y="1174" />
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="SequenceFlow_1y93xpv_di" bpmnElement="SequenceFlow_1y93xpv">
-        <di:waypoint x="9944" y="1508" />
-        <di:waypoint x="9944" y="1434" />
-        <di:waypoint x="10109" y="1434" />
-        <bpmndi:BPMNLabel>
-          <dc:Bounds x="9919" y="1468" width="83" height="14" />
-        </bpmndi:BPMNLabel>
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="SequenceFlow_0z66mxc_di" bpmnElement="SequenceFlow_0z66mxc">
-        <di:waypoint x="10109" y="1434" />
-        <di:waypoint x="10092" y="1434" />
-        <di:waypoint x="10092" y="1508" />
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNShape id="SendTask_0y6qbks_di" bpmnElement="send_notification_tn">
-        <dc:Bounds x="10109" y="1394" width="100" height="80" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="ExclusiveGateway_0gr4gnr_di" bpmnElement="ExclusiveGateway_0gr4gnr" isMarkerVisible="true">
-        <dc:Bounds x="313" y="1737" width="50" height="50" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNEdge id="SequenceFlow_0xh45df_di" bpmnElement="SequenceFlow_0xh45df">
-        <di:waypoint x="363" y="1762" />
-        <di:waypoint x="395" y="1762" />
       </bpmndi:BPMNEdge>
     </bpmndi:BPMNPlane>
   </bpmndi:BPMNDiagram>

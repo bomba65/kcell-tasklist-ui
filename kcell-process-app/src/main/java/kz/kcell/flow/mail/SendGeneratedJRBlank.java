@@ -17,6 +17,7 @@ import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.camunda.bpm.engine.IdentityService;
 import org.camunda.bpm.engine.delegate.DelegateExecution;
+import org.camunda.bpm.engine.delegate.ExecutionListener;
 import org.camunda.bpm.engine.delegate.JavaDelegate;
 import org.camunda.bpm.engine.identity.User;
 import org.camunda.bpm.engine.impl.context.Context;
@@ -31,6 +32,7 @@ import javax.activation.DataSource;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 import javax.mail.util.ByteArrayDataSource;
+import javax.script.*;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
@@ -54,6 +56,8 @@ public class SendGeneratedJRBlank implements JavaDelegate {
     @Value("${mail.sender:flow@kcell.kz}")
     private String sender;
 
+    @Autowired
+    ScriptEngineManager manager;
 
     private static final Map<String, String> worksTitle = new HashMap<>();
 
@@ -486,10 +490,23 @@ public class SendGeneratedJRBlank implements JavaDelegate {
             messageHelper.setFrom(sender);
             messageHelper.setSubject("JR " + jrNumber + " Blank");
 
-            messageHelper.setText("Your JR Approved. JR Blank attached\n" +
-                "\n" +
-                "\n" +
-                "Пройдя по следующей ссылке на страницу в HUB.Kcell.kz, вы можете оставить в поле комментариев свои замечания и/или пожелания относительно функционала и интерфейса системы: https://hub.kcell.kz/x/kYNoAg");
+            if (delegateExecution.getVariableLocal("sendToContractor") != null && delegateExecution.getVariableLocal("sendToContractor").toString().equals("yes")) {
+                ScriptEngine groovy = manager.getEngineByName("groovy");
+                ScriptEngine groovyEngine = groovy;
+                InputStreamReader reader = new InputStreamReader(ExecutionListener.class.getResourceAsStream("/revision/ContractorJrBlankBodyHtml.groovy"));
+                final CompiledScript template = ((Compilable)groovy).compile(reader);
+
+                Bindings bindings = groovyEngine.createBindings();
+                bindings.put("execution", delegateExecution);
+                bindings.put("status", delegateExecution.getVariable("status"));
+                bindings.put("starter", delegateExecution.getVariable("starter"));
+                messageHelper.setText(String.valueOf(template.eval(bindings)));
+            } else {
+                messageHelper.setText("Your JR Approved. JR Blank attached\n" +
+                    "\n" +
+                    "\n" +
+                    "Пройдя по следующей ссылке на страницу в HUB.Kcell.kz, вы можете оставить в поле комментариев свои замечания и/или пожелания относительно функционала и интерфейса системы: https://hub.kcell.kz/x/kYNoAg");
+            }
 
             IdentityService identityService = Context.getProcessEngineConfiguration().getIdentityService();
 
@@ -516,9 +533,6 @@ public class SendGeneratedJRBlank implements JavaDelegate {
             mailSender.send(message);
 
             log.info("Task Assignment Email successfully sent to user '" + assignee + "' with address '" + recipient + "'.");
-
-//            FileValue jrBlank = Variables.fileValue("jrBlank.xlsx").file(out.toByteArray()).mimeType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet").create();
-//            delegateExecution.setVariable("jrBlank", jrBlank);
 
             String path = delegateExecution.getProcessInstanceId() + "/" + jrNumber.replace("-####","").replace("-##","") + ".xlsx";
 

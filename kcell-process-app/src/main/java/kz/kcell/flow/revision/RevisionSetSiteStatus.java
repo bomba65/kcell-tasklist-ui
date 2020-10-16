@@ -45,14 +45,27 @@ public class RevisionSetSiteStatus implements ExecutionListener {
         boolean isDismantle = false;
         boolean isReplacement = false;
 
-        SpinJsonNode jobWorks = delegateExecution.<JsonValue>getVariableTyped("jobWorks").getValue();
-        if(jobWorks.isArray()){
-            SpinList<SpinJsonNode> jobWorklist = jobWorks.elements();
-            for(SpinJsonNode jobWork : jobWorklist){
-                if("9".equals(jobWork.prop("sapServiceNumber").stringValue())){
-                    isDismantle = true;
-                } else if("8".equals(jobWork.prop("sapServiceNumber").stringValue())){
-                    isReplacement = true;
+        String mainContract = String.valueOf(delegateExecution.getVariable("mainContract"));
+        if("Revision".equals(mainContract)){
+            SpinJsonNode jobWorks = delegateExecution.<JsonValue>getVariableTyped("jobWorks").getValue();
+            if(jobWorks.isArray()){
+                SpinList<SpinJsonNode> jobWorklist = jobWorks.elements();
+                for(SpinJsonNode jobWork : jobWorklist){
+                    if("9".equals(jobWork.prop("sapServiceNumber").stringValue())){
+                        isDismantle = true;
+                    } else if("8".equals(jobWork.prop("sapServiceNumber").stringValue())){
+                        isReplacement = true;
+                    }
+                }
+            }
+        } else {
+            SpinJsonNode jobWorks = delegateExecution.<JsonValue>getVariableTyped("jobWorks").getValue();
+            if(jobWorks.isArray()){
+                SpinList<SpinJsonNode> jobWorklist = jobWorks.elements();
+                for(SpinJsonNode jobWork : jobWorklist){
+                    if("2.4".equals(jobWork.prop("sapServiceNumber").stringValue())){
+                        isDismantle = true;
+                    }
                 }
             }
         }
