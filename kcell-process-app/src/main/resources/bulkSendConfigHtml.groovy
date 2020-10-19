@@ -61,7 +61,7 @@ switch (connectionType) {
         template += '''\
             tr {
                 th(scope: 'row', style:'white-space: nowrap;')('<b>Внешний IP: </b> ')
-                td('2.78.58.137')
+                td('2.78.58.183')
             }
             tr {
                 th(scope: 'row', style:'white-space: nowrap;')('<b>Port:</b> ')
