@@ -82,7 +82,9 @@
             $scope.variablesFetched = false;
             $scope.protection_mode_fetched = false;
             $scope.hop_link_type = 3;
-            $scope.deleteEngineerHop = false;
+            $scope.deleteHop = false;
+            $scope.rfsCancelled = false;
+            $scope.rfsCancelledDate = null;
             $scope.check_by_center_hop_deleteComment = "";
             $scope.antennaDiameter = function () {
                 if($scope.selectedTsd.fe_antenna_diameter_id){
@@ -101,67 +103,68 @@
             };
 
 
-            $scope.setValues = function () {
-                if ($scope.selectedTsd && $scope.selectedTsd.protection_mode_id && (!$scope.protectionModeSetted && $scope.variablesFetched && $scope.protectionModeList)) {
+           $scope.setValues = function () {
+                if (!$scope.protectionModeSetted && $scope.variablesFetched && $scope.protectionModeList) {
                     var i = $scope.protectionModeList.findIndex(function (e) {
                         $scope.protectionModeSetted = true;
-                        return e.id.toString() === $scope.selectedTsd.protection_mode_id.id
+                        return e.id.toString() === $scope.protection_mode
                     });
 
-                    if ($scope.selectedTsd.protection_mode_id && (i > -1)) {
-                        $scope.selectedTsd.protection_mode_id.id = $scope.protectionModeList[i].id;
+                    if (i > -1) {
+                        $scope.protection_mode = $scope.protectionModeList[i].id;
                         $scope.protectionMode();
-                        if ($scope.selectedTsd.protection_mode_id && ($scope.selectedTsd.protection_mode_id.id === 2)) {
-                            $scope.selectedTsd.polarization_id.id = 3;
+                        if ($scope.protection_mode === 2) {
+                            $scope.hop_polarization = 3;
                         }
                     }
                 }
 
-                if ($scope.selectedTsd && $scope.selectedTsd.capacity_id && (!$scope.linkCapacitySetted && $scope.variablesFetched && $scope.linkCapacityList)) {
+                if (!$scope.linkCapacitySetted && $scope.variablesFetched && $scope.linkCapacityList) {
                     var i = $scope.linkCapacityList.findIndex(function (e) {
                         $scope.linkCapacitySetted = true;
-                        return e.id.toString() === $scope.selectedTsd.capacity_id.id
+                        return e.id.toString() === $scope.hop_link_capacity
                     });
 
-                    if ($scope.selectedTsd && $scope.selectedTsd.capacity_id && (i > -1)) {
-                        $scope.selectedTsd.capacity_id.id = $scope.linkCapacityList[i].id;
+                    if (i > -1) {
+                        $scope.hop_link_capacity = $scope.linkCapacityList[i].id;
                     }
                 }
 
-                if ($scope.selectedTsd && $scope.selectedTsd.ne_antenna_diameter_id && (!$scope.antenaSetted && $scope.variablesFetched && $scope.trAntennasTypeList)) {
+                if (!$scope.antenaSetted && $scope.variablesFetched && $scope.trAntennasTypeList) {
                     var neI = $scope.trAntennasTypeList.findIndex(function (e) {
                         $scope.antenaSetted = true;
-                        return e.id.toString() === $scope.selectedTsd.ne_antenna_diameter_id.id
+                        return e.id.toString() === $scope.ne_diameter
                     });
                     var feI = $scope.trAntennasTypeList.findIndex(function (e) {
                         $scope.antenaSetted = true;
-                        return e.id.toString() === $scope.selectedTsd.fe_antenna_diameter_id.id
+                        return e.id.toString() === $scope.fe_diameter
                     });
 
-                    if ($scope.selectedTsd && (neI > -1)) {
-                        $scope.selectedTsd.ne_antenna_diameter_id.id = $scope.trAntennasTypeList[neI].id
+                    if (neI > -1) {
+                        $scope.ne_diameter = $scope.trAntennasTypeList[neI].id
                     }
                     if (feI > -1) {
-                        $scope.selectedTsd.fe_antenna_diameter_id.id = $scope.trAntennasTypeList[feI].id
+                        $scope.fe_diameter = $scope.trAntennasTypeList[feI].id
                     }
 
                     var nePI = $scope.trAntennasTypeList.findIndex(function (e) {
                         $scope.antenaSetted = true;
-                        return e.id.toString() === $scope.selectedTsd.ne_antenna_diameter_protect_id.id
+                        return e.id.toString() === $scope.ne_protection_antenna_diameter
                     });
                     var fePI = $scope.trAntennasTypeList.findIndex(function (e) {
                         $scope.antenaSetted = true;
-                        return e.id.toString() === $scope.selectedTsd.fe_antenna_diameter_protect_id.id
+                        return e.id.toString() === $scope.fe_protection_antenna_diameter
                     });
 
                     if (nePI > -1) {
-                        $scope.selectedTsd.ne_antenna_diameter_protect_id.id = $scope.trAntennasTypeList[nePI].id
+                        $scope.ne_protection_antenna_diameter = $scope.trAntennasTypeList[nePI].id
                     }
                     if (fePI > -1) {
-                        $scope.selectedTsd.fe_antenna_diameter_protect_id.id = $scope.trAntennasTypeList[fePI].id
+                        $scope.fe_protection_antenna_diameter = $scope.trAntennasTypeList[fePI].id
                     }
                 }
-            };
+
+           };
 
             $scope.changeParams = function () {
                 if($scope.selectedTsd && ($scope.selectedTsd.nearend_id.facility_id.latitude && $scope.selectedTsd.nearend_id.facility_id.longitude && $scope.selectedTsd.farend_id.facility_id.latitude && $scope.selectedTsd.farend_id.facility_id.longitude)) {
@@ -420,15 +423,18 @@
             }
 
             camForm.on('submit', function (e) {
+                camForm.variableManager.variableValue('oldTsd', $scope.oldTsd);
+                camForm.variableManager.variableValue('selectedTsd', $scope.selectedTsd);
+
                 camForm.variableManager.createVariable({
-                    name: 'check_by_center_hop_deleteComment',
-                    type: 'String',
-                    value: $scope.check_by_center_hop_deleteComment
+                    name: 'rfsCancelled',
+                    type: 'Boolean',
+                    value: $scope.rfsCancelled
                 });
                 camForm.variableManager.createVariable({
-                    name: 'deleteEngineerHop',
-                    type: 'Boolean',
-                    value: $scope.deleteEngineerHop
+                    name: 'rfsCancelledDate',
+                    type: 'String',
+                    value: $scope.rfsCancelledDate
                 });
 
             });
@@ -829,33 +835,56 @@
             </table>
         </div>
     </div>
-    <div class="form-group">
-        <label class="col-sm-3 control-label">RFS permission status:</label>
-        <div class="col-sm-3">
-            <input type="text" class="form-control" ng-model="selectedTsd.rfs_status_id.name" disabled>
-        </div>
-    </div>
-    <div class="form-group">
-        <label class="col-sm-3 control-label">RFS permission number:</label>
-        <div class="col-sm-3">
-            <input type="text" class="form-control" name="rfsPermitionNumber" ng-model="selectedTsd.rfs_number" disabled>
-        </div>
-        <label class="col-sm-1 control-label">Date:</label>
-        <div class="col-sm-5">
-            <div class="input-group">
-                <div class="custom-like-input">{{selectedTsd.rfs_date | date : 'dd.MM.yyyy'}}</div>
+    <div class="well" style="background: #FFFFFF">
+        <div class="form-group">
+            <label class="col-sm-3 control-label">RFS permission status:</label>
+            <div class="col-sm-3">
+                <input type="text" class="form-control" ng-model="selectedTsd.rfs_status_id.name" disabled>
             </div>
         </div>
+        <div class="form-group">
+            <label class="col-sm-3 control-label">RFS permission number:</label>
+            <div class="col-sm-3">
+                <input type="text" class="form-control" name="rfsPermitionNumber" ng-model="selectedTsd.rfs_number" disabled>
+            </div>
+            <label class="col-sm-1 control-label">Date:</label>
+            <div class="col-sm-5">
+                <div class="input-group">
+                    <div class="custom-like-input">{{selectedTsd.rfs_date | date : 'dd.MM.yyyy'}}</div>
+                </div>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-3 control-label" for="deleteEngineerHop">Delete Hop Approved:</label>
+            <input type="checkbox" ng-model="deleteHop" ng-checked="deleteHop === true" name="deleteHop" id="deleteEngineerHop" ></inputcheckbox>
+            <label class="error" ng-if="kcell_form.deleteEngineerHop.$error.required && ( kcell_form.deleteEngineerHop.$touched || view.submitted)">Required field</label>
+        </div>
     </div>
     <div class="form-group">
-        <label class="col-sm-3 control-label" for="deleteEngineerHop">Delete Hop Approved:</label>
-        <input type="checkbox" ng-model="deleteEngineerHop" name="deleteEngineerHop" id="deleteEngineerHop" required></inputcheckbox>
-        <label class="error" ng-if="kcell_form.deleteEngineerHop.$error.required && ( kcell_form.deleteEngineerHop.$touched || view.submitted)">Required field</label>
+        <div style="justify-content: center">
+            <label class="col-sm-2 control-label" for="rfsCancelled"><b>RFS cancelled:</b></label>
+            <input type="checkbox" class="col-sm-1" ng-model="rfsCancelled" name="rfsCancelled" id="rfsCancelled" required></inputcheckbox>
+            <label class="error" ng-if="kcell_form.rfsCancelled.$error.required && ( kcell_form.rfsCancelled.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-2 control-label"><b>RFS cancelled date:</b></label>
+        <div class="col-sm-3">
+            <div class="input-group">
+                <input type="text" ng-model="rfsCancelledDate" name="rfsCancelledDate" required class="form-control" datepicker-popup="dd.MM.yyyy" is-open="dateOpened" id="rfsCancelledDate" />
+                <span class="input-group-btn">
+                        <button type="button" class="btn btn-default" ng-click="dateOpened = true">
+                            <i class="glyphicon glyphicon-calendar"></i>
+                        </button>
+                    </span>
+            </div>
+            <label class="error" ng-if="kcell_form.rfsCancelledDate.$error.required && ( kcell_form.rfsCancelledDate.$touched || view.submitted)">Required field</label>
+        </div>
     </div>
     <div class="form-group">
         <label class="col-sm-2 control-label">Comments</label>
         <div class="col-sm-10">
-            <textarea class="form-control" name="check_by_center_hop_deleteComment" ng-model="check_by_center_hop_deleteComment"
+            <textarea class="form-control" name="freqCancellationComment" ng-model="freqCancellationComment"
                       maxlength="1000" rows="4"></textarea>
         </div>
     </div>
