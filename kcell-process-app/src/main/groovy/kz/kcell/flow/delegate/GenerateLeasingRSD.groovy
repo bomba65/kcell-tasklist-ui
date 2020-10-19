@@ -10,6 +10,7 @@ import org.camunda.bpm.engine.delegate.ExecutionListener
 import org.camunda.bpm.engine.impl.util.json.JSONArray
 import org.camunda.bpm.engine.impl.util.json.JSONObject
 import org.camunda.spin.plugin.variable.SpinValues
+import org.msgpack.util.json.JSON
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 
@@ -26,7 +27,7 @@ class GenerateLeasingRSD implements ExecutionListener {
     }
 
     static String render (Map binding ) {
-        println(binding)
+//        println(binding)
         def template = '''\
             
             yieldUnescaped '<!DOCTYPE html>\'
@@ -159,16 +160,161 @@ class GenerateLeasingRSD implements ExecutionListener {
                         }
                     }
 
-                    table(class:"table", style:"font-size:12px;", border:"1") {
-                        tr {
-                            td (width:"14.2%",style:"background-color:#8b8e94;font-weight: bold",colspan:"2", "Sector №")
-                            td (width:"14.2%",style:"background-color:#8b8e94;font-weight: bold",colspan:"2", "Antenna name")
-                            td (width:"14.2%",style:"background-color:#8b8e94;font-weight: bold",colspan:"2", "Antenna type")
-                            td (width:"14.2%",style:"background-color:#8b8e94;font-weight: bold",colspan:"2", "Quantity")
-                            td (width:"14.2%",style:"background-color:#8b8e94;font-weight: bold",colspan:"2", "Suspension height")
-                            td (width:"14.2%",style:"background-color:#8b8e94;font-weight: bold",colspan:"2", "Azimuth")
-                            td (width:"14.2%",style:"background-color:#8b8e94;font-weight: bold",colspan:"2", "Antenna location")
+                    for(int ii =0; ii<main.mainInfo.size(); ii++) {
+                        table(class:"table", style:"font-size:12px;", border:"1") {
+                            tr {
+                                td (width:"14.2%",style:"background-color:#8b8e94;font-weight: bold", "Sector №")
+                                td (width:"14.2%",style:"background-color:#8b8e94;font-weight: bold", "Antenna name")
+                                td (width:"14.2%",style:"background-color:#8b8e94;font-weight: bold", "Antenna type")
+                                td (width:"14.2%",style:"background-color:#8b8e94;font-weight: bold", "Quantity")
+                                td (width:"14.2%",style:"background-color:#8b8e94;font-weight: bold", "Suspension height")
+                                td (width:"14.2%",style:"background-color:#8b8e94;font-weight: bold", "Azimuth")
+                                td (width:"14.2%",style:"background-color:#8b8e94;font-weight: bold", "Antenna location")
+                            }
+                            
+                            for(int i = 0;i<main.mainInfo[ii].header.size();i++){
+                                tr {
+                                    td (width:"14.2%", i+1)
+                                    td (width:"14.2%", main.mainInfo[ii].header[i].antennaName)
+                                    td (width:"14.2%", main.mainInfo[ii].header[i].antennaType)
+                                    td (width:"14.2%", main.mainInfo[ii].header[i].quantity)
+                                    td (width:"14.2%", main.mainInfo[ii].header[i].suspensionHeight)
+                                    td (width:"14.2%", main.mainInfo[ii].header[i].azimuth)
+                                    td (width:"14.2%", main.mainInfo[ii].header[i].cn_antenna_loc)
+                                }  
+                            }
                         }
+                    
+                        table(class:"table", style:"font-size:12px;", border:"1") {
+                            tr {
+                              td (width:"14.2%", "") 
+                              for(int j=0;j<main.mainInfo[ii].body.size();j++){
+                                td (width: main.mainInfo[ii].width + "%", main.mainInfo[ii].body[j].name)
+                              }
+                            }
+                            tr {
+                              td (width:"14.2%", style: "font-weight: bold", "Antenna Quantity") 
+                              for(int j=0;j<main.mainInfo[ii].body.size();j++){
+                                td (width: main.mainInfo[ii].width + "%", main.mainInfo[ii].body[j].cn_gsm_antenna_quantity)
+                              }
+                            }
+                            tr {
+                              td (width:"14.2%", style: "font-weight: bold", "Required TRX") 
+                              for(int j=0;j<main.mainInfo[ii].body.size();j++){
+                                td (width: main.mainInfo[ii].width + "%", main.mainInfo[ii].body[j].cn_trx)
+                              }
+                            }
+                            tr {
+                              td (width:"14.2%", style: "font-weight: bold", "WCDMA Carrier") 
+                              for(int j=0;j<main.mainInfo[ii].body.size();j++){
+                                td (width: main.mainInfo[ii].width + "%", main.mainInfo[ii].body[j].cn_wcdma_carrier)
+                              }
+                            }
+                            tr {
+                              td (width:"14.2%", style: "font-weight: bold", "Tilt [deg] mechanical") 
+                              for(int j=0;j<main.mainInfo[ii].body.size();j++){
+                                td (width: main.mainInfo[ii].width + "%", main.mainInfo[ii].body[j].cn_tilt_mech)
+                              }
+                            }
+                            tr {
+                              td (width:"14.2%", style: "font-weight: bold", "Tilt [deg] electrical") 
+                              for(int j=0;j<main.mainInfo[ii].body.size();j++){
+                                td (width: main.mainInfo[ii].width + "%", main.mainInfo[ii].body[j].cn_direction)
+                              }
+                            }
+                            tr {
+                              td (width:"14.2%", style: "font-weight: bold", "Direction [deg]") 
+                              for(int j=0;j<main.mainInfo[ii].body.size();j++){
+                                td (width: main.mainInfo[ii].width + "%", main.mainInfo[ii].body[j].cn_gsm_antenna_quantity)
+                              }
+                            }
+                            tr {
+                              td (width:"14.2%", style: "font-weight: bold", "Height (top of ant) [m]") 
+                              for(int j=0;j<main.mainInfo[ii].body.size();j++){
+                                td (width: main.mainInfo[ii].width + "%", main.mainInfo[ii].body[j].cn_height)
+                              }
+                            }
+                            tr {
+                              td (width:"14.2%", style: "font-weight: bold", "Duplex Filter") 
+                              for(int j=0;j<main.mainInfo[ii].body.size();j++){
+                                td (width: main.mainInfo[ii].width + "%", main.mainInfo[ii].body[j].cn_duplex)
+                              }
+                            }
+                            tr {
+                              td (width:"14.2%", style: "font-weight: bold", "Diversity") 
+                              for(int j=0;j<main.mainInfo[ii].body.size();j++){
+                                td (width: main.mainInfo[ii].width + "%", main.mainInfo[ii].body[j].cn_diversity)
+                              }
+                            }
+                            tr {
+                              td (width:"14.2%", style: "font-weight: bold", "Power Splitter") 
+                              for(int j=0;j<main.mainInfo[ii].body.size();j++){
+                                td (width: main.mainInfo[ii].width + "%", main.mainInfo[ii].body[j].cn_power_splitter)
+                              }
+                            }
+                            tr {
+                              td (width:"14.2%", style: "font-weight: bold", "Hybrid Combiner Unit") 
+                              for(int j=0;j<main.mainInfo[ii].body.size();j++){
+                                td (width: main.mainInfo[ii].width + "%", main.mainInfo[ii].body[j].cn_hcu)
+                              }
+                            }
+                            tr {
+                              td (width:"14.2%", style: "font-weight: bold", "Remote Electrical Tilt") 
+                              for(int j=0;j<main.mainInfo[ii].body.size();j++){
+                                td (width: main.mainInfo[ii].width + "%", main.mainInfo[ii].body[j].cn_ret)
+                              }
+                            }
+                            tr {
+                              td (width:"14.2%", style: "font-weight: bold", "ASC") 
+                              for(int j=0;j<main.mainInfo[ii].body.size();j++){
+                                td (width: main.mainInfo[ii].width + "%", main.mainInfo[ii].body[j].cn_asc)
+                              }
+                            }
+                            tr {
+                              td (width:"14.2%", style: "font-weight: bold", "TMA") 
+                              for(int j=0;j<main.mainInfo[ii].body.size();j++){
+                                td (width: main.mainInfo[ii].width + "%", main.mainInfo[ii].body[j].cn_tma)
+                              }
+                            }
+                            tr {
+                              td (width:"14.2%", style: "font-weight: bold", "TCC") 
+                              for(int j=0;j<main.mainInfo[ii].body.size();j++){
+                                td (width: main.mainInfo[ii].width + "%", main.mainInfo[ii].body[j].cn_tcc)
+                              }
+                            }
+                            tr {
+                              td (width:"14.2%", style: "font-weight: bold", "Extended range") 
+                              for(int j=0;j<main.mainInfo[ii].body.size();j++){
+                                td (width: main.mainInfo[ii].width + "%", main.mainInfo[ii].body[j].cn_gsm_range)
+                              }
+                            }
+                            tr {
+                              td (width:"14.2%", style: "font-weight: bold", "Radio Unit type (RU)") 
+                              for(int j=0;j<main.mainInfo[ii].body.size();j++){
+                                td (width: main.mainInfo[ii].width + "%", main.mainInfo[ii].body[j].cn_radio_unit)
+                              }
+                            }
+                            
+                        }
+                    }
+                     table(class:"table", style:"font-size:12px;", border:"1") {
+                        tr {
+                            td (width:"20%", style:"font-weight:bold", "Address of Site:")
+                            td (width:"80%", data.cn_addr_district + ", " + data.cn_addr_oblast + ", " + data.cn_addr_city + ", " + data.cn_addr_street + ", " + data.cn_addr_building)
+                        }
+                        tr {
+                            td (width:"20%", style:"font-weight:bold", "Contact Person:")
+                            td (width:"80%", data.cn_name_contact_person +", " +data.cn_lastname_contact_person  +", " + data.cn_position_contact_person  +", " + data.cn_contact_information)
+                        }
+                        tr {
+                            td (width:"20%", style:"font-weight:bold", "Comments:")
+                            td (width:"80%", data.cn_comments)
+                        }
+                        tr {
+                            td (width:"20%", style:"font-weight:bold", "Planning Target")
+                            td (width:"80%",  " ")
+                        }
+                    
                     }
                 newLine()
       
@@ -192,25 +338,14 @@ class GenerateLeasingRSD implements ExecutionListener {
         def execution = delegateExecution
         def pid = delegateExecution.getProcessInstanceId()
 
-        def bandJson = new JsonSlurper().parseText(execution.getVariable('bands').toString());
-
-//        def bandList = "";
-//        for(int l=0;l<bandJson.size();l++){
-//            if(bandJson[l].value == true){
-//                bandList += bandJson[l].title + ", "
-//            }
-//        }
-
         def candidateJson = new JsonSlurper().parseText(execution.getVariable('candidate').toString());
         def siteTypeJson = new JsonSlurper().parseText(execution.getVariable('siteType').toString());
         def cellAntennaJson = new JsonSlurper().parseText(execution.getVariable('cellAntenna').toString());
         def renterCompanyJson = new JsonSlurper().parseText(execution.getVariable('renterCompany').toString());
         def address = new JsonSlurper().parseText(execution.getVariable('address').toString());
         JSONArray bandsArr = new JSONArray(execution.getVariable("bands").toString())
-        def data = [];
-        def sectorsArr = cellAntennaJson.sectors
-        def cycle = sectorsArr.size()
-       
+        JSONArray sectorsArr = new JSONArray(cellAntennaJson.sectors)
+
         def bandNames = ""
         for(int i=0;i<bandsArr.length();i++){
             JSONObject obj = bandsArr.getJSONObject(i);
@@ -221,8 +356,6 @@ class GenerateLeasingRSD implements ExecutionListener {
             }
         }
 
-
-        print(cellAntennaJson)
 
         def headerInfo = [
             cityName: cellAntennaJson.address.cn_addr_city,
@@ -240,13 +373,100 @@ class GenerateLeasingRSD implements ExecutionListener {
             visitingDate: candidateJson.dateOfVisit,
             planningEngineer: "Regional planning engineer",
             band: bandNames,
-
         ]
-        
+
+        def mainSectorData = []
+        for(int j=0;j<sectorsArr.length();j++){
+            JSONArray obj2 = sectorsArr.getJSONObject(j).getJSONArray("antennas")
+            JSONObject bands = sectorsArr.getJSONObject(j).getJSONObject("bands")
+            def antennaHeader = []
+            def antennaArray = []
+            for(int k=0;k<obj2.length();k++){
+                JSONObject antennaObject = obj2.getJSONObject(k);
+                String antennaName = antennaObject.get("antennaName")
+                String suspensionHeight = antennaObject.get("suspensionHeight")
+                String azimuth = antennaObject.get("azimuth")
+                String cn_antenna_loc = antennaObject.get("cn_antenna_loc")
+                int quantity = (int) antennaObject.get("quantity")
+
+                def obj = [
+                    antennaName: antennaName ? antennaName : "",
+                    quantity: quantity ? quantity : "",
+                    suspensionHeight: suspensionHeight ? suspensionHeight : "",
+                    azimuth: azimuth ? azimuth : "",
+                    cn_antenna_loc: cn_antenna_loc ? cn_antenna_loc : ""
+                ]
+
+                antennaHeader.push(obj)
+
+                JSONObject antennaTypes = obj2.getJSONObject(k).getJSONObject("antennaType")
+                Iterator<String> keys = antennaTypes.keys();
+
+                while(keys.hasNext()) {
+                    String key = keys.next();
+
+                    boolean keyIsTrue = antennaTypes.getBoolean(key)
+                    if(keyIsTrue.equals(true)){
+                        def bands2 = bands.getJSONObject(key)
+                        def info = [
+                                cn_tilt_electr: bands2.has("cn_tilt_electr") ? bands2.get("cn_tilt_electr").toString() : "",
+                                cn_gsm_antenna_quantity: bands2.has("cn_gsm_antenna_quantity") ? bands2.get("cn_gsm_antenna_quantity").toString() : "",
+                                active: bands2.has("active") ? bands2.get("active").toString() : "",
+                                cn_trx: bands2.has("cn_trx") ? bands2.get("cn_trx").toString() : "",
+                                cn_tilt_mech: bands2.has("cn_tilt_mech") ? bands2.get("cn_tilt_mech").toString() : "",
+                                cn_direction: bands2.has("cn_direction") ? bands2.get("cn_direction").toString() : "",
+                                cn_height: bands2.has("cn_height") ? bands2.get("cn_height").toString() : "",
+                                cn_hcu: bands2.has("cn_hcu") ? bands2.get("cn_hcu").toString() : "",
+                                cn_radio_unit: bands2.has("cn_radio_unit") ? bands2.get("cn_radio_unit").toString() : "",
+                                cn_tcc: bands2.has("cn_tcc") ? bands2.get("cn_tcc").toString() : "",
+                                cn_gsm_range: bands2.has("cn_gsm_range") ? bands2.get("cn_gsm_range").toString() : "",
+                                cn_tma: bands2.has("cn_tma") ? bands2.get("cn_tma").toString() : "",
+                                cn_ret: bands2.has("cn_ret") ? bands2.get("cn_ret").toString() : "",
+                                cn_asc: bands2.has("cn_asc") ? bands2.get("cn_asc").toString() : "",
+                                cn_power_splitter: bands2.has("cn_power_splitter") ? bands2.get("cn_power_splitter").toString() : "",
+                                cn_duplex: bands2.has("cn_duplex") ? bands2.get("cn_duplex").toString() : "",
+                                cn_diversity: bands2.has("cn_diversity") ? bands2.get("cn_diversity").toString() : "",
+                                cn_wcdma_carrier: bands2.has("cn_wcdma_carrier") ? bands2.get("cn_wcdma_carrier").toString() : "",
+                                name: key
+                        ]
+                        antennaArray.push(info)
+                    }
+
+                }
+            }
+            def temp = [
+                    header: antennaHeader,
+                    body: antennaArray,
+                    width: (100-14.2) / antennaArray.size()
+                ]
+            mainSectorData.push(temp)
+        }
+
+
+
+        def mainSectors = [
+                mainInfo: mainSectorData
+        ]
+
+        def adress = [
+                "cn_name_contact_person": renterCompanyJson.contactName ? renterCompanyJson.contactName : '',
+                "cn_lastname_contact_person": renterCompanyJson.firstLeaderName ? renterCompanyJson.firstLeaderName : '',
+                "cn_position_contact_person": renterCompanyJson.contactPosition ? renterCompanyJson.contactPosition : '',
+                "cn_contact_information": renterCompanyJson.contactInfo ? renterCompanyJson.contactInfo : '',
+                "cn_comments": candidateJson.comments ? candidateJson.comments : '',
+                "cn_addr_district": address.cn_addr_district ? address.cn_addr_district : '',
+                "cn_addr_oblast": address.cn_addr_oblast ? address.cn_addr_oblast : '',
+                "cn_addr_city": address.cn_addr_city ? address.cn_addr_city : '',
+                "cn_addr_street": address.cn_addr_street ? address.cn_addr_street : '',
+                "cn_addr_building": address.cn_addr_building ? address.cn_addr_building : '',
+                "cn_addr_cadastral_number": address.cn_addr_cadastral_number ? address.cn_addr_cadastral_number : '',
+                "cn_addr_note": address.cn_addr_note ? address.cn_addr_note : '',
+        ]
+
         def binding = [
                 "header": headerInfo,
-                "data":data,
-                "cycles":cycle,
+                "data":adress,
+                "main": mainSectors
         ]
 
         def result = render(binding)
