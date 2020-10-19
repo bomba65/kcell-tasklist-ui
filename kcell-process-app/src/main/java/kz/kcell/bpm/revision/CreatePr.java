@@ -159,9 +159,6 @@ public class CreatePr implements JavaDelegate {
         if (execution.hasVariable("siteStatus") && execution.getVariable("siteStatus") != null) {
             variables.put("siteStatus", execution.getVariable("siteStatus"));
         }
-        if (execution.hasVariable("soaComplaintId") && execution.getVariable("soaComplaintId") != null) {
-            variables.put("soaComplaintId", execution.getVariable("soaComplaintId"));
-        }
         if (execution.hasVariable("status") && execution.getVariable("status") != null) {
             variables.put("status", execution.getVariable("status"));
         }

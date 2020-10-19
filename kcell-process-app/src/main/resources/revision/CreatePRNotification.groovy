@@ -36,7 +36,7 @@ def getUserEmail(DelegateExecution execution, resolutions) {
 
 def tasksMap = getUserEmail(execution, resolutionsObj)
 
-def binding = ["initiatorFull": initiatorFullObj, "jrNumber": jrNumberObj, "requestedDate": requestedDateObj, "reasons": reasonsObj, "materialsRequired" : materialsRequired, "validityDate": validityDateObj, "service": serviceObj, "leasingRequired": leasingRequired, "soaComplaintId": soaComplaintId, "contractor": contractorObj, "siteName": siteName, "powerRequired": powerRequired, "project": project, "site_name": site_name, "jobWorks": jobWorksObj, "jobWorksTotal": jobWorksTotalObj, "explanation": explanation, "resolutions": resolutionsObj, "worksTitle": worksTitle, "formatDateTime": formatDateTime, "i18n": i18n, "tasksMap": tasksMap]
+def binding = ["initiatorFull": initiatorFullObj, "jrNumber": jrNumberObj, "requestedDate": requestedDateObj, "reasons": reasonsObj, "materialsRequired" : materialsRequired, "validityDate": validityDateObj, "service": serviceObj, "leasingRequired": leasingRequired, "contractor": contractorObj, "siteName": siteName, "powerRequired": powerRequired, "project": project, "site_name": site_name, "jobWorks": jobWorksObj, "jobWorksTotal": jobWorksTotalObj, "explanation": explanation, "resolutions": resolutionsObj, "worksTitle": worksTitle, "formatDateTime": formatDateTime, "i18n": i18n, "tasksMap": tasksMap]
 
 def template = '''\
 yieldUnescaped '<!DOCTYPE html>'
@@ -95,10 +95,6 @@ html(lang:'en') {
                 }
             }
             tr {
-                td {
-                    b('SA&O Complaint Id')
-                    yield ': ' + soaComplaintId
-                }
                 td {
                     b('Contractor')
                     yield ': ' + contractor
