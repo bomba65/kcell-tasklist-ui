@@ -1350,24 +1350,46 @@
                 return true
             }
 
+            $scope.changedAntennaQuantity = function (antennaIndex, sectorIndex) {
+                const a = $scope.cellAntenna.sectors[sectorIndex].antennas[antennaIndex];
+                if (a.antennaType) {
+                    Object.keys(a.antennaType).forEach( b => {
+                        $scope.countAntennaQuantity(b, sectorIndex)
+                    })
+                }
+
+            }
+
             $scope.countAntennaQuantity = function (bandName, sectorIndex) {
+                // ant.antennaType[a]
                 const s = $scope.cellAntenna.sectors[sectorIndex];
+                if ( !s.bands) {
+                    s.bands = {};
+                }
+                if (!s.bands[bandName]) {
+                    s.bands[bandName] = {};
+                }
                 const filtered = s.antennas.filter( a => { return a.antennaType[bandName]});
-                if (filtered.length > 0 && $scope.cellAntenna.sectors[sectorIndex]) {
-                    if ( !$scope.cellAntenna.sectors[sectorIndex].bands) {
-                        $scope.cellAntenna.sectors[sectorIndex].bands = {};
+                if (filtered.length > 0 && s) {
+                    if ( !s.bands) {
+                        s.bands = {};
                     }
-                    if (!$scope.cellAntenna.sectors[sectorIndex].bands[bandName]) {
-                        $scope.cellAntenna.sectors[sectorIndex].bands[bandName] = {};
+                    if (!s.bands[bandName]) {
+                        s.bands[bandName] = {};
                     }
-                    $scope.cellAntenna.sectors[sectorIndex].bands[bandName].cn_gsm_antenna_quantity = filtered.length;
-                    $scope.cellAntenna.sectors[sectorIndex].bands[bandName].active = true;
+                    s.bands[bandName].cn_gsm_antenna_quantity = 0 ;
+                    filtered.forEach( a => {
+                        console.log(a)
+                        s.bands[bandName].cn_gsm_antenna_quantity += a.quantity ? parseInt(a.quantity) : 0;
+                    })
+                    // s.bands[bandName].cn_gsm_antenna_quantity = filtered.length;
+                    s.bands[bandName].active = true;
                 } else {
-                    if ( !$scope.cellAntenna.sectors[sectorIndex].bands) {
-                        $scope.cellAntenna.sectors[sectorIndex].bands = {};
+                    if ( !s.bands) {
+                        s.bands = {};
                     }
-                    $scope.cellAntenna.sectors[sectorIndex].bands[bandName] = {};
-                    $scope.cellAntenna.sectors[sectorIndex].bands[bandName].active = false;
+                    s.bands[bandName] = {};
+                    s.bands[bandName].active = false;
                 }
             }
 
@@ -1923,7 +1945,7 @@
                                                             <label class="error" ng-show="kcell_form.antennaNameInSector_{{$parent.$index}}_{{$index}}.$error.required && ( kcell_form.antennaNameInSector_{{$parent.$index}}_{{$index}}.$touched || view.submitted)">Required field</label>
                                                         </td>
                                                         <td class="col-sm-1">
-                                                            <input type="number" required class="form-control" id="quantity_{{$parent.$index}}_{{$index}}"
+                                                            <input type="number" ng-change="changedAntennaQuantity($index, $parent.$index)" required class="form-control" id="quantity_{{$parent.$index}}_{{$index}}"
                                                                    name="quantity_{{$parent.$index}}_{{$index}}" ng-model="ant.quantity" placeholder="">
                                                             <label class="error"
                                                                    ng-show="kcell_form.quantity_{{$parent.$index}}_{{$index}}.$error.required && ( kcell_form.quantity_{{$parent.$index}}_{{$index}}.$touched || view.submitted)">Required
