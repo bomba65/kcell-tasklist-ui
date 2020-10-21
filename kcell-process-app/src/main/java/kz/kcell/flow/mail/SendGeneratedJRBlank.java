@@ -538,12 +538,11 @@ public class SendGeneratedJRBlank implements JavaDelegate {
 
             log.info("Task Assignment Email successfully sent to user '" + assignee + "' with address '" + recipient + "'.");
 
-
             ByteArrayInputStream bis = new ByteArrayInputStream(out.toByteArray());
             minioClient.saveFile(path, bis, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
             bis.close();
 
-            String json = "{\"name\" :\"" + fileName + ",\"path\" : \"" + path + "\"}";
+            String json = "{\"name\" :\"" + fileName + "\",\"path\" : \"" + path + "\"}";
             delegateExecution.setVariable("jrBlank", SpinValues.jsonValue(json));
 
             delegateExecution.setVariable("isNewProcessCreated", "false");
