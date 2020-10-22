@@ -922,10 +922,6 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                                         } else {
                                             if (key.startsWith(field)) {
                                                 if (scope.kcell_form[key].$error && scope.kcell_form[key].$error !== {}) {
-                                                    console.log(`${key} starts with field ${field} with error`)
-                                                    console.log('>>>>>' + field + ' field ERROR scope.kcell_form[key].$error>>>>>')
-                                                    console.log(scope.kcell_form[key].$error)
-                                                    console.log('<<<<<' + field + ' field ERROR scope.kcell_form[key].$error<<<<<')
                                                     error = error || (scope.kcell_form[key].$error.required && (scope.kcell_form[key].$touched || (scope.kcell_form['$$parentForm'] && scope.kcell_form.$$parentForm['$submitted'])));
                                                     
                                                 }
@@ -935,9 +931,6 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                                 }
                             });
                         }
-                        console.log('error>>>>>')
-                        console.log(error)
-                        console.log('<<<<<error')
                         return error;
                     } catch (e) {
                         console.log(e);
