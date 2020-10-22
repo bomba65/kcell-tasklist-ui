@@ -1356,6 +1356,53 @@ return module.controller('mainCtrl', ['$scope', '$rootScope', 'toasty', 'Authent
             '4gSharing-open-tasks'
         ];
 
+        $scope.contractList = [
+            { id: 'all', value: 'All' },
+            { id: 'old', value: 'Old' },
+            { id: 'new', value: 'New' },
+        ];
+
+        $scope.subContractorList = [
+            { id: 'all', value: 'All' },
+            { id: 'kcell_region', value: 'Kcell_region' },
+            { id: 'logycom', value: 'Logycom' },
+            { id: 'alta_tel', value: 'Alta Tel' },
+            { id: 'arlan_si', value: 'Arlan Si' },
+            { id: 'line_eng', value: 'Line Eng' },
+        ];
+
+        $scope.regionList = [
+            { id: 'all', value: 'All' },
+            { id: 'almaty', value: 'Almaty' },
+            { id: 'astana', value: 'Astana' },
+            { id: 'north_central', value: 'N&C' },
+            { id: 'east', value: 'East' },
+            { id: 'south', value: 'South' },
+            { id: 'west', value: 'West' },
+        ];
+
+        $scope.unitList = [
+            { id: 'all', value: 'All' },
+            { id: 'po', value: 'P&O' },
+            { id: 'sao', value: 'SAO' },
+            { id: 'sfm', value: 'S&FM' },
+            { id: 'tnu', value: 'TNU' },
+            { id: 'rollout', value: 'ROLLOUT' },
+        ];
+
+        $scope.headList = [
+            { id: 'almaty', value: 'Almaty' },
+            { id: 'astana', value: 'Astana' },
+            { id: 'north_central', value: 'North&Central' },
+            { id: 'east', value: 'East' },
+            { id: 'south', value: 'South' },
+            { id: 'west', value: 'West' },
+        ]
+
+        $scope.contractFilter = null;
+        $scope.regionFilter = null;
+        $scope.subContractorFilter = null;
+        $scope.unitFilter = null;
         $scope.currentReport = $stateParams.report;
         $scope.reverseOrder = false;
         $scope.fieldName = 'Region';
@@ -1398,6 +1445,38 @@ return module.controller('mainCtrl', ['$scope', '$rootScope', 'toasty', 'Authent
                 }
             } else {
                 return 'no_region';
+            }
+        };
+
+        $scope.getSubContractor = function (groupName) {
+            if (groupName) {
+                if (groupName.endsWith("arlan")) {
+                    return 'arlan_si';
+                } else if (groupName.endsWith("logycom")) {
+                    return 'logycom';
+                } else if (groupName.endsWith("lse")) {
+                    return 'line_eng';
+                } else if (groupName.endsWith("alta")) {
+                    return 'alta_tel';
+                } else if (groupName.endsWith("KR")) {
+                    return 'kcell_region';
+                }
+            } else {
+                return null
+            }
+        };
+
+        $scope.getUnit = function(jrNumber) {
+            if (jrNumber) {
+                if (jrNumber.indexOf("SAO") !== -1) {
+                    return 'sao';
+                } else if (jrNumber.indexOf("P&O") !== -1) {
+                    return 'po';
+                } else if (jrNumber.indexOf("TNU") !== -1) {
+                    return 'tnu';
+                } else if (jrNumber.indexOf("S&FM") !== -1) {
+                    return 'sfm';
+                }
             }
         };
 
@@ -1530,24 +1609,51 @@ return module.controller('mainCtrl', ['$scope', '$rootScope', 'toasty', 'Authent
             }
         }
 
-        $scope.regions = ['.almaty', '.east', '.west', '.north_central', '.south', '.astana', '.no_region',];
-        $scope.checkRegionView = function (region) {
-            if ($rootScope.hasGroup('head_kcell_users')) {
+        $scope.regions = ['.almaty', '.astana', '.north_central', '.east', '.south', '.west'];
+        $scope.regionsFiltered = ['.almaty', '.astana', '.north_central', '.east', '.south', '.west'];
+        $scope.subContractors = ['.kcell_region', '.logycom', '.alta_tel', '.arlan_si', '.line_eng'];
+        $scope.unitsR = ['.sao', '.po', '.sfm', '.tnu'];
+
+        $scope.checkRegionView = function(region){
+            if($rootScope.hasGroup('head_kcell_users')){
                 return true;
-            } else if ($rootScope.hasGroup('alm_kcell_users')) {
+            } else if($rootScope.hasGroup('alm_kcell_users')){
                 return region === '.almaty';
-            } else if ($rootScope.hasGroup('astana_kcell_users')) {
+            } else if($rootScope.hasGroup('astana_kcell_users')){
                 return region === '.astana';
-            } else if ($rootScope.hasGroup('east_kcell_users')) {
+            } else if($rootScope.hasGroup('east_kcell_users')){
                 return region === '.east';
-            } else if ($rootScope.hasGroup('nc_kcell_users')) {
+            } else if($rootScope.hasGroup('nc_kcell_users')){
                 return region === '.north_central';
-            } else if ($rootScope.hasGroup('south_kcell_users')) {
+            } else if($rootScope.hasGroup('south_kcell_users')){
                 return region === '.south';
-            } else if ($rootScope.hasGroup('west_kcell_users')) {
+            } else if($rootScope.hasGroup('west_kcell_users')){
                 return region === '.west';
-            } else {
+            } else if($rootScope.contractorRegion('logycom')) {
+                return region === '.logycom';
+            } else if($rootScope.contractorRegion('alta')) {
+                return region === '.alta_tel';
+            } else if($rootScope.contractorRegion('arlan')) {
+                return region === '.arlan_si';
+            } else if($rootScope.contractorRegion('lse')) {
+                return region === '.line_eng';
+            }
+            else {
                 return false;
+            }
+        }
+
+        $scope.contractFilterSelected = function(val) {
+            $scope.contractFilter = val
+            console.log($scope.contractFilter)
+        }
+
+        $scope.regionFilterSelected = function(val) {
+            $scope.headRegion = _.find($scope.headList, r => r.id === val)
+            if (val !== 'all') {
+                $scope.regionsFiltered = $scope.regions.filter(el => el.indexOf(val) !== -1)
+            } else {
+                $scope.regionsFiltered = [...$scope.regions];
             }
         }
 
@@ -1900,7 +2006,6 @@ return module.controller('mainCtrl', ['$scope', '$rootScope', 'toasty', 'Authent
                     }).then(function (response) {
                         return response.data;
                     });
-
                     $q.all([processInstancesPromise, taskInstancesPromise])
                         .then(function (results) {
                             processInstances = _.assign(processInstances, results[0]);
@@ -1932,7 +2037,7 @@ return module.controller('mainCtrl', ['$scope', '$rootScope', 'toasty', 'Authent
                                 tasksByIdAndRegionGrouped,
                                 function(tasks) { return _.mapValues(tasks, 'length'); }
                             );
-
+                            console.log('tasksByIdAndRegionCounted1')
                             $scope.tasksByIdAndRegionCounted = tasksByIdAndRegionCounted;
 
                             let a = Object.keys(tasksByIdAndRegionCounted);
@@ -2067,6 +2172,11 @@ return module.controller('mainCtrl', ['$scope', '$rootScope', 'toasty', 'Authent
                     'validate_tr_bycenter_tr': 'Wait TR Validation by Central unit (TNU)',
                     'validate_tr_bycenter_fm': 'Wait TR Validation by Central unit (S&FM)',
                     'validate_tr_bycenter_op': 'Wait TR Validation by Central unit (SAO)',
+                    'set_materials_dispatch_status_alm': 'Wait Materials Dispatch (Alm)',
+                    'set_materials_dispatch_status_astana': 'Wait Materials Dispatch (Astana)',
+                    'set_materials_dispatch_status_atyrau': 'Wait Materials Dispatch (Atyrau)',
+                    'set_materials_dispatch_status_aktau': 'Wait Materials Dispatch (Aktau)',
+                    'set_materials_dispatch_status_aktobe': 'Wait Materials Dispatch (Aktobe)',
                     'set_materials_dispatch_status': 'Wait Materials Dispatch',
                     'approve_additional_material_list_region': 'Wait Additional Material List Approval by Initiator',
                     'approve_additional_material_list_tnu_region': 'Wait Additional Material List Approval by TNU (Region)',
@@ -2080,6 +2190,11 @@ return module.controller('mainCtrl', ['$scope', '$rootScope', 'toasty', 'Authent
                     'validate_additional_tr_bycenter_tr': 'Wait Additional TR Validation by Central unit (TNU)',
                     'validate_additional_tr_bycenter_fm': 'Wait Additional TR Validation by Central unit (S&FM)',
                     'validate_additional_tr_bycenter_op': 'Wait Additional TR Validation by Central unit (SAO)',
+                    'set_additional_materials_dispatch_status_alm': 'Wait Additional Materials Dispatch (Alm)',
+                    'set_additional_materials_dispatch_status_astana': 'Wait Additional Materials Dispatch (Astana)',
+                    'set_additional_materials_dispatch_status_atyrau': 'Wait Additional Materials Dispatch (Atyrau)',
+                    'set_additional_materials_dispatch_status_aktau': 'Wait Additional Materials Dispatch (Aktau)',
+                    'set_additional_materials_dispatch_status_aktobe': 'Wait Additional Materials Dispatch (Aktobe)',
                     'set_additional_materials_dispatch_status': 'Wait Additional Materials Dispatch',
                     'verify_works': 'Wait Verify Works',
                     'accept_work_initiator': 'Wait Acceptance of Performed Works by Initiator',
@@ -2095,31 +2210,35 @@ return module.controller('mainCtrl', ['$scope', '$rootScope', 'toasty', 'Authent
                 }
 
                 $scope.kcellTasks = {
-                    'revision-open-tasks': {
-                        'revisionJobRequestApprovalSubprocessTasks': [
+                    'revision-open-tasks':{
+                        'revisionJobRequestApprovalSubprocessTasks':[
                             'approve_jr_regions', //approve_jr_regions
                             'check_power', //check_power
+                            'approve_jr', //approve_jr
                             'approve_transmission_works', //approve_transmission_works
                             'approve_jr_budget', //approve_jr_budget
-                            'approve_jr', //approve_jr
-                            'update_leasing_status_general', //update_leasing_status_general
                             'update_leasing_status_special', //update_leasing_status_special
-                            'modify_jr' //modify_jr
+                            'update_leasing_status_general', //update_leasing_status_general
+                            // 'modify_jr' //modify_jr
                         ],
-                        'revisionMaterialsPreparationTasks': [
+                        'revisionMaterialsPreparationTasks':[
                             'approve_material_list_region', //approve_material_list_region
+                            'approve_material_list_tnu_region',
                             'approve_material_list_center_po', //approve_material_list_center P&O
                             'approve_material_list_center_op', //approve_material_list_center Operation
                             'approve_material_list_center_tr', //approve_material_list_center Transmission
                             'approve_material_list_center_fm', //approve_material_list_center S&FM
                             'approve_material_list_center1',
-                            'approve_material_list_tnu_region',
                             'validate_tr', //validate_tr
                             'validate_tr_bycenter_po',
                             'validate_tr_bycenter_op',
                             'validate_tr_bycenter_tr',
                             'validate_tr_bycenter_fm',
-                            'set_materials_dispatch_status',
+                            'set_materials_dispatch_status_alm',
+                            'set_materials_dispatch_status_astana',
+                            'set_materials_dispatch_status_atyrau',
+                            'set_materials_dispatch_status_aktau',
+                            'set_materials_dispatch_status_aktobe',
                             'approve_additional_material_list_region',
                             'approve_additional_material_list_tnu_region',
                             'approve_additional_material_list_center1',
@@ -2132,11 +2251,15 @@ return module.controller('mainCtrl', ['$scope', '$rootScope', 'toasty', 'Authent
                             'validate_additional_tr_bycenter_op',
                             'validate_additional_tr_bycenter_tr',
                             'validate_additional_tr_bycenter_fm',
-                            'set_additional_materials_dispatch_status',
+                            'set_additional_materials_dispatch_status_alm',
+                            'set_additional_materials_dispatch_status_astana',
+                            'set_additional_materials_dispatch_status_atyrau',
+                            'set_additional_materials_dispatch_status_aktau',
+                            'set_additional_materials_dispatch_status_aktobe',
                             'verify_works'
                         ],
-                        'waitWorksVerificationPermitTeamTasks': [],
-                        'revisionAcceptWorksTasks': [
+                        'waitWorksVerificationPermitTeamTasks':[],
+                        'revisionAcceptWorksTasks':[
                             'accept_work_initiator',
                             'accept_work_maintenance_group',
                             'accept_work_planning_group',
@@ -2157,10 +2280,10 @@ return module.controller('mainCtrl', ['$scope', '$rootScope', 'toasty', 'Authent
 
                 $scope.contractorTasks = {
                     'revision-open-tasks': [
-                        'upload_tr_contractor', //upload_tr_contractor
-                        'upload_additional_tr_contractor',
                         'attach_material_list_contractor', //attach_material_list_contractor
-                        'attach_additional_material_list_contractor',
+                        'upload_tr_contractor', //upload_tr_contractor
+                        // 'upload_additional_tr_contractor',
+                        // 'attach_additional_material_list_contractor',
                         'fill_applied_changes_info' //fill_applied_changes_info
                     ],
                     'invoice-open-tasks': [
@@ -2182,8 +2305,18 @@ return module.controller('mainCtrl', ['$scope', '$rootScope', 'toasty', 'Authent
                     if($scope.filter.mainContract && $scope.filter.mainContract !== 'All') {
                         processQuery.variables.push({name:'mainContract', operator:'eq', value:$scope.filter.mainContract});
                     }
-                    var processInstancesPromise = $http.post($scope.baseUrl + '/history/process-instance', processQuery).then(function (response) {
+                    var processInstancesPromise = $http.post($scope.baseUrl + '/history/process-instance', processQuery).then(async function (response) {
+                        for (let i = 0; i < response.data.length; i++) {
+                            var groups = await $http.get('/camunda/api/engine/engine/default/group?member='+response.data[i].startUserId).then(
+                                function(res){
+                                    return res.data;
+                                }
+                            );
+                            groups = groups.filter(f => f.id.indexOf('_contractor_') > -1)
+                            response.data[i].userGroup = groups.length > 0 ? groups[0].id : null;
+                        }
                         var processInstances = _.keyBy(response.data, 'id');
+
                         return $http.post($scope.baseUrl + '/history/variable-instance', {
                             variableName: 'jrNumber',
                             processInstanceIdIn: _.keys(processInstances)
@@ -2211,15 +2344,16 @@ return module.controller('mainCtrl', ['$scope', '$rootScope', 'toasty', 'Authent
                     });
 
                     $q.all([processInstancesPromise, taskInstancesPromise])
-                        .then(function (results) {
+                        .then(async function (results) {
+                            console.log(results)
                             var processInstances = results[0];
                             var taskInstances = results[1];
 
-                            angular.forEach(taskInstances, function (t) {
+                            angular.forEach(taskInstances,  function (t) {
                                 if (['approve_material_list_center', 'validate_tr_bycenter', 'approve_additional_material_list_center', 'validate_additional_tr_bycenter'].indexOf(t.taskDefinitionKey) !== -1) {
                                     if (t.name.indexOf('P&O') != -1) {
                                         t.taskDefinitionKey = t.taskDefinitionKey + '_po'
-                                    } else if (t.name.indexOf('Transmission') != -1) {
+                                    } else if (t.name.indexOf('ransmission') != -1) {
                                         t.taskDefinitionKey = t.taskDefinitionKey + '_tr'
                                     } else if (t.name.indexOf('S&FM') != -1) {
                                         t.taskDefinitionKey = t.taskDefinitionKey + '_fm'
@@ -2228,6 +2362,11 @@ return module.controller('mainCtrl', ['$scope', '$rootScope', 'toasty', 'Authent
                                     }
                                 }
                             })
+                            // for (let i = 0; i < taskInstances.length; i ++ ){
+                            //     var process = _.find(processInstances, p => p.id === taskInstances[i].processInstanceId);
+                            //     taskInstances[i].contractor = await $rootScope.checkGroup(process.startUserId);
+                            // }
+
 
                             var taskInstancesByDefinition = _.groupBy(
                                 taskInstances,
@@ -2251,11 +2390,56 @@ return module.controller('mainCtrl', ['$scope', '$rootScope', 'toasty', 'Authent
                                 }
                             );
 
+                            var tasksByIdAndContractorGrouped = _.mapValues(
+                                taskInstancesByDefinition,
+                                function (tasks) {
+                                    return _.groupBy(
+                                        tasks,
+                                        function (task) {
+                                            var pid = task.processInstanceId;
+                                            if (processInstances[pid]) {
+                                                return $scope.getSubContractor(processInstances[pid].userGroup);
+                                            }
+                                        }
+
+                                    );
+                                }
+                            );
+
+                            var tasksByIdAndUnitGrouped = _.mapValues(
+                                taskInstancesByDefinition,
+                                function (tasks) {
+                                    return _.groupBy(
+                                        tasks,
+                                        function (task) {
+                                            var pid = task.processInstanceId;
+                                            if (processInstances[pid]) {
+                                                return $scope.getUnit(processInstances[pid].jrNumber);
+                                            } else {
+                                                return 'no_processinstance';
+                                            }
+                                        }
+
+                                    );
+                                }
+                            );
+
+                            var tasksByIdAndUnitCounted = _.mapValues(
+                                tasksByIdAndUnitGrouped,
+                                function(tasks) { return _.mapValues(tasks, 'length')}
+                            );
+                            $scope.tasksByIdAndUnitCounted = tasksByIdAndUnitCounted;
+
+                            var tasksByIdAndContractorCounted = _.mapValues(
+                                tasksByIdAndContractorGrouped,
+                                function(tasks) { return _.mapValues(tasks, 'length')}
+                            );
+                            $scope.tasksByIdAndContractorCounted = tasksByIdAndContractorCounted;
+
                             var tasksByIdAndRegionCounted = _.mapValues(
                                 tasksByIdAndRegionGrouped,
                                 function(tasks) { return _.mapValues(tasks, 'length'); }
                             );
-
                             $scope.tasksByIdAndRegionCounted = tasksByIdAndRegionCounted;
 
                             let a = Object.keys(tasksByIdAndRegionCounted);
@@ -2361,6 +2545,7 @@ return module.controller('mainCtrl', ['$scope', '$rootScope', 'toasty', 'Authent
                                 function(tasks) { return _.mapValues(tasks, 'length'); }
                             );
 
+                            console.log('tasksByIdAndRegionCounted3')
                             $scope.tasksByIdAndRegionCounted = tasksByIdAndRegionCounted;
 
                             let a = Object.keys(tasksByIdAndRegionCounted);
@@ -3086,7 +3271,7 @@ return module.controller('mainCtrl', ['$scope', '$rootScope', 'toasty', 'Authent
                                             });                                            
                                         }
                                         if($scope.fullPIDsByRegions[r.id].generalStatuses && $scope.fullPIDsByRegions[r.id].generalStatuses['Provisional approval by Power, Transmission & Leasing']){
-                                            var pIds = [];
+                                            var pIds = [];2
                                             $scope.fullPIDsByRegions[r.id].generalStatuses['Provisional approval by Power, Transmission & Leasing'].forEach(p => {
                                                 pIds.push(p.pid);
                                             });

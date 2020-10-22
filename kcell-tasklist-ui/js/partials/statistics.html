@@ -1,5 +1,12 @@
 <div class="row layout-row">
 	<style>
+		.col-md-3 {
+			padding-left: 30px;
+		}
+		.col-md-3 select {
+			float: right;
+			min-width: 180px;
+		}
 		table.report {
 			border: 1px solid darkgray;
 			/*table-layout: fixed;*/
@@ -27,6 +34,9 @@
 		}
 		th.sortable:hover {
 			background: #EEE;
+		}
+		td b {
+			font-family: -apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Oxygen,Ubuntu,Fira Sans,Droid Sans,Helvetica Neue,sans-serif;
 		}
 	</style>
 	<div class="col-md-2 no-float left">
@@ -69,30 +79,184 @@
 				<div class="scrollable">
 					<div class="page-body container-fluid" ng-if="(currentReport === 'revision-open-tasks' || currentReport === 'invoice-open-tasks') && $root.isProcessAvailable(reportsMap[currentReport].process) && $root.isProcessVisible(reportsMap[currentReport].process)">
 						<h3>{{reportsMap[currentReport].name}} <span ng-show="task">» {{userTasksMap[task].name}}</span></h3>
-						<div class="col-sm-8" style="margin-bottom: 10px;" ng-show="currentReport === 'revision-open-tasks' || currentReport === 'invoice-open-tasks'">
-							<label class="radio-inline">
-				                <input type="radio" name="mainContract" ng-model="filter.mainContract" value="All" ng-change="selectMainStatus()"> All
-				            </label>
-				            <label class="radio-inline">
-				                <input type="radio" name="mainContract" ng-model="filter.mainContract" value="Revision" ng-change="selectMainStatus()"> Revision
-				            </label>
-				            <label class="radio-inline">
-				                <input type="radio" name="mainContract" ng-model="filter.mainContract" value="Roll-out" ng-change="selectMainStatus()"> Roll-out
-				            </label>
+						<!--						<div class="col-sm-8" style="margin-bottom: 10px;" ng-show="currentReport === 'revision-open-tasks' || currentReport === 'invoice-open-tasks'">-->
+						<!--							<label class="radio-inline">-->
+						<!--				                <input type="radio" name="mainContract" ng-model="filter.mainContract" value="All" ng-change="selectMainStatus()"> All-->
+						<!--				            </label>-->
+						<!--				            <label class="radio-inline">-->
+						<!--				                <input type="radio" name="mainContract" ng-model="filter.mainContract" value="Revision" ng-change="selectMainStatus()"> Revision-->
+						<!--				            </label>-->
+						<!--				            <label class="radio-inline">-->
+						<!--				                <input type="radio" name="mainContract" ng-model="filter.mainContract" value="Roll-out" ng-change="selectMainStatus()"> Roll-out-->
+						<!--				            </label>-->
+						<!--						</div>-->
+						<div class="row">
+							<div class="col-sm-4 col-md-3">
+								<label for="contractFilter">Contract: </label>
+								<select id="contractFilter" name="contractFilter" ng-model="contractFilter" ng-change="contractFilterSelected(contractFilter)">
+									<option ng-repeat="c in contractList" ng-value="c.id">{{c.value}}</option>
+								</select>
+							</div>
+							<div class="col-sm-4 col-md-3">
+								<label for="regonFilter">Region: </label>
+								<select id="regonFilter" name="regonFilter" ng-model="regionFilter" ng-change="regionFilterSelected(regionFilter)">
+									<option ng-repeat="c in regionList" ng-value="c.id">{{c.value}}</option>
+								</select>
+							</div>
 						</div>
-						<h3> </h3>
-						<table class="report" ng-hide="task" ng-if="currentReport === 'revision-open-tasks'">
+						<div class="row">
+							<div class="col-sm-4 col-md-3">
+								<label for="subContractFilter">Subcontractor: </label>
+								<select id="subContractFilter" name="subContractFilter" ng-model="subContractorFilter" ng-change="subContractFilterSelected(subContractorFilter)">
+									<option ng-repeat="c in subContractorList" ng-value="c.id">{{c.value}}</option>
+								</select>
+							</div>
+							<div class="col-sm-4 col-md-3">
+								<label for="unitFilter">Unit: </label>
+								<select id="unitFilter" name="unitFilter" ng-model="unitFilter" ng-change="cunitFilterSelected(unitFilter)">
+									<option ng-repeat="c in unitList" ng-value="c.id">{{c.value}}</option>
+								</select>
+							</div>
+						</div>
+
+						<h3></h3>
+						<br/>
+						<table class="report" ng-hide="task" ng-if="currentReport === 'revision-open-tasks' && subContractorFilter === null && regionFilter === null && unitFilter === null">
 							<thead>
 							<tr>
 								<th>JR Status</th>
 								<th>Almaty</th>
-								<th>East</th>
-								<th>West</th>
-								<th>North &amp; Central</th>
-								<th>South</th>
 								<th>Astana</th>
-								<th>No region</th>
-								<th>Total</th>
+								<th>North &amp; Central</th>
+								<th>East</th>
+								<th>South</th>
+								<th>West</th>
+								<th>Kcell_region</th>
+								<th>Logycom</th>
+								<th>Alta Tel</th>
+								<th>Arlan Si</th>
+								<th>Line_eng</th>
+								<th>All Kazakhstan</th>
+							</tr>
+							<tr>
+								<td colspan="13">&nbsp;</td>
+							</tr>
+							<tr>
+								<th colspan="13"><b>KCell</b></th>
+							</tr>
+							<tr>
+								<td colspan="13">&nbsp;<b>Job Request Approval subprocess</b></td>
+							</tr>
+							</thead>
+							<tbody>
+							<tr ng-repeat="taskDefId in kcellTasks[currentReport].revisionJobRequestApprovalSubprocessTasks">
+								<td><span>&nbsp;&nbsp;{{revisionTaskDisplay[taskDefId]}}</span></td>
+								<td class="number" ng-repeat="region in regions">
+									<a ng-if="checkRegionView(region)" href="#/statistics?task={{taskDefId}}&report={{currentReport.concat(filter.reason?'&reason='+filter.reason:'')}}&region={{region.replace('.','').concat(filter.mainContract?'&mainContract='+filter.mainContract:'')}}">{{ _.get(tasksByIdAndRegionCounted, taskDefId + region, 0) }}</a>
+								</td>
+								<td class="number" ng-repeat="subContractor in subContractors">
+									<a ng-if="checkRegionView(subContractor)" href="#/statistics?task={{taskDefId}}&report={{currentReport.concat(filter.reason?'&reason='+filter.reason:'')}}&region={{region.replace('.','').concat(filter.mainContract?'&mainContract='+filter.mainContract:'')}}">{{ _.get(tasksByIdAndContractorCounted, taskDefId + subContractor, 0) }}</a>
+								</td>
+								<td>
+									<a href="#/statistics?task={{taskDefId}}&report={{currentReport.concat(filter.reason?'&reason='+filter.reason:'').concat(filter.mainContract?'&mainContract='+filter.mainContract:'')}}" ng-if="checkRegionView(region)">
+										{{ _.get(totalCounter, taskDefId, 0) }}
+									</a>
+								</td>
+							</tr>
+							</tbody>
+							<thead>
+							<tr>
+								<td colspan="13">&nbsp;<b>Materials preparation</b></td>
+							</tr>
+							</thead>
+							<tbody>
+							<tr ng-repeat="taskDefId in kcellTasks[currentReport].revisionMaterialsPreparationTasks">
+								<td><span>&nbsp;&nbsp;{{revisionTaskDisplay[taskDefId]}}</span></td>
+								<td class="number" ng-repeat="region in regions">
+									<a ng-if="checkRegionView(region)" href="#/statistics?task={{taskDefId}}&report={{currentReport.concat(filter.reason?'&reason='+filter.reason:'')}}&region={{region.replace('.','').concat(filter.mainContract?'&mainContract='+filter.mainContract:'')}}">{{ _.get(tasksByIdAndRegionCounted, taskDefId + region, 0) }}</a>
+								</td>
+								<td class="number" ng-repeat="subContractor in subContractors">
+									<a ng-if="checkRegionView(subContractor)" href="#/statistics?task={{taskDefId}}&report={{currentReport.concat(filter.reason?'&reason='+filter.reason:'')}}&region={{region.replace('.','').concat(filter.mainContract?'&mainContract='+filter.mainContract:'')}}">{{ _.get(tasksByIdAndContractorCounted, taskDefId + subContractor, 0) }}</a>
+								</td>
+								<td>
+									<a href="#/statistics?task={{taskDefId}}&report={{currentReport.concat(filter.reason?'&reason='+filter.reason:'').concat(filter.mainContract?'&mainContract='+filter.mainContract:'')}}" ng-if="checkRegionView(region)">
+										{{ _.get(totalCounter, taskDefId, 0) }}
+									</a>
+								</td>
+							</tr>
+							</tbody>
+							<thead>
+							<tr>
+								<td colspan="13">&nbsp;<b>Accept works</b></td>
+							</tr>
+							</thead>
+							<tbody>
+							<tr ng-repeat="taskDefId in kcellTasks[currentReport].revisionAcceptWorksTasks">
+								<td><span>&nbsp;&nbsp;{{revisionTaskDisplay[taskDefId]}}</span></td>
+								<td class="number" ng-repeat="region in regions">
+									<a ng-if="checkRegionView(region)" href="#/statistics?task={{taskDefId}}&report={{currentReport.concat(filter.reason?'&reason='+filter.reason:'')}}&region={{region.replace('.','').concat(filter.mainContract?'&mainContract='+filter.mainContract:'')}}">{{ _.get(tasksByIdAndRegionCounted, taskDefId + region, 0) }}</a>
+								</td>
+								<td class="number" ng-repeat="subContractor in subContractors">
+									<a ng-if="checkRegionView(subContractor)" href="#/statistics?task={{taskDefId}}&report={{currentReport.concat(filter.reason?'&reason='+filter.reason:'')}}&region={{region.replace('.','').concat(filter.mainContract?'&mainContract='+filter.mainContract:'')}}">{{ _.get(tasksByIdAndContractorCounted, taskDefId + subContractor, 0) }}</a>
+								</td>
+								<td>
+									<a href="#/statistics?task={{taskDefId}}&report={{currentReport.concat(filter.reason?'&reason='+filter.reason:'').concat(filter.mainContract?'&mainContract='+filter.mainContract:'')}}" ng-if="checkRegionView(region)">
+										{{ _.get(totalCounter, taskDefId, 0) }}
+									</a>
+								</td>
+							</tr>
+							</tbody>
+							<thead>
+							<tr>
+								<td colspan="13">&nbsp;</td>
+							</tr>
+							<tr>
+								<th colspan="13"><b>Contractor</b></th>
+							</tr>
+							<tr>
+								<td colspan="13">&nbsp;</td>
+							</tr>
+							</thead>
+							<tbody>
+							<tr ng-repeat="taskDefId in contractorTasks[currentReport]">
+								<td><span>&nbsp;&nbsp;{{revisionTaskDisplay[taskDefId]}}</span></td>
+								<td class="number" ng-repeat="region in regions">
+									<a ng-if="checkRegionView(region)" href="#/statistics?task={{taskDefId}}&report={{currentReport.concat(filter.reason?'&reason='+filter.reason:'')}}&region={{region.replace('.','').concat(filter.mainContract?'&mainContract='+filter.mainContract:'')}}">{{ _.get(tasksByIdAndRegionCounted, taskDefId + region, 0) }}</a>
+								</td>
+								<td class="number" ng-repeat="subContractor in subContractors">
+									<a ng-if="checkRegionView(subContractor)" href="#/statistics?task={{taskDefId}}&report={{currentReport.concat(filter.reason?'&reason='+filter.reason:'')}}&region={{region.replace('.','').concat(filter.mainContract?'&mainContract='+filter.mainContract:'')}}">{{ _.get(tasksByIdAndContractorCounted, taskDefId + subContractor, 0) }}</a>
+								</td>
+								<td>
+									<a href="#/statistics?task={{taskDefId}}&report={{currentReport.concat(filter.reason?'&reason='+filter.reason:'').concat(filter.mainContract?'&mainContract='+filter.mainContract:'')}}" ng-if="checkRegionView(region)">
+										{{ _.get(totalCounter, taskDefId, 0) }}
+									</a>
+								</td>
+							</tr>
+							</tbody>
+							<tfoot>
+							<tr>
+								<td>Total</td>
+								<td class="number" ng-repeat="region in regions">
+									<a ng-if="checkRegionView(region)" href="#/statistics?task=no_task&report={{currentReport.concat(filter.reason?'&reason='+filter.reason:'')}}&region={{region.replace('.','').concat(filter.mainContract?'&mainContract='+filter.mainContract:'')}}">{{ regionCounter[region.replace('.','')] }}</a>
+								</td>
+								<td class="number" ng-repeat="subContractor in subContractors">
+									<a ng-if="checkRegionView(subContractor)" href="#/statistics?task={{taskDefId}}&report={{currentReport.concat(filter.reason?'&reason='+filter.reason:'')}}&region={{region.replace('.','').concat(filter.mainContract?'&mainContract='+filter.mainContract:'')}}">{{ _.get(tasksByIdAndContractorCounted, taskDefId + subContractor, 0) }}</a>
+								</td>
+								<td><span ng-if="$root.hasGroup('head_kcell_users')">{{finalRegionCounter}}\{{finalTasksCounter}}</span></td>
+							</tr>
+							</tfoot>
+						</table>
+						<table class="report" ng-hide="task" ng-if="currentReport === 'revision-open-tasks' && subContractorFilter !== null && regionFilter === null && unitFilter === null">
+							<thead>
+							<tr>
+								<th>JR Status</th>
+								<th>Almaty</th>
+								<th>Astana</th>
+								<th>North &amp; Central</th>
+								<th>East</th>
+								<th>South</th>
+								<th>West</th>
+								<th>All Kazakhstan</th>
 							</tr>
 							<tr>
 								<td colspan="9">&nbsp;</td>
@@ -116,14 +280,309 @@
 									</a>
 								</td>
 							</tr>
-							</tbody>
+							<tfoot>
+							<tr>
+								<td>Total</td>
+								<td class="number" ng-repeat="region in regions">
+									<a ng-if="checkRegionView(region)" href="#/statistics?task=no_task&report={{currentReport.concat(filter.reason?'&reason='+filter.reason:'')}}&region={{region.replace('.','').concat(filter.mainContract?'&mainContract='+filter.mainContract:'')}}">{{ regionCounter[region.replace('.','')] }}</a>
+								</td>
+								<td><span ng-if="$root.hasGroup('head_kcell_users')">{{finalRegionCounter}}\{{finalTasksCounter}}</span></td>
+							</tr>
+							</tfoot>
+						</table>
+						<table class="report" ng-hide="task" ng-if="currentReport === 'revision-open-tasks' && subContractorFilter === null && regionFilter !== null && unitFilter === null">
 							<thead>
 							<tr>
-								<td colspan="9">&nbsp;<b>Materials preparation</b></td>
+								<th>JR Status</th>
+								<th>Kcell_region</th>
+								<th>Logycom</th>
+								<th>Alta Tel</th>
+								<th>Arlan Si</th>
+								<th>Line_eng</th>
+								<th>All Kazakhstan</th>
+							</tr>
+							<tr>
+								<td colspan="7">&nbsp;</td>
+							</tr>
+							<tr>
+								<th colspan="7"><b>KCell</b></th>
+							</tr>
+							<tr>
+								<td colspan="7">&nbsp;<b>Job Request Approval subprocess</b></td>
 							</tr>
 							</thead>
 							<tbody>
-							<tr ng-repeat="taskDefId in kcellTasks[currentReport].revisionMaterialsPreparationTasks">
+							<tr ng-repeat="taskDefId in kcellTasks[currentReport].revisionJobRequestApprovalSubprocessTasks">
+								<td><span>&nbsp;&nbsp;{{revisionTaskDisplay[taskDefId]}}</span></td>
+								<!--								<td class="number" ng-repeat="region in regions">-->
+								<!--									<a ng-if="checkRegionView(region)" href="#/statistics?task={{taskDefId}}&report={{currentReport.concat(filter.reason?'&reason='+filter.reason:'')}}&region={{region.replace('.','').concat(filter.mainContract?'&mainContract='+filter.mainContract:'')}}">{{ _.get(tasksByIdAndRegionCounted, taskDefId + region, 0) }}</a>-->
+								<!--								</td>-->
+								<td class="number" ng-repeat="subContractor in subContractors">
+									<a ng-if="checkRegionView(subContractor)" href="#/statistics?task={{taskDefId}}&report={{currentReport.concat(filter.reason?'&reason='+filter.reason:'')}}&region={{region.replace('.','').concat(filter.mainContract?'&mainContract='+filter.mainContract:'')}}">{{ _.get(tasksByIdAndContractorCounted, taskDefId + subContractor, 0) }}</a>
+								</td>
+								<td>
+									<a href="#/statistics?task={{taskDefId}}&report={{currentReport.concat(filter.reason?'&reason='+filter.reason:'').concat(filter.mainContract?'&mainContract='+filter.mainContract:'')}}" ng-if="checkRegionView(region)">
+										{{ _.get(totalCounter, taskDefId, 0) }}
+									</a>
+								</td>
+							</tr>
+							<tfoot>
+							<tr>
+								<td>Total</td>
+								<!--								<td class="number" ng-repeat="region in regions">-->
+								<!--									<a ng-if="checkRegionView(region)" href="#/statistics?task=no_task&report={{currentReport.concat(filter.reason?'&reason='+filter.reason:'')}}&region={{region.replace('.','').concat(filter.mainContract?'&mainContract='+filter.mainContract:'')}}">{{ regionCounter[region.replace('.','')] }}</a>-->
+								<!--								</td>-->
+								<td class="number" ng-repeat="subContractor in subContractors">
+									{{ _.get(tasksByIdAndContractorCounted, subContractor + 'contractor' + taskDefId, 0) }}
+								</td>
+								<td><span ng-if="$root.hasGroup('head_kcell_users')">{{finalRegionCounter}}\{{finalTasksCounter}}</span></td>
+							</tr>
+							</tfoot>
+						</table>
+						<table class="report" ng-hide="task" ng-if="currentReport === 'revision-open-tasks' && subContractorFilter === null && regionFilter === null && unitFilter !== null">
+							<thead>
+							<tr>
+								<th>JR Status</th>
+								<th>Almaty</th>
+								<th>Astana</th>
+								<th>North &amp; Central</th>
+								<th>East</th>
+								<th>South</th>
+								<th>West</th>
+								<th>Kcell_region</th>
+								<th>Logycom</th>
+								<th>Alta Tel</th>
+								<th>Arlan Si</th>
+								<th>Line_eng</th>
+								<th>All Kazakhstan</th>
+							</tr>
+							<tr>
+								<td colspan="13">&nbsp;</td>
+							</tr>
+							<tr>
+								<th colspan="13"><b>KCell</b></th>
+							</tr>
+							<tr>
+								<td colspan="13">&nbsp;<b>Job Request Approval subprocess</b></td>
+							</tr>
+							</thead>
+							<tbody>
+							<tr ng-repeat="taskDefId in kcellTasks[currentReport].revisionJobRequestApprovalSubprocessTasks">
+								<td><span>&nbsp;&nbsp;{{revisionTaskDisplay[taskDefId]}}</span></td>
+								<td class="number" ng-repeat="region in regions">
+									<a ng-if="checkRegionView(region)" href="#/statistics?task={{taskDefId}}&report={{currentReport.concat(filter.reason?'&reason='+filter.reason:'')}}&region={{region.replace('.','').concat(filter.mainContract?'&mainContract='+filter.mainContract:'')}}">{{ _.get(tasksByIdAndRegionCounted, taskDefId + region, 0) }}</a>
+								</td>
+								<td class="number" ng-repeat="subContractor in subContractors">
+									<a ng-if="checkRegionView(subContractor)" href="#/statistics?task={{taskDefId}}&report={{currentReport.concat(filter.reason?'&reason='+filter.reason:'')}}&region={{region.replace('.','').concat(filter.mainContract?'&mainContract='+filter.mainContract:'')}}">{{ _.get(tasksByIdAndContractorCounted, taskDefId + subContractor, 0) }}</a>
+								</td>
+								<td>
+									<a href="#/statistics?task={{taskDefId}}&report={{currentReport.concat(filter.reason?'&reason='+filter.reason:'').concat(filter.mainContract?'&mainContract='+filter.mainContract:'')}}" ng-if="checkRegionView(region)">
+										{{ _.get(totalCounter, taskDefId, 0) }}
+									</a>
+								</td>
+							</tr>
+							</tbody>
+<!--							<thead>-->
+<!--							<tr>-->
+<!--								<td colspan="13">&nbsp;<b>Materials preparation</b></td>-->
+<!--							</tr>-->
+<!--							</thead>-->
+<!--							<tbody>-->
+<!--							<tr ng-repeat="taskDefId in kcellTasks[currentReport].revisionMaterialsPreparationTasks">-->
+<!--								<td><span>&nbsp;&nbsp;{{revisionTaskDisplay[taskDefId]}}</span></td>-->
+<!--								<td class="number" ng-repeat="region in regions">-->
+<!--									<a ng-if="checkRegionView(region)" href="#/statistics?task={{taskDefId}}&report={{currentReport.concat(filter.reason?'&reason='+filter.reason:'')}}&region={{region.replace('.','').concat(filter.mainContract?'&mainContract='+filter.mainContract:'')}}">{{ _.get(tasksByIdAndRegionCounted, taskDefId + region, 0) }}</a>-->
+<!--								</td>-->
+<!--								<td class="number" ng-repeat="subContractor in subContractors">-->
+<!--									<a ng-if="checkRegionView(subContractor)" href="#/statistics?task={{taskDefId}}&report={{currentReport.concat(filter.reason?'&reason='+filter.reason:'')}}&region={{region.replace('.','').concat(filter.mainContract?'&mainContract='+filter.mainContract:'')}}">{{ _.get(tasksByIdAndContractorCounted, taskDefId + subContractor, 0) }}</a>-->
+<!--								</td>-->
+<!--								<td>-->
+<!--									<a href="#/statistics?task={{taskDefId}}&report={{currentReport.concat(filter.reason?'&reason='+filter.reason:'').concat(filter.mainContract?'&mainContract='+filter.mainContract:'')}}" ng-if="checkRegionView(region)">-->
+<!--										{{ _.get(totalCounter, taskDefId, 0) }}-->
+<!--									</a>-->
+<!--								</td>-->
+<!--							</tr>-->
+<!--							</tbody>-->
+<!--							<thead>-->
+<!--							<tr>-->
+<!--								<td colspan="13">&nbsp;<b>Accept works</b></td>-->
+<!--							</tr>-->
+<!--							</thead>-->
+<!--							<tbody>-->
+<!--							<tr ng-repeat="taskDefId in kcellTasks[currentReport].revisionAcceptWorksTasks">-->
+<!--								<td><span>&nbsp;&nbsp;{{revisionTaskDisplay[taskDefId]}}</span></td>-->
+<!--								<td class="number" ng-repeat="region in regions">-->
+<!--									<a ng-if="checkRegionView(region)" href="#/statistics?task={{taskDefId}}&report={{currentReport.concat(filter.reason?'&reason='+filter.reason:'')}}&region={{region.replace('.','').concat(filter.mainContract?'&mainContract='+filter.mainContract:'')}}">{{ _.get(tasksByIdAndRegionCounted, taskDefId + region, 0) }}</a>-->
+<!--								</td>-->
+<!--								<td class="number" ng-repeat="subContractor in subContractors">-->
+<!--									<a ng-if="checkRegionView(subContractor)" href="#/statistics?task={{taskDefId}}&report={{currentReport.concat(filter.reason?'&reason='+filter.reason:'')}}&region={{region.replace('.','').concat(filter.mainContract?'&mainContract='+filter.mainContract:'')}}">{{ _.get(tasksByIdAndContractorCounted, taskDefId + subContractor, 0) }}</a>-->
+<!--								</td>-->
+<!--								<td>-->
+<!--									<a href="#/statistics?task={{taskDefId}}&report={{currentReport.concat(filter.reason?'&reason='+filter.reason:'').concat(filter.mainContract?'&mainContract='+filter.mainContract:'')}}" ng-if="checkRegionView(region)">-->
+<!--										{{ _.get(totalCounter, taskDefId, 0) }}-->
+<!--									</a>-->
+<!--								</td>-->
+<!--							</tr>-->
+<!--							</tbody>-->
+<!--							<thead>-->
+<!--							<tr>-->
+<!--								<td colspan="13">&nbsp;</td>-->
+<!--							</tr>-->
+<!--							<tr>-->
+<!--								<th colspan="13"><b>Contractor</b></th>-->
+<!--							</tr>-->
+<!--							<tr>-->
+<!--								<td colspan="13">&nbsp;</td>-->
+<!--							</tr>-->
+<!--							</thead>-->
+<!--							<tbody>-->
+<!--							<tr ng-repeat="taskDefId in contractorTasks[currentReport]">-->
+<!--								<td><span>&nbsp;&nbsp;{{revisionTaskDisplay[taskDefId]}}</span></td>-->
+<!--								<td class="number" ng-repeat="region in regions">-->
+<!--									<a ng-if="checkRegionView(region)" href="#/statistics?task={{taskDefId}}&report={{currentReport.concat(filter.reason?'&reason='+filter.reason:'')}}&region={{region.replace('.','').concat(filter.mainContract?'&mainContract='+filter.mainContract:'')}}">{{ _.get(tasksByIdAndRegionCounted, taskDefId + region, 0) }}</a>-->
+<!--								</td>-->
+<!--								<td class="number" ng-repeat="subContractor in subContractors">-->
+<!--									<a ng-if="checkRegionView(subContractor)" href="#/statistics?task={{taskDefId}}&report={{currentReport.concat(filter.reason?'&reason='+filter.reason:'')}}&region={{region.replace('.','').concat(filter.mainContract?'&mainContract='+filter.mainContract:'')}}">{{ _.get(tasksByIdAndContractorCounted, taskDefId + subContractor, 0) }}</a>-->
+<!--								</td>-->
+<!--								<td>-->
+<!--									<a href="#/statistics?task={{taskDefId}}&report={{currentReport.concat(filter.reason?'&reason='+filter.reason:'').concat(filter.mainContract?'&mainContract='+filter.mainContract:'')}}" ng-if="checkRegionView(region)">-->
+<!--										{{ _.get(totalCounter, taskDefId, 0) }}-->
+<!--									</a>-->
+<!--								</td>-->
+<!--							</tr>-->
+<!--							</tbody>-->
+							<tfoot>
+							<tr>
+								<td>Total</td>
+								<td class="number" ng-repeat="region in regions">
+									<a ng-if="checkRegionView(region)" href="#/statistics?task=no_task&report={{currentReport.concat(filter.reason?'&reason='+filter.reason:'')}}&region={{region.replace('.','').concat(filter.mainContract?'&mainContract='+filter.mainContract:'')}}">{{ regionCounter[region.replace('.','')] }}</a>
+								</td>
+								<td class="number" ng-repeat="subContractor in subContractors">
+									<a ng-if="checkRegionView(subContractor)" href="#/statistics?task={{taskDefId}}&report={{currentReport.concat(filter.reason?'&reason='+filter.reason:'')}}&region={{region.replace('.','').concat(filter.mainContract?'&mainContract='+filter.mainContract:'')}}">{{ _.get(tasksByIdAndContractorCounted, taskDefId + subContractor, 0) }}</a>
+								</td>
+								<td><span ng-if="$root.hasGroup('head_kcell_users')">{{finalRegionCounter}}\{{finalTasksCounter}}</span></td>
+							</tr>
+							</tfoot>
+						</table>
+
+						<table class="report" ng-hide="task" ng-if="currentReport === 'revision-open-tasks' && regionFilter !== null && subContractorFilter !== null && unitFilter === null">
+							<thead>
+							<tr>
+								<th>JR Status</th>
+								<th>SAO</th>
+								<th>PO</th>
+								<th>SFM</th>
+								<th>TNU</th>
+								<th>All Kazakhstan</th>
+							</tr>
+							<tr>
+								<td colspan="6">&nbsp;</td>
+							</tr>
+							<tr>
+								<th colspan="6"><b>KCell</b></th>
+							</tr>
+							<tr>
+								<td colspan="6">&nbsp;<b>Job Request Approval subprocess</b></td>
+							</tr>
+							</thead>
+							<tbody>
+							<tr ng-repeat="taskDefId in kcellTasks[currentReport].revisionJobRequestApprovalSubprocessTasks">
+								<td><span>&nbsp;&nbsp;{{revisionTaskDisplay[taskDefId]}}</span></td>
+								<!--								<td class="number" ng-repeat="region in regions">-->
+								<!--									<a ng-if="checkRegionView(region)" href="#/statistics?task={{taskDefId}}&report={{currentReport.concat(filter.reason?'&reason='+filter.reason:'')}}&region={{region.replace('.','').concat(filter.mainContract?'&mainContract='+filter.mainContract:'')}}">{{ _.get(tasksByIdAndRegionCounted, taskDefId + region, 0) }}</a>-->
+								<!--								</td>-->
+								<td class="number" ng-repeat="unit in unitsR">
+									{{ _.get(tasksByIdAndUnitCounted, taskDefId + unit, 0) }}
+								</td>
+								<td>
+									<a href="#/statistics?task={{taskDefId}}&report={{currentReport.concat(filter.reason?'&reason='+filter.reason:'').concat(filter.mainContract?'&mainContract='+filter.mainContract:'')}}" ng-if="checkRegionView(region)">
+										{{ _.get(totalCounter, taskDefId, 0) }}
+									</a>
+								</td>
+							</tr>
+							<tfoot>
+							<tr>
+								<td>Total</td>
+								<td class="number" ng-repeat="unit in unitsR">
+									<a ng-if="checkRegionView(region)" href="#/statistics?task=no_task&report={{currentReport.concat(filter.reason?'&reason='+filter.reason:'')}}&region={{region.replace('.','').concat(filter.mainContract?'&mainContract='+filter.mainContract:'')}}">{{ regionCounter[region.replace('.','')] }}</a>
+								</td>
+								<td><span ng-if="$root.hasGroup('head_kcell_users')">{{finalRegionCounter}}\{{finalTasksCounter}}</span></td>
+							</tr>
+							</tfoot>
+						</table>
+						<table class="report" ng-hide="task" ng-if="currentReport === 'revision-open-tasks' && regionFilter !== null && subContractorFilter === null && unitFilter !== null">
+							<thead>
+							<tr>
+								<th>JR Status</th>
+								<th>Kcell_region</th>
+								<th>Logycom</th>
+								<th>Alta Tel</th>
+								<th>Arlan Si</th>
+								<th>Line_eng</th>
+								<th>All Kazakhstan</th>
+							</tr>
+							<tr>
+								<td colspan="7">&nbsp;</td>
+							</tr>
+							<tr>
+								<th colspan="7"><b>KCell</b></th>
+							</tr>
+							<tr>
+								<td colspan="7">&nbsp;<b>Job Request Approval subprocess</b></td>
+							</tr>
+							</thead>
+							<tbody>
+							<tr ng-repeat="taskDefId in kcellTasks[currentReport].revisionJobRequestApprovalSubprocessTasks">
+								<td><span>&nbsp;&nbsp;{{revisionTaskDisplay[taskDefId]}}</span></td>
+								<!--								<td class="number" ng-repeat="region in regions">-->
+								<!--									<a ng-if="checkRegionView(region)" href="#/statistics?task={{taskDefId}}&report={{currentReport.concat(filter.reason?'&reason='+filter.reason:'')}}&region={{region.replace('.','').concat(filter.mainContract?'&mainContract='+filter.mainContract:'')}}">{{ _.get(tasksByIdAndRegionCounted, taskDefId + region, 0) }}</a>-->
+								<!--								</td>-->
+								<td class="number" ng-repeat="subContractor in subContractors">
+									<a ng-if="checkRegionView(subContractor)" href="#/statistics?task={{taskDefId}}&report={{currentReport.concat(filter.reason?'&reason='+filter.reason:'')}}&region={{region.replace('.','').concat(filter.mainContract?'&mainContract='+filter.mainContract:'')}}">{{ _.get(tasksByIdAndContractorCounted, taskDefId + subContractor, 0) }}</a>
+								</td>
+								<td>
+									<a href="#/statistics?task={{taskDefId}}&report={{currentReport.concat(filter.reason?'&reason='+filter.reason:'').concat(filter.mainContract?'&mainContract='+filter.mainContract:'')}}" ng-if="checkRegionView(region)">
+										{{ _.get(totalCounter, taskDefId, 0) }}
+									</a>
+								</td>
+							</tr>
+							<tfoot>
+							<tr>
+								<td>Total</td>
+								<!--								<td class="number" ng-repeat="region in regions">-->
+								<!--									<a ng-if="checkRegionView(region)" href="#/statistics?task=no_task&report={{currentReport.concat(filter.reason?'&reason='+filter.reason:'')}}&region={{region.replace('.','').concat(filter.mainContract?'&mainContract='+filter.mainContract:'')}}">{{ regionCounter[region.replace('.','')] }}</a>-->
+								<!--								</td>-->
+								<td class="number" ng-repeat="subContractor in subContractors">
+									{{ _.get(tasksByIdAndContractorCounted, subContractor + 'contractor' + taskDefId, 0) }}
+								</td>
+								<td><span ng-if="$root.hasGroup('head_kcell_users')">{{finalRegionCounter}}\{{finalTasksCounter}}</span></td>
+							</tr>
+							</tfoot>
+						</table>
+						<table class="report" ng-hide="task" ng-if="currentReport === 'revision-open-tasks' && regionFilter === null && subContractorFilter !== null && unitFilter !== null">
+							<thead>
+							<tr>
+								<th>JR Status</th>
+								<th>Almaty</th>
+								<th>Astana</th>
+								<th>North &amp; Central</th>
+								<th>East</th>
+								<th>South</th>
+								<th>West</th>
+								<th>All Kazakhstan</th>
+							</tr>
+							<tr>
+								<td colspan="9">&nbsp;</td>
+							</tr>
+							<tr>
+								<th colspan="9"><b>KCell</b></th>
+							</tr>
+							<tr>
+								<td colspan="9">&nbsp;<b>Job Request Approval subprocess</b></td>
+							</tr>
+							</thead>
+							<tbody>
+							<tr ng-repeat="taskDefId in kcellTasks[currentReport].revisionJobRequestApprovalSubprocessTasks">
 								<td><span>&nbsp;&nbsp;{{revisionTaskDisplay[taskDefId]}}</span></td>
 								<td class="number" ng-repeat="region in regions">
 									<a ng-if="checkRegionView(region)" href="#/statistics?task={{taskDefId}}&report={{currentReport.concat(filter.reason?'&reason='+filter.reason:'')}}&region={{region.replace('.','').concat(filter.mainContract?'&mainContract='+filter.mainContract:'')}}">{{ _.get(tasksByIdAndRegionCounted, taskDefId + region, 0) }}</a>
@@ -134,42 +593,49 @@
 									</a>
 								</td>
 							</tr>
-							</tbody>
+							<tfoot>
 							<tr>
-								<td colspan="9">&nbsp;<b>Accept works</b></td>
-							</tr>
-							</thead>
-							<tbody>
-							<tr ng-repeat="taskDefId in kcellTasks[currentReport].revisionAcceptWorksTasks">
-								<td><span>&nbsp;&nbsp;{{revisionTaskDisplay[taskDefId]}}</span></td>
+								<td>Total</td>
 								<td class="number" ng-repeat="region in regions">
-									<a ng-if="checkRegionView(region)" href="#/statistics?task={{taskDefId}}&report={{currentReport.concat(filter.reason?'&reason='+filter.reason:'')}}&region={{region.replace('.','').concat(filter.mainContract?'&mainContract='+filter.mainContract:'')}}">{{ _.get(tasksByIdAndRegionCounted, taskDefId + region, 0) }}</a>
+									<a ng-if="checkRegionView(region)" href="#/statistics?task=no_task&report={{currentReport.concat(filter.reason?'&reason='+filter.reason:'')}}&region={{region.replace('.','').concat(filter.mainContract?'&mainContract='+filter.mainContract:'')}}">{{ regionCounter[region.replace('.','')] }}</a>
 								</td>
-								<td>
-									<a href="#/statistics?task={{taskDefId}}&report={{currentReport.concat(filter.reason?'&reason='+filter.reason:'').concat(filter.mainContract?'&mainContract='+filter.mainContract:'')}}" ng-if="checkRegionView(region)">
-										{{ _.get(totalCounter, taskDefId, 0) }}
-									</a>
-								</td>
+								<td><span ng-if="$root.hasGroup('head_kcell_users')">{{finalRegionCounter}}\{{finalTasksCounter}}</span></td>
 							</tr>
-							</tbody>
+							</tfoot>
+						</table>
+						<table class="report" ng-hide="task" ng-if="currentReport === 'revision-open-tasks' && regionFilter !== null && subContractorFilter !== null && unitFilter !== null">
 							<thead>
+							<tr ng-if="regionFilter === 'all'">
+								<th>JR Status</th>
+								<th>Almaty</th>
+								<th>Astana</th>
+								<th>North &amp; Central</th>
+								<th>East</th>
+								<th>South</th>
+								<th>West</th>
+								<th>All Kazakhstan</th>
+							</tr>
+							<tr ng-if="regionFilter !== 'all'">
+								<th>JR Status</th>
+								<th>{{ headRegion.value }}</th>
+							</tr>
 							<tr>
 								<td colspan="9">&nbsp;</td>
 							</tr>
 							<tr>
-								<th colspan="9"><b>Contractor</b></th>
+								<th colspan="9"><b>KCell</b></th>
 							</tr>
 							<tr>
-								<td colspan="9">&nbsp;</td>
+								<td colspan="9">&nbsp;<b>Job Request Approval subprocess</b></td>
 							</tr>
 							</thead>
 							<tbody>
-							<tr ng-repeat="taskDefId in contractorTasks[currentReport]">
+							<tr ng-repeat="taskDefId in kcellTasks[currentReport].revisionJobRequestApprovalSubprocessTasks">
 								<td><span>&nbsp;&nbsp;{{revisionTaskDisplay[taskDefId]}}</span></td>
-								<td class="number" ng-repeat="region in regions">
+								<td class="number" ng-repeat="region in regionsFiltered">
 									<a ng-if="checkRegionView(region)" href="#/statistics?task={{taskDefId}}&report={{currentReport.concat(filter.reason?'&reason='+filter.reason:'')}}&region={{region.replace('.','').concat(filter.mainContract?'&mainContract='+filter.mainContract:'')}}">{{ _.get(tasksByIdAndRegionCounted, taskDefId + region, 0) }}</a>
 								</td>
-								<td>
+								<td ng-if="regionFilter === 'all'">
 									<a href="#/statistics?task={{taskDefId}}&report={{currentReport.concat(filter.reason?'&reason='+filter.reason:'').concat(filter.mainContract?'&mainContract='+filter.mainContract:'')}}" ng-if="checkRegionView(region)">
 										{{ _.get(totalCounter, taskDefId, 0) }}
 									</a>
@@ -177,13 +643,13 @@
 							</tr>
 							</tbody>
 							<tfoot>
-								<tr>
-									<td>Total</td>
-									<td class="number" ng-repeat="region in regions">
-										<a ng-if="checkRegionView(region)" href="#/statistics?task=no_task&report={{currentReport.concat(filter.reason?'&reason='+filter.reason:'')}}&region={{region.replace('.','').concat(filter.mainContract?'&mainContract='+filter.mainContract:'')}}">{{ regionCounter[region.replace('.','')] }}</a>
-									</td>
-									<td><span ng-if="$root.hasGroup('head_kcell_users')">{{finalRegionCounter}}\{{finalTasksCounter}}</span></td>
-								</tr>
+							<tr>
+								<td>Total</td>
+								<td class="number" ng-repeat="region in regionsFiltered">
+									<a ng-if="checkRegionView(region)" href="#/statistics?task=no_task&report={{currentReport.concat(filter.reason?'&reason='+filter.reason:'')}}&region={{region.replace('.','').concat(filter.mainContract?'&mainContract='+filter.mainContract:'')}}">{{ regionCounter[region.replace('.','')] }}</a>
+								</td>
+								<td ng-if="regionFilter === 'all'"><span ng-if="$root.hasGroup('head_kcell_users')">{{finalRegionCounter}}\{{finalTasksCounter}}</span></td>
+							</tr>
 							</tfoot>
 						</table>
 
@@ -239,19 +705,19 @@
 									<a ng-if="checkRegionView(region)" href="#/statistics?task={{taskDefId}}&report={{currentReport.concat(filter.reason?'&reason='+filter.reason:'')}}&region={{region.replace('.','').concat(filter.mainContract?'&mainContract='+filter.mainContract:'')}}">{{ _.get(tasksByIdAndRegionCounted, taskDefId + region, 0) }}</a>
 								</td>
 								<td>
-									<span ng-if="checkRegionView(region)">
-									<a ng-if="checkRegionView(region)" href="#/statistics?task={{taskDefId}}&report={{currentReport.concat(filter.reason?'&reason='+filter.reason:'').concat(filter.mainContract?'&mainContract='+filter.mainContract:'')}}">{{ _.get(totalCounter,taskDefId, 0) }}</a>
+										<span ng-if="checkRegionView(region)">
+										<a ng-if="checkRegionView(region)" href="#/statistics?task={{taskDefId}}&report={{currentReport.concat(filter.reason?'&reason='+filter.reason:'').concat(filter.mainContract?'&mainContract='+filter.mainContract:'')}}">{{ _.get(totalCounter,taskDefId, 0) }}</a>
 								</td>
 							</tr>
 							</tbody>
 							<tfoot>
-								<tr>
-									<td>Total</td>
-									<td class="number" ng-repeat="region in regions">
-										<a ng-if="checkRegionView(region)" href="#/statistics?task=no_task&report={{currentReport.concat(filter.reason?'&reason='+filter.reason:'')}}&region={{region.replace('.','').concat(filter.mainContract?'&mainContract='+filter.mainContract:'')}}">{{ regionCounter[region.replace('.','')] }}</a>
-									</td>
-									<td><span ng-if="$root.hasGroup('head_kcell_users')">{{finalRegionCounter}}\{{finalTasksCounter}}</span></td>
-								</tr>
+							<tr>
+								<td>Total</td>
+								<td class="number" ng-repeat="region in regions">
+									<a ng-if="checkRegionView(region)" href="#/statistics?task=no_task&report={{currentReport.concat(filter.reason?'&reason='+filter.reason:'')}}&region={{region.replace('.','').concat(filter.mainContract?'&mainContract='+filter.mainContract:'')}}">{{ regionCounter[region.replace('.','')] }}</a>
+								</td>
+								<td><span ng-if="$root.hasGroup('head_kcell_users')">{{finalRegionCounter}}\{{finalTasksCounter}}</span></td>
+							</tr>
 							</tfoot>
 						</table>
 
@@ -368,63 +834,63 @@
 							<h3>{{reportsMap[currentReport].name}} <span ng-show="task">» {{userTasksMap[task].name}}</span></h3>
 							<div class="col-sm-12">
 								<table class="table">
-								  <thead>
-								    <tr>
-								      <th scope="col"></th>
-								      <th scope="col">800</th>
-								      <th scope="col">1800</th>
-								      <th scope="col">2100</th>
-								      <th scope="col">Всего</th>
-								    </tr>
-								  </thead>
-								  <tbody>
-								    <tr>
-								      <th scope="row">Количество запланированных сайтов</th>
-								      <td>{{siteCountByType.planed.band800}}</td>
-								      <td>{{siteCountByType.planed.band1800}}</td>
-								      <td>{{siteCountByType.planed.band2100}}</td>
-								      <td>{{siteCountByType.planed.all}}</td>
-								    </tr>
-								    <tr>
-								      <th scope="row">On-air количество</th>
-								      <td>{{siteCountByType.onair.band800}}</td>
-								      <td>{{siteCountByType.onair.band1800}}</td>
-								      <td>{{siteCountByType.onair.band2100}}</td>
-								      <td>{{siteCountByType.onair.all}}</td>
-								    </tr>
-								    <tr>
-								      <th scope="row">Количество сайтов, принятых Кселлом в сервис</th>
-								      <td>{{siteCountByType.beelineHost.band800}}</td>
-								      <td>{{siteCountByType.beelineHost.band1800}}</td>
-								      <td>{{siteCountByType.beelineHost.band2100}}</td>
-								      <td>{{siteCountByType.beelineHost.all}}</td>
-								    </tr>
-								    <tr>
-								      <th scope="row">Количество сайтов, принятых Билайном в сервис</th>
-								      <td>{{siteCountByType.kcellHost.band800}}</td>
-								      <td>{{siteCountByType.kcellHost.band1800}}</td>
-								      <td>{{siteCountByType.kcellHost.band2100}}</td>
-								      <td>{{siteCountByType.kcellHost.all}}</td>
-								    </tr>
-								  </tbody>
+									<thead>
+									<tr>
+										<th scope="col"></th>
+										<th scope="col">800</th>
+										<th scope="col">1800</th>
+										<th scope="col">2100</th>
+										<th scope="col">Всего</th>
+									</tr>
+									</thead>
+									<tbody>
+									<tr>
+										<th scope="row">Количество запланированных сайтов</th>
+										<td>{{siteCountByType.planed.band800}}</td>
+										<td>{{siteCountByType.planed.band1800}}</td>
+										<td>{{siteCountByType.planed.band2100}}</td>
+										<td>{{siteCountByType.planed.all}}</td>
+									</tr>
+									<tr>
+										<th scope="row">On-air количество</th>
+										<td>{{siteCountByType.onair.band800}}</td>
+										<td>{{siteCountByType.onair.band1800}}</td>
+										<td>{{siteCountByType.onair.band2100}}</td>
+										<td>{{siteCountByType.onair.all}}</td>
+									</tr>
+									<tr>
+										<th scope="row">Количество сайтов, принятых Кселлом в сервис</th>
+										<td>{{siteCountByType.beelineHost.band800}}</td>
+										<td>{{siteCountByType.beelineHost.band1800}}</td>
+										<td>{{siteCountByType.beelineHost.band2100}}</td>
+										<td>{{siteCountByType.beelineHost.all}}</td>
+									</tr>
+									<tr>
+										<th scope="row">Количество сайтов, принятых Билайном в сервис</th>
+										<td>{{siteCountByType.kcellHost.band800}}</td>
+										<td>{{siteCountByType.kcellHost.band1800}}</td>
+										<td>{{siteCountByType.kcellHost.band2100}}</td>
+										<td>{{siteCountByType.kcellHost.all}}</td>
+									</tr>
+									</tbody>
 								</table>
 								<!-- <span>Количество запланированных сайтов</span>
 								<span>On-air количество</span>
 								<span>Количество сайтов, принятых Кселлом в сервис</span>
 								<span>Количество сайтов, принятых Билайном в сервис</span> -->
-							</div>	
+							</div>
 							<div class="form-group col-sm-4">
 								<label for="sel1">Select SubProcess:</label>
 								<select class="form-control" id="select" ng-model="currentSubProcess">
-								    <option value="BeelineHostBeelineSite">Beeline Host - Beeline Site</option>
-								    <option value="BeelineHostKcellSite">Beeline Host - Kcell Site</option>
-								    <option value="KcellHostBeelineSite">Kcell Host - Beeline Site</option>
-								    <option value="KcellHostKcellSite">Kcell Host - Kcell Site</option>
-								    <option value="ReplanSharedSiteAddressPlan">Replan Shared Site</option>
-							 	</select>
+									<option value="BeelineHostBeelineSite">Beeline Host - Beeline Site</option>
+									<option value="BeelineHostKcellSite">Beeline Host - Kcell Site</option>
+									<option value="KcellHostBeelineSite">Kcell Host - Beeline Site</option>
+									<option value="KcellHostKcellSite">Kcell Host - Kcell Site</option>
+									<option value="ReplanSharedSiteAddressPlan">Replan Shared Site</option>
+								</select>
 							</div>
 						</div>
-						
+
 						<table class="report" ng-hide="task" ng-repeat="CurrentTasks in sharingTasks" >
 							<thead ng-show="currentSubProcess == CurrentTasks.pid">
 							<tr>
@@ -455,7 +921,6 @@
 								</td>
 							</tr>
 							</tbody>
-							<thead>
 						</table>
 
 						<table class="report" ng-show="task">

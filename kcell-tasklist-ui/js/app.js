@@ -315,6 +315,24 @@ define('app',[
 				return false;
 			}
 		}
+		$rootScope.contractorRegion = function(pattern) {
+			if($rootScope.authUser && $rootScope.authUser.groups){
+				return _.some($rootScope.authUser.groups, function(value){
+					return value.id.indexOf(pattern) > -1;
+				});
+			} else {
+				return false;
+			}
+		}
+		$rootScope.checkGroup = async function(userId) {
+			var groups = await $http.get('/camunda/api/engine/engine/default/group?member='+userId).then(
+				function(res){
+					return res.data;
+				}
+			);
+			groups = groups.filter(f => f.id.indexOf('_contractor_') > -1)
+			return groups.length > 0 ? groups[0].id : null;
+		}
 		$rootScope.updateSelectedProject = function(project){
 			$rootScope.selectedProject = project;
 			if(project){
