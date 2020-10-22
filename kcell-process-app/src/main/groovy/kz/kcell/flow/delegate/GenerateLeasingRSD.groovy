@@ -195,7 +195,7 @@ class GenerateLeasingRSD implements ExecutionListener {
                             tr {
                               td (width:"14.2%", style: "font-weight: bold", "Antenna Quantity") 
                               for(int j=0;j<main.mainInfo[ii].body.size();j++){
-                                td (width: main.mainInfo[ii].width + "%", main.mainInfo[ii].body[j].cn_gsm_antenna_quantity)
+                                td (width: main.mainInfo[ii].width + "%", main.mainInfo[ii].body[j].quantitySum)
                               }
                             }
                             tr {
@@ -389,25 +389,22 @@ class GenerateLeasingRSD implements ExecutionListener {
                 String cn_antenna_loc = antennaObject.get("cn_antenna_loc")
                 int quantity = (int) antennaObject.get("quantity")
 
-                def obj = [
-                    antennaName: antennaName ? antennaName : "",
-                    quantity: quantity ? quantity : "",
-                    suspensionHeight: suspensionHeight ? suspensionHeight : "",
-                    azimuth: azimuth ? azimuth : "",
-                    cn_antenna_loc: cn_antenna_loc ? cn_antenna_loc : ""
-                ]
-
-                antennaHeader.push(obj)
-
                 JSONObject antennaTypes = obj2.getJSONObject(k).getJSONObject("antennaType")
                 Iterator<String> keys = antennaTypes.keys();
 
+                StringJoiner antennaTypeString = new StringJoiner(",");
                 while(keys.hasNext()) {
                     String key = keys.next();
 
                     boolean keyIsTrue = antennaTypes.getBoolean(key)
                     if(keyIsTrue.equals(true)){
                         def bands2 = bands.getJSONObject(key)
+                        Integer quantitySum = 0;
+
+                        for(int l=0; l<obj2.length(); l++) {
+                            quantitySum += obj2.getJSONObject(l).getInt("quantity");
+                        }
+                        antennaTypeString.add(key);
                         def info = [
                                 cn_tilt_electr: bands2.has("cn_tilt_electr") ? bands2.get("cn_tilt_electr").toString() : "",
                                 cn_gsm_antenna_quantity: bands2.has("cn_gsm_antenna_quantity") ? bands2.get("cn_gsm_antenna_quantity").toString() : "",
@@ -416,28 +413,39 @@ class GenerateLeasingRSD implements ExecutionListener {
                                 cn_tilt_mech: bands2.has("cn_tilt_mech") ? bands2.get("cn_tilt_mech").toString() : "",
                                 cn_direction: bands2.has("cn_direction") ? bands2.get("cn_direction").toString() : "",
                                 cn_height: bands2.has("cn_height") ? bands2.get("cn_height").toString() : "",
-                                cn_hcu: bands2.has("cn_hcu") ? bands2.get("cn_hcu").toString() : "",
+                                cn_hcu: bands2.has("cn_hcu") ? (bands2.getBoolean("cn_hcu") ? "Yes" : "No") : "No",
                                 cn_radio_unit: bands2.has("cn_radio_unit") ? bands2.get("cn_radio_unit").toString() : "",
-                                cn_tcc: bands2.has("cn_tcc") ? bands2.get("cn_tcc").toString() : "",
-                                cn_gsm_range: bands2.has("cn_gsm_range") ? bands2.get("cn_gsm_range").toString() : "",
-                                cn_tma: bands2.has("cn_tma") ? bands2.get("cn_tma").toString() : "",
-                                cn_ret: bands2.has("cn_ret") ? bands2.get("cn_ret").toString() : "",
-                                cn_asc: bands2.has("cn_asc") ? bands2.get("cn_asc").toString() : "",
-                                cn_power_splitter: bands2.has("cn_power_splitter") ? bands2.get("cn_power_splitter").toString() : "",
-                                cn_duplex: bands2.has("cn_duplex") ? bands2.get("cn_duplex").toString() : "",
-                                cn_diversity: bands2.has("cn_diversity") ? bands2.get("cn_diversity").toString() : "",
+                                cn_tcc: bands2.has("cn_tcc") ? (bands2.getBoolean("cn_tcc") ? "Yes" : "No") : "No",
+                                cn_gsm_range: bands2.has("cn_gsm_range") ? (bands2.getBoolean("cn_gsm_range") ? "Yes" : "No") : "No",
+                                cn_tma: bands2.has("cn_tma") ? (bands2.getBoolean("cn_tma") ? "Yes" : "No") : "No",
+                                cn_ret: bands2.has("cn_ret") ? (bands2.getBoolean("cn_ret") ? "Yes" : "No") : "No",
+                                cn_asc: bands2.has("cn_asc") ? (bands2.getBoolean("cn_asc") ? "Yes" : "No") : "No",
+                                cn_power_splitter: bands2.has("cn_power_splitter") ? (bands2.getBoolean("cn_power_splitter") ? "Yes" : "No") : "No",
+                                cn_duplex: bands2.has("cn_duplex") ? (bands2.getBoolean("cn_duplex") ? "Yes" : "No") : "No",
+                                cn_diversity: bands2.has("cn_diversity") ? (bands2.getBoolean("cn_diversity") ? "Yes" : "No") : "No",
                                 cn_wcdma_carrier: bands2.has("cn_wcdma_carrier") ? bands2.get("cn_wcdma_carrier").toString() : "",
-                                name: key
+                                name: key,
+                                quantitySum: quantitySum
                         ]
                         antennaArray.push(info)
                     }
 
                 }
+                def obj = [
+                        antennaName: antennaName ? antennaName : "",
+                        quantity: quantity ? quantity : "",
+                        suspensionHeight: suspensionHeight ? suspensionHeight : "",
+                        azimuth: azimuth ? azimuth : "",
+                        cn_antenna_loc: cn_antenna_loc ? cn_antenna_loc : "",
+                        antennaType: antennaTypeString.toString()
+                ]
+
+                antennaHeader.push(obj)
             }
             def temp = [
                     header: antennaHeader,
                     body: antennaArray,
-                    width: (100-14.2) / antennaArray.size()
+                    width: (100-14.2) / antennaArray.size(),
                 ]
             mainSectorData.push(temp)
         }
