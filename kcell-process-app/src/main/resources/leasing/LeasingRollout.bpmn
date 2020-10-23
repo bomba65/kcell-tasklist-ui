@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:bioc="http://bpmn.io/schema/bpmn/biocolor/1.0" id="Definitions_1" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="4.2.0">
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:bioc="http://bpmn.io/schema/bpmn/biocolor/1.0" id="Definitions_1" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="4.3.0">
   <bpmn:process id="leasing" name="Rollout site process&#10;" isExecutable="true">
     <bpmn:documentation>Send a message to start a payment</bpmn:documentation>
     <bpmn:startEvent id="StartEvent_first" camunda:formKey="embedded:app:forms/leasing/start.html" camunda:initiator="starter">
@@ -18,12 +18,7 @@
       </bpmn:extensionElements>
       <bpmn:outgoing>SequenceFlow_0762aq3</bpmn:outgoing>
     </bpmn:startEvent>
-    <bpmn:exclusiveGateway id="ExclusiveGateway_0wi0wbj" default="SequenceFlow_18yqfom">
-      <bpmn:incoming>SequenceFlow_0h2s3k3</bpmn:incoming>
-      <bpmn:outgoing>SequenceFlow_1l71kk9</bpmn:outgoing>
-      <bpmn:outgoing>SequenceFlow_18yqfom</bpmn:outgoing>
-    </bpmn:exclusiveGateway>
-    <bpmn:sequenceFlow id="SequenceFlow_1l71kk9" name="Reject (Refusal)" sourceRef="ExclusiveGateway_0wi0wbj" targetRef="ServiceTask_02xcxq2">
+    <bpmn:sequenceFlow id="SequenceFlow_1l71kk9" name="Not Agree / Not Received / Not Approved" sourceRef="ExclusiveGateway_0wi0wbj" targetRef="ServiceTask_02xcxq2">
       <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${rentApprovalResult=='refused'}</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
     <bpmn:userTask id="estimateTechnicalCapabilityRes" name="Preliminary estimate of Technical Capability from RES" camunda:formKey="embedded:app:forms/leasing/estimateTechnicalCapabilityRes.html">
@@ -57,24 +52,18 @@
       <bpmn:incoming>SequenceFlow_1w0qbic</bpmn:incoming>
       <bpmn:incoming>SequenceFlow_0z3jgwx</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_1k7b3hb</bpmn:outgoing>
-      <bpmn:parallelGateway id="ParallelGateway_17ml8wx">
-        <bpmn:incoming>SequenceFlow_08bos34</bpmn:incoming>
-        <bpmn:incoming>SequenceFlow_1aq5zok</bpmn:incoming>
-        <bpmn:outgoing>SequenceFlow_1snpx56</bpmn:outgoing>
-      </bpmn:parallelGateway>
       <bpmn:startEvent id="StartEvent_069yz7n">
         <bpmn:outgoing>SequenceFlow_0dmrypg</bpmn:outgoing>
       </bpmn:startEvent>
       <bpmn:endEvent id="EndEvent_0k5is59">
         <bpmn:incoming>SequenceFlow_1snpx56</bpmn:incoming>
       </bpmn:endEvent>
-      <bpmn:parallelGateway id="ParallelGateway_18ngj17">
-        <bpmn:incoming>SequenceFlow_0dmrypg</bpmn:incoming>
-        <bpmn:outgoing>SequenceFlow_1sf3ov6</bpmn:outgoing>
-        <bpmn:outgoing>SequenceFlow_12xl5pf</bpmn:outgoing>
-      </bpmn:parallelGateway>
-      <bpmn:sequenceFlow id="SequenceFlow_1sf3ov6" name="Candidate" sourceRef="ParallelGateway_18ngj17" targetRef="ServiceTask_1y8shg3" />
-      <bpmn:sequenceFlow id="SequenceFlow_12xl5pf" name="FE" sourceRef="ParallelGateway_18ngj17" targetRef="ServiceTask_1xxy7uu" />
+      <bpmn:sequenceFlow id="SequenceFlow_1sf3ov6" name="Candidate (NC) / Leasing problem / TR type = any" sourceRef="ParallelGateway_18ngj17" targetRef="ServiceTask_1y8shg3">
+        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${true}</bpmn:conditionExpression>
+      </bpmn:sequenceFlow>
+      <bpmn:sequenceFlow id="SequenceFlow_12xl5pf" name="Far End (FE) / TR type = Microwave / Microwave or Sattelite or Provider" sourceRef="ParallelGateway_18ngj17" targetRef="ServiceTask_1xxy7uu">
+        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${S(candidate).prop('transmissionType').stringValue().equals("Microwave") || S(candidate).prop('transmissionType').stringValue().equals("Microwave + Sattelite or Provider")}</bpmn:conditionExpression>
+      </bpmn:sequenceFlow>
       <bpmn:sequenceFlow id="SequenceFlow_1snpx56" sourceRef="ParallelGateway_17ml8wx" targetRef="EndEvent_0k5is59" />
       <bpmn:sequenceFlow id="SequenceFlow_1aq5zok" sourceRef="SubProcess_0semaqy" targetRef="ParallelGateway_17ml8wx" />
       <bpmn:sequenceFlow id="SequenceFlow_0dmrypg" sourceRef="StartEvent_069yz7n" targetRef="ParallelGateway_18ngj17" />
@@ -784,16 +773,26 @@
       </bpmn:serviceTask>
       <bpmn:sequenceFlow id="SequenceFlow_0i49i9m" sourceRef="ServiceTask_1y8shg3" targetRef="SubProcess_0semaqy" />
       <bpmn:sequenceFlow id="SequenceFlow_1yu9zah" sourceRef="ServiceTask_1xxy7uu" targetRef="SubProcess_0b83hcd" />
+      <bpmn:inclusiveGateway id="ParallelGateway_18ngj17">
+        <bpmn:incoming>SequenceFlow_0dmrypg</bpmn:incoming>
+        <bpmn:outgoing>SequenceFlow_1sf3ov6</bpmn:outgoing>
+        <bpmn:outgoing>SequenceFlow_12xl5pf</bpmn:outgoing>
+      </bpmn:inclusiveGateway>
+      <bpmn:inclusiveGateway id="ParallelGateway_17ml8wx">
+        <bpmn:incoming>SequenceFlow_1aq5zok</bpmn:incoming>
+        <bpmn:incoming>SequenceFlow_08bos34</bpmn:incoming>
+        <bpmn:outgoing>SequenceFlow_1snpx56</bpmn:outgoing>
+      </bpmn:inclusiveGateway>
     </bpmn:subProcess>
     <bpmn:sequenceFlow id="SequenceFlow_1k7b3hb" sourceRef="SubProcess_0iqjr7a" targetRef="ExclusiveGateway_1w5b813" />
     <bpmn:sequenceFlow id="SequenceFlow_1woqns0" name="Wait_CONTRACT" sourceRef="ExclusiveGateway_19ncicm" targetRef="ServiceTask_1ko1hnj">
-      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${(leasingProceduresStatus == 'waitContract' || leasingProceduresStatus == 'approve') &amp;&amp; leasingProceduresStatus != 'refusal' &amp;&amp; leasingProceduresStatus != 'reject' &amp;&amp; leasingProceduresStatusFE != 'refusal' &amp;&amp; leasingProceduresStatusFE != 'reject'}</bpmn:conditionExpression>
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${(leasingProceduresStatus == 'waitContract' || leasingProceduresStatus == 'approve') &amp;&amp; leasingProceduresStatus != 'refusal' &amp;&amp; leasingProceduresStatus != 'reject' &amp;&amp; (!S(candidate).prop('transmissionType').stringValue().equals("Sattelite or Provider") &amp;&amp; leasingProceduresStatusFE != 'refusal' &amp;&amp; leasingProceduresStatusFE != 'reject')}</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
     <bpmn:sequenceFlow id="SequenceFlow_0xf304q" name="Verbal Agreement" sourceRef="ExclusiveGateway_19ncicm" targetRef="ServiceTask_0lm729x">
-      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${(leasingProceduresStatus == 'verbalAgreement' || leasingProceduresStatusFE == 'verbalAgreement' || leasingProceduresStatus == 'verbalAgreementContractAfterIW' || leasingProceduresStatusFE == 'verbalAgreementContractAfterIW') &amp;&amp; leasingProceduresStatus != 'refusal' &amp;&amp; leasingProceduresStatus != 'reject' &amp;&amp; leasingProceduresStatusFE != 'refusal' &amp;&amp; leasingProceduresStatusFE != 'reject'}</bpmn:conditionExpression>
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${(leasingProceduresStatus == 'verbalAgreement' || leasingProceduresStatus == 'verbalAgreementContractAfterIW' || (!S(candidate).prop('transmissionType').stringValue().equals("Sattelite or Provider") &amp;&amp; (leasingProceduresStatusFE == 'verbalAgreement' || leasingProceduresStatusFE == 'verbalAgreementContractAfterIW'))) &amp;&amp; leasingProceduresStatus != 'refusal' &amp;&amp; leasingProceduresStatus != 'reject' &amp;&amp; (S(candidate).prop('transmissionType').stringValue().equals("Sattelite or Provider") || (leasingProceduresStatusFE != 'refusal' &amp;&amp; leasingProceduresStatusFE != 'reject'))}</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
     <bpmn:sequenceFlow id="SequenceFlow_1oo6n65" name="REFUSAL" sourceRef="ExclusiveGateway_1w5b813" targetRef="ServiceTask_1w4dm34">
-      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${leasingProceduresStatus == 'refusal' || leasingProceduresStatus == 'reject' || leasingProceduresStatusFE == 'refusal' || leasingProceduresStatusFE == 'reject'}</bpmn:conditionExpression>
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${leasingProceduresStatus == 'refusal' || leasingProceduresStatus == 'reject' || (!S(candidate).prop('transmissionType').stringValue().equals("Sattelite or Provider") &amp;&amp; (leasingProceduresStatusFE == 'refusal' || leasingProceduresStatusFE == 'reject'))}</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
     <bpmn:exclusiveGateway id="ExclusiveGateway_08tm7tt" name="Leasing Problem" default="SequenceFlow_1yruxdo">
       <bpmn:incoming>SequenceFlow_0dqgqqo</bpmn:incoming>
@@ -807,8 +806,8 @@
     </bpmn:sequenceFlow>
     <bpmn:sequenceFlow id="SequenceFlow_1rieuf2" sourceRef="SubProcess_0zu8jyb" targetRef="ExclusiveGateway_1fmzu87" />
     <bpmn:sequenceFlow id="SequenceFlow_04xttpw" name="PERFORMED" sourceRef="ExclusiveGateway_0h8nbb4" targetRef="ServiceTask_1lcg2ff" />
-    <bpmn:sequenceFlow id="SequenceFlow_0pjyoj9" name="TR type = Microwae / Microwave + Sattelite or Provider" sourceRef="ParallelGateway_0le7fnu" targetRef="ServiceTask_1khc38t">
-      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${S(candidate).prop('transmissionType').stringValue().equals("Microwave") || S(candidate).prop('transmissionType').stringValue().equals("Microwave + Sattelite or Provider")}</bpmn:conditionExpression>
+    <bpmn:sequenceFlow id="SequenceFlow_0pjyoj9" name="TR type = all" sourceRef="ParallelGateway_0le7fnu" targetRef="ServiceTask_1khc38t">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${true}</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
     <bpmn:sequenceFlow id="SequenceFlow_1u8yw9f" name="TR type = Microwae / Microwave + Sattelite or Provider" sourceRef="ParallelGateway_0le7fnu" targetRef="ServiceTask_1i0xslv">
       <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${S(candidate).prop('transmissionType').stringValue().equals("Microwave") || S(candidate).prop('transmissionType').stringValue().equals("Microwave + Sattelite or Provider")}</bpmn:conditionExpression>
@@ -1039,7 +1038,9 @@
       <bpmn:incoming>SequenceFlow_1lozs7p</bpmn:incoming>
       <bpmn:terminateEventDefinition />
     </bpmn:endEvent>
-    <bpmn:sequenceFlow id="SequenceFlow_18yqfom" sourceRef="ExclusiveGateway_0wi0wbj" targetRef="ServiceTask_12hvgex" />
+    <bpmn:sequenceFlow id="SequenceFlow_18yqfom" name="Agree / Approved / Received" sourceRef="ExclusiveGateway_0wi0wbj" targetRef="Gateway_182zavf">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${rentApprovalResult=='approved'}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
     <bpmn:subProcess id="SubProcess_0zu8jyb" name="CONTRACT APPROVAL CN">
       <bpmn:extensionElements>
         <camunda:executionListener class="kz.kcell.bpm.leasing.VariableSetStatus" event="start">
@@ -1224,29 +1225,13 @@
         <bpmn:outgoing>SequenceFlow_1r3d11b</bpmn:outgoing>
       </bpmn:userTask>
     </bpmn:subProcess>
-    <bpmn:parallelGateway id="ParallelGateway_0n7etuj">
-      <bpmn:incoming>SequenceFlow_1ud3ksh</bpmn:incoming>
-      <bpmn:incoming>SequenceFlow_0jibss1</bpmn:incoming>
-      <bpmn:outgoing>SequenceFlow_069erfz</bpmn:outgoing>
-    </bpmn:parallelGateway>
-    <bpmn:parallelGateway id="ParallelGateway_1dasjf2">
-      <bpmn:extensionElements>
-        <camunda:executionListener class="kz.kcell.bpm.leasing.VariableSetStatus" event="start">
-          <camunda:field name="variable">
-            <camunda:string>generalStatus</camunda:string>
-          </camunda:field>
-          <camunda:field name="value">
-            <camunda:string>Waiting TSD, RSD, VSD</camunda:string>
-          </camunda:field>
-        </camunda:executionListener>
-      </bpmn:extensionElements>
-      <bpmn:incoming>Flow_1dtzm3r</bpmn:incoming>
-      <bpmn:outgoing>SequenceFlow_0hllc6w</bpmn:outgoing>
-      <bpmn:outgoing>SequenceFlow_05dlfpe</bpmn:outgoing>
-    </bpmn:parallelGateway>
-    <bpmn:sequenceFlow id="SequenceFlow_0hllc6w" sourceRef="ParallelGateway_1dasjf2" targetRef="uploadRSDandVSDfiles" />
+    <bpmn:sequenceFlow id="SequenceFlow_0hllc6w" name="TR type = any" sourceRef="ParallelGateway_1dasjf2" targetRef="uploadRSDandVSDfiles">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${true}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
     <bpmn:sequenceFlow id="SequenceFlow_1ud3ksh" sourceRef="uploadRSDandVSDfiles" targetRef="ParallelGateway_0n7etuj" />
-    <bpmn:sequenceFlow id="SequenceFlow_05dlfpe" sourceRef="ParallelGateway_1dasjf2" targetRef="uploadTSDfile" />
+    <bpmn:sequenceFlow id="SequenceFlow_05dlfpe" name="TR type = Microwave / Microwave or Sattelite or Provider" sourceRef="ParallelGateway_1dasjf2" targetRef="uploadTSDfile">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${S(candidate).prop('transmissionType').stringValue().equals("Microwave") || S(candidate).prop('transmissionType').stringValue().equals("Microwave + Sattelite or Provider")}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
     <bpmn:sequenceFlow id="SequenceFlow_1tsidw8" sourceRef="uploadTSDfile" targetRef="ServiceTask_1xoq2jm" />
     <bpmn:userTask id="uploadRSDandVSDfiles" name="Upload VSD file &#38; fill Cell Antenna Information form" camunda:formKey="embedded:app:forms/leasing/uploadRSDandVSDfiles.html">
       <bpmn:documentation>Upload VSD file &amp; fill Cell Antenna Information form</bpmn:documentation>
@@ -1470,7 +1455,7 @@
       <bpmn:association id="Association_0adu3vs" sourceRef="uploadCopyOfOwnerSignedLeaseContract" targetRef="TextAnnotation_1wwomin" />
     </bpmn:subProcess>
     <bpmn:sequenceFlow id="SequenceFlow_0akl87z" sourceRef="ExclusiveGateway_19ncicm" targetRef="ServiceTask_1ad3o2z">
-      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${(leasingProceduresStatusFE == 'waitContract' || leasingProceduresStatusFE == 'approve') &amp;&amp; leasingProceduresStatus != 'refusal' &amp;&amp; leasingProceduresStatus != 'reject' &amp;&amp; leasingProceduresStatusFE != 'refusal' &amp;&amp; leasingProceduresStatusFE != 'reject'}</bpmn:conditionExpression>
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${!S(candidate).prop('transmissionType').stringValue().equals("Sattelite or Provider") &amp;&amp; (leasingProceduresStatusFE == 'waitContract' || leasingProceduresStatusFE == 'approve') &amp;&amp; leasingProceduresStatus != 'refusal' &amp;&amp; leasingProceduresStatus != 'reject' &amp;&amp; leasingProceduresStatusFE != 'refusal' &amp;&amp; leasingProceduresStatusFE != 'reject'}</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
     <bpmn:sequenceFlow id="SequenceFlow_03ga5r7" sourceRef="SubProcess_12ty4wc" targetRef="ExclusiveGateway_1fmzu87" />
     <bpmn:exclusiveGateway id="ExclusiveGateway_0h8nbb4" default="SequenceFlow_04xttpw">
@@ -1552,7 +1537,7 @@ if (!uploadCopyOfOwnerSignedLeaseContractTaskResult || leasingProceduresStatusFE
           <camunda:inputParameter name="_SET_GEN_STATUS">3</camunda:inputParameter>
         </camunda:inputOutput>
       </bpmn:extensionElements>
-      <bpmn:incoming>SequenceFlow_18yqfom</bpmn:incoming>
+      <bpmn:incoming>Flow_038uwze</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_0z3jgwx</bpmn:outgoing>
     </bpmn:serviceTask>
     <bpmn:serviceTask id="ServiceTask_0lm729x" name="set Status 08" camunda:class="kz.kcell.flow.leasing.SetStatus">
@@ -1613,7 +1598,7 @@ if (!uploadCopyOfOwnerSignedLeaseContractTaskResult || leasingProceduresStatusFE
       <bpmn:outgoing>SequenceFlow_08pprj9</bpmn:outgoing>
     </bpmn:serviceTask>
     <bpmn:sequenceFlow id="SequenceFlow_1friduw" name="REFUSAL" sourceRef="ExclusiveGateway_0h8nbb4" targetRef="ServiceTask_1wvm1av">
-      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${uploadSignedOwnerLeaseContractTaskResult == 'refusal' || uploadCopyOfOwnerSignedLeaseContractTaskResult == 'refusal'}</bpmn:conditionExpression>
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${uploadSignedOwnerLeaseContractTaskResult == 'refusal' || (!S(candidate).prop('transmissionType').stringValue().equals("Sattelite or Provider") &amp;&amp; uploadCopyOfOwnerSignedLeaseContractTaskResult == 'refusal')}</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
     <bpmn:serviceTask id="ServiceTask_1lcg2ff" name="set Status 11" camunda:class="kz.kcell.flow.leasing.SetStatus">
       <bpmn:extensionElements>
@@ -2108,6 +2093,53 @@ InstStatusBeforeLeasingProblem</camunda:script>
       <bpmn:incoming>SequenceFlow_0xxk1uj</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_116lgvb</bpmn:outgoing>
     </bpmn:inclusiveGateway>
+    <bpmn:inclusiveGateway id="ExclusiveGateway_0wi0wbj" default="SequenceFlow_18yqfom">
+      <bpmn:incoming>SequenceFlow_0h2s3k3</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_1l71kk9</bpmn:outgoing>
+      <bpmn:outgoing>SequenceFlow_18yqfom</bpmn:outgoing>
+      <bpmn:outgoing>Flow_0az8e65</bpmn:outgoing>
+    </bpmn:inclusiveGateway>
+    <bpmn:sequenceFlow id="Flow_038uwze" sourceRef="Gateway_182zavf" targetRef="ServiceTask_12hvgex" />
+    <bpmn:inclusiveGateway id="Gateway_182zavf">
+      <bpmn:incoming>SequenceFlow_18yqfom</bpmn:incoming>
+      <bpmn:incoming>Flow_1akznaa</bpmn:incoming>
+      <bpmn:outgoing>Flow_038uwze</bpmn:outgoing>
+    </bpmn:inclusiveGateway>
+    <bpmn:serviceTask id="Activity_0im2zzv" name="Notification to Regional Transmission" camunda:delegateExpression="${camundaMailer}">
+      <bpmn:extensionElements>
+        <camunda:inputOutput>
+          <camunda:inputParameter name="html">html</camunda:inputParameter>
+          <camunda:inputParameter name="subject">subject</camunda:inputParameter>
+          <camunda:inputParameter name="to">demo@camunda.org</camunda:inputParameter>
+        </camunda:inputOutput>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_0az8e65</bpmn:incoming>
+      <bpmn:outgoing>Flow_1akznaa</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:sequenceFlow id="Flow_0az8e65" name="Agree / Approved / Received / TR type = Microwave / Microwave or Sattelite or Provider" sourceRef="ExclusiveGateway_0wi0wbj" targetRef="Activity_0im2zzv">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${S(candidate).prop('transmissionType').stringValue().equals("Sattelite or Provider") || S(candidate).prop('transmissionType').stringValue().equals("Microwave + Sattelite or Provider")}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_1akznaa" sourceRef="Activity_0im2zzv" targetRef="Gateway_182zavf" />
+    <bpmn:inclusiveGateway id="ParallelGateway_1dasjf2">
+      <bpmn:extensionElements>
+        <camunda:executionListener class="kz.kcell.bpm.leasing.VariableSetStatus" event="start">
+          <camunda:field name="variable">
+            <camunda:string>generalStatus</camunda:string>
+          </camunda:field>
+          <camunda:field name="value">
+            <camunda:string>Waiting TSD, RSD, VSD</camunda:string>
+          </camunda:field>
+        </camunda:executionListener>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_1dtzm3r</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_0hllc6w</bpmn:outgoing>
+      <bpmn:outgoing>SequenceFlow_05dlfpe</bpmn:outgoing>
+    </bpmn:inclusiveGateway>
+    <bpmn:inclusiveGateway id="ParallelGateway_0n7etuj">
+      <bpmn:incoming>SequenceFlow_1ud3ksh</bpmn:incoming>
+      <bpmn:incoming>SequenceFlow_0jibss1</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_069erfz</bpmn:outgoing>
+    </bpmn:inclusiveGateway>
     <bpmn:textAnnotation id="TextAnnotation_1afyvrl">
       <bpmn:text>Central Planner group</bpmn:text>
     </bpmn:textAnnotation>
@@ -2176,6 +2208,22 @@ InstStatusBeforeLeasingProblem</camunda:script>
   <bpmn:message id="Message_15wikbm" name="Message_16tuqrh" />
   <bpmndi:BPMNDiagram id="BPMNDiagram_1">
     <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="leasing">
+      <bpmndi:BPMNEdge id="Flow_1akznaa_di" bpmnElement="Flow_1akznaa">
+        <di:waypoint x="4660" y="1264" />
+        <di:waypoint x="4660" y="1219" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0az8e65_di" bpmnElement="Flow_0az8e65">
+        <di:waypoint x="4490" y="1221" />
+        <di:waypoint x="4490" y="1304" />
+        <di:waypoint x="4610" y="1304" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="4437" y="1314" width="86" height="80" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_038uwze_di" bpmnElement="Flow_038uwze">
+        <di:waypoint x="4685" y="1194" />
+        <di:waypoint x="4740" y="1194" />
+      </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_0xxk1uj_di" bpmnElement="SequenceFlow_0xxk1uj">
         <di:waypoint x="3588" y="1439" />
         <di:waypoint x="3790" y="1439" />
@@ -2269,8 +2317,9 @@ InstStatusBeforeLeasingProblem</camunda:script>
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_0jibss1_di" bpmnElement="SequenceFlow_0jibss1">
-        <di:waypoint x="11240" y="1151" />
-        <di:waypoint x="11250" y="1151" />
+        <di:waypoint x="11190" y="1111" />
+        <di:waypoint x="11190" y="1093" />
+        <di:waypoint x="11250" y="1093" />
         <di:waypoint x="11250" y="1074" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_1dtzm3r_di" bpmnElement="Flow_1dtzm3r">
@@ -2334,9 +2383,7 @@ InstStatusBeforeLeasingProblem</camunda:script>
         <di:waypoint x="11355" y="1050" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_0z3jgwx_di" bpmnElement="SequenceFlow_0z3jgwx">
-        <di:waypoint x="4761" y="1193" />
-        <di:waypoint x="4826" y="1193" />
-        <di:waypoint x="4826" y="1194" />
+        <di:waypoint x="4840" y="1194" />
         <di:waypoint x="4890" y="1194" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_08pprj9_di" bpmnElement="SequenceFlow_08pprj9" bioc:stroke="#E53935" bioc:fill="#FFCDD2">
@@ -2352,7 +2399,7 @@ InstStatusBeforeLeasingProblem</camunda:script>
       <bpmndi:BPMNEdge id="SequenceFlow_0bx2rua_di" bpmnElement="SequenceFlow_0bx2rua" bioc:stroke="#E53935" bioc:fill="#FFCDD2">
         <di:waypoint x="11869" y="325" />
         <di:waypoint x="10319" y="325" />
-        <di:waypoint x="10319" y="886" />
+        <di:waypoint x="10319" y="895" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_057c8pi_di" bpmnElement="SequenceFlow_057c8pi">
         <di:waypoint x="11455" y="1051" />
@@ -2386,9 +2433,7 @@ InstStatusBeforeLeasingProblem</camunda:script>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_0ze25gj_di" bpmnElement="SequenceFlow_0ze25gj">
         <di:waypoint x="9915" y="1040" />
-        <di:waypoint x="9951" y="1040" />
-        <di:waypoint x="9951" y="1039" />
-        <di:waypoint x="9986" y="1039" />
+        <di:waypoint x="9986" y="1040" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_1friduw_di" bpmnElement="SequenceFlow_1friduw" bioc:stroke="#E53935" bioc:fill="#FFCDD2">
         <di:waypoint x="9709" y="1015" />
@@ -2417,8 +2462,8 @@ InstStatusBeforeLeasingProblem</camunda:script>
         <di:waypoint x="9377" y="1065" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_0bjjyic_di" bpmnElement="SequenceFlow_0bjjyic" bioc:stroke="#E53935" bioc:fill="#FFCDD2">
-        <di:waypoint x="4529" y="658" />
-        <di:waypoint x="4529" y="422" />
+        <di:waypoint x="4490" y="658" />
+        <di:waypoint x="4490" y="422" />
         <di:waypoint x="1278" y="422" />
         <di:waypoint x="1278" y="919" />
       </bpmndi:BPMNEdge>
@@ -2529,7 +2574,7 @@ InstStatusBeforeLeasingProblem</camunda:script>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_0h2s3k3_di" bpmnElement="SequenceFlow_0h2s3k3">
         <di:waypoint x="4388" y="1196" />
-        <di:waypoint x="4504" y="1195" />
+        <di:waypoint x="4465" y="1196" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_027g5gs_di" bpmnElement="SequenceFlow_027g5gs">
         <di:waypoint x="4279" y="1256" />
@@ -2559,6 +2604,9 @@ InstStatusBeforeLeasingProblem</camunda:script>
         <di:waypoint x="10970" y="1075" />
         <di:waypoint x="10970" y="1151" />
         <di:waypoint x="10990" y="1151" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="10887" y="1116" width="66" height="66" />
+        </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_1ud3ksh_di" bpmnElement="SequenceFlow_1ud3ksh">
         <di:waypoint x="11180" y="955" />
@@ -2569,10 +2617,16 @@ InstStatusBeforeLeasingProblem</camunda:script>
         <di:waypoint x="10970" y="1025" />
         <di:waypoint x="10970" y="955" />
         <di:waypoint x="11080" y="955" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="10951" y="933" width="69" height="14" />
+        </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_18yqfom_di" bpmnElement="SequenceFlow_18yqfom">
-        <di:waypoint x="4552" y="1193" />
-        <di:waypoint x="4661" y="1193" />
+        <di:waypoint x="4513" y="1194" />
+        <di:waypoint x="4635" y="1194" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="4531" y="1166" width="86" height="27" />
+        </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_1lozs7p_di" bpmnElement="SequenceFlow_1lozs7p" bioc:stroke="#E53935" bioc:fill="#FFCDD2">
         <di:waypoint x="2763" y="1220" />
@@ -2610,7 +2664,7 @@ InstStatusBeforeLeasingProblem</camunda:script>
         <di:waypoint x="3246" y="1122" />
         <di:waypoint x="3318" y="1122" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="3248" y="1050" width="63" height="66" />
+          <dc:Bounds x="3238" y="1103" width="63" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_04xttpw_di" bpmnElement="SequenceFlow_04xttpw">
@@ -2669,11 +2723,11 @@ InstStatusBeforeLeasingProblem</camunda:script>
         <di:waypoint x="7611" y="1041" />
         <di:waypoint x="7767" y="1041" />
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="SequenceFlow_1l71kk9_di" bpmnElement="SequenceFlow_1l71kk9" bioc:stroke="#E53935" bioc:fill="#FFCDD2">
-        <di:waypoint x="4529" y="1170" />
-        <di:waypoint x="4529" y="738" />
+      <bpmndi:BPMNEdge id="SequenceFlow_1l71kk9_di" bpmnElement="SequenceFlow_1l71kk9" bioc:stroke="black" bioc:fill="white">
+        <di:waypoint x="4490" y="1171" />
+        <di:waypoint x="4490" y="738" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="4538" y="925" width="79" height="14" />
+          <dc:Bounds x="4501" y="1045" width="76" height="40" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNShape id="StartEvent_01acrrc_di" bpmnElement="StartEvent_first" bioc:stroke="#43A047" bioc:fill="#C8E6C9">
@@ -2681,9 +2735,6 @@ InstStatusBeforeLeasingProblem</camunda:script>
         <bpmndi:BPMNLabel>
           <dc:Bounds x="162" y="482" width="0" height="13" />
         </bpmndi:BPMNLabel>
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="ExclusiveGateway_0wi0wbj_di" bpmnElement="ExclusiveGateway_0wi0wbj" isMarkerVisible="true">
-        <dc:Bounds x="4504" y="1170" width="50" height="50" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="UserTask_0mkinlz_di" bpmnElement="estimateTechnicalCapabilityRes" bioc:stroke="#1E88E5" bioc:fill="#BBDEFB">
         <dc:Bounds x="3488" y="1082" width="100" height="80" />
@@ -2714,9 +2765,8 @@ InstStatusBeforeLeasingProblem</camunda:script>
         <di:waypoint x="5124" y="1460" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_1aq5zok_di" bpmnElement="SequenceFlow_1aq5zok">
-        <di:waypoint x="7298" y="1060" />
-        <di:waypoint x="7365" y="1060" />
-        <di:waypoint x="7365" y="1434" />
+        <di:waypoint x="7298" y="1459" />
+        <di:waypoint x="7340" y="1459" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_1snpx56_di" bpmnElement="SequenceFlow_1snpx56">
         <di:waypoint x="7390" y="1459" />
@@ -2726,27 +2776,21 @@ InstStatusBeforeLeasingProblem</camunda:script>
         <di:waypoint x="5148" y="1484" />
         <di:waypoint x="5148" y="1849" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="5154" y="2535" width="15" height="14" />
+          <dc:Bounds x="5056" y="1657" width="88" height="66" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_1sf3ov6_di" bpmnElement="SequenceFlow_1sf3ov6">
         <di:waypoint x="5148" y="1434" />
         <di:waypoint x="5148" y="1263" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="5132" y="968" width="51" height="14" />
+          <dc:Bounds x="5056" y="1323" width="88" height="40" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNShape id="ParallelGateway_17ml8wx_di" bpmnElement="ParallelGateway_17ml8wx">
-        <dc:Bounds x="7340" y="1434" width="50" height="50" />
-      </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="StartEvent_069yz7n_di" bpmnElement="StartEvent_069yz7n" bioc:stroke="#43A047" bioc:fill="#C8E6C9">
         <dc:Bounds x="4985" y="1441" width="36" height="36" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="EndEvent_0k5is59_di" bpmnElement="EndEvent_0k5is59" bioc:stroke="#E53935" bioc:fill="#FFCDD2">
         <dc:Bounds x="7464" y="1441" width="36" height="36" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="ParallelGateway_18ngj17_di" bpmnElement="ParallelGateway_18ngj17">
-        <dc:Bounds x="5123" y="1434" width="50" height="50" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="SubProcess_0b83hcd_di" bpmnElement="SubProcess_0b83hcd" isExpanded="true">
         <dc:Bounds x="5233" y="1589" width="2068" height="943" />
@@ -3754,6 +3798,12 @@ InstStatusBeforeLeasingProblem</camunda:script>
       <bpmndi:BPMNShape id="ServiceTask_1y8shg3_di" bpmnElement="ServiceTask_1y8shg3" bioc:stroke="#1E88E5" bioc:fill="#BBDEFB">
         <dc:Bounds x="5098" y="1183" width="100" height="80" />
       </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_074c3kr_di" bpmnElement="ParallelGateway_18ngj17">
+        <dc:Bounds x="5123" y="1434" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_05z6f1w_di" bpmnElement="ParallelGateway_17ml8wx">
+        <dc:Bounds x="7340" y="1434" width="50" height="50" />
+      </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="ExclusiveGateway_08tm7tt_di" bpmnElement="ExclusiveGateway_08tm7tt" isMarkerVisible="true">
         <dc:Bounds x="10725" y="1027" width="50" height="50" />
         <bpmndi:BPMNLabel>
@@ -4117,7 +4167,7 @@ InstStatusBeforeLeasingProblem</camunda:script>
         <di:waypoint x="8506" y="1291" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNShape id="SubProcess_0jl82xl_di" bpmnElement="SubProcess_0jl82xl" isExpanded="true" bioc:stroke="#1E88E5" bioc:fill="#BBDEFB">
-        <dc:Bounds x="9986" y="886" width="666" height="307" />
+        <dc:Bounds x="9986" y="895" width="666" height="298" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="SequenceFlow_1yc2ic5_di" bpmnElement="SequenceFlow_1yc2ic5">
         <di:waypoint x="10081" y="1033" />
@@ -4173,12 +4223,6 @@ InstStatusBeforeLeasingProblem</camunda:script>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="UserTask_1lehtll_di" bpmnElement="confirmTFOfConnectingToPowerGridForCandidate">
         <dc:Bounds x="10271" y="1062" width="100" height="80" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="ParallelGateway_0n7etuj_di" bpmnElement="ParallelGateway_0n7etuj">
-        <dc:Bounds x="11225" y="1024" width="50" height="50" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="ParallelGateway_1dasjf2_di" bpmnElement="ParallelGateway_1dasjf2">
-        <dc:Bounds x="10945" y="1025" width="50" height="50" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="UserTask_1pdmgo5_di" bpmnElement="uploadRSDandVSDfiles">
         <dc:Bounds x="11080" y="915" width="100" height="80" />
@@ -4354,10 +4398,10 @@ InstStatusBeforeLeasingProblem</camunda:script>
         <dc:Bounds x="2846" y="1170" width="50" height="50" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="ServiceTask_02xcxq2_di" bpmnElement="ServiceTask_02xcxq2" bioc:stroke="#8E24AA" bioc:fill="#E1BEE7">
-        <dc:Bounds x="4479" y="658" width="100" height="80" />
+        <dc:Bounds x="4440" y="658" width="100" height="80" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="ServiceTask_12hvgex_di" bpmnElement="ServiceTask_12hvgex" bioc:stroke="#8E24AA" bioc:fill="#E1BEE7">
-        <dc:Bounds x="4661" y="1153" width="100" height="80" />
+        <dc:Bounds x="4740" y="1154" width="100" height="80" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="ServiceTask_0lm729x_di" bpmnElement="ServiceTask_0lm729x" bioc:stroke="#8E24AA" bioc:fill="#E1BEE7">
         <dc:Bounds x="7933" y="1389" width="100" height="80" />
@@ -4577,6 +4621,21 @@ InstStatusBeforeLeasingProblem</camunda:script>
       <bpmndi:BPMNShape id="InclusiveGateway_1n4u2cn_di" bpmnElement="ParallelGateway_0201vgh">
         <dc:Bounds x="3765" y="1170" width="50" height="50" />
       </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_0xs3scv_di" bpmnElement="ExclusiveGateway_0wi0wbj">
+        <dc:Bounds x="4465" y="1171" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_1nrb3qe_di" bpmnElement="Gateway_182zavf">
+        <dc:Bounds x="4635" y="1169" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0im2zzv_di" bpmnElement="Activity_0im2zzv">
+        <dc:Bounds x="4610" y="1264" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_122im4f_di" bpmnElement="ParallelGateway_1dasjf2">
+        <dc:Bounds x="10945" y="1025" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_0g5skc6_di" bpmnElement="ParallelGateway_0n7etuj">
+        <dc:Bounds x="11225" y="1024" width="50" height="50" />
+      </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="TextAnnotation_1afyvrl_di" bpmnElement="TextAnnotation_1afyvrl">
         <dc:Bounds x="168" y="1392" width="100" height="42" />
       </bpmndi:BPMNShape>
@@ -4678,7 +4737,7 @@ InstStatusBeforeLeasingProblem</camunda:script>
         <di:waypoint x="14269" y="869" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Association_1htmfxu_di" bpmnElement="Association_1htmfxu">
-        <di:waypoint x="4760" y="1160" />
+        <di:waypoint x="4796" y="1154" />
         <di:waypoint x="4799" y="1135" />
         <di:waypoint x="4799" y="1084" />
       </bpmndi:BPMNEdge>

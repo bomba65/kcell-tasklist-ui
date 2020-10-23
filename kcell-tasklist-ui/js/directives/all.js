@@ -803,13 +803,8 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                 }
                 $http.get('/api/leasingCatalogs').then(
                     function (result) {
+                        try{
                         angular.extend(scope.dictionary, result.data);
-                        console.log(`dictionary result:`);
-                        console.log(result);
-                        console.log('----------------------------------------');
-                        console.log(`scope.dictionary:`);
-                        console.log(scope.dictionary);
-                        console.log('----------------------------------------');
                         scope.dictionary.legalTypeTitle = _.keyBy(scope.dictionary.legalType, 'id');
                         scope.dictionary.antennasList = scope.dictionary.antennas;
                         scope.dictionary.antennaType = scope.dictionary.antennaType;
@@ -820,7 +815,9 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                         scope.cityList = _.uniqBy(scope.dictionary.addresses, 'city').map((e, index) => {
                             return {"name": e.city, "id": index}
                         });
-                        scope.currentFarEnd.cityList = _.uniqBy(scope.dictionary.addresses, 'city').map( (e, index) => { return {"name" : e.city, "id" : index} });
+                        if(scope.currentFarEnd){
+                            scope.currentFarEnd.cityList = _.uniqBy(scope.dictionary.addresses, 'city').map( (e, index) => { return {"name" : e.city, "id" : index} });
+                        }
                         scope.districtList = _.uniqBy(scope.dictionary.addresses, 'district').map((e, index) => {
                             return {"name": e.district, "id": index}
                         });
@@ -846,6 +843,10 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                             scope.leasingCandidate.cellAntenna.addressString += index > 0 ? ', ' + s : s
                         });
                         console.log(`asdasdsa: ${scope.leasingCandidate.cellAntenna.addressString} 12`);
+                    }
+                    catch(e){
+                        console.log(e)
+                    }
                     },
                     function (error) {
                         console.log(error);
@@ -1140,24 +1141,26 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                 };
 
                 scope.filterDistrictAfterSelectObl = function (cn_addr_oblast) {
-                    scope.currentFarEnd.address.cn_addr_oblast = cn_addr_oblast
-                    scope.currentFarEnd.address.cn_addr_district = ''
-                    scope.currentFarEnd.address.cn_addr_city = ''
-                    if (scope.currentFarEnd.address.cn_addr_oblast && scope.currentFarEnd.address.cn_addr_oblast !== '') {
-                        scope.currentFarEnd.filteredByOblast = scope.dictionary.addresses.filter(a => {
-                            return a.oblast === scope.currentFarEnd.address.cn_addr_oblast
-                        });
-                        scope.currentFarEnd.filteredDistricts = _.uniqBy(scope.currentFarEnd.filteredByOblast, 'district').map((e, index) => {
-                            return {"name": e.district, "id": index}
-                        });
-                        scope.currentFarEnd.cityList = _.uniqBy(scope.currentFarEnd.filteredByOblast, 'city').map((e, index) => {
-                            return {"name": e.city, "id": index}
-                        });
-                    } else {
-                        scope.currentFarEnd.filteredDistricts = scope.districtList;
-                        scope.currentFarEnd.cityList = _.uniqBy(scope.dictionary.addresses, 'city').map((e, index) => {
-                            return {"name": e.city, "id": index}
-                        });
+                    if(scope.currentFarEnd){
+                        scope.currentFarEnd.address.cn_addr_oblast = cn_addr_oblast
+                        scope.currentFarEnd.address.cn_addr_district = ''
+                        scope.currentFarEnd.address.cn_addr_city = ''
+                        if (scope.currentFarEnd.address.cn_addr_oblast && scope.currentFarEnd.address.cn_addr_oblast !== '') {
+                            scope.currentFarEnd.filteredByOblast = scope.dictionary.addresses.filter(a => {
+                                return a.oblast === scope.currentFarEnd.address.cn_addr_oblast
+                            });
+                            scope.currentFarEnd.filteredDistricts = _.uniqBy(scope.currentFarEnd.filteredByOblast, 'district').map((e, index) => {
+                                return {"name": e.district, "id": index}
+                            });
+                            scope.currentFarEnd.cityList = _.uniqBy(scope.currentFarEnd.filteredByOblast, 'city').map((e, index) => {
+                                return {"name": e.city, "id": index}
+                            });
+                        } else {
+                            scope.currentFarEnd.filteredDistricts = scope.districtList;
+                            scope.currentFarEnd.cityList = _.uniqBy(scope.dictionary.addresses, 'city').map((e, index) => {
+                                return {"name": e.city, "id": index}
+                            });
+                        }                        
                     }
                 };
 
@@ -1223,6 +1226,9 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                 };
 
                 scope.filterDistrictAfterSelectOblNE = function (cn_addr_oblast) {
+                    if(scope.leasingCandidate.transmissionAntennatransmissionAntenna){
+                        scope.leasingCandidate.transmissionAntennatransmissionAntenna.address = {};
+                    }
                     scope.leasingCandidate.transmissionAntennatransmissionAntenna.address.cn_addr_oblast = cn_addr_oblast
                     scope.leasingCandidate.transmissionAntennatransmissionAntenna.address.cn_addr_district = ''
                     scope.leasingCandidate.transmissionAntennatransmissionAntenna.address.cn_addr_city = ''
