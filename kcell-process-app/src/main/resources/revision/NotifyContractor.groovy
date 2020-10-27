@@ -11,9 +11,13 @@ def getUserEmail(DelegateExecution execution) {
     String siteRegion = execution.getVariable("siteRegion").toString()
     String contractor = execution.getVariable("contractor").toString()
 
-    def contractorsTitle = ["1": "avrora","2": "aicom", "3": "spectr", "4": "lse", "5": "kcell"]
+    def contractorsTitle = ["1": "avrora","2": "aicom", "3": "spectr", "4": "lse", "5": "kcell", "6": "alta", "7":"logycom", "8": "arlan"]
 
-    def groupName = "5".equals(contractor) ? siteRegion + "_engineer" : ("nc".equals(siteRegion)?"astana":siteRegion) + "_contractor_" + contractorsTitle.get(contractor)
+    if("4".equals(contractor) && "nc".equals(siteRegion)){
+        siteRegion = "astana";
+    }
+
+    def groupName = "5".equals(contractor) ? siteRegion + "_engineer" : siteRegion + "_contractor_" + contractorsTitle.get(contractor)
 
     def userList = identityService.createUserQuery().memberOfGroup(groupName).list().stream()
             .map{it.getEmail()}
