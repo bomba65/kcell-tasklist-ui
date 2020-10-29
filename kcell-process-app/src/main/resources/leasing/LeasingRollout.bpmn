@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:bioc="http://bpmn.io/schema/bpmn/biocolor/1.0" id="Definitions_1" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="4.3.0">
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:bioc="http://bpmn.io/schema/bpmn/biocolor/1.0" id="Definitions_1" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="2.0.3">
   <bpmn:process id="leasing" name="Rollout site process&#10;" isExecutable="true">
     <bpmn:documentation>Send a message to start a payment</bpmn:documentation>
     <bpmn:startEvent id="StartEvent_first" camunda:formKey="embedded:app:forms/leasing/start.html" camunda:initiator="starter">
@@ -786,10 +786,10 @@
     </bpmn:subProcess>
     <bpmn:sequenceFlow id="SequenceFlow_1k7b3hb" sourceRef="SubProcess_0iqjr7a" targetRef="ExclusiveGateway_1w5b813" />
     <bpmn:sequenceFlow id="SequenceFlow_1woqns0" name="Wait_CONTRACT" sourceRef="ExclusiveGateway_19ncicm" targetRef="ServiceTask_1ko1hnj">
-      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${(leasingProceduresStatus == 'waitContract' || leasingProceduresStatus == 'approve') &amp;&amp; leasingProceduresStatus != 'refusal' &amp;&amp; leasingProceduresStatus != 'reject' &amp;&amp; (!S(candidate).prop('transmissionType').stringValue().equals("Sattelite or Provider") &amp;&amp; leasingProceduresStatusFE != 'refusal' &amp;&amp; leasingProceduresStatusFE != 'reject')}</bpmn:conditionExpression>
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${(leasingProceduresStatus == 'waitContract' || leasingProceduresStatus == 'approve') &amp;&amp; leasingProceduresStatus != 'refusal' &amp;&amp; leasingProceduresStatus != 'reject' &amp;&amp; ( leasingProceduresStatusFE != 'refusal' &amp;&amp; leasingProceduresStatusFE != 'reject')}</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
     <bpmn:sequenceFlow id="SequenceFlow_0xf304q" name="Verbal Agreement" sourceRef="ExclusiveGateway_19ncicm" targetRef="ServiceTask_0lm729x">
-      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${(leasingProceduresStatus == 'verbalAgreement' || leasingProceduresStatus == 'verbalAgreementContractAfterIW' || (!S(candidate).prop('transmissionType').stringValue().equals("Sattelite or Provider") &amp;&amp; (leasingProceduresStatusFE == 'verbalAgreement' || leasingProceduresStatusFE == 'verbalAgreementContractAfterIW'))) &amp;&amp; leasingProceduresStatus != 'refusal' &amp;&amp; leasingProceduresStatus != 'reject' &amp;&amp; (S(candidate).prop('transmissionType').stringValue().equals("Sattelite or Provider") || (leasingProceduresStatusFE != 'refusal' &amp;&amp; leasingProceduresStatusFE != 'reject'))}</bpmn:conditionExpression>
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${( leasingProceduresStatus == 'verbalAgreement' || leasingProceduresStatus == 'verbalAgreementContractAfterIW' || (leasingProceduresStatusFE == 'verbalAgreement' || leasingProceduresStatusFE == 'verbalAgreementContractAfterIW')) &amp;&amp; leasingProceduresStatus != 'refusal' &amp;&amp; leasingProceduresStatus != 'reject' &amp;&amp; (S(candidate).prop('transmissionType').stringValue().equals("Sattelite or Provider") || (leasingProceduresStatusFE != 'refusal' &amp;&amp; leasingProceduresStatusFE != 'reject'))}</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
     <bpmn:sequenceFlow id="SequenceFlow_1oo6n65" name="REFUSAL" sourceRef="ExclusiveGateway_1w5b813" targetRef="ServiceTask_1w4dm34">
       <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${leasingProceduresStatus == 'refusal' || leasingProceduresStatus == 'reject' || (!S(candidate).prop('transmissionType').stringValue().equals("Sattelite or Provider") &amp;&amp; (leasingProceduresStatusFE == 'refusal' || leasingProceduresStatusFE == 'reject'))}</bpmn:conditionExpression>
@@ -2108,9 +2108,13 @@ InstStatusBeforeLeasingProblem</camunda:script>
     <bpmn:serviceTask id="Activity_0im2zzv" name="Notification to Regional Transmission" camunda:delegateExpression="${camundaMailer}">
       <bpmn:extensionElements>
         <camunda:inputOutput>
-          <camunda:inputParameter name="html">html</camunda:inputParameter>
-          <camunda:inputParameter name="subject">subject</camunda:inputParameter>
-          <camunda:inputParameter name="to">demo@camunda.org</camunda:inputParameter>
+          <camunda:inputParameter name="html">Для планируемого сайта ${S(siteType).prop('name').stringValue()} одобрена организация арендованного канала.
+Для организации канала, вам необходимо уведомить группу Technologies-N&amp;ITIS-TN-TPSC о дате окончания монтажа и подачи электропитания. 
+</camunda:inputParameter>
+          <camunda:inputParameter name="subject">Одобрена организация арендованного канала для сайта ${S(siteType).prop('name').stringValue()}</camunda:inputParameter>
+          <camunda:inputParameter name="to">
+            <camunda:script scriptFormat="groovy" resource="leasing/regionTransmissionGroups.groovy" />
+          </camunda:inputParameter>
         </camunda:inputOutput>
       </bpmn:extensionElements>
       <bpmn:incoming>Flow_0az8e65</bpmn:incoming>
