@@ -93,6 +93,7 @@ public class UpdateCandidate implements JavaDelegate {
                     String cn_comments = candidate != null && candidate.hasProp("comments") && candidate.prop("comments") != null ? candidate.prop("comments").value().toString() : null;
                     Number cn_square = candidate != null && candidate.hasProp("square") && candidate.prop("square") != null ? candidate.prop("square").numberValue() : null;
                     String cn_constructionType = candidate != null && candidate.hasProp("constructionType") && candidate.prop("constructionType").hasProp("id") && candidate.prop("constructionType").prop("id") != null ? candidate.prop("constructionType").prop("id").value().toString() : null;
+                    String trType = candidate != null ? (candidate.hasProp("transmissionType") ? candidate.prop("transmissionType").value().toString() : null) : null;
 
                     Number cn_height_constr = candidate.hasProp("cn_height_constr") ? Integer.parseInt(candidate.prop("cn_height_constr").value().toString()) : 0;
                     Number cn_altitude = candidate.hasProp("cn_altitude") ? Integer.parseInt(candidate.prop("cn_altitude").value().toString()) : 0;
@@ -223,7 +224,7 @@ public class UpdateCandidate implements JavaDelegate {
 
                     //UPDATE ARTEFACT ARTEFACT_CURRENT_STATE
                     log.info("UPDATE ARTEFACT_CURRENT_STATE");
-                    String UpdateArtefactCurrentState = "UPDATE ARTEFACT_CURRENT_STATE SET RR_STATUS = ?, RR_STATUS_DATE = ?, LONGITUDE = ?, LATITUDE = ?, RBS_TYPE = ?, BSC = ?, BAND = ?, RBS_LOCATION = ?, ALTITUDE = ?, CONSTRUCTION_HEIGHT = ?, CONSTRUCTION_TYPE = ?, ADDRESS = ?, CONTACT_PERSON = ?, COMMENTS = ?, EQUIPMENT_TYPE = ?, GS_STATUS = ?, PL_COMMENTS = ?, INST_COMMENTS = ? WHERE ARTEFACTID = ?";
+                    String UpdateArtefactCurrentState = "UPDATE ARTEFACT_CURRENT_STATE SET FE_STATUS = ?,RR_STATUS = ?, RR_STATUS_DATE = ?, LONGITUDE = ?, LATITUDE = ?, RBS_TYPE = ?, BSC = ?, BAND = ?, RBS_LOCATION = ?, ALTITUDE = ?, CONSTRUCTION_HEIGHT = ?, CONSTRUCTION_TYPE = ?, ADDRESS = ?, CONTACT_PERSON = ?, COMMENTS = ?, EQUIPMENT_TYPE = ?, GS_STATUS = ?, PL_COMMENTS = ?, INST_COMMENTS = ? WHERE ARTEFACTID = ?";
                     PreparedStatement updateArtefactCurrentStatePreparedStatement = udbConnect.prepareStatement(UpdateArtefactCurrentState);
                     Integer rbsTypeInt = rbsType != null ? Integer.parseInt(rbsType) : null;
                     Integer cnConstructionTypeInt = cn_constructionType != null ? Integer.parseInt(cn_constructionType) : null;
@@ -239,6 +240,13 @@ public class UpdateCandidate implements JavaDelegate {
                     i = 1;
                     log.info("UPDATE ARTEFACT ARTEFACT_CURRENT_STATE");
                     // set values to insert
+                    boolean trTypeSatelliteOrProvider = trType != null && (trType.equals("Provider") || trType.equals("Satellite"));
+                    if (trTypeSatelliteOrProvider) {
+                        updateArtefactCurrentStatePreparedStatement.setLong(i++, 3); //FE_STATUS
+                    } else {
+                        updateArtefactCurrentStatePreparedStatement.setNull(i++, Types.BIGINT);
+
+                    }
                     updateArtefactCurrentStatePreparedStatement.setLong(i++, 3); // RR_STATUS
                     updateArtefactCurrentStatePreparedStatement.setDate(i++, new java.sql.Date(new Date().getTime())); // RR_STATUS_DATE
                     updateArtefactCurrentStatePreparedStatement.setString(i++, cn_longitude); //longitude
@@ -282,7 +290,9 @@ public class UpdateCandidate implements JavaDelegate {
                     updateArtefactCurrentStatePreparedStatement.setString(i++, cn_address); //address
                     updateArtefactCurrentStatePreparedStatement.setString(i++, contact_person); //contact_person
                     updateArtefactCurrentStatePreparedStatement.setString(i++, contractInfoString); //comments
-                    if (cnConstructionTypeInt != null) {
+                    if (trTypeSatelliteOrProvider) {
+                        updateArtefactCurrentStatePreparedStatement.setLong(i++, trType.equals("Provider") ? 22 : 23); //EQUIPMENT_TYPE
+                    } else if (fe_equipment_type != null ) {
                         updateArtefactCurrentStatePreparedStatement.setLong(i++, fe_equipment_type.longValue()); //equipment_type
                     } else {
                         updateArtefactCurrentStatePreparedStatement.setNull(i++, Types.BIGINT);
@@ -409,25 +419,37 @@ public class UpdateCandidate implements JavaDelegate {
                     PreparedStatement updateArtefactTSDPreparedStatement = udbConnect.prepareStatement(UpdateArtefactTSD);
 
                     i = 1;
-                    if (fe_equipment_type != null) {
+                    if (trTypeSatelliteOrProvider) {
+                        updateArtefactTSDPreparedStatement.setNull(i++, Types.BIGINT);
+                    } else if (fe_equipment_type != null) {
                         updateArtefactTSDPreparedStatement.setLong(i++, fe_equipment_type.longValue()); // equipment_id
                     } else {
                         updateArtefactTSDPreparedStatement.setNull(i++, Types.BIGINT);
                     }
+
                     if (ne_longitude != null) {
                         updateArtefactTSDPreparedStatement.setString(i++, "E " + ne_longitude.replace(".", ",")); // NE_LONGITUDE
                     } else {
                         updateArtefactTSDPreparedStatement.setNull(i++, Types.VARCHAR);
                     }
+
                     if (ne_latitude != null) {
                         updateArtefactTSDPreparedStatement.setString(i++, "N " + ne_latitude.replace(".", ",")); // NE_LATITUDE
                     } else {
                         updateArtefactTSDPreparedStatement.setNull(i++, Types.VARCHAR);
                     }
-                    if (fe_sitename != null) {
+
+                    if (trTypeSatelliteOrProvider) {
+                        updateArtefactTSDPreparedStatement.setString(i++, trType.equals("Provider") ? "Rented channel" : "Satellite"); // FE_SITENAME
+                    } else if (fe_sitename != null) {
                         updateArtefactTSDPreparedStatement.setString(i++, fe_sitename); // FE_SITENAME
+                    } else {
+                        updateArtefactTSDPreparedStatement.setNull(i++, Types.VARCHAR);
                     }
-                    if (fe_constructionType != null) {
+
+                    if (trTypeSatelliteOrProvider) {
+                        updateArtefactTSDPreparedStatement.setNull(i++, Types.BIGINT);
+                    } else if (fe_constructionType != null) {
                         Integer fe_constructionTypeInt = Integer.parseInt(fe_constructionType);
                         if (fe_constructionTypeInt != null) {
                             updateArtefactTSDPreparedStatement.setLong(i++, fe_constructionTypeInt); // FE_CONSTR_TYPE
@@ -435,10 +457,14 @@ public class UpdateCandidate implements JavaDelegate {
                             updateArtefactTSDPreparedStatement.setNull(i++, Types.BIGINT);
                         }
                     }
-                    if (fe_address != null) {
+                    if (trTypeSatelliteOrProvider) {
+                        updateArtefactTSDPreparedStatement.setNull(i++, Types.VARCHAR);
+                    } else if (fe_address != null) {
                         updateArtefactTSDPreparedStatement.setString(i++, fe_address); // FE_ADDRESS
                     }
-                    if (fe_formated_survey_date != null) {
+                    if (trTypeSatelliteOrProvider) {
+                        updateArtefactTSDPreparedStatement.setNull(i++, Types.DATE);
+                    } else if (fe_formated_survey_date != null) {
                         updateArtefactTSDPreparedStatement.setDate(i++, new java.sql.Date(fe_cal_survey_date.getTimeInMillis())); // SURVEY_DATE (fe_survey_date)
                     }
                     if (ne_azimuth != null) {
@@ -467,7 +493,9 @@ public class UpdateCandidate implements JavaDelegate {
                             updateArtefactTSDPreparedStatement.setNull(i++, Types.BIGINT);
                         }
                     }
-                    if (fe_azimuth != null) {
+                    if (trTypeSatelliteOrProvider) {
+                        updateArtefactTSDPreparedStatement.setNull(i++, Types.BIGINT);
+                    } else if (fe_azimuth != null) {
                         Integer fe_azimuthInt = Integer.parseInt(fe_azimuth);
                         if (fe_azimuthInt != null) {
                             updateArtefactTSDPreparedStatement.setLong(i++, fe_azimuthInt); // FE_AZIMUTH
@@ -475,12 +503,16 @@ public class UpdateCandidate implements JavaDelegate {
                             updateArtefactTSDPreparedStatement.setNull(i++, Types.BIGINT);
                         }
                     }
-                    if (fe_diameter != null) {
+                    if (trTypeSatelliteOrProvider) {
+                        updateArtefactTSDPreparedStatement.setNull(i++, Types.FLOAT);
+                    } else if (fe_diameter != null) {
                         updateArtefactTSDPreparedStatement.setFloat(i++, Float.parseFloat(fe_diameter)); // FE_ANTENNADIAMETER
                     } else {
                         updateArtefactTSDPreparedStatement.setNull(i++, Types.FLOAT);
                     }
-                    if (fe_suspensionHeight != null) {
+                    if (trTypeSatelliteOrProvider) {
+                        updateArtefactTSDPreparedStatement.setNull(i++, Types.BIGINT);
+                    } else if (fe_suspensionHeight != null) {
                         Integer fe_suspensionHeightInt = Integer.parseInt(fe_suspensionHeight);
                         if (fe_suspensionHeightInt != null) {
                             updateArtefactTSDPreparedStatement.setLong(i++, fe_suspensionHeightInt); // FE_SUSPENSIONHEIGHT
@@ -488,7 +520,9 @@ public class UpdateCandidate implements JavaDelegate {
                             updateArtefactTSDPreparedStatement.setNull(i++, Types.BIGINT);
                         }
                     }
-                    if (fe_frequencyBand != null) {
+                    if (trTypeSatelliteOrProvider) {
+                        updateArtefactTSDPreparedStatement.setNull(i++, Types.BIGINT);
+                    } else if (fe_frequencyBand != null) {
                         Integer fe_frequencyBandInt = Integer.parseInt(fe_frequencyBand);
                         if (fe_frequencyBandInt != null) {
                             updateArtefactTSDPreparedStatement.setLong(i++, fe_frequencyBandInt); // FE_TXRF_FREQUENCY
@@ -498,7 +532,9 @@ public class UpdateCandidate implements JavaDelegate {
                     }
                     updateArtefactTSDPreparedStatement.setDate(i++, new java.sql.Date(new Date().getTime())); // update_date
 
-                    if (fe_artefact_id != null && fe_artefact_id.longValue() > 0) {
+                    if (trTypeSatelliteOrProvider) {
+                        updateArtefactTSDPreparedStatement.setNull(i++, Types.BIGINT);
+                    } else if (fe_artefact_id != null && fe_artefact_id.longValue() > 0) {
                         updateArtefactTSDPreparedStatement.setLong(i++, fe_artefact_id.longValue()); // FE_ARTEFACTID
                     } else {
                         updateArtefactTSDPreparedStatement.setNull(i++, Types.BIGINT);

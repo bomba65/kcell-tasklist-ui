@@ -273,6 +273,7 @@ public class CreateCandidate implements JavaDelegate {
                         (address.hasProp("cn_addr_note") && address.prop("cn_addr_note") != null ? ", " + address.prop("cn_addr_note").value().toString() : "")) : null;
 
                     String cn_bsc = candidate != null ? (candidate.hasProp("bsc") ? (candidate.prop("bsc").hasProp("id") ? candidate.prop("bsc").prop("id").value().toString() : null) : null) : null;
+                    String trType = candidate != null ? (candidate.hasProp("transmissionType") ? candidate.prop("transmissionType").value().toString() : null) : null;
                     Integer cn_bscInt = cn_bsc != null ? Integer.parseInt(cn_bsc) : null;
 
 
@@ -411,6 +412,8 @@ public class CreateCandidate implements JavaDelegate {
                     //insert new Candidate (in ARTEFACT_CURRENT_STATE table)
                     String insertNewArtefactCurrentState = "INSERT INTO ARTEFACT_CURRENT_STATE (ARTEFACTID,\n" +
                         "                                                        NCPID,\n" +
+                        "                                                        FE_STATUS,\n" +
+                        "                                                        EQUIPMENT_TYPE,\n" +
                         "                                                        RSD_EXIST,\n" +
                         "                                                        TSD_EXIST,\n" +
                         "                                                        CAND_STATUS,\n" +
@@ -452,6 +455,17 @@ public class CreateCandidate implements JavaDelegate {
                     } else {
                         newArtefactCurrentStatePreparedStatement.setNull(i++, Types.BIGINT);
 
+                    }
+                    if (trType != null && ( trType.equals("Provider") || trType.equals("Satellite"))) {
+                        newArtefactCurrentStatePreparedStatement.setLong(i++, 3); //FE_STATUS
+                    } else {
+                        newArtefactCurrentStatePreparedStatement.setNull(i++, Types.BIGINT);
+
+                    }
+                    if (trType != null && ( trType.equals("Provider") || trType.equals("Satellite"))) {
+                        newArtefactCurrentStatePreparedStatement.setLong(i++, trType.equals("Provider") ? 22 : 23); //EQUIPMENT_TYPE
+                    } else {
+                        newArtefactCurrentStatePreparedStatement.setNull(i++, Types.BIGINT);
                     }
                     newArtefactCurrentStatePreparedStatement.setLong(i++, 0); // RSD_EXIST first insert value mast be = 1
                     newArtefactCurrentStatePreparedStatement.setLong(i++, 0); // TSD_EXIST first insert value mast be = 1
@@ -741,6 +755,10 @@ public class CreateCandidate implements JavaDelegate {
                     String artefactExtTSDReturnStatus[] = {"TSDID"};
                     StringBuilder insertNewArtefactExtTSDbuilder = new StringBuilder("INSERT INTO ARTEFACT_TSD_EXT (TSDID, ARTEFACTID, INSERT_DATE, INSERT_PERSON");
                     StringBuilder insertNewArtefactExtTSDbuilderValues = new StringBuilder(") VALUES (ARTEFACT_TSD_SEQ.nextval, ?, SYSDATE, ?");
+                    if (trType != null && ( trType.equals("Provider") || trType.equals("Satellite"))) {
+                        insertNewArtefactExtTSDbuilder.append(", EQUIPMENT_ID"); // EQUIPMENT_ID
+                        insertNewArtefactExtTSDbuilderValues.append(", ?");
+                    }
                     if (ne_longitude != null) {
                         insertNewArtefactExtTSDbuilder.append(", NE_LONGITUDE");
                         insertNewArtefactExtTSDbuilderValues.append(", ?");
@@ -749,19 +767,19 @@ public class CreateCandidate implements JavaDelegate {
                         insertNewArtefactExtTSDbuilder.append(", NE_LATITUDE");
                         insertNewArtefactExtTSDbuilderValues.append(", ?");
                     }
-                    if (fe_sitename != null) {
+                    if (fe_sitename != null || trType == "Provider" || trType == "Satellite") {
                         insertNewArtefactExtTSDbuilder.append(", FE_SITENAME");
                         insertNewArtefactExtTSDbuilderValues.append(", ?");
                     }
-                    if (fe_constructionType != null) {
+                    if (fe_constructionType != null && trType != "Provider" && trType != "Satellite") {
                         insertNewArtefactExtTSDbuilder.append(", FE_CONSTR_TYPE");
                         insertNewArtefactExtTSDbuilderValues.append(", ?");
                     }
-                    if (fe_address != null) {
+                    if (fe_address != null && trType != "Provider" && trType != "Satellite") {
                         insertNewArtefactExtTSDbuilder.append(", FE_ADDRESS");
                         insertNewArtefactExtTSDbuilderValues.append(", ?");
                     }
-                    if (fe_formated_survey_date != null) {
+                    if (fe_formated_survey_date != null && trType != "Provider" && trType != "Satellite") {
                         insertNewArtefactExtTSDbuilder.append(", SURVEY_DATE");
                         insertNewArtefactExtTSDbuilderValues.append(", ?");
                     }
@@ -781,27 +799,27 @@ public class CreateCandidate implements JavaDelegate {
                         insertNewArtefactExtTSDbuilder.append(", NE_TXRF_FREQUENCY");
                         insertNewArtefactExtTSDbuilderValues.append(", ?");
                     }
-                    if (fe_azimuth != null) {
+                    if (fe_azimuth != null && trType != "Provider" && trType != "Satellite") {
                         insertNewArtefactExtTSDbuilder.append(", FE_AZIMUTH");
                         insertNewArtefactExtTSDbuilderValues.append(", ?");
                     }
-                    if (fe_diameter != null) {
+                    if (fe_diameter != null && trType != "Provider" && trType != "Satellite") {
                         insertNewArtefactExtTSDbuilder.append(", FE_ANTENNADIAMETER");
                         insertNewArtefactExtTSDbuilderValues.append(", ?");
                     }
-                    if (fe_suspensionHeight != null) {
+                    if (fe_suspensionHeight != null && trType != "Provider" && trType != "Satellite") {
                         insertNewArtefactExtTSDbuilder.append(", FE_SUSPENSIONHEIGHT");
                         insertNewArtefactExtTSDbuilderValues.append(", ?");
                     }
-                    if (fe_frequencyBand != null) {
+                    if (fe_frequencyBand != null && trType != "Provider" && trType != "Satellite") {
                         insertNewArtefactExtTSDbuilder.append(", FE_TXRF_FREQUENCY");
                         insertNewArtefactExtTSDbuilderValues.append(", ?");
                     }
-                    if (fe_comment != null) {
+                    if (fe_comment != null  && trType != "Provider" && trType != "Satellite") {
                         insertNewArtefactExtTSDbuilder.append(", COMMENTS");
                         insertNewArtefactExtTSDbuilderValues.append(", ?");
                     }
-                    if (fe_artefact_id != null && fe_artefact_id.longValue() > 0) {
+                    if (fe_artefact_id != null && fe_artefact_id.longValue() > 0 && trType != "Provider" && trType != "Satellite") {
                         insertNewArtefactExtTSDbuilder.append(", FE_ARTEFACTID");
                         insertNewArtefactExtTSDbuilderValues.append(", ?");
                     }
@@ -819,27 +837,32 @@ public class CreateCandidate implements JavaDelegate {
 //                    newArtefactExtTSDPreparedStatement.setDate(i++, new java.sql.Date(new Date().getTime())); // INSERT_DATE
                     newArtefactExtTSDPreparedStatement.setString(i++, starter); // INSERT_PERSON
 
+                    if (trType != null && ( trType.equals("Provider") || trType.equals("Satellite"))) {
+                        newArtefactExtTSDPreparedStatement.setLong(i++, trType.equals("Provider") ? 22 : 23); //EQUIPMENT_ID
+                    }
                     if (cn_longitude != null) {
                         newArtefactExtTSDPreparedStatement.setString(i++, "E " + ne_longitude.replace(".", ",")); // NE_LONGITUDE
                     }
                     if (cn_latitude != null) {
                         newArtefactExtTSDPreparedStatement.setString(i++, "N " + ne_latitude.replace(".", ",")); // NE_LATITUDE
                     }
-                    if (fe_sitename != null) {
+                    if (trType != null && ( trType.equals("Provider") || trType.equals("Satellite"))){
+                        newArtefactExtTSDPreparedStatement.setString(i++, trType.equals("Provider") ? "Rented channel" : "Satellite"); // FE_SITENAME
+                    } else if (fe_sitename != null) {
                         newArtefactExtTSDPreparedStatement.setString(i++, fe_sitename); // FE_SITENAME
                     }
-                    if (fe_constructionType != null) {
+                    if (fe_constructionType != null && trType != "Provider" && trType != "Satellite") {
                         Integer fe_constructionTypeInt = Integer.parseInt(fe_constructionType);
-                        if (fe_constructionTypeInt != null) {
+                        if (fe_constructionTypeInt != null && trType != "Provider" && trType != "Satellite") {
                             newArtefactExtTSDPreparedStatement.setLong(i++, fe_constructionTypeInt); // FE_CONSTR_TYPE
                         } else {
                             newArtefactExtTSDPreparedStatement.setNull(i++, Types.BIGINT);
                         }
                     }
-                    if (fe_address != null) {
+                    if (fe_address != null  && trType != "Provider" && trType != "Satellite") {
                         newArtefactExtTSDPreparedStatement.setString(i++, fe_address); // FE_ADDRESS
                     }
-                    if (fe_formated_survey_date != null) {
+                    if (fe_formated_survey_date != null  && trType != "Provider" && trType != "Satellite") {
                         newArtefactExtTSDPreparedStatement.setDate(i++, new java.sql.Date(fe_cal_survey_date.getTimeInMillis())); // SURVEY_DATE (fe_survey_date)
                     }
                     if (ne_azimuth != null) {
@@ -868,7 +891,7 @@ public class CreateCandidate implements JavaDelegate {
                             newArtefactExtTSDPreparedStatement.setNull(i++, Types.BIGINT);
                         }
                     }
-                    if (fe_azimuth != null) {
+                    if (fe_azimuth != null && trType != "Provider" && trType != "Satellite") {
                         Integer fe_azimuthInt = Integer.parseInt(fe_azimuth);
                         if (fe_azimuthInt != null) {
                             newArtefactExtTSDPreparedStatement.setLong(i++, fe_azimuthInt); // FE_AZIMUTH
@@ -876,12 +899,12 @@ public class CreateCandidate implements JavaDelegate {
                             newArtefactExtTSDPreparedStatement.setNull(i++, Types.BIGINT);
                         }
                     }
-                    if (fe_diameter != null) {
+                    if (fe_diameter != null && trType != "Provider" && trType != "Satellite") {
                         newArtefactExtTSDPreparedStatement.setFloat(i++, Float.parseFloat(fe_diameter)); // FE_ANTENNADIAMETER
                     }
                     if (fe_suspensionHeight != null) {
                         Integer fe_suspensionHeightInt = Integer.parseInt(fe_suspensionHeight);
-                        if (fe_suspensionHeightInt != null) {
+                        if (fe_suspensionHeightInt != null  && trType != "Provider" && trType != "Satellite") {
                             newArtefactExtTSDPreparedStatement.setLong(i++, fe_suspensionHeightInt); // FE_SUSPENSIONHEIGHT
                         } else {
                             newArtefactExtTSDPreparedStatement.setNull(i++, Types.BIGINT);
@@ -889,16 +912,16 @@ public class CreateCandidate implements JavaDelegate {
                     }
                     if (fe_frequencyBand != null) {
                         Integer fe_frequencyBandInt = Integer.parseInt(fe_frequencyBand);
-                        if (fe_frequencyBandInt != null) {
+                        if (fe_frequencyBandInt != null  && trType != "Provider" && trType != "Satellite") {
                             newArtefactExtTSDPreparedStatement.setLong(i++, fe_frequencyBandInt); // FE_TXRF_FREQUENCY
                         } else {
                             newArtefactExtTSDPreparedStatement.setNull(i++, Types.BIGINT);
                         }
                     }
-                    if (fe_comment != null) {
+                    if (fe_comment != null  && trType != "Provider" && trType != "Satellite") {
                         newArtefactExtTSDPreparedStatement.setString(i++, fe_comment); // COMMENTS
                     }
-                    if (fe_artefact_id != null && fe_artefact_id.longValue() > 0) {
+                    if (fe_artefact_id != null && fe_artefact_id.longValue() > 0  && trType != "Provider" && trType != "Satellite") {
                         newArtefactExtTSDPreparedStatement.setLong(i++, fe_artefact_id.longValue()); // fe_artefact_id
                     }
                     log.info("newArtefactExtTSDPreparedStatement.executeUpdate()");
