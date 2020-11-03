@@ -1,0 +1,174 @@
+<style>
+    .well {
+        color: #333;
+    }
+</style>
+<form role="form" class="form-horizontal" name="kcell_form" novalidate>
+    <script cam-script type="text/form-script">
+        inject(['$scope', '$http', 'Uri', '$rootScope', '$q', function ($scope, $http, Uri, $rootScope, $q) {
+            var variables = [
+                'requestedDate',
+                'jrNumber',
+                'initiatorFull',
+                'validityDate',
+                'soaComplaintId',
+                'site',
+                'siteName',
+                'site_name',
+                'reason',
+                'contract',
+                'contractor',
+                'materialsRequired',
+                'leasingRequired',
+                'powerRequired',
+                'project',
+                'supplementaryFiles',
+                'explanation',
+                'resolutions',
+                'jobWorks',
+                'jrBlank',
+                'tssrssidFile',
+                'tssrssidFileName',
+                'priority',
+                'contractorJobAssignedDate',
+                'mainContract'
+            ];
+
+            $scope.jobModel = {};
+            $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
+                function(result){
+                    $scope.processInstanceId = result.data.processInstanceId;
+                },
+                function (error) {
+                    console.log(error.data);
+                }
+            );
+            camForm.on('form-loaded', function () {
+                variables.forEach(function (el) {
+                    camForm.variableManager.fetchVariable(el);
+                });
+
+                $http.get($rootScope.getCatalogsHttpByName('catalogs')).then(
+                        function (result) {
+                            angular.extend($scope, result.data);
+                            angular.extend($scope.jobModel, result.data);
+                        },
+                        function (error) {
+                            console.log(error.data);
+                        }
+                );
+                camForm.variableManager.createVariable({
+                    name: 'centralGroupApprovalEngineerTaskResult',
+                    type: 'String',
+                    value: ''
+                });
+                camForm.variableManager.createVariable({
+                    name: 'createJRResult',
+                    type: 'String',
+                    value: undefined
+                });
+            });
+            camForm.on('variables-fetched', function () {
+                variables.forEach(function (el) {
+                    $scope.jobModel[el] = camForm.variableManager.variables[el];
+                    if (el === 'resolutions') {
+                        $scope[el] = camForm.variableManager.variables[el].value;
+                    }
+                });
+                $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name+ "/profile").then(function(result){
+                    $rootScope.authentication.assigneeName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
+                });
+                if(camForm.variableManager.variables['centralGroupApprovalEngineerComment']){
+                    camForm.variableManager.variableValue('centralGroupApprovalEngineerComment', '');
+                }
+            });
+
+            camForm.on('submit', function () {
+                camForm.variableManager.variableValue('centralGroupApprovalEngineerTaskResult', $scope.centralGroupApprovalEngineerTaskResult);
+                camForm.variableManager.createVariable({
+                    name: 'approve_transmission_worksTaskResult',
+                    type: 'String',
+                    value: $scope.centralGroupApprovalEngineerTaskResult
+                });
+                if ($scope.centralGroupApprovalEngineerTaskResult === 'approved') {
+                    camForm.variableManager.variableValue('createJRResult', 'approved');
+                } else {
+                    camForm.variableManager.variableValue('createJRResult', 'rejected');
+                }
+                var visibility = 'all';
+                if($scope.centralGroupApprovalEngineerComment && $scope.centralGroupApprovalEngineerCommentVisibility){
+                    visibility = $scope.centralGroupApprovalEngineerCommentVisibility;
+                    camForm.variableManager.createVariable({
+                        name: 'approve_transmission_worksTaskCommentVisibility',
+                        type: 'String',
+                        value: visibility
+                    });
+                }
+                camForm.variableManager.createVariable({
+                    name: 'approve_transmission_worksTaskComment',
+                    type: 'String',
+                    value: $scope.centralGroupApprovalEngineerComment
+                });
+                camForm.variableManager.destroyVariable('resolutions');
+            });
+
+            camForm.on('store', function() {
+                camForm.variableManager.variableValue('centralGroupApprovalEngineerTaskResult', $scope.centralGroupApprovalEngineerTaskResult);
+            });
+
+            camForm.on('variables-restored', function() {
+                $scope.centralGroupApprovalEngineerTaskResult = camForm.variableManager.variableValue('centralGroupApprovalEngineerTaskResult');
+            });
+
+            $scope.isVisible = function (resolution) {
+               return !resolution.visibility || resolution.visibility === 'all' || (resolution.visibility === 'kcell' && $rootScope.hasGroup('kcellUsers'));
+            }
+
+            $scope.hasComment = function () {
+                return $scope.centralGroupApprovalEngineerComment && $rootScope.hasGroup('kcellUsers');
+            }
+        }]);
+    </script>
+    <job-request job-model="jobModel"></job-request>
+    <div class="form-group">
+        <label class="col-sm-4 control-label">Resolution</label>
+        <div class="col-sm-8">
+            <label class="radio-inline">
+                <input type="radio" ng-model="centralGroupApprovalEngineerTaskResult" name="centralGroupApprovalEngineerTaskResult" value="approved" required> Approve
+            </label>
+            <label class="radio-inline">
+                <input type="radio" ng-model="centralGroupApprovalEngineerTaskResult" name="centralGroupApprovalEngineerTaskResult" value="rejected" required> Reject
+            </label>
+            <label class="error" ng-show="kcell_form.centralGroupApprovalEngineerTaskResult.$error.required && ( kcell_form.centralGroupApprovalEngineerTaskResult.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-4 control-label">Comments</label>
+        <div class="col-sm-8">
+            <textarea class="form-control" cam-variable-name="centralGroupApprovalEngineerComment" name="centralGroupApprovalEngineerComment" cam-variable-type="String" placeholder="Comments..." maxlength="500" rows="4" ng-required="centralGroupApprovalEngineerTaskResult === 'rejected'"></textarea>
+            <label class="error" ng-show="kcell_form.centralGroupApprovalEngineerComment.$error.required && ( kcell_form.centralGroupApprovalEngineerComment.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+    <div class="form-group" ng-show="hasComment()">
+        <label class="col-sm-4 control-label">Comments visibility</label>
+        <div class="col-sm-8">
+            <label class="radio-inline">
+                <input type="radio" name="centralGroupApprovalEngineerCommentVisibility"
+                       ng-model="centralGroupApprovalEngineerCommentVisibility" value="all" ng-required="hasComment()"> Visible for all
+            </label>
+            <label class="radio-inline">
+                <input type="radio" name="centralGroupApprovalEngineerCommentVisibility"
+                       ng-model="centralGroupApprovalEngineerCommentVisibility" value="kcell" ng-required="hasComment()"> Kcell staff only
+            </label>
+            <label class="error" ng-show="kcell_form.centralGroupApprovalEngineerCommentVisibility.$error.required && ( kcell_form.centralGroupApprovalEngineerCommentVisibility.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+    <accordion>
+        <accordion-group is-open="isHistoryOpen">
+            <accordion-heading>
+                History <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
+            </accordion-heading>
+            <resolution-history resolutions="resolutions" procDef="Revision"></resolution-history>
+        </accordion-group>
+    </accordion>
+</form>
