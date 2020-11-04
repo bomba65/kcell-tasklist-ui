@@ -4,26 +4,85 @@
 <h3>Works:</h3>
 <div class="row" ng-repeat="work in sitesWorks">
     <div class="col-md-12">&nbsp;&nbsp;&nbsp;&nbsp;{{jobModel.worksTitle[work.sapServiceNumber]}}, works qty: {{work.quantity}}, materials qty: {{work.materialQuantity}} {{jobModel.unitsTitle[work.unit]}}, on sites: <ul class="site-list"><li ng-repeat="rs in work.relatedSites">{{rs.site_name}}</li></ul></div>
-    <div class="col-md-12" ng-repeat="file in work.files track by $index">
-        <div class="col-md-12" ng-if="file.valueInfo">&nbsp;&nbsp;&nbsp;&nbsp;{{$index+1}}.
-            <a ng-click="downloadOldFile(file)">{{file.valueInfo.filename}} (Old file, read only)</a>
+    <div class="col-md-12" ng-if="jobModel.contractor.value === 5 && (jobModel.reason.value === '1' || jobModel.reason.value === '2')">
+        <div class="row">
+            <div class="col-md-4">Photo before:</div>
+            <div class="col-md-8">
+                <div class="input-group">
+                    <label class="input-group-btn">
+                        <span class="btn btn-default">
+                            Choose File <input type="file" id="works_{{$index}}_file_before_{{work.files['before'].length}}" name="works_{{$parent.$index}}_file_before_{{$index}}" ng-model="file.file"  style="display: none;" onchange="angular.element(this).scope().siteWorkfileSelected(this, angular.element(this).scope().$index, '#supplementaryFilesName', 'before');$('#supplementaryFilesName').val(this.files[0].name)" >
+                        </span>
+                    </label>
+                    <input type="text" class="form-control upload-filename" id="supplementaryFilesName" placeholder="No File Chosen" readonly>
+                </div>
+            </div>
         </div>
-        <div class="col-md-12" ng-show="file.value.name">
-            &nbsp;&nbsp;&nbsp;&nbsp;{{$index + 1}}.
-            <a ng-click="download(file)">{{file.value.name}}</a> | <a ng-click="clearFile($parent.$index,$index)"><i
-                class="glyphicon glyphicon-trash"></i>
-            </a>
+        <div class="row">
+            <div class="col-md-3" ng-repeat="file in work.files['before'] track by $index">
+                <div ng-if="file.valueInfo">&nbsp;&nbsp;&nbsp;&nbsp;{{$index+1}}.
+                    <a ng-click="downloadOldFile(file)">{{file.valueInfo.filename}} (Old file, read only)</a>
+                    <a ng-click="showImage('/camunda/api/engine/engine/default/variable-instance/' + file.id + '/data')"><img ng-src="{{'/camunda/api/engine/engine/default/variable-instance/' + file.id + '/data'}}" /></a>
+                </div>
+                <div ng-if="file.value.name">
+                    <a ng-click="showImage(file.imgSrc)"> <img ng-src="{{file.imgSrc}}" width="100%"/></a>
+                    <a ng-click="clearFileNewImage($parent.$index, $index, 'before')"><i class="glyphicon glyphicon-trash"></i></a>
+                </div>
+            </div>
         </div>
     </div>
-    <!--<input type="file" class="form-control" id="works_{{$index}}_file_{{work.files.length}}" name="works_{{$parent.$index}}_file_{{$index}}" ng-model="file.file" onchange="angular.element(this).scope().siteWorkfileSelected(this, angular.element(this).scope().$index)"/>-->
-    <div class="col-md-12"><div class="input-group">
-        <label class="input-group-btn">
-                    <span class="btn btn-default">
-                        Choose File <input type="file" id="works_{{$index}}_file_{{work.files.length}}" name="works_{{$parent.$index}}_file_{{$index}}" ng-model="file.file"  style="display: none;" onchange="angular.element(this).scope().siteWorkfileSelected(this, angular.element(this).scope().$index, '#supplementaryFilesName');$('#supplementaryFilesName').val(this.files[0].name)" >
-                    </span>
-        </label>
-        <input type="text" class="form-control upload-filename" id="supplementaryFilesName" placeholder="No File Chosen" readonly>
-    </div></div>
+    <div class="col-md-12">
+        <div class="row">
+            <div class="col-md-4">Photo after:</div>
+            <div class="col-md-8">
+                <div class="input-group">
+                    <label class="input-group-btn">
+                        <span class="btn btn-default">
+                            Choose File <input type="file" id="works_{{$index}}_file_after_{{work.files['after'].length}}" name="works_{{$parent.$index}}_file_after_{{$index}}" ng-model="file.file"  style="display: none;" onchange="angular.element(this).scope().siteWorkfileSelected(this, angular.element(this).scope().$index, '#supplementaryFilesName', 'after');$('#supplementaryFilesName').val(this.files[0].name)" >
+                        </span>
+                    </label>
+                    <input type="text" class="form-control upload-filename" id="supplementaryFilesName" placeholder="No File Chosen" readonly>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-3" ng-repeat="file in work.files['after'] track by $index">
+                <div ng-if="file.valueInfo">&nbsp;&nbsp;&nbsp;&nbsp;{{$index+1}}.
+                    <a ng-click="downloadOldFile(file)">{{file.valueInfo.filename}} (Old file, read only)</a>
+                    <a ng-click="showImage('/camunda/api/engine/engine/default/variable-instance/' + file.id + '/data')"><img ng-src="{{'/camunda/api/engine/engine/default/variable-instance/' + file.id + '/data'}}" /></a>
+                </div>
+                <div ng-if="file.value.name">
+                    <a ng-click="showImage(file.imgSrc)"> <img ng-src="{{file.imgSrc}}" width="100%"/></a>
+                    <a ng-click="clearFileNewImage($parent.$index, $index, 'after')"><i class="glyphicon glyphicon-trash"></i></a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="row">
+    <div class="col-md-12">
+        <div class="row">
+            <div class="col-md-12">Additional files:</div>
+        </div>
+        <div class="input-group">
+            <label class="input-group-btn">
+                <span class="btn btn-default">
+                    Choose File <input type="file" id="additional_files" name="additional_files" ng-model="file.file"  style="display: none;" onchange="angular.element(this).scope().additionalFileSelected(this, angular.element(this).scope().$index, '#additionalFilesName');$('#additionalFilesName').val(this.files[0].name)" >
+                </span>
+            </label>
+            <input type="text" class="form-control upload-filename" id="additionalFilesName" placeholder="No File Chosen" readonly>
+        </div>
+    </div>
+</div>
+<div class="row" ng-repeat="file in additionalFiles track by $index">
+    <div class="col-md-12" ng-if="file.valueInfo">&nbsp;&nbsp;&nbsp;&nbsp;{{$index+1}}.
+        <a ng-click="downloadOldFile(file)">{{file.valueInfo.filename}} (Old file, read only)</a>
+    </div>
+    <div class="col-md-12" ng-show="file.value.name">
+        &nbsp;&nbsp;&nbsp;&nbsp;{{$index + 1}}.
+        <a ng-click="download(file)">{{file.value.name}}</a> | <a ng-click="clearFile($parent.$index,$index)"><i class="glyphicon glyphicon-trash"></i>
+        </a>
+    </div>
 </div>
 <br/>
 <div class="row">
