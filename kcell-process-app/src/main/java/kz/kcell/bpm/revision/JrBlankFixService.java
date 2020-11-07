@@ -3,7 +3,6 @@ package kz.kcell.bpm.revision;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
-import kz.kcell.bpm.SetPricesDelegate;
 import kz.kcell.flow.files.Minio;
 import lombok.extern.java.Log;
 import org.apache.poi.hssf.usermodel.HSSFFont;
@@ -98,7 +97,7 @@ public class JrBlankFixService {
             if (worksTitle.size() == 0) {
                 String mainContract = (String) runtimeService.getVariable(processId, "mainContract");
                 ObjectMapper mapper = new ObjectMapper();
-                InputStream fis = SetPricesDelegate.class.getResourceAsStream("/revision/" + ("Roll-outRevision2020".equals(mainContract) ? "newWorkPrice.json" : "workPrice.json"));
+                InputStream fis = JrBlankFixService.class.getResourceAsStream("/revision/" + ("Roll-outRevision2020".equals(mainContract) ? "newWorkPrice.json" : "workPrice.json"));
                 InputStreamReader reader = new InputStreamReader(fis, "utf-8");
                 ArrayNode json = (ArrayNode) mapper.readTree(reader);
                 for (JsonNode workPrice : json) {
