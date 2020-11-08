@@ -59,6 +59,9 @@ public class JrBlankFixService {
     @Autowired
     RuntimeService runtimeService;
 
+    @Autowired
+    IdentityService identityService;
+
     private static final Map<String, String> worksTitle = new HashMap<>();
 
     private static final Map<String, String> contractorsTitle =
@@ -497,8 +500,6 @@ public class JrBlankFixService {
                 "Пройдя по следующей ссылке на страницу в HUB.Kcell.kz, вы можете оставить в поле комментариев свои замечания и/или пожелания относительно функционала и интерфейса системы: https://hub.kcell.kz/x/kYNoAg");
 
 
-            IdentityService identityService = Context.getProcessEngineConfiguration().getIdentityService();
-
             Set<String> ccList = identityService.createUserQuery().userId(runtimeService.getVariable(processId, "starter").toString()).list().stream().map(user -> user.getId()).collect(Collectors.toSet());
             ccList.addAll(Arrays.asList("Yernaz.Kalingarayev@kcell.kz"));
             if (reason != null && reason.equals("3")) {
@@ -539,7 +540,6 @@ public class JrBlankFixService {
             return;
         }
 
-        IdentityService identityService = Context.getProcessEngineConfiguration().getIdentityService();
         User user = identityService.createUserQuery().userId(recipient).singleResult();
 
         if (user != null) {
