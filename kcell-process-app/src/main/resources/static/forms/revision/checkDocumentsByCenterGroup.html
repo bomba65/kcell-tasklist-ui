@@ -58,11 +58,13 @@
                 'rolloutRO2Delay',
                 'rolloutRO3Delay',
                 'rolloutRO4Delay',
-                'contains13Work'
+                'contains13Work',
+                'siteWorksPhotoFiles'
             ];
             $scope.jobModel = {};
             var workFiles = [];
             var siteWorksFiles = [];
+            var siteWorksPhotoFiles = [];
             var newFiles = [];
             $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
                     function(result){
@@ -108,6 +110,8 @@
                     } else if(el === 'siteWorksFiles' && camForm.variableManager.variables[el].value) {
                         workFiles = camForm.variableManager.variables[el].value;
                         siteWorksFiles = camForm.variableManager.variables[el].value;
+                    } else if(el === 'siteWorksPhotoFiles' && camForm.variableManager.variables[el].value) {
+                        siteWorksPhotoFiles = camForm.variableManager.variables[el].value;
                     } else {
                         $scope.jobModel[el] = camForm.variableManager.variables[el];
                     }
@@ -132,38 +136,26 @@
 
 
                 $scope.sitesWorks.forEach(function (work, index) {
-                    $scope.sitesWorks[index].files = [];
+                    $scope.sitesWorks[index].photoFiles = {};
                 });
 
-                siteWorksFiles.forEach(function (file) {
+                siteWorksPhotoFiles.forEach(function (file) {
                     if(file.name){
                         var workIndex = file.name.split('_')[1];
                         console.log(file.name.split('_')[3]);
-                        if(!$scope.sitesWorks[workIndex].files){
-                            $scope.sitesWorks[workIndex].files = {};
+                        if(!$scope.sitesWorks[workIndex].photoFiles){
+                            $scope.sitesWorks[workIndex].photoFiles = {};
                         }
-                        if(!$scope.sitesWorks[workIndex].files[file.name.split('_')[3]]){
-                            $scope.sitesWorks[workIndex].files[file.name.split('_')[3]] = [];
+                        if(!$scope.sitesWorks[workIndex].photoFiles[file.name.split('_')[3]]){
+                            $scope.sitesWorks[workIndex].photoFiles[file.name.split('_')[3]] = [];
                         }
-                        if(!containsFile($scope.sitesWorks[workIndex].files, file)){
-                            $scope.sitesWorks[workIndex].files[file.name.split('_')[3]].push(file);
+                        if(!containsFile($scope.sitesWorks[workIndex].photoFiles, file)){
+                            $scope.sitesWorks[workIndex].photoFiles[file.name.split('_')[3]].push(file);
                             getImagePath(file);
                         }
                     }
                 });
 
-                workFiles.forEach(function(file,i){
-                    if(file.name){
-                        var workIndex = file.name.split('_')[1];
-                        console.log($scope.jobModel.jobWorks);
-                        if(!$scope.jobModel.jobWorks.value[workIndex].files) {
-                            $scope.jobModel.jobWorks.value[workIndex].files = [];
-                        }
-                        if($scope.jobModel.jobWorks.value[workIndex].files && !containsFile($scope.jobModel.jobWorks.value[workIndex].files, file)){
-                            $scope.jobModel.jobWorks.value[workIndex].files.push(file);
-                        }
-                    }
-                });
                 camForm.variableManager.createVariable({
                     name: 'scanCopyFile',
                     type: 'Json',
@@ -321,6 +313,7 @@
 
     <div style="margin-bottom: 20px;"></div>
     <h3>Works:</h3>
+
     <div class="row" ng-repeat="work in sitesWorks">
         <div class="col-md-12">{{jobModel.worksTitle[work.sapServiceNumber]}}, works qty: {{work.quantity}}, materials qty: {{work.materialQuantity}} {{jobModel.unitsTitle[work.unit]}}, on sites: <ul class="site-list"><li ng-repeat="rs in work.relatedSites">{{rs.site_name}}</li></ul></div>
         <div class="col-md-12" ng-if="jobModel.contractor.value === 5 && (jobModel.reason.value === '1' || jobModel.reason.value === '2')">
@@ -328,7 +321,7 @@
                 <div class="col-md-4">Photo before:</div>
             </div>
             <div class="row">
-                <div class="col-md-3" ng-repeat="file in work.files['before'] track by $index">
+                <div class="col-md-3" ng-repeat="file in work.photoFiles['before'] track by $index">
                     <div>
                         <a ng-click="showImage(file.imgSrc)"> <img ng-src="{{file.imgSrc}}" width="100%"/></a>
                     </div>
@@ -343,7 +336,7 @@
                 <div class="col-md-4">Photo after:</div>
             </div>
             <div class="row">
-                <div class="col-md-3" ng-repeat="file in work.files['after'] track by $index">
+                <div class="col-md-3" ng-repeat="file in work.photoFiles['after'] track by $index">
                     <div>
                         <a ng-click="showImage(file.imgSrc)"> <img ng-src="{{file.imgSrc}}" width="100%"/></a>
                     </div>
