@@ -223,6 +223,34 @@
                 }
             });
 
+            $scope.preSubmit = function(){
+                var deferred = $q.defer();
+                if($scope.jobModel.contractor.value === 5 && ($scope.jobModel.reason.value === '1' || $scope.jobModel.reason.value === '2')){
+                    $scope.sitesWorks.forEach(function(e,i){
+                        var beforeExists = false;
+                        var afterExists = false;
+                        if(e.photoFiles){
+                            if(e.photoFiles.before){
+                                beforeExists = true;
+                            }
+                            if(e.photoFiles.after){
+                                afterExists = true;
+                            }
+                        }
+                        if(!beforeExists) {
+                            deferred.reject('Work #' + (i+1)+ ' Should have photo before');
+                        }
+                        if(!afterExists) {
+                            deferred.reject('Work #' + (i+1)+ ' Should have photo after');
+                        }
+                    });
+                    deferred.resolve();
+                } else {
+                    deferred.resolve();
+                }
+                return deferred.promise;
+            };
+
             camForm.on('submit', function () {
 
                 camForm.variableManager.variableValue('fillAppliedChangesInfoByContractorTaskResult', $scope.fillAppliedChangesInfoByContractorTaskResult);
