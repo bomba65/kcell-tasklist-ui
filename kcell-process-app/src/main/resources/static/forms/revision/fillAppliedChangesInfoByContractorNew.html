@@ -236,11 +236,22 @@
                     $scope.createSummaryDocument();
 
                     var siteWorksFiles = [];
-                    var additionalFiles = [];
+                    var siteWorksPhotoFiles = [];
                     $scope.sitesWorks.forEach(function(e,i){
                         if(e.files){
-                            if(e.files.before){
-                                e.files.before.forEach(function(f, j){
+                            e.files.forEach(function(f, j){
+                                if(f.value){
+                                    if(f.value.isNew){
+                                        files.push(f.value);
+                                        delete f.value.isNew;
+                                    }
+                                    siteWorksFiles.push(f);
+                                }
+                            });
+                        }
+                        if(e.photoFiles){
+                            if(e.photoFiles.before){
+                                e.photoFiles.before.forEach(function(f, j){
                                     if(f.imgSrc){
                                         delete f.imgSrc;
                                     }
@@ -249,12 +260,12 @@
                                             files.push(f.value);
                                             delete f.value.isNew;
                                         }
-                                        siteWorksFiles.push(f);
+                                        siteWorksPhotoFiles.push(f);
                                     }
                                 });
                             }
-                            if(e.files.after){
-                                e.files.after.forEach(function(f, j){
+                            if(e.photoFiles.after){
+                                e.photoFiles.after.forEach(function(f, j){
                                     if(f.imgSrc){
                                         delete f.imgSrc;
                                     }
@@ -263,7 +274,7 @@
                                             files.push(f.value);
                                             delete f.value.isNew;
                                         }
-                                        siteWorksFiles.push(f);
+                                        siteWorksPhotoFiles.push(f);
                                     }
                                 });
                             }
@@ -284,19 +295,19 @@
                     if(camForm.variableManager.variables['siteWorksFiles']){
                         camForm.variableManager.destroyVariable('siteWorksFiles');
                     }
-
-                    if(camForm.variableManager.variables['additionalFiles']){
-                        camForm.variableManager.destroyVariable('additionalFiles');
-                    }
                     camForm.variableManager.createVariable({
                         name: 'siteWorksFiles',
                         type: 'Json',
                         value: siteWorksFiles
                     });
+
+                    if(camForm.variableManager.variables['siteWorksPhotoFiles']){
+                        camForm.variableManager.destroyVariable('siteWorksPhotoFiles');
+                    }
                     camForm.variableManager.createVariable({
-                        name: 'additionalFiles',
+                        name: 'siteWorksPhotoFiles',
                         type: 'Json',
-                        value: additionalFiles
+                        value: siteWorksPhotoFiles
                     });
 
                     if($scope.tssrssidFileName && $scope.tssrssidFileName.value && $scope.tssrssidFileName.value.isNew){
@@ -1525,10 +1536,18 @@
                 angular.element(document.querySelector('#tssrssidFileName')).val(null);
             }
 
-            $scope.siteWorkfileSelected = function(el, workIndex, bindedInput, fileType){
+            $scope.siteWorkfileSelected = function(el, workIndex, bindedInput){
                 $timeout(function () {
                     $scope.$apply(function () {
-                        uploadSiteWorkFileToMinio(el.files[0], workIndex, bindedInput, fileType);
+                        uploadSiteWorkFileToMinio(el.files[0], workIndex, bindedInput);
+                    });
+                })
+            };
+
+            $scope.siteWorkPhotoFileSelected = function(el, workIndex, bindedInput, fileType){
+                $timeout(function () {
+                    $scope.$apply(function () {
+                        uploadSiteWorkPhotoFileToMinio(el.files[0], workIndex, bindedInput, fileType);
                     });
                 })
             };
@@ -1541,14 +1560,42 @@
                 })
             };
 
-            function uploadSiteWorkFileToMinio(file, workIndex, bindedInput, fileType) {
+            function uploadSiteWorkFileToMinio(file, workIndex, bindedInput) {
                 if(!$scope.sitesWorks[workIndex].files){
-                    $scope.sitesWorks[workIndex].files = {};
+                    $scope.sitesWorks[workIndex].files = [];
                 }
-                if(!$scope.sitesWorks[workIndex].files[fileType]){
-                    $scope.sitesWorks[workIndex].files[fileType] = [];
+                var fileIndex = $scope.sitesWorks[workIndex].files.length;
+
+                var fileToUpload = {
+                    name: 'work_' + workIndex + '_file_' + fileIndex,
+                    type: 'Json',
+                    value: {
+                        name: file.name,
+                        isNew: true,
+                        path: $scope.processInstanceId + '/' + camForm.taskId + '/' + file.name
+                    }
+                };
+                $http({method: 'GET', url: '/camunda/uploads/put/' + fileToUpload.value.path, transformResponse: [] }).
+                    then(function(response) {
+                        $http.put(response.data, file, {headers: {'Content-Type': undefined}}).then(
+                        function () {
+                            $scope.sitesWorks[workIndex].files.push(fileToUpload);
+                            angular.element(document.querySelector('#works_' + workIndex + '_file_' + fileIndex)).val(null);
+                            $(bindedInput).val('');
+                        });
+                }, function(error){
+                    console.log(error.data);
+                });
+            }
+
+            function uploadSiteWorkPhotoFileToMinio(file, workIndex, bindedInput, fileType) {
+                if(!$scope.sitesWorks[workIndex].photoFiles){
+                    $scope.sitesWorks[workIndex].photoFiles = {};
                 }
-                var fileIndex = $scope.sitesWorks[workIndex].files[fileType].length;
+                if(!$scope.sitesWorks[workIndex].photoFiles[fileType]){
+                    $scope.sitesWorks[workIndex].photoFiles[fileType] = [];
+                }
+                var fileIndex = $scope.sitesWorks[workIndex].photoFiles[fileType].length;
 
                 var fileToUpload = {
                     name: 'work_' + workIndex + '_file_' + fileType + '_' + fileIndex,
@@ -1563,10 +1610,10 @@
                     then(function(response) {
                         $http.put(response.data, file, {headers: {'Content-Type': undefined}}).then(
                         function () {
-                            $scope.sitesWorks[workIndex].files[fileType].push(fileToUpload);
+                            $scope.sitesWorks[workIndex].photoFiles[fileType].push(fileToUpload);
                             angular.element(document.querySelector('#works_' + workIndex + '_file_' + fileType + '_' + fileIndex)).val(null);
                             $(bindedInput).val('');
-                            getImagePath($scope.sitesWorks[workIndex].files[fileType][$scope.sitesWorks[workIndex].files[fileType].length-1]);
+                            getImagePath($scope.sitesWorks[workIndex].photoFiles[fileType][$scope.sitesWorks[workIndex].photoFiles[fileType].length-1]);
                         });
                 }, function(error){
                     console.log(error.data);
@@ -1621,21 +1668,21 @@
                 return false;
             }
 
-            $scope.download = function (file) {
-                console.log(file);
-                $http({method: 'GET', url: '/camunda/uploads/get/' + file.value.path, transformResponse: [] }).
-                then(function(response) {
-                    document.getElementById('fileDownloadIframe').src = response.data;
-                }, function(error){
-                    console.log(error.data);
-                });
-            }
-
             function getImagePath(file) {
                 console.log(file);
                 $http({method: 'GET', url: '/camunda/uploads/get/' + file.value.path, transformResponse: [] }).
                 then(function(response) {
                     file.imgSrc = response.data;
+                }, function(error){
+                    console.log(error.data);
+                });
+            }
+
+            $scope.download = function (file) {
+                console.log(file);
+                $http({method: 'GET', url: '/camunda/uploads/get/' + file.value.path, transformResponse: [] }).
+                then(function(response) {
+                    document.getElementById('fileDownloadIframe').src = response.data;
                 }, function(error){
                     console.log(error.data);
                 });
@@ -1650,7 +1697,11 @@
             }
 
             $scope.clearFileNewImage = function (parentIndex, fileIndex, fileType) {
-                $scope.sitesWorks[parentIndex].files[fileType].splice(fileIndex, 1);
+                console.log(parentIndex);
+                console.log(fileIndex);
+                console.log(fileType);
+                console.log($scope.sitesWorks);
+                $scope.sitesWorks[parentIndex].photoFiles[fileType].splice(fileIndex, 1);
             }
 
             $scope.isVisible = function (resolution) {
