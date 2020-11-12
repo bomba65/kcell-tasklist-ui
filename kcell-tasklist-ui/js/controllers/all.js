@@ -907,7 +907,9 @@ return module.controller('mainCtrl', ['$scope', '$rootScope', 'toasty', 'Authent
         if ($scope.invoiceContractorFilter.unfinished) {
             queryParams.unfinished = $scope.invoiceContractorFilter.unfinished;
         }
-        if($rootScope.hasGroup('hq_contractor_lse') && $scope.invoiceContractorFilter.region!=='all'){
+
+        var isHQ = $rootScope.hasGroup('hq_contractor_lse') || $rootScope.hasGroup('hq_contractor_arlan') || $rootScope.hasGroup('hq_contractor_logycom') || $rootScope.hasGroup('hq_contractor_alta');
+        if(isHQ && $scope.invoiceContractorFilter.region!=='all'){
             queryParams.variables.push({"name": "siteRegion", "operator": "eq", "value": $scope.invoiceContractorFilter.region});
         } else {
             if ($rootScope.hasGroup('astana_contractor_lse') && $rootScope.hasGroup('nc_contractor_lse')) {
@@ -917,21 +919,32 @@ return module.controller('mainCtrl', ['$scope', '$rootScope', 'toasty', 'Authent
                 } else {
                     queryParams.variables.push({"name": "siteRegion", "operator": "eq", "value": $scope.invoiceContractorFilter.region});
                 }
-            } else if ($rootScope.hasGroup('astana_contractor_lse')) {
+            }  else if ($rootScope.hasGroup('astana_contractor_lse') || $rootScope.hasGroup('astana_contractor_arlan') || $rootScope.hasGroup('astana_contractor_alta') || $rootScope.hasGroup('astana_contractor_logycom')) {
                 queryParams.variables.push({"name": "siteRegion", "operator": "eq", "value": 'astana'});
-            } else if ($rootScope.hasGroup('nc_contractor_lse')) {
+            } else if ($rootScope.hasGroup('nc_contractor_lse') || $rootScope.hasGroup('nc_contractor_arlan') || $rootScope.hasGroup('nc_contractor_alta') || $rootScope.hasGroup('nc_contractor_logycom')) {
                 queryParams.variables.push({"name": "siteRegion", "operator": "eq", "value": 'nc'});
-            } else if ($rootScope.hasGroup('alm_contractor_lse')) {
+            } else if ($rootScope.hasGroup('alm_contractor_lse') || $rootScope.hasGroup('alm_contractor_arlan') || $rootScope.hasGroup('alm_contractor_alta') || $rootScope.hasGroup('alm_contractor_logycom')) {
                 queryParams.variables.push({"name": "siteRegion", "operator": "eq", "value": 'alm'});
-            } else if ($rootScope.hasGroup('east_contractor_lse')) {
+            } else if ($rootScope.hasGroup('east_contractor_lse') || $rootScope.hasGroup('east_contractor_arlan') || $rootScope.hasGroup('east_contractor_alta') || $rootScope.hasGroup('east_contractor_logycom')) {
                 queryParams.variables.push({"name": "siteRegion", "operator": "eq", "value": 'east'});
-            } else if ($rootScope.hasGroup('south_contractor_lse')) {
+            } else if ($rootScope.hasGroup('south_contractor_lse') || $rootScope.hasGroup('south_contractor_arlan') || $rootScope.hasGroup('south_contractor_alta') || $rootScope.hasGroup('south_contractor_logycom')) {
                 queryParams.variables.push({"name": "siteRegion", "operator": "eq", "value": 'south'});
-            } else if ($rootScope.hasGroup('west_contractor_lse')) {
+            } else if ($rootScope.hasGroup('west_contractor_lse') || $rootScope.hasGroup('west_contractor_arlan') || $rootScope.hasGroup('west_contractor_alta') || $rootScope.hasGroup('west_contractor_logycom')) {
                 queryParams.variables.push({"name": "siteRegion", "operator": "eq", "value": 'west'});
             }
         }
-        queryParams.variables.push({"name": "contractor", "operator": "eq", "value": 'lse'});
+
+        var contractorCode = '';
+        if($rootScope.hasGroup('hq_contractor_lse') || $rootScope.hasGroup('astana_contractor_lse') || $rootScope.hasGroup('nc_contractor_lse') || $rootScope.hasGroup('alm_contractor_lse') || $rootScope.hasGroup('east_contractor_lse') || $rootScope.hasGroup('south_contractor_lse') || $rootScope.hasGroup('west_contractor_lse')){
+            contractorCode = 'lse';
+        } else if($rootScope.hasGroup('hq_contractor_arlan') || $rootScope.hasGroup('astana_contractor_arlan') || $rootScope.hasGroup('nc_contractor_arlan') || $rootScope.hasGroup('alm_contractor_arlan') || $rootScope.hasGroup('east_contractor_arlan') || $rootScope.hasGroup('south_contractor_arlan') || $rootScope.hasGroup('west_contractor_arlan')){
+            contractorCode = 'arlan';
+        } else if($rootScope.hasGroup('hq_contractor_logycom') || $rootScope.hasGroup('astana_contractor_logycom') || $rootScope.hasGroup('nc_contractor_logycom') || $rootScope.hasGroup('alm_contractor_logycom') || $rootScope.hasGroup('east_contractor_logycom') || $rootScope.hasGroup('south_contractor_logycom') || $rootScope.hasGroup('west_contractor_logycom')){
+            contractorCode = 'logycom';
+        } else if($rootScope.hasGroup('hq_contractor_alta') || $rootScope.hasGroup('astana_contractor_alta') || $rootScope.hasGroup('nc_contractor_alta') || $rootScope.hasGroup('alm_contractor_alta') || $rootScope.hasGroup('east_contractor_alta') || $rootScope.hasGroup('south_contractor_alta') || $rootScope.hasGroup('west_contractor_alta')){
+            contractorCode = 'alta';
+        }
+        queryParams.variables.push({"name": "contractor", "operator": "eq", "value": contractorCode});
 
         $scope.piIndex = undefined;
         $http({
