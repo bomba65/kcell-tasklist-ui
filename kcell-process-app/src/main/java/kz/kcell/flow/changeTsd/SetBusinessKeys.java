@@ -33,38 +33,39 @@ public class SetBusinessKeys implements JavaDelegate {
     @Override
     public void execute(DelegateExecution delegateExecution) {
 
-        JSONObject tsd = new JSONObject(delegateExecution.getVariable("selectedTsd").toString());
-        String ne_sitename = tsd.getJSONObject("nearend_id").getString("site_name");
-        String fe_sitename = tsd.getJSONObject("farend_id").getString("site_name");
-        String region_name = tsd.getJSONObject("nearend_id").getJSONObject("facility_id").getJSONObject("address_id").getJSONObject("city_id").getJSONObject("district_id").getJSONObject("oblast_id").getJSONObject("region_id").getString("name").toLowerCase();
-        String proc_def_key = delegateExecution.getProcessEngineServices().getRepositoryService().getProcessDefinition(delegateExecution.getProcessDefinitionId()).getKey();
+        if(delegateExecution.getProcessBusinessKey()==null){
+            JSONObject tsd = new JSONObject(delegateExecution.getVariable("selectedTsd").toString());
+            String ne_sitename = tsd.getJSONObject("nearend_id").getString("site_name");
+            String fe_sitename = tsd.getJSONObject("farend_id").getString("site_name");
+            String region_name = tsd.getJSONObject("nearend_id").getJSONObject("facility_id").getJSONObject("address_id").getJSONObject("city_id").getJSONObject("district_id").getJSONObject("oblast_id").getJSONObject("region_id").getString("name").toLowerCase();
+            String proc_def_key = delegateExecution.getProcessEngineServices().getRepositoryService().getProcessDefinition(delegateExecution.getProcessDefinitionId()).getKey();
 
-        Calendar c = Calendar.getInstance();
-        c.set(Calendar.DAY_OF_YEAR, 1);
-        c.set(Calendar.HOUR, 0);
-        c.set(Calendar.MINUTE, 0);
-        c.set(Calendar.SECOND, 0);
+            Calendar c = Calendar.getInstance();
+            c.set(Calendar.DAY_OF_YEAR, 1);
+            c.set(Calendar.HOUR, 0);
+            c.set(Calendar.MINUTE, 0);
+            c.set(Calendar.SECOND, 0);
 
-        Date firstDate = c.getTime();
+            Date firstDate = c.getTime();
 
-        c.add(Calendar.YEAR, 1);
+            c.add(Calendar.YEAR, 1);
 
-        Date lastDate = c.getTime();
+            Date lastDate = c.getTime();
 
-        Integer count = delegateExecution.getProcessEngineServices()
-            .getHistoryService()
-            .createHistoricProcessInstanceQuery()
-            .processDefinitionKey(proc_def_key)
-            .startedAfter(firstDate)
-            .startedBefore(lastDate)
-            .list()
-            .size();
+            Integer count = delegateExecution.getProcessEngineServices()
+                .getHistoryService()
+                .createHistoricProcessInstanceQuery()
+                .processDefinitionKey(proc_def_key)
+                .startedAfter(firstDate)
+                .startedBefore(lastDate)
+                .list()
+                .size();
 
-        SimpleDateFormat sdf = new SimpleDateFormat("ddMMyy");
+            SimpleDateFormat sdf = new SimpleDateFormat("ddMMyy");
 
-        String businessKey = ne_sitename + "-" + fe_sitename + "(" + regionsTitle.get(region_name) + StringUtils.leftPad(String.valueOf(count+1), 4, '0') + "-" + sdf.format(new Date()) + ")-"+ proc_def_key;
-        delegateExecution.setProcessBusinessKey(businessKey);
-        delegateExecution.setVariable(proc_def_key + "Number", businessKey);
-
+            String businessKey = ne_sitename + "-" + fe_sitename + "(" + regionsTitle.get(region_name) + StringUtils.leftPad(String.valueOf(count+1), 4, '0') + "-" + sdf.format(new Date()) + ")-"+ proc_def_key;
+            delegateExecution.setProcessBusinessKey(businessKey);
+            delegateExecution.setVariable(proc_def_key + "Number", businessKey);
+        }
     }
 }
