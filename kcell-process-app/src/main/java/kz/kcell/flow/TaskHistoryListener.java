@@ -74,7 +74,8 @@ public class TaskHistoryListener implements TaskListener {
       "Invoice",
       "tnu_tsd_db",
       "change-tsd",
-      "get-rfs-by-permit"
+      "get-rfs-by-permit",
+      "hop-delete"
     );
 
     @Override
