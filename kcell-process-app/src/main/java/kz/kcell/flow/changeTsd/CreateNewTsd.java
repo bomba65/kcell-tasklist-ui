@@ -52,7 +52,7 @@ public class CreateNewTsd implements JavaDelegate {
 
         String tsdId = String.valueOf(newTsd.prop("id"));
 
-        SpinJsonNode capacityObj = newTsd.prop("capacity_id") == null ? null : newTsd.prop("capacity_id");
+        SpinJsonNode capacityObj = !newTsd.hasProp("capacity_id") || newTsd.prop("capacity_id") == null ? null : newTsd.prop("capacity_id");
         if (capacityObj.hasProp("id")) {
             Integer capacityId = capacityObj.prop("id").numberValue().intValue();
             ObjectNode capacity_id = objectMapper.createObjectNode();
@@ -70,13 +70,13 @@ public class CreateNewTsd implements JavaDelegate {
         objectNode.put("date", new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ").format(c.getTime()));
 
         // fe
-        SpinJsonNode farendObj = newTsd.prop("farend_id") == null ? null : newTsd.prop("farend_id");
+        SpinJsonNode farendObj = !newTsd.hasProp("farend_id") || newTsd.prop("farend_id") == null ? null : newTsd.prop("farend_id");
         if (farendObj.hasProp("id")){
             Integer farendId = farendObj.prop("id").numberValue().intValue();
             objectNode.put("farend_id", farendId);
         }
 
-        SpinJsonNode feAntennaDiametrObj = newTsd.prop("fe_antenna_diameter_id") == null ? null : newTsd.prop("fe_antenna_diameter_id");
+        SpinJsonNode feAntennaDiametrObj = !newTsd.hasProp("fe_antenna_diameter_id") || newTsd.prop("fe_antenna_diameter_id") == null ? null : newTsd.prop("fe_antenna_diameter_id");
         if (feAntennaDiametrObj.hasProp("id")) {
             Integer feAntennaDiameterId = feAntennaDiametrObj.prop("id").numberValue().intValue();
             ObjectNode fe_antenna_diameter_id = objectMapper.createObjectNode();
@@ -85,7 +85,7 @@ public class CreateNewTsd implements JavaDelegate {
             fe_antenna_diameter_id.put("id", feAntennaDiameterId);
         }
 
-        SpinJsonNode feAntennaDiametrProtectObj = newTsd.prop("fe_antenna_diameter_protect_id") == null ? null : newTsd.prop("fe_antenna_diameter_protect_id");
+        SpinJsonNode feAntennaDiametrProtectObj = !newTsd.hasProp("fe_antenna_diameter_protect_id") || newTsd.prop("fe_antenna_diameter_protect_id") == null ? null : newTsd.prop("fe_antenna_diameter_protect_id");
         if (feAntennaDiametrProtectObj.hasProp("id")) {
             Integer feAntennaDiametrProtectId = feAntennaDiametrProtectObj.prop("id").numberValue().intValue();
             ObjectNode fe_antenna_diameter_protect_id = objectMapper.createObjectNode();
@@ -94,37 +94,37 @@ public class CreateNewTsd implements JavaDelegate {
             fe_antenna_diameter_protect_id.put("id", feAntennaDiametrProtectId);
         }
 
-        Double fe_azimuth = newTsd.prop("fe_azimuth").isNull() ? null : newTsd.prop("fe_azimuth").isString() ? Double.parseDouble(newTsd.prop("fe_azimuth").stringValue()) : newTsd.prop("fe_azimuth").numberValue().doubleValue();
+        Double fe_azimuth = !newTsd.hasProp("fe_azimuth") || newTsd.prop("fe_azimuth").isNull() ? null : newTsd.prop("fe_azimuth").isString() ? Double.parseDouble(newTsd.prop("fe_azimuth").stringValue()) : newTsd.prop("fe_azimuth").numberValue().doubleValue();
         objectNode.put("fe_azimuth", fe_azimuth);
 
-        Boolean fe_different_address = newTsd.prop("fe_different_address").isNull() ? null : newTsd.prop("fe_different_address").boolValue();
+        Boolean fe_different_address = !newTsd.hasProp("fe_different_address") || newTsd.prop("fe_different_address").isNull() ? null : newTsd.prop("fe_different_address").boolValue();
         objectNode.put("fe_different_address", fe_different_address);
 
-        SpinJsonNode feFacilityObj = newTsd.prop("fe_facility_id") == null ? null : newTsd.prop("fe_facility_id");
+        SpinJsonNode feFacilityObj = !newTsd.hasProp("fe_facility_id") || newTsd.prop("fe_facility_id") == null ? null : newTsd.prop("fe_facility_id");
         if (feFacilityObj.hasProp("id")) {
             Integer feFacilityId = feFacilityObj.prop("id").numberValue().intValue();
             objectNode.put("fe_facility_id", feFacilityId);
         }
 
-        Integer fe_height_susp_antenna = newTsd.prop("fe_height_susp_antenna").isNull() ? null : newTsd.prop("fe_height_susp_antenna").isString() ? Integer.parseInt(newTsd.prop("fe_height_susp_antenna").stringValue()) : newTsd.prop("fe_height_susp_antenna").numberValue().intValue();
+        Integer fe_height_susp_antenna = !newTsd.hasProp("fe_height_susp_antenna") || newTsd.prop("fe_height_susp_antenna").isNull() ? null : newTsd.prop("fe_height_susp_antenna").isString() ? Integer.parseInt(newTsd.prop("fe_height_susp_antenna").stringValue()) : newTsd.prop("fe_height_susp_antenna").numberValue().intValue();
         objectNode.put("fe_height_susp_antenna", fe_height_susp_antenna);
 
-        Integer fe_height_susp_antenna_protect = newTsd.prop("fe_height_susp_antenna_protect").isNull() ? null : newTsd.prop("fe_height_susp_antenna_protect").isString() ? Integer.parseInt(newTsd.prop("fe_height_susp_antenna_protect").stringValue()) : newTsd.prop("fe_height_susp_antenna_protect").numberValue().intValue();
+        Integer fe_height_susp_antenna_protect = !newTsd.hasProp("fe_height_susp_antenna_protect") || newTsd.prop("fe_height_susp_antenna_protect").isNull() ? null : newTsd.prop("fe_height_susp_antenna_protect").isString() ? Integer.parseInt(newTsd.prop("fe_height_susp_antenna_protect").stringValue()) : newTsd.prop("fe_height_susp_antenna_protect").numberValue().intValue();
         objectNode.put("fe_height_susp_antenna_protect", fe_height_susp_antenna_protect);
 
-        Integer fe_power_levels_rx = newTsd.prop("fe_power_levels_rx").isNull() ? null : newTsd.prop("fe_power_levels_rx").isString() ? Integer.parseInt(newTsd.prop("fe_power_levels_rx").stringValue()) : newTsd.prop("fe_power_levels_rx").numberValue().intValue();
+        Integer fe_power_levels_rx = !newTsd.hasProp("fe_power_levels_rx") || newTsd.prop("fe_power_levels_rx").isNull() ? null : newTsd.prop("fe_power_levels_rx").isString() ? Integer.parseInt(newTsd.prop("fe_power_levels_rx").stringValue()) : newTsd.prop("fe_power_levels_rx").numberValue().intValue();
         objectNode.put("fe_power_levels_rx", fe_power_levels_rx);
 
-        Integer fe_power_levels_rx_protect = newTsd.prop("fe_power_levels_rx_protect").isNull() ? null : newTsd.prop("fe_power_levels_rx_protect").isString() ? Integer.parseInt(newTsd.prop("fe_power_levels_rx_protect").stringValue()) : newTsd.prop("fe_power_levels_rx_protect").numberValue().intValue();
+        Integer fe_power_levels_rx_protect = !newTsd.hasProp("fe_power_levels_rx_protect") || newTsd.prop("fe_power_levels_rx_protect").isNull() ? null : newTsd.prop("fe_power_levels_rx_protect").isString() ? Integer.parseInt(newTsd.prop("fe_power_levels_rx_protect").stringValue()) : newTsd.prop("fe_power_levels_rx_protect").numberValue().intValue();
         objectNode.put("fe_power_levels_rx_protect", fe_power_levels_rx_protect);
 
-        Integer fe_power_levels_tx = newTsd.prop("fe_power_levels_tx").isNull() ? null : newTsd.prop("fe_power_levels_tx").isString() ? Integer.parseInt(newTsd.prop("fe_power_levels_tx").stringValue()) : newTsd.prop("fe_power_levels_tx").numberValue().intValue();
+        Integer fe_power_levels_tx = !newTsd.hasProp("fe_power_levels_tx") || newTsd.prop("fe_power_levels_tx").isNull() ? null : newTsd.prop("fe_power_levels_tx").isString() ? Integer.parseInt(newTsd.prop("fe_power_levels_tx").stringValue()) : newTsd.prop("fe_power_levels_tx").numberValue().intValue();
         objectNode.put("fe_power_levels_tx", fe_power_levels_tx);
 
-        Integer fe_power_levels_tx_protect = newTsd.prop("fe_power_levels_tx_protect").isNull() ? null : newTsd.prop("fe_power_levels_tx_protect").isString() ? Integer.parseInt(newTsd.prop("fe_power_levels_tx_protect").stringValue()) : newTsd.prop("fe_power_levels_tx_protect").numberValue().intValue();
+        Integer fe_power_levels_tx_protect = !newTsd.hasProp("fe_power_levels_tx_protect") || newTsd.prop("fe_power_levels_tx_protect").isNull() ? null : newTsd.prop("fe_power_levels_tx_protect").isString() ? Integer.parseInt(newTsd.prop("fe_power_levels_tx_protect").stringValue()) : newTsd.prop("fe_power_levels_tx_protect").numberValue().intValue();
         objectNode.put("fe_power_levels_tx_protect", fe_power_levels_tx_protect);
 
-        SpinJsonNode feRauSubbandObj = newTsd.prop("fe_rau_subband_id") == null ? null : newTsd.prop("fe_rau_subband_id");
+        SpinJsonNode feRauSubbandObj = !newTsd.hasProp("fe_rau_subband_id") || newTsd.prop("fe_rau_subband_id") == null ? null : newTsd.prop("fe_rau_subband_id");
         if (feRauSubbandObj.hasProp("id")) {
             Integer feRauSubbandId = feRauSubbandObj.prop("id").numberValue().intValue();
             ObjectNode fe_rau_subband_id = objectMapper.createObjectNode();
@@ -133,7 +133,7 @@ public class CreateNewTsd implements JavaDelegate {
             fe_rau_subband_id.put("id", feRauSubbandId);
         }
 
-        SpinJsonNode feRauSubbandProtectObj = newTsd.prop("fe_rau_subband_protect_id") == null ? null : newTsd.prop("fe_rau_subband_protect_id");
+        SpinJsonNode feRauSubbandProtectObj = !newTsd.hasProp("fe_rau_subband_protect_id") || newTsd.prop("fe_rau_subband_protect_id") == null ? null : newTsd.prop("fe_rau_subband_protect_id");
         if (feRauSubbandProtectObj.hasProp("id")) {
             Integer feRauSubbandProtectId = feRauSubbandProtectObj.prop("id").numberValue().intValue();
             ObjectNode fe_rau_subband_protect_id = objectMapper.createObjectNode();
@@ -142,16 +142,16 @@ public class CreateNewTsd implements JavaDelegate {
             fe_rau_subband_protect_id.put("id", feRauSubbandProtectId);
         }
 
-        String fe_terminalid = newTsd.prop("fe_terminalid").isNull() ? null : newTsd.prop("fe_terminalid").stringValue();
+        String fe_terminalid = !newTsd.hasProp("fe_terminalid") || newTsd.prop("fe_terminalid").isNull() ? null : newTsd.prop("fe_terminalid").stringValue();
         objectNode.put("fe_terminalid", fe_terminalid);
 
-        Integer fe_txrx_frequencies = newTsd.prop("fe_txrx_frequencies").isNull() ? null : newTsd.prop("fe_txrx_frequencies").isString() ? Integer.parseInt(newTsd.prop("fe_txrx_frequencies").stringValue()) : newTsd.prop("fe_txrx_frequencies").numberValue().intValue();
+        Integer fe_txrx_frequencies = !newTsd.hasProp("fe_txrx_frequencies") || newTsd.prop("fe_txrx_frequencies").isNull() ? null : newTsd.prop("fe_txrx_frequencies").isString() ? Integer.parseInt(newTsd.prop("fe_txrx_frequencies").stringValue()) : newTsd.prop("fe_txrx_frequencies").numberValue().intValue();
         objectNode.put("fe_txrx_frequencies", fe_txrx_frequencies);
 
-        Integer fe_txrx_frequencies_protect = newTsd.prop("fe_txrx_frequencies_protect").isNull() ? null : newTsd.prop("fe_txrx_frequencies_protect").isString() ? Integer.parseInt(newTsd.prop("fe_txrx_frequencies_protect").stringValue()) : newTsd.prop("fe_txrx_frequencies_protect").numberValue().intValue();
+        Integer fe_txrx_frequencies_protect = !newTsd.hasProp("fe_txrx_frequencies_protect") || newTsd.prop("fe_txrx_frequencies_protect").isNull() ? null : newTsd.prop("fe_txrx_frequencies_protect").isString() ? Integer.parseInt(newTsd.prop("fe_txrx_frequencies_protect").stringValue()) : newTsd.prop("fe_txrx_frequencies_protect").numberValue().intValue();
         objectNode.put("fe_txrx_frequencies_protect", fe_txrx_frequencies_protect);
 
-        SpinJsonNode linkTypeObj = newTsd.prop("link_type_id") == null ? null : newTsd.prop("link_type_id");
+        SpinJsonNode linkTypeObj = !newTsd.hasProp("link_type_id") || newTsd.prop("link_type_id") == null ? null : newTsd.prop("link_type_id");
         if (linkTypeObj.hasProp("id")) {
             Integer linkTypeId = linkTypeObj.prop("id").numberValue().intValue();
             ObjectNode link_type_id = objectMapper.createObjectNode();
@@ -161,13 +161,13 @@ public class CreateNewTsd implements JavaDelegate {
         }
 
         //ne
-        SpinJsonNode nearendObj = newTsd.prop("nearend_id") == null ? null : newTsd.prop("nearend_id");
+        SpinJsonNode nearendObj = !newTsd.hasProp("nearend_id") || newTsd.prop("nearend_id") == null ? null : newTsd.prop("nearend_id");
         if (nearendObj.hasProp("id")) {
             Integer nearendId = nearendObj.prop("id").numberValue().intValue();
             objectNode.put("nearend_id", nearendId);
         }
 
-        SpinJsonNode neAntennaDiametrObj = newTsd.prop("ne_antenna_diameter_id") == null ? null : newTsd.prop("ne_antenna_diameter_id");
+        SpinJsonNode neAntennaDiametrObj = !newTsd.hasProp("ne_antenna_diameter_id") || newTsd.prop("ne_antenna_diameter_id") == null ? null : newTsd.prop("ne_antenna_diameter_id");
         if (neAntennaDiametrObj.hasProp("id")) {
             Integer neAntennaDiameterId = neAntennaDiametrObj.prop("id").numberValue().intValue();
             ObjectNode ne_antenna_diameter_id = objectMapper.createObjectNode();
@@ -177,7 +177,7 @@ public class CreateNewTsd implements JavaDelegate {
         }
 
 
-        SpinJsonNode neAntennaDiametrProtectObj = newTsd.prop("ne_antenna_diameter_protect_id") == null ? null : newTsd.prop("ne_antenna_diameter_protect_id");
+        SpinJsonNode neAntennaDiametrProtectObj = !newTsd.hasProp("ne_antenna_diameter_protect_id") || newTsd.prop("ne_antenna_diameter_protect_id") == null ? null : newTsd.prop("ne_antenna_diameter_protect_id");
         if (neAntennaDiametrProtectObj.hasProp("id")) {
             Integer neAntennaDiametrProtectId = neAntennaDiametrProtectObj.prop("id").numberValue().intValue();
             ObjectNode ne_antenna_diameter_protect_id = objectMapper.createObjectNode();
@@ -187,37 +187,37 @@ public class CreateNewTsd implements JavaDelegate {
         }
 
 
-        Double ne_azimuth = newTsd.prop("ne_azimuth").isNull() ? null : newTsd.prop("ne_azimuth").isString() ? Double.parseDouble(newTsd.prop("ne_azimuth").stringValue()) : newTsd.prop("ne_azimuth").numberValue().doubleValue();
+        Double ne_azimuth = !newTsd.hasProp("ne_azimuth") || newTsd.prop("ne_azimuth").isNull() ? null : newTsd.prop("ne_azimuth").isString() ? Double.parseDouble(newTsd.prop("ne_azimuth").stringValue()) : newTsd.prop("ne_azimuth").numberValue().doubleValue();
         objectNode.put("ne_azimuth", ne_azimuth);
 
-        Boolean ne_different_address = newTsd.prop("ne_different_address").isNull() ? null : newTsd.prop("ne_different_address").boolValue();
+        Boolean ne_different_address = !newTsd.hasProp("ne_different_address") || newTsd.prop("ne_different_address").isNull() ? null : newTsd.prop("ne_different_address").boolValue();
         objectNode.put("ne_different_address", ne_different_address);
 
-        SpinJsonNode neFacilityObj = newTsd.prop("ne_facility_id") == null ? null : newTsd.prop("ne_facility_id");
+        SpinJsonNode neFacilityObj = newTsd.hasProp("ne_facility_id") || newTsd.prop("ne_facility_id") == null ? null : newTsd.prop("ne_facility_id");
         if (neFacilityObj.hasProp("id")) {
             Integer neFacilityId = neFacilityObj.prop("id").numberValue().intValue();
             objectNode.put("ne_facility_id", neFacilityId);
         }
 
-        Integer ne_height_susp_antenna = newTsd.prop("ne_height_susp_antenna").isNull() ? null : newTsd.prop("ne_height_susp_antenna").isString() ? Integer.parseInt(newTsd.prop("ne_height_susp_antenna").stringValue()) : newTsd.prop("ne_height_susp_antenna").numberValue().intValue();
+        Integer ne_height_susp_antenna = !newTsd.hasProp("ne_height_susp_antenna") || newTsd.prop("ne_height_susp_antenna").isNull() ? null : newTsd.prop("ne_height_susp_antenna").isString() ? Integer.parseInt(newTsd.prop("ne_height_susp_antenna").stringValue()) : newTsd.prop("ne_height_susp_antenna").numberValue().intValue();
         objectNode.put("ne_height_susp_antenna", ne_height_susp_antenna);
 
-        Integer ne_height_susp_antenna_protect = newTsd.prop("ne_height_susp_antenna_protect").isNull() ? null : newTsd.prop("ne_height_susp_antenna_protect").isString() ? Integer.parseInt(newTsd.prop("ne_height_susp_antenna_protect").stringValue()) : newTsd.prop("ne_height_susp_antenna_protect").numberValue().intValue();
+        Integer ne_height_susp_antenna_protect = !newTsd.hasProp("ne_height_susp_antenna_protect") || newTsd.prop("ne_height_susp_antenna_protect").isNull() ? null : newTsd.prop("ne_height_susp_antenna_protect").isString() ? Integer.parseInt(newTsd.prop("ne_height_susp_antenna_protect").stringValue()) : newTsd.prop("ne_height_susp_antenna_protect").numberValue().intValue();
         objectNode.put("ne_height_susp_antenna_protect", ne_height_susp_antenna_protect);
 
-        Integer ne_power_levels_rx = newTsd.prop("ne_power_levels_rx").isNull() ? null : newTsd.prop("ne_power_levels_rx").isString() ? Integer.parseInt(newTsd.prop("ne_power_levels_rx").stringValue()) : newTsd.prop("ne_power_levels_rx").numberValue().intValue();
+        Integer ne_power_levels_rx = !newTsd.hasProp("ne_power_levels_rx") || newTsd.prop("ne_power_levels_rx").isNull() ? null : newTsd.prop("ne_power_levels_rx").isString() ? Integer.parseInt(newTsd.prop("ne_power_levels_rx").stringValue()) : newTsd.prop("ne_power_levels_rx").numberValue().intValue();
         objectNode.put("ne_power_levels_rx", ne_power_levels_rx);
 
-        Integer ne_power_levels_rx_protect = newTsd.prop("ne_power_levels_rx_protect").isNull() ? null : newTsd.prop("ne_power_levels_rx_protect").isString() ? Integer.parseInt(newTsd.prop("ne_power_levels_rx_protect").stringValue()) : newTsd.prop("ne_power_levels_rx_protect").numberValue().intValue();
+        Integer ne_power_levels_rx_protect = !newTsd.hasProp("ne_power_levels_rx_protect") || newTsd.prop("ne_power_levels_rx_protect").isNull() ? null : newTsd.prop("ne_power_levels_rx_protect").isString() ? Integer.parseInt(newTsd.prop("ne_power_levels_rx_protect").stringValue()) : newTsd.prop("ne_power_levels_rx_protect").numberValue().intValue();
         objectNode.put("ne_power_levels_rx_protect", ne_power_levels_rx_protect);
 
-        Integer ne_power_levels_tx = newTsd.prop("ne_power_levels_tx").isNull() ? null : newTsd.prop("ne_power_levels_tx").isString() ? Integer.parseInt(newTsd.prop("ne_power_levels_tx").stringValue()) : newTsd.prop("ne_power_levels_tx").numberValue().intValue();
+        Integer ne_power_levels_tx = !newTsd.hasProp("ne_power_levels_tx") || newTsd.prop("ne_power_levels_tx").isNull() ? null : newTsd.prop("ne_power_levels_tx").isString() ? Integer.parseInt(newTsd.prop("ne_power_levels_tx").stringValue()) : newTsd.prop("ne_power_levels_tx").numberValue().intValue();
         objectNode.put("ne_power_levels_tx", ne_power_levels_tx);
 
-        Integer ne_power_levels_tx_protect = newTsd.prop("ne_power_levels_tx_protect").isNull() ? null : newTsd.prop("ne_power_levels_tx_protect").isString() ? Integer.parseInt(newTsd.prop("ne_power_levels_tx_protect").stringValue()) : newTsd.prop("ne_power_levels_tx_protect").numberValue().intValue();
+        Integer ne_power_levels_tx_protect = !newTsd.hasProp("ne_power_levels_tx_protect") || newTsd.prop("ne_power_levels_tx_protect").isNull() ? null : newTsd.prop("ne_power_levels_tx_protect").isString() ? Integer.parseInt(newTsd.prop("ne_power_levels_tx_protect").stringValue()) : newTsd.prop("ne_power_levels_tx_protect").numberValue().intValue();
         objectNode.put("ne_power_levels_tx_protect", ne_power_levels_tx_protect);
 
-        SpinJsonNode neRauSubbandObj = newTsd.prop("ne_rau_subband_id") == null ? null : newTsd.prop("ne_rau_subband_id");
+        SpinJsonNode neRauSubbandObj = !newTsd.hasProp("ne_rau_subband_id") || newTsd.prop("ne_rau_subband_id") == null ? null : newTsd.prop("ne_rau_subband_id");
         if (neRauSubbandObj.hasProp("id")) {
             Integer neRauSubbandId = neRauSubbandObj.prop("id").numberValue().intValue();
             ObjectNode ne_rau_subband_id = objectMapper.createObjectNode();
@@ -226,7 +226,7 @@ public class CreateNewTsd implements JavaDelegate {
             ne_rau_subband_id.put("id", neRauSubbandId);
         }
 
-        SpinJsonNode neRauSubbandProtectObj = newTsd.prop("ne_rau_subband_protect_id") == null ? null : newTsd.prop("ne_rau_subband_protect_id");
+        SpinJsonNode neRauSubbandProtectObj = !newTsd.hasProp("ne_rau_subband_protect_id") || newTsd.prop("ne_rau_subband_protect_id") == null ? null : newTsd.prop("ne_rau_subband_protect_id");
         if (neRauSubbandProtectObj.hasProp("id")) {
             Integer neRauSubbandProtectId = neRauSubbandProtectObj.prop("id").numberValue().intValue();
             ObjectNode ne_rau_subband_protect_id = objectMapper.createObjectNode();
@@ -235,22 +235,22 @@ public class CreateNewTsd implements JavaDelegate {
             ne_rau_subband_protect_id.put("id", neRauSubbandProtectId);
         }
 
-        String ne_terminalid = newTsd.prop("ne_terminalid").isNull() ? null : newTsd.prop("ne_terminalid").stringValue();
+        String ne_terminalid = !newTsd.hasProp("ne_terminalid") || newTsd.prop("ne_terminalid").isNull() ? null : newTsd.prop("ne_terminalid").stringValue();
         objectNode.put("ne_terminalid", ne_terminalid);
 
-        Integer ne_txrx_frequencies = newTsd.prop("ne_txrx_frequencies").isNull() ? null : newTsd.prop("ne_txrx_frequencies").isString() ? Integer.parseInt(newTsd.prop("ne_txrx_frequencies").stringValue()) : newTsd.prop("ne_txrx_frequencies").numberValue().intValue();
+        Integer ne_txrx_frequencies = !newTsd.hasProp("ne_txrx_frequencies") || newTsd.prop("ne_txrx_frequencies").isNull() ? null : newTsd.prop("ne_txrx_frequencies").isString() ? Integer.parseInt(newTsd.prop("ne_txrx_frequencies").stringValue()) : newTsd.prop("ne_txrx_frequencies").numberValue().intValue();
         objectNode.put("ne_txrx_frequencies", ne_txrx_frequencies);
 
-        Integer ne_txrx_frequencies_protect = newTsd.prop("ne_txrx_frequencies_protect").isNull() ? null : newTsd.prop("ne_txrx_frequencies_protect").isString() ? Integer.parseInt(newTsd.prop("ne_txrx_frequencies_protect").stringValue()) : newTsd.prop("ne_txrx_frequencies_protect").numberValue().intValue();
+        Integer ne_txrx_frequencies_protect = !newTsd.hasProp("ne_txrx_frequencies_protect") || newTsd.prop("ne_txrx_frequencies_protect").isNull() ? null : newTsd.prop("ne_txrx_frequencies_protect").isString() ? Integer.parseInt(newTsd.prop("ne_txrx_frequencies_protect").stringValue()) : newTsd.prop("ne_txrx_frequencies_protect").numberValue().intValue();
         objectNode.put("ne_txrx_frequencies_protect", ne_txrx_frequencies_protect);
 
-        Integer nxe1 = newTsd.prop("nxe1").isNull() ? null : newTsd.prop("nxe1").isString() ? Integer.parseInt(newTsd.prop("nxe1").stringValue()) : newTsd.prop("nxe1").numberValue().intValue();
+        Integer nxe1 = !newTsd.hasProp("nxe1") || newTsd.prop("nxe1").isNull() ? null : newTsd.prop("nxe1").isString() ? Integer.parseInt(newTsd.prop("nxe1").stringValue()) : newTsd.prop("nxe1").numberValue().intValue();
         objectNode.put("nxe1", nxe1);
 
-        Double path_distance = newTsd.prop("path_distance") == null ? null : newTsd.prop("path_distance").isString() ? Double.parseDouble(newTsd.prop("path_distance").stringValue()) : newTsd.prop("path_distance").numberValue().doubleValue();
+        Double path_distance = !newTsd.hasProp("path_distance") || newTsd.prop("path_distance") == null ? null : newTsd.prop("path_distance").isString() ? Double.parseDouble(newTsd.prop("path_distance").stringValue()) : newTsd.prop("path_distance").numberValue().doubleValue();
         objectNode.put("path_distance", path_distance);
 
-        SpinJsonNode polarizationObj = newTsd.prop("polarization_id") == null ? null : newTsd.prop("polarization_id");
+        SpinJsonNode polarizationObj = !newTsd.hasProp("polarization_id") || newTsd.prop("polarization_id") == null ? null : newTsd.prop("polarization_id");
         if (polarizationObj.hasProp("id")) {
             Integer polarizationId = polarizationObj.prop("id").numberValue().intValue();
             ObjectNode polarization_id = objectMapper.createObjectNode();
@@ -259,7 +259,7 @@ public class CreateNewTsd implements JavaDelegate {
             polarization_id.put("id", polarizationId);
         }
 
-        SpinJsonNode protectionModeObj = newTsd.prop("protection_mode_id") == null ? null : newTsd.prop("protection_mode_id");
+        SpinJsonNode protectionModeObj = !newTsd.hasProp("protection_mode_id") || newTsd.prop("protection_mode_id") == null ? null : newTsd.prop("protection_mode_id");
         if (protectionModeObj.hasProp("id")) {
             Integer protectionModeId = protectionModeObj.prop("id").numberValue().intValue();
             ObjectNode protection_mode_id = objectMapper.createObjectNode();
