@@ -160,6 +160,8 @@ public class CreateCandidate implements JavaDelegate {
                     String cn_rbs_location = candidate != null && candidate.hasProp("rbsLocation") && candidate.prop("rbsLocation") != null && candidate.prop("rbsLocation").hasProp("id") && candidate.prop("rbsLocation").prop("id") != null ? (candidate.prop("rbsLocation").prop("id").value().toString()) : null;
                     String cn_constructionType = candidate != null ? (candidate.hasProp("constructionType") && candidate.prop("constructionType").hasProp("id") ? candidate.prop("constructionType").prop("id").value().toString() : "0") : null;
 
+                    String cn_assigned_user = candidate != null ? (candidate.hasProp("constructionType") && candidate.prop("assignedUser").value().toString() : "") : null;
+
                     Number cn_height_constr = candidate != null && candidate.hasProp("cn_height_constr") ? Integer.parseInt(candidate.prop("cn_height_constr").value().toString()) : 0;
                     Number cn_altitude = candidate != null && candidate.hasProp("cn_altitude") ? Integer.parseInt(candidate.prop("cn_altitude").value().toString()) : 0;
                     SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXX"); //2020-01-02T18:00:00.000Z
@@ -464,10 +466,10 @@ public class CreateCandidate implements JavaDelegate {
                     newArtefactCurrentStatePreparedStatement.setLong(i++, 0); // TSD_EXIST first insert value mast be = 1
                     newArtefactCurrentStatePreparedStatement.setLong(i++, 1); // CAND_STATUS first insert value mast be = 1
 
-                    newArtefactCurrentStatePreparedStatement.setString(i++, starter); // CAND_STATUS_PERSON (current user) // current or start ?????? (who complete create candidate task?)
+                    newArtefactCurrentStatePreparedStatement.setString(i++, cn_assigned_user); // CAND_STATUS_PERSON (current user) // current or start ?????? (who complete create candidate task?)
 //                    newArtefactCurrentStatePreparedStatement.setDate(i++, new java.sql.Date(new Date().getTime())); // CAND_STATUS_DATE
                     newArtefactCurrentStatePreparedStatement.setLong(i++, 1); // RR_STATUS first insert value mast be = 1
-                    newArtefactCurrentStatePreparedStatement.setString(i++, starter); // RR_STATUS_PERSON (current user)
+                    newArtefactCurrentStatePreparedStatement.setString(i++, cn_assigned_user); // RR_STATUS_PERSON (current user)
 //                    newArtefactCurrentStatePreparedStatement.setDate(i++, new java.sql.Date(new Date().getTime())); // RR_STATUS_DATE
                     newArtefactCurrentStatePreparedStatement.setString(i++, "E " + cn_longitude.replace(".", ",")); // LONGITUDE ex: E 80 50 42,4
                     newArtefactCurrentStatePreparedStatement.setString(i++, "N " + cn_latitude.replace(".", ",")); // LATITUDE ex: N 48 48 05,6
@@ -512,7 +514,7 @@ public class CreateCandidate implements JavaDelegate {
                     newArtefactCurrentStatePreparedStatement.setString(i++, contact_person); // CONTACT_PERSON "Мария Николаевна Специалист акимата 8 701 479 19 86"
                     newArtefactCurrentStatePreparedStatement.setString(i++, renterCompany != null ? ((renterCompany.hasProp("contactInfo") && !renterCompany.prop("contactInfo").equals(null) ? renterCompany.prop("contactInfo").value().toString() : "")) : null); // COMMENTS (cn_contact_information)
 //                    newArtefactCurrentStatePreparedStatement.setDate(i++, new java.sql.Date(new Date().getTime())); // INSERT_DATE
-                    newArtefactCurrentStatePreparedStatement.setString(i++, starter); // INSERT_PERSON
+                    newArtefactCurrentStatePreparedStatement.setString(i++, cn_assigned_user); // INSERT_PERSON
 //                    newArtefactCurrentStatePreparedStatement.setLong(i++, 7); // GS_STATUS
                     newArtefactCurrentStatePreparedStatement.setNull(i++, Types.BIGINT); //GS_STATUS
                     if (trType != null && ( trType.equals("Provider") || trType.equals("Satellite"))) {
@@ -647,7 +649,7 @@ public class CreateCandidate implements JavaDelegate {
                     }
                     newArtefactRRPreparedStatement.setString(i++, cn_comments); //COMMENTS
 //                    newArtefactRRPreparedStatement.setDate(i++, new java.sql.Date(new Date().getTime())); // DATEOFCREATION
-                    newArtefactRRPreparedStatement.setString(i++, cn_comments); //CREATOR
+                    newArtefactRRPreparedStatement.setString(i++, cn_assigned_user); //CREATOR
                     log.info("newArtefactRRPreparedStatement.executeUpdate()");
                     newArtefactRRPreparedStatement.executeUpdate();
                     log.info("successfull insert to database!");
