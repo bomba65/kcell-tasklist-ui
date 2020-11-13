@@ -412,7 +412,6 @@ public class CreateCandidate implements JavaDelegate {
                     //insert new Candidate (in ARTEFACT_CURRENT_STATE table)
                     String insertNewArtefactCurrentState = "INSERT INTO ARTEFACT_CURRENT_STATE (ARTEFACTID,\n" +
                         "                                                        NCPID,\n" +
-                        "                                                        FE_STATUS,\n" +
                         "                                                        EQUIPMENT_TYPE,\n" +
                         "                                                        RSD_EXIST,\n" +
                         "                                                        TSD_EXIST,\n" +
@@ -439,7 +438,7 @@ public class CreateCandidate implements JavaDelegate {
                         "                                                        GS_STATUS,\n" +
                         "                                                        POWER_STATUS,\n" +
                         "                                                        FE_STATUS,\n" +
-                        "                                                        PL_COMMENTS) VALUES (?, ?, ?, ?, ?, ?, SYSDATE, ?, ?, SYSDATE, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, SYSDATE, ?, ?, 0, 0, ?)";
+                        "                                                        PL_COMMENTS) VALUES (?, ?, ?, ?, ?, ?, ?, SYSDATE, ?, ?, SYSDATE, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, SYSDATE, ?, ?, 0, ?, ?)";
                     PreparedStatement newArtefactCurrentStatePreparedStatement = udbConnect.prepareStatement(insertNewArtefactCurrentState);
 
                     i = 1;
@@ -452,12 +451,6 @@ public class CreateCandidate implements JavaDelegate {
                     }
                     if (ncpIdInt != null) {
                         newArtefactCurrentStatePreparedStatement.setLong(i++, ncpCreatedId); //ncp_id (old value: ncpIdInt)
-                    } else {
-                        newArtefactCurrentStatePreparedStatement.setNull(i++, Types.BIGINT);
-
-                    }
-                    if (trType != null && ( trType.equals("Provider") || trType.equals("Satellite"))) {
-                        newArtefactCurrentStatePreparedStatement.setLong(i++, 3); //FE_STATUS
                     } else {
                         newArtefactCurrentStatePreparedStatement.setNull(i++, Types.BIGINT);
 
@@ -522,6 +515,11 @@ public class CreateCandidate implements JavaDelegate {
                     newArtefactCurrentStatePreparedStatement.setString(i++, starter); // INSERT_PERSON
 //                    newArtefactCurrentStatePreparedStatement.setLong(i++, 7); // GS_STATUS
                     newArtefactCurrentStatePreparedStatement.setNull(i++, Types.BIGINT); //GS_STATUS
+                    if (trType != null && ( trType.equals("Provider") || trType.equals("Satellite"))) {
+                        newArtefactCurrentStatePreparedStatement.setLong(i++, 3); //FE_STATUS
+                    } else {
+                        newArtefactCurrentStatePreparedStatement.setNull(i++, Types.BIGINT);
+                    }
                     newArtefactCurrentStatePreparedStatement.setString(i++, cn_comments); // PL_COMMENTS (cn_comments)
                     log.info("newArtefactCurrentStatePreparedStatement.executeUpdate()");
                     newArtefactCurrentStatePreparedStatement.executeUpdate();
