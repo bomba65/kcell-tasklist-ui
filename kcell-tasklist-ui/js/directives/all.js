@@ -2409,6 +2409,9 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                         if(scope.filter.leasingProject){
                             filter.variables.push({"name": "projectForSearch","operator": "eq","value": scope.filter.leasingProject});
                         }
+                        if(scope.filter.transmissionType){
+                            filter.variables.push({"name": "transmissionTypeForSearch","operator": "eq","value": scope.filter.transmissionType});
+                        }
                         if(scope.filter.leasingInstallationStatus){
                             filter.variables.push({"name": "installationStatus","operator": "eq","value": scope.filter.leasingInstallationStatus});
                         }
