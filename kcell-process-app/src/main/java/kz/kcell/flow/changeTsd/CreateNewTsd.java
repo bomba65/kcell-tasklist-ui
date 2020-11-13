@@ -53,7 +53,7 @@ public class CreateNewTsd implements JavaDelegate {
         String tsdId = String.valueOf(newTsd.prop("id"));
 
         SpinJsonNode capacityObj = !newTsd.hasProp("capacity_id") || newTsd.prop("capacity_id") == null ? null : newTsd.prop("capacity_id");
-        if (capacityObj.hasProp("id")) {
+        if (capacityObj!=null && capacityObj.hasProp("id")) {
             Integer capacityId = capacityObj.prop("id").numberValue().intValue();
             ObjectNode capacity_id = objectMapper.createObjectNode();
             objectNode.set("capacity_id", capacity_id);
@@ -71,13 +71,13 @@ public class CreateNewTsd implements JavaDelegate {
 
         // fe
         SpinJsonNode farendObj = !newTsd.hasProp("farend_id") || newTsd.prop("farend_id") == null ? null : newTsd.prop("farend_id");
-        if (farendObj.hasProp("id")){
+        if (farendObj!=null && farendObj.hasProp("id")){
             Integer farendId = farendObj.prop("id").numberValue().intValue();
             objectNode.put("farend_id", farendId);
         }
 
         SpinJsonNode feAntennaDiametrObj = !newTsd.hasProp("fe_antenna_diameter_id") || newTsd.prop("fe_antenna_diameter_id") == null ? null : newTsd.prop("fe_antenna_diameter_id");
-        if (feAntennaDiametrObj.hasProp("id")) {
+        if (feAntennaDiametrObj!=null && feAntennaDiametrObj.hasProp("id")) {
             Integer feAntennaDiameterId = feAntennaDiametrObj.prop("id").numberValue().intValue();
             ObjectNode fe_antenna_diameter_id = objectMapper.createObjectNode();
             objectNode.set("fe_antenna_diameter_id", fe_antenna_diameter_id);
@@ -86,7 +86,7 @@ public class CreateNewTsd implements JavaDelegate {
         }
 
         SpinJsonNode feAntennaDiametrProtectObj = !newTsd.hasProp("fe_antenna_diameter_protect_id") || newTsd.prop("fe_antenna_diameter_protect_id") == null ? null : newTsd.prop("fe_antenna_diameter_protect_id");
-        if (feAntennaDiametrProtectObj.hasProp("id")) {
+        if (feAntennaDiametrProtectObj!=null && feAntennaDiametrProtectObj.hasProp("id")) {
             Integer feAntennaDiametrProtectId = feAntennaDiametrProtectObj.prop("id").numberValue().intValue();
             ObjectNode fe_antenna_diameter_protect_id = objectMapper.createObjectNode();
             objectNode.set("fe_antenna_diameter_protect_id", fe_antenna_diameter_protect_id);
@@ -101,7 +101,7 @@ public class CreateNewTsd implements JavaDelegate {
         objectNode.put("fe_different_address", fe_different_address);
 
         SpinJsonNode feFacilityObj = !newTsd.hasProp("fe_facility_id") || newTsd.prop("fe_facility_id") == null ? null : newTsd.prop("fe_facility_id");
-        if (feFacilityObj.hasProp("id")) {
+        if (feFacilityObj!=null && feFacilityObj.hasProp("id")) {
             Integer feFacilityId = feFacilityObj.prop("id").numberValue().intValue();
             objectNode.put("fe_facility_id", feFacilityId);
         }
@@ -125,7 +125,7 @@ public class CreateNewTsd implements JavaDelegate {
         objectNode.put("fe_power_levels_tx_protect", fe_power_levels_tx_protect);
 
         SpinJsonNode feRauSubbandObj = !newTsd.hasProp("fe_rau_subband_id") || newTsd.prop("fe_rau_subband_id") == null ? null : newTsd.prop("fe_rau_subband_id");
-        if (feRauSubbandObj.hasProp("id")) {
+        if (feRauSubbandObj!=null && feRauSubbandObj.hasProp("id")) {
             Integer feRauSubbandId = feRauSubbandObj.prop("id").numberValue().intValue();
             ObjectNode fe_rau_subband_id = objectMapper.createObjectNode();
             objectNode.set("fe_rau_subband_id", fe_rau_subband_id);
@@ -134,7 +134,7 @@ public class CreateNewTsd implements JavaDelegate {
         }
 
         SpinJsonNode feRauSubbandProtectObj = !newTsd.hasProp("fe_rau_subband_protect_id") || newTsd.prop("fe_rau_subband_protect_id") == null ? null : newTsd.prop("fe_rau_subband_protect_id");
-        if (feRauSubbandProtectObj.hasProp("id")) {
+        if (feRauSubbandProtectObj!=null && feRauSubbandProtectObj.hasProp("id")) {
             Integer feRauSubbandProtectId = feRauSubbandProtectObj.prop("id").numberValue().intValue();
             ObjectNode fe_rau_subband_protect_id = objectMapper.createObjectNode();
             objectNode.set("fe_rau_subband_protect_id", fe_rau_subband_protect_id);
@@ -152,7 +152,7 @@ public class CreateNewTsd implements JavaDelegate {
         objectNode.put("fe_txrx_frequencies_protect", fe_txrx_frequencies_protect);
 
         SpinJsonNode linkTypeObj = !newTsd.hasProp("link_type_id") || newTsd.prop("link_type_id") == null ? null : newTsd.prop("link_type_id");
-        if (linkTypeObj.hasProp("id")) {
+        if (linkTypeObj!=null && linkTypeObj.hasProp("id")) {
             Integer linkTypeId = linkTypeObj.prop("id").numberValue().intValue();
             ObjectNode link_type_id = objectMapper.createObjectNode();
             objectNode.set("link_type_id", link_type_id);
@@ -162,13 +162,13 @@ public class CreateNewTsd implements JavaDelegate {
 
         //ne
         SpinJsonNode nearendObj = !newTsd.hasProp("nearend_id") || newTsd.prop("nearend_id") == null ? null : newTsd.prop("nearend_id");
-        if (nearendObj.hasProp("id")) {
+        if (nearendObj!=null && nearendObj.hasProp("id")) {
             Integer nearendId = nearendObj.prop("id").numberValue().intValue();
             objectNode.put("nearend_id", nearendId);
         }
 
         SpinJsonNode neAntennaDiametrObj = !newTsd.hasProp("ne_antenna_diameter_id") || newTsd.prop("ne_antenna_diameter_id") == null ? null : newTsd.prop("ne_antenna_diameter_id");
-        if (neAntennaDiametrObj.hasProp("id")) {
+        if (neAntennaDiametrObj!=null && neAntennaDiametrObj.hasProp("id")) {
             Integer neAntennaDiameterId = neAntennaDiametrObj.prop("id").numberValue().intValue();
             ObjectNode ne_antenna_diameter_id = objectMapper.createObjectNode();
             objectNode.set("ne_antenna_diameter_id", ne_antenna_diameter_id);
@@ -178,7 +178,7 @@ public class CreateNewTsd implements JavaDelegate {
 
 
         SpinJsonNode neAntennaDiametrProtectObj = !newTsd.hasProp("ne_antenna_diameter_protect_id") || newTsd.prop("ne_antenna_diameter_protect_id") == null ? null : newTsd.prop("ne_antenna_diameter_protect_id");
-        if (neAntennaDiametrProtectObj.hasProp("id")) {
+        if (neAntennaDiametrProtectObj!=null && neAntennaDiametrProtectObj.hasProp("id")) {
             Integer neAntennaDiametrProtectId = neAntennaDiametrProtectObj.prop("id").numberValue().intValue();
             ObjectNode ne_antenna_diameter_protect_id = objectMapper.createObjectNode();
             objectNode.set("ne_antenna_diameter_protect_id", ne_antenna_diameter_protect_id);
@@ -193,8 +193,8 @@ public class CreateNewTsd implements JavaDelegate {
         Boolean ne_different_address = !newTsd.hasProp("ne_different_address") || newTsd.prop("ne_different_address").isNull() ? null : newTsd.prop("ne_different_address").boolValue();
         objectNode.put("ne_different_address", ne_different_address);
 
-        SpinJsonNode neFacilityObj = newTsd.hasProp("ne_facility_id") || newTsd.prop("ne_facility_id") == null ? null : newTsd.prop("ne_facility_id");
-        if (neFacilityObj.hasProp("id")) {
+        SpinJsonNode neFacilityObj = !newTsd.hasProp("ne_facility_id") || newTsd.prop("ne_facility_id") == null ? null : newTsd.prop("ne_facility_id");
+        if (neFacilityObj!=null && neFacilityObj.hasProp("id")) {
             Integer neFacilityId = neFacilityObj.prop("id").numberValue().intValue();
             objectNode.put("ne_facility_id", neFacilityId);
         }
@@ -218,7 +218,7 @@ public class CreateNewTsd implements JavaDelegate {
         objectNode.put("ne_power_levels_tx_protect", ne_power_levels_tx_protect);
 
         SpinJsonNode neRauSubbandObj = !newTsd.hasProp("ne_rau_subband_id") || newTsd.prop("ne_rau_subband_id") == null ? null : newTsd.prop("ne_rau_subband_id");
-        if (neRauSubbandObj.hasProp("id")) {
+        if (neRauSubbandObj!=null && neRauSubbandObj.hasProp("id")) {
             Integer neRauSubbandId = neRauSubbandObj.prop("id").numberValue().intValue();
             ObjectNode ne_rau_subband_id = objectMapper.createObjectNode();
             objectNode.set("ne_rau_subband_id", ne_rau_subband_id);
@@ -227,7 +227,7 @@ public class CreateNewTsd implements JavaDelegate {
         }
 
         SpinJsonNode neRauSubbandProtectObj = !newTsd.hasProp("ne_rau_subband_protect_id") || newTsd.prop("ne_rau_subband_protect_id") == null ? null : newTsd.prop("ne_rau_subband_protect_id");
-        if (neRauSubbandProtectObj.hasProp("id")) {
+        if (neRauSubbandProtectObj!=null && neRauSubbandProtectObj.hasProp("id")) {
             Integer neRauSubbandProtectId = neRauSubbandProtectObj.prop("id").numberValue().intValue();
             ObjectNode ne_rau_subband_protect_id = objectMapper.createObjectNode();
             objectNode.set("ne_rau_subband_protect_id", ne_rau_subband_protect_id);
@@ -251,7 +251,7 @@ public class CreateNewTsd implements JavaDelegate {
         objectNode.put("path_distance", path_distance);
 
         SpinJsonNode polarizationObj = !newTsd.hasProp("polarization_id") || newTsd.prop("polarization_id") == null ? null : newTsd.prop("polarization_id");
-        if (polarizationObj.hasProp("id")) {
+        if (polarizationObj!=null && polarizationObj.hasProp("id")) {
             Integer polarizationId = polarizationObj.prop("id").numberValue().intValue();
             ObjectNode polarization_id = objectMapper.createObjectNode();
             objectNode.set("polarization_id", polarization_id);
@@ -260,7 +260,7 @@ public class CreateNewTsd implements JavaDelegate {
         }
 
         SpinJsonNode protectionModeObj = !newTsd.hasProp("protection_mode_id") || newTsd.prop("protection_mode_id") == null ? null : newTsd.prop("protection_mode_id");
-        if (protectionModeObj.hasProp("id")) {
+        if (protectionModeObj!=null && protectionModeObj.hasProp("id")) {
             Integer protectionModeId = protectionModeObj.prop("id").numberValue().intValue();
             ObjectNode protection_mode_id = objectMapper.createObjectNode();
             objectNode.set("protection_mode_id", protection_mode_id);
