@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" xmlns:bioc="http://bpmn.io/schema/bpmn/biocolor/1.0" id="Definitions_1" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="4.2.0">
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" xmlns:bioc="http://bpmn.io/schema/bpmn/biocolor/1.0" id="Definitions_1" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="4.0.0">
   <bpmn:process id="Revision" name="Revision" isExecutable="true">
+    <bpmn:documentation>Approve materials by Center Rollout Group</bpmn:documentation>
     <bpmn:subProcess id="SubProcess_0cwj4g6" name="Revision Leasing Procedures">
       <bpmn:incoming>SequenceFlow_1d23qig</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_17n684j</bpmn:outgoing>
@@ -161,7 +162,7 @@
       </bpmn:sequenceFlow>
       <bpmn:sequenceFlow id="SequenceFlow_1uudu22" sourceRef="attach_material_list_contractor" targetRef="exclgw_ml_need_to_modify" />
       <bpmn:sequenceFlow id="SequenceFlow_1y9us7r" name="retun for correction" sourceRef="exclgw_ml_approved_center" targetRef="exclgw_ml_approve_return">
-        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${approveMaterialsListByCenterTaskResult =='return' || (approveMaterialsGroupList.elements().size() &gt; 0 &amp;&amp; approveMaterialsListResult == 'return')}</bpmn:conditionExpression>
+        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${approveMaterialsListByCenterTaskResult =='return' || (execution.hasVariable('approveMaterialsGroupList') &amp;&amp; approveMaterialsGroupList.elements().size() &gt; 0 &amp;&amp; approveMaterialsListResult == 'return')}</bpmn:conditionExpression>
       </bpmn:sequenceFlow>
       <bpmn:sequenceFlow id="SequenceFlow_19vvor0" sourceRef="approve_material_list_region" targetRef="exclgw_ml_approved_re" />
       <bpmn:sequenceFlow id="SequenceFlow_0uczqhk" name="approved" sourceRef="exclgw_ml_approved_re" targetRef="exclgw_ml_inhouse_select_end">
@@ -169,7 +170,7 @@
       </bpmn:sequenceFlow>
       <bpmn:sequenceFlow id="SequenceFlow_1s0pti2" sourceRef="approve_material_list_center" targetRef="exclgw_ml_approved_center" />
       <bpmn:sequenceFlow id="SequenceFlow_18hclu9" name="approved" sourceRef="exclgw_ml_approved_center" targetRef="exclgw_ml_rollout_select">
-        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${approveMaterialsListByCenterTaskResult =='approved' &amp;&amp; (approveMaterialsGroupList.elements().size() == 0 || approveMaterialsListResult == 'approved')}</bpmn:conditionExpression>
+        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${approveMaterialsListByCenterTaskResult =='approved' &amp;&amp; (!execution.hasVariable('approveMaterialsGroupList') || approveMaterialsGroupList.elements().size() == 0 || approveMaterialsListResult == 'approved')}</bpmn:conditionExpression>
       </bpmn:sequenceFlow>
       <bpmn:startEvent id="startevt_ml_list_prep">
         <bpmn:outgoing>SequenceFlow_1sjo7n5</bpmn:outgoing>
@@ -295,7 +296,7 @@
       <bpmn:sequenceFlow id="SequenceFlow_130l6if" sourceRef="ExclusiveGateway_14fitax" targetRef="approve_material_list_center" />
       <bpmn:sequenceFlow id="SequenceFlow_0plpgx5" sourceRef="approve_material_list_center1" targetRef="ExclusiveGateway_14fitax" />
       <bpmn:sequenceFlow id="SequenceFlow_0uxv5ol" name="approval of other groups is not required" sourceRef="ExclusiveGateway_14fitax" targetRef="exclgw_ml_approved_center">
-        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${approveMaterialsGroupList.elements().size() == 0}</bpmn:conditionExpression>
+        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${!execution.hasVariable('approveMaterialsGroupList') || approveMaterialsGroupList.elements().size() == 0}</bpmn:conditionExpression>
       </bpmn:sequenceFlow>
       <bpmn:exclusiveGateway id="exclgw_ml_approve_tnu_region">
         <bpmn:incoming>Flow_17d4mm3</bpmn:incoming>
@@ -303,7 +304,7 @@
         <bpmn:outgoing>SequenceFlow_1fagywt</bpmn:outgoing>
       </bpmn:exclusiveGateway>
       <bpmn:sequenceFlow id="SequenceFlow_0v9u1c3" sourceRef="exclgw_ml_approve_tnu_region" targetRef="approve_material_list_tnu_region">
-        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">#{regionTransmissionCheckRequired == 'Yes'}</bpmn:conditionExpression>
+        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">#{execution.hasVariable('regionTransmissionCheckRequired') &amp;&amp; regionTransmissionCheckRequired == 'Yes'}</bpmn:conditionExpression>
       </bpmn:sequenceFlow>
       <bpmn:exclusiveGateway id="exclgw_ml_approve_tnu_region1">
         <bpmn:incoming>SequenceFlow_01c6rb1</bpmn:incoming>
@@ -317,7 +318,7 @@
         <bpmn:outgoing>SequenceFlow_0hinm4x</bpmn:outgoing>
       </bpmn:exclusiveGateway>
       <bpmn:sequenceFlow id="SequenceFlow_1fagywt" sourceRef="exclgw_ml_approve_tnu_region" targetRef="exclgw_ml_approve_tnu_region2">
-        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">#{regionTransmissionCheckRequired == 'No'}</bpmn:conditionExpression>
+        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">#{!execution.hasVariable('regionTransmissionCheckRequired') || regionTransmissionCheckRequired == 'No'}</bpmn:conditionExpression>
       </bpmn:sequenceFlow>
       <bpmn:sequenceFlow id="SequenceFlow_0hinm4x" sourceRef="exclgw_ml_approve_tnu_region2" targetRef="approve_material_list_center1" />
       <bpmn:sequenceFlow id="SequenceFlow_01c6rb1" sourceRef="approve_material_list_tnu_region" targetRef="exclgw_ml_approve_tnu_region1" />
@@ -374,9 +375,9 @@
         <bpmn:outgoing>Flow_01xy4sa</bpmn:outgoing>
       </bpmn:exclusiveGateway>
       <bpmn:sequenceFlow id="Flow_1920as2" sourceRef="exclgw_ml_rollout_select" targetRef="Gateway_0rjo8rp">
-        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${true}</bpmn:conditionExpression>
+        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">#{!execution.hasVariable('needAdditionalApproveByCenterRollout') || needAdditionalApproveByCenterRollout == false}</bpmn:conditionExpression>
       </bpmn:sequenceFlow>
-      <bpmn:userTask id="check_ml_rollout" name="Check by Center Rollout Group">
+      <bpmn:userTask id="check_ml_rollout" name="Check by Center Rollout Group" camunda:formKey="embedded:app:forms/revision/approvedMaterialByCenterRolloutGroup.html" camunda:candidateGroups="hq_rollout_unit_revision">
         <bpmn:incoming>Flow_01xy4sa</bpmn:incoming>
         <bpmn:outgoing>Flow_0hdzkyp</bpmn:outgoing>
       </bpmn:userTask>
@@ -392,7 +393,7 @@
       </bpmn:exclusiveGateway>
       <bpmn:sequenceFlow id="Flow_08cnes0" sourceRef="Gateway_0rjo8rp" targetRef="exclgw_return_tr" />
       <bpmn:sequenceFlow id="Flow_01xy4sa" sourceRef="exclgw_ml_rollout_select" targetRef="check_ml_rollout">
-        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${false}</bpmn:conditionExpression>
+        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">#{execution.hasVariable('needAdditionalApproveByCenterRollout') &amp;&amp; needAdditionalApproveByCenterRollout == true}</bpmn:conditionExpression>
       </bpmn:sequenceFlow>
       <bpmn:sequenceFlow id="Flow_0hdzkyp" sourceRef="check_ml_rollout" targetRef="exclgw_ml_rollout_return" />
       <bpmn:sequenceFlow id="Flow_1rcyux8" sourceRef="exclgw_ml_rollout_return" targetRef="Gateway_0rjo8rp">
@@ -415,7 +416,7 @@
         <bpmn:outgoing>Flow_0yfaz0d</bpmn:outgoing>
       </bpmn:exclusiveGateway>
       <bpmn:sequenceFlow id="Flow_17ckcm2" sourceRef="exclgw_tr_inhouse_select" targetRef="upload_tr_contractor">
-        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${true}</bpmn:conditionExpression>
+        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${false}</bpmn:conditionExpression>
       </bpmn:sequenceFlow>
       <bpmn:exclusiveGateway id="exclgw_tr_approve_return">
         <bpmn:incoming>SequenceFlow_01wqtcl</bpmn:incoming>
@@ -428,12 +429,16 @@
       <bpmn:sequenceFlow id="Flow_01kiz25" sourceRef="exclgw_tr_approve_return" targetRef="exclgw_return_tr">
         <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${false}</bpmn:conditionExpression>
       </bpmn:sequenceFlow>
-      <bpmn:userTask id="attach_tr_inhouse" name="Upload TR">
+      <bpmn:userTask id="attach_tr_inhouse" name="Upload TR by Initiator" camunda:formKey="embedded:app:forms/revision/uploadTRByInitiator.html">
+        <bpmn:documentation>Upload TR to JR</bpmn:documentation>
+        <bpmn:extensionElements>
+          <camunda:taskListener class="kz.kcell.bpm.assignments.ContractorAssignmentHandler" event="create" />
+        </bpmn:extensionElements>
         <bpmn:incoming>Flow_0yfaz0d</bpmn:incoming>
         <bpmn:outgoing>Flow_00ezxmz</bpmn:outgoing>
       </bpmn:userTask>
       <bpmn:sequenceFlow id="Flow_0yfaz0d" sourceRef="exclgw_tr_inhouse_select" targetRef="attach_tr_inhouse">
-        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${false}</bpmn:conditionExpression>
+        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${true}</bpmn:conditionExpression>
       </bpmn:sequenceFlow>
       <bpmn:exclusiveGateway id="exclgw_tr_inhouse_select_end">
         <bpmn:incoming>SequenceFlow_1aovmnd</bpmn:incoming>
