@@ -78,14 +78,9 @@
                         }
                 );
                 camForm.variableManager.createVariable({
-                    name: 'approveMaterialsListByTnuRegionTaskResult',
+                    name: 'check_ml_rolloutTaskResult',
                     type: 'String',
                     value: ''
-                });
-                camForm.variableManager.createVariable({
-                    name: 'modifyWorks',
-                    type: 'Boolean',
-                    value: undefined
                 });
             });
             camForm.on('variables-fetched', function () {
@@ -98,48 +93,31 @@
                 $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name+ "/profile").then(function(result){
                     $rootScope.authentication.assigneeName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
                 });
-                if(camForm.variableManager.variables['approveMaterialsListByTnuRegionComment']){
-                    camForm.variableManager.variableValue('approveMaterialsListByTnuRegionComment', '');
+                if(camForm.variableManager.variables['check_ml_rolloutTaskComment']){
+                    camForm.variableManager.variableValue('check_ml_rolloutTaskComment', '');
                 }
             });
 
             camForm.on('submit', function () {
-                camForm.variableManager.variableValue('approveMaterialsListByTnuRegionTaskResult', $scope.approveMaterialsListByTnuRegionTaskResult);
-                camForm.variableManager.createVariable({
-                    name: 'approve_additional_material_list_tnu_regionTaskResult',
-                    type: 'String',
-                    value: $scope.approveMaterialsListByTnuRegionTaskResult
-                });
-                if ($scope.approveMaterialsListByTnuRegionTaskResult === 'approved') {
-                    camForm.variableManager.variableValue('modifyWorks', false);
-                }
-                else{
-                    camForm.variableManager.variableValue('modifyWorks', true);
-                }
-
+                camForm.variableManager.variableValue('check_ml_rolloutTaskResult', $scope.check_ml_rolloutTaskResult);
                 var visibility = 'all';
-                if($scope.approveMaterialsListByTnuRegionComment && $scope.approveMaterialsListByTnuRegionCommentVisibility){
-                    visibility = $scope.approveMaterialsListByTnuRegionCommentVisibility;
+                if($scope.check_ml_rolloutTaskComment && $scope.check_ml_rolloutTaskCommentVisibility){
+                    visibility = $scope.check_ml_rolloutTaskCommentVisibility;
                     camForm.variableManager.createVariable({
                         name: 'approve_additional_material_list_tnu_regionTaskCommentVisibility',
                         type: 'String',
                         value: visibility
                     });
                 }
-                camForm.variableManager.createVariable({
-                    name: 'approve_additional_material_list_tnu_regionTaskComment',
-                    type: 'String',
-                    value: $scope.approveMaterialsListByTnuRegionComment
-                });
                 camForm.variableManager.destroyVariable('resolutions');
             });
 
             camForm.on('store', function() {
-                camForm.variableManager.variableValue('approveMaterialsListByTnuRegionTaskResult', $scope.approveMaterialsListByTnuRegionTaskResult);
+                camForm.variableManager.variableValue('check_ml_rolloutTaskResult', $scope.check_ml_rolloutTaskResult);
             });
 
             camForm.on('variables-restored', function() {
-                $scope.approveMaterialsListByTnuRegionTaskResult = camForm.variableManager.variableValue('approveMaterialsListByTnuRegionTaskResult');
+                $scope.check_ml_rolloutTaskResult = camForm.variableManager.variableValue('check_ml_rolloutTaskResult');
             });
 
             $scope.isVisible = function (resolution) {
@@ -147,7 +125,7 @@
             }
 
             $scope.hasComment = function () {
-                return $scope.approveMaterialsListByTnuRegionComment && $rootScope.hasGroup('kcellUsers');
+                return $scope.check_ml_rolloutTaskComment && $rootScope.hasGroup('kcellUsers');
             }
         }]);
     </script>
@@ -157,36 +135,33 @@
         <label class="col-sm-4 control-label">Resolution</label>
         <div class="col-sm-8">
             <label class="radio-inline">
-                <input type="radio" ng-model="approveMaterialsListByTnuRegionTaskResult" name="approveMaterialsListByTnuRegionTaskResult" value="approved" required> Approved
-            </label>
-            <label class="radio-inline" ng-show="jobModel.fillApplied.value !== 'notEnough'">
-                <input type="radio" ng-model="approveMaterialsListByTnuRegionTaskResult" name="approveMaterialsListByTnuRegionTaskResult" value="modify" required> Modify works
+                <input type="radio" ng-model="check_ml_rolloutTaskResult" name="check_ml_rolloutTaskResult" value="approved" required> Approved
             </label>
             <label class="radio-inline">
-                <input type="radio" ng-model="approveMaterialsListByTnuRegionTaskResult" name="approveMaterialsListByTnuRegionTaskResult" value="rejected" required> Reject
+                <input type="radio" ng-model="check_ml_rolloutTaskResult" name="check_ml_rolloutTaskResult" value="return" required> Return for correction
             </label>
-            <label class="error" ng-show="kcell_form.approveMaterialsListByTnuRegionTaskResult.$error.required && ( kcell_form.approveMaterialsListByTnuRegionTaskResult.$touched || view.submitted)">Required field</label>
+            <label class="error" ng-show="kcell_form.check_ml_rolloutTaskResult.$error.required && ( kcell_form.check_ml_rolloutTaskResult.$touched || view.submitted)">Required field</label>
         </div>
     </div>
     <div class="form-group">
         <label class="col-sm-4 control-label">Comments</label>
         <div class="col-sm-8">
-            <textarea class="form-control" rows="4" maxlength="500" cam-variable-name="approveMaterialsListByTnuRegionComment" name="approveMaterialsListByTnuRegionComment" ng-required="approveMaterialsListByTnuRegionTaskResult == 'modify' || approveMaterialsListByTnuRegionTaskResult == 'rejected'" cam-variable-type="String"></textarea>
-            <label class="error" ng-show="kcell_form.approveMaterialsListByTnuRegionComment.$error.required && ( kcell_form.approveMaterialsListByTnuRegionComment.$touched || view.submitted)">Required field</label>
+            <textarea class="form-control" rows="4" maxlength="500" cam-variable-name="check_ml_rolloutTaskComment" name="check_ml_rolloutTaskComment" ng-required="check_ml_rolloutTaskResult == 'modify' || check_ml_rolloutTaskResult == 'rejected'" cam-variable-type="String"></textarea>
+            <label class="error" ng-show="kcell_form.check_ml_rolloutTaskComment.$error.required && ( kcell_form.check_ml_rolloutTaskComment.$touched || view.submitted)">Required field</label>
         </div>
     </div>
     <div class="form-group" ng-show="hasComment()">
         <label class="col-sm-4 control-label">Comments visibility</label>
         <div class="col-sm-8">
             <label class="radio-inline">
-                <input type="radio" name="approveMaterialsListByTnuRegionCommentVisibility"
-                       ng-model="approveMaterialsListByTnuRegionCommentVisibility" value="all" ng-required="hasComment()"> Visible for all
+                <input type="radio" name="check_ml_rolloutTaskCommentVisibility"
+                       ng-model="check_ml_rolloutTaskCommentVisibility" value="all" ng-required="hasComment()"> Visible for all
             </label>
             <label class="radio-inline">
-                <input type="radio" name="approveMaterialsListByTnuRegionCommentVisibility"
-                       ng-model="approveMaterialsListByTnuRegionCommentVisibility" value="kcell" ng-required="hasComment()"> Kcell staff only
+                <input type="radio" name="check_ml_rolloutTaskCommentVisibility"
+                       ng-model="check_ml_rolloutTaskCommentVisibility" value="kcell" ng-required="hasComment()"> Kcell staff only
             </label>
-            <label class="error" ng-show="kcell_form.approveMaterialsListByTnuRegionCommentVisibility.$error.required && ( kcell_form.approveMaterialsListByTnuRegionCommentVisibility.$touched || view.submitted)">Required field</label>
+            <label class="error" ng-show="kcell_form.check_ml_rolloutTaskCommentVisibility.$error.required && ( kcell_form.check_ml_rolloutTaskCommentVisibility.$touched || view.submitted)">Required field</label>
         </div>
     </div>
     <accordion>
