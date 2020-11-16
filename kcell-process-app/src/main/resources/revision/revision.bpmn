@@ -68,7 +68,6 @@
       <bpmn:intermediateThrowEvent id="endevt_leasing_notify_impossible_jr_exec">
         <bpmn:incoming>SequenceFlow_1ywl9mw</bpmn:incoming>
       </bpmn:intermediateThrowEvent>
-      <bpmn:association id="Association_1r45mq2" sourceRef="update_leasing_status_general" targetRef="TextAnnotation_04juvza" />
     </bpmn:subProcess>
     <bpmn:subProcess id="SubProcess_1okaxp7" name="Verify Registered Modifications and Prepare Permission Docs">
       <bpmn:incoming>SequenceFlow_1kru9y3</bpmn:incoming>
@@ -178,6 +177,7 @@
       <bpmn:sequenceFlow id="SequenceFlow_1sjo7n5" sourceRef="startevt_ml_list_prep" targetRef="exclgw_return_ml" />
       <bpmn:exclusiveGateway id="exclgw_ml_trupload_status">
         <bpmn:incoming>SequenceFlow_1puv934</bpmn:incoming>
+        <bpmn:incoming>Flow_07ncq3o</bpmn:incoming>
         <bpmn:outgoing>SequenceFlow_0x5m8bx</bpmn:outgoing>
         <bpmn:outgoing>SequenceFlow_1g2fm4f</bpmn:outgoing>
       </bpmn:exclusiveGateway>
@@ -305,7 +305,7 @@
         <bpmn:outgoing>SequenceFlow_1fagywt</bpmn:outgoing>
       </bpmn:exclusiveGateway>
       <bpmn:sequenceFlow id="SequenceFlow_0v9u1c3" sourceRef="exclgw_ml_approve_tnu_region" targetRef="approve_material_list_tnu_region">
-        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">#{regionTransmissionCheckRequired == 'Yes'}</bpmn:conditionExpression>
+        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${regionTransmissionCheckRequired == 'Yes'}</bpmn:conditionExpression>
       </bpmn:sequenceFlow>
       <bpmn:exclusiveGateway id="exclgw_ml_approve_tnu_region1">
         <bpmn:incoming>SequenceFlow_01c6rb1</bpmn:incoming>
@@ -319,7 +319,7 @@
         <bpmn:outgoing>SequenceFlow_0hinm4x</bpmn:outgoing>
       </bpmn:exclusiveGateway>
       <bpmn:sequenceFlow id="SequenceFlow_1fagywt" sourceRef="exclgw_ml_approve_tnu_region" targetRef="exclgw_ml_approve_tnu_region2">
-        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">#{regionTransmissionCheckRequired == 'No'}</bpmn:conditionExpression>
+        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${regionTransmissionCheckRequired == 'No'}</bpmn:conditionExpression>
       </bpmn:sequenceFlow>
       <bpmn:sequenceFlow id="SequenceFlow_0hinm4x" sourceRef="exclgw_ml_approve_tnu_region2" targetRef="approve_material_list_center1" />
       <bpmn:sequenceFlow id="SequenceFlow_01c6rb1" sourceRef="approve_material_list_tnu_region" targetRef="exclgw_ml_approve_tnu_region1" />
@@ -327,7 +327,7 @@
         <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${approveMaterialsListByTnuRegionTaskResult=='approved'}</bpmn:conditionExpression>
       </bpmn:sequenceFlow>
       <bpmn:sequenceFlow id="SequenceFlow_0jgnbyo" name="modify works" sourceRef="exclgw_ml_approve_tnu_region1" targetRef="endevt_ml_list_prep_rejected">
-        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">#{approveMaterialsListByTnuRegionTaskResult == 'modify'}</bpmn:conditionExpression>
+        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${approveMaterialsListByTnuRegionTaskResult == 'modify'}</bpmn:conditionExpression>
       </bpmn:sequenceFlow>
       <bpmn:sequenceFlow id="SequenceFlow_16fp686" name="rejected" sourceRef="exclgw_ml_approve_tnu_region1" targetRef="exclgw_return_ml">
         <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${approveMaterialsListByTnuRegionTaskResult=='rejected'}</bpmn:conditionExpression>
@@ -379,9 +379,9 @@
         <bpmn:outgoing>Flow_01xy4sa</bpmn:outgoing>
       </bpmn:exclusiveGateway>
       <bpmn:sequenceFlow id="Flow_1920as2" sourceRef="exclgw_ml_rollout_select" targetRef="Gateway_0rjo8rp">
-        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">#{needAdditionalApproveByCenterRollout == false}</bpmn:conditionExpression>
+        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${needAdditionalApproveByCenterRollout == false}</bpmn:conditionExpression>
       </bpmn:sequenceFlow>
-      <bpmn:userTask id="check_ml_rollout" name="Check by Center Rollout Group" camunda:formKey="embedded:app:forms/revision/approvedMaterialByCenterRolloutGroup.html" camunda:candidateGroups="hq_rollout_unit_revision">
+      <bpmn:userTask id="check_ml_rollout" name="Check by Center Rollout Group" camunda:formKey="embedded:app:forms/revision/approvedMaterialByCenterRolloutGroup.html" camunda:candidateGroups="hq_rollout_unit_revision" camunda:priority="#{priority == &#39;emergency&#39;? 100: 50}">
         <bpmn:documentation>Approve materials by Center Rollout Group</bpmn:documentation>
         <bpmn:incoming>Flow_01xy4sa</bpmn:incoming>
         <bpmn:outgoing>Flow_0hdzkyp</bpmn:outgoing>
@@ -398,7 +398,7 @@
       </bpmn:exclusiveGateway>
       <bpmn:sequenceFlow id="Flow_08cnes0" sourceRef="Gateway_0rjo8rp" targetRef="exclgw_return_tr" />
       <bpmn:sequenceFlow id="Flow_01xy4sa" sourceRef="exclgw_ml_rollout_select" targetRef="check_ml_rollout">
-        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">#{needAdditionalApproveByCenterRollout == true}</bpmn:conditionExpression>
+        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${needAdditionalApproveByCenterRollout == true}</bpmn:conditionExpression>
       </bpmn:sequenceFlow>
       <bpmn:sequenceFlow id="Flow_0hdzkyp" sourceRef="check_ml_rollout" targetRef="exclgw_ml_rollout_return" />
       <bpmn:sequenceFlow id="Flow_1rcyux8" sourceRef="exclgw_ml_rollout_return" targetRef="Gateway_0rjo8rp">
@@ -430,10 +430,10 @@
       <bpmn:sequenceFlow id="Flow_01kiz25" sourceRef="exclgw_tr_approve_return" targetRef="exclgw_return_tr">
         <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${contractor==5}</bpmn:conditionExpression>
       </bpmn:sequenceFlow>
-      <bpmn:userTask id="attach_tr_inhouse" name="Upload TR by Initiator" camunda:formKey="embedded:app:forms/revision/uploadTRByInitiator.html">
-        <bpmn:documentation>Upload TR to JR</bpmn:documentation>
+      <bpmn:userTask id="attach_tr_inhouse" name="Upload TR by Initiator" camunda:formKey="embedded:app:forms/revision/uploadTRByInitiator.html" camunda:assignee="${ starter }" camunda:priority="#{priority == &#39;emergency&#39;? 100: 50}">
+        <bpmn:documentation>Upload TR to JR by Initiator</bpmn:documentation>
         <bpmn:extensionElements>
-          <camunda:taskListener class="kz.kcell.bpm.assignments.ContractorAssignmentHandler" event="create" />
+          <camunda:taskListener class="kz.kcell.bpm.assignments.RevisionDefineInitiatorGroupHandler" event="create" />
         </bpmn:extensionElements>
         <bpmn:incoming>Flow_0yfaz0d</bpmn:incoming>
         <bpmn:outgoing>Flow_00ezxmz</bpmn:outgoing>
@@ -443,18 +443,18 @@
       </bpmn:sequenceFlow>
       <bpmn:exclusiveGateway id="exclgw_tr_inhouse_select_end">
         <bpmn:incoming>SequenceFlow_1aovmnd</bpmn:incoming>
-        <bpmn:incoming>Flow_00ezxmz</bpmn:incoming>
+        <bpmn:incoming>Flow_1opboy7</bpmn:incoming>
         <bpmn:outgoing>Flow_1fsxvxy</bpmn:outgoing>
       </bpmn:exclusiveGateway>
       <bpmn:sequenceFlow id="Flow_1fsxvxy" sourceRef="exclgw_tr_inhouse_select_end" targetRef="validate_tr_bycenter" />
-      <bpmn:sequenceFlow id="Flow_00ezxmz" sourceRef="attach_tr_inhouse" targetRef="exclgw_tr_inhouse_select_end" />
+      <bpmn:sequenceFlow id="Flow_00ezxmz" sourceRef="attach_tr_inhouse" targetRef="Gateway_0r3fle5" />
       <bpmn:exclusiveGateway id="exclgw_tr_rollout_select">
         <bpmn:incoming>SequenceFlow_0m0cglc</bpmn:incoming>
         <bpmn:outgoing>Flow_1k8ct27</bpmn:outgoing>
         <bpmn:outgoing>Flow_09cqsgj</bpmn:outgoing>
       </bpmn:exclusiveGateway>
       <bpmn:sequenceFlow id="Flow_1k8ct27" sourceRef="exclgw_tr_rollout_select" targetRef="exclgw_tr_rollout_select_end">
-        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">#{needAdditionalApproveByCenterRollout == false}</bpmn:conditionExpression>
+        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${needAdditionalApproveByCenterRollout == false}</bpmn:conditionExpression>
       </bpmn:sequenceFlow>
       <bpmn:exclusiveGateway id="exclgw_tr_rollout_select_end">
         <bpmn:incoming>Flow_1k8ct27</bpmn:incoming>
@@ -462,7 +462,7 @@
         <bpmn:outgoing>Flow_09cxpjb</bpmn:outgoing>
       </bpmn:exclusiveGateway>
       <bpmn:sequenceFlow id="Flow_09cxpjb" sourceRef="exclgw_tr_rollout_select_end" targetRef="notify_contractor_tr_approved" />
-      <bpmn:userTask id="check_tr_rollout" name="Check by Center Rollout Group" camunda:formKey="embedded:app:forms/revision/approvedMaterialByCenterRolloutGroupTr.html" camunda:candidateGroups="hq_rollout_unit_revision">
+      <bpmn:userTask id="check_tr_rollout" name="Check by Center Rollout Group" camunda:formKey="embedded:app:forms/revision/approvedMaterialByCenterRolloutGroupTr.html" camunda:candidateGroups="hq_rollout_unit_revision" camunda:priority="#{priority == &#39;emergency&#39;? 100: 50}">
         <bpmn:documentation>Approve TR by Rollout Group</bpmn:documentation>
         <bpmn:incoming>Flow_09cqsgj</bpmn:incoming>
         <bpmn:outgoing>Flow_1yppe61</bpmn:outgoing>
@@ -473,7 +473,7 @@
         <bpmn:outgoing>Flow_13iqy4n</bpmn:outgoing>
       </bpmn:exclusiveGateway>
       <bpmn:sequenceFlow id="Flow_09cqsgj" sourceRef="exclgw_tr_rollout_select" targetRef="check_tr_rollout">
-        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">#{needAdditionalApproveByCenterRollout == true}</bpmn:conditionExpression>
+        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${needAdditionalApproveByCenterRollout == true}</bpmn:conditionExpression>
       </bpmn:sequenceFlow>
       <bpmn:sequenceFlow id="Flow_1yppe61" sourceRef="check_tr_rollout" targetRef="exclgw_tr_rollout_return" />
       <bpmn:sequenceFlow id="Flow_1axas99" sourceRef="exclgw_tr_rollout_return" targetRef="exclgw_tr_rollout_select_end">
@@ -482,16 +482,14 @@
       <bpmn:sequenceFlow id="Flow_13iqy4n" sourceRef="exclgw_tr_rollout_return" targetRef="exclgw_return_tr">
         <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${check_tr_rolloutTaskResult == 'return'}</bpmn:conditionExpression>
       </bpmn:sequenceFlow>
-      <bpmn:exclusiveGateway id="exclgw_ml_approve_return">
+      <bpmn:exclusiveGateway id="exclgw_ml_approve_return" default="Flow_040r4av">
         <bpmn:incoming>SequenceFlow_1y9us7r</bpmn:incoming>
         <bpmn:outgoing>Flow_040r4av</bpmn:outgoing>
         <bpmn:outgoing>Flow_1hur2zx</bpmn:outgoing>
       </bpmn:exclusiveGateway>
-      <bpmn:sequenceFlow id="Flow_040r4av" sourceRef="exclgw_ml_approve_return" targetRef="approve_material_list_region">
-        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${true}</bpmn:conditionExpression>
-      </bpmn:sequenceFlow>
+      <bpmn:sequenceFlow id="Flow_040r4av" sourceRef="exclgw_ml_approve_return" targetRef="approve_material_list_region" />
       <bpmn:sequenceFlow id="Flow_1hur2zx" sourceRef="exclgw_ml_approve_return" targetRef="exclgw_return_ml">
-        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${false}</bpmn:conditionExpression>
+        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${contractor==5}</bpmn:conditionExpression>
       </bpmn:sequenceFlow>
       <bpmn:exclusiveGateway id="exclgw_ml_inhouse_select_modify" default="Flow_0ov7nra">
         <bpmn:incoming>Flow_1ukdndz</bpmn:incoming>
@@ -501,6 +499,17 @@
       <bpmn:sequenceFlow id="Flow_0ov7nra" name="approved" sourceRef="exclgw_ml_inhouse_select_modify" targetRef="exclgw_ml_inhouse_select_end" />
       <bpmn:sequenceFlow id="Flow_19hs4ek" name="modify works" sourceRef="exclgw_ml_inhouse_select_modify" targetRef="endevt_ml_list_prep_rejected">
         <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${attachMaterialListTaskResult=='modify'}</bpmn:conditionExpression>
+      </bpmn:sequenceFlow>
+      <bpmn:exclusiveGateway id="Gateway_0r3fle5">
+        <bpmn:incoming>Flow_00ezxmz</bpmn:incoming>
+        <bpmn:outgoing>Flow_1opboy7</bpmn:outgoing>
+        <bpmn:outgoing>Flow_07ncq3o</bpmn:outgoing>
+      </bpmn:exclusiveGateway>
+      <bpmn:sequenceFlow id="Flow_1opboy7" sourceRef="Gateway_0r3fle5" targetRef="exclgw_tr_inhouse_select_end">
+        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${bindTRToJRByContractorTaskResult=='attached'}</bpmn:conditionExpression>
+      </bpmn:sequenceFlow>
+      <bpmn:sequenceFlow id="Flow_07ncq3o" name="required materials are not available in SAP Warehouse" sourceRef="Gateway_0r3fle5" targetRef="exclgw_ml_trupload_status">
+        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${bindTRToJRByContractorTaskResult=='notAvailable'}</bpmn:conditionExpression>
       </bpmn:sequenceFlow>
       <bpmn:textAnnotation id="TextAnnotation_0sngnpv">
         <bpmn:text>befor Contractor: 1. Create Requisition list in SAP 2. Create TR in SAP</bpmn:text>
@@ -1475,7 +1484,7 @@
       <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${acceptPerformedJob== 'rejected'}</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
     <bpmn:sequenceFlow id="SequenceFlow_0b217tv" name="modify works" sourceRef="SubProcess_04dekrg" targetRef="SubProcess_0cd7y34">
-      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${modifyWorks==true &amp;&amp; contractorAttachesMaterialListTaskResult!='notRequired'}</bpmn:conditionExpression>
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${modifyWorks==true &amp;&amp; (!execution.hasVariable('contractorAttachesMaterialListTaskResult') || contractorAttachesMaterialListTaskResult!='notRequired')}</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
     <bpmn:sequenceFlow id="SequenceFlow_0eg1f85" name="leasing impossible" sourceRef="SubProcess_0cwj4g6" targetRef="IntermediateThrowEvent_leasing_impossible">
       <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${leasingDone==false}</bpmn:conditionExpression>
@@ -1496,7 +1505,7 @@
       <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${createJRResult=='rejected'}</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
     <bpmn:sequenceFlow id="SequenceFlow_1951c3w" sourceRef="SubProcess_04dekrg" targetRef="SubProcess_0eah6dm">
-      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${modifyWorks==false &amp;&amp; contractorAttachesMaterialListTaskResult!='notRequired'}</bpmn:conditionExpression>
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${modifyWorks==false &amp;&amp; (!execution.hasVariable('contractorAttachesMaterialListTaskResult') || contractorAttachesMaterialListTaskResult!='notRequired')}</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
     <bpmn:sequenceFlow id="SequenceFlow_1sfkegw" name="job executed successfully" sourceRef="SubProcess_0a0tcem" targetRef="IntermediateThrowEvent_performed_not_accepted">
       <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${fillAppliedChangesInfoByContractorTaskResult=='saveChanges'}</bpmn:conditionExpression>
@@ -1631,7 +1640,7 @@
       <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${fillAppliedChangesInfoByContractorTaskResult=='notEnough'}</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
     <bpmn:sequenceFlow id="SequenceFlow_1fv2m2r" name="No need materials" sourceRef="SubProcess_04dekrg" targetRef="notify_intiator_no_need_material">
-      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${contractorAttachesMaterialListTaskResult=='notRequired'}</bpmn:conditionExpression>
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${execution.hasVariable('contractorAttachesMaterialListTaskResult') &amp;&amp; contractorAttachesMaterialListTaskResult=='notRequired'}</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
     <bpmn:sendTask id="notify_intiator_no_need_material" name="Notify Initiator No need material" camunda:delegateExpression="${camundaMailer}">
       <bpmn:extensionElements>
@@ -2094,10 +2103,10 @@
         <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${approveMaterialsGroupList.elements().size() == 0}</bpmn:conditionExpression>
       </bpmn:sequenceFlow>
       <bpmn:sequenceFlow id="SequenceFlow_0lrs2x8" sourceRef="exclgw_additional_ml_approve_tnu_region" targetRef="approve_additional_material_list_tnu_region">
-        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">#{regionTransmissionCheckRequired == 'Yes'}</bpmn:conditionExpression>
+        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${regionTransmissionCheckRequired == 'Yes'}</bpmn:conditionExpression>
       </bpmn:sequenceFlow>
       <bpmn:sequenceFlow id="SequenceFlow_0vnn645" sourceRef="exclgw_additional_ml_approve_tnu_region" targetRef="exclgw_additional_ml_approve_tnu_region2">
-        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">#{regionTransmissionCheckRequired == 'No'}</bpmn:conditionExpression>
+        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${regionTransmissionCheckRequired == 'No'}</bpmn:conditionExpression>
       </bpmn:sequenceFlow>
       <bpmn:sequenceFlow id="SequenceFlow_03mw6qq" sourceRef="exclgw_additional_ml_approve_tnu_region2" targetRef="approve_additional_material_list_center1" />
       <bpmn:sequenceFlow id="SequenceFlow_1s9drh8" sourceRef="approve_additional_material_list_tnu_region" targetRef="exclgw_additional_ml_approve_tnu_region1" />
@@ -2396,7 +2405,7 @@
     <bpmn:sequenceFlow id="Flow_0w38lzw" sourceRef="exclgw_docs_return_select" targetRef="exclgw_docs_return">
       <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${check_docsTaskResult=='returnForCorrection'}</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
-    <bpmn:userTask id="check_docs" name="Check by Center Groups" camunda:formKey="embedded:app:forms/revision/checkDocumentsByCenterGroup.html" camunda:candidateGroups="hq_optimization, hq_transmission_engineer">
+    <bpmn:userTask id="check_docs" name="Check by Center Groups" camunda:formKey="embedded:app:forms/revision/checkDocumentsByCenterGroup.html" camunda:candidateGroups="hq_optimization, hq_transmission_engineer" camunda:priority="#{priority == &#39;emergency&#39;? 100: 50}">
       <bpmn:documentation>Check by Center Groups</bpmn:documentation>
       <bpmn:incoming>Flow_1lcu6m6</bpmn:incoming>
       <bpmn:outgoing>Flow_0ub20gr</bpmn:outgoing>
@@ -2434,6 +2443,7 @@
     <bpmn:textAnnotation id="TextAnnotation_044d1qz">
       <bpmn:text>So that JR Blank will be available for download from within Process Instance Card</bpmn:text>
     </bpmn:textAnnotation>
+    <bpmn:association id="Association_1r45mq2" sourceRef="update_leasing_status_general" targetRef="TextAnnotation_04juvza" />
   </bpmn:process>
   <bpmn:message id="Message_0kawu9p" name="Message_start_pr" />
   <bpmndi:BPMNDiagram id="BPMNDiagram_1">
@@ -2595,12 +2605,8 @@
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_1d23qig_di" bpmnElement="SequenceFlow_1d23qig">
-        <di:waypoint x="3184" y="2141" />
-        <di:waypoint x="3184" y="1993" />
-        <di:waypoint x="3204" y="1993" />
-        <di:waypoint x="3204" y="1937" />
-        <di:waypoint x="3184" y="1937" />
-        <di:waypoint x="3184" y="1957" />
+        <di:waypoint x="3184" y="2177" />
+        <di:waypoint x="3184" y="2250" />
         <bpmndi:BPMNLabel>
           <dc:Bounds x="-2306" y="-58.5" width="0" height="13" />
         </bpmndi:BPMNLabel>
@@ -2788,14 +2794,10 @@
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_0eg1f85_di" bpmnElement="SequenceFlow_0eg1f85">
-        <di:waypoint x="2969" y="1957" />
-        <di:waypoint x="2969" y="1937" />
-        <di:waypoint x="2989" y="1937" />
-        <di:waypoint x="2989" y="1989" />
-        <di:waypoint x="2969" y="1989" />
-        <di:waypoint x="2969" y="2122" />
+        <di:waypoint x="2969" y="2250" />
+        <di:waypoint x="2969" y="2158" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="2932" y="1939" width="90" height="14" />
+          <dc:Bounds x="2932" y="2192" width="90" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_0b217tv_di" bpmnElement="SequenceFlow_0b217tv">
@@ -2873,7 +2875,7 @@
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNShape id="SubProcess_0cwj4g6_di" bpmnElement="SubProcess_0cwj4g6" isExpanded="true">
-        <dc:Bounds x="2835" y="1957" width="698" height="660" />
+        <dc:Bounds x="2830" y="2250" width="703" height="367" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="SequenceFlow_14draw4_di" bpmnElement="SequenceFlow_14draw4">
         <di:waypoint x="3127" y="2542" />
@@ -2978,10 +2980,6 @@
           <dc:Bounds x="-2062" y="260" width="90" height="0" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNEdge id="Association_1r45mq2_di" bpmnElement="Association_1r45mq2">
-        <di:waypoint x="3077" y="2359" />
-        <di:waypoint x="3077" y="2017" />
-      </bpmndi:BPMNEdge>
       <bpmndi:BPMNShape id="SubProcess_1okaxp7_di" bpmnElement="SubProcess_1okaxp7" isExpanded="true">
         <dc:Bounds x="9775" y="1561" width="796" height="519" />
       </bpmndi:BPMNShape>
@@ -3043,9 +3041,36 @@
       <bpmndi:BPMNShape id="SubProcess_04dekrg_di" bpmnElement="SubProcess_04dekrg" isExpanded="true">
         <dc:Bounds x="3710" y="1291" width="4208" height="727" />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="TextAnnotation_0318hie_di" bpmnElement="TextAnnotation_0318hie">
-        <dc:Bounds x="4240" y="1420" width="227" height="50" />
-      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_07ncq3o_di" bpmnElement="Flow_07ncq3o">
+        <di:waypoint x="6600" y="1485" />
+        <di:waypoint x="6600" y="1815" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="6599" y="1492" width="82" height="53" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1opboy7_di" bpmnElement="Flow_1opboy7">
+        <di:waypoint x="6625" y="1460" />
+        <di:waypoint x="7010" y="1460" />
+        <di:waypoint x="7010" y="1815" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="6802" y="1442" width="33" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_19hs4ek_di" bpmnElement="Flow_19hs4ek">
+        <di:waypoint x="4545" y="1555" />
+        <di:waypoint x="4545" y="1590" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="4547" y="1563" width="65" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0ov7nra_di" bpmnElement="Flow_0ov7nra">
+        <di:waypoint x="4570" y="1530" />
+        <di:waypoint x="4725" y="1530" />
+        <di:waypoint x="4725" y="1667" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="4577" y="1512" width="46" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_1hur2zx_di" bpmnElement="Flow_1hur2zx">
         <di:waypoint x="4455" y="1943" />
         <di:waypoint x="3890" y="1943" />
@@ -3084,8 +3109,7 @@
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_00ezxmz_di" bpmnElement="Flow_00ezxmz">
         <di:waypoint x="6500" y="1460" />
-        <di:waypoint x="7010" y="1460" />
-        <di:waypoint x="7010" y="1815" />
+        <di:waypoint x="6575" y="1460" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_1fsxvxy_di" bpmnElement="Flow_1fsxvxy">
         <di:waypoint x="7033" y="1842" />
@@ -3411,21 +3435,6 @@
           <dc:Bounds x="4512" y="1877" width="40" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Flow_0ov7nra_di" bpmnElement="Flow_0ov7nra">
-        <di:waypoint x="4570" y="1530" />
-        <di:waypoint x="4725" y="1530" />
-        <di:waypoint x="4725" y="1667" />
-        <bpmndi:BPMNLabel>
-          <dc:Bounds x="4577" y="1512" width="46" height="14" />
-        </bpmndi:BPMNLabel>
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Flow_19hs4ek_di" bpmnElement="Flow_19hs4ek">
-        <di:waypoint x="4545" y="1555" />
-        <di:waypoint x="4545" y="1590" />
-        <bpmndi:BPMNLabel>
-          <dc:Bounds x="4547" y="1563" width="65" height="14" />
-        </bpmndi:BPMNLabel>
-      </bpmndi:BPMNEdge>
       <bpmndi:BPMNShape id="UserTask_1wkrl5k_di" bpmnElement="attach_material_list_contractor">
         <dc:Bounds x="4130" y="1652" width="100" height="80" />
       </bpmndi:BPMNShape>
@@ -3594,32 +3603,38 @@
       <bpmndi:BPMNShape id="Gateway_1gt6a6m_di" bpmnElement="exclgw_ml_approve_return" isMarkerVisible="true">
         <dc:Bounds x="4455" y="1918" width="50" height="50" />
       </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_02juqcr_di" bpmnElement="exclgw_ml_inhouse_select_modify" isMarkerVisible="true">
+        <dc:Bounds x="4520" y="1505" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_0r3fle5_di" bpmnElement="Gateway_0r3fle5" isMarkerVisible="true">
+        <dc:Bounds x="6575" y="1435" width="50" height="50" />
+      </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="TextAnnotation_0sngnpv_di" bpmnElement="TextAnnotation_0sngnpv">
-        <dc:Bounds x="6457" y="1677" width="245" height="30" />
+        <dc:Bounds x="6347" y="1677" width="245" height="30" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="TextAnnotation_15lrjyx_di" bpmnElement="TextAnnotation_15lrjyx">
-        <dc:Bounds x="6434" y="1578" width="165" height="60" />
+        <dc:Bounds x="6367" y="1578" width="165" height="60" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="TextAnnotation_0g767fd_di" bpmnElement="TextAnnotation_0g767fd">
         <dc:Bounds x="6888" y="1966" width="212" height="30" />
       </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="TextAnnotation_0318hie_di" bpmnElement="TextAnnotation_0318hie">
+        <dc:Bounds x="4240" y="1420" width="227" height="50" />
+      </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="TextAnnotation_0dgzl99_di" bpmnElement="TextAnnotation_0dgzl99">
         <dc:Bounds x="5493" y="1500" width="271" height="30" />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Gateway_02juqcr_di" bpmnElement="exclgw_ml_inhouse_select_modify" isMarkerVisible="true">
-        <dc:Bounds x="4520" y="1505" width="50" height="50" />
-      </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="Association_0aeot7v_di" bpmnElement="Association_0aeot7v">
-        <di:waypoint x="6485" y="1800" />
-        <di:waypoint x="6520" y="1707" />
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Association_095h8xj_di" bpmnElement="Association_095h8xj">
-        <di:waypoint x="5610" y="1800" />
-        <di:waypoint x="5676" y="1530" />
+        <di:waypoint x="6455" y="1800" />
+        <di:waypoint x="6421" y="1707" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Association_1v6ko3l_di" bpmnElement="Association_1v6ko3l">
         <di:waypoint x="4459" y="1652" />
         <di:waypoint x="4371" y="1470" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Association_095h8xj_di" bpmnElement="Association_095h8xj">
+        <di:waypoint x="5610" y="1800" />
+        <di:waypoint x="5676" y="1530" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNShape id="SubProcess_0eah6dm_di" bpmnElement="SubProcess_0eah6dm" isExpanded="true">
         <dc:Bounds x="8013" y="1707" width="571" height="295" />
@@ -4809,7 +4824,7 @@
       <bpmndi:BPMNShape id="IntermediateThrowEvent_0taca1w_di" bpmnElement="IntermediateThrowEvent_leasing_impossible">
         <dc:Bounds x="2951" y="2122" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="2943" y="2167.5" width="52" height="27" />
+          <dc:Bounds x="2943" y="2084.5" width="52" height="27" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="IntermediateThrowEvent_0e1qies_di" bpmnElement="IntermediateThrowEvent_wait_leasing">
@@ -5175,7 +5190,7 @@
         <di:waypoint x="6737" y="550" />
         <di:waypoint x="6815" y="550" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="7454" y="519" width="46" height="14" />
+          <dc:Bounds x="7377" y="533" width="46" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_0xjunh2_di" bpmnElement="SequenceFlow_0xjunh2">
@@ -5449,7 +5464,7 @@
         <dc:Bounds x="9525" y="1423" width="278" height="57" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="TextAnnotation_04juvza_di" bpmnElement="TextAnnotation_04juvza">
-        <dc:Bounds x="3027" y="1987" width="100" height="30" />
+        <dc:Bounds x="3040" y="2190" width="100" height="30" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="TextAnnotation_0j3uh3b_di" bpmnElement="TextAnnotation_0j3uh3b">
         <dc:Bounds x="1068" y="1404" width="231" height="60" />
@@ -5478,6 +5493,10 @@
       <bpmndi:BPMNShape id="TextAnnotation_044d1qz_di" bpmnElement="TextAnnotation_044d1qz">
         <dc:Bounds x="855" y="1547" width="267" height="68" />
       </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Association_1r45mq2_di" bpmnElement="Association_1r45mq2">
+        <di:waypoint x="3080" y="2359" />
+        <di:waypoint x="3089" y="2220" />
+      </bpmndi:BPMNEdge>
     </bpmndi:BPMNPlane>
   </bpmndi:BPMNDiagram>
 </bpmn:definitions>
