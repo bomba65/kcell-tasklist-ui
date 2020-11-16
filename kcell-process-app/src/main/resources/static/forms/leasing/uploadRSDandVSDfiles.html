@@ -115,6 +115,7 @@
                     camForm.variableManager.fetchVariable(f);
                 });
                 $scope.leasingCandidate = {};
+                $scope.dictionary = {};
                 $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
                         function(result){
                             $scope.processInstanceId = result.data.processInstanceId;
@@ -132,6 +133,33 @@
                         function (error) {
                             console.log(error.data);
                         }
+                );
+                $http.get('/api/leasingCatalogs?version=2').then(
+                    function(result){
+                        angular.extend($scope.dictionary, result.data);
+                        $scope.antennasList = $scope.dictionary.antennas;
+                        $scope.frequencyBand = $scope.dictionary.frequencyBand;
+                        $scope.availableBands = $scope.dictionary.bands;
+                        $scope.BSC = $scope.dictionary.BSC;
+                        $scope.çsList = $scope.dictionary.constructionType;
+                        $scope.addressesList = $scope.dictionary.addresses;
+                        $scope.oblastList = _.uniqBy($scope.dictionary.addresses, 'oblast').map( (e, index) => { return {"name" : e.oblast, "id" : index} });
+                        $scope.cityList = _.uniqBy($scope.dictionary.addresses, 'city').map( (e, index) => { return {"name" : e.city, "id" : index} });
+                        $scope.districtList = _.uniqBy($scope.dictionary.addresses, 'district').map( (e, index) => { return {"name" : e.district, "id" : index} });
+                        $scope.filteredDistricts = $scope.districtList;
+                        $scope.filteredDistrictsInCAI = $scope.districtList;
+
+                        $scope.catalogsFetched = true;
+
+                        if ($scope.catalogsFetched && $scope.variablesFetched){
+                            $scope.setConstructionType()
+                        }
+
+
+                    },
+                    function(error){
+                        console.log(error);
+                    }
                 );
             });
 
@@ -257,7 +285,7 @@
             <p/> <b>Business key: </b>{{businessKey}}
         </label>
     </div>
-     <leasing-candidate ng-if="view.variablesFetched" leasing-candidate="leasingCandidate"></leasing-candidate>
+     <leasing-candidate ng-if="view.variablesFetched" leasing-candidate="leasingCandidate"  frequency-band="frequencyBand" sector="sector" antennas-list="antennasList" dictionary="dictionary" kcell_form="kcell_form"></leasing-candidate>
 
     <leasing-attachments leasing-files="leasingFiles" task-key="taskKey" modify="'false'"></leasing-attachments>
     <iframe id="fileDownloadIframe" style="display:none;"></iframe>

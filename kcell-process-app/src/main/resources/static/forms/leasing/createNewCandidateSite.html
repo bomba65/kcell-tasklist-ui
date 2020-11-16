@@ -250,6 +250,13 @@
                     "antennas":[{}],
                 }
 
+                $scope.selectedAntennaSector = {};
+                $scope.selectedSectorTab = 0;
+
+                //tabs
+                $scope.minTab = 0;
+                $scope.maxTab = 3;
+
                 //default values is cellAntennaInformations
                 $scope.sector.cn_gsm900 = 'No';
                 $scope.sector.cn_dcs1800 = 'No';
@@ -444,6 +451,13 @@
                     });
                 }
 
+                if(!($scope.cellAntenna && $scope.cellAntenna.sectors && $scope.cellAntenna.sectors.length > 0)){
+                    $scope.newSector();
+                    $scope.newSector();
+                    $scope.newSector();
+                }
+
+
                 for (let s of $scope.cellAntenna.sectors) {
                     console.log(s)
                     s.antennas.forEach( a => {
@@ -492,9 +506,8 @@
                 });*/
 
                 //evt.submitPrevented = true;
-                
-                $scope.candidate.assignedUser = $scope.taskAssignee;
 
+                $scope.candidate.assignedUser = $scope.taskAssignee;
                 camForm.variableManager.variableValue('createNewCandidateSiteTaskResult', $scope.createNewCandidateSiteTaskResult);
                 camForm.variableManager.variableValue('createNewCandidateSiteTaskComment', $scope.createNewCandidateSiteTaskComment);
 
@@ -563,7 +576,7 @@
                     type: 'String',
                     value: $scope.candidate.transmissionType
                 });
-                
+
                 if ($scope.farEndInformation && $scope.farEndInformation.length > 0) {
                     var farEndLegalTypes = ',';
                     angular.forEach($scope.farEndInformation, function (fe) {
@@ -610,6 +623,42 @@
                     });
                 }
             };
+            $scope.checkFrequency = function(val, index) {
+                var yes = false;
+                var temp = String(val);
+                angular.forEach($scope.frequencyBand, function (freq, i) {
+                        if (freq.substring(0, temp.length) === temp) {
+                         yes = true;
+                         $scope.frequencyBandValid = true;
+                        }
+                    });
+                    if (!yes) {
+                        $scope.cellAntenna.selectedAntennas[index].frequencyBand = '';
+                        $scope.frequencyBandValid = false;
+                    }
+            };
+            $scope.cellAntennaTypeChanged = function(val, parent, index) {
+                const pIndex = parent.$index
+                if($scope.cellAntenna) {
+                    if($scope.cellAntenna.sectors && $scope.cellAntenna.sectors.length >0){
+                        if($scope.cellAntenna.sectors[pIndex].antennas && $scope.cellAntenna.sectors[pIndex].antennas.length >0) {
+                            $scope.cellAntenna.sectors[pIndex].antennas[index].frequencyBand = parseInt(val.replace(/[^0-9.]/gi, ''));
+                            console.log('$scope.cellAntenna.sectors[pIndex].antennas[index].frequencyBand')
+                            console.log($scope.cellAntenna.sectors[pIndex].antennas[index].frequencyBand)
+                        }
+                    }
+                }
+                // $scope.cellAntenna.selectedAntennas[index].frequencyBand = val.replace(/[^0-9.]/gi, '');
+                // console.log('$scope.cellAntenna.selectedAntennas[index].frequencyBand')
+                // console.log($scope.cellAntenna.selectedAntennas[index].frequencyBand)
+                // $scope.checkFrequency($scope.cellAntenna.selectedAntennas[index].frequencyBand, index)
+            }
+            $scope.checkAzimuth = function(val, index) {
+                if (!(val>=0 && val <=360)) $scope.cellAntenna.selectedAntennas[index].azimuth = '';
+            };
+
+            $scope.azimuthPattern = '([0-9]|[1-8][0-9]|9[0-9]|[12][0-9]{2}|3[0-5][0-9]|360)';
+
 
             $scope.deleteFE = function (index) {
                 exModal.open({
@@ -708,6 +757,26 @@
             var currentDate = new Date();
             $scope.datepickerOptions = {
                 minDate: currentDate
+            };
+
+            $scope.fromFirstToSecondWindow = function (indexes) {
+                if (indexes.length > 0) {
+                    indexes.forEach(function (index) {
+                        $scope.cellAntenna.selectedAntennas.push($scope.antennasList[index]);
+                        $scope.antennasList.splice(index, 1);
+                    });
+                }
+                $scope.firstMultiselect = [];
+            };
+
+            $scope.fromSecondToFirstWindow = function (indexes) {
+                if (indexes.length > 0) {
+                    indexes.forEach(function (index) {
+                        $scope.antennasList.push($scope.antennasList[index]);
+                        $scope.cellAntenna.selectedAntennas.splice(index, 1);
+                    });
+                }
+                $scope.secondMultiselect = [];
             };
 
             $scope.getCity = function (val) {
@@ -838,6 +907,23 @@
 
             };
 
+            $scope.newSector = function () {
+                let newS = JSON.parse(angular.toJson($scope.sector));
+                $scope.cellAntenna.sectors.push(newS);
+                console.log($scope.cellAntenna.sectors)
+                if ($scope.selectedSectorTab+1 < $scope.cellAntenna.sectors.length) {
+                    $scope.selectedSectorTab = $scope.cellAntenna.sectors.length - 1;
+                    $scope.cellAntenna.sectors[$scope.selectedSectorTab].active = 'active';
+
+                    if ($scope.selectedSectorTab === $scope.maxTab) {
+                        $scope.minTab= $scope.minTab + 1;
+                        $scope.maxTab= $scope.maxTab + 1;
+                    }
+                } else {
+                    $scope.cellAntenna.sectors[$scope.selectedSectorTab].active = 'active';
+                }
+            }
+
             $scope.$watch('address', function (project) {
                 if (!$scope.cellAntenna.address.ca_diff_address){
                     $scope.cellAntenna.address = JSON.parse(JSON.stringify($scope.address))
@@ -877,7 +963,7 @@
                     $scope.address.cn_addr_oblast = findByCity ? findByCity.oblast : '';
                 }
             };
-            
+
             $scope.cellInfoAddressCitySelected = function ($item) {
                 const findByCity = _.find($scope.dictionary.addresses, {'city': $item.name})
                 $scope.cellAntenna.address.cn_addr_district = findByCity ? findByCity.district : '';
@@ -1236,6 +1322,114 @@
                 }
             }
 
+            $scope.selectAntennaSector = function (index) {
+                //if($scope.renterCompany && ($scope.renterCompany.legalType === 'national_kazakhtelecom' || $scope.renterCompany.legalType === 'national_kazteleradio' || $scope.renterCompany.legalType === 'national_kazpost')){
+                //    $scope.siteObjectType = 'national';
+                //} else {
+                //    $scope.siteObjectType = 'other';
+                //}
+                $scope.selectedSectorTab = index;
+                //$scope.selectedAntennaSector = $scope.cellAntenna.sectors[index];
+            }
+
+            $scope.antennaNameSelected = function (sector, antenna, a) {
+                const obj = $scope.antennasList.find(b=>{ return b.antenna === a});
+                console.log("obj>>>>")
+                console.log(obj)
+                $scope.cellAntenna.sectors[sector].antennas[antenna].dimension = obj.dimension;
+                $scope.cellAntenna.sectors[sector].antennas[antenna].weight = obj.weight;
+                console.log("<<<<obj")
+            }
+
+            $scope.checkAntennaBands = function (bandName, sectorIndex) {
+                console.log('sectorIndex')
+                console.log(sectorIndex)
+                if($scope.cellAntenna.sectors) {
+                    const s = $scope.cellAntenna.sectors[sectorIndex]
+
+                    const finded = s.antennas.find( a => {
+                        if (a.antennaType && a.antennaType[bandName]){
+                            return a.antennaType[bandName]
+                        }
+                    });
+                    if (finded) {
+                        return false
+                    }
+                }
+                return true
+            }
+
+            $scope.changedAntennaQuantity = function (antennaIndex, sectorIndex) {
+                const a = $scope.cellAntenna.sectors[sectorIndex].antennas[antennaIndex];
+                if (a.antennaType) {
+                    Object.keys(a.antennaType).forEach( b => {
+                        $scope.countAntennaQuantity(b, sectorIndex)
+                    })
+                }
+
+            }
+
+            $scope.countAntennaQuantity = function (bandName, sectorIndex) {
+                // ant.antennaType[a]
+                const s = $scope.cellAntenna.sectors[sectorIndex];
+                if ( !s.bands) {
+                    s.bands = {};
+                }
+                if (!s.bands[bandName]) {
+                    s.bands[bandName] = {};
+                }
+                const filtered = s.antennas.filter( a => { return a.antennaType[bandName]});
+                if (filtered.length > 0 && s) {
+                    if ( !s.bands) {
+                        s.bands = {};
+                    }
+                    if (!s.bands[bandName]) {
+                        s.bands[bandName] = {};
+                    }
+                    s.bands[bandName].cn_gsm_antenna_quantity = 0 ;
+                    filtered.forEach( a => {
+                        console.log(a)
+                        s.bands[bandName].cn_gsm_antenna_quantity += a.quantity ? parseInt(a.quantity) : 0;
+                    })
+                    // s.bands[bandName].cn_gsm_antenna_quantity = filtered.length;
+                    s.bands[bandName].active = true;
+                } else {
+                    if ( !s.bands) {
+                        s.bands = {};
+                    }
+                    s.bands[bandName] = {};
+                    s.bands[bandName].active = false;
+                }
+            }
+
+            $scope.tabStepRight = function () {
+                if ($scope.selectedSectorTab+1 < $scope.cellAntenna.sectors.length) {
+                    $scope.selectedSectorTab = $scope.selectedSectorTab + 1;
+                    $scope.cellAntenna.sectors[$scope.selectedSectorTab].active = 'active';
+
+                    if ($scope.selectedSectorTab === $scope.maxTab) {
+                        $scope.minTab= $scope.minTab + 1;
+                        $scope.maxTab= $scope.maxTab + 1;
+                    }
+                } else {
+                    $scope.cellAntenna.sectors[$scope.selectedSectorTab].active = 'active';
+                }
+            }
+
+            $scope.tabStepLeft = function () {
+                if ($scope.selectedSectorTab-1 >= 0) {
+                    $scope.selectedSectorTab = $scope.selectedSectorTab - 1;
+                    $scope.cellAntenna.sectors[$scope.selectedSectorTab].active = 'active';
+
+                    if ($scope.selectedSectorTab+1 === $scope.minTab) {
+                        $scope.minTab= $scope.minTab - 1;
+                        $scope.maxTab= $scope.maxTab - 1;
+                    }
+                } else {
+                    $scope.cellAntenna.sectors[$scope.selectedSectorTab].active = 'active';
+                }
+            }
+
             $scope.preSubmit = function() {
                 var deferred = $q.defer();
                 if($scope.farEndInformation.length < 3 && !$scope.threeFarEndNotNecessary.check && $scope.candidate.transmissionType !== 'Provider' && $scope.candidate.transmissionType !== 'Satellite'){
@@ -1502,13 +1696,13 @@
                     <label class="col-sm-3 control-label">*RBS Location:</label>
                     <div class="col-sm-6">
                         <!-- <div class="form-check" style="display:inline-block; padding:0 !important; margin-right: 10px;" -->
-                             <!-- ng-repeat="l in candidate.rbsLocation track by $index"> -->
-                             <!-- <input type="checkbox" name="rbsLocation" ng-required="rbsLocationChecked < 1" -->
-                                <!-- ng-click="checkRbsLocation($index, l.value)" ng-model="l.value" -->
-                                   <!-- class="form-check-input" id="{{'check' + $index}}"> -->
-                            <!-- <label class="form-check-label" for="{{'check' + $index}}">{{ l.title }}</label> -->
+                        <!-- ng-repeat="l in candidate.rbsLocation track by $index"> -->
+                        <!-- <input type="checkbox" name="rbsLocation" ng-required="rbsLocationChecked < 1" -->
+                        <!-- ng-click="checkRbsLocation($index, l.value)" ng-model="l.value" -->
+                        <!-- class="form-check-input" id="{{'check' + $index}}"> -->
+                        <!-- <label class="form-check-label" for="{{'check' + $index}}">{{ l.title }}</label> -->
                         <!-- </div> -->
-                        
+
                         <label class="form-check" style="display:inline-block; padding:0 !important; margin-right: 10px;"><input type="radio" name="rbsLocation" ng-value="{title:'Room', value:true, id:5}" ng-checked="candidate.rbsLocation.title == 'Room'" ng-model="candidate.rbsLocation" required>Room</label>
                         <label class="form-check" style="display:inline-block; padding:0 !important; margin-right: 10px;"><input type="radio" name="rbsLocation" ng-value="{title:'Container', value:true, id:6}" ng-checked="candidate.rbsLocation.title == 'Container'" ng-model="candidate.rbsLocation" required>Container</label>
                         <label class="form-check" style="display:inline-block; padding:0 !important; margin-right: 10px;"><input type="radio" name="rbsLocation" ng-value="{title:'Other', value:true, id:7}" ng-checked="candidate.rbsLocation.title == 'Other'" ng-model="candidate.rbsLocation" required>Other</label>
@@ -1539,13 +1733,13 @@
                     <accordion-group is-open="false">
                         <accordion-heading>
                             <span ng-class="{'error' : isError('address')}">Address <i class="pull-right glyphicon"
-                                                        ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i></span>
+                                                                                       ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i></span>
                         </accordion-heading>
                         <div class="form-group">
                             <label class="col-sm-3 control-label">{{(address.cn_addr_city === 'г. Нур-Султан' || address.cn_addr_city === 'г. Алматы' || address.cn_addr_city === 'г. Шымкент') ? '' : '*'}}Oblast:</label>
                             <div class="col-sm-8" class="form-check">
                                 <select class="form-control" id="cn_addr_oblast" name="cn_addr_oblast" ng-model="address.cn_addr_oblast"
-                                     ng-change="filterDistrictAfterSelectObl(address.cn_addr_oblast)">
+                                        ng-change="filterDistrictAfterSelectObl(address.cn_addr_oblast)">
                                     <option ng-repeat="oblast in oblastList" ng-value="oblast.name">{{oblast.name}}</option>
                                 </select>
                                 <label class="error" ng-show="kcell_form.cn_addr_oblast.$error.required && ( cn_addr_oblast || view.submitted )">Required field</label>
@@ -1559,7 +1753,7 @@
                                 </select>
                             </div>
                         </div>
-        
+
                         <div class="form-group">
                             <label class="col-sm-3 control-label">*City / Village:</label>
                             <div class="col-sm-8">
@@ -1604,7 +1798,7 @@
                                 <input class="form-control" id="cn_addr_note" name="cn_addr_note" ng-model="address.cn_addr_note" ng-required="address.ca_not_full_addres">
                                 <label class="error" ng-show="kcell_form.cn_addr_note.$error.required && ( kcell_form.cn_addr_note.$touched || view.submitted)">Required field</label>
                             </div>
-                        </div>        
+                        </div>
                     </accordion-group>
                 </accordion>
 
@@ -1612,7 +1806,7 @@
                     <accordion-group is-open="false">
                         <accordion-heading>
                             <span ng-class="{'error' : isError('cellAntennaInformation')}">Cell antenna information<i class="pull-right glyphicon"
-                                                             ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i></span>
+                                                                                                                      ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i></span>
                         </accordion-heading>
                         <br>
                         <div class="form-group col-sm-3">
@@ -1628,7 +1822,7 @@
                                 <accordion-group is-open="false" >
                                     <accordion-heading>
                                         Cell Antenna Address <i class="pull-right glyphicon"
-                                                                    ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
+                                                                ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
                                     </accordion-heading>
                                     <div class="form-group">
                                         <label class="col-sm-3 control-label">Oblast:</label>
@@ -1647,7 +1841,7 @@
                                             </select>
                                         </div>
                                     </div>
-                    
+
                                     <div class="form-group">
                                         <label class="col-sm-3 control-label">City / Village:</label>
                                         <div class="col-sm-8">
@@ -1690,15 +1884,15 @@
                                             <input class="form-control" id="cai_addr_note" name="cai_addr_note" ng-model="cellAntenna.address.cn_addr_note" ng-disabled="!cellAntenna.address.ca_diff_address" >
                                             <label class="error" ng-show="kcell_form.cai_addr_note.$error.required && ( kcell_form.cai_addr_note.$touched || view.submitted)">Required field</label>
                                         </div>
-                                    </div>        
+                                    </div>
                                 </accordion-group>
                             </accordion>
                         </div>
                         <div class="form-group">
-<!--                            <div class="col-sm-12">-->
-<!--                                <p>cellAntenna.cn_du: {{cellAntenna.cn_du}}</p>-->
-<!--                                <p>caDUforAdd: {{caDUforAdd}}</p>cellAntenna.cn_du-->
-<!--                            </div>-->
+                            <!--                            <div class="col-sm-12">-->
+                            <!--                                <p>cellAntenna.cn_du: {{cellAntenna.cn_du}}</p>-->
+                            <!--                                <p>caDUforAdd: {{caDUforAdd}}</p>cellAntenna.cn_du-->
+                            <!--                            </div>-->
                             <label class="col-sm-2 control-label">DU type:</label>
                             <div class="col-sm-2">
                                 <select class="form-control col-sm-2" id="dUnit" name="dUnit" ng-model="caDUforAdd" >
@@ -1717,7 +1911,570 @@
                                 </p>
                             </div>
                         </div>
-                        <leasing-sectors frequency-band="frequencyBand" cell-antenna="cellAntenna" sector="sector" antennas-list="antennasList" dictionary="dictionary" kcell_form="kcell_form"></leasing-sectors>
+                        <tabset class="my-tab" justified="true" id="cellAntenna.sectors" >
+                            <tab ng-click="tabStepLeft()">
+                                <tab-heading height="50px"><b><</b></tab-heading>
+                            </tab>
+                            <tab ng-repeat="s in cellAntenna.sectors" id="sectorTab{{$index}} " ng-click="selectAntennaSector($index)" ng-show="$index >= minTab && $index < maxTab" active="s.active">
+                                <tab-heading>
+                                    <div>
+                                        <p>Sector&nbsp;{{$index+1}}-Cell&nbsp;{{alphabet[$index].toUpperCase()}}
+                                            <a ng-click="cellAntenna.sectors.splice($index,1); tabStepLeft();" class="pull-right"><span class="glyphicon glyphicon-remove"></span></a></p>
+                                    </div>
+                                </tab-heading>
+                                <br>
+                                <div class="col-sm-12">
+                                    <div class="form-group" ng-repeat="ant in s.antennas">
+                                        <div class="row" style="margin-top:10px">
+                                            <br>
+                                            <div style="background-color: whitesmoke;" class="col-sm-12">
+                                                <label class="control-label"><b>Cell Antenna {{$index+1}}</b></label>
+                                                <a ng-click="s.antennas.splice($index,1)" class="pull-right">
+                                                    <span style="margin-top: 5px" class="glyphicon glyphicon-remove"></span>
+                                                </a>
+                                            </div>
+                                            <div class="col-sm-12" style="background-color: white; margin-bottom:-3%;">
+                                                <br>
+                                                <table class="table table-condensed">
+                                                    <thead>
+                                                    <tr>
+                                                        <td>*Antenna name:</td>
+                                                        <td class="col-sm-1">*Quantity:</td>
+                                                        <td>*Dimensions:</td>
+                                                        <td class="col-sm-1">*Weight (kg):</td>
+                                                        <td class="col-sm-1">*Azimuth:</td>
+                                                        <td>*Suspension height (m):</td>
+                                                        <td>*Antenna Location:</td>
+                                                    </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                    <tr>
+                                                        <td class="col-sm-3">
+                                                            <select class="form-control" id="antennaNameInSector_{{$parent.$index}}_{{$index}}" name="antennaNameInSector_{{$parent.$index}}_{{$index}}" ng-change="antennaNameSelected($parent.$index, $index, ant.antennaName)" ng-model="ant.antennaName" required>
+                                                                <option ng-repeat="a in antennasList" ng-value="a.antenna">{{a.antenna}}</option>
+                                                            </select>
+                                                            <label class="error" ng-show="kcell_form.antennaNameInSector_{{$parent.$index}}_{{$index}}.$error.required && ( kcell_form.antennaNameInSector_{{$parent.$index}}_{{$index}}.$touched || view.submitted)">Required field</label>
+                                                        </td>
+                                                        <td class="col-sm-1">
+                                                            <input type="number" ng-change="changedAntennaQuantity($index, $parent.$index)" required class="form-control" id="quantity_{{$parent.$index}}_{{$index}}"
+                                                                   name="quantity_{{$parent.$index}}_{{$index}}" ng-model="ant.quantity" placeholder="">
+                                                            <label class="error"
+                                                                   ng-show="kcell_form.quantity_{{$parent.$index}}_{{$index}}.$error.required && ( kcell_form.quantity_{{$parent.$index}}_{{$index}}.$touched || view.submitted)">Required
+                                                                field</label>
+
+                                                        </td>
+                                                        <td class="col-sm-2">
+                                                            <input class="form-control" id="dimensions_{{$parent.$index}}_{{$index}}"
+                                                                   name="dimensions_{{$parent.$index}}_{{$index}}" ng-model="ant.dimension"
+                                                                   placeholder="1000x100x100" required>
+                                                            <label class="error"
+                                                                   ng-show="kcell_form.dimensions_{{$parent.$index}}_{{$index}}.$error.required && ( kcell_form.dimensions_{{$parent.$index}}_{{$index}}.$touched || view.submitted)">Required
+                                                                field</label>
+                                                        </td>
+                                                            <input class="form-control" id="weight_{{$parent.$index}}_{{$index}}" name="weight_{{$parent.$index}}_{{$index}}"
+                                                                   ng-model="ant.weight" placeholder="10" required>
+                                                            <label class="error"
+                                                                   ng-show="kcell_form.weight_{{$parent.$index}}_{{$index}}.$error.required && ( kcell_form.weight_{{$parent.$index}}_{{$index}}.$touched || view.submitted)">Required
+                                                                field</label>
+
+                                                        </td>
+                                                        <td class="col-sm-1">
+                                                            <input class="form-control" id="azimuth_{{$parent.$index}}_{{$index}}"
+                                                                   name="azimuth_{{$parent.$index}}_{{$index}}" type="number"
+                                                                   ng-change="checkAzimuth(ant.azimuth, $index)" ng-model="ant.azimuth"
+                                                                   ng-pattern="azimuthPattern"
+                                                                   placeholder="(0-360)" required>
+                                                            <label class="error"
+                                                                   ng-show="kcell_form.azimuth_{{$parent.$index}}_{{$index}}.$error.pattern && ( kcell_form.azimuth_{{$parent.$index}}_{{$index}}.$touched || view.submitted)">Неверный формат</label>
+                                                            <label class="error"
+                                                                   ng-show="kcell_form.azimuth_{{$parent.$index}}_{{$index}}.$error.required && ( kcell_form.azimuth_{{$parent.$index}}_{{$index}}.$touched || view.submitted)">Required
+                                                                field</label>
+                                                        </td>
+                                                        <td class="col-sm-2">
+                                                            <input class="form-control" id="suspensionHeight_{{$parent.$index}}_{{$index}}"
+                                                                   name="suspensionHeight_{{$parent.$index}}_{{$index}}" ng-model="ant.suspensionHeight"
+                                                                   placeholder="" required>
+                                                            <label class="error"
+                                                                   ng-show="kcell_form.suspensionHeight_{{$parent.$index}}_{{$index}}.$error.required && ( kcell_form.suspensionHeight_{{$parent.$index}}_{{$index}}.$touched || view.submitted)">Required
+                                                                field</label>
+                                                        </td>
+                                                        <td class="col-sm-2">
+                                                            <select class="form-control" name="{{'antennaLocation_' + $parent.$index + '_' + $index}}" id="{{'antennaLocation_' + $parent.$index + '_' + $index}}" ng-model="ant.cn_antenna_loc" required>
+                                                                <option ng-repeat="a in dictionary.antennaLocation" ng-value="a.name">{{a.name}}</option>
+                                                            </select>
+                                                            <label class="error" ng-show="kcell_form.{{'antennaLocation_' + $parent.$index + '_' + $index}}.$error.required && ( kcell_form.{{'antennaLocation_' + $parent.$index + '_' + $index}}.$touched || view.submitted)">Required field</label>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                    </tr>
+                                                    </tbody>
+                                                </table>
+                                                <div class="form-group col-sm-12" style="background-color: white;">
+                                                    <table>
+                                                        <tbody>
+                                                        <tr>
+                                                            <td class="col-sm-3">
+                                                                <label><b>*Antenna type</b></label>
+                                                            </td>
+                                                            <td  ng-repeat="a in filteredAntennaTypesBySiteType" style="padding-right: 10px">
+                                                                <div class="form-check">
+                                                                    <input type="checkbox" ng-change="countAntennaQuantity(a, $parent.$parent.$index)" ng-model="ant.antennaType[a]" class="form-check-input" name="{{'antennaType_check_' + $parent.$index + '_' + $index}}" id="{{'antennaType_check_' + $parent.$index + '_' + $index}}" >
+                                                                    <label class="form-check-label" for="{{'antennaType_check_' + $parent.$index + '_' + $index}}">{{a}}</label>
+                                                                </div>
+                                                            </td>
+                                                        </tr>
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                                <br>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <br>
+                                    <div class="col-sm-12">
+                                        <input type="button" ng-click="s.antennas.push({})" value="Add Cell Antenna" class="btn btn-primary pull-right">
+                                    </div>
+                                    <br>
+                                    <div class="col-sm-12">
+                                        <table class="table table-condensed">
+                                            <tbody>
+                                            <tr>
+                                                <td>Band:</td>
+                                                <td  ng-repeat="a in dictionary.antennaTypes" style="padding-right: 10px">{{a.name}}</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Antenna Quantity:</td>
+                                                <td  ng-repeat="a in dictionary.antennaTypes" style="padding-right: 10px">
+                                                    <input ng-disabled="true" class="form-control" type="text" name="cn_gsm_antenna_quantity_{{$parent.$parent.$index}}_{{a.name}}" id="cn_gsm_antenna_quantity_{{$parent.$parent.$index}}_{{a.name}}"
+                                                           ng-model="s.bands[a.name].cn_gsm_antenna_quantity">
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>Required TRX:</td>
+                                                <td  ng-repeat="a in dictionary.antennaTypes" style="padding-right: 10px">
+                                                    <input class="form-control" ng-disabled="!s.bands[a.name].active || (a.name !== 'G900' && a.name !== 'G1800')" type="text" name="cn_trx_{{$parent.$parent.$index}}_{{a.name}}" id="cn_trx_{{$parent.$parent.$index}}_{{a.name}}"
+                                                           ng-model="s.bands[a.name].cn_trx">
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>WCDMA Carrier:</td>
+                                                <td  ng-repeat="a in dictionary.antennaTypes" style="padding-right: 10px">
+                                                    <input ng-disabled="!s.bands[a.name].active || (a.name !== 'U900' && a.name !== 'U1800')" class="form-control" type="text" name="cn_wcdma_carrier_{{$parent.$parent.$index}}_{{a.name}}" id="cn_wcdma_carrier_{{$parent.$parent.$index}}_{{a.name}}"
+                                                           ng-model="s.bands[a.name].cn_wcdma_carrier">
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>Tilt [deg] mechanical:</td>
+                                                <td  ng-repeat="a in dictionary.antennaTypes" style="padding-right: 10px">
+                                                    <input class="form-control" ng-disabled="!s.bands[a.name].active" type="text" name="cn_tilt_mech_{{$parent.$parent.$index}}_{{a.name}}" id="cn_tilt_mech_{{$parent.$parent.$index}}_{{a.name}}"
+                                                           ng-model="s.bands[a.name].cn_tilt_mech">
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>Tilt [deg] electrical:</td>
+                                                <td  ng-repeat="a in dictionary.antennaTypes" style="padding-right: 10px">
+                                                    <input class="form-control" ng-disabled="!s.bands[a.name].active" type="text" name="cn_tilt_electr_{{$parent.$parent.$index}}_{{a.name}}" id="cn_tilt_electr_{{$parent.$parent.$index}}_{{a.name}}"
+                                                           ng-model="s.bands[a.name].cn_tilt_electr">
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>Direction [deg:</td>
+                                                <td  ng-repeat="a in dictionary.antennaTypes" style="padding-right: 10px">
+                                                    <input class="form-control" ng-disabled="!s.bands[a.name].active" type="text" name="cn_direction_{{$parent.$parent.$index}}_{{a.name}}" id="cn_direction_{{$parent.$parent.$index}}_{{a.name}}"
+                                                           ng-model="s.bands[a.name].cn_direction">
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>Height (top of ant) [m]:</td>
+                                                <td  ng-repeat="a in dictionary.antennaTypes" style="padding-right: 10px">
+                                                    <input class="form-control" ng-disabled="!s.bands[a.name].active" type="text" name="cn_height_{{$parent.$parent.$index}}_{{a.name}}" id="cn_height_{{$parent.$parent.$index}}_{{a.name}}"
+                                                           ng-model="s.bands[a.name].cn_height">
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>Duplex Filter:</td>
+                                                <td  ng-repeat="a in dictionary.antennaTypes" style="padding-right: 10px">
+                                                    <div class="form-check">
+                                                        <input type="checkbox" ng-disabled="!s.bands[a.name].active" ng-model="s.bands[a.name].cn_duplex" class="form-check-input" id="cn_duplex_{{$parent.$parent.$index}}_{{a.name}}" name="cn_duplex_{{$parent.$parent.$index}}_{{a.name}}">
+                                                        <label class="form-check-label" for="cn_duplex_{{$parent.$parent.$index}}_{{a.name}}">Yes</label>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>Diversity:</td>
+                                                <td  ng-repeat="a in dictionary.antennaTypes" style="padding-right: 10px">
+                                                    <div class="form-check">
+                                                        <input type="checkbox" ng-disabled="!s.bands[a.name].active" ng-model="s.bands[a.name].cn_diversity" class="form-check-input" id="cn_diversity_{{$parent.$parent.$index}}_{{a.name}}" name="cn_diversity_{{$parent.$parent.$index}}_{{a.name}}">
+                                                        <label class="form-check-label" for="cn_diversity_{{$parent.$parent.$index}}_{{a.name}}">Yes</label>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>Power Splitter:</td>
+                                                <td  ng-repeat="a in dictionary.antennaTypes" style="padding-right: 10px">
+                                                    <div class="form-check">
+                                                        <input type="checkbox" ng-disabled="!s.bands[a.name].active" ng-model="s.bands[a.name].cn_power_splitter" class="form-check-input" id="cn_power_splitter_{{$parent.$parent.$index}}_{{a.name}}" name="cn_power_splitter_{{$parent.$parent.$index}}_{{a.name}}">
+                                                        <label class="form-check-label" for="cn_power_splitter_{{$parent.$parent.$index}}_{{a.name}}">Yes</label>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>Hybrid Combiner Unit:</td>
+                                                <td  ng-repeat="a in dictionary.antennaTypes" style="padding-right: 10px">
+                                                    <div class="form-check">
+                                                        <input type="checkbox" ng-disabled="!s.bands[a.name].active" ng-model="s.bands[a.name].cn_hcu" class="form-check-input" id="cn_hcu_{{$parent.$parent.$index}}_{{a.name}}" name="cn_hcu_{{$parent.$parent.$index}}_{{a.name}}">
+                                                        <label class="form-check-label" for="cn_hcu_{{$parent.$parent.$index}}_{{a.name}}">Yes</label>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>ASC:</td>
+                                                <td  ng-repeat="a in dictionary.antennaTypes" style="padding-right: 10px">
+                                                    <div class="form-check">
+                                                        <input type="checkbox" ng-disabled="!s.bands[a.name].active" ng-model="s.bands[a.name].cn_asc" class="form-check-input" id="cn_asc_{{$parent.$parent.$index}}_{{a.name}}" name="cn_asc_{{$parent.$parent.$index}}_{{a.name}}">
+                                                        <label class="form-check-label" for="cn_asc_{{$parent.$parent.$index}}_{{a.name}}">Yes</label>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>Remote Electrical Tilt:</td>
+                                                <td  ng-repeat="a in dictionary.antennaTypes" style="padding-right: 10px">
+                                                    <div class="form-check">
+                                                        <input type="checkbox" ng-disabled="!s.bands[a.name].active" ng-model="s.bands[a.name].cn_ret" class="form-check-input" id="cn_ret_{{$parent.$parent.$index}}_{{a.name}}" name="cn_ret_{{$parent.$parent.$index}}_{{a.name}}">
+                                                        <label class="form-check-label" for="cn_ret_{{$parent.$parent.$index}}_{{a.name}}">Yes</label>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>TMA:</td>
+                                                <td  ng-repeat="a in dictionary.antennaTypes" style="padding-right: 10px">
+                                                    <div class="form-check">
+                                                        <input type="checkbox" ng-disabled="!s.bands[a.name].active" ng-model="s.bands[a.name].cn_tma" class="form-check-input" id="cn_tma_{{$parent.$parent.$index}}_{{a.name}}" name="cn_tma_{{$parent.$parent.$index}}_{{a.name}}">
+                                                        <label class="form-check-label" for="cn_tma_{{$parent.$parent.$index}}_{{a.name}}">Yes</label>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>TCC:</td>
+                                                <td  ng-repeat="a in dictionary.antennaTypes" style="padding-right: 10px">
+                                                    <div class="form-check">
+                                                        <input type="checkbox" ng-disabled="!s.bands[a.name].active || (a.name !== 'G900' && a.name !== 'G1800')" ng-model="s.bands[a.name].cn_tcc" class="form-check-input" id="cn_tcc_{{$parent.$parent.$index}}_{{a.name}}" name="cn_tcc_{{$parent.$parent.$index}}_{{a.name}}">
+                                                        <label class="form-check-label" for="cn_tcc_{{$parent.$parent.$index}}_{{a.name}}">Yes</label>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>Extended range:</td>
+                                                <td  ng-repeat="a in dictionary.antennaTypes" style="padding-right: 10px">
+                                                    <div class="form-check">
+                                                        <input type="checkbox" ng-disabled="!s.bands[a.name].active || (a.name !== 'G900' && a.name !== 'G1800')" ng-model="s.bands[a.name].cn_gsm_range" class="form-check-input" id="cn_gsm_range_{{$parent.$parent.$index}}_{{a.name}}" name="cn_gsm_range_{{$parent.$parent.$index}}_{{a.name}}">
+                                                        <label class="form-check-label" for="cn_gsm_range_{{$parent.$parent.$index}}_{{a.name}}">Yes</label>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>Radio Unit type:</td>
+                                                <td  ng-repeat="a in dictionary.antennaTypes" style="padding-right: 10px">
+                                                    <select class="form-control col-sm-2" ng-disabled="!s.bands[a.name].active" name="radioUnit_{{$parent.$parent.$index}}_{{a.name}}" id="radioUnit_{{$parent.$parent.$index}}_{{a.name}}" ng-model="s.bands[a.name].cn_radio_unit" >
+                                                        <option ng-repeat="a in dictionary.radioUnit" ng-value="a.name">{{a.name}}</option>
+                                                    </select>
+                                                </td>
+                                            </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+
+                                    <!--                                    <br>-->
+                                    <!--                                    <br>-->
+                                    <!--                                    <div class="form-group">-->
+                                    <!--                                        <label class="col-sm-4 control-label">GSM 900:</label>-->
+                                    <!--                                        <div class="col-sm-2">-->
+                                    <!--                                            <label class="radio-inline">-->
+                                    <!--                                                <input type="radio" name="cn_gsm900_{{$index}}" id="cn_gsm900_{{$index}}_1" ng-model="s.cn_gsm900"-->
+                                    <!--                                                       value="Yes"> Yes-->
+                                    <!--                                            </label>-->
+                                    <!--                                            <label class="radio-inline">-->
+                                    <!--                                                <input type="radio" name="cn_gsm900_{{$index}}" id="cn_gsm900_{{$index}}_2" ng-model="s.cn_gsm900"-->
+                                    <!--                                                       value="No"> No-->
+                                    <!--                                            </label>-->
+                                    <!--                                        </div>-->
+                                    <!--                                        <label class="col-sm-4 control-label">LTE 800:</label>-->
+                                    <!--                                        <div class="col-sm-2">-->
+                                    <!--                                            <label class="radio-inline">-->
+                                    <!--                                                <input type="radio" name="cn_lte800_{{$index}}" id="cn_lte800_{{$index}}_1" ng-model="s.cn_lte800"-->
+                                    <!--                                                       value="Yes"> Yes-->
+                                    <!--                                            </label>-->
+                                    <!--                                            <label class="radio-inline">-->
+                                    <!--                                                <input type="radio" name="cn_lte800_{{$index}}" id="cn_lte800_{{$index}}_2" ng-model="s.cn_lte800"-->
+                                    <!--                                                       value="No"> No-->
+                                    <!--                                            </label>-->
+                                    <!--                                        </div>-->
+                                    <!--                                    </div>-->
+                                    <!--                                    <div class="form-group">-->
+                                    <!--                                        <label class="col-sm-4 control-label">DCS 1800:</label>-->
+                                    <!--                                        <div class="col-sm-2">-->
+                                    <!--                                            <label class="radio-inline">-->
+                                    <!--                                                <input type="radio" name="cn_dcs1800_{{$index}}" id="cn_dcs1800_{{$index}}_1" ng-model="s.cn_dcs1800"-->
+                                    <!--                                                       value="Yes"> Yes-->
+                                    <!--                                            </label>-->
+                                    <!--                                            <label class="radio-inline">-->
+                                    <!--                                                <input type="radio" name="cn_dcs1800_{{$index}}" id="cn_dcs1800_{{$index}}_2" ng-model="s.cn_dcs1800"-->
+                                    <!--                                                       value="No"> No-->
+                                    <!--                                            </label>-->
+                                    <!--                                        </div>-->
+                                    <!--                                        <label class="col-sm-4 control-label">RET LTE 800:</label>-->
+                                    <!--                                        <div class="col-sm-2">-->
+                                    <!--                                            <label class="radio-inline">-->
+                                    <!--                                                <input type="radio" name="cn_ret_lte800_{{$index}}" id="cn_ret_lte800_{{$index}}_1" ng-model="s.cn_ret_lte800"-->
+                                    <!--                                                       value="Yes"> Yes-->
+                                    <!--                                            </label>-->
+                                    <!--                                            <label class="radio-inline">-->
+                                    <!--                                                <input type="radio" name="cn_ret_lte800_{{$index}}" id="cn_ret_lte800_{{$index}}_2" ng-model="s.cn_ret_lte800"-->
+                                    <!--                                                       value="No"> No-->
+                                    <!--                                            </label>-->
+                                    <!--                                        </div>-->
+                                    <!--                                    </div>-->
+                                    <!--                                    <div class="form-group">-->
+                                    <!--                                        <label class="col-sm-4 control-label">WCDMA 2100:</label>-->
+                                    <!--                                        <div class="col-sm-2">-->
+                                    <!--                                            <label class="radio-inline">-->
+                                    <!--                                                <input type="radio" name="cn_wcdma2100_{{$index}}" id="cn_wcdma2100_{{$index}}_1" ng-model="s.cn_wcdma2100"-->
+                                    <!--                                                       value="Yes"> Yes-->
+                                    <!--                                            </label>-->
+                                    <!--                                            <label class="radio-inline">-->
+                                    <!--                                                <input type="radio" name="cn_wcdma2100_{{$index}}" id="cn_wcdma2100_{{$index}}_2" ng-model="s.cn_wcdma2100"-->
+                                    <!--                                                       value="No"> No-->
+                                    <!--                                            </label>-->
+                                    <!--                                        </div>-->
+                                    <!--                                        <label class="col-sm-4 control-label">LTE 1800:</label>-->
+                                    <!--                                        <div class="col-sm-2">-->
+                                    <!--                                            <label class="radio-inline">-->
+                                    <!--                                                <input type="radio" name="cn_lte1800_{{$index}}" id="cn_lte1800_{{$index}}_1" ng-model="s.cn_lte1800"-->
+                                    <!--                                                       value="Yes"> Yes-->
+                                    <!--                                            </label>-->
+                                    <!--                                            <label class="radio-inline">-->
+                                    <!--                                                <input type="radio" name="cn_lte1800_{{$index}}" id="cn_lte1800_{{$index}}_2" ng-model="s.cn_lte1800"-->
+                                    <!--                                                       value="No"> No-->
+                                    <!--                                            </label>-->
+                                    <!--                                        </div>-->
+                                    <!--                                    </div>-->
+                                    <!--                                    <div class="form-group">-->
+                                    <!--                                        <label class="col-sm-4 control-label">UMTS 900:</label>-->
+                                    <!--                                        <div class="col-sm-2">-->
+                                    <!--                                            <label class="radio-inline">-->
+                                    <!--                                                <input type="radio" name="cn_umts900_{{$index}}" id="cn_umts900_{{$index}}_1" ng-model="s.cn_umts900"-->
+                                    <!--                                                       value="Yes"> Yes-->
+                                    <!--                                            </label>-->
+                                    <!--                                            <label class="radio-inline">-->
+                                    <!--                                                <input type="radio" name="cn_umts900_{{$index}}" id="cn_umts900_{{$index}}_2" ng-model="s.cn_umts900"-->
+                                    <!--                                                       value="No"> No-->
+                                    <!--                                            </label>-->
+                                    <!--                                        </div>-->
+                                    <!--                                        <label class="col-sm-4 control-label">RET LTE 1800:</label>-->
+                                    <!--                                        <div class="col-sm-2">-->
+                                    <!--                                            <label class="radio-inline">-->
+                                    <!--                                                <input type="radio" name="cn_ret_lte1800_{{$index}}" id="cn_ret_lte1800_{{$index}}_1" ng-model="s.cn_ret_lte1800"-->
+                                    <!--                                                       value="Yes"> Yes-->
+                                    <!--                                            </label>-->
+                                    <!--                                            <label class="radio-inline">-->
+                                    <!--                                                <input type="radio" name="cn_ret_lte1800_{{$index}}" id="cn_ret_lte1800_{{$index}}_2" ng-model="s.cn_ret_lte1800" ng-checked="true"-->
+                                    <!--                                                       value="No"> No-->
+                                    <!--                                            </label>-->
+                                    <!--                                        </div>-->
+                                    <!--                                    </div>-->
+                                    <!--                                    <div class="form-group">-->
+                                    <!--                                        <label class="col-sm-4 control-label">Required TRX 900/1800:</label>-->
+                                    <!--                                        <div class="col-sm-2">-->
+                                    <!--                                            <input class="form-control" type="text" name="cn_trx_{{$index}}" id="cn_trx_{{$index}}"-->
+                                    <!--                                                   ng-model="s.cn_trx">-->
+                                    <!--                                        </div>-->
+                                    <!--                                        <label class="col-sm-4 control-label">LTE 2100:</label>-->
+                                    <!--                                        <div class="col-sm-2">-->
+                                    <!--                                            <label class="radio-inline">-->
+                                    <!--                                                <input type="radio" name="cn_lte2100_{{$index}}" id="cn_lte2100_{{$index}}_1" ng-model="s.cn_lte2100" ng-change="s.cn_ret_lte2100 = s.cn_lte2100"-->
+                                    <!--                                                       value="Yes"> Yes-->
+                                    <!--                                            </label>-->
+                                    <!--                                            <label class="radio-inline">-->
+                                    <!--                                                <input type="radio" name="cn_lte2100_{{$index}}" id="cn_lte2100_{{$index}}_2" ng-model="s.cn_lte2100" ng-change="s.cn_ret_lte2100 = s.cn_lte2100"-->
+                                    <!--                                                       value="No"> No-->
+                                    <!--                                            </label>-->
+                                    <!--                                        </div>-->
+                                    <!--                                    </div>-->
+                                    <!--                                    <div class="form-group">-->
+                                    <!--                                        <label class="col-sm-4 control-label">WCDMA Carrier:</label>-->
+                                    <!--                                        <div class="col-sm-2">-->
+                                    <!--                                            <input class="form-control" type="text" name="cn_wcdma_carrier_{{$index}}" id="cn_wcdma_carrier_{{$index}}"-->
+                                    <!--                                                   ng-model="s.cn_wcdma_carrier">-->
+                                    <!--                                        </div>-->
+                                    <!--                                        <label class="col-sm-4 control-label">RET LTE 2100:</label>-->
+                                    <!--                                        <div class="col-sm-2">-->
+                                    <!--                                            <label class="radio-inline">-->
+                                    <!--                                                <input type="radio" name="cn_ret_lte2100_{{$index}}" id="cn_ret_lte2100_{{$index}}_1" ng-model="s.cn_ret_lte2100"-->
+                                    <!--                                                       value="Yes"> Yes-->
+                                    <!--                                            </label>-->
+                                    <!--                                            <label class="radio-inline">-->
+                                    <!--                                                <input type="radio" name="cn_ret_lte2100_{{$index}}" id="cn_ret_lte2100_{{$index}}_2" ng-model="s.cn_ret_lte2100" ng-checked="true"-->
+                                    <!--                                                       value="No"> No-->
+                                    <!--                                            </label>-->
+                                    <!--                                        </div>-->
+                                    <!--                                    </div>-->
+                                    <!--                                    <div class="form-group">-->
+                                    <!--                                        <label class="col-sm-4 control-label">Antenna Quantity 900/1800/WCDMA:</label>-->
+                                    <!--                                        <div class="col-sm-2">-->
+                                    <!--                                            <input class="form-control" type="text" name="cn_gsm_antenna_quantity_{{$index}}" id="cn_gsm_antenna_quantity_{{$index}}"v-->
+                                    <!--                                                   ng-model="s.cn_gsm_antenna_quantity">-->
+                                    <!--                                        </div>-->
+                                    <!--                                        <label class="col-sm-4 control-label">Antenna Quantity LTE 800/1800:</label>-->
+                                    <!--                                        <div class="col-sm-2">-->
+                                    <!--                                            <input class="form-control" type="text" name="cn_lte_antenna_quantity_{{$index}}" id="cn_lte_antenna_quantity_{{$index}}"-->
+                                    <!--                                                   ng-model="s.cn_lte_antenna_quantity">-->
+                                    <!--                                        </div>-->
+                                    <!--                                    </div>-->
+                                    <!--                                    <div class="form-group">-->
+                                    <!--                                        <label class="col-sm-4 control-label">Tilt [deg] mechanical 900/1800/WCDMA:</label>-->
+                                    <!--                                        <div class="col-sm-2">-->
+                                    <!--                                            <input class="form-control" type="text" name="cn_tilt_mech_gsm_{{$index}}_{{$index}}" id="cn_tilt_mech_gsm_{{$index}}_{{$index}}"-->
+                                    <!--                                                   ng-model="s.square">-->
+                                    <!--                                        </div>-->
+                                    <!--                                        <label class="col-sm-4 control-label">Tilt [deg] mechanical LTE 800/1800:</label>-->
+                                    <!--                                        <div class="col-sm-2">-->
+                                    <!--                                            <input class="form-control" type="text" name="cn_tilt_mech_lte_{{$index}}" id="cn_tilt_mech_lte_{{$index}}"-->
+                                    <!--                                                   ng-model="s.cn_tilt_mech_lte">-->
+                                    <!--                                        </div>-->
+                                    <!--                                    </div>-->
+                                    <!--                                    <div class="form-group">-->
+                                    <!--                                        <label class="col-sm-4 control-label">Tilt [deg] electrical 900/1800/WCDMA:</label>-->
+                                    <!--                                        <div class="col-sm-2">-->
+                                    <!--                                            <input class="form-control" type="text" name="cn_tilt_electr_gsm_{{$index}}" id="cn_tilt_electr_gsm_{{$index}}"-->
+                                    <!--                                                   ng-model="s.cn_tilt_electr_gsm">-->
+                                    <!--                                        </div>-->
+                                    <!--                                        <label class="col-sm-4 control-label">Tilt [deg] electrical LTE 800/1800:</label>-->
+                                    <!--                                        <div class="col-sm-2">-->
+                                    <!--                                            <input class="form-control" type="text" name="cn_tilt_electr_lte_{{$index}}" id="cn_tilt_electr_lte_{{$index}}"-->
+                                    <!--                                                   ng-model="s.cn_tilt_electr_lte">-->
+                                    <!--                                        </div>-->
+                                    <!--                                    </div>-->
+                                    <!--                                    <div class="form-group">-->
+                                    <!--                                        <label class="col-sm-4 control-label">Direction [deg] 900/1800/WCDMA:</label>-->
+                                    <!--                                        <div class="col-sm-2">-->
+                                    <!--                                            <input class="form-control" type="text" name="cn_direction_gsm_{{$index}}" id="cn_direction_gsm_{{$index}}"-->
+                                    <!--                                                   ng-model="s.cn_direction_gsm">-->
+                                    <!--                                        </div>-->
+                                    <!--                                        <label class="col-sm-4 control-label">Direction [deg] LTE 800/1800:</label>-->
+                                    <!--                                        <div class="col-sm-2">-->
+                                    <!--                                            <input class="form-control" type="text" name="cn_direction_lte_{{$index}}" id="cn_direction_lte_{{$index}}"-->
+                                    <!--                                                   ng-model="s.cn_direction_lte">-->
+                                    <!--                                        </div>-->
+                                    <!--                                    </div>-->
+                                    <!--                                    <div class="form-group">-->
+                                    <!--                                        <label class="col-sm-4 control-label">Height (top of ant) [m] 900/1800/WCDMA:</label>-->
+                                    <!--                                        <div class="col-sm-2">-->
+                                    <!--                                            <input class="form-control" type="text" name="cn_height_gsm_{{$index}}" id="cn_height_gsm_{{$index}}"-->
+                                    <!--                                                   ng-model="s.cn_height_gsm">-->
+                                    <!--                                        </div>-->
+                                    <!--                                        <label class="col-sm-4 control-label">Height (top of ant) [m] LTE 800/1800:</label>-->
+                                    <!--                                        <div class="col-sm-2">-->
+                                    <!--                                            <input class="form-control" type="text" name="cn_height_lte_{{$index}}" id="cn_height_lte_{{$index}}"-->
+                                    <!--                                                   ng-model="s.cn_height_lte">-->
+                                    <!--                                        </div>-->
+                                    <!--                                    </div>-->
+                                    <!--                                    <br>-->
+                                    <!--                                    <div class="form-group">-->
+                                    <!--                                        <label class="col-sm-4 control-label">Duplex Filter 900/1800:</label>-->
+                                    <!--                                        <div class="col-sm-2">-->
+                                    <!--                                            <input class="form-control" type="text" name="cn_duplex_gsm_{{$index}}" id="cn_duplex_gsm_{{$index}}"-->
+                                    <!--                                                   ng-model="s.cn_duplex_gsm">-->
+                                    <!--                                        </div>-->
+                                    <!--                                        <label class="col-sm-4 control-label">Radio Unit type:</label>-->
+                                    <!--                                        <div class="col-sm-2">-->
+                                    <!--                                            <select class="form-control col-sm-2" name="radioUnit_{{$index}}" id="radioUnit_{{$index}}" ng-model="s.cn_radio_unit" >-->
+                                    <!--                                                <option ng-repeat="a in dictionary.radioUnit" ng-value="a.name">{{a.name}}</option>-->
+                                    <!--                                            </select>-->
+                                    <!--                                        </div>-->
+                                    <!--                                    </div>-->
+                                    <!--                                    <div class="form-group">-->
+                                    <!--                                        <label class="col-sm-4 control-label">Diversity 900/1800:</label>-->
+                                    <!--                                        <div class="col-sm-2">-->
+                                    <!--                                            <input class="form-control" type="text" name="cn_diversity_{{$index}}" id="cn_diversity_{{$index}}"-->
+                                    <!--                                                   ng-model="s.cn_diversity">-->
+                                    <!--                                        </div>-->
+                                    <!--&lt;!&ndash;                                        <label class="col-sm-4 control-label">DU type:</label>&ndash;&gt;-->
+                                    <!--&lt;!&ndash;                                        <div class="col-sm-2">&ndash;&gt;-->
+                                    <!--&lt;!&ndash;                                            <select class="form-control col-sm-2" id="dUnit_{{$index}}" name="dUnit_{{$index}}" ng-model="s.cn_du" >&ndash;&gt;-->
+                                    <!--&lt;!&ndash;                                                <option ng-repeat="a in dictionary.dUnit" ng-value="a.name">{{a.name}}</option>&ndash;&gt;-->
+                                    <!--&lt;!&ndash;                                            </select>&ndash;&gt;-->
+                                    <!--&lt;!&ndash;                                        </div>&ndash;&gt;-->
+                                    <!--                                    </div>-->
+                                    <!--                                    <div class="form-group">-->
+                                    <!--                                        <label class="col-sm-4 control-label">Power Splitter 900/1800:</label>-->
+                                    <!--                                        <div class="col-sm-2">-->
+                                    <!--                                            <input class="form-control" type="text" id="cn_power_splitter_{{$index}}" name="cn_power_splitter_{{$index}}"-->
+                                    <!--                                                   ng-model="s.cn_power_splitter">-->
+                                    <!--                                        </div>-->
+                                    <!--                                    </div>-->
+                                    <!--                                    <div class="form-group">-->
+                                    <!--                                        <label class="col-sm-4 control-label">Hybrid Combiner Unit (HCU) 900/1800:</label>-->
+                                    <!--                                        <div class="col-sm-2">-->
+                                    <!--                                            <input class="form-control" type="text" id="cn_hcu_{{$index}}" name="cn_hcu_{{$index}}"-->
+                                    <!--                                                   ng-model="s.cn_hcu">-->
+                                    <!--                                        </div>-->
+                                    <!--                                    </div>-->
+                                    <!--                                    <div class="form-group">-->
+                                    <!--                                        <label class="col-sm-4 control-label">ASC:</label>-->
+                                    <!--                                        <div class="col-sm-2">-->
+                                    <!--                                            <label class="radio-inline">-->
+                                    <!--                                                <input type="radio" name="cn_asc_{{$index}}" id="cn_asc_{{$index}}_1" ng-model="s.cn_asc"-->
+                                    <!--                                                       value="Yes"> Yes-->
+                                    <!--                                            </label>-->
+                                    <!--                                            <label class="radio-inline">-->
+                                    <!--                                                <input type="radio" name="cn_asc_{{$index}}" id="cn_asc_{{$index}}_2" ng-model="s.cn_asc"-->
+                                    <!--                                                       value="No"> No-->
+                                    <!--                                            </label>-->
+                                    <!--                                        </div>-->
+                                    <!--                                    </div>-->
+                                    <!--                                    <div class="form-group">-->
+                                    <!--                                        <label class="col-sm-4 control-label">Remote Electrical Tilt (RET):</label>-->
+                                    <!--                                        <div class="col-sm-2">-->
+                                    <!--                                            <label class="radio-inline">-->
+                                    <!--                                                <input type="radio" name="cn_ret_{{$index}}" id="cn_ret_{{$index}}_1" ng-model="s.cn_ret"-->
+                                    <!--                                                       value="Yes"> Yes-->
+                                    <!--                                            </label>-->
+                                    <!--                                            <label class="radio-inline">-->
+                                    <!--                                                <input type="radio" name="cn_ret_{{$index}}" id="cn_ret_{{$index}}_2" ng-model="s.cn_ret"-->
+                                    <!--                                                       value="No"> No-->
+                                    <!--                                            </label>-->
+                                    <!--                                        </div>-->
+                                    <!--                                    </div>-->
+                                    <!--                                    <div class="form-group">-->
+                                    <!--                                        <label class="col-sm-4 control-label">TMA 900/1800/WCDMA::</label>-->
+                                    <!--                                        <div class="col-sm-2">-->
+                                    <!--                                            <input class="form-control" type="text" id="cn_tma_gsm_{{$index}}" name="cn_tma_gsm_{{$index}}"-->
+                                    <!--                                                   ng-model="s.cn_tma_gsm">-->
+                                    <!--                                        </div>-->
+                                    <!--                                    </div>-->
+                                    <!--                                    <div class="form-group">-->
+                                    <!--                                        <label class="col-sm-4 control-label">TCC 900/1800:</label>-->
+                                    <!--                                        <div class="col-sm-2">-->
+                                    <!--                                            <input class="form-control" type="text" id="cn_tcc_{{$index}}" name="cn_tcc_{{$index}}"-->
+                                    <!--                                                   ng-model="s.cn_tcc">-->
+                                    <!--                                        </div>-->
+                                    <!--                                    </div>-->
+                                    <!--                                    <div class="form-group">-->
+                                    <!--                                        <label class="col-sm-4 control-label">Extended range 900/1800:</label>-->
+                                    <!--                                        <div class="col-sm-2">-->
+                                    <!--                                            <input class="form-control" type="text" id="cn_gsm_range_{{$index}}" name="cn_gsm_range_{{$index}}"-->
+                                    <!--                                                   ng-model="s.cn_gsm_range">-->
+                                    <!--                                        </div>-->
+                                    <!--                                    </div>-->
+                                </div>
+                            </tab>
+                            <tab ng-click="newSector();">
+                                <tab-heading height="50px"><b>+</b></tab-heading>
+                            </tab>
+                            <tab ng-click="tabStepRight()">
+                                <tab-heading height="50px"><b>></b></tab-heading>
+                            </tab>
+                        </tabset>
                         <br>
                         <!-- <p>from {{minTab}} to {{maxTab}}</p> -->
                     </accordion-group>
@@ -1728,7 +2485,7 @@
                     <accordion-group is-open="false">
                         <accordion-heading>
                             <span ng-class="{'error' : isError('renterCompany')}">Renter Company <i class="pull-right glyphicon"
-                                                    ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i></span>
+                                                                                                    ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i></span>
                         </accordion-heading>
                         <div class="form-group">
                             <label class="col-sm-3 control-label">Legal type:</label>
@@ -1899,8 +2656,8 @@
                                        placeholder="(0-360)">
                                 <label class="error"
                                        ng-show="kcell_form.TRazimuth.$error.pattern && ( kcell_form.TRazimuth.$touched || view.submitted)">Неверный формат</label>
-<!--                                <label class="error"-->
-<!--                                       ng-show="kcell_form.TRazimuth.$error.pattern && ( kcell_form.TRazimuth.$touched || view.submitted)">Введите все поля для расчета</label>-->
+                                <!--                                <label class="error"-->
+                                <!--                                       ng-show="kcell_form.TRazimuth.$error.pattern && ( kcell_form.TRazimuth.$touched || view.submitted)">Введите все поля для расчета</label>-->
                             </div>
                             <div class="col-sm-3">
                                 <button type="button" class="btn btn-default" ng-click="autoSetAzimuth()">
@@ -2014,7 +2771,7 @@
                                             <!--<label class="error" ng-show="invalidLongitude">Longitude must be in [46.493, 87.315] range</label>-->
                                             <label class="error"
                                                    ng-if="kcell_form.ne_longitude.$error.pattern && ( kcell_form.ne_longitude.$touched || view.submitted)">Expected: 46.493000 <- Longitude <-87.315000</label>
-                            
+
                                         </div>
                                     </div>
                                 </accordion-group>
@@ -2044,7 +2801,7 @@
                             <label class="col-sm-3 control-label">Description:</label>
                             <div class="col-sm-6">
                                 <textarea class="form-control" ng-model="candidate.transmissionDescription" name="transmissionDescription"
-                                    maxlength="500" rows="4" style="resize:none"></textarea>
+                                          maxlength="500" rows="4" style="resize:none"></textarea>
                             </div>
                         </div>
                     </accordion-group>
@@ -2054,7 +2811,7 @@
                     <accordion-group is-open="false">
                         <accordion-heading>
                             <span ng-class="{'error' : isError('powerSource')}">Power Source <i class="pull-right glyphicon"
-                                                  ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i></span>
+                                                                                                ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i></span>
                         </accordion-heading>
 
                         <div class="form-group">
@@ -2129,15 +2886,15 @@
                                 <div class="form-check">
                                     <label class="form-check-label">
                                         <input class="form-check-input" type="radio" name="cn_tps" ng-model="powerSource.cn_tps" ng-click="checkTPS(powerSource.cn_tps)"
-                                            value="Available (LEP installation not required)"> Available (LEP installation not required)
+                                               value="Available (LEP installation not required)"> Available (LEP installation not required)
                                     </label>
                                     <label class="form-check-label">
                                         <input class="form-check-input" type="radio" name="cn_tps" ng-model="powerSource.cn_tps" ng-click="checkTPS(powerSource.cn_tps)"
-                                            value="Available (LEP installation required)"> Available (LEP installation required)
+                                               value="Available (LEP installation required)"> Available (LEP installation required)
                                     </label>
                                     <label class="form-check-label">
                                         <input class="form-check-input" type="radio" name="cn_tps" ng-model="powerSource.cn_tps" ng-click="checkTPS(powerSource.cn_tps)"
-                                            value="TPS installation required (TPS is missing)"> TPS installation required (TPS is missing)
+                                               value="TPS installation required (TPS is missing)"> TPS installation required (TPS is missing)
                                     </label>
                                 </div>
                             </div>
@@ -2149,18 +2906,18 @@
                                 <div class="form-check">
                                     <label class="form-check-label">
                                         <input class="form-check-input" type="radio" name="cn_tps_belongs" ng-model="powerSource.cn_tps_belongs" ng-click="checkTPSB(powerSource.cn_tps_belongs)" required
-                                            value="RES"> RES
+                                               value="RES"> RES
                                     </label>
                                     <label class="form-check-label">
                                         <input class="form-check-input" type="radio" name="cn_tps_belongs" ng-model="powerSource.cn_tps_belongs" ng-click="checkTPSB(powerSource.cn_tps_belongs)" required
-                                            value="Landlord"> Landlord
+                                               value="Landlord"> Landlord
                                     </label>
                                     <label class="form-check-label">
                                         <input class="form-check-input" type="radio" name="cn_tps_belongs" ng-model="powerSource.cn_tps_belongs" ng-click="checkTPSB(powerSource.cn_tps_belongs)" required
-                                            value="Other"> Other
+                                               value="Other"> Other
                                     </label>
                                     <label class="error"
-                                        ng-show="kcell_form.cn_tps_belongs.$error.required && (checkTPSTouched || view.submitted || powerSource.cn_tps === 'Available (LEP installation not required)' || powerSource.cn_tps === 'Available (LEP installation required)' )">Required
+                                           ng-show="kcell_form.cn_tps_belongs.$error.required && (checkTPSTouched || view.submitted || powerSource.cn_tps === 'Available (LEP installation not required)' || powerSource.cn_tps === 'Available (LEP installation required)' )">Required
                                         field
                                     </label>
                                 </div>
@@ -2168,7 +2925,7 @@
                             <div class="col-sm-5">
                                 <label ng-if="checkTPSBTouched" class="form-check-label">
                                     <input type="text" class="form-check-input" id="cn_tps_belongs_commentary" name="cn_tps_belongs_commentary"
-                                        ng-model="powerSource.cn_tps_belongs_commentary" required>
+                                           ng-model="powerSource.cn_tps_belongs_commentary" required>
                                 </label>
                                 <label class="error" ng-show="kcell_form.cn_tps_belongs_commentary.$error.required && (checkTPSTouched || view.submitted)">Required field</label>
                             </div>
@@ -2181,7 +2938,7 @@
                                        ng-model="powerSource.cn_tps_distance">
                                 <label class="error" ng-show="kcell_form.cn_tps_distance.$error.required && (checkTPSTouched || view.submitted || powerSource.cn_tps === 'Available (LEP installation not required)' || powerSource.cn_tps === 'Available (LEP installation required)')">Required field</label>
                             </div>
-                        </label>
+                            </label>
                         </div>
 
                     </accordion-group>
@@ -2261,7 +3018,7 @@
                         <accordion-group is-open="false">
                             <accordion-heading>
                                 <span ng-class="{'error' : isError('farEndInformationAccordion')}">Far End Information <i class="pull-right glyphicon"
-                                                             ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i></span>
+                                                                                                                          ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i></span>
                             </accordion-heading>
                             <div class="col-sm-12">
                                 <div class="form-group">
@@ -2302,7 +3059,7 @@
                                     <accordion-group is-open="false">
                                         <accordion-heading>
                                             <span ng-class="{'error' : isError('farEndAddress')}">Far End Address <i class="pull-right glyphicon"
-                                                                     ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i></span>
+                                                                                                                     ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i></span>
                                         </accordion-heading>
                                         <div class="form-group">
                                             <label class="col-sm-3 control-label">Oblast:</label>
@@ -2374,17 +3131,17 @@
                                                ng-model="currentFarEnd.farEndAddress">
                                     </div>
                                 </div> -->
-<!--                                <div class="form-group">-->
-<!--                                    <label class="col-sm-3 control-label">Contract Information:</label>-->
-<!--                                    <div class="col-sm-8">-->
-<!--                                        <input class="form-control" id="contractInformation"-->
-<!--                                               name="fe_form_contractInformation"-->
-<!--                                               ng-model="currentFarEnd.contractInformation">-->
-<!--                                        <label class="error"-->
-<!--                                               ng-show="kcell_form.fe_form_contractInformation.$error.required && ( kcell_form.fe_form_contractInformation.$touched || view.submitted)">Required-->
-<!--                                            field</label>-->
-<!--                                    </div>-->
-<!--                                </div>-->
+                                <!--                                <div class="form-group">-->
+                                <!--                                    <label class="col-sm-3 control-label">Contract Information:</label>-->
+                                <!--                                    <div class="col-sm-8">-->
+                                <!--                                        <input class="form-control" id="contractInformation"-->
+                                <!--                                               name="fe_form_contractInformation"-->
+                                <!--                                               ng-model="currentFarEnd.contractInformation">-->
+                                <!--                                        <label class="error"-->
+                                <!--                                               ng-show="kcell_form.fe_form_contractInformation.$error.required && ( kcell_form.fe_form_contractInformation.$touched || view.submitted)">Required-->
+                                <!--                                            field</label>-->
+                                <!--                                    </div>-->
+                                <!--                                </div>-->
                                 <div class="form-group">
                                     <label class="col-sm-3 control-label">Square:</label>
                                     <div class="col-sm-8">

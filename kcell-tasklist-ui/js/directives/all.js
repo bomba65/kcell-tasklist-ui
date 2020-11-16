@@ -782,11 +782,16 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
             restrict: 'E',
             scope: {
                 leasingCandidate: '=',
-                farEnd: '='
+                farEnd: '=',
+                cellAntenna: '=',
+                antennasList: '=',
+                dictionary: '=',
+                frequencyBand: '='
             },
             link: function (scope, el, attrs, formCtrl) {
                 //console.log(formCtrl, 'formCtrl');
                 scope.parentForm = formCtrl;
+                scope.kcell_form = formCtrl;
                 scope.dictionary = {};
                 scope.selectedIndex = -1;
                 scope.defaultFarEndCard = false;
@@ -1262,7 +1267,211 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                     return _.filter(scope.leasingCandidate.transmissionAntennatransmissionAntenna.cityList, function (o) {
                         return o.name.toLowerCase().includes(val.toLowerCase());
                     })
+                }
+
+
+
+
+                //NEW DIRECTIVE ITEMS
+                //
+                //
+                // ;
+
+                scope.leasingCandidate.cellAntenna.sectors = [];
+                console.log('scope.kcell_form');
+                console.log(scope);
+                scope.sector = {
+                    "antennas":[{}],
+                }
+
+                scope.selectedAntennaSector = {};
+                scope.selectedSectorTab = 0;
+
+                //tabs
+                scope.minTab = 0;
+                scope.maxTab = 3;
+
+                scope.newSector = function () {
+                    let newS = JSON.parse(angular.toJson(scope.sector));
+                    scope.leasingCandidate.cellAntenna.sectors.push(newS);
+                    console.log(scope.leasingCandidate.cellAntenna.sectors)
+                    if (scope.selectedSectorTab+1 < scope.leasingCandidate.cellAntenna.sectors.length) {
+                        scope.selectedSectorTab = scope.leasingCandidate.cellAntenna.sectors.length - 1;
+                        scope.leasingCandidate.cellAntenna.sectors[scope.selectedSectorTab].active = 'active';
+
+                        if (scope.selectedSectorTab === scope.maxTab) {
+                            scope.minTab= scope.minTab + 1;
+                            scope.maxTab= scope.maxTab + 1;
+                        }
+                    } else {
+                        scope.leasingCandidate.cellAntenna.sectors[scope.selectedSectorTab].active = 'active';
+                    }
+                }
+
+                if(!(scope.leasingCandidate.cellAntenna && scope.leasingCandidate.cellAntenna.sectors && scope.leasingCandidate.cellAntenna.sectors.length > 0)){
+                    scope.newSector();
+                    scope.newSector();
+                    scope.newSector();
+                }
+
+                scope.selectAntennaSector = function (index) {
+                    //if(scope.renterCompany && (scope.renterCompany.legalType === 'national_kazakhtelecom' || scope.renterCompany.legalType === 'national_kazteleradio' || scope.renterCompany.legalType === 'national_kazpost')){
+                    //    scope.siteObjectType = 'national';
+                    //} else {
+                    //    scope.siteObjectType = 'other';
+                    //}
+                    scope.selectedSectorTab = index;
+                    //scope.selectedAntennaSector = scope.cellAntenna.sectors[index];
+                }
+
+                scope.antennaNameSelected = function (sector, antenna, a) {
+                    const obj = scope.antennasList.find(b=>{ return b.antenna === a});
+                    console.log("obj>>>>")
+                    console.log(obj)
+                    scope.leasingCandidate.cellAntenna.sectors[sector].antennas[antenna].dimension = obj.dimension;
+                    scope.leasingCandidate.cellAntenna.sectors[sector].antennas[antenna].weight = obj.weight;
+                    console.log("<<<<obj")
+                }
+
+                scope.checkAntennaBands = function (bandName, sectorIndex) {
+                    console.log('sectorIndex')
+                    console.log(sectorIndex)
+                    if(scope.leasingCandidate.cellAntenna.sectors) {
+                        const s = scope.leasingCandidate.cellAntenna.sectors[sectorIndex]
+
+                        const finded = s.antennas.find( a => {
+                            if (a.antennaType && a.antennaType[bandName]){
+                                return a.antennaType[bandName]
+                            }
+                        });
+                        if (finded) {
+                            return false
+                        }
+                    }
+                    return true
+                }
+
+                scope.changedAntennaQuantity = function (antennaIndex, sectorIndex) {
+                    const a = scope.leasingCandidate.cellAntenna.sectors[sectorIndex].antennas[antennaIndex];
+                    if (a.antennaType) {
+                        Object.keys(a.antennaType).forEach( b => {
+                            scope.countAntennaQuantity(b, sectorIndex)
+                        })
+                    }
+
+                }
+
+                scope.countAntennaQuantity = function (bandName, sectorIndex) {
+                    // ant.antennaType[a]
+                    const s = scope.leasingCandidate.cellAntenna.sectors[sectorIndex];
+                    if ( !s.bands) {
+                        s.bands = {};
+                    }
+                    if (!s.bands[bandName]) {
+                        s.bands[bandName] = {};
+                    }
+                    const filtered = s.antennas.filter( a => { return a.antennaType[bandName]});
+                    if (filtered.length > 0 && s) {
+                        if ( !s.bands) {
+                            s.bands = {};
+                        }
+                        if (!s.bands[bandName]) {
+                            s.bands[bandName] = {};
+                        }
+                        s.bands[bandName].cn_gsm_antenna_quantity = 0 ;
+                        filtered.forEach( a => {
+                            console.log(a)
+                            s.bands[bandName].cn_gsm_antenna_quantity += a.quantity ? parseInt(a.quantity) : 0;
+                        })
+                        // s.bands[bandName].cn_gsm_antenna_quantity = filtered.length;
+                        s.bands[bandName].active = true;
+                    } else {
+                        if ( !s.bands) {
+                            s.bands = {};
+                        }
+                        s.bands[bandName] = {};
+                        s.bands[bandName].active = false;
+                    }
+                }
+
+                scope.tabStepRight = function () {
+                    if (scope.selectedSectorTab+1 < scope.leasingCandidate.cellAntenna.sectors.length) {
+                        scope.selectedSectorTab = scope.selectedSectorTab + 1;
+                        scope.leasingCandidate.cellAntenna.sectors[scope.selectedSectorTab].active = 'active';
+
+                        if (scope.selectedSectorTab === scope.maxTab) {
+                            scope.minTab= scope.minTab + 1;
+                            scope.maxTab= scope.maxTab + 1;
+                        }
+                    } else {
+                        scope.leasingCandidate.cellAntenna.sectors[scope.selectedSectorTab].active = 'active';
+                    }
+                }
+
+                scope.checkFrequency = function(val, index) {
+                    var yes = false;
+                    var temp = String(val);
+                    angular.forEach(scope.frequencyBand, function (freq, i) {
+                        if (freq.substring(0, temp.length) === temp) {
+                            yes = true;
+                            scope.frequencyBandValid = true;
+                        }
+                    });
+                    if (!yes) {
+                        scope.leasingCandidate.cellAntenna.selectedAntennas[index].frequencyBand = '';
+                        scope.frequencyBandValid = false;
+                    }
                 };
+                scope.cellAntennaTypeChanged = function(val, parent, index) {
+                    const pIndex = parent.$index
+                    if(scope.leasingCandidate.cellAntenna) {
+                        if(scope.leasingCandidate.cellAntenna.sectors && scope.leasingCandidate.cellAntenna.sectors.length >0){
+                            if(scope.leasingCandidate.cellAntenna.sectors[pIndex].antennas && scope.leasingCandidate.cellAntenna.sectors[pIndex].antennas.length >0) {
+                                scope.leasingCandidate.cellAntenna.sectors[pIndex].antennas[index].frequencyBand = parseInt(val.replace(/[^0-9.]/gi, ''));
+                            }
+                        }
+                    }
+                }
+                scope.checkAzimuth = function(val, index) {
+                    if (!(val>=0 && val <=360)) scope.leasingCandidate.cellAntenna.selectedAntennas[index].azimuth = '';
+                };
+
+                scope.azimuthPattern = '([0-9]|[1-8][0-9]|9[0-9]|[12][0-9]{2}|3[0-5][0-9]|360)';
+
+                scope.fromFirstToSecondWindow = function (indexes) {
+                    if (indexes.length > 0) {
+                        indexes.forEach(function (index) {
+                            scope.leasingCandidate.cellAntenna.selectedAntennas.push(scope.antennasList[index]);
+                            scope.antennasList.splice(index, 1);
+                        });
+                    }
+                    scope.firstMultiselect = [];
+                };
+
+                scope.fromSecondToFirstWindow = function (indexes) {
+                    if (indexes.length > 0) {
+                        indexes.forEach(function (index) {
+                            scope.antennasList.push(scope.antennasList[index]);
+                            scope.leasingCandidate.cellAntenna.selectedAntennas.splice(index, 1);
+                        });
+                    }
+                    scope.secondMultiselect = [];
+                };
+
+                scope.tabStepLeft = function () {
+                    if (scope.selectedSectorTab-1 >= 0) {
+                        scope.selectedSectorTab = scope.selectedSectorTab - 1;
+                        scope.leasingCandidate.cellAntenna.sectors[scope.selectedSectorTab].active = 'active';
+
+                        if (scope.selectedSectorTab+1 === scope.minTab) {
+                            scope.minTab= scope.minTab - 1;
+                            scope.maxTab= scope.maxTab - 1;
+                        }
+                    } else {
+                        scope.leasingCandidate.cellAntenna.sectors[scope.selectedSectorTab].active = 'active';
+                    }
+                }
+                ;
             },
             templateUrl: './js/directives/leasing/leasingCandidate.html'
         };
@@ -3989,223 +4198,6 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                 };
             },
             templateUrl: './js/directives/leasing/leasingAttachments.html'
-        };
-    }]);
-    module.directive('leasingSectors', ['$http', '$timeout', function ($http, $timeout) {
-        return {
-            restrict: 'E',
-            scope: {
-                cellAntenna: '=',
-                sector: '=',
-                antennasList: '=',
-                dictionary: '=',
-                frequencyBand: '='
-            },
-            require: '^form',
-            link: function(scope, el, attrs, kcellForm){
-                scope.kcell_form = kcellForm;
-                scope.cellAntenna.sectors = [];
-                console.log('scope.kcell_form');
-                console.log(scope);
-                scope.sector = {
-                    "antennas":[{}],
-                }
-
-                scope.selectedAntennaSector = {};
-                scope.selectedSectorTab = 0;
-
-                //tabs
-                scope.minTab = 0;
-                scope.maxTab = 3;
-
-                scope.newSector = function () {
-                    let newS = JSON.parse(angular.toJson(scope.sector));
-                    scope.cellAntenna.sectors.push(newS);
-                    console.log(scope.cellAntenna.sectors)
-                    if (scope.selectedSectorTab+1 < scope.cellAntenna.sectors.length) {
-                        scope.selectedSectorTab = scope.cellAntenna.sectors.length - 1;
-                        scope.cellAntenna.sectors[scope.selectedSectorTab].active = 'active';
-
-                        if (scope.selectedSectorTab === scope.maxTab) {
-                            scope.minTab= scope.minTab + 1;
-                            scope.maxTab= scope.maxTab + 1;
-                        }
-                    } else {
-                        scope.cellAntenna.sectors[scope.selectedSectorTab].active = 'active';
-                    }
-                }
-
-                if(!(scope.cellAntenna && scope.cellAntenna.sectors && scope.cellAntenna.sectors.length > 0)){
-                    scope.newSector();
-                    scope.newSector();
-                    scope.newSector();
-                }
-
-                scope.selectAntennaSector = function (index) {
-                    //if(scope.renterCompany && (scope.renterCompany.legalType === 'national_kazakhtelecom' || scope.renterCompany.legalType === 'national_kazteleradio' || scope.renterCompany.legalType === 'national_kazpost')){
-                    //    scope.siteObjectType = 'national';
-                    //} else {
-                    //    scope.siteObjectType = 'other';
-                    //}
-                    scope.selectedSectorTab = index;
-                    //scope.selectedAntennaSector = scope.cellAntenna.sectors[index];
-                }
-
-                scope.antennaNameSelected = function (sector, antenna, a) {
-                    const obj = scope.antennasList.find(b=>{ return b.antenna === a});
-                    console.log("obj>>>>")
-                    console.log(obj)
-                    scope.cellAntenna.sectors[sector].antennas[antenna].dimension = obj.dimension;
-                    scope.cellAntenna.sectors[sector].antennas[antenna].weight = obj.weight;
-                    console.log("<<<<obj")
-                }
-
-                scope.checkAntennaBands = function (bandName, sectorIndex) {
-                    console.log('sectorIndex')
-                    console.log(sectorIndex)
-                    if(scope.cellAntenna.sectors) {
-                        const s = scope.cellAntenna.sectors[sectorIndex]
-
-                        const finded = s.antennas.find( a => {
-                            if (a.antennaType && a.antennaType[bandName]){
-                                return a.antennaType[bandName]
-                            }
-                        });
-                        if (finded) {
-                            return false
-                        }
-                    }
-                    return true
-                }
-
-                scope.changedAntennaQuantity = function (antennaIndex, sectorIndex) {
-                    const a = scope.cellAntenna.sectors[sectorIndex].antennas[antennaIndex];
-                    if (a.antennaType) {
-                        Object.keys(a.antennaType).forEach( b => {
-                            scope.countAntennaQuantity(b, sectorIndex)
-                        })
-                    }
-
-                }
-
-                scope.countAntennaQuantity = function (bandName, sectorIndex) {
-                    // ant.antennaType[a]
-                    const s = scope.cellAntenna.sectors[sectorIndex];
-                    if ( !s.bands) {
-                        s.bands = {};
-                    }
-                    if (!s.bands[bandName]) {
-                        s.bands[bandName] = {};
-                    }
-                    const filtered = s.antennas.filter( a => { return a.antennaType[bandName]});
-                    if (filtered.length > 0 && s) {
-                        if ( !s.bands) {
-                            s.bands = {};
-                        }
-                        if (!s.bands[bandName]) {
-                            s.bands[bandName] = {};
-                        }
-                        s.bands[bandName].cn_gsm_antenna_quantity = 0 ;
-                        filtered.forEach( a => {
-                            console.log(a)
-                            s.bands[bandName].cn_gsm_antenna_quantity += a.quantity ? parseInt(a.quantity) : 0;
-                        })
-                        // s.bands[bandName].cn_gsm_antenna_quantity = filtered.length;
-                        s.bands[bandName].active = true;
-                    } else {
-                        if ( !s.bands) {
-                            s.bands = {};
-                        }
-                        s.bands[bandName] = {};
-                        s.bands[bandName].active = false;
-                    }
-                }
-
-                scope.tabStepRight = function () {
-                    if (scope.selectedSectorTab+1 < scope.cellAntenna.sectors.length) {
-                        scope.selectedSectorTab = scope.selectedSectorTab + 1;
-                        scope.cellAntenna.sectors[scope.selectedSectorTab].active = 'active';
-
-                        if (scope.selectedSectorTab === scope.maxTab) {
-                            scope.minTab= scope.minTab + 1;
-                            scope.maxTab= scope.maxTab + 1;
-                        }
-                    } else {
-                        scope.cellAntenna.sectors[scope.selectedSectorTab].active = 'active';
-                    }
-                }
-
-                scope.checkFrequency = function(val, index) {
-                    var yes = false;
-                    var temp = String(val);
-                    angular.forEach(scope.frequencyBand, function (freq, i) {
-                        if (freq.substring(0, temp.length) === temp) {
-                            yes = true;
-                            scope.frequencyBandValid = true;
-                        }
-                    });
-                    if (!yes) {
-                        scope.cellAntenna.selectedAntennas[index].frequencyBand = '';
-                        scope.frequencyBandValid = false;
-                    }
-                };
-                scope.cellAntennaTypeChanged = function(val, parent, index) {
-                    const pIndex = parent.$index
-                    if(scope.cellAntenna) {
-                        if(scope.cellAntenna.sectors && scope.cellAntenna.sectors.length >0){
-                            if(scope.cellAntenna.sectors[pIndex].antennas && scope.cellAntenna.sectors[pIndex].antennas.length >0) {
-                                scope.cellAntenna.sectors[pIndex].antennas[index].frequencyBand = parseInt(val.replace(/[^0-9.]/gi, ''));
-                                console.log('scope.cellAntenna.sectors[pIndex].antennas[index].frequencyBand')
-                                console.log(scope.cellAntenna.sectors[pIndex].antennas[index].frequencyBand)
-                            }
-                        }
-                    }
-                    // scope.cellAntenna.selectedAntennas[index].frequencyBand = val.replace(/[^0-9.]/gi, '');
-                    // console.log('scope.cellAntenna.selectedAntennas[index].frequencyBand')
-                    // console.log(scope.cellAntenna.selectedAntennas[index].frequencyBand)
-                    // scope.checkFrequency(scope.cellAntenna.selectedAntennas[index].frequencyBand, index)
-                }
-                scope.checkAzimuth = function(val, index) {
-                    if (!(val>=0 && val <=360)) scope.cellAntenna.selectedAntennas[index].azimuth = '';
-                };
-
-                scope.azimuthPattern = '([0-9]|[1-8][0-9]|9[0-9]|[12][0-9]{2}|3[0-5][0-9]|360)';
-
-                scope.fromFirstToSecondWindow = function (indexes) {
-                    if (indexes.length > 0) {
-                        indexes.forEach(function (index) {
-                            scope.cellAntenna.selectedAntennas.push(scope.antennasList[index]);
-                            scope.antennasList.splice(index, 1);
-                        });
-                    }
-                    scope.firstMultiselect = [];
-                };
-
-                scope.fromSecondToFirstWindow = function (indexes) {
-                    if (indexes.length > 0) {
-                        indexes.forEach(function (index) {
-                            scope.antennasList.push(scope.antennasList[index]);
-                            scope.cellAntenna.selectedAntennas.splice(index, 1);
-                        });
-                    }
-                    scope.secondMultiselect = [];
-                };
-
-                scope.tabStepLeft = function () {
-                    if (scope.selectedSectorTab-1 >= 0) {
-                        scope.selectedSectorTab = scope.selectedSectorTab - 1;
-                        scope.cellAntenna.sectors[scope.selectedSectorTab].active = 'active';
-
-                        if (scope.selectedSectorTab+1 === scope.minTab) {
-                            scope.minTab= scope.minTab - 1;
-                            scope.maxTab= scope.maxTab - 1;
-                        }
-                    } else {
-                        scope.cellAntenna.sectors[scope.selectedSectorTab].active = 'active';
-                    }
-                };
-            },
-            templateUrl: './js/directives/leasing/leasingSectors.html'
         };
     }]);
 });
