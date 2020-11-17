@@ -570,12 +570,18 @@
                     });
                 }
 
-                camForm.variableManager.destroyVariable('transmissionTypeForSearch');
-                camForm.variableManager.createVariable({
-                    name: 'transmissionTypeForSearch',
-                    type: 'String',
-                    value: $scope.candidate.transmissionType
-                });
+                if(camForm.variableManager.variables['transmissionTypeForSearch'] && camForm.variableManager.variables['transmissionTypeForSearch'].type){
+                    camForm.variableManager.variableValue('transmissionTypeForSearch', $scope.candidate.transmissionType);
+                } else {
+                    if(camForm.variableManager.variables['transmissionTypeForSearch']){
+                        camForm.variableManager.destroyVariable('transmissionTypeForSearch');
+                    }
+                    camForm.variableManager.createVariable({
+                        name: 'transmissionTypeForSearch',
+                        type: 'String',
+                        value: $scope.candidate.transmissionType
+                    });
+                }
 
                 if ($scope.farEndInformation && $scope.farEndInformation.length > 0) {
                     var farEndLegalTypes = ',';
@@ -1334,11 +1340,13 @@
 
             $scope.antennaNameSelected = function (sector, antenna, a) {
                 const obj = $scope.antennasList.find(b=>{ return b.antenna === a});
-                console.log("obj>>>>")
-                console.log(obj)
-                $scope.cellAntenna.sectors[sector].antennas[antenna].dimension = obj.dimension;
-                $scope.cellAntenna.sectors[sector].antennas[antenna].weight = obj.weight;
-                console.log("<<<<obj")
+                if(obj){
+                    console.log("obj>>>>")
+                    console.log(obj)
+                    $scope.cellAntenna.sectors[sector].antennas[antenna].dimension = obj.dimension;
+                    $scope.cellAntenna.sectors[sector].antennas[antenna].weight = obj.weight;
+                    console.log("<<<<obj")
+                }
             }
 
             $scope.checkAntennaBands = function (bandName, sectorIndex) {
@@ -1971,6 +1979,7 @@
                                                                    ng-show="kcell_form.dimensions_{{$parent.$index}}_{{$index}}.$error.required && ( kcell_form.dimensions_{{$parent.$index}}_{{$index}}.$touched || view.submitted)">Required
                                                                 field</label>
                                                         </td>
+                                                        <td>
                                                             <input class="form-control" id="weight_{{$parent.$index}}_{{$index}}" name="weight_{{$parent.$index}}_{{$index}}"
                                                                    ng-model="ant.weight" placeholder="10" required>
                                                             <label class="error"
