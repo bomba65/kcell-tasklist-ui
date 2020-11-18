@@ -70,11 +70,6 @@ public class SetWorkVariables implements ExecutionListener {
                 siteRegion = "astana";
             }
 
-            String materialsProvidedBySubcontrator = "no";
-            if(execution.getVariable("materialsProvidedBySubcontrator")!=null) {
-                materialsProvidedBySubcontrator = (String) execution.getVariable("materialsProvidedBySubcontrator");
-            }
-
             InputStream fis = SetWorkVariables.class.getResourceAsStream("/revision/newWorkPrice.json");
             InputStreamReader reader = new InputStreamReader(fis, "utf-8");
             ArrayNode json = (ArrayNode) mapper.readTree(reader);
@@ -93,7 +88,7 @@ public class SetWorkVariables implements ExecutionListener {
                     ObjectNode workPriceJson = mapper.createObjectNode();
                     workPriceJson.put("sapServiceNumber", work.get("sapServiceNumber").textValue());
 
-                    workPriceJson.put("price", priceJson.get(siteRegion).get(materialsProvidedBySubcontrator.equals("yes")?"with_material":"without_material").textValue());
+                    workPriceJson.put("price", priceJson.get(siteRegion).get("subcontractor".equals(work.get("materialsProvidedBy").textValue())?"with_material":"without_material").textValue());
                     workPriceJson.put("title", title);
                     worksPriceList.add(workPriceJson);
                     uniqueWorks.put(work.get("sapServiceNumber").textValue(), "");
