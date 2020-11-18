@@ -171,12 +171,12 @@ from act_hi_procinst pi
                              when worksJson.value->>'sapServiceNumber' like '%.%' then replace(worksJson.value->>'sapServiceNumber','.','000')
                              else worksJson.value->>'sapServiceNumber'
                         end as int) as sapServiceNumber,
-                    sum(cast(worksJson.value ->>'quantity' as int)) OVER (PARTITION BY worksJson.value->>'sapServiceNumber') as totalQuantityPerWorkType,
+                    sum(cast(worksJson.value ->>'quantity' as double precision)) OVER (PARTITION BY worksJson.value->>'sapServiceNumber') as totalQuantityPerWorkType,
                     --workPricesJson.value ->>'basePriceByQuantity' as unitWorkPrice, --"Price without transport",
                     --workPricesJson.value ->>'netWorkPricePerSite' as unitWorkPricePlusTx --"Price with transport"
                     --------------------------------
-                    cast(workPricesJson.value ->>'unitWorkPrice' as numeric) * cast(worksJson.value ->>'quantity' as int) as unitWorkPrice,            --"Price without transport",
-                    cast(workPricesJson.value ->>'unitWorkPricePlusTx' as numeric) * cast(worksJson.value ->>'quantity' as int) as unitWorkPricePlusTx --"Price with transport"
+                    cast(workPricesJson.value ->>'unitWorkPrice' as numeric) * cast(worksJson.value ->>'quantity' as double precision) as unitWorkPrice,            --"Price without transport",
+                    cast(workPricesJson.value ->>'unitWorkPricePlusTx' as numeric) * cast(worksJson.value ->>'quantity' as double precision) as unitWorkPricePlusTx --"Price with transport"
                     --------------------------------
              from act_hi_varinst jobWorks
                       left join act_ge_bytearray jobWorksBytes

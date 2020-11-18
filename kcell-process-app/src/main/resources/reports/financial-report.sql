@@ -161,8 +161,8 @@ from act_hi_procinst pi
                     workPricesJson.value->>'quantity' as quantity,
                     --workPricesJson.value->>'basePriceByQuantity' as basePriceByQuantity,
                     --workPricesJson.value->>'netWorkPricePerSite' as netWorkPricePerSite
-                    cast(workPricesJson.value ->>'unitWorkPrice' as numeric) * cast(worksJson.value ->>'quantity' as int) as unitWorkPrice,            --"Price without transport",
-                    cast(workPricesJson.value ->>'unitWorkPricePlusTx' as numeric) * cast(worksJson.value ->>'quantity' as int) as unitWorkPricePlusTx --"Price with transport"
+                    cast(workPricesJson.value ->>'unitWorkPrice' as numeric) * cast(worksJson.value ->>'quantity' as double precision) as unitWorkPrice,            --"Price without transport",
+                    cast(workPricesJson.value ->>'unitWorkPricePlusTx' as numeric) * cast(worksJson.value ->>'quantity' as double precision) as unitWorkPricePlusTx --"Price with transport"
     from act_hi_varinst workPrices
              left join act_ge_bytearray workPricesBytes
                        on workPrices.bytearray_id_ = workPricesBytes.id_

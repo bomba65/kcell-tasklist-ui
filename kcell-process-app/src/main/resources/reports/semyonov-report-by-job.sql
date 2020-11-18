@@ -121,7 +121,7 @@ from act_hi_procinst pi
                              when worksJson.value->>'sapServiceNumber' like '%.%' then replace(worksJson.value->>'sapServiceNumber','.','000')
                              else worksJson.value->>'sapServiceNumber'
                         end as int) as sapServiceNumber,
-                    sum(cast(worksJson.value ->>'quantity' as int)) OVER (PARTITION BY worksJson.value->>'sapServiceNumber') as totalQuantityPerWorkType
+                    sum(cast(worksJson.value ->>'quantity' as double precision)) OVER (PARTITION BY worksJson.value->>'sapServiceNumber') as totalQuantityPerWorkType
              from act_hi_varinst jobWorks
                       left join act_ge_bytearray jobWorksBytes
                                 on jobWorks.bytearray_id_ = jobWorksBytes.id_
