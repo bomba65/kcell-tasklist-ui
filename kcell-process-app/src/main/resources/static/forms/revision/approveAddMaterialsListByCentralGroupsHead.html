@@ -51,7 +51,7 @@
                 'siteWorksFiles',
                 'mlApprovalAdditionalInfoFile',
                 'contractorJobAssignedDate',
-                'mainContract'
+                'mainContract',
                 'needAdditionalApproveByCenterRollout'
             ];
             $scope.jobModel = {};
@@ -95,6 +95,11 @@
                     }
                     if (el === 'resolutions') {
                         $scope[el] = camForm.variableManager.variables[el].value;
+                    }
+                    if (el === 'needAdditionalApproveByCenterRollout' && camForm.variableManager.variables[el].value) {
+                        $scope[el] = camForm.variableManager.variables[el].value;
+                    } else {
+                        $scope.needAdditionalApproveByCenterRollout = false;
                     }
                 });
                 $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name+ "/profile").then(function(result){
@@ -152,6 +157,20 @@
                     value: $scope.approveMaterialsListByCentralGroupsHeadComment
                 });
                 camForm.variableManager.destroyVariable('resolutions');
+                if ($scope.needAdditionalApproveByCenterRolloutTmp === true && !$scope.needAdditionalApproveByCenterRollout) {
+                    if (camForm.variableManager.variables['needAdditionalApproveByCenterRollout'] && camForm.variableManager.variables['needAdditionalApproveByCenterRollout'].value) {
+                        camForm.variableManager.variableValue('needAdditionalApproveByCenterRollout', $scope.needAdditionalApproveByCenterRollout);
+                    } else {s
+                        if(camForm.variableManager.variables['needAdditionalApproveByCenterRollout']){
+                            camForm.variableManager.destroyVariable('needAdditionalApproveByCenterRollout');
+                        }
+                        camForm.variableManager.createVariable({
+                            name: 'needAdditionalApproveByCenterRollout',
+                            type: 'Boolean',
+                            value: $scope.needAdditionalApproveByCenterRollout
+                        });
+                    }
+                }
             });
 
             $scope.fileSelected = fileSelected;
@@ -179,6 +198,16 @@
             <input type="checkbox" ng-model="needAdditionalApproveByCenterRollout" name="needAdditionalApproveByCenterRollout" />
         </div>
     </div>
+
+    <div class="form-group">
+        <label class="col-sm-4 control-label">Need additional approve by Center Rollout unit:</label>
+        <div class="col-sm-8">
+            <label class="radio-inline">
+                <input type="checkbox" ng-model="needAdditionalApproveByCenterRolloutTmp" name="needAdditionalApproveByCenterRolloutTmp" />
+            </label>
+        </div>
+    </div>
+
     <div class="form-group">
         <label class="col-sm-4 control-label">Resolution</label>
         <div class="col-sm-8">

@@ -40,8 +40,7 @@
                 'mlApprovalAdditionalInfoFile',
                 'kcellWarehouseMaterialsAdditionalList',
                 'contractorJobAssignedDate',
-                'mainContract',
-                'needAdditionalApproveByCenterRollout'
+                'mainContract'
             ];
             $scope.kcellWarehouseMaterialsListExist = false;
             $scope.kcellWarehouseMaterialsList = {};
@@ -72,12 +71,17 @@
                         }
                 );
                 camForm.variableManager.createVariable({
-                    name: 'contractorAttachesMaterialListTaskResult',
+                    name: 'attachMaterialListTaskResult',
                     type: 'String',
                     value: ''
                 });
                 camForm.variableManager.createVariable({
                     name: 'modifyWorks',
+                    type: 'String',
+                    value: ''
+                });
+                camForm.variableManager.createVariable({
+                    name: 'regionTransmissionCheckRequired',
                     type: 'String',
                     value: ''
                 });
@@ -126,20 +130,21 @@
                 if (!$scope.kcellWarehouseMaterialsAdditionalList.value) {
                     $scope.kcellWarehouseMaterialsAdditionalList.value = [];
                 }
-                if(camForm.variableManager.variables['contractorAttachesMaterialListComment']){
-                    camForm.variableManager.variableValue('contractorAttachesMaterialListComment', '');
+                if(camForm.variableManager.variables['attachMaterialListComment']){
+                    camForm.variableManager.variableValue('attachMaterialListComment', '');
                 }
+                $scope.attachMaterialListTaskResult = undefined;
             });
 
             camForm.on('submit', function () {
                 var files = [];
-                camForm.variableManager.variableValue('contractorAttachesMaterialListTaskResult', $scope.contractorAttachesMaterialListTaskResult);
+                camForm.variableManager.variableValue('attachMaterialListTaskResult', $scope.attachMaterialListTaskResult);
                 camForm.variableManager.createVariable({
-                    name: 'attach_material_list_contractorTaskResult',
+                    name: 'attach_ml_inhouse_additionalTaskResult',
                     type: 'String',
-                    value: $scope.contractorAttachesMaterialListTaskResult
+                    value: $scope.attachMaterialListTaskResult
                 });
-                if ($scope.contractorAttachesMaterialListTaskResult === 'attached' || $scope.contractorAttachesMaterialListTaskResult === 'notRequired') {
+                if ($scope.attachMaterialListTaskResult === 'attached') {
                     camForm.variableManager.variableValue('modifyWorks', false);
                 }
                 else {
@@ -181,18 +186,18 @@
                 }
 
                 var visibility = 'all';
-                if ($scope.contractorAttachesMaterialListComment && $scope.contractorAttachesMaterialListCommentVisibility) {
-                    visibility = $scope.contractorAttachesMaterialListCommentVisibility;
+                if ($scope.attachMaterialListComment && $scope.attachMaterialListCommentVisibility) {
+                    visibility = $scope.attachMaterialListCommentVisibility;
                     camForm.variableManager.createVariable({
-                        name: 'attach_material_list_contractorTaskCommentVisibility',
+                        name: 'attach_ml_inhouse_additionalTaskCommentVisibility',
                         type: 'String',
                         value: visibility
                     });
                 }
                 camForm.variableManager.createVariable({
-                    name: 'attach_material_list_contractorTaskComment',
+                    name: 'attach_ml_inhouse_additionalTaskComment',
                     type: 'String',
-                    value: $scope.contractorAttachesMaterialListComment
+                    value: $scope.attachMaterialListComment
                 });
                 camForm.variableManager.destroyVariable('resolutions');
 
@@ -209,31 +214,32 @@
                     camForm.variableManager.createVariable($scope.kcellWarehouseMaterialsAdditionalList);
                 }
                 camForm.variableManager.createVariable({
-                    name: 'attach_material_list_contractorFiles',
+                    name: 'attach_ml_inhouse_additionalFiles',
                     type: 'Json',
                     value: files
                 });
 
-                if (camForm.variableManager.variables['needAdditionalApproveByCenterRollout'] && camForm.variableManager.variables['needAdditionalApproveByCenterRollout'].value) {
-                    camForm.variableManager.variableValue('needAdditionalApproveByCenterRollout', $scope.needAdditionalApproveByCenterRollout);
-                } else {
-                    if(camForm.variableManager.variables['needAdditionalApproveByCenterRollout']){
-                        camForm.variableManager.destroyVariable('needAdditionalApproveByCenterRollout');
-                    }
-                    camForm.variableManager.createVariable({
-                        name: 'needAdditionalApproveByCenterRollout',
-                        type: 'Boolean',
-                        value: $scope.needAdditionalApproveByCenterRollout
-                    });
+                camForm.variableManager.variableValue('regionTransmissionCheckRequired', $scope.regionTransmissionCheckRequired);
+
+                $scope.approveMaterialsGroupList = [];
+                if($scope.optimizationMaterialApproveRequired){
+                    $scope.approveMaterialsGroupList.push('P&O');
                 }
-            });
+                if($scope.transmissionMaterialApproveRequired){
+                    $scope.approveMaterialsGroupList.push('Transmission');
+                }
+                if($scope.infrastructureMaterialApproveRequired){
+                    $scope.approveMaterialsGroupList.push('S&FM');
+                }
+                if($scope.operationMaterialApproveRequired){
+                    $scope.approveMaterialsGroupList.push('Operation');
+                }
 
-            camForm.on('store', function () {
-                camForm.variableManager.variableValue('contractorAttachesMaterialListTaskResult', $scope.contractorAttachesMaterialListTaskResult);
-            });
-
-            camForm.on('variables-restored', function () {
-                $scope.contractorAttachesMaterialListTaskResult = camForm.variableManager.variableValue('contractorAttachesMaterialListTaskResult');
+                camForm.variableManager.createVariable({
+                    name: 'approveMaterialsGroupList',
+                    type: 'Json',
+                    value: $scope.approveMaterialsGroupList
+                });
             });
 
             $scope.fileSelected = function (el, fileName, bindedInput) {
@@ -357,7 +363,7 @@
             }
 
             $scope.hasComment = function () {
-                return $scope.contractorAttachesMaterialListComment && $rootScope.hasGroup('kcellUsers');
+                return $scope.attachMaterialListComment && $rootScope.hasGroup('kcellUsers');
             }
         }]);
     </script>
@@ -380,12 +386,12 @@
                 <div class="input-group">
                     <label class="input-group-btn">
                     <span class="btn btn-default">
-                        Choose File <input type="file" id="kcell_material_file_{{kcellWarehouseMaterialsListName.value.length}}" name="kcell_material_file_{{kcellWarehouseMaterialsListName.value.length}}" ng-model="file.file" style="display: none;" required-file="contractorAttachesMaterialListTaskResult === 'attached' && jobModel.fillApplied.value !== 'notEnough' && kcellWarehouseMaterialsListName.value.length == 0" onchange="angular.element(this).scope().additionalMaterialFileSelected(this, 'kcellWarehouseMaterialsListName', '#kcell-material-filename'); $('#kcell-material-filename').val(this.files[0].name)" >
+                        Choose File <input type="file" id="kcell_material_file_{{kcellWarehouseMaterialsListName.value.length}}" name="kcell_material_file_{{kcellWarehouseMaterialsListName.value.length}}" ng-model="file.file" style="display: none;" required-file="attachMaterialListTaskResult === 'attached' && jobModel.fillApplied.value !== 'notEnough' && kcellWarehouseMaterialsListName.value.length == 0" onchange="angular.element(this).scope().additionalMaterialFileSelected(this, 'kcellWarehouseMaterialsListName', '#kcell-material-filename'); $('#kcell-material-filename').val(this.files[0].name)" >
                     </span>
                     </label>
                     <input type="text" class="form-control upload-filename" id="kcell-material-filename" placeholder="No File Chosen" readonly>
                 </div>
-                <!--<input type="file" class="form-control" id="kcell_material_file_{{kcellWarehouseMaterialsListName.value.length}}" name="kcell_material_file_{{kcellWarehouseMaterialsListName.value.length}}" ng-model="file.file" required-file="contractorAttachesMaterialListTaskResult === 'attached' && jobModel.fillApplied.value !== 'notEnough' && kcellWarehouseMaterialsListName.value.length == 0" onchange="angular.element(this).scope().additionalMaterialFileSelected(this, 'kcellWarehouseMaterialsListName')"/>-->
+                <!--<input type="file" class="form-control" id="kcell_material_file_{{kcellWarehouseMaterialsListName.value.length}}" name="kcell_material_file_{{kcellWarehouseMaterialsListName.value.length}}" ng-model="file.file" required-file="attachMaterialListTaskResult === 'attached' && jobModel.fillApplied.value !== 'notEnough' && kcellWarehouseMaterialsListName.value.length == 0" onchange="angular.element(this).scope().additionalMaterialFileSelected(this, 'kcellWarehouseMaterialsListName')"/>-->
                 <label class="has-error" ng-show="kcell_material_file_form['kcell_material_file_'+kcellWarehouseMaterialsListName.value.length].$error.validFile">File is required</label>
             </ng-form>
         </div>
@@ -401,7 +407,7 @@
                 <div class="input-group">
                     <label class="input-group-btn">
                     <span class="btn btn-default">
-                        Choose File <input type="file" id="additional_material_file_{{kcellWarehouseMaterialsAdditionalList.value.length}}" style="display: none;" name="additional_material_file_{{kcellWarehouseMaterialsAdditionalList.value.length}}" ng-model="file.file" required-file="jobModel.fillApplied.value == 'notEnough' && contractorAttachesMaterialListTaskResult === 'attached' && kcellWarehouseMaterialsAdditionalList.value.length == 0" onchange="angular.element(this).scope().additionalMaterialFileSelected(this, 'kcellWarehouseMaterialsAdditionalList', '#additional-material-filename'); $('#additional-material-filename').val(this.files[0].name)" >
+                        Choose File <input type="file" id="additional_material_file_{{kcellWarehouseMaterialsAdditionalList.value.length}}" style="display: none;" name="additional_material_file_{{kcellWarehouseMaterialsAdditionalList.value.length}}" ng-model="file.file" required-file="jobModel.fillApplied.value == 'notEnough' && attachMaterialListTaskResult === 'attached' && kcellWarehouseMaterialsAdditionalList.value.length == 0" onchange="angular.element(this).scope().additionalMaterialFileSelected(this, 'kcellWarehouseMaterialsAdditionalList', '#additional-material-filename'); $('#additional-material-filename').val(this.files[0].name)" >
                     </span>
                     </label>
                     <input type="text" class="form-control upload-filename" id="additional-material-filename" placeholder="No File Chosen" readonly>
@@ -434,7 +440,7 @@
                     </span>
                 </label>
                 <input type="text" class="form-control upload-filename" id="supplementaryFilesName" placeholder="No File Chosen" readonly>
-        </div>
+            </div>
         </div>
     </div>
     <div class="form-group" ng-show="contractorZIPWarehouseMaterialsListName.value.name && hasGroup('kcellUsers')">
@@ -451,48 +457,66 @@
             <label class="error" ng-show="kcell_form.contractorZIPWarehouseMaterialsListNameVisibility.$error.required && ( kcell_form.contractorZIPWarehouseMaterialsListNameVisibility.$touched || view.submitted)">Required field</label>
         </div>
     </div>
+
     <div class="form-group">
-        <label class="col-sm-4 control-label">Need additional approve by Center Rollout unit:</label>
+        <label class="col-sm-4 control-label">Need additional approve by Transmission unit:</label>
         <div class="col-sm-8">
             <label class="radio-inline">
-                <input type="checkbox" ng-model="needAdditionalApproveByCenterRollout" name="needAdditionalApproveByCenterRollout" />
+                <input type="radio" ng-model="regionTransmissionCheckRequired" name="regionTransmissionCheckRequired" value="Yes" ng-required="attachMaterialListTaskResult === 'attached'"> Yes
             </label>
+            <label class="radio-inline">
+                <input type="radio" ng-model="regionTransmissionCheckRequired" name="regionTransmissionCheckRequired" value="No" ng-required="attachMaterialListTaskResult === 'attached'"> No
+            </label>
+            <label class="error" ng-show="kcell_form.regionTransmissionCheckRequired.$error.required && ( kcell_form.regionTransmissionCheckRequired.$touched || view.submitted)">Required field</label>
         </div>
     </div>
+
     <div class="form-group">
-        <label class="col-sm-4 control-label">Resolution</label>
+        <label class="col-sm-4 control-label">Please select the groups whose materials will be used</label>
+        <div class="col-sm-8">
+            <label class="radio-inline" ng-show="jobModel.reason.value != '1'">
+                <input type="checkbox" cam-variable-name="optimizationMaterialApproveRequired" name="materialApproveGroupList" cam-variable-type="Boolean" /> P&O
+            </label><br/>
+            <label class="radio-inline" ng-show="jobModel.reason.value != '2'">
+                <input type="checkbox" cam-variable-name="transmissionMaterialApproveRequired" name="materialApproveGroupList" cam-variable-type="Boolean" /> Transmission
+            </label><br/>
+            <label class="radio-inline" ng-show="jobModel.reason.value != '3'">
+                <input type="checkbox" cam-variable-name="infrastructureMaterialApproveRequired" name="materialApproveGroupList" cam-variable-type="Boolean" /> S&FM
+            </label><br/>
+            <label class="radio-inline" ng-show="jobModel.reason.value != '4'">
+                <input type="checkbox" cam-variable-name="operationMaterialApproveRequired" name="materialApproveGroupList" cam-variable-type="Boolean" /> Operation
+            </label><br/>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label class="col-sm-4 control-label">Resolution {{attachMaterialListTaskResult}}</label>
         <div class="col-sm-8">
             <label class="radio-inline">
-                <input type="radio" name="contractorAttachesMaterialListTaskResult" ng-model="contractorAttachesMaterialListTaskResult" value="attached" required> Materials attached
+                <input type="radio" name="attachMaterialListTaskResult" ng-model="attachMaterialListTaskResult" value="attached" required> Materials attached
             </label>
-            <label class="radio-inline" ng-show="jobModel.fillApplied.value !== 'notEnough'">
-                <input type="radio" name="contractorAttachesMaterialListTaskResult" ng-model="contractorAttachesMaterialListTaskResult" value="modify" required> Modify works
-            </label>
-            <label class="radio-inline">
-                <input type="radio" name="contractorAttachesMaterialListTaskResult" ng-model="contractorAttachesMaterialListTaskResult" value="notRequired" required> Materials not required
-            </label>
-            <label class="error" ng-show="kcell_form.contractorAttachesMaterialListTaskResult.$error.required && ( kcell_form.contractorAttachesMaterialListTaskResult.$touched || view.submitted)">Required field</label>
+            <label class="error" ng-show="kcell_form.attachMaterialListTaskResult.$error.required && ( kcell_form.attachMaterialListTaskResult.$touched || view.submitted)">Required field</label>
         </div>
     </div>
     <div class="form-group">
         <label class="col-sm-4 control-label">Attach materials list comments</label>
         <div class="col-sm-8">
-            <textarea class="form-control" cam-variable-name="contractorAttachesMaterialListComment" name="contractorAttachesMaterialListComment" ng-required="contractorAttachesMaterialListTaskResult == 'modify' || contractorAttachesMaterialListTaskResult == 'notRequired'" cam-variable-type="String"></textarea>
-            <label class="error" ng-show="kcell_form.contractorAttachesMaterialListComment.$error.required && ( kcell_form.contractorAttachesMaterialListComment.$touched || view.submitted)">Required field</label>
+            <textarea class="form-control" cam-variable-name="attachMaterialListComment" name="attachMaterialListComment" ng-required="attachMaterialListTaskResult == 'modify' || attachMaterialListTaskResult == 'notRequired'" cam-variable-type="String"></textarea>
+            <label class="error" ng-show="kcell_form.attachMaterialListComment.$error.required && ( kcell_form.attachMaterialListComment.$touched || view.submitted)">Required field</label>
         </div>
     </div>
     <div class="form-group" ng-show="hasComment()">
         <label class="col-sm-4 control-label">Comments visibility</label>
         <div class="col-sm-8">
             <label class="radio-inline">
-                <input type="radio" name="contractorAttachesMaterialListCommentVisibility"
-                       ng-model="contractorAttachesMaterialListCommentVisibility" value="all" ng-required="hasComment()"> Visible for all
+                <input type="radio" name="attachMaterialListCommentVisibility"
+                       ng-model="attachMaterialListCommentVisibility" value="all" ng-required="hasComment()"> Visible for all
             </label>
             <label class="radio-inline">
-                <input type="radio" name="contractorAttachesMaterialListCommentVisibility"
-                       ng-model="contractorAttachesMaterialListCommentVisibility" value="kcell" ng-required="hasComment()"> Kcell staff only
+                <input type="radio" name="attachMaterialListCommentVisibility"
+                       ng-model="attachMaterialListCommentVisibility" value="kcell" ng-required="hasComment()"> Kcell staff only
             </label>
-            <label class="error" ng-show="kcell_form.contractorAttachesMaterialListCommentVisibility.$error.required && ( kcell_form.contractorAttachesMaterialListCommentVisibility.$touched || view.submitted)">Required field</label>
+            <label class="error" ng-show="kcell_form.attachMaterialListCommentVisibility.$error.required && ( kcell_form.attachMaterialListCommentVisibility.$touched || view.submitted)">Required field</label>
         </div>
     </div>
     <accordion>
