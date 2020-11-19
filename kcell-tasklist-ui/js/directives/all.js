@@ -781,24 +781,18 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
             require: '^form',
             restrict: 'E',
             scope: {
-                leasingCandidate: '=',
-                farEnd: '=',
-                cellAntenna: '=',
-                antennasList: '=',
-                dictionary: '=',
-                frequencyBand: '='
+                leasingCandidate: '='
             },
             link: function (scope, el, attrs, formCtrl) {
                 //console.log(formCtrl, 'formCtrl');
                 scope.parentForm = formCtrl;
-                scope.kcell_form = formCtrl;
                 scope.dictionary = {};
+                scope.antennasList = [];
+                scope.frequencyBand = [];
                 scope.selectedIndex = -1;
                 scope.defaultFarEndCard = false;
                 scope.loadCurrentFarEnd = true;
                 if (scope.leasingCandidate.cellAntenna) {
-                    console.log('scope.leasingCandidate.cellAntenna')
-                    console.log(scope.leasingCandidate.cellAntenna)
                     if (scope.leasingCandidate.cellAntenna.cn_du !== null && typeof scope.leasingCandidate.cellAntenna.cn_du == 'string') {
                         scope.leasingCandidate.cellAntenna.cn_du = [scope.leasingCandidate.cellAntenna.cn_du]
                     }
@@ -829,25 +823,32 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                         scope.filteredDistricts = scope.districtList;
                         scope.filteredDistrictsInCAI = scope.districtList;
                         scope.alphabet = 'abcdefghijklmnopqrstuvwxyz'.split('');
-                        console.log(scope);
-
+                        
                         scope.leasingCandidate.addressString = '';
                         scope.leasingCandidate.cellAntenna.addressString = '';
+                        
                         //tabs
                         scope.minTab = 0;
                         scope.maxTab = 3;
-                        scope.leasingCandidate.cellAntenna.sectors[0].active = 'active';
+                        
                         scope.selectedSectorTab = 0;
+                        scope.leasingCandidate.cellAntenna.sectors[0].active = 'active';
                         scope.leasingCandidate.checkTPSTouched = false;
                         scope.leasingCandidate.checkTPSBTouched = false;
                         Object.values(scope.leasingCandidate.address).forEach((s, index) => {
-                            scope.leasingCandidate.addressString += index > 0 ? ', ' + s : s
+                            if(scope.leasingCandidate) {
+                                scope.leasingCandidate.addressString += index > 0 ? ', ' + s : s
+                            }
                         });
 
                         Object.values(scope.leasingCandidate.cellAntenna.address).forEach((s, index) => {
-                            scope.leasingCandidate.cellAntenna.addressString += index > 0 ? ', ' + s : s
+                            if(scope.leasingCandidate && scope.leasingCandidate.cellAntenna) {
+                                scope.leasingCandidate.cellAntenna.addressString += index > 0 ? ', ' + s : s
+                            }
                         });
-                        console.log(`asdasdsa: ${scope.leasingCandidate.cellAntenna.addressString} 12`);
+
+                        scope.antennasList = scope.dictionary.antennas;
+                        scope.frequencyBand = scope.dictionary.frequencyBand;
                     }
                     catch(e){
                         console.log(e)
@@ -1277,9 +1278,9 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                 //
                 // ;
 
-                scope.leasingCandidate.cellAntenna.sectors = [];
-                console.log('scope.kcell_form');
-                console.log(scope);
+                // scope.leasingCandidate.cellAntenna.sectors = [];
+                // console.log('scope.kcell_form');
+                // console.log(scope);
                 scope.sector = {
                     "antennas":[{}],
                 }
@@ -1291,28 +1292,28 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                 scope.minTab = 0;
                 scope.maxTab = 3;
 
-                scope.newSector = function () {
-                    let newS = JSON.parse(angular.toJson(scope.sector));
-                    scope.leasingCandidate.cellAntenna.sectors.push(newS);
-                    console.log(scope.leasingCandidate.cellAntenna.sectors)
-                    if (scope.selectedSectorTab+1 < scope.leasingCandidate.cellAntenna.sectors.length) {
-                        scope.selectedSectorTab = scope.leasingCandidate.cellAntenna.sectors.length - 1;
-                        scope.leasingCandidate.cellAntenna.sectors[scope.selectedSectorTab].active = 'active';
+                // scope.newSector = function () {
+                //     let newS = JSON.parse(angular.toJson(scope.sector));
+                //     scope.leasingCandidate.cellAntenna.sectors.push(newS);
+                //     console.log(scope.leasingCandidate.cellAntenna.sectors)
+                //     if (scope.selectedSectorTab+1 < scope.leasingCandidate.cellAntenna.sectors.length) {
+                //         scope.selectedSectorTab = scope.leasingCandidate.cellAntenna.sectors.length - 1;
+                //         scope.leasingCandidate.cellAntenna.sectors[scope.selectedSectorTab].active = 'active';
 
-                        if (scope.selectedSectorTab === scope.maxTab) {
-                            scope.minTab= scope.minTab + 1;
-                            scope.maxTab= scope.maxTab + 1;
-                        }
-                    } else {
-                        scope.leasingCandidate.cellAntenna.sectors[scope.selectedSectorTab].active = 'active';
-                    }
-                }
+                //         if (scope.selectedSectorTab === scope.maxTab) {
+                //             scope.minTab= scope.minTab + 1;
+                //             scope.maxTab= scope.maxTab + 1;
+                //         }
+                //     } else {
+                //         scope.leasingCandidate.cellAntenna.sectors[scope.selectedSectorTab].active = 'active';
+                //     }
+                // }
 
-                if(!(scope.leasingCandidate.cellAntenna && scope.leasingCandidate.cellAntenna.sectors && scope.leasingCandidate.cellAntenna.sectors.length > 0)){
-                    scope.newSector();
-                    scope.newSector();
-                    scope.newSector();
-                }
+                // if(!(scope.leasingCandidate.cellAntenna && scope.leasingCandidate.cellAntenna.sectors && scope.leasingCandidate.cellAntenna.sectors.length > 0)){
+                //     scope.newSector();
+                //     scope.newSector();
+                //     scope.newSector();
+                // }
 
                 scope.selectAntennaSector = function (index) {
                     //if(scope.renterCompany && (scope.renterCompany.legalType === 'national_kazakhtelecom' || scope.renterCompany.legalType === 'national_kazteleradio' || scope.renterCompany.legalType === 'national_kazpost')){
@@ -1326,16 +1327,40 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
 
                 scope.antennaNameSelected = function (sector, antenna, a) {
                     const obj = scope.antennasList.find(b=>{ return b.antenna === a});
-                    console.log("obj>>>>")
-                    console.log(obj)
                     scope.leasingCandidate.cellAntenna.sectors[sector].antennas[antenna].dimension = obj.dimension;
                     scope.leasingCandidate.cellAntenna.sectors[sector].antennas[antenna].weight = obj.weight;
-                    console.log("<<<<obj")
                 }
 
+                scope.filteredAntennaTypesBySiteType = [];
+                if (scope.leasingCandidate.siteType) {
+                    if (scope.leasingCandidate.siteType.id === "2" || scope.leasingCandidate.siteType.id === "1" || scope.leasingCandidate.siteType.id === "4"){
+                        scope.filteredAntennaTypesBySiteType.push('G900')
+                        scope.filteredAntennaTypesBySiteType.push('G1800')
+                        scope.filteredAntennaTypesBySiteType.push('U900')
+                        scope.filteredAntennaTypesBySiteType.push('U2100')
+                        scope.filteredAntennaTypesBySiteType.push('L800')
+                        scope.filteredAntennaTypesBySiteType.push('L1800')
+                        scope.filteredAntennaTypesBySiteType.push('L2100')
+                        scope.filteredAntennaTypesBySiteType.push('L2600')
+                    } else {
+                        if (scope.leasingCandidate.siteType.name.includes('2')){
+                            scope.filteredAntennaTypesBySiteType.push('G900')
+                            scope.filteredAntennaTypesBySiteType.push('G1800')
+                        }
+                        if (scope.leasingCandidate.siteType.name.includes('3')){
+                            scope.filteredAntennaTypesBySiteType.push('U900')
+                            scope.filteredAntennaTypesBySiteType.push('U2100')
+                        }
+                        if (scope.leasingCandidate.siteType.name.includes('4')){
+                            scope.filteredAntennaTypesBySiteType.push('L800')
+                            scope.filteredAntennaTypesBySiteType.push('L1800')
+                            scope.filteredAntennaTypesBySiteType.push('L2100')
+                            scope.filteredAntennaTypesBySiteType.push('L2600')
+                        }
+                    }
+                }
+                
                 scope.checkAntennaBands = function (bandName, sectorIndex) {
-                    console.log('sectorIndex')
-                    console.log(sectorIndex)
                     if(scope.leasingCandidate.cellAntenna.sectors) {
                         const s = scope.leasingCandidate.cellAntenna.sectors[sectorIndex]
 
