@@ -88,7 +88,7 @@ public class SetWorkVariables implements ExecutionListener {
                     ObjectNode workPriceJson = mapper.createObjectNode();
                     workPriceJson.put("sapServiceNumber", work.get("sapServiceNumber").textValue());
 
-                    workPriceJson.put("price", priceJson.get(siteRegion).get("subcontractor".equals(work.get("materialsProvidedBy").textValue())?"with_material":"without_material").textValue());
+                    workPriceJson.put("price", priceJson.get(siteRegion).get(work.has("materialsProvidedBy") && "subcontractor".equals(work.get("materialsProvidedBy").textValue())?"with_material":"without_material").textValue());
                     workPriceJson.put("title", title);
                     worksPriceList.add(workPriceJson);
                     uniqueWorks.put(work.get("sapServiceNumber").textValue(), "");

@@ -139,14 +139,14 @@ public class SetPricesDelegate implements TaskListener {
                         workPriceJson.put("sapServiceNumber", work.get("sapServiceNumber").textValue());
                         workPriceJson.put("priceWithMaterial", priceJson.get(siteRegion).get("with_material").textValue());
                         workPriceJson.put("priceWithoutMaterial", priceJson.get(siteRegion).get("without_material").textValue());
-                        workPriceJson.put("price", priceJson.get(siteRegion).get("subcontractor".equals(work.get("materialsProvidedBy").textValue()) ? "with_material" : "without_material").textValue());
+                        workPriceJson.put("price", priceJson.get(siteRegion).get(work.has("materialsProvidedBy") && "subcontractor".equals(work.get("materialsProvidedBy").textValue()) ? "with_material" : "without_material").textValue());
                         workPriceJson.put("title", title);
                         worksPriceList.add(workPriceJson);
                         uniqueWorks.put(work.get("sapServiceNumber").textValue(), "");
                     }
 
                     JsonNode priceJson = worksPriceMap.get(work.get("sapServiceNumber").textValue());
-                    BigDecimal unitWorkPrice = new BigDecimal(priceJson.get(siteRegion).get("subcontractor".equals(work.get("materialsProvidedBy").textValue()) ? "with_material" : "without_material").textValue());
+                    BigDecimal unitWorkPrice = new BigDecimal(priceJson.get(siteRegion).get(work.has("materialsProvidedBy") && "subcontractor".equals(work.get("materialsProvidedBy").textValue()) ? "with_material" : "without_material").textValue());
                     BigDecimal unitTransportationPrice = unitWorkPrice.multiply(new BigDecimal("0.00"));
                     unitTransportationPrice = unitTransportationPrice.setScale(2, RoundingMode.DOWN);
 
