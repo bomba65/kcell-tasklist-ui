@@ -802,7 +802,6 @@ return module.controller('mainCtrl', ['$scope', '$rootScope', 'toasty', 'Authent
             scope: {
                 jobModel: $scope.jobModel,
                 getStatus: $scope.getStatus,
-                showHistory: $scope.showHistory,
                 hasGroup: $scope.hasGroup,
                 showGroupDetails: $scope.showGroupDetails,
 
@@ -4174,34 +4173,6 @@ return module.controller('mainCtrl', ['$scope', '$rootScope', 'toasty', 'Authent
         } else if (processDefinitionKey === 'Demand') {
             return $scope.hasGroup('demand_uat_users');
         }
-    };
-
-    $scope.showHistory = function (resolutions) {
-        exModal.open({
-            scope: {
-                resolutions: $scope.processDefinitionKey === 'leasing' ? _.orderBy(resolutions, ['type', 'assignDate'], ['asc', 'desc']) : resolutions,
-                // resolutions: resolutions,
-                procDef: $scope.processDefinitionKey,
-                download: function (path) {
-                    $http({
-                        method: 'GET',
-                        url: '/camunda/uploads/get/' + path,
-                        transformResponse: []
-                    }).then(function (response) {
-                        document.getElementById('fileDownloadIframe').src = response.data;
-                    }, function (error) {
-                        console.log(error);
-                    });
-                },
-                isFileVisible: function (file) {
-                    return !file.visibility || file.visibility == 'all' || (file.visibility == 'kcell' && $rootScope.hasGroup('kcellUsers'));
-                },
-                isKcellStaff: $rootScope.hasGroup('kcellUsers')
-            },
-            templateUrl: './js/partials/resolutionsModal.html',
-            size: 'hg'
-        }).then(function (results) {
-        });
     };
 }]).controller('processesCtrl', ['$scope', '$rootScope', '$http', '$routeParams', '$q', '$location', '$timeout', 'AuthenticationService', 'exModal',
         function ($scope, $rootScope, $http, $routeParams, $q, $location, $timeout, AuthenticationService, exModal) {
