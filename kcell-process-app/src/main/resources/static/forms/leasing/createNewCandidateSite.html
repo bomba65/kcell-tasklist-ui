@@ -699,7 +699,7 @@
                 return $http.get('/camunda/leasing/feCoordinates/' + feName).then(function (res) {
                     $scope.currentFarEnd.fe_longitude = res.data.longitude
                     $scope.currentFarEnd.fe_latitude = res.data.latitude
-                   return res.data
+                    return res.data
                 }, function (error) {
                     console.log(error);
                 });
@@ -1438,8 +1438,34 @@
                 }
             }
 
+            $scope.checkRegExp = function (reString, str) {
+                var re = new RegExp('^' + reString + '$');
+                return re.test(str);
+            }
+
             $scope.preSubmit = function() {
                 var deferred = $q.defer();
+                console.log('scope.kcell_form1')
+                console.log($scope.kcell_form)
+                if ($scope.farEndInformation && $scope.farEndInformation.length > 0) {
+                    $scope.farEndInformation.forEach( f => {
+                        if (f.fe_longitude && f.fe_latitude && !($scope.checkRegExp($scope.latitudePattern, f.fe_latitude) && $scope.checkRegExp($scope.longitudePattern, f.fe_longitude))) {
+                            deferred.reject('Please check Far End latitude and longitude format');
+                            return deferred.promise;
+                        }
+                    })
+                    if ($scope.currentFarEnd.farEndName !== $scope.farEndInformation[0].farEndName) {
+                        deferred.reject('Please check priority Far End');
+                        return deferred.promise;
+                    }
+
+                    console.log('$scope.kcell_form2')
+                    console.log($scope.kcell_form)
+                }s
+                if($scope.kcell_form.$error && $scope.kcell_form.$error.required && $scope.kcell_form.$error.required.length > 0) {
+                    deferred.reject('Please fill required fields');
+                    return deferred.promise;
+                }
                 if($scope.farEndInformation.length < 3 && !$scope.threeFarEndNotNecessary.check && $scope.candidate.transmissionType !== 'Provider' && $scope.candidate.transmissionType !== 'Satellite'){
                     deferred.reject('At least 3 Far End Information should be added!!!');
                     return deferred.promise;
@@ -1457,46 +1483,6 @@
                 var tempLong;
                 var validLat = true;
                 var validLong = true;
-                /* if(!isNaN($scope.candidate.latitude)){
-                    tempLat = $scope.candidate.latitude;
-                    if (Number.isInteger(tempLat)) {
-                        tempLat = parseInt(tempLat);
-                        if (!(tempLat>40 && tempLat <=55)) {
-                            deferred.reject('Latitude must be in [40.568, 55.440] range');
-                            return deferred.promise;
-                        } else validLat = true;
-                    } else {
-                        tempLat = parseFloat(tempLat);
-                        if (!(tempLat>=40.568 && tempLat <=55.440)) {
-                            deferred.reject('Latitude must be in [40.568, 55.440] range');
-                            return deferred.promise;
-                        } else validLat = true;
-                    }
-                } else {
-                    deferred.reject('Latitude must be in [40.568, 55.440] range');
-                    return deferred.promise;
-                }
-
-                // longitude check
-                if(!isNaN($scope.candidate.longitude)){
-                    tempLong = $scope.candidate.longitude;
-                    if (Number.isInteger(tempLong)) {
-                        tempLong = parseInt(tempLong);
-                        if (!(tempLong>46 && tempLong <=87)) {
-                            deferred.reject('Longitude must be in [46.493, 87.315] range');
-                            return deferred.promise;
-                        } else validLong = true;
-                    } else {
-                        tempLong = parseFloat(tempLong);
-                        if (!(tempLong>=46.493 && tempLong <=87.315)) {
-                            deferred.reject('Longitude must be in [46.493, 87.315] range');
-                            return deferred.promise;
-                        } else validLong = true;
-                    }
-                } else {
-                    deferred.reject('Longitude must be in [46.493, 87.315] range');
-                    return deferred.promise;
-                } */
                 if (validLat && validLong) {
                   deferred.resolve();
                   return deferred.promise;
@@ -2973,7 +2959,7 @@
                                 <td>{{ $index + 1 }}</td>
                                 <td>
                                     <div ng-click="openFarEndInformation($index)" class="far-end-info" ng-style="{'background-color': currentFarEnd===farEndInformation[$index] ? '#652d86' : '#f7f7f7', 'color': currentFarEnd===farEndInformation[$index] ? 'white' : 'black'}">{{fe.farEndName}}
-                                        <div class="far-end-delete" ng-click="deleteFE($index)">x</div>
+                                        <div class="far-end-delete" ng-show="farEndInformation.length > 1" ng-click="deleteFE($index)">x</div>
                                     </div>
                                 </td>
 
