@@ -1828,7 +1828,6 @@
           <camunda:taskListener class="kz.kcell.bpm.assignments.ContractorAssignmentHandler" event="create" />
         </bpmn:extensionElements>
         <bpmn:incoming>SequenceFlow_18u99jn</bpmn:incoming>
-        <bpmn:incoming>SequenceFlow_1xvkt54</bpmn:incoming>
         <bpmn:incoming>Flow_1myza7c</bpmn:incoming>
         <bpmn:outgoing>SequenceFlow_0krhstl</bpmn:outgoing>
       </bpmn:userTask>
@@ -1875,6 +1874,7 @@
       </bpmn:startEvent>
       <bpmn:exclusiveGateway id="exclgw_additional_ml_trupload_status">
         <bpmn:incoming>SequenceFlow_058pru7</bpmn:incoming>
+        <bpmn:incoming>Flow_1gtfjxy</bpmn:incoming>
         <bpmn:outgoing>SequenceFlow_1xvkt54</bpmn:outgoing>
         <bpmn:outgoing>SequenceFlow_18xh7ze</bpmn:outgoing>
       </bpmn:exclusiveGateway>
@@ -1999,7 +1999,7 @@
       </bpmn:sequenceFlow>
       <bpmn:sequenceFlow id="SequenceFlow_0q90py7" sourceRef="startevt_additional_ml_list_prep" targetRef="exclgw_return_ml_additional" />
       <bpmn:sequenceFlow id="SequenceFlow_058pru7" sourceRef="upload_additional_tr_contractor" targetRef="exclgw_additional_ml_trupload_status" />
-      <bpmn:sequenceFlow id="SequenceFlow_1xvkt54" name="required materials are not available in SAP Warehouse" sourceRef="exclgw_additional_ml_trupload_status" targetRef="attach_additional_material_list_contractor">
+      <bpmn:sequenceFlow id="SequenceFlow_1xvkt54" name="required materials are not available in SAP Warehouse" sourceRef="exclgw_additional_ml_trupload_status" targetRef="exclgw_return_ml_additional">
         <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${bindAdditionalTRToJRByContractorTaskResult=='notAvailable'}</bpmn:conditionExpression>
       </bpmn:sequenceFlow>
       <bpmn:sequenceFlow id="SequenceFlow_18xh7ze" name="materials attached" sourceRef="exclgw_additional_ml_trupload_status" targetRef="validate_additional_tr">
@@ -2051,6 +2051,7 @@
         <bpmn:incoming>Flow_03gjo5l</bpmn:incoming>
         <bpmn:incoming>Flow_0p9ddls</bpmn:incoming>
         <bpmn:incoming>SequenceFlow_0c5kg4p</bpmn:incoming>
+        <bpmn:incoming>SequenceFlow_1xvkt54</bpmn:incoming>
         <bpmn:outgoing>Flow_0p4uze3</bpmn:outgoing>
       </bpmn:exclusiveGateway>
       <bpmn:sequenceFlow id="Flow_0p4uze3" sourceRef="exclgw_return_ml_additional" targetRef="exclgw_ml_inhouse_select_additional" />
@@ -2128,11 +2129,11 @@
       </bpmn:sequenceFlow>
       <bpmn:exclusiveGateway id="exclgw_tr_inhouse_select_end_additional">
         <bpmn:incoming>SequenceFlow_1g4shly</bpmn:incoming>
-        <bpmn:incoming>Flow_06qo0xh</bpmn:incoming>
+        <bpmn:incoming>Flow_1v081n3</bpmn:incoming>
         <bpmn:outgoing>Flow_19hv5v5</bpmn:outgoing>
       </bpmn:exclusiveGateway>
       <bpmn:sequenceFlow id="Flow_19hv5v5" sourceRef="exclgw_tr_inhouse_select_end_additional" targetRef="validate_additional_tr_bycenter" />
-      <bpmn:sequenceFlow id="Flow_06qo0xh" sourceRef="attach_tr_inhouse_additional" targetRef="exclgw_tr_inhouse_select_end_additional" />
+      <bpmn:sequenceFlow id="Flow_06qo0xh" sourceRef="attach_tr_inhouse_additional" targetRef="Gateway_0zi61sf" />
       <bpmn:exclusiveGateway id="Gateway_1c4i6vh" default="Flow_10wek1w">
         <bpmn:incoming>SequenceFlow_0a1nqcf</bpmn:incoming>
         <bpmn:outgoing>Flow_10wek1w</bpmn:outgoing>
@@ -2194,6 +2195,17 @@
       </bpmn:userTask>
       <bpmn:sequenceFlow id="Flow_1kfdjkh" sourceRef="exclgw_ml_rollout_select_additional" targetRef="check_ml_rollout_additional">
         <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${needAdditionalApproveByCenterRollout == true}</bpmn:conditionExpression>
+      </bpmn:sequenceFlow>
+      <bpmn:exclusiveGateway id="Gateway_0zi61sf">
+        <bpmn:incoming>Flow_06qo0xh</bpmn:incoming>
+        <bpmn:outgoing>Flow_1v081n3</bpmn:outgoing>
+        <bpmn:outgoing>Flow_1gtfjxy</bpmn:outgoing>
+      </bpmn:exclusiveGateway>
+      <bpmn:sequenceFlow id="Flow_1v081n3" sourceRef="Gateway_0zi61sf" targetRef="exclgw_tr_inhouse_select_end_additional">
+        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${bindAdditionalTRToJRByContractorTaskResult=='attached'}</bpmn:conditionExpression>
+      </bpmn:sequenceFlow>
+      <bpmn:sequenceFlow id="Flow_1gtfjxy" name="required materials are not available in SAP Warehouse" sourceRef="Gateway_0zi61sf" targetRef="exclgw_additional_ml_trupload_status">
+        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${bindAdditionalTRToJRByContractorTaskResult=='notAvailable'}</bpmn:conditionExpression>
       </bpmn:sequenceFlow>
       <bpmn:textAnnotation id="TextAnnotation_04kdgnq">
         <bpmn:text>befor Contractor: 1. Create Requisition list in SAP 2. Create TR in SAP</bpmn:text>
@@ -2977,7 +2989,7 @@
         <di:waypoint x="6600" y="1485" />
         <di:waypoint x="6600" y="1815" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="6599" y="1492" width="82" height="53" />
+          <dc:Bounds x="6609" y="1508" width="82" height="53" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_1opboy7_di" bpmnElement="Flow_1opboy7">
@@ -4536,17 +4548,17 @@
           <dc:Bounds x="12440" y="1844" width="83" height="40" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="TextAnnotation_18educ8_di" bpmnElement="TextAnnotation_18educ8">
-        <dc:Bounds x="12359" y="1684" width="242" height="80" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="SendTask_0y6qbks_di" bpmnElement="send_notification_tn">
-        <dc:Bounds x="11370" y="1910" width="100" height="80" />
-      </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="IntermediateThrowEvent_1mf4nhh_di" bpmnElement="IntermediateThrowEvent_return_by_region_head">
         <dc:Bounds x="11392" y="2148" width="36" height="36" />
         <bpmndi:BPMNLabel>
           <dc:Bounds x="11375" y="2187" width="74" height="40" />
         </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="SendTask_0y6qbks_di" bpmnElement="send_notification_tn">
+        <dc:Bounds x="11370" y="1910" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="TextAnnotation_18educ8_di" bpmnElement="TextAnnotation_18educ8">
+        <dc:Bounds x="12359" y="1684" width="242" height="80" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="Association_0kavnbb_di" bpmnElement="Association_0kavnbb">
         <di:waypoint x="12402" y="1810" />
@@ -4690,6 +4702,9 @@
       <bpmndi:BPMNShape id="SubProcess_0qz2pxm_di" bpmnElement="SubProcess_0qz2pxm" isExpanded="true">
         <dc:Bounds x="5820" y="80" width="4826" height="903" />
       </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="TextAnnotation_04kdgnq_di" bpmnElement="TextAnnotation_04kdgnq">
+        <dc:Bounds x="8520" y="520" width="245" height="30" />
+      </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="Flow_1kfdjkh_di" bpmnElement="Flow_1kfdjkh">
         <di:waypoint x="7960" y="673" />
         <di:waypoint x="7960" y="590" />
@@ -4744,8 +4759,7 @@
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_06qo0xh_di" bpmnElement="Flow_06qo0xh">
         <di:waypoint x="8640" y="270" />
-        <di:waypoint x="9240" y="270" />
-        <di:waypoint x="9240" y="673" />
+        <di:waypoint x="8757" y="270" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_19hv5v5_di" bpmnElement="Flow_19hv5v5">
         <di:waypoint x="9265" y="698" />
@@ -4970,8 +4984,8 @@
       <bpmndi:BPMNEdge id="SequenceFlow_1xvkt54_di" bpmnElement="SequenceFlow_1xvkt54">
         <di:waypoint x="8782" y="723" />
         <di:waypoint x="8782" y="839" />
-        <di:waypoint x="6254" y="839" />
-        <di:waypoint x="6254" y="590" />
+        <di:waypoint x="5990" y="839" />
+        <di:waypoint x="5990" y="580" />
         <bpmndi:BPMNLabel>
           <dc:Bounds x="8816" y="1435" width="82" height="53" />
         </bpmndi:BPMNLabel>
@@ -5047,6 +5061,18 @@
         <di:waypoint x="10393" y="698" />
         <bpmndi:BPMNLabel>
           <dc:Bounds x="3393" y="-1577" width="0" height="13" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1v081n3_di" bpmnElement="Flow_1v081n3">
+        <di:waypoint x="8807" y="270" />
+        <di:waypoint x="9240" y="270" />
+        <di:waypoint x="9240" y="673" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1gtfjxy_di" bpmnElement="Flow_1gtfjxy">
+        <di:waypoint x="8782" y="295" />
+        <di:waypoint x="8782" y="673" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="8799" y="323" width="82" height="53" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNShape id="UserTask_0z36vn8_di" bpmnElement="attach_additional_material_list_contractor">
@@ -5214,18 +5240,18 @@
       <bpmndi:BPMNShape id="Activity_18kheg5_di" bpmnElement="check_ml_rollout_additional">
         <dc:Bounds x="8030" y="550" width="100" height="80" />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="TextAnnotation_04kdgnq_di" bpmnElement="TextAnnotation_04kdgnq">
-        <dc:Bounds x="8537" y="390" width="245" height="30" />
-      </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="TextAnnotation_0n8bcxr_di" bpmnElement="TextAnnotation_0n8bcxr">
         <dc:Bounds x="7697" y="436" width="165" height="60" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="TextAnnotation_1c42icg_di" bpmnElement="TextAnnotation_1c42icg">
         <dc:Bounds x="7952" y="824" width="212" height="30" />
       </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_0zi61sf_di" bpmnElement="Gateway_0zi61sf" isMarkerVisible="true">
+        <dc:Bounds x="8757" y="245" width="50" height="50" />
+      </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="Association_13q2sra_di" bpmnElement="Association_13q2sra">
-        <di:waypoint x="8660" y="658" />
-        <di:waypoint x="8660" y="420" />
+        <di:waypoint x="8656" y="658" />
+        <di:waypoint x="8645" y="550" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNShape id="ExclusiveGateway_13bhoy7_di" bpmnElement="exclgw_contract_type_out" isMarkerVisible="true">
         <dc:Bounds x="13550" y="1983" width="50" height="50" />
