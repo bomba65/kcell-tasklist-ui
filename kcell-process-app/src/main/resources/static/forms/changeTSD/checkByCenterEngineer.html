@@ -41,7 +41,7 @@
             $scope.ne_power_level_rxPattern = '(-){1}[0-9]{2}';
             $scope.fe_power_level_txPattern = '(-)?[0-9]{2}';
             $scope.fe_power_level_rxPattern = '(-){1}[0-9]{2}';
-            $scope.linkNxePattern = '^([0-9][0-9]?|)$';
+            $scope.linkNxePattern = '((\d|[1-9]\d|1[0-4]\d|15[0-4])(\.\d{2})?|155?)';
             $scope.protection_mode_fetched = false;
             $scope.hop_link_type = 3;
 
@@ -88,7 +88,10 @@
             }
 
            $scope.protectionMode = function () {
-                if ($scope.selectedTsd.protection_mode_id  && ($scope.selectedTsd.protection_mode_id.id === 1 || $scope.selectedTsd.protection_mode_id.id === 2 || $scope.selectedTsd.protection_mode_id.id === 3 || $scope.selectedTsd.protection_mode_id.id === 4)) {
+                if ($scope.selectedTsd.protection_mode_id.id === 2) {
+                    $scope.selectedTsd.polarization_id.id = 3;
+                }
+                if ($scope.selectedTsd.protection_mode_id  && ($scope.selectedTsd.protection_mode_id.id === 0 || $scope.selectedTsd.protection_mode_id.id === 1 || $scope.selectedTsd.protection_mode_id.id === 2 || $scope.selectedTsd.protection_mode_id.id === 3)) {
                     $scope.protection_mode_fetched = true
                     $scope.selectedTsd.ne_antenna_diameter_protect_id = undefined
                     $scope.selectedTsd.fe_antenna_diameter_protect_id = undefined
@@ -98,6 +101,8 @@
                     $scope.selectedTsd.ne_power_levels_rx_protect = undefined
                     $scope.selectedTsd.fe_power_levels_tx_protect = undefined
                     $scope.selectedTsd.fe_power_levels_rx_protect = undefined
+                    $scope.selectedTsd.ne_rau_subband_protect_id = undefined
+                    $scope.selectedTsd.fe_rau_subband_protect_id = undefined
                 } else {
                     $scope.protection_mode_fetched = false
                 }
@@ -111,12 +116,12 @@
                         return e.id.toString() === $scope.selectedTsd.protection_mode_id.id
                     });
 
-                    if ($scope.selectedTsd.protection_mode_id && (i > -1)) {
+                    if ((i > -1) {
                         $scope.selectedTsd.protection_mode_id.id = $scope.protectionModeList[i].id;
-                        $scope.protectionMode();
-                        if ($scope.selectedTsd.protection_mode_id && ($scope.selectedTsd.protection_mode_id.id === 2)) {
+                        if ($scope.selectedTsd.protection_mode_id.id === 2) {
                             $scope.selectedTsd.polarization_id.id = 3;
                         }
+                        $scope.protectionMode();
                     }
                 }
 
@@ -910,7 +915,7 @@
                     <td align="right" colspan="2">Modulation type:</td>
                     <td align="center" colspan="8">
                         <input type="text" class="form-control" ng-if="startTsd.capacity_id.modulation === oldTsd.capacity_id.modulation"  name="hop_modulation_type"
-                               ng-model="selectedTsd.capacity_id.modulation" >
+                               ng-model="selectedTsd.capacity_id.modulation" required>
                         <div class="input-group" style="width: 100%" ng-show="startTsd.capacity_id.modulation !== oldTsd.capacity_id.modulation">
                             <input type="text" class="form-control" name="hop_modulation_type"
                                    ng-model="selectedTsd.capacity_id.modulation">
@@ -1042,7 +1047,7 @@
                             <span class="input-group-addon">original: {{oldTsd.ne_txrx_frequencies_protect}}</span>
                         </div>
                         <label class="error"
-                               ng-if="ne_protection_rau_subband && ne_protection_txrx_frequincies && ne_protection_txrx_frequinciesInvalid">Expected
+                               ng-if="selectedTsd.ne_rau_subband_protect_id.id && selectedTsd.ne_txrx_frequencies_protect && ne_protection_txrx_frequinciesInvalid">Expected
                             between {{rauRelations[selectedTsd.ne_rau_subband_protect_id].minFrequency}} and
                             {{rauRelations[selectedTsd.ne_rau_subband_protect_id].maxFrequency}}</label>
                     </td>
@@ -1057,7 +1062,7 @@
                             <span class="input-group-addon">original: {{oldTsd.fe_txrx_frequencies_protect}}</span>
                         </div>
                         <label class="error"
-                               ng-if="fe_protection_rau_subband && fe_protection_txrx_frequincies && fe_protection_txrx_frequinciesInvalid">Expected
+                               ng-if="selectedTsd.fe_rau_subband_protect_id.id && selectedTsd.fe_txrx_frequencies_protect && fe_protection_txrx_frequinciesInvalid">Expected
                             between {{rauRelations[selectedTsd.fe_rau_subband_protect_id].minFrequency}} and
                             {{rauRelations[selectedTsd.fe_rau_subband_protect_id].maxFrequency}}</label>
                     </td>
