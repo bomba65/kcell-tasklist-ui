@@ -883,9 +883,9 @@ public class CreateCandidate implements JavaDelegate {
                         newArtefactExtTSDPreparedStatement.setDate(i++, new java.sql.Date(fe_cal_survey_date.getTimeInMillis())); // SURVEY_DATE (fe_survey_date)
                     }
                     if (ne_azimuth != null) {
-                        Integer ne_azimuthInt = Integer.parseInt(ne_azimuth);
-                        if (ne_azimuthInt != null) {
-                            newArtefactExtTSDPreparedStatement.setLong(i++, ne_azimuthInt); // NE_AZIMUTH
+                        Float ne_azimuthFloat = Float.parseFloat(ne_azimuth);
+                        if (ne_azimuthFloat != null) {
+                            newArtefactExtTSDPreparedStatement.setFloat(i++, ne_azimuthFloat); // NE_AZIMUTH
                         } else {
                             newArtefactExtTSDPreparedStatement.setNull(i++, Types.BIGINT);
                         }
@@ -909,9 +909,9 @@ public class CreateCandidate implements JavaDelegate {
                         }
                     }
                     if (fe_azimuth != null && trType != "Provider" && trType != "Satellite") {
-                        Integer fe_azimuthInt = Integer.parseInt(fe_azimuth);
-                        if (fe_azimuthInt != null) {
-                            newArtefactExtTSDPreparedStatement.setLong(i++, fe_azimuthInt); // FE_AZIMUTH
+                        Float fe_azimuthFloat = Float.parseFloat(fe_azimuth);
+                        if (fe_azimuthFloat != null) {
+                            newArtefactExtTSDPreparedStatement.setFloat(i++, fe_azimuthFloat); // FE_AZIMUTH
                         } else {
                             newArtefactExtTSDPreparedStatement.setNull(i++, Types.BIGINT);
                         }
@@ -1228,7 +1228,7 @@ public class CreateCandidate implements JavaDelegate {
                     }
 
                     if (fe_azimuth != null) {
-                        ARTEFACT_RR_TR_PreparedStatement.setLong(i++, Integer.parseInt(fe_azimuth)); // AZIMUTH
+                        ARTEFACT_RR_TR_PreparedStatement.setFloat(i++, Float.parseFloat(fe_azimuth)); // AZIMUTH
                     } else {
                         ARTEFACT_RR_TR_PreparedStatement.setNull(i++, Types.INTEGER);
                     }
@@ -1329,7 +1329,7 @@ public class CreateCandidate implements JavaDelegate {
                     }
 
                     if (fe_azimuth != null) {
-                        ARTEFACT_RR_TR_ANTENNA_PreparedStatement.setLong(i++, Integer.parseInt(fe_azimuth)); // AZIMUTH
+                        ARTEFACT_RR_TR_ANTENNA_PreparedStatement.setFloat(i++, Float.parseFloat(fe_azimuth)); // AZIMUTH
                     } else {
                         ARTEFACT_RR_TR_ANTENNA_PreparedStatement.setNull(i++, Types.INTEGER);
                     }
