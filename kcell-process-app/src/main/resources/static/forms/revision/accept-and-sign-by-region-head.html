@@ -5,7 +5,7 @@
 </style>
 <form role="form" class="form-horizontal" name="kcell_form" novalidate>
     <script cam-script type="text/form-script">
-        inject(['$scope', '$http', 'Uri', '$rootScope', '$q', function ($scope, $http, Uri, $rootScope, $q) {
+        inject(['$scope', '$http', 'Uri', '$rootScope', '$q', 'exModal', function ($scope, $http, Uri, $rootScope, $q, exModal) {
             var variables = [
                 'requestedDate',
                 'jrNumber',
@@ -58,9 +58,12 @@
                 'rolloutRO2Delay',
                 'rolloutRO3Delay',
                 'rolloutRO4Delay',
-                'contains13Work'
+                'contains13Work',
+                'siteWorksPhotoFiles'
             ];
             $scope.jobModel = {};
+            $scope.filesBefore = [];
+            $scope.filesAfter = [];
             var workFiles = [];
             $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
                     function(result){
@@ -140,6 +143,16 @@
                 $scope.jobModel.showDelayHint = true;
                 camForm.variableManager.variableValue('acceptAndSignByRegionHeadComment', '');
 
+                $scope.siteWorksPhotoFiles.value.forEach(el => {
+                    if(el.name.indexOf("before") > -1) {
+                        $scope.getImagePath(el)
+                        $scope.filesBefore.push(el);
+                    } else if (el.name.indexOf("after") > -1) {
+                        $scope.getImagePath(el)
+                        $scope.filesAfter.push(el);
+                    }
+                })
+
             });
 
             camForm.on('submit', function () {
@@ -203,6 +216,28 @@
                 document.getElementById('fileDownloadIframe').src = '/camunda/api/engine/engine/default/variable-instance/' + file.id + '/data';
             }
 
+            $scope.showImage = function(fileSrc){
+                exModal.open({
+                    scope: {
+                        fileSrc: fileSrc
+                    },
+                    templateUrl: './js/partials/revisionImageModal.html',
+                    size: 'lg'
+                }).then(function(results){
+                });
+            }
+
+            $scope.getImagePath = function(file) {
+                console.log(file);
+                $http({method: 'GET', url: '/camunda/uploads/get/' + file.value.path, transformResponse: [] }).
+                then(function(response) {
+                    file.imgSrc = response.data;
+                }, function(error){
+                    console.log(error.data);
+                });
+            }
+
+
             function containsFile(files, file){
                 for(var i = 0; i<files.length; i++){
                     if(files[i].name === file.name){
@@ -226,6 +261,30 @@
     <iframe id="fileDownloadIframe" style="display:none;"></iframe>
 
     <div style="margin-bottom: 20px;"></div>
+
+
+    <div class="form-group">
+        <label class="col-sm-4 control-label"> Photo before</label>
+        <div ng-repeat="file in filesBefore track by $index">
+            <div class="col-sm-7 col-sm-offset-4">
+                <a ng-click="showImage(file.imgSrc)">{{file.name}}</a>
+            </div>
+            <div class="col-sm-1">
+                <a ng-click="download(file)"><i class="glyphicon glyphicon-download-alt"></i></a>
+            </div>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-4 control-label"> Photo after</label>
+        <div ng-repeat="file in filesAfter track by $index">
+            <div class="col-sm-7 col-sm-offset-4">
+                <a ng-click="showImage(file.imgSrc)">{{file.name}}</a>
+            </div>
+            <div class="col-sm-1">
+                <a ng-click="download(file)"><i class="glyphicon glyphicon-download-alt"></i></a>
+            </div>
+        </div>
+    </div>
 
     <div class="form-group">
         <label class="col-sm-4 control-label">Resolution</label>

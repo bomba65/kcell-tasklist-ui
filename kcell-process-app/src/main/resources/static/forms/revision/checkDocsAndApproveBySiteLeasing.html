@@ -5,7 +5,7 @@
 </style>
 <form role="form" class="form-horizontal" name="kcell_form" novalidate>
     <script cam-script type="text/form-script">
-        inject(['$scope', '$http', 'Uri', '$rootScope', '$q', function ($scope, $http, Uri, $rootScope, $q) {
+        inject(['$scope', '$http', 'Uri', '$rootScope', 'exModal', '$q', function ($scope, $http, Uri, $rootScope, exModal, $q) {
             var variables = [
                 'requestedDate',
                 'jrNumber',
@@ -48,9 +48,12 @@
                 'performDate',
                 'mlApprovalAdditionalInfoFile',
                 'contractorJobAssignedDate',
-                'mainContract'
+                'mainContract',
+                'siteWorksPhotoFiles'
             ];
             $scope.jobModel = {};
+            $scope.filesBefore = [];
+            $scope.filesAfter = [];
             var workFiles = [];
             $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
                     function(result){
@@ -132,6 +135,15 @@
                 if(camForm.variableManager.variables['checkDocsAndApproveBySiteLeasingComment']){
                     camForm.variableManager.variableValue('checkDocsAndApproveBySiteLeasingComment', '');
                 }
+                $scope.siteWorksPhotoFiles.value.forEach(el => {
+                    if(el.name.indexOf("before") > -1) {
+                        $scope.getImagePath(el)
+                        $scope.filesBefore.push(el);
+                    } else if (el.name.indexOf("after") > -1) {
+                        $scope.getImagePath(el)
+                        $scope.filesAfter.push(el);
+                    }
+                })
             });
 
             camForm.on('submit', function () {
@@ -167,12 +179,33 @@
             camForm.on('variables-restored', function() {
                 $scope.checkDocsAndApproveBySiteLeasingTaskResult = camForm.variableManager.variableValue('checkDocsAndApproveBySiteLeasingTaskResult');
             });
-
+            
             $scope.download = function (file) {
                 console.log(file);
                 $http({method: 'GET', url: '/camunda/uploads/get/' + file.value.path, transformResponse: [] }).
                 then(function(response) {
                     document.getElementById('fileDownloadIframe').src = response.data;
+                }, function(error){
+                    console.log(error.data);
+                });
+            }
+
+            $scope.showImage = function(fileSrc){
+                exModal.open({
+                    scope: {
+                        fileSrc: fileSrc
+                    },
+                    templateUrl: './js/partials/revisionImageModal.html',
+                    size: 'lg'
+                }).then(function(results){
+                });
+            }
+
+            $scope.getImagePath = function(file) {
+                console.log(file);
+                $http({method: 'GET', url: '/camunda/uploads/get/' + file.value.path, transformResponse: [] }).
+                then(function(response) {
+                    file.imgSrc = response.data;
                 }, function(error){
                     console.log(error.data);
                 });
@@ -211,6 +244,30 @@
             <div class="col-md-12" ng-if="file.value">&nbsp;&nbsp;&nbsp;&nbsp;{{$index+1}}.<a ng-click="download(file)">{{file.value.name}}</a></div>
         </div>
     </div>
+
+    <div class="form-group">
+        <label class="col-sm-4 control-label"> Photo before</label>
+        <div ng-repeat="file in filesBefore track by $index">
+            <div class="col-sm-7 col-sm-offset-4">
+                <a ng-click="showImage(file.imgSrc)">{{file.name}}</a>
+            </div>
+            <div class="col-sm-1">
+                <a ng-click="download(file)"><i class="glyphicon glyphicon-download-alt"></i></a>
+            </div>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-4 control-label"> Photo after</label>
+        <div ng-repeat="file in filesAfter track by $index">
+            <div class="col-sm-7 col-sm-offset-4">
+                <a ng-click="showImage(file.imgSrc)">{{file.name}}</a>
+            </div>
+            <div class="col-sm-1">
+                <a ng-click="download(file)"><i class="glyphicon glyphicon-download-alt"></i></a>
+            </div>
+        </div>
+    </div>
+
     <div class="form-group">
         <label class="col-sm-4 control-label">Resolution</label>
         <div class="col-sm-8">
