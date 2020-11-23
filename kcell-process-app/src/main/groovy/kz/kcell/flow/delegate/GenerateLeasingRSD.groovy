@@ -395,41 +395,41 @@ class GenerateLeasingRSD implements ExecutionListener {
                 StringJoiner antennaTypeString = new StringJoiner(",");
                 while(keys.hasNext()) {
                     String key = keys.next();
+                    if(!key.contains("hashKey")){
+                        boolean keyIsTrue = antennaTypes.getBoolean(key)
+                        if(keyIsTrue.equals(true)){
+                            def bands2 = bands.getJSONObject(key)
+                            Integer quantitySum = 0;
 
-                    boolean keyIsTrue = antennaTypes.getBoolean(key)
-                    if(keyIsTrue.equals(true)){
-                        def bands2 = bands.getJSONObject(key)
-                        Integer quantitySum = 0;
-
-                        for(int l=0; l<obj2.length(); l++) {
-                            quantitySum += obj2.getJSONObject(l).getInt("quantity");
+                            for(int l=0; l<obj2.length(); l++) {
+                                quantitySum += obj2.getJSONObject(l).getInt("quantity");
+                            }
+                            antennaTypeString.add(key);
+                            def info = [
+                                    cn_tilt_electr: bands2.has("cn_tilt_electr") ? bands2.get("cn_tilt_electr").toString() : "",
+                                    cn_gsm_antenna_quantity: bands2.has("cn_gsm_antenna_quantity") ? bands2.get("cn_gsm_antenna_quantity").toString() : "",
+                                    active: bands2.has("active") ? bands2.get("active").toString() : "",
+                                    cn_trx: bands2.has("cn_trx") ? bands2.get("cn_trx").toString() : "",
+                                    cn_tilt_mech: bands2.has("cn_tilt_mech") ? bands2.get("cn_tilt_mech").toString() : "",
+                                    cn_direction: bands2.has("cn_direction") ? bands2.get("cn_direction").toString() : "",
+                                    cn_height: bands2.has("cn_height") ? bands2.get("cn_height").toString() : "",
+                                    cn_hcu: bands2.has("cn_hcu") ? (bands2.getBoolean("cn_hcu") ? "Yes" : "No") : "No",
+                                    cn_radio_unit: bands2.has("cn_radio_unit") ? bands2.get("cn_radio_unit").toString() : "",
+                                    cn_tcc: bands2.has("cn_tcc") ? (bands2.getBoolean("cn_tcc") ? "Yes" : "No") : "No",
+                                    cn_gsm_range: bands2.has("cn_gsm_range") ? (bands2.getBoolean("cn_gsm_range") ? "Yes" : "No") : "No",
+                                    cn_tma: bands2.has("cn_tma") ? (bands2.getBoolean("cn_tma") ? "Yes" : "No") : "No",
+                                    cn_ret: bands2.has("cn_ret") ? (bands2.getBoolean("cn_ret") ? "Yes" : "No") : "No",
+                                    cn_asc: bands2.has("cn_asc") ? (bands2.getBoolean("cn_asc") ? "Yes" : "No") : "No",
+                                    cn_power_splitter: bands2.has("cn_power_splitter") ? (bands2.getBoolean("cn_power_splitter") ? "Yes" : "No") : "No",
+                                    cn_duplex: bands2.has("cn_duplex") ? (bands2.getBoolean("cn_duplex") ? "Yes" : "No") : "No",
+                                    cn_diversity: bands2.has("cn_diversity") ? (bands2.getBoolean("cn_diversity") ? "Yes" : "No") : "No",
+                                    cn_wcdma_carrier: bands2.has("cn_wcdma_carrier") ? bands2.get("cn_wcdma_carrier").toString() : "",
+                                    name: key,
+                                    quantitySum: quantitySum
+                            ]
+                            antennaArray.push(info)
                         }
-                        antennaTypeString.add(key);
-                        def info = [
-                                cn_tilt_electr: bands2.has("cn_tilt_electr") ? bands2.get("cn_tilt_electr").toString() : "",
-                                cn_gsm_antenna_quantity: bands2.has("cn_gsm_antenna_quantity") ? bands2.get("cn_gsm_antenna_quantity").toString() : "",
-                                active: bands2.has("active") ? bands2.get("active").toString() : "",
-                                cn_trx: bands2.has("cn_trx") ? bands2.get("cn_trx").toString() : "",
-                                cn_tilt_mech: bands2.has("cn_tilt_mech") ? bands2.get("cn_tilt_mech").toString() : "",
-                                cn_direction: bands2.has("cn_direction") ? bands2.get("cn_direction").toString() : "",
-                                cn_height: bands2.has("cn_height") ? bands2.get("cn_height").toString() : "",
-                                cn_hcu: bands2.has("cn_hcu") ? (bands2.getBoolean("cn_hcu") ? "Yes" : "No") : "No",
-                                cn_radio_unit: bands2.has("cn_radio_unit") ? bands2.get("cn_radio_unit").toString() : "",
-                                cn_tcc: bands2.has("cn_tcc") ? (bands2.getBoolean("cn_tcc") ? "Yes" : "No") : "No",
-                                cn_gsm_range: bands2.has("cn_gsm_range") ? (bands2.getBoolean("cn_gsm_range") ? "Yes" : "No") : "No",
-                                cn_tma: bands2.has("cn_tma") ? (bands2.getBoolean("cn_tma") ? "Yes" : "No") : "No",
-                                cn_ret: bands2.has("cn_ret") ? (bands2.getBoolean("cn_ret") ? "Yes" : "No") : "No",
-                                cn_asc: bands2.has("cn_asc") ? (bands2.getBoolean("cn_asc") ? "Yes" : "No") : "No",
-                                cn_power_splitter: bands2.has("cn_power_splitter") ? (bands2.getBoolean("cn_power_splitter") ? "Yes" : "No") : "No",
-                                cn_duplex: bands2.has("cn_duplex") ? (bands2.getBoolean("cn_duplex") ? "Yes" : "No") : "No",
-                                cn_diversity: bands2.has("cn_diversity") ? (bands2.getBoolean("cn_diversity") ? "Yes" : "No") : "No",
-                                cn_wcdma_carrier: bands2.has("cn_wcdma_carrier") ? bands2.get("cn_wcdma_carrier").toString() : "",
-                                name: key,
-                                quantitySum: quantitySum
-                        ]
-                        antennaArray.push(info)
                     }
-
                 }
                 def obj = [
                         antennaName: antennaName ? antennaName : "",
