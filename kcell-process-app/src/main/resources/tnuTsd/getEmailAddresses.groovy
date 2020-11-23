@@ -30,7 +30,7 @@ def getEmails(DelegateExecution execution) {
     def hqResult = hqGroupNameUserList.stream().collect(Collectors.joining(","))
 
 
-    String emails  = (starterEmail!=null?starterEmail + ",":"") + "Technologies-N&ITIS-S&FM-OP@kcell.kz" + result + "," + hqResult
+    String emails  = (starterEmail!=null?starterEmail + ",":"") + "Technologies-N&ITIS-S&FM-OP@kcell.kz" + (result!=null && !"".equals(result)?"," + result:"") + (hqResult!=null && !"".equals(hqResult)?"," + hqResult:"")
     println 'get users emails:'
     println emails
     emails
