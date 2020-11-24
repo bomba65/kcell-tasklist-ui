@@ -994,7 +994,7 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                         } else {
                             alert('Заполните корректно поля FE Longitude, FE Latitude, NE Longitude, NE Latitude')
                         }
-                    }
+                    } 
                 }
 
 
