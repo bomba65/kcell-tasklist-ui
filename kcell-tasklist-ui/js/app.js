@@ -210,7 +210,7 @@ define('app',[
 	    	authenticate: true,
 	    	resolve: resolve
 	    }).state("statistics", {
-			url: "/statistics?report&task&region&reason&mainContract&subContractor&unitR",
+			url: "/statistics?report&task&region&reason&mainContract&subContractor&unitR&contractFilter&unitFilter&regionFilter&subContractorFilter",
 	    	templateUrl: "js/partials/statistics.html",
 	    	controller: "statisticsCtrl",
 	    	authenticate: true,

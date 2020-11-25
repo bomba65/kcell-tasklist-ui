@@ -1420,11 +1420,10 @@ return module.controller('mainCtrl', ['$scope', '$rootScope', 'toasty', 'Authent
             { id: 'south', value: 'South', code: 'South' },
             { id: 'west', value: 'West', code: 'West' },
         ]
-
-        $scope.contractFilter = null;
-        $scope.regionFilter = null;
-        $scope.subContractorFilter = null;
-        $scope.unitFilter = null;
+        $scope.contractFilter = $stateParams.contractFilter ? $stateParams.contractFilter : null;
+        $scope.regionFilter = $stateParams.regionFilter ? $stateParams.regionFilter : null;
+        $scope.subContractorFilter = $stateParams.subContractorFilter ? $stateParams.subContractorFilter: null;
+        $scope.unitFilter = $stateParams.unitFilter ? $stateParams.unitFilter : null;
         $scope.currentReport = $stateParams.report;
         $scope.reverseOrder = false;
         $scope.fieldName = 'Region';
@@ -1690,6 +1689,7 @@ return module.controller('mainCtrl', ['$scope', '$rootScope', 'toasty', 'Authent
 
         $scope.contractFilterSelected = function(val) {
             $scope.contractFilter = val;
+            $scope.drowStatistics();
         }
 
         $scope.regionFilterSelected = function(val) {
@@ -1917,9 +1917,7 @@ return module.controller('mainCtrl', ['$scope', '$rootScope', 'toasty', 'Authent
                                 }
                             })
                             var variablesByProcessInstance = _.groupBy(variables, 'processInstanceId');
-                            console.log(
 
-                            );
                             return _.map(tasks, function (task) {
                                 return _.assign({}, task, {
                                     variables: _.keyBy(
@@ -1931,7 +1929,6 @@ return module.controller('mainCtrl', ['$scope', '$rootScope', 'toasty', 'Authent
                         });
                     }).then(function (tasks) {
                         $scope.tasks = tasks;
-                        console.log($scope.tasks);
                         for (let i = 0; i < $scope.tasks.length; i++) {
                             $http.get(`${$scope.baseUrl}/task/${$scope.tasks[i].id}/identity-links`).then((response) => {
                                 var groups = response.data
@@ -2120,7 +2117,6 @@ return module.controller('mainCtrl', ['$scope', '$rootScope', 'toasty', 'Authent
                                         return _.mapValues(tasks, 'length');
                                     }
                                 );
-                                console.log('tasksByIdAndRegionCounted1')
                                 $scope.tasksByIdAndRegionCounted = tasksByIdAndRegionCounted;
 
                                 let a = Object.keys(tasksByIdAndRegionCounted);
@@ -2135,7 +2131,6 @@ return module.controller('mainCtrl', ['$scope', '$rootScope', 'toasty', 'Authent
                                 }
 
                                 $scope.totalCounter = newJson;
-                                console.log(tasksByIdAndRegionCounted)
                             });
                     }
                 }
@@ -2176,7 +2171,16 @@ return module.controller('mainCtrl', ['$scope', '$rootScope', 'toasty', 'Authent
 
                         query.taskName = revisionTaskName[$scope.task];
                     }
-
+                    if ($scope.contractFilter !== null && $scope.contractFilter !== 'all') {
+                        query.processVariables.push({
+                            name: 'mainContract',
+                            operator: $scope.contractFilter === 'new' ? 'eq' : 'neq',
+                            value: 'Roll-outRevision2020'
+                        })
+                    }
+                    // var taskInstancesPromise = $http.post($scope.baseUrl + '/history/task', taskQuery).then(function (response) {
+                    //     return response.data;
+                    // });
                     if ($scope.filter.reason) {
                         if ($scope.getProcessDefinition() === 'Revision') {
                             query.processVariables = [{name: 'reason', operator: 'eq', value: $scope.filter.reason}];
@@ -2184,13 +2188,13 @@ return module.controller('mainCtrl', ['$scope', '$rootScope', 'toasty', 'Authent
                             query.processVariables = [{name: 'workType', operator: 'eq', value: $scope.filter.reason}];
                         }
                     }
-                    if ($scope.filter.mainContract && $scope.filter.mainContract !== 'All') {
-                        query.processVariables.push({
-                            name: 'mainContract',
-                            operator: 'eq',
-                            value: $scope.filter.mainContract
-                        });
-                    }
+                    // if ($scope.filter.mainContract && $scope.filter.mainContract !== 'All') {
+                    //     query.processVariables.push({
+                    //         name: 'mainContract',
+                    //         operator: 'eq',
+                    //         value: $scope.filter.mainContract
+                    //     });
+                    // }
                     if ($scope.region) {
                         var region = $scope.region === 'north_central' ? 'nc' : ($scope.region === 'almaty' ? 'alm' : $scope.region);
                         query.processVariables.push({name: 'siteRegion', operator: 'eq', value: region});
@@ -2214,7 +2218,12 @@ return module.controller('mainCtrl', ['$scope', '$rootScope', 'toasty', 'Authent
                             });
                         });
                     }).then(function (tasks) {
-                        $scope.tasks = tasks;
+                        $scope.tasks = tasks.filter(function (task) {
+                            var jr = task.variables.jrNumber.value;
+                            return ($scope.regionFilter ? ($scope.regionFilter === 'all' ? true : jr.indexOf($scope.regionFilter) > -1) : true) &&
+                                ($scope.subContractorFilter ? ($scope.subContractorFilter === 'all' ? true : jr.indexOf($scope.subContractorFilter) > -1) : true) &&
+                                ($scope.unitFilter ? ($scope.unitFilter === 'all' ? true : jr.indexOf($scope.unitFilter) > -1) : true)
+                        })
                         for (let i = 0; i < $scope.tasks.length; i++) {
                             $http.get(`${$scope.baseUrl}/task/${$scope.tasks[i].id}/identity-links`).then((response) => {
                                 var groups = response.data
@@ -2413,19 +2422,26 @@ return module.controller('mainCtrl', ['$scope', '$rootScope', 'toasty', 'Authent
                             "unfinished": true,
                             "processVariables": []
                         };
-                        if ($scope.filter.reason) {
-                            taskQuery.processVariables.push({
-                                name: 'reason',
-                                operator: 'eq',
-                                value: $scope.filter.reason
-                            });
-                        }
-                        if ($scope.filter.mainContract && $scope.filter.mainContract !== 'All') {
+                        // if ($scope.filter.reason) {
+                        //     taskQuery.processVariables.push({
+                        //         name: 'reason',
+                        //         operator: 'eq',
+                        //         value: $scope.filter.reason
+                        //     });
+                        // }
+                        // if ($scope.filter.mainContract && $scope.filter.mainContract !== 'All') {
+                        //     taskQuery.processVariables.push({
+                        //         name: 'mainContract',
+                        //         operator: 'eq',
+                        //         value: $scope.filter.mainContract
+                        //     });
+                        // }
+                        if ($scope.contractFilter !== null && $scope.contractFilter !== 'all') {
                             taskQuery.processVariables.push({
                                 name: 'mainContract',
-                                operator: 'eq',
-                                value: $scope.filter.mainContract
-                            });
+                                operator: $scope.contractFilter === 'new' ? 'eq' : 'neq',
+                                value: 'Roll-outRevision2020'
+                            })
                         }
                         var taskInstancesPromise = $http.post($scope.baseUrl + '/history/task', taskQuery).then(function (response) {
                             return response.data;
@@ -2433,15 +2449,14 @@ return module.controller('mainCtrl', ['$scope', '$rootScope', 'toasty', 'Authent
 
                         $q.all([processInstancesPromise, taskInstancesPromise])
                             .then(async function (results) {
-                                console.log(results)
                                 var processInstances = results[0];
                                 var taskInstances = results[1];
 
-                                angular.forEach(taskInstances, function (t) {
+                                angular.forEach(taskInstances,function (t) {
                                     if (['approve_material_list_center', 'validate_tr_bycenter', 'approve_additional_material_list_center', 'validate_additional_tr_bycenter'].indexOf(t.taskDefinitionKey) !== -1) {
                                         if (t.name.indexOf('P&O') != -1) {
                                             t.taskDefinitionKey = t.taskDefinitionKey + '_po'
-                                        } else if (t.name.indexOf('ransmission') != -1) {
+                                        } else if (t.name.indexOf('Transmission') != -1) {
                                             t.taskDefinitionKey = t.taskDefinitionKey + '_tr'
                                         } else if (t.name.indexOf('S&FM') != -1) {
                                             t.taskDefinitionKey = t.taskDefinitionKey + '_fm'
@@ -2454,27 +2469,15 @@ return module.controller('mainCtrl', ['$scope', '$rootScope', 'toasty', 'Authent
                                 taskInstances = taskInstances.filter(function (task) {
                                     var pid = task.processInstanceId;
                                     var jr = processInstances[pid].jrNumber;
-                                    if ($scope.regionFilter && $scope.regionFilter !== 'all') {
-                                        if ($scope.subContractorFilter && $scope.subContractorFilter !== 'all') {
-                                            if ($scope.unitFilter && $scope.unitFilter !== 'all') {
-                                                return jr.indexOf($scope.regionFilter) > -1 && jr.indexOf($scope.subContractorFilter) > -1 && jr.indexOf($scope.unitFilter) > -1
-                                            } else {
-                                                return jr.indexOf($scope.regionFilter) > -1 && jr.indexOf($scope.subContractorFilter) > -1
-                                            }
-                                        } else {
-                                            return jr.indexOf($scope.regionFilter) > -1
-                                        }
-                                    } else {
-                                        return true
-                                    }
+                                    return ($scope.regionFilter ? ($scope.regionFilter === 'all' ? true : jr.indexOf($scope.regionFilter) > -1) : true) &&
+                                        ($scope.subContractorFilter ? ($scope.subContractorFilter === 'all' ? true : jr.indexOf($scope.subContractorFilter) > -1) : true) &&
+                                        ($scope.unitFilter ? ($scope.unitFilter === 'all' ? true : jr.indexOf($scope.unitFilter) > -1) : true)
                                 })
-                                console.log(taskInstances);
 
                                 var taskInstancesByDefinition = _.groupBy(
                                     taskInstances,
                                     'taskDefinitionKey'
                                 );
-                                console.log(taskInstancesByDefinition);
 
                                 var tasksByIdAndRegionGrouped = _.mapValues(
                                     taskInstancesByDefinition,
@@ -3440,7 +3443,7 @@ return module.controller('mainCtrl', ['$scope', '$rootScope', 'toasty', 'Authent
                                             });                                            
                                         }
                                         if($scope.fullPIDsByRegions[r.id].generalStatuses && $scope.fullPIDsByRegions[r.id].generalStatuses['Provisional approval by Power, Transmission & Leasing']){
-                                            var pIds = [];2
+                                            var pIds = [];
                                             $scope.fullPIDsByRegions[r.id].generalStatuses['Provisional approval by Power, Transmission & Leasing'].forEach(p => {
                                                 pIds.push(p.pid);
                                             });
