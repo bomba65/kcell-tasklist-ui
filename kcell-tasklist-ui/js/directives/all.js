@@ -776,7 +776,7 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
             templateUrl: './js/directives/leasing/leasingDetail.html'
         };
     }]);
-    module.directive('leasingCandidate', ['$http', '$timeout', function ($http, $timeout) {
+    module.directive('leasingCandidate', ['$http', '$timeout', 'exModal', function ($http, $timeout, exModal) {
         return {
             require: '^form',
             restrict: 'E',
@@ -792,6 +792,7 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                 scope.selectedIndex = -1;
                 scope.defaultFarEndCard = false;
                 scope.loadCurrentFarEnd = true;
+                console.log(scope.leasingCandidate.farEndInformation);
                 if (scope.leasingCandidate.cellAntenna) {
                     if (scope.leasingCandidate.cellAntenna.cn_du !== null && typeof scope.leasingCandidate.cellAntenna.cn_du == 'string') {
                         scope.leasingCandidate.cellAntenna.cn_du = [scope.leasingCandidate.cellAntenna.cn_du]
@@ -1074,10 +1075,22 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                         });
                     }
                 };
-                scope.$watch('leasingCandidate.checkAndApproveFETaskResult', function (resolution) {
+                scope.$watch('leasingCandidate.checkAndApproveFETaskResult', function (resolution, oldValue) {
                     if (resolution === 'approved' || resolution === 'rejected') {
                         scope.sortableOptions.disabled = true;
-                    } else if (resolution == 'priorityChange') scope.sortableOptions.disabled = false;
+                    } else if (resolution == 'priorityChange') {
+                        scope.sortableOptions.disabled = false;
+                    }
+                    if (oldValue === 'priorityChange') {
+                        exModal.open({
+                            templateUrl: './js/partials/confirmModal.html',
+                            size: 'sm'
+                        }).then(function(res) {
+                            scope.leasingCandidate.farEndInformation.sort((a,b) => a.farEndSequence - b.farEndSequence)
+                        }).catch(function(){
+                            scope.leasingCandidate.checkAndApproveFETaskResult = 'priorityChange'
+                        });
+                    }
                 });
                 scope.$watch('leasingCandidate.transmissionAntenna.antennaType', function (antennaType) {
                     scope.leasingCandidate.frequenciesByAntennaType = {};
