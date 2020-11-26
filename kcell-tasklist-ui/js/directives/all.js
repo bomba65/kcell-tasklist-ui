@@ -1988,6 +1988,9 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                     },
                     CreatePR: {
                         title: "PR Creation", value: false
+                    },
+                    tnu_tsd_db: {
+                        title: "TNU", value: false
                     }
                 };
                 scope.KWMSProcesses = {};
@@ -2025,6 +2028,7 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                 };
                 var KWMSproject = _.find($rootScope.projects, {'key': 'NetworkInfrastructure'});
                 angular.forEach(allKWMSProcesses, function (value, processKey) {
+                    console.log(allKWMSProcesses);
                     if (_.find(KWMSproject.processes, {'key': processKey})) {
                         scope.KWMSProcesses[processKey] = value;
                     }
@@ -2042,7 +2046,7 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
 
                 function noProcessSelection(newVal) {
                     var filtered = Object.fromEntries(Object.entries(newVal).filter(([k, v]) => v.value === false));
-                    if ((filtered.Revision || filtered.Invoice || filtered.CreatePR) && !filtered.leasing && !filtered.Dismantle && !filtered.Replacement) {
+                    if ((filtered.Revision || filtered.Invoice || filtered.CreatePR || filtered.tnu_tsd_db) && !filtered.leasing && !filtered.Dismantle && !filtered.Replacement) {
                         scope.RevisionOrMonthlyAct = true;
                     }
                     if (Object.keys(filtered).length === 1) {
@@ -2065,14 +2069,14 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                             // only one process active;
                             scope.onlyProcessActive = Object.keys(filtered)[0];
                         }
-                        if ((filtered.Revision || filtered.Invoice || filtered.CreatePR) && !filtered.leasing && !filtered.Dismantle && !filtered.Replacement) {
+                        if ((filtered.Revision || filtered.Invoice || filtered.CreatePR || filtered.tnu_tsd_db) && !filtered.leasing && !filtered.Dismantle && !filtered.Replacement) {
                             scope.RevisionOrMonthlyAct = true;
                         }
                         angular.forEach(filtered, function (process, key) {
                             scope.selectedProcessInstances.push(key);
                         });
                     }
-                    if (scope.onlyProcessActive!=='Revision' && scope.onlyProcessActive!=='CreatePR') {
+                    if (scope.onlyProcessActive!=='Revision' && scope.onlyProcessActive!=='CreatePR' && scope.onlyProcessActive!=='tnu_tsd_db') {
                         //clear Revision-only filters
                         scope.filter.validityDateRange = undefined;
                         $(".calendar-range-readonly").each(function () {
@@ -2102,7 +2106,7 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                         scope.filter.businessKeyFilterType = 'all';
                         scope.filter.businessKey = undefined;
                     }
-                    if (scope.onlyProcessActive!=='Revision' && scope.onlyProcessActive!=='Dismantle' && scope.onlyProcessActive!=='Replacement' && scope.onlyProcessActive!=='CreatePR') {
+                    if (scope.onlyProcessActive!=='Revision' && scope.onlyProcessActive!=='Dismantle' && scope.onlyProcessActive!=='Replacement' && scope.onlyProcessActive!=='CreatePR' && scope.onlyProcessActive!=='tnu_tsd_db') {
                         scope.filter.requestedDateRange = undefined;
                         scope.filter.requestor = undefined;
                     }
@@ -2119,6 +2123,15 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                         // siteId&sitename are common filters except if Invoice selected
                         scope.filter.siteId = undefined;
                         scope.filter.sitename = undefined;
+                    }
+                    if (scope.onlyProcessActive!=='tnu_tsd_db') {
+                        scope.filter.initiator = undefined;
+                        scope.filter.businessKeyFilterType = 'all';
+                        scope.filter.businessKey = undefined;
+                        scope.filter.period = undefined;
+                        scope.filter.monthOfFormalPeriod = undefined;
+                        scope.filter.yearOfFormalPeriod = undefined;
+
                     }
                     if(scope.onlyProcessActive!=='leasing'){
                         scope.filter.leasingCandidateLegalType = undefined;
@@ -2310,6 +2323,25 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                         }
                     );
                 };
+                // scope.getSites = function(val) {
+                //     return $http.get($rootScope.assetsServerUrl + '/asset-management/sites/name/contains/'+val).then(
+                //         function(response){
+                //             console.log(response)
+                //             response.data.forEach(function(e){
+                //                 e.name = e.site_name;
+                //             });
+                //             return response.data;
+                //         });
+                // };
+                // scope.nearEndSelected = function ($item) {
+                //     scope.filter.nearend = $item.nearend;
+                // };
+                // scope.checkSite = function(){
+                //     return $http.get($rootScope.assetsServerUrl + '/asset-management/tsd_mw?nearend_id=' + $scope.site).then(
+                //         function(response) {
+                //             $scope.result = response.data;
+                //         });
+                // }
                 scope.getXlsxProcessInstances = function () {
                     var fileName = scope.onlyProcessActive.toLowerCase() + '-search-result.xlsx';
                     if (scope.xlsxPreparedRevision) {
@@ -2380,6 +2412,9 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                     }
                     if (scope.filter.sitename) {
                         filter.variables.push({"name": "site_name", "operator": "eq", "value": scope.filter.sitename});
+                    }
+                    if(scope.filter.nearend) {
+                        filter.variables.push({"name": "nearen", "operator": "eq", "value": scope.filter.nearend});
                     }
                     if (scope.filter.businessKey) {
                         if (scope.filter.businessKeyFilterType === 'eq') {
@@ -2673,6 +2708,7 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                     scope.filter.period = undefined;
                     scope.filter.siteId = undefined;
                     scope.filter.sitename = undefined;
+                    scope.filter.nearend = undefined;
                     scope.filter.businessKey = undefined;
                     scope.filter.workType = undefined;
                     scope.filter.participation = undefined;
