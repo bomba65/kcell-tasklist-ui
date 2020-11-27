@@ -203,7 +203,8 @@
             <select ng-model="filter.contractor" class="form-control selectpicker" select-picker title=""
                     ng-init="filter.contractor = 'All'">
                 <option ng-repeat="ct in tnuProcessTypeList"
-                        value="{{ct.id}}" ng-value="ct.id">{{ct.value}}</option>
+                        value="{{ct.id}}" ng-value="ct.id">{{ct.value}}
+                </option>
             </select>
         </div>
     </div>
@@ -273,13 +274,14 @@
     <div class="form-group col-sm-4" ng-show="onlyProcessActive==='tnu_tsd_db'">
         <label class="col-sm-4 control-label">Process Number:</label>
         <div class="col-sm-2">
-            <select ng-model="filter.businessKeyFilterType" class="form-control selectpicker" select-picker title="" ng-init="filter.businessKeyFilterType = 'eq'">
+            <select ng-model="filter.businessKeyFilterType" class="form-control selectpicker" select-picker title=""
+                    ng-init="filter.businessKeyFilterType = 'eq'">
                 <option value="eq">=</option>
                 <option value="like">like</option>
             </select>
         </div>
         <div class="col-sm-6">
-            <input type="text" ng-model="filter.businessKey" class="form-control" placeholder="Alm-XXX-P&O-20-4025" />
+            <input type="text" ng-model="filter.businessKey" class="form-control" placeholder="Alm-XXX-P&O-20-4025"/>
         </div>
     </div>
     <div class="form-group col-sm-4" ng-show="onlyProcessActive==='leasing'">
@@ -561,9 +563,13 @@
             </center>
         </div>
     </div>
-    <div class="col-sm-4" ng-if="onlyProcessActive!==''">
-        <a ng-if="lastSearchParamsRevision" class="btn btn-default" style="float: right" id="xlsxClick"
+    <div class="col-sm-4" ng-if="onlyProcessActive!=='' || onlyProcessActive!=='tnu_tsd_db'">
+        <a ng-if="lastSearchParamsRevision && onlyProcessActive!=='tnu_tsd_db'" class="btn btn-default" style="float: right" id="xlsxClick"
            ng-click="getXlsxProcessInstances()">{{xlsxPreparedRevision ? 'Export to Excel' : 'Prepare Excel'}}</a>
+    </div>
+    <div class="col-sm-4" ng-show="onlyProcessActive==='tnu_tsd_db'">
+        <a ng-if="lastSearchParamsTnu" class="btn btn-default" style="float: right" id="xlsxClick"
+           ng-click="getXlsxProcessInstancesTnu()">{{xlsxPreparedTnu ? 'Export to Excel' : 'Prepare Excel'}}</a>
     </div>
 </div>
 
@@ -611,22 +617,24 @@
         <thead class="fixed-header">
         <tr>
             <th>#</th>
-            <th ng-if="onlyProcessActive==='tnu_tsd_db'">
+            <th width="12.5%" ng-if="onlyProcessActive==='tnu_tsd_db'">
                 Process type
             </th>
-            <th ng-if="RevisionOrMonthlyAct || onlyProcessActive==='Dismantle' || onlyProcessActive==='Replacement' || onlyProcessActive==='leasing' || onlyProcessActive==='tnu_tsd_db'">
+            <th width="10%"
+                ng-if="RevisionOrMonthlyAct || onlyProcessActive==='Dismantle' || onlyProcessActive==='Replacement' || onlyProcessActive==='leasing' || onlyProcessActive==='tnu_tsd_db'">
                 Region
             </th>
-            <th ng-if="onlyProcessActive==='tnu_tsd_db'">
+            <th width="30%" ng-if="onlyProcessActive==='tnu_tsd_db'">
                 Near-end/ Far-end
             </th>
-            <th ng-if="onlyProcessActive==='tnu_tsd_db'">
+            <th width="12.5%" ng-if="onlyProcessActive==='tnu_tsd_db'">
                 Process number
             </th>
             <th ng-if="onlyProcessActive==='Revision' || onlyProcessActive==='Dismantle' || onlyProcessActive==='Replacement' || onlyProcessActive==='leasing' || onlyProcessActive==='CreatePR'">
                 Sitename
             </th>
-            <th>{{(onlyProcessActive==='Revision' || onlyProcessActive==='CreatePR') ? 'JR Number' :
+            <th ng-if="onlyProcessActive==='Revision' || onlyProcessActive==='CreatePR' || onlyProcessActive==='Invoice'">
+                {{(onlyProcessActive==='Revision' || onlyProcessActive==='CreatePR') ? 'JR Number' :
                 onlyProcessActive==='Invoice'? 'MA Number' : 'Business Key' }}
             </th>
             <th ng-if="onlyProcessActive===''">Process Name</th>
@@ -654,7 +662,7 @@
             <th ng-if="onlyProcessActive==='tnu_tsd_db'">Current Activity</th>
             <th ng-if="onlyProcessActive==='Revision' || onlyProcessActive==='CreatePR'">Contractor</th>
             <th ng-if="RevisionOrMonthlyAct">Reason</th>
-            <th ng-if="onlyProcessActive!=='leasing' || onlyProcessActive!=='tnu_tsd_db'">Requested By</th>
+            <th ng-if="onlyProcessActive!=='leasing' || onlyProcessActive==='tnu_tsd_db'">Requested By</th>
             <th ng-if="onlyProcessActive==='Revision' || onlyProcessActive==='Dismantle' || onlyProcessActive==='Replacement' || onlyProcessActive==='leasing' || onlyProcessActive==='CreatePR' || onlyProcessActive ==='tnu_tsd_db'">
                 Current Assignee
             </th>
@@ -673,12 +681,20 @@
             <td ng-if="RevisionOrMonthlyAct || onlyProcessActive==='Dismantle' || onlyProcessActive==='Replacement' || onlyProcessActive==='leasing' || onlyProcessActive==='tnu_tsd_db'">
                 {{regionsMap[pi.siteRegion]}}
             </td>
-            <td ng-if="onlyProcessActive==='tnu_tsd_db'"></td>
             <td ng-if="onlyProcessActive==='Revision' || onlyProcessActive==='Dismantle' || onlyProcessActive==='Replacement' || onlyProcessActive==='leasing' || onlyProcessActive==='CreatePR'">
                 {{pi.site_name}}
             </td>
+            <td ng-if="onlyProcessActive==='tnu_tsd_db'">
+                <a ng-click="toggleProcessViewRevision($index, pi.processDefinitionKey, pi.processDefinitionId, pi.businessKey)">
+                    {{pi.businessKey}}
+                </a>
+            </td>
             <td>
-                <a ng-if="pi.processDefinitionKey=='Revision' || pi.processDefinitionKey=='Invoice' || pi.processDefinitionKey=='CreatePR' || pi.processDefinitionKey=='tnu_tsd_db'"
+                <a ng-if="pi.processDefinitionKey=='tnu_tsd_db'"
+                   ng-click="toggleProcessViewRevision($index, pi.processDefinitionKey, pi.processDefinitionId, pi.businessKey)">
+                    {{pi.businessKey.split("(").pop().replace(")","")}}
+                </a>
+                <a ng-if="pi.processDefinitionKey=='Revision' || pi.processDefinitionKey=='Invoice' || pi.processDefinitionKey=='CreatePR'"
                    ng-click="toggleProcessViewRevision($index, pi.processDefinitionKey, pi.processDefinitionId, pi.businessKey)">
                     {{pi.businessKey}}
                 </a>
@@ -695,7 +711,6 @@
                     {{pi.businessKey}}
                 </a>
             </td>
-            <td ng-if="onlyProcessActive==='tnu_tsd_db'"></td>
             <td ng-if="onlyProcessActive===''">{{pi.processDefinitionKey == 'sdr_srr_request'? (pi.requestType ===
                 'dismantle' ? 'Dismantle' : 'Replacement') : pi.processDefinitionName}}
             </td>
@@ -752,7 +767,8 @@
                 {{pi.processDefinitionKey==='Invoice' ? reasonShortName[pi.workType]
                 : reasonShortName[pi.reason] }}
             </td>
-            <td ng-if="onlyProcessActive!=='leasing' || onlyProcessActive!=='tnu_tsd_db'">{{profiles[pi.startUserId] ? profiles[pi.startUserId].firstName :
+            <td ng-if="onlyProcessActive!=='leasing' || onlyProcessActive!=='tnu_tsd_db'">{{profiles[pi.startUserId] ?
+                profiles[pi.startUserId].firstName :
                 pi.startUserId}} {{profiles[pi.startUserId] ? profiles[pi.startUserId].lastName : ''}}
             </td>
             <td ng-if="onlyProcessActive==='Revision' || onlyProcessActive==='Dismantle' || onlyProcessActive==='Replacement' || onlyProcessActive==='leasing' || onlyProcessActive==='CreatePR' || onlyProcessActive!=='tnu_tsd_db'">
@@ -765,12 +781,12 @@
                     (profiles[task.assignee] ? (profiles[task.assignee].firstName + ' ' +
                     profiles[task.assignee].lastName) : task.assignee) : 'Not claimed'}}<br/></a>
             </td>
-            <td ng-if="onlyProcessActive!=='leasing' || onlyProcessActive!=='tnu_tsd_db'">{{(pi.processDefinitionKey==='Revision' ||
+            <td ng-if="onlyProcessActive!=='leasing' || onlyProcessActive!=='tnu_tsd_db'">
+                {{(pi.processDefinitionKey==='Revision' ||
                 pi.processDefinitionKey==='CreatePR') ? (pi.requestedDate | date:'dd MMM yyyy') : pi.startTime |
                 date:'dd MMM yyyy' }}
             </td>
-            <td ng-if="onlyProcessActive==='Revision' || onlyProcessActive==='CreatePR'">{{pi.validityDate | date:'dd
-                MMM yyyy'}}
+            <td ng-if="onlyProcessActive==='Revision' || onlyProcessActive==='CreatePR'">{{pi.validityDate | date:'dd MMM yyyy'}}
             </td>
             <td ng-if="onlyProcessActive==='Revision' || onlyProcessActive==='CreatePR'" style="max-width: 190px;">
                 <a ng-click="showWorkDetail(pi.jobWorks)">
@@ -850,8 +866,7 @@
                 <span ng-repeat="task in pi.tasks">{{$index+1}}. {{profiles[task.assignee] ? (profiles[task.assignee].firstName + ' ' + profiles[task.assignee].lastName) : 'Not claimed'}}<br/></span>
             </td>
             <td>{{pi.requestedDate | date:'dd MMM yyyy'}}</td>
-            <td ng-if="onlyProcessActive==='Revision' || onlyProcessActive==='CreatePR'">{{pi.validityDate | date:'dd
-                MMM yyyy'}}
+            <td ng-if="onlyProcessActive==='Revision' || onlyProcessActive==='CreatePR'">{{pi.validityDate | date:'dd MMM yyyy'}}
             </td>
             <td ng-if="onlyProcessActive==='Revision' || onlyProcessActive==='CreatePR'">
 				<span ng-repeat="work in pi.jobWorks">
@@ -864,7 +879,86 @@
         </tr>
         </tbody>
     </table>
+    <table id="xlsxTnuTable" name="xlsxTnuTable" style="display: none;">
+        <thead class="fixed-header">
+        <tr>
+            <th>#</th>
+            <th ng-if="onlyProcessActive==='tnu_tsd_db'">
+                Process type
+            </th>
+            <th ng-if="onlyProcessActive==='tnu_tsd_db'">
+                Region
+            </th>
+            <th ng-if="onlyProcessActive==='tnu_tsd_db'">
+                Near-end/ Far-end
+            </th>
+            <th ng-if="onlyProcessActive==='tnu_tsd_db'">
+                Process number
+            </th>
+            <th ng-if="onlyProcessActive==='tnu_tsd_db'">Current Activity</th>
+            <th>Requested By</th>
+            <th ng-if="onlyProcessActive==='tnu_tsd_db'">Current Assignee</th>
+            <th>Requested Date</th>
+        </tr>
+        </thead>
+        <tbody ng-repeat="pi in xlsxProcessInstances">
+        <tr>
+            <td>{{$index + 1}}</td>
+            <td ng-if="onlyProcessActive==='tnu_tsd_db'">{{processDefinitionKeys[pi.processDefinitionKey]}}</td>
+            <td ng-if="onlyProcessActive==='tnu_tsd_db'">{{regionsMap[pi.siteRegion]}}</td>
+            <td ng-if="onlyProcessActive==='tnu_tsd_db'">{{pi.businessKey}}</td>
+            <td ng-if="onlyProcessActive==='tnu_tsd_db'">{{pi.businessKey.split("(").pop().replace(")","")}}</td>
+            <td style="max-width: 100px;">
+                <span ng-if="!(hasGroup('revision_managers') || hasGroup('revision_audit'))"
+                      ng-repeat="task in pi.tasks">{{$index+1}}. {{task.name}}<br/></span>
+                <a ng-if="hasGroup('revision_managers') || hasGroup('revision_audit')" ng-repeat="task in pi.tasks"
+                   ui-sref="tasks.task({id:task.id})" target="_blank">{{$index+1}}. {{task.name}}<br/></a>
+                <span ng-repeat="act in pi.otherActivities">{{pi.tasks.length+$index+1}}. {{act.activityName}}<br/></span>
+            </td>
+            <td ng-if="onlyProcessActive==='tnu_tsd_db'">
+                <span ng-repeat="task in pi.tasks">{{$index+1}}. {{profiles[task.assignee] ? (profiles[task.assignee].firstName + ' ' + profiles[task.assignee].lastName) : 'Not claimed'}}<br/></span>
+            </td>
+            <td ng-if="onlyProcessActive ==='tnu_tsd_db'">
+                <a ng-click="showTaskDetail(task)" ng-repeat="task in pi.tasks">{{$index+1}}. {{task.assignee ?
+                    (profiles[task.assignee] ? (profiles[task.assignee].firstName + ' ' +
+                    profiles[task.assignee].lastName) : task.assignee) : 'Not claimed'}}<br/></a>
+            </td>
+            <td ng-if="onlyProcessActive!=='leasing' || onlyProcessActive!=='tnu_tsd_db'">
+                {{(pi.processDefinitionKey==='Revision' ||
+                pi.processDefinitionKey==='CreatePR') ? (pi.requestedDate | date:'dd MMM yyyy') : pi.startTime |
+                date:'dd MMM yyyy' }}
+            </td>
+        </tr>
+        </tbody>
+    </table>
+    <table class="table table-condensed table-hover" id="customXlsxTnuTable" name="customXlsxTnuTable"
+           style="display: none;">
+        <thead class="fixed-header">
+        <tr>
+            <th>#</th>
+            <th ng-repeat="field in selectedCustomFields | orderBy: 'order'">{{field.name}}</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr ng-repeat="pi in xlsxProcessInstances">
+            <td>{{$index + 1}}</td>
+            <td ng-repeat="field in selectedCustomFields | orderBy: 'order'">
+                {{field.id= 'tnu_tsd_db' ? processDefinitionKeys[pi.processDefinitionKey] : ''}}
+                {{field.id === 'region' ? regionsMap[pi.siteRegion] : ''}}
+                {{field.id === 'jrNumber' ? pi.businessKey : ''}}
+                <span ng-if="field.id === 'currentActivity' && !(hasGroup('revision_managers') || hasGroup('revision_audit'))"
+                      ng-repeat="task in pi.tasks">{{$index+1}}. {{task.name}}<br/></span>
+                <span ng-if="field.id === 'currentActivity'" ng-repeat="act in pi.otherActivities">{{pi.tasks.length+$index+1}}. {{act.activityName}}<br/></span>
+                {{field.id === 'contractor' ? contractorShortName[pi.contractor] : ''}}
+                {{field.id === 'requestedby' ? (profiles[pi.startUserId] ? profiles[pi.startUserId].firstName :
+                pi.startUserId) + ' ' + (profiles[pi.startUserId] ? profiles[pi.startUserId].lastName : '') : ''}}
+                <span ng-if="field.id === 'currentAssignee'" ng-repeat="task in pi.tasks">{{$index+1}}. {{profiles[task.assignee] ? (profiles[task.assignee].firstName + ' ' + profiles[task.assignee].lastName) : 'Not claimed'}}<br/></span>
+                <span ng-if="field.id === 'requestedDate'">{{pi.requestedDate | date:'dd MMM yyyy'}}</span>
+            </td>
+        </tbody>
+    </table>
 </div>
+
 <div ng-if="(onlyProcessActive==='Revision' || onlyProcessActive==='CreatePR') && selectedCustomFields.length > 0">
     <table class="table table-condensed table-hover" ng-if="processInstances.length>0" id="customRevisionsTable"
            name="customRevisionsTable">
@@ -969,4 +1063,5 @@
             </td>
         </tbody>
     </table>
+
 </div>

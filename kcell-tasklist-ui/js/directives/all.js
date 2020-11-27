@@ -2026,6 +2026,7 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                 scope.selectedProcessInstances = [];
                 scope.shownPages = 0;
                 scope.xlsxPreparedRevision = false;
+                scope.xlsxPreparedTnu =false;
                 scope.onlyProcessActive = '';
 
                 scope.taskUserSelected = function ($item, $model, $label) {
@@ -2350,7 +2351,7 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                 }
                 scope.getXlsxProcessInstances = function () {
                     var fileName = scope.onlyProcessActive.toLowerCase() + '-search-result.xlsx';
-                    if (scope.xlsxPreparedRevision) {
+                    if (scope.xlsxPreparedRevision || scope.xlsxPreparedTnu) {
                         var tbl = document.getElementById('xlsxRevisionsTable');
                         if (scope.onlyProcessActive === 'Revision' && scope.selectedCustomFields.length > 0) {
                             tbl = document.getElementById('customXlsxRevisionsTable');
@@ -2362,6 +2363,23 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                     } else {
                         getProcessInstances(scope.lastSearchParamsRevision, 'xlsxProcessInstances');
                         scope.xlsxPreparedRevision = true;
+                    }
+
+                }
+                scope.getXlsxProcessInstancesTnu = function () {
+                    var fileName = scope.onlyProcessActive.toLowerCase() + '-search-result.xlsx';
+                    if ( scope.xlsxPreparedTnu) {
+                        var tbl = document.getElementById('xlsxTnuTable');
+                        if (scope.onlyProcessActive === 'tnu_tsd_db' && scope.selectedCustomFields.length > 0) {
+                            tbl = document.getElementById('customXlsxTnuTable');
+                        }
+                        var ws = XLSX.utils.table_to_sheet(tbl, {dateNF: 'DD.MM.YYYY'});
+                        var wb = XLSX.utils.book_new();
+                        XLSX.utils.book_append_sheet(wb, ws, 'New Sheet Name 1');
+                        return XLSX.writeFile(wb, fileName);
+                    } else {
+                        getProcessInstances(scope.lastSearchParamsTnu, 'xlsxProcessInstances');
+                        scope.xlsxPreparedTnu = true;
                     }
 
                 }
@@ -2393,6 +2411,7 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                         scope.filter.page = 1;
                         scope.piIndex = undefined;
                         scope.xlsxPreparedRevision = false;
+                        scope.xlsxPreparedTnu =false;
                     }
                     var selectedProcessInstances = [];
                     angular.forEach(scope.selectedProcessInstances, function (item) {
@@ -2487,6 +2506,7 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                                 asynCall1 = true;
                                 if (asynCall1 && asynCall2 && asynCall3 && asynCall4) {
                                     scope.lastSearchParamsRevision = filter;
+                                    scope.lastSearchParamsTnu = filter;
                                     getProcessInstances(filter, 'processInstances');
                                     asynCall1 = false;
                                 }
@@ -2609,6 +2629,7 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                                     asynCall4 = true;
                                     if (asynCall1 && asynCall2 && asynCall3 && asynCall4) {
                                         scope.lastSearchParamsRevision = filter;
+                                        scope.lastSearchParamsTnu = filter;
                                         getProcessInstances(filter, 'processInstances');
                                         asynCall4 = false;
                                     }
@@ -2630,9 +2651,11 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                             function (result) {
                                 filter.startedBy = scope.filter.initiator.id;
                                 scope.lastSearchParamsRevision = filter;
+                                scope.lastSearchParamsTnu = filter;
                                 asynCall2 = true;
                                 if (asynCall1 && asynCall2 && asynCall3 && asynCall4) {
                                     scope.lastSearchParamsRevision = filter;
+                                    scope.lastSearchParamsTnu = filter;
                                     getProcessInstances(filter, 'processInstances');
                                     asynCall2 = false;
                                 }
@@ -2725,6 +2748,7 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                     asynCall3 = true;
                     if (asynCall1 && asynCall2 && asynCall3 && asynCall4) {
                         scope.lastSearchParamsRevision = filter;
+                        scope.lastSearchParamsTnu = filter;
                         getProcessInstances(filter, 'processInstances');
                         asynCall3 = false;
                     }
@@ -2785,8 +2809,6 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                 }
 
                 function getProcessInstances(filter, processInstances) {
-                    console.log('filter params', filter);
-                    console.log('processInstances', processInstances);
                     $http({
                         method: 'POST',
                         headers: {'Accept': 'application/hal+json, application/json; q=0.5'},
