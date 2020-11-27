@@ -2002,6 +2002,12 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                     'south': 'South',
                     'west': 'West'
                 };
+                scope.processDefinitionKeys = {
+                    'tnu_tsd_db': 'TNU',
+                    'get-rfs-by-permit': 'Get RFS by Permit',
+                    'change-tsd':'Change TSD',
+                    'hop-delete':'Hop delete'
+                }
                 scope.contractorShortName = {
                     '4': 'LSE',
                     '5': 'Kcell_region',
@@ -2046,7 +2052,7 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
 
                 function noProcessSelection(newVal) {
                     var filtered = Object.fromEntries(Object.entries(newVal).filter(([k, v]) => v.value === false));
-                    if ((filtered.Revision || filtered.Invoice || filtered.CreatePR || filtered.tnu_tsd_db) && !filtered.leasing && !filtered.Dismantle && !filtered.Replacement) {
+                    if ((filtered.Revision || filtered.Invoice || filtered.CreatePR) && !filtered.leasing && !filtered.Dismantle && !filtered.Replacement) {
                         scope.RevisionOrMonthlyAct = true;
                     }
                     if (Object.keys(filtered).length === 1) {
@@ -2069,7 +2075,7 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                             // only one process active;
                             scope.onlyProcessActive = Object.keys(filtered)[0];
                         }
-                        if ((filtered.Revision || filtered.Invoice || filtered.CreatePR || filtered.tnu_tsd_db) && !filtered.leasing && !filtered.Dismantle && !filtered.Replacement) {
+                        if ((filtered.Revision || filtered.Invoice || filtered.CreatePR) && !filtered.leasing && !filtered.Dismantle && !filtered.Replacement) {
                             scope.RevisionOrMonthlyAct = true;
                         }
                         angular.forEach(filtered, function (process, key) {
@@ -2323,25 +2329,25 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                         }
                     );
                 };
-                // scope.getSites = function(val) {
-                //     return $http.get($rootScope.assetsServerUrl + '/asset-management/sites/name/contains/'+val).then(
-                //         function(response){
-                //             console.log(response)
-                //             response.data.forEach(function(e){
-                //                 e.name = e.site_name;
-                //             });
-                //             return response.data;
-                //         });
-                // };
-                // scope.nearEndSelected = function ($item) {
-                //     scope.filter.nearend = $item.nearend;
-                // };
-                // scope.checkSite = function(){
-                //     return $http.get($rootScope.assetsServerUrl + '/asset-management/tsd_mw?nearend_id=' + $scope.site).then(
-                //         function(response) {
-                //             $scope.result = response.data;
-                //         });
-                // }
+                scope.getSites = function(val) {
+                    return $http.get($rootScope.assetsServerUrl + '/asset-management/sites/name/contains/'+val).then(
+                        function(response){
+                            console.log(response)
+                            response.data.forEach(function(e){
+                                e.name = e.site_name;
+                            });
+                            return response.data;
+                        });
+                };
+                scope.nearEndSelected = function ($item) {
+                    scope.filter.nearend = $item.site_name;
+                };
+                scope.checkSite = function(){
+                    return $http.get($rootScope.assetsServerUrl + '/asset-management/tsd_mw?nearend_id=' + $scope.site).then(
+                        function(response) {
+                            $scope.result = response.data;
+                        });
+                }
                 scope.getXlsxProcessInstances = function () {
                     var fileName = scope.onlyProcessActive.toLowerCase() + '-search-result.xlsx';
                     if (scope.xlsxPreparedRevision) {
@@ -2359,6 +2365,25 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                     }
 
                 }
+                scope.populateSelectFromCatalog = function (containers, id) {
+                    $http.get($rootScope.catalogsServerUrl + '/camunda/catalogs/api/get/id/' + id).then(function (result) {
+                        if (result && result.data && result.data.data && result.data.data.$list) {
+                            angular.forEach(containers, function (container) {
+                                scope[container] = result.data.data.$list;
+                            });
+                            angular.forEach(result.data.data.$list, function (item) {
+                                if (!scope.titles[containers[0]]) {
+                                    scope.titles[containers[0]] = {};
+                                }
+                                scope.titles[containers[0]][item.id] = item.value;
+                            });
+                        }
+
+
+                    });
+                };
+                scope.populateSelectFromCatalog(['tnuProcessTypeList'], 122);
+
                 scope.search = function (refreshPages) {
                     var asynCall1 = false;
                     var asynCall2 = false;
@@ -2414,7 +2439,10 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                         filter.variables.push({"name": "site_name", "operator": "eq", "value": scope.filter.sitename});
                     }
                     if(scope.filter.nearend) {
-                        filter.variables.push({"name": "nearen", "operator": "eq", "value": scope.filter.nearend});
+                        filter.variables.push({"name": "site_name", "operator": "eq", "value": scope.filter.nearend});
+                    }
+                    if(scope.contractor) {
+                        filter.variables.push({"name": "contractor", "operator": "eq", "value": scope.filter.contractor});
                     }
                     if (scope.filter.businessKey) {
                         if (scope.filter.businessKeyFilterType === 'eq') {
@@ -2426,7 +2454,7 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                     if (scope.filter.workType) {
                         if (scope.onlyProcessActive==='Invoice')
                             filter.variables.push({"name": "workType", "operator": "eq", "value": scope.filter.workType});
-                        else if (scope.onlyProcessActive==='Revision' || scope.onlyProcessActive==='CreatePR')
+                        else if (scope.onlyProcessActive==='Revision' || scope.onlyProcessActive==='CreatePR' || scope.onlyProcessActive==='tnu_tsd_db')
                             filter.variables.push({"name": "reason", "operator": "eq", "value": scope.filter.workType});
                     }
                     if (scope.filter.unfinished) {
@@ -2486,7 +2514,7 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
 
                     if (scope.filter.requestedDateRange) {
                         var results = scope.convertStringToDate(scope.filter.requestedDateRange);
-                        if(scope.onlyProcessActive==='Revision' || scope.onlyProcessActive==='CreatePR'){
+                        if(scope.onlyProcessActive==='Revision' || scope.onlyProcessActive==='CreatePR' || scope.onlyProcessActive==='tnu_tsd_db'){
                             if (results.length === 2) {
                                 filter.variables.push({
                                     "name": "requestedDate",
@@ -2567,7 +2595,7 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                             "value": scope.filter.replacementInitiator
                         });
                     }
-                    if (scope.filter.participation && (scope.onlyProcessActive==='Revision' || scope.onlyProcessActive==='CreatePR')) {
+                    if (scope.filter.participation && (scope.onlyProcessActive==='Revision' || scope.onlyProcessActive==='CreatePR' || scope.onlyProcessActive==='tnu_tsd_db')) {
                         if(!scope.filter.requestor){
                             toasty.error({title: "Error", msg: 'Please fill field Requestor!'});
                             return;
@@ -2618,7 +2646,7 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                     }
 
 
-                    if (scope.filter.activityId && (scope.onlyProcessActive==='Revision' || scope.onlyProcessActive==='CreatePR')) {
+                    if (scope.filter.activityId && (scope.onlyProcessActive==='Revision' || scope.onlyProcessActive==='CreatePR' || scope.onlyProcessActive==='tnu_tsd_db')) {
                         filter.activeActivityIdIn.push(scope.filter.activityId);
                     }
                     if (scope.filter.dismantleActivityId && (scope.onlyProcessActive==='Dismantle' || scope.onlyProcessActive==='Replacement')) {
@@ -2758,6 +2786,7 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
 
                 function getProcessInstances(filter, processInstances) {
                     console.log('filter params', filter);
+                    console.log('processInstances', processInstances);
                     $http({
                         method: 'POST',
                         headers: {'Accept': 'application/hal+json, application/json; q=0.5'},
@@ -2780,6 +2809,7 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                         url: baseUrl + '/history/process-instance?firstResult=' + (processInstances === 'processInstances' ? (scope.filter.page - 1) * scope.filter.maxResults + '&maxResults=' + scope.filter.maxResults : '')
                     }).then(
                         function (result) {
+                            console.log(result)
                             scope[processInstances] = result.data;
                             var variables = ['siteRegion', 'site_name', 'contractor', 'reason', 'requestedDate', 'validityDate', 'jobWorks', 'explanation', 'workType'];
 
@@ -2830,7 +2860,7 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                                     variables.push('contractInformations');
                                 }
                             }
-                            if(scope.selectedProcessInstances.indexOf('Revision')!==-1 || scope.selectedProcessInstances.indexOf('CreatePR')!==-1){
+                            if(scope.selectedProcessInstances.indexOf('Revision')!==-1 || scope.selectedProcessInstances.indexOf('CreatePR')!==-1 || scope.selectedProcessInstances.indexOf('tnu_tsd_db')!==-1){
                                 variables.push('monthActNumber');
                                 variables.push('invoiceRO1Number');
                                 variables.push('invoiceRO2Number');
@@ -3008,7 +3038,7 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                         scope.KWMSProcesses[process].value = false;
                     } else {
                         scope.KWMSProcesses[process].value = true;
-                        if ((process === 'Revision' || process === 'CreatePR') && !scope.KWMSProcesses[process].downloaded){
+                        if ((process === 'Revision' || process === 'CreatePR' || process === 'tnu_tsd_db') && !scope.KWMSProcesses[process].downloaded){
                             downloadXML(process);
                             scope.KWMSProcesses[process].downloaded = true;
                         } else if((process === 'Dismantle' || process === 'Replacement') && !scope.KWMSProcesses[process].downloaded){
@@ -3512,7 +3542,7 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                             getStatus: scope.getStatus,
                             jobDetailObject: scope.jobDetailObject,
                             showDiagram: scope.showDiagram,
-                            contractorsTitle: scope.contractors,
+                            //contractorsTitle: scope.contractors,
                             contractorsService: scope.contractorsService,
                             jobWorksValue: scope.jobWorksValue,
                             jobWorksValueTemp: scope.jobWorksValueTemp,
