@@ -1419,7 +1419,66 @@ return module.controller('mainCtrl', ['$scope', '$rootScope', 'toasty', 'Authent
             { id: 'east', value: 'East', code: 'East' },
             { id: 'south', value: 'South', code: 'South' },
             { id: 'west', value: 'West', code: 'West' },
-        ]
+        ];
+
+        $scope.revisionTaskDisplay = {
+            'approve_jr_regions': 'Wait Region Head Approval',
+            'check_power': 'Wait Power Checking',
+            'approve_jr': 'Wait Central Unit Approval',
+            'approve_transmission_works': 'Wait Central Unit Approval (Transmission works)',
+            'approve_jr_budget': 'Wait Budget Approval (Transmission works)',
+            'update_leasing_status_special': 'Wait Central Acquisition Approval',
+            'update_leasing_status_general': 'Wait Region Acquisition Approval',
+            'modify_jr': 'Wait Modify JR',
+            'approve_material_list_region': 'Wait Material List Approval by Initiator',
+            'approve_material_list_center_po': 'Wait Material List Approval by Central Unit (P&O)',
+            'approve_material_list_center_tr': 'Wait Material List Approval by Central Unit (TNU)',
+            'approve_material_list_center_fm': 'Wait Material List Approval by Central Unit (S&FM)',
+            'approve_material_list_center_op': 'Wait Material List Approval by Central Unit (SAO)',
+            'approve_material_list_center1': 'Wait Material List Approval by Central Unit',
+            'approve_material_list_tnu_region': 'Wait Material List Approval by TNU (Region)',
+            'validate_tr': 'Wait TR Validation', //validate_tr
+            'validate_tr_bycenter_po': 'Wait TR Validation by Central unit (P&O)',
+            'validate_tr_bycenter_tr': 'Wait TR Validation by Central unit (TNU)',
+            'validate_tr_bycenter_fm': 'Wait TR Validation by Central unit (S&FM)',
+            'validate_tr_bycenter_op': 'Wait TR Validation by Central unit (SAO)',
+            'set_materials_dispatch_status_alm': 'Wait Materials Dispatch (Alm)',
+            'set_materials_dispatch_status_astana': 'Wait Materials Dispatch (Astana)',
+            'set_materials_dispatch_status_atyrau': 'Wait Materials Dispatch (Atyrau)',
+            'set_materials_dispatch_status_aktau': 'Wait Materials Dispatch (Aktau)',
+            'set_materials_dispatch_status_aktobe': 'Wait Materials Dispatch (Aktobe)',
+            'set_materials_dispatch_status': 'Wait Materials Dispatch',
+            'approve_additional_material_list_region': 'Wait Additional Material List Approval by Initiator',
+            'approve_additional_material_list_tnu_region': 'Wait Additional Material List Approval by TNU (Region)',
+            'approve_additional_material_list_center1': 'Wait Additional Material List Approval by Central Unit',
+            'approve_additional_material_list_center_po': 'Wait Additional Material List Approval by Central Unit (P&O)',
+            'approve_additional_material_list_center_tr': 'Wait Additional Material List Approval by Central Unit (TNU)',
+            'approve_additional_material_list_center_fm': 'Wait Additional Material List Approval by Central Unit (S&FM)',
+            'approve_additional_material_list_center_op': 'Wait Additional Material List Approval by Central Unit (SAO)',
+            'validate_additional_tr': 'Wait Additional TR Validation',
+            'validate_additional_tr_bycenter_po': 'Wait Additional TR Validation by Central unit (P&O)',
+            'validate_additional_tr_bycenter_tr': 'Wait Additional TR Validation by Central unit (TNU)',
+            'validate_additional_tr_bycenter_fm': 'Wait Additional TR Validation by Central unit (S&FM)',
+            'validate_additional_tr_bycenter_op': 'Wait Additional TR Validation by Central unit (SAO)',
+            'set_additional_materials_dispatch_status_alm': 'Wait Additional Materials Dispatch (Alm)',
+            'set_additional_materials_dispatch_status_astana': 'Wait Additional Materials Dispatch (Astana)',
+            'set_additional_materials_dispatch_status_atyrau': 'Wait Additional Materials Dispatch (Atyrau)',
+            'set_additional_materials_dispatch_status_aktau': 'Wait Additional Materials Dispatch (Aktau)',
+            'set_additional_materials_dispatch_status_aktobe': 'Wait Additional Materials Dispatch (Aktobe)',
+            'set_additional_materials_dispatch_status': 'Wait Additional Materials Dispatch',
+            'verify_works': 'Wait Verify Works',
+            'accept_work_initiator': 'Wait Acceptance of Performed Works by Initiator',
+            'accept_work_maintenance_group': 'Wait Acceptance of Performed Works by Maintenance Group',
+            'accept_work_planning_group': 'Wait Acceptance of Performed Works by Planing Group',
+            'sign_region_head': 'Wait Acceptance of Performed Works by Region Head',
+            'attach-scan-copy-of-acceptance-form': 'Wait Attach of scan copy of Acceptance Form',
+            'upload_tr_contractor': 'Wait for Upload TR', //upload_tr_contractor
+            'upload_additional_tr_contractor': 'Wait Additional for Upload TR',
+            'attach_material_list_contractor': 'Wait for Attach Material List by Contractor', //attach_material_list_contractor
+            'attach_additional_material_list_contractor': 'Wait for Additional Attach Material List by Contractor',
+            'fill_applied_changes_info': 'Wait for Fill Applied Changes Info' //fill_applied_changes_info
+        }
+
         $scope.contractFilter = $stateParams.contractFilter ? $stateParams.contractFilter : null;
         $scope.regionFilter = $stateParams.regionFilter ? $stateParams.regionFilter : null;
         $scope.subContractorFilter = $stateParams.subContractorFilter ? $stateParams.subContractorFilter: null;
@@ -2199,6 +2258,42 @@ return module.controller('mainCtrl', ['$scope', '$rootScope', 'toasty', 'Authent
                         var region = $scope.region === 'north_central' ? 'nc' : ($scope.region === 'almaty' ? 'alm' : $scope.region);
                         query.processVariables.push({name: 'siteRegion', operator: 'eq', value: region});
                     }
+                    if ($scope.task === 'no_task') {
+                        var searchString ='';
+                        if ($scope.regionFilter && $scope.regionFilter !== 'all') {
+                            searchString = $scope.regionFilter + '%';
+                        }
+                        if ($scope.subContractorFilter && $scope.subContractorFilter !== 'all') {
+                            if ($scope.regionFilter && $scope.regionFilter !== 'all') {
+                                searchString = $scope.regionFilter + '-' + $scope.subContractorFilter + '%'
+                            } else {
+                                searchString = '%' + $scope.subContractorFilter + '%'
+                            }
+                        }
+                        if ($scope.unitFilter && $scope.unitFilter !== 'all') {
+                            if ($scope.subContractorFilter && $scope.subContractorFilter !== 'all') {
+                                if ($scope.regionFilter && $scope.regionFilter !== 'all') {
+                                    searchString = $scope.regionFilter + '-' + $scope.subContractorFilter + '-' + $scope.unitFilter + '%'
+                                } else {
+                                    searchString = '%' + $scope.subContractorFilter + '-' + $scope.unitFilter + '%'
+                                }
+                            } else {
+                                if ($scope.regionFilter && $scope.regionFilter !== 'all') {
+                                    searchString = $scope.regionFilter + '-%-' + $scope.unitFilter + '%'
+                                } else {
+                                    searchString = '%' + $scope.unitFilter + '%'
+                                }
+                            }
+
+                        }
+
+                        query.processVariables.push({
+                            name: 'jrNumber',
+                            operator: 'like',
+                            value: searchString
+                        });
+                    }
+                    console.log(query)
 
                     $http.post($scope.baseUrl + '/history/task', query).then(function (response) {
                         var tasks = response.data;
