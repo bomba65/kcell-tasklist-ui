@@ -64,7 +64,7 @@ require.config({
          'angularjs-dropdown-multiselect': ['angular'],
          'angular-translate-storage-local': ['translate'],
          'angular-translate-storage-cookie': ['translate'],
-         'bootstrap':['jquery'],
+         'bootstrap':['jquery', 'jquery-ui'],
          'bootstrap-select': {
              exports: 'bootstrap-select',
              deps:['jquery', 'bootstrap']

@@ -233,7 +233,7 @@
                 $(function () {
                     $('[data-toggle="tooltip"]').tooltip('fixTitle');
                 });
-
+                $scope.isOldContracts = $scope.mainContract === 'Roll-out' || $scope.mainContract === 'Revision';
             });
 
             camForm.on('submit', function (e) {
@@ -241,11 +241,11 @@
 
                 var sendNotifyToRegionHeads = false;
                 var isOptical = false;
-                if ($scope.jobWorks.length > 0){
+                if ($scope.jobWorks.length > 0 && !$scope.isOldContracts){
                     sendNotifyToRegionHeads = !!$scope.jobWorks.filter(work => ['2.4', '9.9', '9.10', '9.11', '9.20', '9.21', '9.22', '9.23', '9.24', '9.25','9.26', '9.27', '9.28']
                     .includes(work.displayServiceName.slice(0, work.displayServiceName.indexOf(' ')))).length
                 }
-                if ($scope.jobWorks.length > 0) {
+                if ($scope.jobWorks.length > 0 && !$scope.isOldContracts) {
                     isOptical = !!$scope.jobWorks.filter(work => ['9.90', '9.91', '9.92', '9.93', '9.94', '9.95', '9.96', '9.97', '9.98', '9.99', '9.100', '9.101', '9.102', '9.103', '9.104', '9.105', '9.106']
                     .includes(work.sapServiceNumber)).length
                 }
@@ -315,6 +315,8 @@
                     value: $scope.explanation
                 });
 
+                console.log('fskdjfsdkfjdskfj');
+                console.log($scope.modifyJrResult);
                 if($scope.modifyJrResult === 'modified'){
                     if($scope.materialsRequiredCheckbox){
                         camForm.variableManager.variableValue('materialsRequired', 'Yes');
@@ -352,6 +354,8 @@
                         });
                     }
 
+                    console.log('fkljsflksdjfkjdsf');
+                    console.log($scope.soaComplaintId);
                     camForm.variableManager.variableValue('soaComplaintId', $scope.soaComplaintId);
 
                     var validityDate = new Date($scope.validityDate);
@@ -915,7 +919,7 @@
             <div class="form-control disabled">{{mainContract === 'Roll-outRevision2020' ? 'Roll-out and Revision 2020' : mainContract}}</div>
         </div>
     </div>
-    <div class="form-group">
+    <div class="form-group" ng-if="!isOldContracts">
         <label class="col-sm-4 control-label">Job to:</label>
         <div class="col-sm-3">
             <div class="form-control disabled">{{contractorsTitle[contractor]}}</div>
@@ -938,6 +942,12 @@
                     </button>
                 </span>
             </div>
+        </div>
+    </div>
+    <div class="form-group" ng-show="isOldContracts">
+        <label class="col-sm-4 control-label">SA&O Complaint Id:</label>
+        <div class="col-sm-3">
+            <input type="text" ng-model="soaComplaintId" name="soaComplaintId" class="form-control" maxlength="20"/>
         </div>
     </div>
     <div class="form-group">
@@ -974,6 +984,12 @@
                 <input type="radio" name="relatedTo" ng-required="modifyJrResult == 'modified'" ng-model="relatedTo" value="Field works"> Field works
             </label>
             <label class="error" ng-if="kcell_form.relatedTo.$error.required && ( kcell_form.relatedTo.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+    <div class="form-group" ng-show="isOldContracts">
+        <label class="col-sm-4 control-label">Contractor:</label>
+        <div class="col-sm-3">
+            <div class="form-control disabled">{{contractorsTitle[contractor]}}</div>
         </div>
     </div>
     <div class="form-group">
@@ -1139,15 +1155,23 @@
                 <tr>
                     <th width="40%">Works</th>
                     <th width="7%">Works Qty</th>
-                    <th width="16%">Materials By</th>
+                    <th width="13%" ng-if="isOldContracts">Materials Qty</th>
+                    <th width="16%" ng-if="!isOldContracts">Materials By</th>
                     <th width="30%">Sites involved</th>
-                    <th width="7%"></th>
+                    <th></th>
                 </tr>
                 </thead>
                 <tbody ng-repeat="jobWork in jobWorks">
                 <tr>
                     <ng-form name="workForm">
-                        <td>
+                        <td ng-if="isOldContracts">
+                            <select ng-model="jobWork.sapServiceNumber" name="sapServiceNumber" ng-required="modifyJrResult == 'modified'" class="form-control" ng-change="getUnits($index)">
+                                <option value="">Select work</option>
+                                <option ng-repeat="work in works | filter: filterByContractor | filter: filterByStatus" ng-selected="{{work.sapServiceNumber == jobWork.sapServiceNumber}}" value="{{work.sapServiceNumber}}">{{work.displayServiceName}}</option>
+                            </select>
+                            <label class="error" ng-if="workForm.sapServiceNumber.$error.required && ( workForm.sapServiceNumber.$touched || view.submitted)">Required field</label>
+                        </td>
+                        <td ng-if="!isOldContracts">
                             <div>
                                 <input type="text" ng-model="jobWork.displayServiceName" name="displayServiceName{{$index}}"
                                        ng-disabled="!mainContract || !siteName || !custom.contractor"
@@ -1163,7 +1187,14 @@
                             <input type="number" class="form-control" name="quantity" ng-required="modifyJrResult == 'modified'" ng-model="jobWork.quantity" min="1"/>
                             <label class="error" ng-if="workForm.quantity.$error.required && ( workForm.quantity.$touched || view.submitted)">Required field</label>
                         </td>
-                        <td style="padding-left: 40px">
+                        <td ng-if="isOldContracts">
+                            <div class="input-group">
+                                <input type="number" class="form-control" name="materialQuantity" ng-required="modifyJrResult == 'modified'" ng-model="jobWork.materialQuantity" min="0" style="min-width: 55px;"/>
+                                <span class="input-group-addon">{{jobWork.materialUnit}}</span>
+                            </div>
+                            <label class="error" ng-if="workForm.materialQuantity.$error.required && ( workForm.materialQuantity.$touched || view.submitted)">Required field</label>
+                        </td>
+                        <td style="padding-left: 40px" ng-if="!isOldContracts">
                             <input id="subContractorMaterial{{$index}}" type="radio" ng-model="jobWork.materialsProvidedBy" name="materialsProvidedBy{{$index}}" value="subcontractor" required ng-disabled="jobWork.materialsProvidedByDisabled">
                             <label class="bolder" for="subContractorMaterial{{$index}}">Subcontractor</label>
                             <br/>
