@@ -101,7 +101,38 @@
                         // })
                         $scope.bands = $scope.dictionary.bands;
                         $scope.years = $scope.dictionary.part;
-                        $scope.filteredRbsTypes = $scope.dictionary.rbsType;
+                        //$scope.filteredRbsTypes = $scope.dictionary.rbsType;
+
+                        $http.get('https://catalogs.test-flow.kcell.kz/camunda/catalogs/api/get/id/2').then(
+                            function(result){
+                                $scope.newSitesMap = {};
+                                result.data.data.$list.forEach(function(item) {
+                                    $scope.newSitesMap[item.id] = item.value;
+                                });
+                                $http.get('https://catalogs.test-flow.kcell.kz/camunda/catalogs/api/get/id/11').then(
+                                    function(resultRbsTypes){
+                                        var newRbsTypes = [];
+                                        resultRbsTypes.data.data.$list.forEach(function(item) {
+                                            newRbsTypes.push({
+                                                "id": item.uid_id ? item.uid_id.value : undefined,
+                                                "assetsId": item.id,
+                                                "siteType": item.Site_type ? newSiteMap[item.Site_type.value] : undefined,
+                                                "rbsType": item.value
+                                            });
+                                        });
+                                        console.log(newRbsTypes);
+                                        $scope.dictionary.rbsType = newRbsTypes;
+                                        $scope.filteredRbsTypes = $scope.dictionary.rbsType;
+                                    },
+                                    function(error){
+                                        console.log(error);
+                                    }
+                                );
+                            },
+                            function(error){
+                                console.log(error);
+                            }
+                        );
                     },
                     function(error){
                         console.log(error);
@@ -251,7 +282,8 @@
 
             $scope.$watch('siteType', function (siteType) {
                 $scope.rbsTypeObj = {};
-                if (siteType.name.includes('GSite')) {
+                console.log(siteType && siteType.name.includes('GSite') && $scope.dictionary.rbsType);
+                if (siteType && siteType.name.includes('GSite') && $scope.dictionary.rbsType) {
                     $scope.filteredRbsTypes = $scope.dictionary.rbsType.filter(t => {return t.siteType === siteType.name});
                 } else {
                     $scope.filteredRbsTypes = $scope.dictionary.rbsType;

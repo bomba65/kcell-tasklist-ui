@@ -295,24 +295,75 @@
                 $http.get('/api/leasingCatalogs?version=2').then(
                     function(result){
                         angular.extend($scope.dictionary, result.data);
-                        $scope.antennasList = $scope.dictionary.antennas;
-                        if (!$scope.powerSource.cableLayingType) $scope.powerSource.cableLayingType = $scope.dictionary.cableLayingType;
-                        $scope.availableBands = $scope.dictionary.bands;
-                        $scope.BSC = $scope.dictionary.BSC;
-                        $scope.frequencyBand = $scope.dictionary.frequencyBand;
-                        $scope.çsList = $scope.dictionary.constructionType;
-                        $scope.addressesList = $scope.dictionary.addresses;
-                        $scope.oblastList = _.uniqBy($scope.dictionary.addresses, 'oblast').map( (e, index) => { return {"name" : e.oblast, "id" : index} });
-                        $scope.cityList = _.uniqBy($scope.dictionary.addresses, 'city').map( (e, index) => { return {"name" : e.city, "id" : index} });
-                        $scope.districtList = _.uniqBy($scope.dictionary.addresses, 'district').map( (e, index) => { return {"name" : e.district, "id" : index} });
-                        $scope.filteredDistricts = $scope.districtList;
-                        $scope.filteredDistrictsInCAI = $scope.districtList;
 
-                        $scope.catalogsFetched = true;
+                        var antennaTypePromise = $http.get('https://catalogs.test-flow.kcell.kz/camunda/catalogs/api/get/id/34').then(function(promiseResult){return promiseResult.data;});
+                        var trAntennaTypePromise = $http.get('https://catalogs.test-flow.kcell.kz/camunda/catalogs/api/get/id/20').then(function(promiseResult){return promiseResult.data;});
+                        var antennaModelPromise = $http.get('https://catalogs.test-flow.kcell.kz/camunda/catalogs/api/get/id/19').then(function(promiseResult){return promiseResult.data;});
+                        var antennaLocationsPromise = $http.get('https://catalogs.test-flow.kcell.kz/camunda/catalogs/api/get/id/64').then(function(promiseResult){return promiseResult.data;});
 
-                        if ($scope.catalogsFetched && $scope.variablesFetched){
-                            $scope.setConstructionType()
-                        }
+                        $q.all([antennaTypePromise, trAntennaTypePromise, antennaModelPromise, antennaLocationsPromise]).then(function(allPromises) {
+                            var antennaTypePromiseResult = allPromises[0];
+                            var trAntennaTypePromiseResult = allPromises[1];
+                            var antennaModelPromiseResult = allPromises[2];
+                            var antennaLocationsPromiseResult = allPromises[3];
+                            var newAntennas = [];
+                            var newAntennaTypes =  [];
+                            var newAntennaType =  [];
+                            var newAntennaLocations =  [];
+                            antennaModelPromiseResult.data.$list.forEach(function(item){
+                                newAntennas.push({
+                                    "antenna": item.value,
+                                    "description": "",
+                                    "dimension": item.dimensions ? item.dimensions.value : "",
+                                    "weight": item.weight ? item.weight.value : ""
+                                });
+                            });
+                            antennaTypePromiseResult.data.$list.forEach(function(item){
+                                newAntennaTypes.push({
+                                    "name": item.value,
+                                    "id": item.id
+                                });
+                            });
+                            antennaLocationsPromiseResult.data.$list.forEach(function(item){
+                                newAntennaLocations.push({
+                                    "name": item.value,
+                                    "id": item.id
+                                });
+                            });
+                            trAntennaTypePromiseResult.data.$list.forEach(function(item){
+                                newAntennaType.push({
+                                    "name": item.name,
+                                    "diameter": item['Antenna Diameter'] ? item['Antenna Diameter'].value : '',
+                                    "weight": item['Weight'] ? item['Weight'].value.split(' ')[0] : '',
+                                    "frequencies": []
+                                });
+                            });
+
+                            $scope.antennasList = newAntennas;
+
+                            $scope.dictionary.antennas = newAntennas;
+                            $scope.dictionary.antennaTypes = newAntennaTypes;
+                            $scope.dictionary.antennaType = newAntennaType;
+                            $scope.dictionary.antennaLocation = newAntennaLocations;
+
+                            if (!$scope.powerSource.cableLayingType) $scope.powerSource.cableLayingType = $scope.dictionary.cableLayingType;
+                            $scope.availableBands = $scope.dictionary.bands;
+                            $scope.BSC = $scope.dictionary.BSC;
+                            $scope.frequencyBand = $scope.dictionary.frequencyBand;
+                            $scope.çsList = $scope.dictionary.constructionType;
+                            $scope.addressesList = $scope.dictionary.addresses;
+                            $scope.oblastList = _.uniqBy($scope.dictionary.addresses, 'oblast').map( (e, index) => { return {"name" : e.oblast, "id" : index} });
+                            $scope.cityList = _.uniqBy($scope.dictionary.addresses, 'city').map( (e, index) => { return {"name" : e.city, "id" : index} });
+                            $scope.districtList = _.uniqBy($scope.dictionary.addresses, 'district').map( (e, index) => { return {"name" : e.district, "id" : index} });
+                            $scope.filteredDistricts = $scope.districtList;
+                            $scope.filteredDistrictsInCAI = $scope.districtList;
+
+                            $scope.catalogsFetched = true;
+
+                            if ($scope.catalogsFetched && $scope.variablesFetched){
+                                $scope.setConstructionType()
+                            }
+                        });
 
 
                     },
