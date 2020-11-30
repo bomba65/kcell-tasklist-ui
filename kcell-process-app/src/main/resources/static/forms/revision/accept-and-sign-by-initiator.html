@@ -63,8 +63,6 @@
                 'siteWorksPhotoFiles'
             ];
             $scope.jobModel = {};
-            $scope.filesBefore = [];
-            $scope.filesAfter = [];
             var workFiles = [];
             var newFiles = [];
 
@@ -196,14 +194,13 @@
                     camForm.variableManager.variableValue('acceptAndSignByInitiatorComment', '');
                 }
 
-                $scope.siteWorksPhotoFiles.value.forEach(el => {
-                    if(el.name.indexOf("before") > -1) {
-                        $scope.getImagePath(el)
-                        $scope.filesBefore.push(el);
-                    } else if (el.name.indexOf("after") > -1) {
-                        $scope.getImagePath(el)
-                        $scope.filesAfter.push(el);
-                    }
+                $scope.jobModel.jobWorks.value.forEach(i => {
+                    i.photoFiles.after.forEach(j => {
+                        $scope.getImagePath(j)
+                    })
+                    i.photoFiles.before.forEach(j => {
+                        $scope.getImagePath(j)
+                    })
                 })
                 $scope.beforeAfterVisible = $scope.contractor.value === 5 && ($scope.reason.value === '1' || $scope.reason.value === '2');
             });
@@ -511,6 +508,45 @@
     <iframe id="fileDownloadIframe" style="display:none;"></iframe>
 
     <div style="margin-bottom: 20px;"></div>
+    <h3>Works: </h3>
+    <div class="row" ng-repeat="work in jobModel.jobWorks.value">
+        <div class="col-md-12">&nbsp;&nbsp;&nbsp;&nbsp;{{jobModel.worksTitle[work.sapServiceNumber]}}, works qty: {{work.quantity}}, on sites: {{work.sites}}</div>
+        <div class="col-md-12" ng-if="beforeAfterVisible">
+            <div style="margin-bottom: 10px"></div>
+            <div class="row">
+                <div class="col-md-12">Photo before:</div>
+            </div>
+            <div class="row">
+                <div class="col-md-3" ng-repeat="file in work.photoFiles['before'] track by $index">
+                    <div ng-if="file.valueInfo">&nbsp;&nbsp;&nbsp;&nbsp;{{$index+1}}.
+                        <a ng-click="downloadOldFile(file)">{{file.valueInfo.filename}} (Old file, read only)</a>
+                        <a ng-click="showImage('/camunda/api/engine/engine/default/variable-instance/' + file.id + '/data')"><img ng-src="{{'/camunda/api/engine/engine/default/variable-instance/' + file.id + '/data'}}" /></a>
+                    </div>
+                    <div ng-if="file.value.name">
+                        <a ng-click="showImage(file.imgSrc)"> <img ng-src="{{file.imgSrc}}" width="100%"/></a>
+                        <a ng-click="download(file)" style="position: absolute"><i class="glyphicon glyphicon-download-alt"></i></a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-12" ng-if="beforeAfterVisible">
+            <div class="row">
+                <div class="col-md-12">Photo after:</div>
+            </div>
+            <div class="row">
+                <div class="col-md-3" ng-repeat="file in work.photoFiles['after'] track by $index">
+                    <div ng-if="file.valueInfo">&nbsp;&nbsp;&nbsp;&nbsp;{{$index+1}}.
+                        <a ng-click="downloadOldFile(file)">{{file.valueInfo.filename}} (Old file, read only)</a>
+                        <a ng-click="showImage('/camunda/api/engine/engine/default/variable-instance/' + file.id + '/data')"><img ng-src="{{'/camunda/api/engine/engine/default/variable-instance/' + file.id + '/data'}}" /></a>
+                    </div>
+                    <div ng-if="file.value.name">
+                        <a ng-click="showImage(file.imgSrc)"> <img ng-src="{{file.imgSrc}}" width="100%"/></a>
+                        <a ng-click="download(file)" style="position: absolute"><i class="glyphicon glyphicon-download-alt"></i></a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <div class="form-group">
         <label class="col-sm-4 control-label">Additional files</label>
@@ -539,33 +575,6 @@
                     </span>
             </label>
             <input type="text" class="form-control upload-filename" id="supplementaryFilesName" placeholder="No File Chosen" readonly>
-        </div>
-    </div>
-
-    <div class="col-md-12" ng-if="beforeAfterVisible">
-        <div class="row">
-            <div class="col-md-12">Photo before:</div>
-        </div>
-        <div class="row">
-            <div class="col-md-3" ng-repeat="file in filesBefore track by $index">
-                <div ng-if="file.value.name">
-                    <a ng-click="showImage(file.imgSrc)"> <img ng-src="{{file.imgSrc}}" width="100%"/></a>
-                    <a ng-click="download(file)" style="position: absolute"><i class="glyphicon glyphicon-download-alt"></i></a>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-12" ng-if="beforeAfterVisible">
-        <div class="row">
-            <div class="col-md-12">Photo after:</div>
-        </div>
-        <div class="row">
-            <div class="col-md-3" ng-repeat="file in filesAfter track by $index">
-                <div ng-if="file.value.name">
-                    <a ng-click="showImage(file.imgSrc)"> <img ng-src="{{file.imgSrc}}" width="100%"/></a>
-                    <a ng-click="download(file)" style="position: absolute"><i class="glyphicon glyphicon-download-alt"></i></a>
-                </div>
-            </div>
         </div>
     </div>
 
