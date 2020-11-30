@@ -106,9 +106,47 @@
                         $http.get('https://catalogs.test-flow.kcell.kz/camunda/catalogs/api/get/id/2').then(
                             function(result){
                                 $scope.newSitesMap = {};
+                                $scope.newInitiatorsMap = {};
                                 result.data.data.$list.forEach(function(item) {
                                     $scope.newSitesMap[item.id] = item.value;
                                 });
+
+                                $http.get('https://catalogs.test-flow.kcell.kz/camunda/catalogs/api/get/id/7').then(
+                                    function(resultInitiators){
+                                        var newProjectsStructure = [];
+                                        var newProjectsIndex = {};
+                                        resultInitiators.data.data.$list.forEach(function(item, index) {
+                                            $scope.newInitiatorsMap[item.id] = item.value;
+                                            newProjectsStructure.push({initiator: item.value, project: []});
+                                            newProjectsIndex[item.id] = index;
+                                        });
+                                        $http.get('https://catalogs.test-flow.kcell.kz/camunda/catalogs/api/get/id/8').then(
+                                            function(resultProjects){
+                                                resultProjects.data.data.$list.forEach(function(item) {
+                                                    if(item.Initiator) {
+                                                        var tempItem = {
+                                                            name: item.value,
+                                                            assetId: item.id,
+                                                        };
+                                                        if(item.udb_id) {
+                                                            tempItem.id = item.udb_id.value;
+                                                        }
+                                                        item.Initiator.value.forEach(function(initiatorValue){
+                                                            newProjectsStructure[newProjectsIndex[initiatorValue]].project.push(tempItem);
+                                                        });
+                                                    }
+                                                });
+                                                $scope.dictionary.projects = newProjectsStructure;
+                                            },
+                                            function(error){
+                                                console.log(error);
+                                            }
+                                        );
+                                    },
+                                    function(error){
+                                        console.log(error);
+                                    }
+                                );
                                 $http.get('https://catalogs.test-flow.kcell.kz/camunda/catalogs/api/get/id/11').then(
                                     function(resultRbsTypes){
                                         var newRbsTypes = [];
@@ -117,8 +155,8 @@
                                                 "assetsId": item.id,
                                                 "rbsType": item.value,
                                             };
-                                            if(item.uid_id) {
-                                                tempItem.id = item.uid_id.value;
+                                            if(item.udb_id) {
+                                                tempItem.id = item.udb_id.value;
                                             }
                                             if(item.Site_type) {
                                                 tempItem.siteType = newSiteMap[item.Site_type.value];
