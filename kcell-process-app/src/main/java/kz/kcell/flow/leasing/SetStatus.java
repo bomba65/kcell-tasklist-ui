@@ -305,9 +305,7 @@ public class SetStatus implements JavaDelegate {
                         updateArtTsdStFeStatusPreparedStatement.setLong(i++, Integer.parseInt(_SET_FE_STATUS)); // TSD_STATUS
                         updateArtTsdStFeStatusPreparedStatement.setLong(i++, createdArtefactId); // ARTEFACTID
                         updateArtTsdStFeStatusPreparedStatement.executeUpdate();
-
                         log.info("successfull FE_STATUS updated!");
-
                     }
 
                     udbConnect.commit();
@@ -333,6 +331,7 @@ public class SetStatus implements JavaDelegate {
         } catch (Exception e) {
             log.warning("testConnect Exception!");
             e.printStackTrace();
+            throw e;
         }
 
     }
