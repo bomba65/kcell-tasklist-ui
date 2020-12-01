@@ -281,15 +281,6 @@
                 $scope.variablesFetched = false;
                 $scope.catalogsFetched = false;
 
-                $scope.setConstructionType = function () {
-                    let i = $scope.constructionTypesList.findIndex( a => { return a.name === $scope.candidate.constructionType.name })
-
-                    if (i > -1){
-                        $scope.candidate.constructionType = $scope.dictionary.constructionType[i]
-                        $scope.leasingInfo.candidate.constructionType = $scope.dictionary.constructionType[i]
-                    }
-                }
-
                 //----------------------------------------
 
                 $http.get('/api/leasingCatalogs?version=2').then(
@@ -300,16 +291,50 @@
                         var trAntennaTypePromise = $http.get('https://catalogs.test-flow.kcell.kz/camunda/catalogs/api/get/id/20').then(function(promiseResult){return promiseResult.data;});
                         var antennaModelPromise = $http.get('https://catalogs.test-flow.kcell.kz/camunda/catalogs/api/get/id/19').then(function(promiseResult){return promiseResult.data;});
                         var antennaLocationsPromise = $http.get('https://catalogs.test-flow.kcell.kz/camunda/catalogs/api/get/id/64').then(function(promiseResult){return promiseResult.data;});
+                        var newCatalogsPromise = $http.post('https://catalogs.test-flow.kcell.kz/camunda/catalogs/api/get/rolloutcatalogids', [14, 4, 13, 15, 21, 22, 30, 31, 32, 59]).then(function(promiseResult){return promiseResult.data;});
 
-                        $q.all([antennaTypePromise, trAntennaTypePromise, antennaModelPromise, antennaLocationsPromise]).then(function(allPromises) {
+                        $q.all([antennaTypePromise, trAntennaTypePromise, antennaModelPromise, antennaLocationsPromise, newCatalogsPromise]).then(function(allPromises) {
                             var antennaTypePromiseResult = allPromises[0];
                             var trAntennaTypePromiseResult = allPromises[1];
                             var antennaModelPromiseResult = allPromises[2];
                             var antennaLocationsPromiseResult = allPromises[3];
+                            var newCatalogsPromiseResult = allPromises[4];
                             var newAntennas = [];
                             var newAntennaTypes =  [];
                             var newAntennaType =  [];
                             var newAntennaLocations =  [];
+                            var newRbsLocation =  [];
+                            var newLegalType =  [];
+                            var newAddresses =  [];
+
+                            $scope.dictionary.constructionType = newCatalogsPromiseResult.construction_type;
+                            $scope.dictionary.transmissionType = newCatalogsPromiseResult.transmission_type;
+                            $scope.dictionary.dUnit = newCatalogsPromiseResult.digital_unit_types;
+                            $scope.dictionary.FarEndConstructiontype = newCatalogsPromiseResult.bsc_rnc_status;
+                            $scope.dictionary.equipmentType = newCatalogsPromiseResult.tr_equipment_type.filter( i => {return (i.hasOwnProperty('id') && i.id !== null)});
+                            // $scope.dictionary.legalType = newCatalogsPromiseResult.legal_type;
+
+                            newCatalogsPromiseResult.rbs_location.forEach(function(item){
+                                newRbsLocation.push({
+                                    "title": item.name,
+                                    "id": item.id,
+                                    "catalogsId": item.catalogsId
+                                });
+                            });
+                            newCatalogsPromiseResult.legal_type.forEach(function(item){
+                                var oldLegalTypes = $scope.dictionary.legalType;
+                                var findedOldLegalType = oldLegalTypes.find(olp => {return olp.desc === item.name})
+                                var newItem = {
+                                    "desc": item.name,
+                                    "udbid":item.id,
+                                    "catalogsId": item.catalogsId
+                                }
+                                if(findedOldLegalType && findedOldLegalType.id) {
+                                    newItem.id = findedOldLegalType.id;
+                                }
+                                newLegalType.push(newItem);
+                            });
+
                             antennaModelPromiseResult.data.$list.forEach(function(item){
                                 var tempItem = {
                                     "antenna": item.value,
@@ -354,20 +379,46 @@
                                 }
                                 newAntennaType.push(tempItem);
                             });
+                                var mappedD = _.keyBy(newCatalogsPromiseResult.district, o => o.catalogsId)
+                                var mappedO = _.keyBy(newCatalogsPromiseResult.oblast, o => o.catalogsId)
 
+                                newCatalogsPromiseResult.city_village.forEach(function(item){
+                                    var tempItem = {
+                                        "city": item.name,
+                                        "catalogsId": item.catalogsId
+                                    };
+                                    if(item['parent']) {
+                                        // var findedDistrict = newCatalogsPromiseResult.district.find(function(d){ return d.catalogsId === item.parent.toString()});
+                                        var findedDistrict = mappedD[item.parent.toString()];
+                                        if(findedDistrict !== null ) {
+                                            tempItem.district = findedDistrict.name
+                                            tempItem.districtCatalogsId = findedDistrict.catalogsId
+                                            if (findedDistrict.hasOwnProperty('parent')){
+                                                // var findedOblast = newCatalogsPromiseResult.oblast.find(function(o){ return o.catalogsId === findedDistrict.parent.toString()});
+                                                var findedOblast = mappedO[findedDistrict.parent.toString()];
+                                                if (findedOblast !== null) {
+                                                    tempItem.oblast = findedOblast.name
+                                                    tempItem.oblastCatalogsId = findedOblast.catalogsId
+                                                }
+                                            }
+                                        }
+                                    }
+                                    newAddresses.push(tempItem);
+                                });
                             $scope.antennasList = newAntennas;
-
                             $scope.dictionary.antennas = newAntennas;
                             $scope.dictionary.antennaTypes = newAntennaTypes;
                             $scope.dictionary.antennaType = newAntennaType;
                             $scope.dictionary.antennaLocation = newAntennaLocations;
+                            $scope.dictionary.rbsLocation = newRbsLocation;
+                            $scope.dictionary.legalType = newLegalType;
 
                             if (!$scope.powerSource.cableLayingType) $scope.powerSource.cableLayingType = $scope.dictionary.cableLayingType;
                             $scope.availableBands = $scope.dictionary.bands;
                             $scope.BSC = $scope.dictionary.BSC;
                             $scope.frequencyBand = $scope.dictionary.frequencyBand;
                             $scope.çsList = $scope.dictionary.constructionType;
-                            $scope.addressesList = $scope.dictionary.addresses;
+                            $scope.addressesList = $scope.newAddresses;
                             $scope.oblastList = _.uniqBy($scope.dictionary.addresses, 'oblast').map( (e, index) => { return {"name" : e.oblast, "id" : index} });
                             $scope.cityList = _.uniqBy($scope.dictionary.addresses, 'city').map( (e, index) => { return {"name" : e.city, "id" : index} });
                             $scope.districtList = _.uniqBy($scope.dictionary.addresses, 'district').map( (e, index) => { return {"name" : e.district, "id" : index} });
@@ -380,13 +431,19 @@
                                 $scope.setConstructionType()
                             }
                         });
-
-
                     },
                     function(error){
                         console.log(error);
                     }
                 );
+
+                $scope.setConstructionType = function () {
+                    let i = $scope.constructionTypesList.findIndex( a => { return a.name === $scope.candidate.constructionType.name })
+                    if (i > -1){
+                        $scope.candidate.constructionType = $scope.dictionary.constructionType[i]
+                        $scope.leasingInfo.candidate.constructionType = $scope.dictionary.constructionType[i]
+                    }
+                }
                 $scope.farEndInformation = [];
             });
 
@@ -1755,7 +1812,7 @@
                 </div>
 
                 <div class="form-group">
-                    <label class="col-sm-3 control-label">*RBS Location:</label>
+                    <label class="col-sm-3 control-label">*RBS Location: {{candidate.rbsLocation}}</label>
                     <div class="col-sm-6">
                         <!-- <div class="form-check" style="display:inline-block; padding:0 !important; margin-right: 10px;" -->
                         <!-- ng-repeat="l in candidate.rbsLocation track by $index"> -->
@@ -1765,12 +1822,11 @@
                         <!-- <label class="form-check-label" for="{{'check' + $index}}">{{ l.title }}</label> -->
                         <!-- </div> -->
 
-                        <label class="form-check" style="display:inline-block; padding:0 !important; margin-right: 10px;"><input type="radio" name="rbsLocation" ng-value="{title:'Room', value:true, id:5}" ng-checked="candidate.rbsLocation.title == 'Room'" ng-model="candidate.rbsLocation" required>Room</label>
-                        <label class="form-check" style="display:inline-block; padding:0 !important; margin-right: 10px;"><input type="radio" name="rbsLocation" ng-value="{title:'Container', value:true, id:6}" ng-checked="candidate.rbsLocation.title == 'Container'" ng-model="candidate.rbsLocation" required>Container</label>
-                        <label class="form-check" style="display:inline-block; padding:0 !important; margin-right: 10px;"><input type="radio" name="rbsLocation" ng-value="{title:'Other', value:true, id:7}" ng-checked="candidate.rbsLocation.title == 'Other'" ng-model="candidate.rbsLocation" required>Other</label>
-                        <label class="form-check" style="display:inline-block; padding:0 !important; margin-right: 10px;"><input type="radio" name="rbsLocation" ng-value="{title:'Outdoor', value:true, id:8}" ng-checked="candidate.rbsLocation.title == 'Outdoor'" ng-model="candidate.rbsLocation" required>Outdoor</label>
+                        <label class="form-check" ng-repeat="rl in dictionary.rbsLocation" style="display:inline-block; padding:0 !important; margin-right: 10px;"><input type="radio" name="rbsLocation" ng-value="rl" ng-model="candidate.rbsLocation" required>{{rl.title}}</label>
+<!--                        <label class="form-check" style="display:inline-block; padding:0 !important; margin-right: 10px;"><input type="radio" name="rbsLocation" ng-value="{title:'Container', value:true, id:6}" ng-checked="candidate.rbsLocation.title == 'Container'" ng-model="candidate.rbsLocation" required>Container</label>-->
+<!--                        <label class="form-check" style="display:inline-block; padding:0 !important; margin-right: 10px;"><input type="radio" name="rbsLocation" ng-value="{title:'Other', value:true, id:7}" ng-checked="candidate.rbsLocation.title == 'Other'" ng-model="candidate.rbsLocation" required>Other</label>-->
+<!--                        <label class="form-check" style="display:inline-block; padding:0 !important; margin-right: 10px;"><input type="radio" name="rbsLocation" ng-value="{title:'Outdoor', value:true, id:8}" ng-checked="candidate.rbsLocation.title == 'Outdoor'" ng-model="candidate.rbsLocation" required>Outdoor</label>-->
                         <label class="error" ng-show="kcell_form.rbsLocation.$error.required && ( checkRbsLocationTouched || view.submitted)">Required field</label>
-
                     </div>
                 </div>
                 <div class="form-group">
@@ -3221,7 +3277,7 @@
                                         <select class="form-control" id="equipmentType" name="fe_form_equipmentType"
                                                 ng-model="currentFarEnd.equipmentType">
                                             <option value="" disabled ng-selected="currentFarEnd.equipmentType===''" hidden>Select Equipment Type</option>
-                                            <option ng-repeat="e in dictionary.equipmentType">{{e}}</option>
+                                            <option ng-repeat="e in dictionary.equipmentType" ng-value="e.name">{{e.name}}</option>
                                         </select>
                                         <label class="error"
                                                ng-show="kcell_form.fe_form_equipmentType.$error.required && ( kcell_form.fe_form_equipmentType.$touched || view.submitted)">Required

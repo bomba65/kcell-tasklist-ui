@@ -776,7 +776,7 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
             templateUrl: './js/directives/leasing/leasingDetail.html'
         };
     }]);
-    module.directive('leasingCandidate', ['$http', '$timeout', 'exModal', function ($http, $timeout, exModal) {
+    module.directive('leasingCandidate', ['$http', '$timeout', 'exModal', '$q', function ($http, $timeout, exModal, $q) {
         return {
             require: '^form',
             restrict: 'E',
@@ -805,52 +805,189 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                     function (result) {
                         try{
                         angular.extend(scope.dictionary, result.data);
-                        scope.dictionary.legalTypeTitle = _.keyBy(scope.dictionary.legalType, 'id');
-                        scope.dictionary.antennasList = scope.dictionary.antennas;
-                        scope.dictionary.antennaType = scope.dictionary.antennaType;
-                        scope.addressesList = scope.dictionary.addresses;
-                        scope.oblastList = _.uniqBy(scope.dictionary.addresses, 'oblast').map((e, index) => {
-                            return {"name": e.oblast, "id": index}
-                        });
-                        scope.cityList = _.uniqBy(scope.dictionary.addresses, 'city').map((e, index) => {
-                            return {"name": e.city, "id": index}
-                        });
-                        if(scope.currentFarEnd){
-                            scope.currentFarEnd.cityList = _.uniqBy(scope.dictionary.addresses, 'city').map( (e, index) => { return {"name" : e.city, "id" : index} });
+                        
+                        // var antennaTypePromise = $http.get('https://catalogs.test-flow.kcell.kz/camunda/catalogs/api/get/id/34').then(function(promiseResult){return promiseResult.data;});
+                        // var trAntennaTypePromise = $http.get('https://catalogs.test-flow.kcell.kz/camunda/catalogs/api/get/id/20').then(function(promiseResult){return promiseResult.data;});
+                        // var antennaModelPromise = $http.get('https://catalogs.test-flow.kcell.kz/camunda/catalogs/api/get/id/19').then(function(promiseResult){return promiseResult.data;});
+                        // var antennaLocationsPromise = $http.get('https://catalogs.test-flow.kcell.kz/camunda/catalogs/api/get/id/64').then(function(promiseResult){return promiseResult.data;});
+                        var newCatalogsPromise = $http.post('https://catalogs.test-flow.kcell.kz/camunda/catalogs/api/get/rolloutcatalogids', [14, 4, 13, 15, 21, 22, 30, 31, 32, 59]).then(function(promiseResult){return promiseResult.data;});
+
+                        // $q.all([antennaTypePromise, trAntennaTypePromise, antennaModelPromise, antennaLocationsPromise, newCatalogsPromise]).then(function(allPromises) {
+                        $q.all([newCatalogsPromise]).then(function(allPromises) {
+                            // var antennaTypePromiseResult = allPromises[0];
+                            // var trAntennaTypePromiseResult = allPromises[1];
+                            // var antennaModelPromiseResult = allPromises[2];
+                            // var antennaLocationsPromiseResult = allPromises[3];
+                            var newCatalogsPromiseResult = allPromises[0];
+                            // var newAntennas = [];
+                            // var newAntennaTypes =  [];
+                            // var newAntennaType =  [];
+                            // var newAntennaLocations =  [];
+                            var newRbsLocation =  [];
+                            var newLegalType =  [];
+                            var newAddresses =  [];
+
+                            scope.dictionary.constructionType = newCatalogsPromiseResult.construction_type;
+                            scope.dictionary.transmissionType = newCatalogsPromiseResult.transmission_type;
+                            scope.dictionary.dUnit = newCatalogsPromiseResult.bsc_rnc_status;
+                            scope.dictionary.equipmentType = newCatalogsPromiseResult.tr_equipment_type.filter( i => {return (i.hasOwnProperty('id') && i.id !== null)});
+                            // scope.dictionary.legalType = newCatalogsPromiseResult.legal_type;
+
+                            newCatalogsPromiseResult.rbs_location.forEach(function(item){
+                                newRbsLocation.push({
+                                    "title": item.name,
+                                    "id": item.id,
+                                    "catalogsId": item.catalogsId
+                                });
+                            });
+                            newCatalogsPromiseResult.legal_type.forEach(function(item){
+                                var oldLegalTypes = scope.dictionary.legalType;
+                                var findedOldLegalType = oldLegalTypes.find(olp => {return olp.desc === item.name})
+                                var newItem = {
+                                    "desc": item.name,
+                                    "udbid":item.id,
+                                    "catalogsId": item.catalogsId
+                                }
+                                if(findedOldLegalType && findedOldLegalType.id) {
+                                    newItem.id = findedOldLegalType.id;
+                                }
+                                newLegalType.push(newItem);
+                            });
+
+                            // antennaModelPromiseResult.data.$list.forEach(function(item){
+                            //     var tempItem = {
+                            //         "antenna": item.value,
+                            //         "description": ""
+                            //     };
+                            //     if(item.dimensions){
+                            //         tempItem.dimension = item.dimensions.value;
+                            //     }
+                            //     if(item.weight){
+                            //         tempItem.weight = item.weight.value;
+                            //     }
+                            //     if(item.udb_id){
+                            //         tempItem.idbid = item.udb_id.value;
+                            //     }
+                            //     newAntennas.push(tempItem);
+                            // });
+                            // antennaTypePromiseResult.data.$list.forEach(function(item){
+                            //     newAntennaTypes.push({
+                            //         "name": item.value,
+                            //         "id": item.id
+                            //     });
+                            // });
+                            // antennaLocationsPromiseResult.data.$list.forEach(function(item){
+                            //     newAntennaLocations.push({
+                            //         "name": item.value,
+                            //         "id": item.id
+                            //     });
+                            // });
+                            // trAntennaTypePromiseResult.data.$list.forEach(function(item){
+                            //     var tempItem = {
+                            //         "name": item.name,
+                            //         "frequencies": []
+                            //     };
+                            //     if(item['Antenna Diameter']) {
+                            //         tempItem.diameter = item['Antenna Diameter'].value;
+                            //     }
+                            //     if(item['Weight']) {
+                            //         tempItem.weight = item['Weight'].value.split(' ')[0];
+                            //     }
+                            //     if(item.udb_id){
+                            //         tempItem.idbid = item.udb_id.value;
+                            //     }
+                            //     newAntennaType.push(tempItem);
+                            // });
+                            var mappedD = _.keyBy(newCatalogsPromiseResult.district, o => o.catalogsId)
+                            var mappedO = _.keyBy(newCatalogsPromiseResult.oblast, o => o.catalogsId)
+try {
+    
+console.log(1)
+                            newCatalogsPromiseResult.city_village.forEach(function(item){
+                                var tempItem = {
+                                    "city": item.name,
+                                    "catalogsId": item.catalogsId
+                                };
+                                if(item['parent']) {
+                                    // var findedDistrict = newCatalogsPromiseResult.district.find(function(d){ return d.catalogsId === item.parent.toString()});
+                                    var findedDistrict = mappedD[item.parent.toString()];
+                                    if(findedDistrict !== null ) {
+                                        tempItem.district = findedDistrict.name
+                                        tempItem.districtCatalogsId = findedDistrict.catalogsId
+                                        if (findedDistrict.hasOwnProperty('parent')){
+                                            // var findedOblast = newCatalogsPromiseResult.oblast.find(function(o){ return o.catalogsId === findedDistrict.parent.toString()});
+                                            var findedOblast = mappedO[findedDistrict.parent.toString()];
+                                            if (findedOblast !== null) {
+                                                tempItem.oblast = findedOblast.name
+                                                tempItem.oblastCatalogsId = findedOblast.catalogsId
+                                            }
+                                        }
+                                    }
+                                }
+                                newAddresses.push(tempItem);
+                            });
+                            console.log(2)
+                            // scope.antennasList = newAntennas;
+                            // scope.dictionary.antennas = newAntennas;
+                            // scope.dictionary.antennaTypes = newAntennaTypes;
+                            // scope.dictionary.antennaType = newAntennaType;
+                            // scope.dictionary.antennaLocation = newAntennaLocations;
+                            scope.dictionary.rbsLocation = newRbsLocation;
+                            scope.dictionary.legalType = newLegalType;
+
+                            scope.dictionary.legalTypeTitle = _.keyBy(scope.dictionary.legalType, 'id');
+                            scope.dictionary.antennasList = scope.dictionary.antennas;
+                            scope.dictionary.antennaType = scope.dictionary.antennaType;
+                            scope.addressesList = newAddresses;
+                            console.log(scope.addressesList)
+                            
+                            scope.oblastList = _.uniqBy(scope.dictionary.addresses, 'oblast').map((e, index) => {
+                                return {"name": e.oblast, "id": index}
+                            });
+                            scope.cityList = _.uniqBy(scope.dictionary.addresses, 'city').map((e, index) => {
+                                return {"name": e.city, "id": index}
+                            });
+                            if(scope.currentFarEnd){
+                                scope.currentFarEnd.cityList = _.uniqBy(scope.dictionary.addresses, 'city').map( (e, index) => { return {"name" : e.city, "id" : index} });
+                            }
+                            scope.districtList = _.uniqBy(scope.dictionary.addresses, 'district').map((e, index) => {
+                                return {"name": e.district, "id": index}
+                            });
+                            scope.filteredDistricts = scope.districtList;
+                            scope.filteredDistrictsInCAI = scope.districtList;
+                            scope.alphabet = 'abcdefghijklmnopqrstuvwxyz'.split('');
+
+                            scope.leasingCandidate.addressString = '';
+                            scope.leasingCandidate.cellAntenna.addressString = '';
+                        } catch (error) {
+    console.log(error)
                         }
-                        scope.districtList = _.uniqBy(scope.dictionary.addresses, 'district').map((e, index) => {
-                            return {"name": e.district, "id": index}
-                        });
-                        scope.filteredDistricts = scope.districtList;
-                        scope.filteredDistrictsInCAI = scope.districtList;
-                        scope.alphabet = 'abcdefghijklmnopqrstuvwxyz'.split('');
+                            //tabs
+                            scope.minTab = 0;
+                            scope.maxTab = 3;
 
-                        scope.leasingCandidate.addressString = '';
-                        scope.leasingCandidate.cellAntenna.addressString = '';
+                            scope.selectedSectorTab = 0;
+                            scope.leasingCandidate.cellAntenna.sectors[0].active = 'active';
+                            scope.leasingCandidate.checkTPSTouched = false;
+                            scope.leasingCandidate.checkTPSBTouched = false;
+                            Object.values(scope.leasingCandidate.address).forEach((s, index) => {
+                                if(scope.leasingCandidate) {
+                                    scope.leasingCandidate.addressString += index > 0 ? ', ' + s : s
+                                }
+                            });
 
-                        //tabs
-                        scope.minTab = 0;
-                        scope.maxTab = 3;
+                            Object.values(scope.leasingCandidate.cellAntenna.address).forEach((s, index) => {
+                                if(scope.leasingCandidate && scope.leasingCandidate.cellAntenna) {
+                                    scope.leasingCandidate.cellAntenna.addressString += index > 0 ? ', ' + s : s
+                                }
+                            });
 
-                        scope.selectedSectorTab = 0;
-                        scope.leasingCandidate.cellAntenna.sectors[0].active = 'active';
-                        scope.leasingCandidate.checkTPSTouched = false;
-                        scope.leasingCandidate.checkTPSBTouched = false;
-                        Object.values(scope.leasingCandidate.address).forEach((s, index) => {
-                            if(scope.leasingCandidate) {
-                                scope.leasingCandidate.addressString += index > 0 ? ', ' + s : s
-                            }
-                        });
+                            scope.antennasList = scope.dictionary.antennas;
+                            scope.frequencyBand = scope.dictionary.frequencyBand;
 
-                        Object.values(scope.leasingCandidate.cellAntenna.address).forEach((s, index) => {
-                            if(scope.leasingCandidate && scope.leasingCandidate.cellAntenna) {
-                                scope.leasingCandidate.cellAntenna.addressString += index > 0 ? ', ' + s : s
-                            }
-                        });
-
-                        scope.antennasList = scope.dictionary.antennas;
-                        scope.frequencyBand = scope.dictionary.frequencyBand;
-                    }
+                                scope.catalogsFetched = true;
+                            });
+                        }
                     catch(e){
                         console.log(e)
                     }

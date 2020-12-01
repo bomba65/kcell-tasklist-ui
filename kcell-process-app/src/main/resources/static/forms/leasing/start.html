@@ -87,7 +87,6 @@
                     "G900+U2100+L800+L1800+L2100" : "453",
                     "G1800+U2100+L800+L1800+L2100" : "454",
                     "G900+G1800+U2100+L800+L1800+L2100" : "455"};
-                // $scope.years = [currentDate.getFullYear(), currentDate.getFullYear()-1, currentDate.getFullYear()-2, currentDate.getFullYear()-3, currentDate.getFullYear()-4];
 
                 $http.get('/api/leasingCatalogs?version=2').then(
                     function(result){
@@ -179,6 +178,57 @@
                                 console.log(error);
                             }
                         );
+
+                        $http.post('https://catalogs.test-flow.kcell.kz/camunda/catalogs/api/get/rolloutcatalogids', [1, 2, 3, 5, 6, 7, 8, 10, 12]).then(
+                                function(res){
+                                    $scope.dictionary.part = res.data.part;
+                                    $scope.dictionary.initiators = res.data.ncp_initiator;
+                                    $scope.dictionary.rbs_cabinet_type = res.data.rbs_cabinet_type;
+                                    $scope.dictionary.regions = [];
+
+                                    for (let i = 0; i < res.data.regions.length ; i++ ) {
+                                        let r = res.data.regions[i];
+
+                                        var newR = {};
+                                        newR.code = r.id;
+                                        newR.name = r.name;
+                                        newR.catalogsId = r.catalogsId;
+
+                                        switch(r.name) {
+                                            case 'Astana':
+                                                newR.id = 'astana';
+                                                newR.code = '0';
+                                                break;
+                                            case 'Almaty':
+                                                newR.id = 'almaty';
+                                                break;
+                                            case 'East':
+                                                newR.id = 'east';
+                                                break;
+                                            case 'North & Central':
+                                                newR.id = 'nc';
+                                                break;
+                                            case 'South':
+                                                newR.id = 'south';
+                                                break;
+                                            case 'West':
+                                                newR.id = 'west';
+                                                break;
+                                            default:
+                                                console.log('not found region id')
+                                                break;
+                                        }
+                                        $scope.dictionary.regions.push(newR);
+
+                                    }
+                                    $scope.newBands = res.data.ncp_bands
+                                },
+                                function(error){
+                                    console.log(error);
+                                }
+                        );
+
+
                     },
                     function(error){
                         console.log(error);
@@ -254,6 +304,11 @@
                     type: 'String',
                     value: $scope.bandsIdForUDB
                 });
+                camForm.variableManager.createVariable({
+                    name: 'bandsIdFromCatalogs',
+                    type: 'Json',
+                    value: $scope.bandsIdFromCatalogs
+                });
                 if($scope.project){
                     camForm.variableManager.createVariable({
                         name: 'project',
@@ -323,6 +378,7 @@
                         $scope.selectedBandsString = $scope.selectedBandsString + (i > 0 ? '+' : '') + b.title
                     })
                     $scope.bandsIdForUDB = $scope.bandsForUDB[$scope.selectedBandsString] ? $scope.bandsForUDB[$scope.selectedBandsString] : null
+                    $scope.bandsIdFromCatalogs = $scope.newBands.find(b => { return b.name === $scope.selectedBandsString})
                 }
             }, true);
 
@@ -600,8 +656,7 @@
                         ng-model="plannedCabinetType"
                         required>
                     <option value="" disabled selected hidden>Select Cabinet type</option>
-                    <option value="Indoor">Indoor</option>
-                    <option value="Outdoor">Outdoor</option>
+                    <option ng-repeat="c in dictionary.rbs_cabinet_type" ng-value="c.name">{{c.name}}
                 </select>
                 <label class="error"
                        ng-show="kcell_form.plannedCabinetType.$error.required && ( kcell_form.plannedCabinetType.$touched || view.submitted)">Required

@@ -1190,11 +1190,11 @@ public class CreateCandidate implements JavaDelegate {
                     }
 
                     if (fe_equipment_type != null) {
-                        if (fe_equipment_type.equals("TN2P")){
+                        if (fe_equipment_type.toUpperCase().equals("TN2P")){
                             ARTEFACT_RR_TR_PreparedStatement.setLong(i++, 2); // EQUIPMENT_TYPE fe.equipmentType
-                        } else if (fe_equipment_type.equals("TN20P")){
+                        } else if (fe_equipment_type.toUpperCase().equals("TN20P")){
                             ARTEFACT_RR_TR_PreparedStatement.setLong(i++, 6); // EQUIPMENT_TYPE fe.equipmentType
-                        } else if (fe_equipment_type.equals("TN6P")){
+                        } else if (fe_equipment_type.toUpperCase().equals("TN6P")){
                             ARTEFACT_RR_TR_PreparedStatement.setLong(i++, 4); // EQUIPMENT_TYPE fe.equipmentType
                         } else {
                             ARTEFACT_RR_TR_PreparedStatement.setNull(i++, Types.INTEGER);
@@ -1281,11 +1281,11 @@ public class CreateCandidate implements JavaDelegate {
                     i = 1;
                     ARTEFACT_RR_TR_ANTENNA_PreparedStatement.setLong(i++, createdArtefactRRId);// RR_ID
                     if (fe_equipment_type != null) {
-                        if (fe_equipment_type.equals("TN2P")){
+                        if (fe_equipment_type.toUpperCase().equals("TN2P")){
                             ARTEFACT_RR_TR_ANTENNA_PreparedStatement.setLong(i++, 2); // EQUIP_ID fe.equipmentType
-                        } else if (fe_equipment_type.equals("TN20P")){
+                        } else if (fe_equipment_type.toUpperCase().equals("TN20P")){
                             ARTEFACT_RR_TR_ANTENNA_PreparedStatement.setLong(i++, 6); // EQUIP_ID fe.equipmentType
-                        } else if (fe_equipment_type.equals("TN6P")){
+                        } else if (fe_equipment_type.toUpperCase().equals("TN6P")){
                             ARTEFACT_RR_TR_ANTENNA_PreparedStatement.setLong(i++, 4); // EQUIP_ID fe.equipmentType
                         } else {
                             ARTEFACT_RR_TR_ANTENNA_PreparedStatement.setNull(i++, Types.INTEGER); // EQUIP_ID
