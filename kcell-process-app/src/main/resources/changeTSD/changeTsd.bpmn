@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:bioc="http://bpmn.io/schema/bpmn/biocolor/1.0" id="Definitions_1ivnf0v" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="4.2.0">
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:bioc="http://bpmn.io/schema/bpmn/biocolor/1.0" id="Definitions_1ivnf0v" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="4.0.0">
   <bpmn:process id="change-tsd" name="Change TSD" isExecutable="true">
     <bpmn:documentation>change TSD</bpmn:documentation>
     <bpmn:serviceTask id="updateTsd" name="Add new data into DB" camunda:delegateExpression="${CreateNewTsd}">
@@ -41,9 +41,8 @@
     </bpmn:startEvent>
     <bpmn:exclusiveGateway id="ExclusiveGateway_1wmhps9" default="SequenceFlow_1amgavg">
       <bpmn:incoming>SequenceFlow_0epi0ro</bpmn:incoming>
-      <bpmn:incoming>SequenceFlow_0m2n5ka</bpmn:incoming>
-      <bpmn:outgoing>SequenceFlow_056hll2</bpmn:outgoing>
       <bpmn:outgoing>SequenceFlow_1amgavg</bpmn:outgoing>
+      <bpmn:outgoing>Flow_18m6453</bpmn:outgoing>
     </bpmn:exclusiveGateway>
     <bpmn:exclusiveGateway id="ExclusiveGateway_0bu8817">
       <bpmn:incoming>SequenceFlow_02gfwmc</bpmn:incoming>
@@ -57,7 +56,7 @@
     </bpmn:exclusiveGateway>
     <bpmn:userTask id="checkByCenterEngineer" name="Check by Center engineer" camunda:formKey="embedded:app:forms/changeTSD/checkByCenterEngineer.html">
       <bpmn:documentation>Check by Center engineer</bpmn:documentation>
-      <bpmn:incoming>SequenceFlow_056hll2</bpmn:incoming>
+      <bpmn:incoming>Flow_1mg64ps</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_02gfwmc</bpmn:outgoing>
     </bpmn:userTask>
     <bpmn:serviceTask id="ServiceTask_13res80" name="send notification" camunda:expression="${true}">
@@ -84,8 +83,8 @@
       <bpmn:incoming>SequenceFlow_1ygubdx</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_1shc6nb</bpmn:outgoing>
     </bpmn:serviceTask>
-    <bpmn:userTask id="enterRfsChangetsd" name="RFS permition result" camunda:formKey="embedded:app:forms/changeTSD/enterRfsChangetsd.html" camunda:candidateGroups="hq_permit_group">
-      <bpmn:documentation>RFS permition result</bpmn:documentation>
+    <bpmn:userTask id="enterRfsChangetsd" name="RFS permission result" camunda:formKey="embedded:app:forms/changeTSD/enterRfsChangetsd.html" camunda:candidateGroups="hq_permit_group">
+      <bpmn:documentation>RFS permission result</bpmn:documentation>
       <bpmn:incoming>SequenceFlow_10ht0ez</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_1bf5keh</bpmn:outgoing>
     </bpmn:userTask>
@@ -111,10 +110,7 @@
     </bpmn:sequenceFlow>
     <bpmn:sequenceFlow id="SequenceFlow_10ht0ez" sourceRef="insertElicense" targetRef="enterRfsChangetsd" />
     <bpmn:sequenceFlow id="SequenceFlow_0epi0ro" sourceRef="startevt_change_tsd_initial" targetRef="ExclusiveGateway_1wmhps9" />
-    <bpmn:sequenceFlow id="SequenceFlow_0m2n5ka" sourceRef="rejectTSD" targetRef="ExclusiveGateway_1wmhps9" />
-    <bpmn:sequenceFlow id="SequenceFlow_056hll2" sourceRef="ExclusiveGateway_1wmhps9" targetRef="checkByCenterEngineer">
-      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${isRegion}</bpmn:conditionExpression>
-    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="SequenceFlow_0m2n5ka" sourceRef="rejectTSD" targetRef="changetsd_exclgw_permit_rejected" />
     <bpmn:sequenceFlow id="SequenceFlow_02gfwmc" sourceRef="checkByCenterEngineer" targetRef="ExclusiveGateway_0bu8817" />
     <bpmn:sequenceFlow id="SequenceFlow_1bf5keh" sourceRef="enterRfsChangetsd" targetRef="ExclusiveGateway_17laltw" />
     <bpmn:sequenceFlow id="SequenceFlow_1h3hlqc" sourceRef="ExclusiveGateway_17laltw" targetRef="rejectTSD">
@@ -125,6 +121,15 @@
     <bpmn:sequenceFlow id="SequenceFlow_1ygubdx" sourceRef="informRegionalEngineer" targetRef="updateReview" />
     <bpmn:sequenceFlow id="SequenceFlow_1shc6nb" sourceRef="updateReview" targetRef="EndEvent_0v4w6ap" />
     <bpmn:sequenceFlow id="SequenceFlow_1amgavg" sourceRef="ExclusiveGateway_1wmhps9" targetRef="ExclusiveGateway_0bu8817" />
+    <bpmn:exclusiveGateway id="changetsd_exclgw_permit_rejected">
+      <bpmn:incoming>SequenceFlow_0m2n5ka</bpmn:incoming>
+      <bpmn:incoming>Flow_18m6453</bpmn:incoming>
+      <bpmn:outgoing>Flow_1mg64ps</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:sequenceFlow id="Flow_1mg64ps" sourceRef="changetsd_exclgw_permit_rejected" targetRef="checkByCenterEngineer" />
+    <bpmn:sequenceFlow id="Flow_18m6453" sourceRef="ExclusiveGateway_1wmhps9" targetRef="changetsd_exclgw_permit_rejected">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${isRegion}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
     <bpmn:textAnnotation id="TextAnnotation_1hoo5w5">
       <bpmn:text>ок</bpmn:text>
     </bpmn:textAnnotation>
@@ -266,19 +271,15 @@
         <di:waypoint x="1642" y="566" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_02gfwmc_di" bpmnElement="SequenceFlow_02gfwmc">
-        <di:waypoint x="567" y="336" />
-        <di:waypoint x="637" y="336" />
-        <di:waypoint x="637" y="401" />
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="SequenceFlow_056hll2_di" bpmnElement="SequenceFlow_056hll2">
-        <di:waypoint x="377" y="401" />
-        <di:waypoint x="377" y="336" />
-        <di:waypoint x="467" y="336" />
+        <di:waypoint x="576" y="530" />
+        <di:waypoint x="637" y="530" />
+        <di:waypoint x="637" y="451" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_0m2n5ka_di" bpmnElement="SequenceFlow_0m2n5ka">
         <di:waypoint x="1457" y="736" />
-        <di:waypoint x="377" y="736" />
-        <di:waypoint x="377" y="451" />
+        <di:waypoint x="250" y="736" />
+        <di:waypoint x="250" y="530" />
+        <di:waypoint x="350" y="530" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_0epi0ro_di" bpmnElement="SequenceFlow_0epi0ro">
         <di:waypoint x="255" y="426" />
@@ -341,6 +342,14 @@
           <dc:Bounds x="682" y="408" width="46" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1mg64ps_di" bpmnElement="Flow_1mg64ps">
+        <di:waypoint x="402" y="530" />
+        <di:waypoint x="476" y="530" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_18m6453_di" bpmnElement="Flow_18m6453">
+        <di:waypoint x="377" y="451" />
+        <di:waypoint x="377" y="505" />
+      </bpmndi:BPMNEdge>
       <bpmndi:BPMNShape id="ServiceTask_133n7wt_di" bpmnElement="updateTsd">
         <dc:Bounds x="747" y="386" width="100" height="80" />
       </bpmndi:BPMNShape>
@@ -373,9 +382,6 @@
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="ExclusiveGateway_17laltw_di" bpmnElement="ExclusiveGateway_17laltw" isMarkerVisible="true">
         <dc:Bounds x="1642" y="541" width="50" height="50" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="UserTask_0n58f9d_di" bpmnElement="checkByCenterEngineer">
-        <dc:Bounds x="467" y="296" width="100" height="80" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="ServiceTask_13res80_di" bpmnElement="ServiceTask_13res80">
         <dc:Bounds x="887" y="386" width="100" height="80" />
@@ -482,6 +488,12 @@
       <bpmndi:BPMNShape id="TextAnnotation_02tzqli_di" bpmnElement="TextAnnotation_02tzqli" bioc:stroke="rgb(30, 136, 229)" bioc:fill="rgb(187, 222, 251)">
         <dc:Bounds x="1617" y="836" width="100" height="30" />
       </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="UserTask_0n58f9d_di" bpmnElement="checkByCenterEngineer">
+        <dc:Bounds x="476" y="490" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_0kq50lk_di" bpmnElement="changetsd_exclgw_permit_rejected" isMarkerVisible="true">
+        <dc:Bounds x="352" y="505" width="50" height="50" />
+      </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="Association_1c67tzx_di" bpmnElement="Association_1c67tzx">
         <di:waypoint x="800" y="386" />
         <di:waypoint x="816" y="121" />
@@ -521,14 +533,6 @@
       <bpmndi:BPMNEdge id="Association_1cs6fsm_di" bpmnElement="Association_1cs6fsm">
         <di:waypoint x="235" y="408" />
         <di:waypoint x="212" y="231" />
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Association_1php0gl_di" bpmnElement="Association_1php0gl">
-        <di:waypoint x="526" y="296" />
-        <di:waypoint x="567" y="121" />
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Association_0sdgw7t_di" bpmnElement="Association_0sdgw7t">
-        <di:waypoint x="520" y="296" />
-        <di:waypoint x="525" y="221" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Association_1st7xme_di" bpmnElement="Association_1st7xme">
         <di:waypoint x="938" y="386" />
@@ -589,6 +593,14 @@
       <bpmndi:BPMNEdge id="Association_05qs0p8_di" bpmnElement="Association_05qs0p8">
         <di:waypoint x="1132" y="386" />
         <di:waypoint x="1132" y="121" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Association_1php0gl_di" bpmnElement="Association_1php0gl">
+        <di:waypoint x="530" y="490" />
+        <di:waypoint x="569" y="121" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Association_0sdgw7t_di" bpmnElement="Association_0sdgw7t">
+        <di:waypoint x="526" y="490" />
+        <di:waypoint x="526" y="221" />
       </bpmndi:BPMNEdge>
     </bpmndi:BPMNPlane>
   </bpmndi:BPMNDiagram>
