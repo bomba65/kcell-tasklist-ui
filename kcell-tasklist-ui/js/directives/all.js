@@ -1991,7 +1991,17 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                     },
                     tnu_tsd_db: {
                         title: "TNU", value: false
+                    },
+                    'change-tsd': {
+                        title: "Change TSD", value: false
+                    },
+                    'get-rfs-by-permit': {
+                        title: "Get RFS by Permit", value: false
+                    },
+                    'hop-delete': {
+                        title: "Hop delete", value: false
                     }
+
                 };
                 scope.KWMSProcesses = {};
                 scope.regionsMap = {
@@ -2004,9 +2014,9 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                 };
                 scope.processDefinitionKeys = {
                     'tnu_tsd_db': 'TNU',
-                    'get-rfs-by-permit': 'Get RFS by Permit',
-                    'change-tsd':'Change TSD',
-                    'hop-delete':'Hop delete'
+                    'get_rfs_by_permit': 'Get RFS by Permit',
+                    'change_tsd':'Change TSD',
+                    'hop_delete':'Hop delete'
                 }
                 scope.contractorShortName = {
                     '4': 'LSE',
@@ -2035,7 +2045,6 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                 };
                 var KWMSproject = _.find($rootScope.projects, {'key': 'NetworkInfrastructure'});
                 angular.forEach(allKWMSProcesses, function (value, processKey) {
-                    console.log(allKWMSProcesses);
                     if (_.find(KWMSproject.processes, {'key': processKey})) {
                         scope.KWMSProcesses[processKey] = value;
                     }
@@ -2053,7 +2062,7 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
 
                 function noProcessSelection(newVal) {
                     var filtered = Object.fromEntries(Object.entries(newVal).filter(([k, v]) => v.value === false));
-                    if ((filtered.Revision || filtered.Invoice || filtered.CreatePR) && !filtered.leasing && !filtered.Dismantle && !filtered.Replacement) {
+                    if ((filtered.Revision || filtered.Invoice || filtered.CreatePR || filtered.tnu_tsd_db || filtered.get_rfs_by_permit) && !filtered.leasing && !filtered.Dismantle && !filtered.Replacement) {
                         scope.RevisionOrMonthlyAct = true;
                     }
                     if (Object.keys(filtered).length === 1) {
@@ -2083,7 +2092,7 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                             scope.selectedProcessInstances.push(key);
                         });
                     }
-                    if (scope.onlyProcessActive!=='Revision' && scope.onlyProcessActive!=='CreatePR' && scope.onlyProcessActive!=='tnu_tsd_db') {
+                    if (scope.onlyProcessActive!=='Revision' && scope.onlyProcessActive!=='CreatePR' && scope.onlyProcessActive!=='tnu_tsd_db' && scope.onlyProcessActive!=='change-tsd' && scope.onlyProcessActive!=='get-rfs-by-permit' && scope.onlyProcessActive!=='hop-delete') {
                         //clear Revision-only filters
                         scope.filter.validityDateRange = undefined;
                         $(".calendar-range-readonly").each(function () {
@@ -2132,6 +2141,33 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                         scope.filter.sitename = undefined;
                     }
                     if (scope.onlyProcessActive!=='tnu_tsd_db') {
+                        scope.filter.initiator = undefined;
+                        scope.filter.businessKeyFilterType = 'all';
+                        scope.filter.businessKey = undefined;
+                        scope.filter.period = undefined;
+                        scope.filter.monthOfFormalPeriod = undefined;
+                        scope.filter.yearOfFormalPeriod = undefined;
+
+                    }
+                    if (scope.onlyProcessActive!=='change-tsd') {
+                        scope.filter.initiator = undefined;
+                        scope.filter.businessKeyFilterType = 'all';
+                        scope.filter.businessKey = undefined;
+                        scope.filter.period = undefined;
+                        scope.filter.monthOfFormalPeriod = undefined;
+                        scope.filter.yearOfFormalPeriod = undefined;
+
+                    }
+                    if (scope.onlyProcessActive!=='get-rfs-by-permit') {
+                        scope.filter.initiator = undefined;
+                        scope.filter.businessKeyFilterType = 'all';
+                        scope.filter.businessKey = undefined;
+                        scope.filter.period = undefined;
+                        scope.filter.monthOfFormalPeriod = undefined;
+                        scope.filter.yearOfFormalPeriod = undefined;
+
+                    }
+                    if (scope.onlyProcessActive!=='hop-delete') {
                         scope.filter.initiator = undefined;
                         scope.filter.businessKeyFilterType = 'all';
                         scope.filter.businessKey = undefined;
@@ -2370,7 +2406,7 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                     var fileName = scope.onlyProcessActive.toLowerCase() + '-search-result.xlsx';
                     if ( scope.xlsxPreparedTnu) {
                         var tbl = document.getElementById('xlsxTnuTable');
-                        if (scope.onlyProcessActive === 'tnu_tsd_db' && scope.selectedCustomFields.length > 0) {
+                        if ((scope.onlyProcessActive === 'tnu_tsd_db' || scope.onlyProcessActive === 'change-tsd' || scope.onlyProcessActive === 'get-rfs-by-permit' || scope.onlyProcessActive === 'hop-delete') && scope.selectedCustomFields.length > 0) {
                             tbl = document.getElementById('customXlsxTnuTable');
                         }
                         var ws = XLSX.utils.table_to_sheet(tbl, {dateNF: 'DD.MM.YYYY'});
@@ -2473,7 +2509,7 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                     if (scope.filter.workType) {
                         if (scope.onlyProcessActive==='Invoice')
                             filter.variables.push({"name": "workType", "operator": "eq", "value": scope.filter.workType});
-                        else if (scope.onlyProcessActive==='Revision' || scope.onlyProcessActive==='CreatePR' || scope.onlyProcessActive==='tnu_tsd_db')
+                        else if (scope.onlyProcessActive==='Revision' || scope.onlyProcessActive==='CreatePR' || scope.onlyProcessActive==='tnu_tsd_db' || scope.onlyProcessActive==='change-tsd' || scope.onlyProcessActive==='get-rfs-by-permit' || scope.onlyProcessActive==='hop-delete')
                             filter.variables.push({"name": "reason", "operator": "eq", "value": scope.filter.workType});
                     }
                     if (scope.filter.unfinished) {
@@ -2534,7 +2570,7 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
 
                     if (scope.filter.requestedDateRange) {
                         var results = scope.convertStringToDate(scope.filter.requestedDateRange);
-                        if(scope.onlyProcessActive==='Revision' || scope.onlyProcessActive==='CreatePR' || scope.onlyProcessActive==='tnu_tsd_db'){
+                        if(scope.onlyProcessActive==='Revision' || scope.onlyProcessActive==='CreatePR' || scope.onlyProcessActive==='tnu_tsd_db' || scope.onlyProcessActive==='change-tsd' || scope.onlyProcessActive==='get-rfs-by-permit' || scope.onlyProcessActive==='hop-delete'){
                             if (results.length === 2) {
                                 filter.variables.push({
                                     "name": "requestedDate",
@@ -2615,7 +2651,7 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                             "value": scope.filter.replacementInitiator
                         });
                     }
-                    if (scope.filter.participation && (scope.onlyProcessActive==='Revision' || scope.onlyProcessActive==='CreatePR' || scope.onlyProcessActive==='tnu_tsd_db')) {
+                    if (scope.filter.participation && (scope.onlyProcessActive==='Revision' || scope.onlyProcessActive==='CreatePR' || scope.onlyProcessActive==='tnu_tsd_db' || scope.onlyProcessActive==='change-tsd' || scope.onlyProcessActive==='get-rfs-by-permit' || scope.onlyProcessActive==='hop-delete')) {
                         if(!scope.filter.requestor){
                             toasty.error({title: "Error", msg: 'Please fill field Requestor!'});
                             return;
@@ -2669,7 +2705,7 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                     }
 
 
-                    if (scope.filter.activityId && (scope.onlyProcessActive==='Revision' || scope.onlyProcessActive==='CreatePR' || scope.onlyProcessActive==='tnu_tsd_db')) {
+                    if (scope.filter.activityId && (scope.onlyProcessActive==='Revision' || scope.onlyProcessActive==='CreatePR' || scope.onlyProcessActive==='tnu_tsd_db' || scope.onlyProcessActive==='change-tsd' || scope.onlyProcessActive==='get-rfs-by-permit' || scope.onlyProcessActive==='hop-delete')) {
                         filter.activeActivityIdIn.push(scope.filter.activityId);
                     }
                     if (scope.filter.dismantleActivityId && (scope.onlyProcessActive==='Dismantle' || scope.onlyProcessActive==='Replacement')) {
@@ -2882,7 +2918,7 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                                     variables.push('contractInformations');
                                 }
                             }
-                            if(scope.selectedProcessInstances.indexOf('Revision')!==-1 || scope.selectedProcessInstances.indexOf('CreatePR')!==-1 || scope.selectedProcessInstances.indexOf('tnu_tsd_db')!==-1){
+                            if(scope.selectedProcessInstances.indexOf('Revision')!==-1 || scope.selectedProcessInstances.indexOf('CreatePR')!==-1 || scope.selectedProcessInstances.indexOf('tnu_tsd_db')!==-1 || scope.selectedProcessInstances.indexOf('change-tsd')!==-1  || scope.selectedProcessInstances.indexOf('get-rfs-by-permit')!==-1 || scope.selectedProcessInstances.indexOf('hop-delete')!==-1){
                                 variables.push('monthActNumber');
                                 variables.push('invoiceRO1Number');
                                 variables.push('invoiceRO2Number');
@@ -3060,7 +3096,7 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                         scope.KWMSProcesses[process].value = false;
                     } else {
                         scope.KWMSProcesses[process].value = true;
-                        if ((process === 'Revision' || process === 'CreatePR' || process === 'tnu_tsd_db') && !scope.KWMSProcesses[process].downloaded){
+                        if ((process === 'Revision' || process === 'CreatePR' || process === 'tnu_tsd_db' || process === 'change-tsd' || process === 'get-rfs-by-permit' || process === 'hop-delete') && !scope.KWMSProcesses[process].downloaded){
                             downloadXML(process);
                             scope.KWMSProcesses[process].downloaded = true;
                         } else if((process === 'Dismantle' || process === 'Replacement') && !scope.KWMSProcesses[process].downloaded){

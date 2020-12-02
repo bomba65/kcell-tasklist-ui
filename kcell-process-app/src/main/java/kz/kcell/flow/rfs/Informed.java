@@ -53,6 +53,17 @@ public class Informed implements JavaDelegate {
         objectNode.put("review_resp", assigneeName);
         objectNode.put("review_status", true);
 
+        Calendar c = Calendar.getInstance();
+        String rfsPermitionDate = String.valueOf(execution.getVariable("rfsPermitionDate"));
+        try {
+            Date rfsPermitionDateFormatted = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").parse(rfsPermitionDate);
+            c.setTime(rfsPermitionDateFormatted);
+            c.add(Calendar.HOUR, 6);
+            objectNode.put("rfs_date", new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ").format(c.getTime()));
+        } catch(Exception e){
+            throw new BpmnError("dateError: ", e.getMessage());
+        }
+
         try {
             SSLContextBuilder builder = new SSLContextBuilder();
             builder.loadTrustMaterial(null, new TrustSelfSignedStrategy());
