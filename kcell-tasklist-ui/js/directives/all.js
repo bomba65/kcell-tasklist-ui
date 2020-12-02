@@ -2014,9 +2014,9 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                 };
                 scope.processDefinitionKeys = {
                     'tnu_tsd_db': 'TNU',
-                    'get_rfs_by_permit': 'Get RFS by Permit',
-                    'change_tsd':'Change TSD',
-                    'hop_delete':'Hop delete'
+                    'get-rfs-by-permit': 'Get RFS by Permit',
+                    'change-tsd':'Change TSD',
+                    'hop-delete':'Hop delete'
                 }
                 scope.contractorShortName = {
                     '4': 'LSE',
