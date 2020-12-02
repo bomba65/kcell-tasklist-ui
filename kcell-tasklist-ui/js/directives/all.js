@@ -806,11 +806,11 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                         try{
                         angular.extend(scope.dictionary, result.data);
                         
-                        // var antennaTypePromise = $http.get('https://catalogs.test-flow.kcell.kz/camunda/catalogs/api/get/id/34').then(function(promiseResult){return promiseResult.data;});
-                        // var trAntennaTypePromise = $http.get('https://catalogs.test-flow.kcell.kz/camunda/catalogs/api/get/id/20').then(function(promiseResult){return promiseResult.data;});
-                        // var antennaModelPromise = $http.get('https://catalogs.test-flow.kcell.kz/camunda/catalogs/api/get/id/19').then(function(promiseResult){return promiseResult.data;});
-                        // var antennaLocationsPromise = $http.get('https://catalogs.test-flow.kcell.kz/camunda/catalogs/api/get/id/64').then(function(promiseResult){return promiseResult.data;});
-                        var newCatalogsPromise = $http.post('https://catalogs.test-flow.kcell.kz/camunda/catalogs/api/get/rolloutcatalogids', [14, 4, 13, 15, 21, 22, 30, 31, 32, 59]).then(function(promiseResult){return promiseResult.data;});
+                        // var antennaTypePromise = $http.get($rootScope.catalogsServerUrl + '/camunda/catalogs/api/get/id/34').then(function(promiseResult){return promiseResult.data;});
+                        // var trAntennaTypePromise = $http.get($rootScope.catalogsServerUrl + '/camunda/catalogs/api/get/id/20').then(function(promiseResult){return promiseResult.data;});
+                        // var antennaModelPromise = $http.get($rootScope.catalogsServerUrl + '/camunda/catalogs/api/get/id/19').then(function(promiseResult){return promiseResult.data;});
+                        // var antennaLocationsPromise = $http.get($rootScope.catalogsServerUrl + '/camunda/catalogs/api/get/id/64').then(function(promiseResult){return promiseResult.data;});
+                        var newCatalogsPromise = $http.post($rootScope.catalogsServerUrl + '/camunda/catalogs/api/get/rolloutcatalogids', [14, 4, 13, 15, 21, 22, 30, 31, 32, 59]).then(function(promiseResult){return promiseResult.data;});
 
                         // $q.all([antennaTypePromise, trAntennaTypePromise, antennaModelPromise, antennaLocationsPromise, newCatalogsPromise]).then(function(allPromises) {
                         $q.all([newCatalogsPromise]).then(function(allPromises) {
@@ -939,7 +939,7 @@ console.log(1)
                             scope.dictionary.antennasList = scope.dictionary.antennas;
                             scope.dictionary.antennaType = scope.dictionary.antennaType;
                             scope.addressesList = newAddresses;
-                            console.log(scope.addressesList)
+                            scope.dictionary.addresses = newAddresses;
                             
                             scope.oblastList = _.uniqBy(scope.dictionary.addresses, 'oblast').map((e, index) => {
                                 return {"name": e.oblast, "id": index}
