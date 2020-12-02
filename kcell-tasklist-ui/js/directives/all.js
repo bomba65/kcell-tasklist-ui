@@ -1382,40 +1382,40 @@ console.log(1)
                 };
 
                 scope.filterDistrictAfterSelectOblNE = function (cn_addr_oblast) {
-                    if(scope.leasingCandidate.transmissionAntennatransmissionAntenna){
-                        scope.leasingCandidate.transmissionAntennatransmissionAntenna.address = {};
+                    if(scope.leasingCandidate.transmissionAntenna){
+                        scope.leasingCandidate.transmissionAntenna.address = {};
                     }
-                    scope.leasingCandidate.transmissionAntennatransmissionAntenna.address.cn_addr_oblast = cn_addr_oblast
-                    scope.leasingCandidate.transmissionAntennatransmissionAntenna.address.cn_addr_district = ''
-                    scope.leasingCandidate.transmissionAntennatransmissionAntenna.address.cn_addr_city = ''
-                    if (scope.leasingCandidate.transmissionAntennatransmissionAntenna.address.cn_addr_oblast && scope.leasingCandidate.transmissionAntennatransmissionAntenna.address.cn_addr_oblast !== '') {
-                        scope.leasingCandidate.transmissionAntennatransmissionAntenna.filteredByOblast = scope.dictionary.addresses.filter(a => {
-                            return a.oblast === scope.leasingCandidate.transmissionAntennatransmissionAntenna.address.cn_addr_oblast
+                    scope.leasingCandidate.transmissionAntenna.address.cn_addr_oblast = cn_addr_oblast
+                    scope.leasingCandidate.transmissionAntenna.address.cn_addr_district = ''
+                    scope.leasingCandidate.transmissionAntenna.address.cn_addr_city = ''
+                    if (scope.leasingCandidate.transmissionAntenna.address.cn_addr_oblast && scope.leasingCandidate.transmissionAntenna.address.cn_addr_oblast !== '') {
+                        scope.leasingCandidate.transmissionAntenna.filteredByOblast = scope.dictionary.addresses.filter(a => {
+                            return a.oblast === scope.leasingCandidate.transmissionAntenna.address.cn_addr_oblast
                         });
-                        scope.leasingCandidate.transmissionAntennatransmissionAntenna.filteredDistricts = _.uniqBy(scope.leasingCandidate.transmissionAntennatransmissionAntenna.filteredByOblast, 'district').map((e, index) => {
+                        scope.leasingCandidate.transmissionAntenna.filteredDistricts = _.uniqBy(scope.leasingCandidate.transmissionAntenna.filteredByOblast, 'district').map((e, index) => {
                             return {"name": e.district, "id": index}
                         });
-                        scope.leasingCandidate.transmissionAntennatransmissionAntenna.cityList = _.uniqBy(scope.leasingCandidate.transmissionAntennatransmissionAntenna.filteredByOblast, 'city').map((e, index) => {
+                        scope.leasingCandidate.transmissionAntenna.cityList = _.uniqBy(scope.leasingCandidate.transmissionAntenna.filteredByOblast, 'city').map((e, index) => {
                             return {"name": e.city, "id": index}
                         });
                     } else {
-                        scope.leasingCandidate.transmissionAntennatransmissionAntenna.filteredDistricts = scope.districtList;
-                        scope.leasingCandidate.transmissionAntennatransmissionAntenna.cityList = _.uniqBy(scope.dictionary.addresses, 'city').map((e, index) => {
+                        scope.leasingCandidate.transmissionAntenna.filteredDistricts = scope.districtList;
+                        scope.leasingCandidate.transmissionAntenna.cityList = _.uniqBy(scope.dictionary.addresses, 'city').map((e, index) => {
                             return {"name": e.city, "id": index}
                         });
                     }
                 };
 
                 scope.addressCitySelectedNE = function ($item) {
-                    scope.leasingCandidate.transmissionAntennatransmissionAntenna.address.cn_addr_district = _.find(scope.dictionary.addresses, {'city': $item.name}).district;
-                    scope.leasingCandidate.transmissionAntennatransmissionAntenna.address.cn_addr_oblast = _.find(scope.dictionary.addresses, {'city': $item.name}).oblast;
+                    scope.leasingCandidate.transmissionAntenna.address.cn_addr_district = _.find(scope.dictionary.addresses, {'city': $item.name}).district;
+                    scope.leasingCandidate.transmissionAntenna.address.cn_addr_oblast = _.find(scope.dictionary.addresses, {'city': $item.name}).oblast;
                 };
 
                 scope.getCityNE = function (val) {
                     if (val.length < 2) {
                         return []
                     }
-                    return _.filter(scope.leasingCandidate.transmissionAntennatransmissionAntenna.cityList, function (o) {
+                    return _.filter(scope.leasingCandidate.transmissionAntenna.cityList, function (o) {
                         return o.name.toLowerCase().includes(val.toLowerCase());
                     })
                 }
