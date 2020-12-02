@@ -14,7 +14,10 @@ public class RegionGroupAssignmentHandler implements TaskListener {
     public void notify(DelegateTask delegateTask) {
         String reason = delegateTask.getVariable("reason").toString();
         String siteRegion = delegateTask.getVariable("siteRegion").toString();
-        if (reason != null) {
+
+        Boolean createdAutomatically = delegateTask.hasVariable("createdAutomatically") && Boolean.valueOf(delegateTask.getVariable("createdAutomatically").toString());
+
+        if (reason != null && !createdAutomatically) {
             if (reason.equals("1")) {
                 delegateTask.addCandidateGroup(siteRegion + "_optimization_head");
             } else if (reason.equals("2")) {
