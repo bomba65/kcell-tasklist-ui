@@ -427,7 +427,13 @@ public class UpdateCandidate implements JavaDelegate {
 
                     i = 1;
                     if (trTypeSatelliteOrProvider) {
-                        updateArtefactTSDPreparedStatement.setNull(i++, Types.BIGINT);
+                        if(trType.equals("Provider")){
+                            updateArtefactTSDPreparedStatement.setLong(i++, 22L); // equipment_id
+                        } else if(trType.equals("Satellite")){
+                            updateArtefactTSDPreparedStatement.setLong(i++, 23L); // equipment_id
+                        } else {
+                            updateArtefactTSDPreparedStatement.setNull(i++, Types.BIGINT);
+                        }
                     } else if (fe_equipment_type != null) {
                         updateArtefactTSDPreparedStatement.setLong(i++, fe_equipment_type.longValue()); // equipment_id
                     } else {
