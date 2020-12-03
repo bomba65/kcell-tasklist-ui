@@ -223,8 +223,18 @@ public class UpdateCandidate implements JavaDelegate {
                     Integer cn_bscInt = cn_bsc != null ? Integer.parseInt(cn_bsc) : null;
 
                     //UPDATE ARTEFACT ARTEFACT_CURRENT_STATE
+                    boolean trTypeSatelliteOrProvider = trType != null && (trType.equals("Provider") || trType.equals("Satellite"));
                     log.info("UPDATE ARTEFACT_CURRENT_STATE");
-                    String UpdateArtefactCurrentState = "UPDATE ARTEFACT_CURRENT_STATE SET FE_STATUS = ?,RR_STATUS = ?, RR_STATUS_DATE = ?, LONGITUDE = ?, LATITUDE = ?, RBS_TYPE = ?, BSC = ?, BAND = ?, RBS_LOCATION = ?, ALTITUDE = ?, CONSTRUCTION_HEIGHT = ?, CONSTRUCTION_TYPE = ?, ADDRESS = ?, CONTACT_PERSON = ?, COMMENTS = ?, EQUIPMENT_TYPE = ?, GS_STATUS = ?, PL_COMMENTS = ?, INST_COMMENTS = ? WHERE ARTEFACTID = ?";
+                    StringBuilder updateArtefactCurrentStateFirstPart = new StringBuilder("UPDATE ARTEFACT_CURRENT_STATE SET ");
+                    StringBuilder updateArtefactCurrentStateSecondPart = new StringBuilder("RR_STATUS = ?, RR_STATUS_DATE = ?, LONGITUDE = ?, LATITUDE = ?, RBS_TYPE = ?, BSC = ?, BAND = ?, RBS_LOCATION = ?, ALTITUDE = ?, CONSTRUCTION_HEIGHT = ?, CONSTRUCTION_TYPE = ?, ADDRESS = ?, CONTACT_PERSON = ?, COMMENTS = ?, EQUIPMENT_TYPE = ?, GS_STATUS = ?, PL_COMMENTS = ?, INST_COMMENTS = ? WHERE ARTEFACTID = ?");
+
+                    if(trTypeSatelliteOrProvider) {
+                        updateArtefactCurrentStateFirstPart.append("FE_STATUS = ?, ");
+                    }
+//                    String UpdateArtefactCurrentState = "UPDATE ARTEFACT_CURRENT_STATE SET FE_STATUS = ?,RR_STATUS = ?, RR_STATUS_DATE = ?, LONGITUDE = ?, LATITUDE = ?, RBS_TYPE = ?, BSC = ?, BAND = ?, RBS_LOCATION = ?, ALTITUDE = ?, CONSTRUCTION_HEIGHT = ?, CONSTRUCTION_TYPE = ?, ADDRESS = ?, CONTACT_PERSON = ?, COMMENTS = ?, EQUIPMENT_TYPE = ?, GS_STATUS = ?, PL_COMMENTS = ?, INST_COMMENTS = ? WHERE ARTEFACTID = ?";
+                    updateArtefactCurrentStateFirstPart.append(updateArtefactCurrentStateSecondPart.toString());
+                    String UpdateArtefactCurrentState = updateArtefactCurrentStateFirstPart.toString();
+
                     PreparedStatement updateArtefactCurrentStatePreparedStatement = udbConnect.prepareStatement(UpdateArtefactCurrentState);
                     Integer rbsTypeInt = rbsType != null ? Integer.parseInt(rbsType) : null;
                     Integer cnConstructionTypeInt = cn_constructionType != null ? Integer.parseInt(cn_constructionType) : null;
@@ -240,12 +250,9 @@ public class UpdateCandidate implements JavaDelegate {
                     i = 1;
                     log.info("UPDATE ARTEFACT ARTEFACT_CURRENT_STATE");
                     // set values to insert
-                    boolean trTypeSatelliteOrProvider = trType != null && (trType.equals("Provider") || trType.equals("Satellite"));
+
                     if (trTypeSatelliteOrProvider) {
                         updateArtefactCurrentStatePreparedStatement.setLong(i++, 3); //FE_STATUS
-                    } else {
-                        updateArtefactCurrentStatePreparedStatement.setNull(i++, Types.BIGINT);
-
                     }
                     updateArtefactCurrentStatePreparedStatement.setLong(i++, 3); // RR_STATUS
                     updateArtefactCurrentStatePreparedStatement.setDate(i++, new java.sql.Date(new Date().getTime())); // RR_STATUS_DATE
