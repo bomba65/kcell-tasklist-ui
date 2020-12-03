@@ -191,6 +191,12 @@
                     store: true
                 },
                 {
+                    name: 'siteSubStatus',
+                    type: 'String',
+                    submit: true,
+                    store: true
+                },
+                {
                     name: 'sendNotifyToRegionHeads',
                     type: 'Boolean',
                     submit: true,
@@ -199,6 +205,18 @@
                 {
                     name: 'isOptical',
                     type: 'Boolean',
+                    submit: true,
+                    store: true
+                },
+                {
+                    name: 'isSiteFromAssets',
+                    type: 'Boolean',
+                    submit: true,
+                    store: true
+                },
+                {
+                    name: 'siteAddress',
+                    type: 'String',
                     submit: true,
                     store: true
                 },
@@ -216,6 +234,8 @@
                                 '5.7', '5.8', '5.10', '5.11', '5.12', '5.14', '5.15', '5.16', '5.17', '6.6', '8.1', '8.2', '8.3', '8.4', '8.5', '8.6', '8.9', '8.10', '8.11', '8.12', '8.17', '8.18', '8.19', '9.1', '9.2', '9.57', '9.59', '9.60', '9.62', '9.64', '9.75', '9.76', '9.80'];
             $scope.showJump = false;
             $scope.siteStatus = undefined;
+            $scope.siteSubStatus = undefined;
+            $scope.siteAddress = undefined;
 
             if($rootScope.authentication.name === 'demo' || $rootScope.authentication.name === 'Yernaz.Kalingarayev@kcell.kz' || $rootScope.authentication.name === 'Askar.Slambekov@kcell.kz' || $rootScope.authentication.name === 'Anzor.Israilov@kcell.kz'){
                 $scope.showJump = true;
@@ -346,6 +366,7 @@
                 camForm.variableManager.variableValue('jrNumber', $scope.jrNumber);
                 camForm.variableManager.variableValue('site_name', $scope.site_name);
                 camForm.variableManager.variableValue('siteStatus', $scope.siteStatus);
+                camForm.variableManager.variableValue('siteSubStatus', $scope.siteSubStatus);
                 camForm.variableManager.variableValue('site', $scope.site);
                 camForm.variableManager.variableValue('siteName', $scope.siteName);
                 camForm.variableManager.variableValue('siteRegion', $scope.siteRegion);
@@ -377,6 +398,8 @@
                 } else {
                     camForm.variableManager.variableValue('worksBelongsTo', $scope.worksBelongsTo);
                 }
+                camForm.variableManager.variableValue('isSiteFromAssets', true);
+                camForm.variableManager.variableValue('siteAddress', $scope.siteAddress);
             });
 
             $scope.open = open;
@@ -411,30 +434,20 @@
                 {id: 'west', name: 'West', value: 'W'}
             ]
             $scope.regionsMap = {
-                '0': 'Alm',
-                '11':'Ast',
-                '1': 'N&C',
-                '2': 'N&C',
-                '3': 'E',
-                '4': 'S',
-                '5': 'W',
-                '6': 'W',
-                '7': 'W',
-                '8': 'W'
-//                '9': 'Mobile'
+                '1': 'Alm',
+                '2': 'Ast',
+                '3': 'N&C',
+                '4': 'E',
+                '5': 'S',
+                '6': 'W'
             };
             $scope.regionsMapLC = {
-                '0': 'alm',
-                '11':'astana',
-                '1': 'nc',
-                '2': 'nc',
-                '3': 'east',
-                '4': 'south',
-                '5': 'west',
-                '6': 'west',
-                '7': 'west',
-                '8': 'west'
-//              '9': 'mobile'
+                '1': 'alm',
+                '2': 'astana',
+                '3': 'nc',
+                '4': 'east',
+                '5': 'south',
+                '6': 'west'
             };
             $scope.contractorShortName = {
                 '-1': '##',
@@ -990,7 +1003,7 @@
                             return true;
                         }
                     } else if($scope.mainContract === 'Roll-outRevision2020') {
-                        if ($scope.siteStatus !== 'will be dismantled' && $scope.siteStatus !== 'will be replacement') {
+                        if ($scope.siteSubStatus !== 'will be dismantled' && $scope.siteSubStatus !== 'will be replacement') {
                             return element.id !== 3007
                         } else {
                             return true;
@@ -1046,48 +1059,38 @@
 
 
             $scope.getSite = function(val) {
-                return $http.get('/asset-management/api/sites/search/findByNameIgnoreCaseContaining?name='+val).then(
+                return $http.get($rootScope.assetsServerUrl + '/asset-management/sites/name/contains/'+val).then(
                         function(response){
-                            var sites = _.flatMap(response.data._embedded.sites, function(s){
-                                if(s.params.site_name){
-                                    return s.params.site_name.split(',').map(function(sitename){
-                                        return {
-                                            name: s.name,
-                                            id: s._links.self.href.substring(s._links.self.href.lastIndexOf('/')+1),
-                                            site_name: sitename,
-                                            params: s.params
-                                        };
-                                    })
-                                } else {
-                                    return [];
-                                }
-                            });
-                            return sites;
+                            return response.data.map(el => ({ id: el.id, name: el.siteid, site_name: el.site_name}))
                         }
                 );
             };
             $scope.siteSelected = function($item){
-                $scope.siteName = $item.name;
-                $scope.site = $item.id;
+                $scope.siteName = $item.site_name;
+                $scope.site = $item.siteid;
                 $scope.site_name = $item.site_name;
-                if($item.params.status){
-                    $scope.siteStatus = $item.params.status[$item.site_name];
-                } else {
-<!--                    $scope.siteStatus = "will be dismantled";-->
-                    $scope.siteStatus = "working site";
-                }
-                if($scope.siteName.startsWith('11')){
-                    $scope.regionShortName = $scope.regionsMap['11'];
-                    $scope.siteRegion  = $scope.regionsMapLC['11'];
-                    refreshJobRequests();
-                } else if($scope.siteName.startsWith('9')) {
-                    $scope.regionShortName = undefined;
-                    $scope.siteRegion = undefined;
-                } else {
-                    $scope.regionShortName = $scope.regionsMap[$scope.siteName.substring(0,1)];
-                    $scope.siteRegion = $scope.regionsMapLC[$scope.siteName.substring(0,1)];
-                    refreshJobRequests();
-                }
+                $http.get($rootScope.assetsServerUrl + '/asset-management/sites/id/'+$item.id).then(function(result) {
+                    var siteInfo = result.data
+                    $scope.siteAddress = ''
+                    $scope.siteRegion = ''
+                    if (siteInfo.facility_id !== null){
+                        $scope.siteAddress = (siteInfo.facility_id.address_id.city_id.district_id.oblast_id.region_id ? siteInfo.facility_id.address_id.city_id.district_id.oblast_id.region_id.name : '')+
+                                        (siteInfo.facility_id.address_id.city_id.district_id.oblast_id ? ', ' + siteInfo.facility_id.address_id.city_id.district_id.oblast_id.name : '')+
+                                        (siteInfo.facility_id.address_id.city_id.district_id ? ', ' + siteInfo.facility_id.address_id.city_id.district_id.name : '')+
+                                        (siteInfo.facility_id.address_id.city_id ? ', ' + siteInfo.facility_id.address_id.city_id.name : '')+
+                                        (siteInfo.facility_id.address_id.city_id.city_type_id ? ' ('+ siteInfo.facility_id.address_id.city_id.city_type_id.name +')' : '')+
+                                        (siteInfo.facility_id.address_id.street ? ', ' + siteInfo.facility_id.address_id.street : '')+
+                                        (siteInfo.facility_id.address_id.building ? ', ' + siteInfo.facility_id.address_id.building : '')+
+                                        (siteInfo.facility_id.address_id.note ? ', ' + siteInfo.facility_id.address_id.note : '')+
+                                        (siteInfo.facility_id.address_id.cadastral_number ? ', ' + siteInfo.facility_id.address_id.cadastral_number : '');
+                        $scope.siteRegion = siteInfo.facility_id.address_id.city_id.district_id.oblast_id.region_id ? $scope.regionsMapLC[siteInfo.facility_id.address_id.city_id.district_id.oblast_id.region_id.id] : 'alm';
+                        $scope.siteRegionShow = siteInfo.facility_id.address_id.city_id.district_id.oblast_id.region_id ? siteInfo.facility_id.address_id.city_id.district_id.oblast_id.region_id.name : '';
+                        $scope.regionShortName = siteInfo.facility_id.address_id.city_id.district_id.oblast_id.region_id ? $scope.regionsMap[siteInfo.facility_id.address_id.city_id.district_id.oblast_id.region_id.id] : '';
+                    }
+                    $scope.siteStatus = siteInfo.site_status_id ? siteInfo.site_status_id.name : '';
+                    $scope.siteSubStatus = siteInfo.site_substatus_id ? siteInfo.site_substatus_id.name : '';
+
+                })
 
                 $(function () {
                     $('[data-toggle="tooltip"]').tooltip('fixTitle');
@@ -1145,8 +1148,6 @@
                 var containsRollOut = _.intersection(_.map($scope.jobWorks, 'sapServiceNumber'), rollOutContractWorks);
                 $scope.isPermitDocsNeeded = containsPermit.length > 0;
                 if($scope.mainContract==='Roll-outRevision2020') {
-                    console.log('asdfsdfsd');
-                    console.log(containsRollOut)
                     $scope.isPermitDocsNeeded = containsRollOut.length > 0;
                 }
                 if(!contains){
@@ -1235,10 +1236,15 @@
         <div class="col-sm-3">
             <div class="input-group">
                 <input type="text" ng-model="site_name" name="site_name" typeahead="site as sites.site_name for sites in getSite($viewValue)" typeahead-on-select="siteSelected($item,$model,$label)" class="form-control" required autocomplete="off" placeholder="Site Name">
-                <input type="hidden" ng-model="site" name="siteId" required/>
+                <input type="hidden" ng-model="siteName" name="siteId" required/>
                 <span class="input-group-btn" ng-if="siteName" data-toggle="tooltip" data-placement="right" title="Site status">
                     <button type="button" class="btn btn-default">
-                        {{siteStatus ? siteStatus : 'working site'}}
+                        {{siteStatus ? siteStatus : 'Working site'}}
+                    </button>
+                </span>
+                <span class="input-group-btn" ng-if="siteName" data-toggle="tooltip" data-placement="right" title="Site substatus">
+                    <button type="button" class="btn btn-default">
+                        {{siteSubStatus ? siteSubStatus : 'Working site'}}
                     </button>
                 </span>
             </div>
@@ -1246,14 +1252,16 @@
             <label class="error" ng-if="kcell_form.siteId.$error.required && ( kcell_form.siteName.$touched || view.submitted)">Необходимо выбрать сайт из списка</label>
         </div>
     </div>
-    <div class="form-group" ng-show="siteName.startsWith('9')">
-        <label class="col-sm-3 control-label">Site region:</label>
+    <div class="form-group" ng-if="siteRegionShow">
+        <label class="col-sm-3 control-label">Region:</label>
         <div class="col-sm-3">
-            <select class="form-control selectpicker" select-picker title="" select-model="regions" ng-model="siteRegion" name="siteRegion" ng-change="regionSelected(siteRegion)" required="true">
-                <option value="">select region for mobile site</option>
-                <option value="{{r.id}}" ng-repeat="r in regions" ng-selected="{{r.id == siteRegion}}">{{r.name}}</option>
-            </select>
-            <label class="error" ng-if="siteName.startsWith('9') && kcell_form.siteRegion.$error.required && ( kcell_form.siteRegion.$touched || view.submitted)">Required field</label>
+            <div class="form-control">{{siteRegionShow}}</div>
+        </div>
+    </div>
+    <div class="form-group" ng-if="siteAddress">
+        <label class="col-sm-3 control-label">Site Address:</label>
+        <div class="col-sm-9">
+            <div class="form-control" style="height: auto">{{siteAddress}}</div>
         </div>
     </div>
     <div class="form-group">
