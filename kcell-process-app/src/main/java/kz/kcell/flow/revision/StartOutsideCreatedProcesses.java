@@ -464,13 +464,13 @@ public class StartOutsideCreatedProcesses {
                 ProcessInstance instance = runtimeService.startProcessInstanceById(processDefId, jrno, vars);
                 startedProcessInstances.add(instance.getRootProcessInstanceId());
             }
+        }
 
-            for(String pid: startedProcessInstances){
-                ProcessInstanceModificationBuilder builder1 = runtimeService.createProcessInstanceModification(pid);
-                builder1.startBeforeActivity("IntermediateThrowEvent_open_not_performed1");
-                builder1.cancelAllForActivity("SubProcess_0cd7y34");
-                builder1.executeAsync();
-            }
+        for(String pid: startedProcessInstances){
+            ProcessInstanceModificationBuilder builder1 = runtimeService.createProcessInstanceModification(pid);
+            builder1.startBeforeActivity("IntermediateThrowEvent_open_not_performed1");
+            builder1.cancelAllForActivity("SubProcess_0cd7y34");
+            builder1.executeAsync();
         }
 
         httpclient.close();
