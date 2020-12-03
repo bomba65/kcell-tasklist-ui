@@ -278,204 +278,198 @@ public class StartOutsideCreatedProcesses {
 
         List<String> startedProcessInstances = new ArrayList<>();
 
-        int limit = 1;
-        int t = 0;
         for (JsonNode data : json) {
-            if(t<limit){
-                String jrno = data.get("jrno").asText();
+            String jrno = data.get("jrno").asText();
 
-                long count = runtimeService.createProcessInstanceQuery().processDefinitionKey("Revision").processInstanceBusinessKey(jrno).count();
+            long count = runtimeService.createProcessInstanceQuery().processDefinitionKey("Revision").processInstanceBusinessKey(jrno).count();
 
-                if(count == 0L){
-                    Map<String, Object> vars = new HashMap<>();
-                    vars.put("contract", 1);
-                    vars.put("contractor", 4);
-                    vars.put("createJRResult", "approved");
-                    vars.put("explanation", data.get("comments").asText());
+            if(count == 0L){
+                Map<String, Object> vars = new HashMap<>();
+                vars.put("contract", 1);
+                vars.put("contractor", 4);
+                vars.put("createJRResult", "approved");
+                vars.put("explanation", data.get("comments").asText());
 
-                    String requestedBy = data.get("requestedBy").asText().trim();
-                    String firstName = requestedBy.substring(0, requestedBy.indexOf(".")).toLowerCase();
-                    firstName = firstName.substring(0,1).toUpperCase() + firstName.substring(1);
-                    String lastName = requestedBy.substring(requestedBy.indexOf(".")+1).toLowerCase();
-                    lastName = lastName.substring(0,1).toUpperCase() + lastName.substring(1);
+                String requestedBy = data.get("requestedBy").asText().trim();
+                String firstName = requestedBy.substring(0, requestedBy.indexOf(".")).toLowerCase();
+                firstName = firstName.substring(0,1).toUpperCase() + firstName.substring(1);
+                String lastName = requestedBy.substring(requestedBy.indexOf(".")+1).toLowerCase();
+                lastName = lastName.substring(0,1).toUpperCase() + lastName.substring(1);
 
-                    ObjectNode initiatorFull = mapper.createObjectNode();
-                    initiatorFull.put("id", firstName + "." + lastName + "@kcell.kz");
-                    initiatorFull.put("email", firstName + "." + lastName + "@kcell.kz");
-                    initiatorFull.put("firstName", firstName);
-                    initiatorFull.put("lastName", lastName);
-                    // {"id":"demo","firstName":"Demo","lastName":"Demo","email":"demo@camunda.org"}
+                ObjectNode initiatorFull = mapper.createObjectNode();
+                initiatorFull.put("id", firstName + "." + lastName + "@kcell.kz");
+                initiatorFull.put("email", firstName + "." + lastName + "@kcell.kz");
+                initiatorFull.put("firstName", firstName);
+                initiatorFull.put("lastName", lastName);
+                // {"id":"demo","firstName":"Demo","lastName":"Demo","email":"demo@camunda.org"}
 
-                    vars.put("initiatorFull", SpinJsonNode.JSON(initiatorFull.toString()));
-                    vars.put("isNewProcessCreated", "false");
+                vars.put("initiatorFull", SpinJsonNode.JSON(initiatorFull.toString()));
+                vars.put("isNewProcessCreated", "false");
 
-                    String jobDescription = data.get("jobDescription").asText();
-                    Boolean opticalWork = false;
-                    for(String opw: opticalWorks){
-                        if(jobDescription.contains(opw+" ")){
-                            opticalWork = true;
-                        }
+                String jobDescription = data.get("jobDescription").asText();
+                Boolean opticalWork = false;
+                for(String opw: opticalWorks){
+                    if(jobDescription.contains(opw+" ")){
+                        opticalWork = true;
                     }
-                    vars.put("isOptical", opticalWork);
-                    vars.put("isPermitDocsNeeded", "false");
-                    vars.put("jrNumber", jrno);
-                    vars.put("leasingRequired", "No");
-                    vars.put("leasingRequiredCheckbox", false);
-                    vars.put("mainContract", "Roll-outRevision2020");
-                    vars.put("materialsRequired", "No");
-                    vars.put("materialsRequiredCheckbox", false);
-                    vars.put("powerRequiredCheckbox", false);
-                    vars.put("powerRequired", "No");
-                    vars.put("prCreationInProgress", false);
-                    vars.put("priority", "regular");
-                    vars.put("project", "N/A");
-                    vars.put("ptype", "prod");
-                    vars.put("ptypeCheckbox", false);
-                    vars.put("sendNotifyToRegionHeads", false);
-                    vars.put("worksBelongsTo", "No");
+                }
+                vars.put("isOptical", opticalWork);
+                vars.put("isPermitDocsNeeded", "false");
+                vars.put("jrNumber", jrno);
+                vars.put("leasingRequired", "No");
+                vars.put("leasingRequiredCheckbox", false);
+                vars.put("mainContract", "Roll-outRevision2020");
+                vars.put("materialsRequired", "No");
+                vars.put("materialsRequiredCheckbox", false);
+                vars.put("powerRequiredCheckbox", false);
+                vars.put("powerRequired", "No");
+                vars.put("prCreationInProgress", false);
+                vars.put("priority", "regular");
+                vars.put("project", "N/A");
+                vars.put("ptype", "prod");
+                vars.put("ptypeCheckbox", false);
+                vars.put("sendNotifyToRegionHeads", false);
+                vars.put("worksBelongsTo", "No");
 
-                    Calendar calendar = Calendar.getInstance();
-                    calendar.add(Calendar.HOUR, 6);
+                Calendar calendar = Calendar.getInstance();
+                calendar.add(Calendar.HOUR, 6);
 
-                    vars.put("requestedDate", calendar.getTime());
-                    vars.put("siteRegion", regions.get(data.get("region").asText()));
-                    vars.put("reason", reasons.get(data.get("jrReason").asText()));
-                    // vars.put("sendNotifyToRegionHeads", sendToHeadWorks.)
+                vars.put("requestedDate", calendar.getTime());
+                vars.put("siteRegion", regions.get(data.get("region").asText()));
+                vars.put("reason", reasons.get(data.get("jrReason").asText()));
+                // vars.put("sendNotifyToRegionHeads", sendToHeadWorks.)
 
-                    vars.put("relatedTo", "Field works");
+                vars.put("relatedTo", "Field works");
 
-                    SimpleDateFormat fff = new SimpleDateFormat("MM/dd/yy");
-                    Calendar requestedDate = Calendar.getInstance();
-                    requestedDate.setTime(fff.parse(data.get("requestedDate").asText()));
-                    requestedDate.add(Calendar.HOUR, 6);
+                SimpleDateFormat fff = new SimpleDateFormat("MM/dd/yy");
+                Calendar requestedDate = Calendar.getInstance();
+                requestedDate.setTime(fff.parse(data.get("requestedDate").asText()));
+                requestedDate.add(Calendar.HOUR, 6);
 
-                    ArrayNode resolutions = (ArrayNode) mapper.createArrayNode();
-                    ObjectNode res = mapper.createObjectNode();
-                    res.put("processInstanceId", "noProcessInstanceId");
-                    res.put("assignee", firstName + "." + lastName + "@kcell.kz");
-                    res.put("assigneeName", firstName + " " + lastName);
-                    res.put("resolution", "created");
-                    res.put("comment", "Процесс был создан для работы с заявками из системы RN-RS. " + data.get("comments").asText());
-                    res.put( "taskId", "noTaskId");
-                    res.put( "taskName", "Job Request Start");
-                    res.put( "taskEndDate", new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXX").format(requestedDate.getTime()));
-                    res.put( "visibility", "all");
-                    resolutions.add(res);
-                    vars.put("resolutions", SpinJsonNode.JSON(resolutions.toString()));
+                ArrayNode resolutions = (ArrayNode) mapper.createArrayNode();
+                ObjectNode res = mapper.createObjectNode();
+                res.put("processInstanceId", "noProcessInstanceId");
+                res.put("assignee", firstName + "." + lastName + "@kcell.kz");
+                res.put("assigneeName", firstName + " " + lastName);
+                res.put("resolution", "created");
+                res.put("comment", "Процесс был создан для работы с заявками из системы RN-RS. " + data.get("comments").asText());
+                res.put( "taskId", "noTaskId");
+                res.put( "taskName", "Job Request Start");
+                res.put( "taskEndDate", new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXX").format(requestedDate.getTime()));
+                res.put( "visibility", "all");
+                resolutions.add(res);
+                vars.put("resolutions", SpinJsonNode.JSON(resolutions.toString()));
 
-                    vars.put("starter", firstName + "." + lastName + "@kcell.kz");
+                vars.put("starter", firstName + "." + lastName + "@kcell.kz");
 
-                    vars.put("contractorJobAssignedDate", requestedDate.getTime());
-                    vars.put("isNewProcessCreated", false);
-                    vars.put("isPermitDocsNeeded", false);
+                vars.put("contractorJobAssignedDate", requestedDate.getTime());
+                vars.put("isNewProcessCreated", false);
+                vars.put("isPermitDocsNeeded", false);
 
-                    ArrayNode jobWorks = mapper.createArrayNode();
+                ArrayNode jobWorks = mapper.createArrayNode();
 
-                    ArrayNode relatedSites = mapper.createArrayNode();
+                ArrayNode relatedSites = mapper.createArrayNode();
 
-                    List<String> siteNames = new ArrayList<>();
+                List<String> siteNames = new ArrayList<>();
 
-                    if(data.get("sitename").asText().contains(";")){
-                        StringTokenizer bySemicolon = new StringTokenizer(data.get("sitename").asText(), ";");
-                        while(bySemicolon.hasMoreTokens()){
-                            String sitename = bySemicolon.nextToken().trim();
-                            siteNames.add(sitename);
-                        }
-                    } else {
-                        siteNames.add(data.get("sitename").asText());
+                if(data.get("sitename").asText().contains(";")){
+                    StringTokenizer bySemicolon = new StringTokenizer(data.get("sitename").asText(), ";");
+                    while(bySemicolon.hasMoreTokens()){
+                        String sitename = bySemicolon.nextToken().trim();
+                        siteNames.add(sitename);
                     }
-
-                    boolean siteDataPut = false;
-                    for (String sitename: siteNames){
-                        HttpGet httpGet = new HttpGet(baseUri + "/asset-management/api/sites/search/findByNameIgnoreCaseContaining?name=" + sitename.replaceAll("\\D+",""));
-                        httpGet.addHeader("Content-Type", "application/json;charset=UTF-8");
-                        httpGet.addHeader("Referer", baseUri);
-                        HttpResponse response = httpclient.execute(httpGet);
-
-                        if(response.getStatusLine().getStatusCode() < 200 || response.getStatusLine().getStatusCode() >= 300){
-                            throw new RuntimeException("Site search by name " + sitename + " returns code " + response.getStatusLine().getStatusCode());
-                        }
-
-                        HttpEntity entity = response.getEntity();
-                        String content = EntityUtils.toString(entity);
-
-                        JSONObject siteDetail = new JSONObject(content);
-                        EntityUtils.consume(response.getEntity());
-
-                        if(siteDetail.getJSONObject("_embedded").getJSONArray("sites").length() > 0){
-                            ObjectNode relatedSite = mapper.createObjectNode();
-                            relatedSite.put("name", siteDetail.getJSONObject("_embedded").getJSONArray("sites").getJSONObject(0).getString("name"));
-                            relatedSite.put("site_name", sitename);
-                            relatedSite.put("id", siteDetail.getJSONObject("_embedded").getJSONArray("sites").getJSONObject(0).getJSONObject("_links").getJSONObject("self").getString("href").replace(baseUri + "/asset-management/api/sites/",""));
-                            relatedSite.set("params", mapper.readTree(siteDetail.getJSONObject("_embedded").getJSONArray("sites").getJSONObject(0).getJSONObject("params").toString()));
-                            relatedSites.add(relatedSite);
-
-                            if(!siteDataPut){
-                                vars.put("site", Integer.valueOf(siteDetail.getJSONObject("_embedded").getJSONArray("sites").getJSONObject(0).getJSONObject("_links").getJSONObject("self").getString("href").replace(baseUri + "/asset-management/api/sites/","")));
-                                vars.put("site_name", sitename);
-                                vars.put("siteName", siteDetail.getJSONObject("_embedded").getJSONArray("sites").getJSONObject(0).getString("name"));
-                                vars.put("siteStatus", "working site");
-                                siteDataPut = true;
-                            }
-                        }
-                    }
-
-                    List<String> sapServiceNumbers = new ArrayList<>();
-                    List<String> numbers = new ArrayList<>();
-
-                    Pattern p = Pattern.compile("\\d+\\.\\d+");
-                    Matcher m = p.matcher(jobDescription);
-                    while (m.find()) {
-                        sapServiceNumbers.add(m.group());
-                    }
-
-                    Pattern p1 = Pattern.compile("- \\d+");
-                    Matcher m1 = p1.matcher(jobDescription);
-                    while (m1.find()) {
-                        numbers.add(m1.group());
-                    }
-
-                    JSONArray works = catalogs.getJSONArray("works");
-
-                    int it = 0;
-                    for(String job: sapServiceNumbers){
-                        ObjectNode jobWork = mapper.createObjectNode();
-                        jobWork.put("sapServiceNumber", job);
-                        jobWork.set("relatedSites", relatedSites);
-
-                        for(int j=0; j<works.length(); j++){
-                            if(job.equals(works.getJSONObject(j).getString("sapServiceNumber"))){
-                                jobWork.put("displayServiceName", works.getJSONObject(j).getString("displayServiceName"));
-                                jobWork.put("materialUnit", works.getJSONObject(j).getString("units"));
-                                jobWork.put("quantity", Integer.valueOf(numbers.get(it).replace("- ", "")));
-                                jobWork.put("materialsProvidedByDisabled", kcellMaterials.contains(job) || subContractorsMaterials.contains(job));
-                                jobWork.put("materialsProvidedBy", subContractorsMaterials.contains(job) ? "subcontractor" : "kcell");
-                            }
-                        }
-                        jobWorks.add(jobWork);
-                        it++;
-                    }
-                    vars.put("jobWorks", SpinJsonNode.JSON(jobWorks.toString()));
-                    vars.put("createdAutomatically", true);
-                    vars.put("regionGroupHeadApprovalTaskResult", "approved");
-                    vars.put("validityDate", calendar.getTime());
-
-                    for (Map.Entry<String,Object> entry: vars.entrySet()){
-                        System.out.println("key = " + entry.getKey() + ", value = " + entry.getValue());
-                    }
-
-                    ProcessInstance instance = runtimeService.startProcessInstanceById(processDefId, jrno, vars);
-                    startedProcessInstances.add(instance.getRootProcessInstanceId());
+                } else {
+                    siteNames.add(data.get("sitename").asText());
                 }
 
-                for(String pid: startedProcessInstances){
-                    ProcessInstanceModificationBuilder builder1 = runtimeService.createProcessInstanceModification(pid);
-                    builder1.startBeforeActivity("IntermediateThrowEvent_open_not_performed1");
-                    builder1.cancelAllForActivity("SubProcess_0cd7y34");
-                    builder1.executeAsync();
+                boolean siteDataPut = false;
+                for (String sitename: siteNames){
+                    HttpGet httpGet = new HttpGet(baseUri + "/asset-management/api/sites/search/findByNameIgnoreCaseContaining?name=" + sitename.replaceAll("\\D+",""));
+                    httpGet.addHeader("Content-Type", "application/json;charset=UTF-8");
+                    httpGet.addHeader("Referer", baseUri);
+                    HttpResponse response = httpclient.execute(httpGet);
+
+                    if(response.getStatusLine().getStatusCode() < 200 || response.getStatusLine().getStatusCode() >= 300){
+                        throw new RuntimeException("Site search by name " + sitename + " returns code " + response.getStatusLine().getStatusCode());
+                    }
+
+                    HttpEntity entity = response.getEntity();
+                    String content = EntityUtils.toString(entity);
+
+                    JSONObject siteDetail = new JSONObject(content);
+                    EntityUtils.consume(response.getEntity());
+
+                    if(siteDetail.getJSONObject("_embedded").getJSONArray("sites").length() > 0){
+                        ObjectNode relatedSite = mapper.createObjectNode();
+                        relatedSite.put("name", siteDetail.getJSONObject("_embedded").getJSONArray("sites").getJSONObject(0).getString("name"));
+                        relatedSite.put("site_name", sitename);
+                        relatedSite.put("id", siteDetail.getJSONObject("_embedded").getJSONArray("sites").getJSONObject(0).getJSONObject("_links").getJSONObject("self").getString("href").replace(baseUri + "/asset-management/api/sites/",""));
+                        relatedSite.set("params", mapper.readTree(siteDetail.getJSONObject("_embedded").getJSONArray("sites").getJSONObject(0).getJSONObject("params").toString()));
+                        relatedSites.add(relatedSite);
+
+                        if(!siteDataPut){
+                            vars.put("site", Integer.valueOf(siteDetail.getJSONObject("_embedded").getJSONArray("sites").getJSONObject(0).getJSONObject("_links").getJSONObject("self").getString("href").replace(baseUri + "/asset-management/api/sites/","")));
+                            vars.put("site_name", sitename);
+                            vars.put("siteName", siteDetail.getJSONObject("_embedded").getJSONArray("sites").getJSONObject(0).getString("name"));
+                            vars.put("siteStatus", "working site");
+                            siteDataPut = true;
+                        }
+                    }
                 }
 
-                t++;
+                List<String> sapServiceNumbers = new ArrayList<>();
+                List<String> numbers = new ArrayList<>();
+
+                Pattern p = Pattern.compile("\\d+\\.\\d+");
+                Matcher m = p.matcher(jobDescription);
+                while (m.find()) {
+                    sapServiceNumbers.add(m.group());
+                }
+
+                Pattern p1 = Pattern.compile("- \\d+");
+                Matcher m1 = p1.matcher(jobDescription);
+                while (m1.find()) {
+                    numbers.add(m1.group());
+                }
+
+                JSONArray works = catalogs.getJSONArray("works");
+
+                int it = 0;
+                for(String job: sapServiceNumbers){
+                    ObjectNode jobWork = mapper.createObjectNode();
+                    jobWork.put("sapServiceNumber", job);
+                    jobWork.set("relatedSites", relatedSites);
+
+                    for(int j=0; j<works.length(); j++){
+                        if(job.equals(works.getJSONObject(j).getString("sapServiceNumber"))){
+                            jobWork.put("displayServiceName", works.getJSONObject(j).getString("displayServiceName"));
+                            jobWork.put("materialUnit", works.getJSONObject(j).getString("units"));
+                            jobWork.put("quantity", Integer.valueOf(numbers.get(it).replace("- ", "")));
+                            jobWork.put("materialsProvidedByDisabled", kcellMaterials.contains(job) || subContractorsMaterials.contains(job));
+                            jobWork.put("materialsProvidedBy", subContractorsMaterials.contains(job) ? "subcontractor" : "kcell");
+                        }
+                    }
+                    jobWorks.add(jobWork);
+                    it++;
+                }
+                vars.put("jobWorks", SpinJsonNode.JSON(jobWorks.toString()));
+                vars.put("createdAutomatically", true);
+                vars.put("regionGroupHeadApprovalTaskResult", "approved");
+                vars.put("validityDate", calendar.getTime());
+
+                for (Map.Entry<String,Object> entry: vars.entrySet()){
+                    System.out.println("key = " + entry.getKey() + ", value = " + entry.getValue());
+                }
+
+                ProcessInstance instance = runtimeService.startProcessInstanceById(processDefId, jrno, vars);
+                startedProcessInstances.add(instance.getRootProcessInstanceId());
+            }
+
+            for(String pid: startedProcessInstances){
+                ProcessInstanceModificationBuilder builder1 = runtimeService.createProcessInstanceModification(pid);
+                builder1.startBeforeActivity("IntermediateThrowEvent_open_not_performed1");
+                builder1.cancelAllForActivity("SubProcess_0cd7y34");
+                builder1.executeAsync();
             }
         }
 
