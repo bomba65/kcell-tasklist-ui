@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" xmlns:bioc="http://bpmn.io/schema/bpmn/biocolor/1.0" id="Definitions_1" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="4.4.0">
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" xmlns:bioc="http://bpmn.io/schema/bpmn/biocolor/1.0" id="Definitions_1" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="4.2.0">
   <bpmn:process id="Revision" name="Revision" isExecutable="true">
     <bpmn:documentation>Approve materials by Center Rollout Group</bpmn:documentation>
     <bpmn:subProcess id="SubProcess_0cwj4g6" name="Revision Leasing Procedures">
@@ -1550,7 +1550,7 @@
           </camunda:field>
         </camunda:executionListener>
       </bpmn:extensionElements>
-      <bpmn:incoming>SequenceFlow_11kiyz5</bpmn:incoming>
+      <bpmn:incoming>Flow_03dwbfe</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_0hpzq8v</bpmn:outgoing>
       <bpmn:conditionalEventDefinition camunda:variableName="acceptPerformedJob" camunda:variableEvent="update">
         <bpmn:condition xsi:type="bpmn:tFormalExpression">${acceptPerformedJob == 'invoiced'}</bpmn:condition>
@@ -2224,7 +2224,7 @@
       <bpmn:outgoing>SequenceFlow_02gbb0r</bpmn:outgoing>
       <bpmn:outgoing>SequenceFlow_0yhf8vm</bpmn:outgoing>
     </bpmn:exclusiveGateway>
-    <bpmn:sequenceFlow id="SequenceFlow_02gbb0r" name="Revision" sourceRef="exclgw_contract_type_out" targetRef="intermediate_set_site_status">
+    <bpmn:sequenceFlow id="SequenceFlow_02gbb0r" name="Revision" sourceRef="exclgw_contract_type_out" targetRef="send_data_assets_db">
       <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${mainContract == 'Revision' || mainContract == 'Roll-outRevision2020'}</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
     <bpmn:exclusiveGateway id="exclgw_contract_type_in">
@@ -2260,14 +2260,6 @@
       <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${mainContract == 'Roll-out'}</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
     <bpmn:sequenceFlow id="SequenceFlow_1k2zv0a" sourceRef="intermediate_wait_acts_passed" targetRef="exclgw_contract_type_in" />
-    <bpmn:intermediateThrowEvent id="intermediate_set_site_status" name="Set Site Status">
-      <bpmn:extensionElements>
-        <camunda:executionListener delegateExpression="${revisionSetSiteStatus}" event="start" />
-      </bpmn:extensionElements>
-      <bpmn:incoming>SequenceFlow_02gbb0r</bpmn:incoming>
-      <bpmn:outgoing>SequenceFlow_11kiyz5</bpmn:outgoing>
-    </bpmn:intermediateThrowEvent>
-    <bpmn:sequenceFlow id="SequenceFlow_11kiyz5" sourceRef="intermediate_set_site_status" targetRef="intermediate_wait_invoiced" />
     <bpmn:sequenceFlow id="Flow_0acp2ee" sourceRef="startevt_revision_initial" targetRef="ExclusiveGateway_0gr4gnr" />
     <bpmn:intermediateThrowEvent id="Event_069ff80">
       <bpmn:incoming>Flow_0cyz635</bpmn:incoming>
@@ -2354,6 +2346,11 @@
       <bpmn:incoming>Flow_1lcu6m6</bpmn:incoming>
       <bpmn:outgoing>Flow_0ub20gr</bpmn:outgoing>
     </bpmn:userTask>
+    <bpmn:sequenceFlow id="Flow_03dwbfe" sourceRef="send_data_assets_db" targetRef="intermediate_wait_invoiced" />
+    <bpmn:serviceTask id="send_data_assets_db" name="Send data to Assets DB" camunda:delegateExpression="${sendDataAssetsDb}">
+      <bpmn:incoming>SequenceFlow_02gbb0r</bpmn:incoming>
+      <bpmn:outgoing>Flow_03dwbfe</bpmn:outgoing>
+    </bpmn:serviceTask>
     <bpmn:textAnnotation id="TextAnnotation_189rkq0">
       <bpmn:text>Infrormation is taken from step "Fill Applied Changes Info by Contractor"</bpmn:text>
     </bpmn:textAnnotation>
@@ -2452,10 +2449,6 @@
         <di:waypoint x="191" y="2052" />
         <di:waypoint x="208" y="2052" />
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="SequenceFlow_11kiyz5_di" bpmnElement="SequenceFlow_11kiyz5">
-        <di:waypoint x="13656" y="2104" />
-        <di:waypoint x="13736" y="2104" />
-      </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_1k2zv0a_di" bpmnElement="SequenceFlow_1k2zv0a">
         <di:waypoint x="13725" y="1910" />
         <di:waypoint x="13830" y="1910" />
@@ -2475,10 +2468,10 @@
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_02gbb0r_di" bpmnElement="SequenceFlow_02gbb0r">
         <di:waypoint x="13575" y="2033" />
-        <di:waypoint x="13575" y="2104" />
-        <di:waypoint x="13620" y="2104" />
+        <di:waypoint x="13575" y="2089" />
+        <di:waypoint x="13600" y="2089" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="13579" y="2041" width="43" height="14" />
+          <dc:Bounds x="13577" y="2033" width="43" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_056ibcx_di" bpmnElement="SequenceFlow_056ibcx">
@@ -2818,6 +2811,13 @@
           <dc:Bounds x="4934" y="2239" width="82" height="27" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_03dwbfe_di" bpmnElement="Flow_03dwbfe">
+        <di:waypoint x="13700" y="2104" />
+        <di:waypoint x="13736" y="2104" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="Activity_1lmz1zi_di" bpmnElement="send_data_assets_db">
+        <dc:Bounds x="13600" y="2064" width="100" height="80" />
+      </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="SubProcess_0cwj4g6_di" bpmnElement="SubProcess_0cwj4g6" isExpanded="true">
         <dc:Bounds x="2830" y="2250" width="703" height="367" />
       </bpmndi:BPMNShape>
@@ -5266,12 +5266,6 @@
         <dc:Bounds x="13689" y="1892" width="36" height="36" />
         <bpmndi:BPMNLabel>
           <dc:Bounds x="13675" y="1930" width="81" height="40" />
-        </bpmndi:BPMNLabel>
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="IntermediateThrowEvent_0fwpzwq_di" bpmnElement="intermediate_set_site_status">
-        <dc:Bounds x="13620" y="2086" width="36" height="36" />
-        <bpmndi:BPMNLabel>
-          <dc:Bounds x="13604" y="2129" width="73" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Event_069ff80_di" bpmnElement="Event_069ff80" bioc:stroke="rgb(251, 140, 0)" bioc:fill="rgb(255, 224, 178)">
