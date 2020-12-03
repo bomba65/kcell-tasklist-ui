@@ -196,6 +196,18 @@
                     type: 'String',
                     submit: true,
                     store: true
+                },
+                {
+                    name: 'siteSubStatus',
+                    type: 'String',
+                    submit: true,
+                    store: true
+                },
+                {
+                    name: 'siteToSubStatus',
+                    type: 'String',
+                    submit: true,
+                    store: true
                 }
             ];
             var uuid = new Date().getTime();
@@ -205,6 +217,8 @@
             $scope.catalogs = {};
             $scope.siteStatus = undefined;
             $scope.siteToStatus = undefined;
+            $scope.siteSubStatus = undefined;
+            $scope.siteToSubStatus = undefined;
 
 
             $scope.siteInformation = [
@@ -346,12 +360,21 @@
             };
 
             $scope.siteSelected = function ($item) {
+                console.log($item);
                 $scope.siteName = $item.site_name;
                 $scope.site = $item.id;
                 $scope.site_name = $item.site_name;
-                $http.get($rootScope.assetsServerUrl + '/asset-management/sites/id/'+$scope.site).then(
+                $http.get($rootScope.assetsServerUrl + '/asset-management/sites/siteid/'+$item.siteid).then(
                     function(response){
+                        var workingSite = undefined;
+                        response.data.forEach(function(e){
+                            if(e.site_status_id && e.site_status_id.name && e.site_status_id.name.toLowerCase() === 'working site'){
+                                workingSite = e;
+                            }
+                        });
+                        response.data = workingSite;
                         $scope.siteStatus = response.data.site_status_id.name.toLowerCase();
+                        $scope.siteSubStatus = response.data.site_substatus_id && response.data.site_substatus_id.name ?  response.data.site_substatus_id.name.toLowerCase() : null;
                         if ($scope.siteName.startsWith('11')) {
                             $scope.regionShortName = $scope.regionsMap['11'];
                             $scope.siteRegion = $scope.regionsMapLC['11'];
@@ -384,9 +407,11 @@
                 $scope.siteToName = $item.site_name;
                 $scope.siteTo = $item.id;
                 $scope.site_to_name = $item.site_name;
-                $http.get($rootScope.assetsServerUrl + '/asset-management/sites/id/'+$scope.siteTo).then(
+                $http.get($rootScope.assetsServerUrl + '/asset-management/sites/siteid/'+$item.siteid).then(
                     function(response){
+                        response.data = response.data[0];
                         $scope.siteToStatus = response.data.site_status_id.name.toLowerCase();
+                        $scope.siteToSubStatus = response.data.site_substatus_id && response.data.site_substatus_id.name ?  response.data.site_substatus_id.name.toLowerCase() : null;
                         if ($scope.siteToName.startsWith('11')) {
                             $scope.siteToRegionShortName = $scope.regionsMap['11'];
                             $scope.siteToRegion = $scope.regionsMapLC['11'];
@@ -407,7 +432,7 @@
                         (response.data.facility_id.address_id.building ? ', ' + response.data.facility_id.address_id.building : '')+
                         (response.data.facility_id.address_id.note ? ', ' + response.data.facility_id.address_id.note : '')+
                         (response.data.facility_id.address_id.cadastral_number ? ', ' + response.data.facility_id.address_id.cadastral_number : '');
-
+                        console.log($scope.siteTAddress);
                         $(function () {
                             $('[data-toggle="tooltip"]').tooltip('fixTitle');
                         });
@@ -655,9 +680,14 @@
             <div class="input-group">
                 <input type="text" ng-model="site_name" name="site_name" typeahead="site as sites.site_name for sites in getSite($viewValue)" typeahead-on-select="siteSelected($item,$model,$label)" class="form-control" required autocomplete="off" placeholder="Site Name">
                 <input type="hidden" ng-model="site" name="siteId" required/>
-                <span class="input-group-btn" ng-if="siteName" data-toggle="tooltip" data-placement="right" title="Site (from) status">
+                    <span class="input-group-btn" ng-if="siteName" data-toggle="tooltip" data-placement="right" title="Site (from) status">
                     <button type="button" class="btn btn-default">
                         {{siteStatus ? siteStatus : 'working site'}}
+                    </button>
+                </span>
+                <span class="input-group-btn" ng-if="siteName" data-toggle="tooltip" data-placement="right" title="Site sub status">
+                    <button type="button" class="btn btn-default">
+                        {{siteSubStatus ? siteSubStatus : 'no subStatus'}}
                     </button>
                 </span>
             </div>
@@ -665,10 +695,6 @@
             <label class="error" ng-if="kcell_form.siteId.$error.required && ( kcell_form.siteName.$touched || view.submitted)">Please choose site from list</label>
             <label class="error" ng-if="site_name && siteStatus !== 'working site'">Only working site allowed to be replaced</label>
         </div>
-        <div class="col-sm-7">
-            <input type="tel" class="form-control" name="siteAddress" cam-variable-name="siteAddress" cam-variable-type="String" maxlength="1500" rows="4" required placeholder="Site address..." />
-        </div>
-
         <div ng-if="siteName.startsWith('9')">
             <label class="col-sm-2 control-label">Site (from) region:</label>
             <div class="col-sm-3">
@@ -691,14 +717,15 @@
                         {{siteToStatus ? siteToStatus : 'working site'}}
                     </button>
                 </span>
+                <span class="input-group-btn" ng-if="siteToName" data-toggle="tooltip" data-placement="right" title="Site sub status">
+                    <button type="button" class="btn btn-default">
+                        {{siteToSubStatus ? siteToSubStatus : 'no subStatus'}}
+                    </button>
+                </span>
                 <label class="error" ng-if="kcell_form.site_to_name.$error.required && ( kcell_form.site_to_name.$touched || view.submitted)">Required field</label>
                 <label class="error" ng-if="kcell_form.siteToId.$error.required && ( kcell_form.siteToName.$touched || view.submitted)">Please choose site from list</label>
             </div>
         </div>
-        <div class="col-sm-7">
-            <input type="tel" class="form-control" name="siteTAddress" cam-variable-name="siteTAddress" cam-variable-type="String" maxlength="1500" rows="4" required placeholder="Site address..." />
-        </div>
-
         <div ng-if="siteToName.startsWith('9')">
             <label class="col-sm-2 control-label">Site (to) region:</label>
             <div class="col-sm-3">
@@ -957,14 +984,14 @@
     <div class="form-group">
         <label class="col-sm-3 control-label">Address:</label>
         <div class="col-sm-3">
-            <textarea class="form-control" name="siteFromAddress" cam-variable-name="siteFromAddress" cam-variable-type="String" maxlength="1500" rows="4" required></textarea>
-            <label class="error" ng-if="kcell_form.siteFromAddress.$error.required && ( kcell_form.siteFromAddress.$touched || view.submitted)">Required field</label>
+            <textarea class="form-control" name="siteAddress" cam-variable-name="siteAddress" cam-variable-type="String" maxlength="1500" rows="4" required></textarea>
+            <label class="error" ng-if="kcell_form.siteAddress.$error.required && ( kcell_form.siteAddress.$touched || view.submitted)">Required field</label>
         </div>
 
         <label class="col-sm-3 control-label">Address:</label>
         <div class="col-sm-3">
-            <textarea class="form-control" name="siteToAddress" cam-variable-name="siteToAddress" cam-variable-type="String" maxlength="1500" rows="4" required></textarea>
-            <label class="error" ng-if="kcell_form.siteToAddress.$error.required && ( kcell_form.siteToAddress.$touched || view.submitted)">Required field</label>
+            <textarea class="form-control" name="siteTAddress" cam-variable-name="siteTAddress" cam-variable-type="String" maxlength="1500" rows="4" required></textarea>
+            <label class="error" ng-if="kcell_form.siteTAddress.$error.required && ( kcell_form.siteTAddress.$touched || view.submitted)">Required field</label>
         </div>        
     </div>
 
