@@ -406,12 +406,12 @@ public class StartOutsideCreatedProcesses {
                             ObjectNode relatedSite = mapper.createObjectNode();
                             relatedSite.put("name", siteDetail.getJSONObject("_embedded").getJSONArray("sites").getJSONObject(0).getString("name"));
                             relatedSite.put("site_name", sitename);
-                            relatedSite.put("id", siteDetail.getJSONObject("_embedded").getJSONArray("sites").getJSONObject(0).getJSONObject("_links").getJSONObject("self").getString("href").replace("http://localhost/asset-management/api/sites/",""));
+                            relatedSite.put("id", siteDetail.getJSONObject("_embedded").getJSONArray("sites").getJSONObject(0).getJSONObject("_links").getJSONObject("self").getString("href").replace(baseUri + "/asset-management/api/sites/",""));
                             relatedSite.set("params", mapper.readTree(siteDetail.getJSONObject("_embedded").getJSONArray("sites").getJSONObject(0).getJSONObject("params").toString()));
                             relatedSites.add(relatedSite);
 
                             if(!siteDataPut){
-                                vars.put("site", Integer.valueOf(siteDetail.getJSONObject("_embedded").getJSONArray("sites").getJSONObject(0).getJSONObject("_links").getJSONObject("self").getString("href").replace("http://localhost/asset-management/api/sites/","")));
+                                vars.put("site", Integer.valueOf(siteDetail.getJSONObject("_embedded").getJSONArray("sites").getJSONObject(0).getJSONObject("_links").getJSONObject("self").getString("href").replace(baseUri + "/asset-management/api/sites/","")));
                                 vars.put("site_name", sitename);
                                 vars.put("siteName", siteDetail.getJSONObject("_embedded").getJSONArray("sites").getJSONObject(0).getString("name"));
                                 vars.put("siteStatus", "working site");
