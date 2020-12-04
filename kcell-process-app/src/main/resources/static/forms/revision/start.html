@@ -235,6 +235,7 @@
             $scope.showJump = false;
             $scope.siteStatus = undefined;
             $scope.siteSubStatus = undefined;
+            $scope.siteSubStatusId = undefined;
             $scope.siteAddress = undefined;
 
             if($rootScope.authentication.name === 'demo' || $rootScope.authentication.name === 'Yernaz.Kalingarayev@kcell.kz' || $rootScope.authentication.name === 'Askar.Slambekov@kcell.kz' || $rootScope.authentication.name === 'Anzor.Israilov@kcell.kz'){
@@ -1003,7 +1004,8 @@
                             return true;
                         }
                     } else if($scope.mainContract === 'Roll-outRevision2020') {
-                        if ($scope.siteSubStatus !== 'will be dismantled' && $scope.siteSubStatus !== 'will be replacement') {
+                            // siteSubStatus == Will be rqeplacement or Will be dismantled
+                        if ($scope.siteSubStatusId !== 6 && $scope.siteSubStatusId !== 7) {
                             return element.id !== 3007
                         } else {
                             return true;
@@ -1061,13 +1063,13 @@
             $scope.getSite = function(val) {
                 return $http.get($rootScope.assetsServerUrl + '/asset-management/sites/name/contains/'+val).then(
                         function(response){
-                            return response.data.map(el => ({ id: el.id, name: el.siteid, site_name: el.site_name}))
+                            return response.data.map(el => ({ id: el.id, name: el.siteid, site_name: el.site_name }))
                         }
                 );
             };
             $scope.siteSelected = function($item){
-                $scope.siteName = $item.site_name;
-                $scope.site = $item.siteid;
+                $scope.siteName = $item.name;
+                $scope.site = $item.id;
                 $scope.site_name = $item.site_name;
                 $http.get($rootScope.assetsServerUrl + '/asset-management/sites/id/'+$item.id).then(function(result) {
                     var siteInfo = result.data
@@ -1089,7 +1091,7 @@
                     }
                     $scope.siteStatus = siteInfo.site_status_id ? siteInfo.site_status_id.name : '';
                     $scope.siteSubStatus = siteInfo.site_substatus_id ? siteInfo.site_substatus_id.name : '';
-
+                    $scope.siteSubStatusId = siteInfo.site_substatus_id ? siteInfo.site_substatus_id.id : 0;
                 })
 
                 $(function () {
