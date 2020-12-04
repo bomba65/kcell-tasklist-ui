@@ -793,6 +793,7 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                 scope.defaultFarEndCard = false;
                 scope.loadCurrentFarEnd = true;
                 console.log(scope.leasingCandidate.farEndInformation);
+                scope.leasingCandidate.farEndInformationDefault = [...scope.leasingCandidate.farEndInformation]
                 if (scope.leasingCandidate.cellAntenna) {
                     if (scope.leasingCandidate.cellAntenna.cn_du !== null && typeof scope.leasingCandidate.cellAntenna.cn_du == 'string') {
                         scope.leasingCandidate.cellAntenna.cn_du = [scope.leasingCandidate.cellAntenna.cn_du]
@@ -1222,8 +1223,8 @@ console.log(1)
                         exModal.open({
                             templateUrl: './js/partials/confirmModal.html',
                             size: 'sm'
-                        }).then(function(res) {
-                            scope.leasingCandidate.farEndInformation.sort((a,b) => a.farEndSequence - b.farEndSequence)
+                        }).then(function() {
+                            scope.leasingCandidate.farEndInformation = [...scope.leasingCandidate.farEndInformationDefault]
                         }).catch(function(){
                             scope.leasingCandidate.checkAndApproveFETaskResult = 'priorityChange'
                         });
