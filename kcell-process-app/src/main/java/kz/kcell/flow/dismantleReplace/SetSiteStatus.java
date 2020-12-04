@@ -59,9 +59,9 @@ public class SetSiteStatus implements JavaDelegate {
 
         JSONObject newStatus = new JSONObject();
         JSONObject value = new JSONObject();
-        value.put("catalog_id", 3);
+        value.put("catalog_id", 85);
         value.put("id", Long.parseLong(status));
-        newStatus.put("site_status_id", value);
+        newStatus.put("site_substatus_id", value);
 
         HttpPut httpPut = new HttpPut(new URI(this.assetsUri + "/asset-management/sites/id/" + siteId));
         httpPut.addHeader("Content-Type", "application/json;charset=UTF-8");
