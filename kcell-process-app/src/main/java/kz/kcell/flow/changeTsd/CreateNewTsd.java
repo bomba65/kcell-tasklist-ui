@@ -27,6 +27,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.math.BigInteger;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
@@ -41,7 +43,7 @@ public class CreateNewTsd implements JavaDelegate {
     private String assetsUri;
 
     @Override
-    public void execute(DelegateExecution execution) {
+    public void execute(DelegateExecution execution) throws Exception {
 
         log.info("Add new data into DB");
         log.info(assetsUri);
@@ -315,7 +317,6 @@ public class CreateNewTsd implements JavaDelegate {
         nearEndFacility.put("construction_height", nearEndFacilityConstructionHeight);
 
 
-        try {
             SSLContextBuilder builder = new SSLContextBuilder();
             builder.loadTrustMaterial(null, new TrustSelfSignedStrategy());
             SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(builder.build());
@@ -347,11 +348,6 @@ public class CreateNewTsd implements JavaDelegate {
                 throw new RuntimeException("asset.flow.kcell.kz returns code(put near_end facilities) " + httpResponseNearEndFacilities.getStatusLine().getStatusCode());
             }
 
-
-
-        }catch (Exception e) {
-            throw new BpmnError("error", e.getMessage());
-        }
 
 
     }
