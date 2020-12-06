@@ -40,7 +40,7 @@ public class ApproveRFS implements JavaDelegate {
     private String assetsUri;
 
     @Override
-    public void execute(DelegateExecution execution) {
+    public void execute(DelegateExecution execution) throws Exception {
         log.info("UpdateRFS // RFS");
 
         ObjectMapper objectMapper = new ObjectMapper();
@@ -60,33 +60,24 @@ public class ApproveRFS implements JavaDelegate {
 
         Calendar c = Calendar.getInstance();
         String rfsPermitionDate = String.valueOf(execution.getVariable("rfsPermitionDate"));
-        try {
-            Date rfsPermitionDateFormatted = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").parse(rfsPermitionDate);
-            c.setTime(rfsPermitionDateFormatted);
-            c.add(Calendar.HOUR, 6);
-            objectNode.put("rfs_date", new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ").format(c.getTime()));
-        } catch(Exception e){
-            throw new BpmnError("dateError: ", e.getMessage());
-        }
 
+        Date rfsPermitionDateFormatted = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").parse(rfsPermitionDate);
+        c.setTime(rfsPermitionDateFormatted);
+        c.add(Calendar.HOUR, 6);
+        objectNode.put("rfs_date", new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ").format(c.getTime()));
 
-        try {
-            SSLContextBuilder builder = new SSLContextBuilder();
-            builder.loadTrustMaterial(null, new TrustSelfSignedStrategy());
-            SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(builder.build());
-            CloseableHttpClient httpclient = HttpClients.custom().setSSLSocketFactory(sslsf).build();
+        SSLContextBuilder builder = new SSLContextBuilder();
+        builder.loadTrustMaterial(null, new TrustSelfSignedStrategy());
+        SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(builder.build());
+        CloseableHttpClient httpclient = HttpClients.custom().setSSLSocketFactory(sslsf).build();
 
-            String path = assetsUri + "/asset-management/tsd_mw/id/" + tsdId + "/nearend_id/%7Bnearend_id%7D/farend_id/%7Bfarend_id%7D";
-            HttpResponse httpResponse = executePut(path, httpclient, objectNode.toString());
-            String response = EntityUtils.toString(httpResponse.getEntity());
-            log.info("json:  ----   " + objectNode.toString());
-            log.info("response:  ----   " + response);
-            if (httpResponse.getStatusLine().getStatusCode() < 200 || httpResponse.getStatusLine().getStatusCode() >= 300) {
-                throw new RuntimeException("asset.flow.kcell.kz returns code(ApproveRFS rfs) " + httpResponse.getStatusLine().getStatusCode());
-            }
-
-        } catch (Exception e) {
-            throw new BpmnError("error", e.getMessage());
+        String path = assetsUri + "/asset-management/tsd_mw/id/" + tsdId + "/nearend_id/%7Bnearend_id%7D/farend_id/%7Bfarend_id%7D";
+        HttpResponse httpResponse = executePut(path, httpclient, objectNode.toString());
+        String response = EntityUtils.toString(httpResponse.getEntity());
+        log.info("json:  ----   " + objectNode.toString());
+        log.info("response:  ----   " + response);
+        if (httpResponse.getStatusLine().getStatusCode() < 200 || httpResponse.getStatusLine().getStatusCode() >= 300) {
+            throw new RuntimeException("asset.flow.kcell.kz returns code(ApproveRFS rfs) " + httpResponse.getStatusLine().getStatusCode());
         }
     }
 
