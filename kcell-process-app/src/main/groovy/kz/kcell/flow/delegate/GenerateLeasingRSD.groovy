@@ -139,13 +139,16 @@ class GenerateLeasingRSD implements ExecutionListener {
                     for(int ii =0; ii<main.mainInfo.size(); ii++) {
                         table(class:"table", style:"font-size:12px;", border:"1") {
                             tr {
-                                td (width:"14.2%",style:"background-color:#8b8e94;font-weight: bold", "Sector №")
-                                td (width:"14.2%",style:"background-color:#8b8e94;font-weight: bold", "Antenna name")
-                                td (width:"14.2%",style:"background-color:#8b8e94;font-weight: bold", "Antenna type")
-                                td (width:"14.2%",style:"background-color:#8b8e94;font-weight: bold", "Quantity")
-                                td (width:"14.2%",style:"background-color:#8b8e94;font-weight: bold", "Suspension height")
-                                td (width:"14.2%",style:"background-color:#8b8e94;font-weight: bold", "Azimuth")
-                                td (width:"14.2%",style:"background-color:#8b8e94;font-weight: bold", "Antenna location")
+                                td (width:"100%",style:"background-color: #ADADAD; font-weight: bold", colspan:"7", main.mainInfo[ii].sectorName)
+                            }
+                            tr {
+                                td (width:"14.2%",style:"background-color:#ADADAD;font-weight: bold", "Sector №")
+                                td (width:"14.2%",style:"background-color:#ADADAD;font-weight: bold", "Antenna name")
+                                td (width:"14.2%",style:"background-color:#ADADAD;font-weight: bold", "Antenna type")
+                                td (width:"14.2%",style:"background-color:#ADADAD;font-weight: bold", "Quantity")
+                                td (width:"14.2%",style:"background-color:#ADADAD;font-weight: bold", "Suspension height")
+                                td (width:"14.2%",style:"background-color:#ADADAD;font-weight: bold", "Azimuth")
+                                td (width:"14.2%",style:"background-color:#ADADAD;font-weight: bold", "Antenna location")
                             }
 
                             for(int i = 0;i<main.mainInfo[ii].header.size();i++){
@@ -352,12 +355,16 @@ class GenerateLeasingRSD implements ExecutionListener {
         ]
 
         def mainSectorData = []
+        char[] alphabet = "abcdefghijklmnopqrstuvwxyz".toCharArray();
+
         for(int j=0;j<sectorsArr.length();j++){
             JSONArray obj2 = sectorsArr.getJSONObject(j).getJSONArray("antennas")
             JSONObject bands = sectorsArr.getJSONObject(j).getJSONObject("bands")
             ArrayList<String> antennaKeysList = new ArrayList<>();
             def antennaHeader = []
             def antennaArray = []
+
+            String sectorName = "Sector " + (j+1) + " - Cell " + alphabet[j].toUpperCase();
             for(int k=0;k<obj2.length();k++){
                 JSONObject antennaObject = obj2.getJSONObject(k);
                 String antennaName = antennaObject.get("antennaName")
@@ -429,6 +436,7 @@ class GenerateLeasingRSD implements ExecutionListener {
                     header: antennaHeader,
                     body: antennaArray,
                     width: (100-14.2) / antennaArray.size(),
+                    sectorName: sectorName
                 ]
             mainSectorData.push(temp)
         }
