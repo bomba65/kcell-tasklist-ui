@@ -67,7 +67,8 @@ public class StartOutsideCreatedProcesses {
         ArrayNode json = (ArrayNode) mapper.readTree(reader);
 
         for (JsonNode data : json) {
-            String jrno = data.get("jrno").asText();
+            String jrno = data.get("jrno").asText() + "-RNRS";
+            jrno = jrno.substring(0, jrno.indexOf("-")) + "-Line_Eng" + jrno.substring(jrno.indexOf("-"));
 
             List<ProcessInstance> plist = runtimeService.createProcessInstanceQuery().processDefinitionKey("Revision").processInstanceBusinessKey(jrno).list();
             for(ProcessInstance p: plist){
@@ -279,11 +280,12 @@ public class StartOutsideCreatedProcesses {
         List<String> startedProcessInstances = new ArrayList<>();
 
         for (JsonNode data : json) {
-            String jrno = data.get("jrno").asText();
+            String jrno = data.get("jrno").asText() + "-RNRS";
+            jrno = jrno.substring(0, jrno.indexOf("-")) + "-Line_Eng" + jrno.substring(jrno.indexOf("-"));
 
             long count = runtimeService.createProcessInstanceQuery().processDefinitionKey("Revision").processInstanceBusinessKey(jrno).count();
 
-            if(count == 0L){
+            if (count == 0L) {
                 Map<String, Object> vars = new HashMap<>();
                 vars.put("contract", 1);
                 vars.put("contractor", 4);
@@ -292,9 +294,9 @@ public class StartOutsideCreatedProcesses {
 
                 String requestedBy = data.get("requestedBy").asText().trim();
                 String firstName = requestedBy.substring(0, requestedBy.indexOf(".")).toLowerCase();
-                firstName = firstName.substring(0,1).toUpperCase() + firstName.substring(1);
-                String lastName = requestedBy.substring(requestedBy.indexOf(".")+1).toLowerCase();
-                lastName = lastName.substring(0,1).toUpperCase() + lastName.substring(1);
+                firstName = firstName.substring(0, 1).toUpperCase() + firstName.substring(1);
+                String lastName = requestedBy.substring(requestedBy.indexOf(".") + 1).toLowerCase();
+                lastName = lastName.substring(0, 1).toUpperCase() + lastName.substring(1);
 
                 ObjectNode initiatorFull = mapper.createObjectNode();
                 initiatorFull.put("id", firstName + "." + lastName + "@kcell.kz");
@@ -308,8 +310,8 @@ public class StartOutsideCreatedProcesses {
 
                 String jobDescription = data.get("jobDescription").asText();
                 Boolean opticalWork = false;
-                for(String opw: opticalWorks){
-                    if(jobDescription.contains(opw+" ")){
+                for (String opw : opticalWorks) {
+                    if (jobDescription.contains(opw + " ")) {
                         opticalWork = true;
                     }
                 }
@@ -353,10 +355,10 @@ public class StartOutsideCreatedProcesses {
                 res.put("assigneeName", firstName + " " + lastName);
                 res.put("resolution", "created");
                 res.put("comment", "Процесс был создан для работы с заявками из системы RN-RS. " + data.get("comments").asText());
-                res.put( "taskId", "noTaskId");
-                res.put( "taskName", "Job Request Start");
-                res.put( "taskEndDate", new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXX").format(requestedDate.getTime()));
-                res.put( "visibility", "all");
+                res.put("taskId", "noTaskId");
+                res.put("taskName", "Job Request Start");
+                res.put("taskEndDate", new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXX").format(requestedDate.getTime()));
+                res.put("visibility", "all");
                 resolutions.add(res);
                 vars.put("resolutions", SpinJsonNode.JSON(resolutions.toString()));
 
@@ -372,9 +374,9 @@ public class StartOutsideCreatedProcesses {
 
                 List<String> siteNames = new ArrayList<>();
 
-                if(data.get("sitename").asText().contains(";")){
+                if (data.get("sitename").asText().contains(";")) {
                     StringTokenizer bySemicolon = new StringTokenizer(data.get("sitename").asText(), ";");
-                    while(bySemicolon.hasMoreTokens()){
+                    while (bySemicolon.hasMoreTokens()) {
                         String sitename = bySemicolon.nextToken().trim();
                         siteNames.add(sitename);
                     }
@@ -383,13 +385,13 @@ public class StartOutsideCreatedProcesses {
                 }
 
                 boolean siteDataPut = false;
-                for (String sitename: siteNames){
-                    HttpGet httpGet = new HttpGet(baseUri + "/asset-management/api/sites/search/findByNameIgnoreCaseContaining?name=" + sitename.replaceAll("\\D+",""));
+                for (String sitename : siteNames) {
+                    HttpGet httpGet = new HttpGet(baseUri + "/asset-management/api/sites/search/findByNameIgnoreCaseContaining?name=" + sitename.replaceAll("\\D+", ""));
                     httpGet.addHeader("Content-Type", "application/json;charset=UTF-8");
                     httpGet.addHeader("Referer", baseUri);
                     HttpResponse response = httpclient.execute(httpGet);
 
-                    if(response.getStatusLine().getStatusCode() < 200 || response.getStatusLine().getStatusCode() >= 300){
+                    if (response.getStatusLine().getStatusCode() < 200 || response.getStatusLine().getStatusCode() >= 300) {
                         throw new RuntimeException("Site search by name " + sitename + " returns code " + response.getStatusLine().getStatusCode());
                     }
 
@@ -399,16 +401,16 @@ public class StartOutsideCreatedProcesses {
                     JSONObject siteDetail = new JSONObject(content);
                     EntityUtils.consume(response.getEntity());
 
-                    if(siteDetail.getJSONObject("_embedded").getJSONArray("sites").length() > 0){
+                    if (siteDetail.getJSONObject("_embedded").getJSONArray("sites").length() > 0) {
                         ObjectNode relatedSite = mapper.createObjectNode();
                         relatedSite.put("name", siteDetail.getJSONObject("_embedded").getJSONArray("sites").getJSONObject(0).getString("name"));
                         relatedSite.put("site_name", sitename);
-                        relatedSite.put("id", siteDetail.getJSONObject("_embedded").getJSONArray("sites").getJSONObject(0).getJSONObject("_links").getJSONObject("self").getString("href").replace(baseUri + "/asset-management/api/sites/",""));
+                        relatedSite.put("id", siteDetail.getJSONObject("_embedded").getJSONArray("sites").getJSONObject(0).getJSONObject("_links").getJSONObject("self").getString("href").replace(baseUri + "/asset-management/api/sites/", ""));
                         relatedSite.set("params", mapper.readTree(siteDetail.getJSONObject("_embedded").getJSONArray("sites").getJSONObject(0).getJSONObject("params").toString()));
                         relatedSites.add(relatedSite);
 
-                        if(!siteDataPut){
-                            vars.put("site", Integer.valueOf(siteDetail.getJSONObject("_embedded").getJSONArray("sites").getJSONObject(0).getJSONObject("_links").getJSONObject("self").getString("href").replace(baseUri + "/asset-management/api/sites/","")));
+                        if (!siteDataPut) {
+                            vars.put("site", Integer.valueOf(siteDetail.getJSONObject("_embedded").getJSONArray("sites").getJSONObject(0).getJSONObject("_links").getJSONObject("self").getString("href").replace(baseUri + "/asset-management/api/sites/", "")));
                             vars.put("site_name", sitename);
                             vars.put("siteName", siteDetail.getJSONObject("_embedded").getJSONArray("sites").getJSONObject(0).getString("name"));
                             vars.put("siteStatus", "working site");
@@ -435,13 +437,13 @@ public class StartOutsideCreatedProcesses {
                 JSONArray works = catalogs.getJSONArray("works");
 
                 int it = 0;
-                for(String job: sapServiceNumbers){
+                for (String job : sapServiceNumbers) {
                     ObjectNode jobWork = mapper.createObjectNode();
                     jobWork.put("sapServiceNumber", job);
                     jobWork.set("relatedSites", relatedSites);
 
-                    for(int j=0; j<works.length(); j++){
-                        if(job.equals(works.getJSONObject(j).getString("sapServiceNumber"))){
+                    for (int j = 0; j < works.length(); j++) {
+                        if (job.equals(works.getJSONObject(j).getString("sapServiceNumber"))) {
                             jobWork.put("displayServiceName", works.getJSONObject(j).getString("displayServiceName"));
                             jobWork.put("materialUnit", works.getJSONObject(j).getString("units"));
                             jobWork.put("quantity", Integer.valueOf(numbers.get(it).replace("- ", "")));
@@ -457,7 +459,7 @@ public class StartOutsideCreatedProcesses {
                 vars.put("regionGroupHeadApprovalTaskResult", "approved");
                 vars.put("validityDate", calendar.getTime());
 
-                for (Map.Entry<String,Object> entry: vars.entrySet()){
+                for (Map.Entry<String, Object> entry : vars.entrySet()) {
                     System.out.println("key = " + entry.getKey() + ", value = " + entry.getValue());
                 }
 
