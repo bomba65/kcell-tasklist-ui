@@ -20,6 +20,8 @@ public class ApproveMaterialsListByMlApproversAssignmentHandler implements TaskL
                 delegateTask.addCandidateGroup(siteRegion + "_infrastructure_mlapprover");
             } else if (reason.equals("4")) {
                 delegateTask.addCandidateGroup(siteRegion + "_sao_mlapprover");
+            } else if (reason.equals("5")) {
+                delegateTask.addCandidateGroup(siteRegion + "_rollout");
             }
         }
     }

@@ -26,6 +26,8 @@ public class RegionGroupAssignmentHandler implements TaskListener {
                 delegateTask.addCandidateGroup(siteRegion + "_infrastructure_head");
             } else if (reason.equals("4")) {
                 delegateTask.addCandidateGroup(siteRegion + "_operation_head");
+            } else if (reason.equals("5")) {
+                delegateTask.addCandidateGroup(siteRegion + "_rollout_head");
             }
         }
     }
