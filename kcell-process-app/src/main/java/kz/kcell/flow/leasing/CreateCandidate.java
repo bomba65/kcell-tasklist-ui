@@ -784,7 +784,11 @@ public class CreateCandidate implements JavaDelegate {
                         insertNewArtefactExtTSDbuilder.append(", NE_LATITUDE");
                         insertNewArtefactExtTSDbuilderValues.append(", ?");
                     }
-                    if (fe_sitename != null || trType == "Provider" || trType == "Satellite") {
+
+                    if (trType != null && ( trType.equals("Provider") || trType.equals("Satellite"))){
+                        insertNewArtefactExtTSDbuilder.append(", FE_SITENAME");
+                        insertNewArtefactExtTSDbuilderValues.append(", ?");
+                    } else if (fe_sitename != null) {
                         insertNewArtefactExtTSDbuilder.append(", FE_SITENAME");
                         insertNewArtefactExtTSDbuilderValues.append(", ?");
                     }
