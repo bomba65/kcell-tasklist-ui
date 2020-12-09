@@ -776,7 +776,7 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
             templateUrl: './js/directives/leasing/leasingDetail.html'
         };
     }]);
-    module.directive('leasingCandidate', ['$http', '$timeout', 'exModal', '$q', function ($http, $timeout, exModal, $q) {
+    module.directive('leasingCandidate', ['$http', '$timeout', 'exModal', '$q', '$rootScope', function ($http, $timeout, exModal, $q, $rootScope) {
         return {
             require: '^form',
             restrict: 'E',
@@ -792,6 +792,8 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                 scope.selectedIndex = -1;
                 scope.defaultFarEndCard = false;
                 scope.loadCurrentFarEnd = true;
+                scope.leasingCandidate.frequenciesByAntennaType = {};
+                scope.leasingCandidate.frequenciesFeByAntennaType = {};
                 console.log(scope.leasingCandidate.farEndInformation);
                 scope.leasingCandidate.farEndInformationDefault = [...scope.leasingCandidate.farEndInformation]
                 if (scope.leasingCandidate.cellAntenna) {
@@ -901,9 +903,6 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                             // });
                             var mappedD = _.keyBy(newCatalogsPromiseResult.district, o => o.catalogsId)
                             var mappedO = _.keyBy(newCatalogsPromiseResult.oblast, o => o.catalogsId)
-try {
-    
-console.log(1)
                             newCatalogsPromiseResult.city_village.forEach(function(item){
                                 var tempItem = {
                                     "city": item.name,
@@ -927,7 +926,6 @@ console.log(1)
                                 }
                                 newAddresses.push(tempItem);
                             });
-                            console.log(2)
                             // scope.antennasList = newAntennas;
                             // scope.dictionary.antennas = newAntennas;
                             // scope.dictionary.antennaTypes = newAntennaTypes;
@@ -950,6 +948,11 @@ console.log(1)
                             });
                             if(scope.currentFarEnd){
                                 scope.currentFarEnd.cityList = _.uniqBy(scope.dictionary.addresses, 'city').map( (e, index) => { return {"name" : e.city, "id" : index} });
+                                if(scope.currentFarEnd.feAntennaType && scope.currentFarEnd.feAntennaType !== null) {
+                                    scope.leasingCandidate.frequenciesFeByAntennaType = _.find(scope.dictionary.antennaType, function (p) {
+                                        return p.name === scope.currentFarEnd.feAntennaType;
+                                    })
+                                }
                             }
                             scope.districtList = _.uniqBy(scope.dictionary.addresses, 'district').map((e, index) => {
                                 return {"name": e.district, "id": index}
@@ -960,9 +963,6 @@ console.log(1)
 
                             scope.leasingCandidate.addressString = '';
                             scope.leasingCandidate.cellAntenna.addressString = '';
-                        } catch (error) {
-    console.log(error)
-                        }
                             //tabs
                             scope.minTab = 0;
                             scope.maxTab = 3;
@@ -987,7 +987,9 @@ console.log(1)
                             scope.frequencyBand = scope.dictionary.frequencyBand;
 
                                 scope.catalogsFetched = true;
+                                scope.openFarEndInformation(0);
                             });
+
                         }
                     catch(e){
                         console.log(e)
@@ -1195,6 +1197,11 @@ console.log(1)
                     scope.currentFarEnd = scope.leasingCandidate.farEndInformation[index];
                     if (scope.currentFarEnd.surveyDate) {
                         scope.currentFarEnd.surveyDate = new Date(scope.currentFarEnd.surveyDate);
+                    }
+                    if(scope.currentFarEnd.feAntennaType && scope.currentFarEnd.feAntennaType !== null) {
+                        scope.leasingCandidate.frequenciesFeByAntennaType = _.find(scope.dictionary.antennaType, function (p) {
+                            return p.name === scope.currentFarEnd.feAntennaType;
+                        })
                     }
                     scope.defaultFarEndCard = true;
                 };
