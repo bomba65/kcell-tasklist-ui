@@ -19,7 +19,7 @@ public class ApproveMaterialsListByCenterAssignmentHandler implements TaskListen
             } else if (reason.equals("4")) {
                 delegateTask.addCandidateGroup("hq_operation");
             } else if (reason.equals("5")) {
-                delegateTask.addCandidateGroup("hq_rollout")
+                delegateTask.addCandidateGroup("hq_rollout");
             }
         }
     }
