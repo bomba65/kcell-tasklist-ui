@@ -48,6 +48,7 @@ select
     -- сюда еще нужно состав работ разбитый на строки
     coalesce(title.value_, worksJson.value ->>'displayServiceName') as "Job Description",
     worksJson.value ->>'quantity' as "Quantity",
+    worksJson.value ->> 'materialsProvidedBy' as "Materials from",
     jobReason.text_ as "Job reason",
     typeOfExpenses.text_ as "Type of expenses",
     explanation.text_ as "Comments",

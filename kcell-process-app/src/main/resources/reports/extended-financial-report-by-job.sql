@@ -48,6 +48,7 @@ select
     -- сюда еще нужно состав работ разбитый на строки
     aggregatedWorks.title as "Job Description",
     aggregatedWorks.quantity as "Quantity",
+    aggregatedWorks.materialFrom as "Materials from",
     jobReason.text_ as "Job reason",
     typeOfExpenses.text_ as "Type of expenses",
     explanation.text_ as "Comments",
@@ -157,6 +158,7 @@ from act_hi_procinst pi
            --sum(cast(works.unitWorkPricePlusTx as numeric)) as unitWorkPricePlusTx --"Price with transport"
            --------------------------------
            string_agg( (case rownum when 1 then cast(works.totalQuantityPerWorkType as text) end), ', ' order by works.sapServiceNumber)  as quantity,
+           string_agg( (case rownum when 1 then cast(works.materialsProvidedBy as text) end), ', ')  as materialFrom,
            sum(works.unitWorkPrice)             as unitWorkPrice,                     --"Price without transport",
            sum(works.unitWorkPricePlusTx)       as unitWorkPricePlusTx                --"Price with transport"
            --------------------------------
@@ -172,6 +174,7 @@ from act_hi_procinst pi
                              else worksJson.value->>'sapServiceNumber'
                         end as int) as sapServiceNumber,
                     sum(cast(worksJson.value ->>'quantity' as double precision)) OVER (PARTITION BY worksJson.value->>'sapServiceNumber') as totalQuantityPerWorkType,
+                    worksJson.value ->>'materialsProvidedBy' as materialsProvidedBy,
                     --workPricesJson.value ->>'basePriceByQuantity' as unitWorkPrice, --"Price without transport",
                     --workPricesJson.value ->>'netWorkPricePerSite' as unitWorkPricePlusTx --"Price with transport"
                     --------------------------------

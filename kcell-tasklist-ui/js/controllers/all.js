@@ -2959,7 +2959,6 @@ return module.controller('mainCtrl', ['$scope', '$rootScope', 'toasty', 'Authent
             if ($rootScope.hasGroup('revision_reports')) {
                 $http.get('/camunda/reports/financialreport').then(function (response) {
                     var data = response.data;
-
                     angular.forEach(data, function (d) {
                         d[8] = $filter('date')(d[8], "yyyy-MM-dd");
                         d[10] = $filter('date')(d[10], "yyyy-MM-dd");
@@ -2971,10 +2970,10 @@ return module.controller('mainCtrl', ['$scope', '$rootScope', 'toasty', 'Authent
                         d[35] = $filter('date')(d[35], "yyyy-MM-dd");
                         d[38] = $filter('date')(d[38], "yyyy-MM-dd");
                     });
-
+                    
                     data.splice(0, 0, ["Contract", "Year", "Month", "Region", "Sitename", "JR No", "JR To", "JR Reason", "Requested Date", "Requested By", "Validity Date", "Related to the", "Project"
                         , "Material List Signing Date", "Accept by Initiator", "Accept by Work Maintenance", "Accept by Work Planning", "Acceptance Date", "Job Description", "Quantity"
-                        , "Job reason", "Type of expenses", "Comments", "Customer Material", "Process State", "JR Status", "Detailed status", "Reason", "Price (without transportation)"
+                        , "Materials from", "Job reason", "Type of expenses", "Comments", "Customer Material", "Process State", "JR Status", "Detailed status", "Reason", "Price (without transportation)"
                         , "Price (with transportation)", "Monthly act #", "JO#", "PR#", "PR Total Value", "PR Status", "PR Approval date", "PO#", "Invoice No", "Invoice date"
                     ]);
 
@@ -3006,7 +3005,7 @@ return module.controller('mainCtrl', ['$scope', '$rootScope', 'toasty', 'Authent
                     });
 
                     data.splice(0, 0, ["Contract", "Year", "Month", "Region", "Sitename", "JR No", "JR To", "JR Reason", "Requested Date", "Requested By", "Validity Date", "Related to the", "Project"
-                        , "Material List Signing Date", "Accept by Initiator", "Accept by Work Maintenance", "Accept by Work Planning", "Acceptance Date", "Job Description", "Quantity"
+                        , "Material List Signing Date", "Accept by Initiator", "Accept by Work Maintenance", "Accept by Work Planning", "Acceptance Date", "Job Description", "Quantity", "Materials from"
                         , "Job reason", "Type of expenses", "Comments", "Customer Material", "Process State", "JR Status", "Detailed status", "Reason", "Price (without transportation)"
                         , "Price (with transportation)", "Monthly act #", "JO#", "PR#", "PR Total Value", "PR Status", "PR Approval date", "PO#", "Invoice No", "Invoice date"
                     ]);
