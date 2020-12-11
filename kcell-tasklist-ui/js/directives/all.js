@@ -3111,7 +3111,7 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                         scope.KWMSProcesses[process].value = false;
                     } else {
                         scope.KWMSProcesses[process].value = true;
-                        if ((process === 'Revision' || process === 'CreatePR' || process === 'tnu_tsd_db' || process === 'change-tsd' || process === 'get-rfs-by-permit' || process === 'hop-delete') && !scope.KWMSProcesses[process].downloaded){
+                        if ((process === 'Revision' || process === 'CreatePR') && !scope.KWMSProcesses[process].downloaded){
                             downloadXML(process);
                             scope.KWMSProcesses[process].downloaded = true;
                         } else if((process === 'Dismantle' || process === 'Replacement') && !scope.KWMSProcesses[process].downloaded){
@@ -3120,6 +3120,8 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                         } else if(process === 'leasing' && !scope.KWMSProcesses[process].downloaded){
                             downloadXML('leasing');
                             scope.KWMSProcesses[process].downloaded = true;
+                        } else if(process === 'tnu_tsd_db' || process === 'change-tsd' || process === 'get-rfs-by-permit' || process === 'hop-delete'){
+                            downloadXML(process);
                         }
                     }
                 };
