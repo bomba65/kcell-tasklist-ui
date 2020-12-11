@@ -2287,7 +2287,7 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                                 scope.dismantleUserTasks = getUserTasks(xml);
                             } else if (process === 'leasing') {
                                 scope.leasingUserTasks = getUserTasks(xml);
-                            } else if (process === 'tnu_tsd_db') {
+                            } else if (process === 'tnu_tsd_db' || process === 'change-tsd' || process === 'get-rfs-by-permit' || process === 'hop-delete') {
                                 scope.tsdTasks = getUserTasks(xml);
                             }
                         });
