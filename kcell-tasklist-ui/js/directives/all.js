@@ -2929,7 +2929,7 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                                     variables.push('contractInformations');
                                 }
                             }
-                            if(scope.selectedProcessInstances.indexOf('Revision')!==-1 || scope.selectedProcessInstances.indexOf('CreatePR')!==-1 || scope.selectedProcessInstances.indexOf('tnu_tsd_db')!==-1 || scope.selectedProcessInstances.indexOf('change-tsd')!==-1  || scope.selectedProcessInstances.indexOf('get-rfs-by-permit')!==-1 || scope.selectedProcessInstances.indexOf('hop-delete')!==-1){
+                            if(scope.selectedProcessInstances.indexOf('Revision')!==-1 || scope.selectedProcessInstances.indexOf('CreatePR')!==-1){
                                 variables.push('monthActNumber');
                                 variables.push('invoiceRO1Number');
                                 variables.push('invoiceRO2Number');
