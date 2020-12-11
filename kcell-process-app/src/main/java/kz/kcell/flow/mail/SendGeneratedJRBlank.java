@@ -101,6 +101,8 @@ public class SendGeneratedJRBlank implements JavaDelegate {
                     worksTitle.put(workPrice.get("id").textValue(), workPrice.get("title").textValue());
                 }
             }
+            String siteAddress = (String) delegateExecution.getVariable("siteAddress");
+            String cityName = (String) delegateExecution.getVariable("cityNameShow");
             String siteName = (String) delegateExecution.getVariable("siteName");
             String site_name = (String) delegateExecution.getVariable("site_name");
             String jrNumber = (String) delegateExecution.getVariable("jrNumber");
@@ -231,7 +233,7 @@ public class SendGeneratedJRBlank implements JavaDelegate {
             cell = row.createCell(0);
             cell.setCellValue("City Name :");
             cell.setCellStyle(alignRight);
-            row.createCell(2).setCellValue("");
+            row.createCell(2).setCellValue(cityName);
 
             row = sheet.createRow(13);
             cell = row.createCell(0);
@@ -248,7 +250,10 @@ public class SendGeneratedJRBlank implements JavaDelegate {
             cell = row.createCell(0);
             cell.setCellValue("Site Address :");
             cell.setCellStyle(alignRight);
-            row.createCell(2).setCellValue("");
+
+            cell = row.createCell(2);
+            cell.setCellValue(siteAddress);
+            cell.setCellStyle(autoWrap);
 
             row = sheet.createRow(15);
             row.createCell(0).setCellValue("Job Description: " + (jobDescription != null ? jobDescription : ""));
@@ -269,6 +274,7 @@ public class SendGeneratedJRBlank implements JavaDelegate {
                     if (relatedSites.length() > 0) {
                         title += ", on sites: " + relatedSites.substring(0, relatedSites.length() - 2);
                     }
+                    title += "; Materials from: " + jobWorks.get(i).get("materialsProvidedBy").asText();
                 }
                 cell.setCellStyle(autoWrap);
                 cell.setCellValue(title);
