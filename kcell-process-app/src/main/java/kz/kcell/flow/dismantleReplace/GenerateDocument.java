@@ -202,7 +202,7 @@ public class GenerateDocument implements JavaDelegate {
             varsMap.put("$contractId", delegateExecution.getVariable("contractId").toString());
             varsMap.put("$contractType", contractTypeTitle.get(delegateExecution.getVariable("contractType").toString()));
             varsMap.put("$legallyName", delegateExecution.getVariable("legallyName").toString());
-            varsMap.put("$address", delegateExecution.getVariable("address").toString());
+            varsMap.put("$address", delegateExecution.getVariable("siteAddress").toString());
             varsMap.put("$contactInformation", delegateExecution.getVariable("contactInformation").toString());
         } else {
             String replacementInitiator = delegateExecution.getVariable("replacementInitiator").toString();
@@ -305,13 +305,13 @@ public class GenerateDocument implements JavaDelegate {
                 varsMap.put("$siteToLegallyName", "");
             }
 
-            if(delegateExecution.hasVariable("siteFromAddress") && delegateExecution.getVariable("siteFromAddress")!=null){
-                varsMap.put("$siteFromAddress", String.valueOf(delegateExecution.getVariable("siteFromAddress")));
+            if(delegateExecution.hasVariable("siteAddress") && delegateExecution.getVariable("siteAddress")!=null){
+                varsMap.put("$siteFromAddress", String.valueOf(delegateExecution.getVariable("siteAddress")));
             } else {
                 varsMap.put("$siteFromAddress", "");
             }
-            if(delegateExecution.hasVariable("siteToAddress") && delegateExecution.getVariable("siteToAddress")!=null){
-                varsMap.put("$siteToAddress", String.valueOf(delegateExecution.getVariable("siteToAddress")));
+            if(delegateExecution.hasVariable("siteTAddress") && delegateExecution.getVariable("siteTAddress")!=null){
+                varsMap.put("$siteToAddress", String.valueOf(delegateExecution.getVariable("siteTAddress")));
             } else {
                 varsMap.put("$siteToAddress", "");
             }
