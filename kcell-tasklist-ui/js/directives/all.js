@@ -814,14 +814,16 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                         // var antennaModelPromise = $http.get($rootScope.catalogsServerUrl + '/camunda/catalogs/api/get/id/19').then(function(promiseResult){return promiseResult.data;});
                         // var antennaLocationsPromise = $http.get($rootScope.catalogsServerUrl + '/camunda/catalogs/api/get/id/64').then(function(promiseResult){return promiseResult.data;});
                         var newCatalogsPromise = $http.post($rootScope.catalogsServerUrl + '/camunda/catalogs/api/get/rolloutcatalogids', [14, 4, 13, 15, 21, 22, 30, 31, 32, 59]).then(function(promiseResult){return promiseResult.data;});
-
+                        var newBscRncsPromise = $http.get($rootScope.assetsServerUrl + '/asset-management/bcs_rnc').then(function(promiseResult){return promiseResult.data;});
                         // $q.all([antennaTypePromise, trAntennaTypePromise, antennaModelPromise, antennaLocationsPromise, newCatalogsPromise]).then(function(allPromises) {
-                        $q.all([newCatalogsPromise]).then(function(allPromises) {
+                        $q.all([newCatalogsPromise, newBscRncsPromise]).then(function(allPromises) {
                             // var antennaTypePromiseResult = allPromises[0];
                             // var trAntennaTypePromiseResult = allPromises[1];
                             // var antennaModelPromiseResult = allPromises[2];
                             // var antennaLocationsPromiseResult = allPromises[3];
                             var newCatalogsPromiseResult = allPromises[0];
+                            var newBscRncsPromiseResult = allPromises[1];
+                            var newBscRncs = [];
                             // var newAntennas = [];
                             // var newAntennaTypes =  [];
                             // var newAntennaType =  [];
@@ -843,6 +845,25 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                                     "catalogsId": item.catalogsId
                                 });
                             });
+
+                            newBscRncsPromiseResult.forEach(function(item){
+                                if (item.bsc_rnc_name && !item.bsc_rnc_name.includes('test') && !item.bsc_rnc_name.includes('test')) {
+                                    let findedOldBsc = null;
+                                    if(scope.dictionary['BSC'] !== null) {
+                                        findedOldBsc = scope.dictionary.BSC.find( b => { return b.name === item.bsc_rnc_name})
+                                        if (findedOldBsc && findedOldBsc !== null) {
+                                            newBscRncs.push({
+                                                "name": item.bsc_rnc_name,
+                                                "assetsid": item.id,
+                                                "bscid": item.bscid,
+                                                "id": ( findedOldBsc && findedOldBsc !== null ) ? findedOldBsc.id : ""
+                                            });
+                                        }
+                                    }
+
+                                }
+                            });
+
                             newCatalogsPromiseResult.legal_type.forEach(function(item){
                                 var oldLegalTypes = scope.dictionary.legalType;
                                 var findedOldLegalType = oldLegalTypes.find(olp => {return olp.desc === item.name})
@@ -939,6 +960,7 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                             scope.dictionary.antennaType = scope.dictionary.antennaType;
                             scope.addressesList = newAddresses;
                             scope.dictionary.addresses = newAddresses;
+                            scope.dictionary.BSC = newBscRncs;
                             
                             scope.oblastList = _.uniqBy(scope.dictionary.addresses, 'oblast').map((e, index) => {
                                 return {"name": e.oblast, "id": index}

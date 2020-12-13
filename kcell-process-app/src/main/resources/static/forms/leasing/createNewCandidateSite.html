@@ -201,8 +201,6 @@
                         $scope.taskKey = result.data.taskDefinitionKey;
                         $http.get('/camunda/api/engine/engine/default/process-instance/' + $scope.processInstanceId).then(
                             function(result){
-                                console.log('process-instance/')
-                                console.log(result.data)
                                 $scope.businessKey = result.data.businessKey;
                             },
                             function (error) {console.log(error.data);}
@@ -295,13 +293,16 @@
                         var antennaModelPromise = $http.get($rootScope.catalogsServerUrl + '/camunda/catalogs/api/get/id/19').then(function(promiseResult){return promiseResult.data;});
                         var antennaLocationsPromise = $http.get($rootScope.catalogsServerUrl + '/camunda/catalogs/api/get/id/64').then(function(promiseResult){return promiseResult.data;});
                         var newCatalogsPromise = $http.post($rootScope.catalogsServerUrl + '/camunda/catalogs/api/get/rolloutcatalogids', [14, 4, 13, 15, 21, 22, 30, 31, 32, 59]).then(function(promiseResult){return promiseResult.data;});
+                        var newBscRncsPromise = $http.get($rootScope.assetsServerUrl + '/asset-management/bcs_rnc').then(function(promiseResult){return promiseResult.data;});
 
-                        $q.all([antennaTypePromise, trAntennaTypePromise, antennaModelPromise, antennaLocationsPromise, newCatalogsPromise]).then(function(allPromises) {
+                        $q.all([antennaTypePromise, trAntennaTypePromise, antennaModelPromise, antennaLocationsPromise, newCatalogsPromise, newBscRncsPromise]).then(function(allPromises) {
                             var antennaTypePromiseResult = allPromises[0];
                             var trAntennaTypePromiseResult = allPromises[1];
                             var antennaModelPromiseResult = allPromises[2];
                             var antennaLocationsPromiseResult = allPromises[3];
                             var newCatalogsPromiseResult = allPromises[4];
+                            var newBscRncsPromiseResult = allPromises[5];
+                            var newBscRncs = [];
                             var newAntennas = [];
                             var newAntennaTypes =  [];
                             var newAntennaType =  [];
@@ -324,6 +325,25 @@
                                     "catalogsId": item.catalogsId
                                 });
                             });
+
+                            newBscRncsPromiseResult.forEach(function(item){
+                                if (item.bsc_rnc_name && !item.bsc_rnc_name.includes('test') && !item.bsc_rnc_name.includes('test')) {
+                                    let findedOldBsc = null;
+                                    if($scope.dictionary['BSC'] !== null) {
+                                        findedOldBsc = $scope.dictionary.BSC.find( b => { return b.name === item.bsc_rnc_name})
+                                        if (findedOldBsc && findedOldBsc !== null) {
+                                            newBscRncs.push({
+                                                "name": item.bsc_rnc_name,
+                                                "assetsid": item.id,
+                                                "bscid": item.bscid,
+                                                "id": ( findedOldBsc && findedOldBsc !== null ) ? findedOldBsc.id : ""
+                                            });
+                                        }
+                                    }
+
+                                }
+                            });
+
                             newCatalogsPromiseResult.legal_type.forEach(function(item){
                                 var oldLegalTypes = $scope.dictionary.legalType;
                                 var findedOldLegalType = oldLegalTypes.find(olp => {return olp.desc === item.name})
@@ -415,6 +435,7 @@
                             $scope.dictionary.antennaLocation = newAntennaLocations;
                             $scope.dictionary.rbsLocation = newRbsLocation;
                             $scope.dictionary.legalType = newLegalType;
+                            $scope.dictionary.BSC = newBscRncs;
 
                             if (!$scope.powerSource.cableLayingType) $scope.powerSource.cableLayingType = $scope.dictionary.cableLayingType;
                             $scope.availableBands = $scope.dictionary.bands;
@@ -423,8 +444,6 @@
                             $scope.çsList = $scope.dictionary.constructionType;
                             $scope.addressesList = newAddresses;
                             $scope.dictionary.addresses = newAddresses;
-                            console.log('$scope.dictionary.addresses')
-                            console.log($scope.dictionary.addresses)
                             $scope.oblastList = _.uniqBy($scope.dictionary.addresses, 'oblast').map( (e, index) => { return {"name" : e.oblast, "id" : index} });
                             $scope.cityList = _.uniqBy($scope.dictionary.addresses, 'city').map( (e, index) => { return {"name" : e.city, "id" : index} });
                             $scope.districtList = _.uniqBy($scope.dictionary.addresses, 'district').map( (e, index) => { return {"name" : e.district, "id" : index} });
@@ -537,8 +556,6 @@
                             }
                         });
                     }
-                console.log('$scope.leasingInfo: ')
-                console.log($scope.leasingInfo)
                 if(!$scope.newCandidateRRFiles){
                     $scope.newCandidateRRFiles = [];
                 }
@@ -594,10 +611,7 @@
 
 
                 for (let s of $scope.cellAntenna.sectors) {
-                    console.log(s)
                     s.antennas.forEach( a => {
-                        console.log('s.antennas.forEach( a => {')
-                        console.log(a)
                         if (a.antennaType && typeof a.antennaType === 'string'){
                             return a.antennaType = {};
                         }
@@ -647,9 +661,6 @@
                 camForm.variableManager.variableValue('createNewCandidateSiteTaskComment', $scope.createNewCandidateSiteTaskComment);
 
                 var thisTaskFiles = $scope.leasingFiles.filter(f => {return f.varName === 'createNewCandidateSiteFiles'});
-                console.log('--thisTaskFiles--')
-                console.log(thisTaskFiles)
-                console.log('-----------------')
                 if(!camForm.variableManager.variables['createNewCandidateSiteFiles'].type){
                     camForm.variableManager.destroyVariable('createNewCandidateSiteFiles');
                     camForm.variableManager.createVariable({
@@ -660,8 +671,6 @@
                 } else {
                     camForm.variableManager.variableValue('createNewCandidateSiteFiles', thisTaskFiles);
                 }
-
-                console.log('++++++++++++++++++')
 
                 camForm.variableManager.destroyVariable('address');
                 camForm.variableManager.createVariable({
@@ -784,8 +793,6 @@
                     if($scope.cellAntenna.sectors && $scope.cellAntenna.sectors.length >0){
                         if($scope.cellAntenna.sectors[pIndex].antennas && $scope.cellAntenna.sectors[pIndex].antennas.length >0) {
                             $scope.cellAntenna.sectors[pIndex].antennas[index].frequencyBand = parseInt(val.replace(/[^0-9.]/gi, ''));
-                            console.log('$scope.cellAntenna.sectors[pIndex].antennas[index].frequencyBand')
-                            console.log($scope.cellAntenna.sectors[pIndex].antennas[index].frequencyBand)
                         }
                     }
                 }
@@ -1056,7 +1063,7 @@
             $scope.newSector = function () {
                 let newS = JSON.parse(angular.toJson($scope.sector));
                 $scope.cellAntenna.sectors.push(newS);
-                console.log($scope.cellAntenna.sectors)
+                // console.log($scope.cellAntenna.sectors)
                 if ($scope.selectedSectorTab+1 < $scope.cellAntenna.sectors.length) {
                     $scope.selectedSectorTab = $scope.cellAntenna.sectors.length - 1;
                     $scope.cellAntenna.sectors[$scope.selectedSectorTab].active = 'active';
@@ -1239,7 +1246,7 @@
                                 $scope.leasingFiles.push(fileToUpload);
                                 //$scope[fileName].push(fileToUpload);
                                 angular.element(document.querySelector('#' + fileName)).val(null);
-                                console.log($scope.leasingFiles)
+                                // console.log($scope.leasingFiles)
                             },
                             function (error) {
                                 console.log(error.data);
@@ -1790,7 +1797,7 @@
                     </div>
                 </div>
                 <div class="form-group">
-                    <label class="col-sm-3 control-label">*BCS/RNC:</label>
+                    <label class="col-sm-3 control-label">*BCS/RNC: {{dictionary.BSC}}</label>
                     <div class="col-sm-5">
                         <input type="text" ng-model="candidate.bsc" name="candidateBsc"
                                typeahead="s as s.name for s in getFilteredBSC($viewValue)" class="form-control"
