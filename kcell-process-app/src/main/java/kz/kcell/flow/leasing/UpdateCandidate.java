@@ -117,7 +117,7 @@ public class UpdateCandidate implements JavaDelegate {
 
                     SpinJsonNode feJson = delegateExecution.getVariable("farEndInformation") != null ? JSON(delegateExecution.getVariable("farEndInformation")) : null;
                     SpinList farEnds = feJson != null ? feJson.elements() : null;
-                    SpinJsonNode fe = farEnds != null ? (SpinJsonNode) farEnds.get(0) : null;
+                    SpinJsonNode fe = (farEnds != null && farEnds.size() > 0) ? (SpinJsonNode) farEnds.get(0) : null;
 
                     String fe_azimuth = fe != null && fe.hasProp("azimuth") ? (fe.prop("azimuth").value().toString()) : null;
                     String fe_diameter = fe != null && fe.hasProp("diameter") ? (fe.prop("diameter").value().toString()) : null;

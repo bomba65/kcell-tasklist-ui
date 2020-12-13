@@ -381,7 +381,7 @@ public class CreateCandidate implements JavaDelegate {
                     log.info("newArtefactPreparedStatement.setString");
                     newArtefactPreparedStatement.setString(i++, cn_siteName); // sitename	cn_sitename
                     Integer ncpIdInt = Integer.parseInt(ncpId);
-                    if (ncpIdInt != null) {
+                    if (ncpCreatedId != null) {
                         newArtefactPreparedStatement.setLong(i++, ncpCreatedId); //ncp_id (old value: ncpIdInt)
                     } else {
                         newArtefactPreparedStatement.setNull(i++, Types.BIGINT);
