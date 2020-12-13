@@ -25,6 +25,10 @@ import org.camunda.spin.plugin.variable.value.JsonValue;
 import static org.camunda.spin.Spin.*;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import java.security.KeyManagementException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.text.ParseException;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -40,7 +44,7 @@ public class Informed implements JavaDelegate {
     private String assetsUri;
 
     @Override
-    public void execute(DelegateExecution execution) {
+    public void execute(DelegateExecution execution) throws Exception {
         log.info("Inform Regional Engineer");
 
         ObjectMapper objectMapper = new ObjectMapper();
@@ -52,23 +56,18 @@ public class Informed implements JavaDelegate {
         objectNode.put("review_resp", assigneeName);
         objectNode.put("review_status", true);
 
-        try {
-            SSLContextBuilder builder = new SSLContextBuilder();
-            builder.loadTrustMaterial(null, new TrustSelfSignedStrategy());
-            SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(builder.build());
-            CloseableHttpClient httpclient = HttpClients.custom().setSSLSocketFactory(sslsf).build();
+        SSLContextBuilder builder = new SSLContextBuilder();
+        builder.loadTrustMaterial(null, new TrustSelfSignedStrategy());
+        SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(builder.build());
+        CloseableHttpClient httpclient = HttpClients.custom().setSSLSocketFactory(sslsf).build();
 
-            String path = assetsUri + "/asset-management/tsd_mw/id/" + String.valueOf(newTsdId) + "/nearend_id/%7Bnearend_id%7D/farend_id/%7Bfarend_id%7D";
-            HttpResponse httpResponse = executePut(path, httpclient, objectNode.toString());
-            String response = EntityUtils.toString(httpResponse.getEntity());
-            log.info("json:  ----   " + objectNode.toString());
-            log.info("response:  ----   " + response);
-            if (httpResponse.getStatusLine().getStatusCode() < 200 || httpResponse.getStatusLine().getStatusCode() >= 300) {
-                throw new RuntimeException("asset.flow.kcell.kz returns code(inform) " + httpResponse.getStatusLine().getStatusCode());
-            }
-
-        } catch (Exception e) {
-            throw new BpmnError("error", e.getMessage());
+        String path = assetsUri + "/asset-management/tsd_mw/id/" + String.valueOf(newTsdId) + "/nearend_id/%7Bnearend_id%7D/farend_id/%7Bfarend_id%7D";
+        HttpResponse httpResponse = executePut(path, httpclient, objectNode.toString());
+        String response = EntityUtils.toString(httpResponse.getEntity());
+        log.info("json:  ----   " + objectNode.toString());
+        log.info("response:  ----   " + response);
+        if (httpResponse.getStatusLine().getStatusCode() < 200 || httpResponse.getStatusLine().getStatusCode() >= 300) {
+            throw new RuntimeException("asset.flow.kcell.kz returns code(inform) " + httpResponse.getStatusLine().getStatusCode());
         }
     }
 

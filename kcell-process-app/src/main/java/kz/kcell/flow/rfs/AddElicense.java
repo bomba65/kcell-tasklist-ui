@@ -25,6 +25,10 @@ import org.camunda.spin.plugin.variable.value.JsonValue;
 import static org.camunda.spin.Spin.*;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import java.security.KeyManagementException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.text.ParseException;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -40,7 +44,7 @@ public class AddElicense implements JavaDelegate {
     private String assetsUri;
 
     @Override
-    public void execute(DelegateExecution execution) {
+    public void execute(DelegateExecution execution) throws Exception {
         log.info("Insert ELicense // RFS");
 
         ObjectMapper objectMapper = new ObjectMapper();
@@ -55,39 +59,31 @@ public class AddElicense implements JavaDelegate {
 
         Calendar c = Calendar.getInstance();
         String eLicenseDate = String.valueOf(execution.getVariable("eLicenseDate"));
-        try {
-            Date eLicenseDateFormatted = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").parse(eLicenseDate);
-            c.setTime(eLicenseDateFormatted);
-            c.add(Calendar.HOUR, 6);
-            objectNode.put("elicense_date", new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ").format(c.getTime()));
-        } catch(Exception e){
-            throw new BpmnError("dateError: ", e.getMessage());
-        }
-
+        Date eLicenseDateFormatted = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").parse(eLicenseDate);
+        c.setTime(eLicenseDateFormatted);
+        c.add(Calendar.HOUR, 6);
+        objectNode.put("elicense_date", new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ").format(c.getTime()));
 
         ObjectNode rfs_status_id = objectMapper.createObjectNode();
         objectNode.set("rfs_status_id", rfs_status_id);
         rfs_status_id.put("catalog_id", 92);
         rfs_status_id.put("id", 3);
 
-        try {
-            SSLContextBuilder builder = new SSLContextBuilder();
-            builder.loadTrustMaterial(null, new TrustSelfSignedStrategy());
-            SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(builder.build());
-            CloseableHttpClient httpclient = HttpClients.custom().setSSLSocketFactory(sslsf).build();
+        SSLContextBuilder builder = new SSLContextBuilder();
+        builder.loadTrustMaterial(null, new TrustSelfSignedStrategy());
+        SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(builder.build());
+        CloseableHttpClient httpclient = HttpClients.custom().setSSLSocketFactory(sslsf).build();
 
-            String path = assetsUri + "/asset-management/tsd_mw/id/" + tsdId + "/nearend_id/%7Bnearend_id%7D/farend_id/%7Bfarend_id%7D";
-            HttpResponse httpResponse = executePut(path, httpclient, objectNode.toString());
-            String response = EntityUtils.toString(httpResponse.getEntity());
-            log.info("json:  ----   " + objectNode.toString());
-            log.info("response:  ----   " + response);
-            if (httpResponse.getStatusLine().getStatusCode() < 200 || httpResponse.getStatusLine().getStatusCode() >= 300) {
-                throw new RuntimeException("asset.flow.kcell.kz returns code(insert elicense rfs) " + httpResponse.getStatusLine().getStatusCode());
-            }
-
-        } catch (Exception e) {
-            throw new BpmnError("error", e.getMessage());
+        String path = assetsUri + "/asset-management/tsd_mw/id/" + tsdId + "/nearend_id/%7Bnearend_id%7D/farend_id/%7Bfarend_id%7D";
+        HttpResponse httpResponse = executePut(path, httpclient, objectNode.toString());
+        String response = EntityUtils.toString(httpResponse.getEntity());
+        log.info("json:  ----   " + objectNode.toString());
+        log.info("response:  ----   " + response);
+        if (httpResponse.getStatusLine().getStatusCode() < 200 || httpResponse.getStatusLine().getStatusCode() >= 300) {
+            throw new RuntimeException("asset.flow.kcell.kz returns code(insert elicense rfs) " + httpResponse.getStatusLine().getStatusCode());
         }
+
+
     }
 
     private HttpResponse executePut(String url, HttpClient httpClient, String requestBody) throws Exception {
