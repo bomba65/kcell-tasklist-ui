@@ -274,7 +274,9 @@ public class SendGeneratedJRBlank implements JavaDelegate {
                     if (relatedSites.length() > 0) {
                         title += ", on sites: " + relatedSites.substring(0, relatedSites.length() - 2);
                     }
-                    title += "; Materials from: " + jobWorks.get(i).get("materialsProvidedBy").asText();
+                    if(jobWorks.get(i).has("materialsProvidedBy")) {
+                        title += "; Materials from: " + jobWorks.get(i).get("materialsProvidedBy").asText();
+                    }
                 }
                 cell.setCellStyle(autoWrap);
                 cell.setCellValue(title);
