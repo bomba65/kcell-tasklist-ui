@@ -157,13 +157,16 @@ public class UpdateCandidate implements JavaDelegate {
 //                    TN20P		6
 //                    TN6P		4
                     Number fe_equipment_type = null;
-                    if (fe_equipment_type_string != null && fe_equipment_type_string.toUpperCase().equals("TN2P")) {
-                        fe_equipment_type = 2;
-                    } else if (fe_equipment_type_string != null && fe_equipment_type_string.toUpperCase().equals("TN20P")) {
-                        fe_equipment_type = 6;
-                    } else if (fe_equipment_type_string != null && fe_equipment_type_string.toUpperCase().equals("TN6P")) {
-                        fe_equipment_type = 4;
+                    if (fe_equipment_type_string != null) {
+                        if (fe_equipment_type_string.toUpperCase().equals("TN2P")) {
+                            fe_equipment_type = 2;
+                        } else if (fe_equipment_type_string.toUpperCase().equals("TN20P")) {
+                            fe_equipment_type = 6;
+                        } else if (fe_equipment_type_string.toUpperCase().equals("TN6P")) {
+                            fe_equipment_type = 4;
+                        }
                     }
+
 
                     Number fe_artefact_id = 0;
                     String SelectArtefactBySite = "select * from ARTEFACT where SITENAME = ?";
