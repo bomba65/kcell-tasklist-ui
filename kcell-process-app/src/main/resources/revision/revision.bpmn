@@ -1429,7 +1429,7 @@
       <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${fillAppliedChangesInfoByContractorTaskResult=='notAvailable'}</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
     <bpmn:endEvent id="endevt_create_jr_rejected">
-      <bpmn:incoming>SequenceFlow_1pv1t3r</bpmn:incoming>
+      <bpmn:incoming>Flow_01svat2</bpmn:incoming>
     </bpmn:endEvent>
     <bpmn:sequenceFlow id="SequenceFlow_062z6hr" name="rejected" sourceRef="SubProcess_0cd7y34" targetRef="IntermediateThrowEvent_jr_cancelled">
       <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${createJRResult=='rejected'}</bpmn:conditionExpression>
@@ -1608,7 +1608,7 @@
       <bpmn:incoming>SequenceFlow_062z6hr</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_1pv1t3r</bpmn:outgoing>
     </bpmn:intermediateThrowEvent>
-    <bpmn:sequenceFlow id="SequenceFlow_1pv1t3r" sourceRef="IntermediateThrowEvent_jr_cancelled" targetRef="endevt_create_jr_rejected" />
+    <bpmn:sequenceFlow id="SequenceFlow_1pv1t3r" sourceRef="IntermediateThrowEvent_jr_cancelled" targetRef="Gateway_1edqk7q" />
     <bpmn:intermediateThrowEvent id="IntermediateThrowEvent_leasing_impossible" name="Leasing impossible">
       <bpmn:extensionElements>
         <camunda:executionListener delegateExpression="${statusListener}" event="start">
@@ -2351,6 +2351,34 @@
       <bpmn:incoming>SequenceFlow_02gbb0r</bpmn:incoming>
       <bpmn:outgoing>Flow_03dwbfe</bpmn:outgoing>
     </bpmn:serviceTask>
+    <bpmn:sendTask id="notification_cancelled" name="send notification to contractor" camunda:delegateExpression="${camundaMailer}">
+      <bpmn:extensionElements>
+        <camunda:inputOutput>
+          <camunda:inputParameter name="to">
+            <camunda:script scriptFormat="groovy" resource="revision/GetContractorEmail.groovy" />
+          </camunda:inputParameter>
+          <camunda:inputParameter name="subject">Cancelled</camunda:inputParameter>
+          <camunda:inputParameter name="html">
+            <camunda:script scriptFormat="groovy" resource="revision/CancelledMessage.groovy" />
+          </camunda:inputParameter>
+        </camunda:inputOutput>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_1msstz7</bpmn:incoming>
+      <bpmn:outgoing>Flow_01svat2</bpmn:outgoing>
+    </bpmn:sendTask>
+    <bpmn:sequenceFlow id="Flow_01svat2" sourceRef="notification_cancelled" targetRef="endevt_create_jr_rejected" />
+    <bpmn:exclusiveGateway id="Gateway_1edqk7q" default="Flow_1q8u0an">
+      <bpmn:incoming>SequenceFlow_1pv1t3r</bpmn:incoming>
+      <bpmn:outgoing>Flow_1msstz7</bpmn:outgoing>
+      <bpmn:outgoing>Flow_1q8u0an</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:sequenceFlow id="Flow_1msstz7" sourceRef="Gateway_1edqk7q" targetRef="notification_cancelled">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${contractor === 4 || contractor == 6 || contractor == 7 || contractor ==8 }</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:endEvent id="Event_0w33nda">
+      <bpmn:incoming>Flow_1q8u0an</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_1q8u0an" sourceRef="Gateway_1edqk7q" targetRef="Event_0w33nda" />
     <bpmn:textAnnotation id="TextAnnotation_189rkq0">
       <bpmn:text>Infrormation is taken from step "Fill Applied Changes Info by Contractor"</bpmn:text>
     </bpmn:textAnnotation>
@@ -2389,6 +2417,10 @@
   <bpmn:message id="Message_0kawu9p" name="Message_start_pr" />
   <bpmndi:BPMNDiagram id="BPMNDiagram_1">
     <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Revision">
+      <bpmndi:BPMNEdge id="Flow_03dwbfe_di" bpmnElement="Flow_03dwbfe">
+        <di:waypoint x="13700" y="2104" />
+        <di:waypoint x="13736" y="2104" />
+      </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_0w38lzw_di" bpmnElement="Flow_0w38lzw">
         <di:waypoint x="13470" y="1865" />
         <di:waypoint x="13470" y="1570" />
@@ -2556,8 +2588,8 @@
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_1pv1t3r_di" bpmnElement="SequenceFlow_1pv1t3r">
-        <di:waypoint x="1530" y="2556" />
-        <di:waypoint x="1529" y="2684" />
+        <di:waypoint x="1529" y="2556" />
+        <di:waypoint x="1529" y="2655" />
         <bpmndi:BPMNLabel>
           <dc:Bounds x="-3979.5" y="205" width="0" height="13" />
         </bpmndi:BPMNLabel>
@@ -2811,12 +2843,32 @@
           <dc:Bounds x="4934" y="2239" width="82" height="27" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Flow_03dwbfe_di" bpmnElement="Flow_03dwbfe">
-        <di:waypoint x="13700" y="2104" />
-        <di:waypoint x="13736" y="2104" />
+      <bpmndi:BPMNEdge id="Flow_01svat2_di" bpmnElement="Flow_01svat2">
+        <di:waypoint x="1529" y="2870" />
+        <di:waypoint x="1529" y="3100" />
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNShape id="Activity_1lmz1zi_di" bpmnElement="send_data_assets_db">
-        <dc:Bounds x="13600" y="2064" width="100" height="80" />
+      <bpmndi:BPMNEdge id="Flow_1msstz7_di" bpmnElement="Flow_1msstz7">
+        <di:waypoint x="1529" y="2705" />
+        <di:waypoint x="1529" y="2790" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1q8u0an_di" bpmnElement="Flow_1q8u0an">
+        <di:waypoint x="1554" y="2680" />
+        <di:waypoint x="1752" y="2680" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="Activity_13yqh6s_di" bpmnElement="notification_cancelled">
+        <dc:Bounds x="1479" y="2790" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="EndEvent_1fo49fj_di" bpmnElement="endevt_create_jr_rejected">
+        <dc:Bounds x="1511" y="3100" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="-4025" y="279" width="90" height="0" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_1edqk7q_di" bpmnElement="Gateway_1edqk7q" isMarkerVisible="true">
+        <dc:Bounds x="1504" y="2655" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_0w33nda_di" bpmnElement="Event_0w33nda">
+        <dc:Bounds x="1752" y="2662" width="36" height="36" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="SubProcess_0cwj4g6_di" bpmnElement="SubProcess_0cwj4g6" isExpanded="true">
         <dc:Bounds x="2830" y="2250" width="703" height="367" />
@@ -4570,12 +4622,6 @@
           <dc:Bounds x="6554" y="-274" width="90" height="0" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="EndEvent_1fo49fj_di" bpmnElement="endevt_create_jr_rejected">
-        <dc:Bounds x="1512" y="2684" width="36" height="36" />
-        <bpmndi:BPMNLabel>
-          <dc:Bounds x="-4025" y="279" width="90" height="0" />
-        </bpmndi:BPMNLabel>
-      </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="ExclusiveGateway_0ibfmmi_di" bpmnElement="exclgw_istest" isMarkerVisible="true">
         <dc:Bounds x="3013" y="1526" width="50" height="50" />
         <bpmndi:BPMNLabel>
@@ -5297,6 +5343,9 @@
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Activity_12gyjnn_di" bpmnElement="check_docs">
         <dc:Bounds x="13290" y="1850" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1lmz1zi_di" bpmnElement="send_data_assets_db">
+        <dc:Bounds x="13600" y="2064" width="100" height="80" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="TextAnnotation_189rkq0_di" bpmnElement="TextAnnotation_189rkq0">
         <dc:Bounds x="9525" y="1423" width="278" height="57" />
