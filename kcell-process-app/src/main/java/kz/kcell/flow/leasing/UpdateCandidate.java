@@ -472,17 +472,26 @@ public class UpdateCandidate implements JavaDelegate {
                         } else {
                             updateArtefactTSDPreparedStatement.setNull(i++, Types.BIGINT);
                         }
+                    } else {
+                        updateArtefactTSDPreparedStatement.setNull(i++, Types.BIGINT);
                     }
+
                     if (trTypeSatelliteOrProvider) {
                         updateArtefactTSDPreparedStatement.setNull(i++, Types.VARCHAR);
                     } else if (fe_address != null) {
                         updateArtefactTSDPreparedStatement.setString(i++, fe_address); // FE_ADDRESS
+                    } else {
+                        updateArtefactTSDPreparedStatement.setNull(i++, Types.VARCHAR);
                     }
+
                     if (trTypeSatelliteOrProvider) {
                         updateArtefactTSDPreparedStatement.setNull(i++, Types.DATE);
                     } else if (fe_formated_survey_date != null) {
                         updateArtefactTSDPreparedStatement.setDate(i++, new java.sql.Date(fe_cal_survey_date.getTimeInMillis())); // SURVEY_DATE (fe_survey_date)
+                    } else {
+                        updateArtefactTSDPreparedStatement.setNull(i++, Types.DATE);
                     }
+
                     if (ne_azimuth != null) {
                         Float ne_azimuthFloat = Float.parseFloat(ne_azimuth);
                         if (ne_azimuthFloat != null) {
@@ -490,17 +499,22 @@ public class UpdateCandidate implements JavaDelegate {
                         } else {
                             updateArtefactTSDPreparedStatement.setNull(i++, Types.BIGINT);
                         }
+                    } else {
+                        updateArtefactTSDPreparedStatement.setNull(i++, Types.BIGINT);
                     }
+
                     if (ne_diameter != null) {
                         updateArtefactTSDPreparedStatement.setFloat(i++, Float.parseFloat(ne_diameter)); // NE_ANTENNADIAMETER
+                    }  else {
+                        updateArtefactTSDPreparedStatement.setNull(i++, Types.FLOAT);
                     }
+
                     if (ne_suspensionHeight != null) {
-                        if (ne_suspensionHeight != null) {
-                            updateArtefactTSDPreparedStatement.setLong(i++, ne_suspensionHeight.longValue()); // NE_SUSPENSIONHEIGHT
-                        } else {
-                            updateArtefactTSDPreparedStatement.setNull(i++, Types.BIGINT);
-                        }
+                        updateArtefactTSDPreparedStatement.setLong(i++, ne_suspensionHeight.longValue()); // NE_SUSPENSIONHEIGHT
+                    } else {
+                        updateArtefactTSDPreparedStatement.setNull(i++, Types.BIGINT);
                     }
+
                     if (ne_frequencyBand != null) {
                         Integer ne_frequencyBandInt = Integer.parseInt(ne_frequencyBand);
                         if (ne_frequencyBandInt != null) {
@@ -508,7 +522,10 @@ public class UpdateCandidate implements JavaDelegate {
                         } else {
                             updateArtefactTSDPreparedStatement.setNull(i++, Types.BIGINT);
                         }
+                    } else {
+                        updateArtefactTSDPreparedStatement.setNull(i++, Types.BIGINT);
                     }
+
                     if (trTypeSatelliteOrProvider) {
                         updateArtefactTSDPreparedStatement.setNull(i++, Types.BIGINT);
                     } else if (fe_azimuth != null) {
@@ -518,7 +535,10 @@ public class UpdateCandidate implements JavaDelegate {
                         } else {
                             updateArtefactTSDPreparedStatement.setNull(i++, Types.BIGINT);
                         }
+                    } else {
+                        updateArtefactTSDPreparedStatement.setNull(i++, Types.BIGINT);
                     }
+
                     if (trTypeSatelliteOrProvider) {
                         updateArtefactTSDPreparedStatement.setNull(i++, Types.FLOAT);
                     } else if (fe_diameter != null) {
@@ -526,6 +546,7 @@ public class UpdateCandidate implements JavaDelegate {
                     } else {
                         updateArtefactTSDPreparedStatement.setNull(i++, Types.FLOAT);
                     }
+
                     if (trTypeSatelliteOrProvider) {
                         updateArtefactTSDPreparedStatement.setNull(i++, Types.BIGINT);
                     } else if (fe_suspensionHeight != null) {
@@ -535,7 +556,10 @@ public class UpdateCandidate implements JavaDelegate {
                         } else {
                             updateArtefactTSDPreparedStatement.setNull(i++, Types.BIGINT);
                         }
+                    } else {
+                        updateArtefactTSDPreparedStatement.setNull(i++, Types.BIGINT);
                     }
+
                     if (trTypeSatelliteOrProvider) {
                         updateArtefactTSDPreparedStatement.setNull(i++, Types.BIGINT);
                     } else if (fe_frequencyBand != null) {
@@ -545,7 +569,10 @@ public class UpdateCandidate implements JavaDelegate {
                         } else {
                             updateArtefactTSDPreparedStatement.setNull(i++, Types.BIGINT);
                         }
+                    } else {
+                        updateArtefactTSDPreparedStatement.setNull(i++, Types.BIGINT);
                     }
+
                     updateArtefactTSDPreparedStatement.setDate(i++, new java.sql.Date(new Date().getTime())); // update_date
 
                     if (trTypeSatelliteOrProvider) {
