@@ -82,6 +82,7 @@
 
 <form role="form" class="form-horizontal" name="kcell_form" novalidate>
     <script cam-script type="text/form-script">
+        <!-- <script> -->
       inject(['$scope', '$http', 'Uri', '$rootScope', '$q', '$timeout', function ($scope, $http, Uri, $rootScope, $q, $timeout) {
             var variables = [
                 'region_name',
@@ -145,6 +146,7 @@
                 'south': 'South',
                 'west': 'West'
             };
+            $scope.result = [];
 
             $scope.protectionModeSetted = false;
             $scope.antenaSetted = false;
@@ -284,21 +286,36 @@
 
             $scope.checkSite = function(){
                 let arrPromise = []
-                arrPromise.push($http.get($rootScope.assetsServerUrl + '/asset-management/tsd_mw?nearend_id=' + $scope.site))
-                arrPromise.push($http.get($rootScope.assetsServerUrl + '/asset-management/tsd_mw?farend_id=' + $scope.site))
-                
+                arrPromise.push($http.get($rootScope.assetsServerUrl + '/asset-management/tsd_mw?nearend_id=' + $scope.site).then(r => r.data).catch(e => console.log('111', e)))
+                arrPromise.push($http.get($rootScope.assetsServerUrl + '/asset-management/tsd_mw?farend_id=' + $scope.site).then(r => r.data).catch(e => console.log('111', e)))
+                let array = $scope.result
                 Promise.all(arrPromise).then((data) => {
-                    console.log(data)
-                }.catch(e => {
+                    let temp2 = data.filter(i => i !== undefined).map(x => x)
+                    for(let i=0;i<temp2.length;i++){
+                        for(let j=0;j<temp2[i].length;j++){
+                            array.push(temp2[i][j])
+                        }
+                    }
+                    console.log("done")
+                }).catch(e => {
                     console.log(e)
-                }))
+                })
+
+                
+                            
+                
+                console.log($scope)
+
+            }
+            $scope.checkSite2 = function() {
+                console.log($scope.result)
             }
             $scope.addTsd = function(e){
                 $scope.result.forEach(item => {
                     if($scope.selectedTsd && item.id === $scope.selectedTsd.id) {
                         item.selected = false;
                     }
-                })
+                })  
                 e.selected = true;
                 $scope.selectedTsd = e;
                 $scope.oldTsd = angular.copy($scope.selectedTsd)
@@ -336,7 +353,10 @@
                 );
             };
 
-
+            $scope.$watch(function(){ return $scope.result}, function (val) {
+                console.log(val)
+             }, true);
+ 
             camForm.on('store', function () {
             });
 
@@ -592,6 +612,7 @@
                     <input type="hidden" ng-model="site" name="siteId" required/>
                     <span class="input-group-btn" ng-if="siteName">
                     <button type="button" class="btn btn-default" ng-click="checkSite()">Check</button>
+                    <button type="button" class="btn btn-default" ng-click="checkSite2()">Check2</button>
                 </span>
                 </div>
             </div>
