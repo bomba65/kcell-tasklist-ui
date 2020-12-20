@@ -276,8 +276,8 @@
                 $scope.sector.cn_tcc = 'No/No';
                 $scope.sector.cn_gsm_range = 'No/No';
 
-                $scope.frequenciesFeByAntennaType = {};
-                $scope.frequenciesByAntennaType = {};
+                $scope.frequenciesFeByAntennaType = [];
+                $scope.frequenciesByAntennaType = [];
 
                 $scope.variablesFetched = false;
                 $scope.catalogsFetched = false;
@@ -391,6 +391,12 @@
                                     "name": item.value,
                                     "frequencies": []
                                 };
+                                if ($scope.dictionary.antennaType) {
+                                 const findedOldDictAntennaType = $scope.dictionary.antennaType.find(a => { return a.name === item.value})
+                                    if (findedOldDictAntennaType && findedOldDictAntennaType.hasOwnProperty('frequencies') && findedOldDictAntennaType.frequencies.length > 0) {
+                                        tempItem.frequencies = findedOldDictAntennaType.frequencies;
+                                    }
+                                }
                                 if(item['Antenna Diameter']) {
                                     tempItem.diameter = item['Antenna Diameter'].value;
                                 }
@@ -451,12 +457,20 @@
                             $scope.filteredDistrictsInCAI = $scope.districtList;
 
                             $scope.catalogsFetched = true;
-
+                            console.log('$scope.dictionary.frequencyBand')
+                            console.log($scope.dictionary.frequencyBand)
+                            console.log('scope.frequenciesByAntennaType')
+                            console.log($scope.frequenciesByAntennaType)
+                            console.log($scope.transmissionAntenna)
                             if($scope.transmissionAntenna && $scope.transmissionAntenna.antennaType && $scope.transmissionAntenna.antennaType !== null) {
+                                console.log('if($scope.transmissionAntenna && $scope.transmissionAntenna.antennaType && $scope.transmissionAntenna.antennaType !== null) {')
                                 $scope.frequenciesByAntennaType = _.find($scope.dictionary.antennaType, function (p) {
                                     return p.name === $scope.transmissionAntenna.antennaType;
                                 })
+                                console.log('updated scope.frequenciesByAntennaType')
+                                console.log($scope.frequenciesByAntennaType)
                             }
+
 
                             if ($scope.catalogsFetched && $scope.variablesFetched){
                                 $scope.setConstructionType()
@@ -1797,7 +1811,7 @@
                     </div>
                 </div>
                 <div class="form-group">
-                    <label class="col-sm-3 control-label">*BCS/RNC: {{dictionary.BSC}}</label>
+                    <label class="col-sm-3 control-label">*BCS/RNC:</label>
                     <div class="col-sm-5">
                         <input type="text" ng-model="candidate.bsc" name="candidateBsc"
                                typeahead="s as s.name for s in getFilteredBSC($viewValue)" class="form-control"
@@ -2073,7 +2087,7 @@
                                                     <span style="margin-top: 5px" class="glyphicon glyphicon-remove"></span>
                                                 </a>
                                             </div>
-                                            <div class="col-sm-12" style="background-color: white; margin-bottom:-3%;">
+                                            <div class="col-sm-12" style="background-color: white;">
                                                 <br>
                                                 <table class="table table-condensed">
                                                     <thead>
@@ -2172,7 +2186,7 @@
                                         </div>
                                     </div>
                                     <br>
-                                    <div class="col-sm-12">
+                                    <div class="col-sm-12" style=" margin-bottom: 15px">
                                         <input type="button" ng-click="s.antennas.push({})" value="Add Cell Antenna" class="btn btn-primary pull-right">
                                     </div>
                                     <br>
