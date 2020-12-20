@@ -30,11 +30,11 @@ import java.net.URI;
 @Log
 public class SendDataAssetsDb implements JavaDelegate {
 
-    private final String baseUri;
+    private final String assetsUri;
 
     @Autowired
-    public SendDataAssetsDb(@Value("${mail.message.baseurl:http://localhost}") String baseUri) {
-        this.baseUri = baseUri;
+    public SendDataAssetsDb(@Value("${asset.url:https://asset.test-flow.kcell.kz}") String assetsUri) {
+        this.assetsUri = assetsUri;
     }
 
     @Override
@@ -65,9 +65,9 @@ public class SendDataAssetsDb implements JavaDelegate {
                     CloseableHttpClient httpClient = HttpClients.custom().setSSLSocketFactory(
                         sslsf).build();
 
-                    HttpGet httpGet = new HttpGet(baseUri + "/asset-management/api/sites/" + siteId);
+                    HttpGet httpGet = new HttpGet(assetsUri + "/asset-management/api/sites/" + siteId);
                     httpGet.addHeader("Content-Type", "application/json;charset=UTF-8");
-                    httpGet.addHeader("Referer", baseUri);
+                    httpGet.addHeader("Referer", assetsUri);
                     HttpResponse response = httpClient.execute(httpGet);
 
                     if (response.getStatusLine().getStatusCode() < 200 || response.getStatusLine().getStatusCode() >= 300) {
@@ -93,9 +93,9 @@ public class SendDataAssetsDb implements JavaDelegate {
                         jsonObject.put("site_status_id", status);
                         jsonObject.put("site_substatus_id", subStatus);
 
-                        HttpPut httpPut = new HttpPut(new URI(baseUri + "/asset-management/api/sites/id/" + site.getLong("id")));
+                        HttpPut httpPut = new HttpPut(new URI(assetsUri + "/asset-management/api/sites/id/" + site.getLong("id")));
                         httpPut.addHeader("Content-Type", "application/json;charset=UTF-8");
-                        httpPut.addHeader("Referer", baseUri);
+                        httpPut.addHeader("Referer", assetsUri);
                         StringEntity inputData = new StringEntity(jsonObject.toString());
                         httpPut.setEntity(inputData);
 
@@ -103,7 +103,6 @@ public class SendDataAssetsDb implements JavaDelegate {
                         if (putResponse.getStatusLine().getStatusCode() < 200 || putResponse.getStatusLine().getStatusCode() >= 300) {
                             throw new RuntimeException("Site put by id " + siteId + " returns code " + putResponse.getStatusLine().getStatusCode());
                         }
-
 
                         EntityUtils.consume(putResponse.getEntity());
                         putResponse.close();
