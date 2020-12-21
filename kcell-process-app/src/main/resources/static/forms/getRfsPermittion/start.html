@@ -75,7 +75,7 @@
                 'south': 'South',
                 'west': 'West'
             };
-
+            $scope.result = [];
             $scope.protectionModeSetted = false;
             $scope.antenaSetted = false;
             $scope.linkCapacitySetted = false;
@@ -163,12 +163,24 @@
             };
             $scope.selectedTsd = undefined;
 
-            $scope.checkSite = function(){
-               return $http.get($rootScope.assetsServerUrl + '/asset-management/tsd_mw?nearend_id=' + $scope.site).then(
-               function(response) {
-                    $scope.result = response.data;
-               });
+            $scope.checkSite = async function(){
+                let arrPromise = []
+                arrPromise.push($http.get($rootScope.assetsServerUrl + '/asset-management/tsd_mw?nearend_id=' + $scope.site).then(r => r.data).catch(e => console.log('111', e)))
+                arrPromise.push($http.get($rootScope.assetsServerUrl + '/asset-management/tsd_mw?farend_id=' + $scope.site).then(r => r.data).catch(e => console.log('111', e)))
+                let array = []
+                await Promise.all(arrPromise).then((data) => {
+                    let temp2 = data.filter(i => i !== undefined).map(x => x)
+                    for(let i=0;i<temp2.length;i++){
+                        for(let j=0;j<temp2[i].length;j++){
+                            array.push(temp2[i][j])
+                        }
+                    }
+                })
+                $scope.$apply(function() {
+                    $scope.result = array
+                })
             }
+
             $scope.addTsd = function(e){
                 $scope.result.forEach(item => {
                     if($scope.selectedTsd && item.id === $scope.selectedTsd.id) {
@@ -417,6 +429,17 @@
                         type: 'String',
                         value: $scope.eLicenseDate
                     });
+                } else {
+                    camForm.variableManager.createVariable({
+                        name: 'startevt_get_rfs_by_permit',
+                        type: 'String',
+                        value: $scope.startevt_get_rfs_by_permit
+                        });
+                    camForm.variableManager.createVariable({
+                        name: 'authUser',
+                        type: 'Json',
+                        value: $rootScope.authUser
+                        });
                 }
 
                 camForm.variableManager.createVariable({
@@ -439,7 +462,8 @@
       				type: 'Date',
      				value: new Date(),
      				store: true
-  		 	 	});
+                    });
+                
             });
         }]);
 

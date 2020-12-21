@@ -157,6 +157,7 @@
                 'west': 'West'
             };
 
+            $scope.result = [];
             $scope.protectionModeSetted = false;
             $scope.antenaSetted = false;
             $scope.linkCapacitySetted = false;
@@ -286,12 +287,24 @@
             };
             $scope.selectedTsd = undefined;
 
-            $scope.checkSite = function(){
-               return $http.get($rootScope.assetsServerUrl + '/asset-management/tsd_mw?nearend_id=' + $scope.site).then(
-               function(response) {
-                    $scope.result = response.data;
-               });
+            $scope.checkSite = async function(){
+                let arrPromise = []
+                arrPromise.push($http.get($rootScope.assetsServerUrl + '/asset-management/tsd_mw?nearend_id=' + $scope.site).then(r => r.data).catch(e => console.log('111', e)))
+                arrPromise.push($http.get($rootScope.assetsServerUrl + '/asset-management/tsd_mw?farend_id=' + $scope.site).then(r => r.data).catch(e => console.log('111', e)))
+                let array = []
+                await Promise.all(arrPromise).then((data) => {
+                    let temp2 = data.filter(i => i !== undefined).map(x => x)
+                    for(let i=0;i<temp2.length;i++){
+                        for(let j=0;j<temp2[i].length;j++){
+                            array.push(temp2[i][j])
+                        }
+                    }
+                })
+                $scope.$apply(function() {
+                    $scope.result = array
+                })
             }
+            
             $scope.addTsd = function(e){
                 $scope.result.forEach(item => {
                     if($scope.selectedTsd && item.id === $scope.selectedTsd.id) {
@@ -528,44 +541,52 @@
             }
 
             camForm.on('submit', function (e) {
-
+                console.log('submit')
                 camForm.variableManager.createVariable({
                     name: 'isRegion',
                     type: 'Boolean',
                     value: $scope.isRegion
                 });
+                console.log('2')
+
                 camForm.variableManager.createVariable({
                     name: 'oldTsd',
                     type: 'Json',
                     value: $scope.oldTsd
                 });
+                console.log('3')
                 camForm.variableManager.createVariable({
                     name: 'selectedTsd',
                     type: 'Json',
                     value: $scope.selectedTsd
                 });
+                console.log('4')
                 camForm.variableManager.createVariable({
                     name: 'deleteHop',
                     type: 'Boolean',
                     value: $scope.deleteHop
                 });
+                console.log('5')
                 camForm.variableManager.createVariable({
                     name: 'region',
                     type: 'Integer',
                     value: $scope.regionId
                 });
+                console.log('6')
+                console.log($scope.nearend_id)
                 camForm.variableManager.createVariable({
                     name: 'site_name',
                     type: 'String',
-                    value: $scope.nearend_id.site_name
+                    value: $scope.selectedTsd.nearend_id.site_name
                 });
+                console.log('7')
                 camForm.variableManager.createVariable({
       				name: '$scope.requestedDate',
       				type: 'Date',
      				value: new Date(),
      				store: true
   		 	 	});
-
+                console.log('8')
             });
         }]);
 
