@@ -792,9 +792,8 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                 scope.selectedIndex = -1;
                 scope.defaultFarEndCard = false;
                 scope.loadCurrentFarEnd = true;
-                scope.leasingCandidate.frequenciesByAntennaType = {};
-                scope.leasingCandidate.frequenciesFeByAntennaType = {};
-                console.log(scope.leasingCandidate.farEndInformation);
+                scope.leasingCandidate.frequenciesByAntennaType = [];
+                scope.leasingCandidate.frequenciesFeByAntennaType = [];
                 scope.leasingCandidate.farEndInformationDefault = [...scope.leasingCandidate.farEndInformation]
                 if (scope.leasingCandidate.cellAntenna) {
                     if (scope.leasingCandidate.cellAntenna.cn_du !== null && typeof scope.leasingCandidate.cellAntenna.cn_du == 'string') {
@@ -1338,16 +1337,27 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                     }
                 });
                 scope.$watch('leasingCandidate.transmissionAntenna.antennaType', function (antennaType) {
-                    scope.leasingCandidate.frequenciesByAntennaType = {};
+                    scope.leasingCandidate.frequenciesByAntennaType = [];
                     scope.leasingCandidate.frequenciesByAntennaType = _.find(scope.dictionary.antennaType, function (p) {
                         return p.name === antennaType;
                     });
                 }, true);
                 scope.$watch('currentFarEnd.feAntennaType', function (antennaType) {
-                    scope.leasingCandidate.frequenciesFeByAntennaType = {};
+                    scope.leasingCandidate.frequenciesFeByAntennaType = [];
                     scope.leasingCandidate.frequenciesFeByAntennaType = _.find(scope.dictionary.antennaType, function (p) {
                         return p.name === antennaType;
                     })
+                }, true);
+                scope.$watch('dictionary.antennaType', function (antennaType) {
+                    scope.leasingCandidate.frequenciesByAntennaType = [];
+                    scope.leasingCandidate.frequenciesByAntennaType = _.find(antennaType, function (p) {
+                        return p.name === scope.leasingCandidate.transmissionAntenna.antennaType;
+                    });
+
+                    scope.leasingCandidate.frequenciesFeByAntennaType = [];
+                    scope.leasingCandidate.frequenciesFeByAntennaType = _.find(antennaType, function (p) {
+                        return p.name === scope.currentFarEnd.feAntennaType;
+                    });
                 }, true);
                 scope.download = function (path) {
                     $http({
