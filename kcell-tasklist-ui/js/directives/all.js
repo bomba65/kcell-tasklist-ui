@@ -808,7 +808,7 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                     function (result) {
                         try{
                         angular.extend(scope.dictionary, result.data);
-                        
+
                         // var antennaTypePromise = $http.get($rootScope.catalogsServerUrl + '/camunda/catalogs/api/get/id/34').then(function(promiseResult){return promiseResult.data;});
                         // var trAntennaTypePromise = $http.get($rootScope.catalogsServerUrl + '/camunda/catalogs/api/get/id/20').then(function(promiseResult){return promiseResult.data;});
                         // var antennaModelPromise = $http.get($rootScope.catalogsServerUrl + '/camunda/catalogs/api/get/id/19').then(function(promiseResult){return promiseResult.data;});
@@ -961,7 +961,7 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                             scope.addressesList = newAddresses;
                             scope.dictionary.addresses = newAddresses;
                             scope.dictionary.BSC = newBscRncs;
-                            
+
                             scope.oblastList = _.uniqBy(scope.dictionary.addresses, 'oblast').map((e, index) => {
                                 return {"name": e.oblast, "id": index}
                             });
@@ -1157,7 +1157,7 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                         } else {
                             alert('Заполните корректно поля FE Longitude, FE Latitude, NE Longitude, NE Latitude')
                         }
-                    } 
+                    }
                 }
 
 
@@ -2116,31 +2116,151 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                         console.log(error.data);
                     }
                 );
-                $http.get($rootScope.getCatalogsHttpByName('leasingCatalogs')).then(
-                    function (result) {
-                        angular.extend(scope.leasingCatalogs, result.data);
-                        scope.leasingCatalogs.rbsTypes = [];
-                        angular.forEach(scope.leasingCatalogs.rbsType, function (rbs) {
-                            if (scope.leasingCatalogs.rbsTypes.indexOf(rbs.rbsType) < 0) {
-                                scope.leasingCatalogs.rbsTypes.push(rbs.rbsType);
+                // $http.get($rootScope.getCatalogsHttpByName('leasingCatalogs')).then(
+                //     function (result) {
+                //         angular.extend(scope.leasingCatalogs, result.data);
+                //         scope.leasingCatalogs.rbsTypes = [];
+                //         angular.forEach(scope.leasingCatalogs.rbsType, function (rbs) {
+                //             if (scope.leasingCatalogs.rbsTypes.indexOf(rbs.rbsType) < 0) {
+                //                 scope.leasingCatalogs.rbsTypes.push(rbs.rbsType);
+                //             }
+                //         });
+                //         scope.leasingCatalogs.legalTypeTitle = _.keyBy(scope.leasingCatalogs.legalType, 'id');
+                //         scope.leasingCatalogs.initiatorTitle = _.keyBy(scope.leasingCatalogs.initiators, 'id');
+                //         scope.leasingCatalogs.allUnionProjects = [];
+                //         try {
+                //             scope.leasingCatalogs.projects.forEach(pbi => {
+                //                 scope.leasingCatalogs.allUnionProjects = _.uniqBy(scope.leasingCatalogs.allUnionProjects.concat(pbi.project.filter(p => {return (p.id !== null && p.id !== 'null')})), pr => {return pr.id + pr.name });
+                //             });
+                //             // console.log(scope.leasingCatalogs.allUnionProjects)
+                //         } catch (error) {
+                //             console.log(error)
+                //         }
+                //     },
+                //     function (error) {
+                //         console.log(error.data);
+                //     }
+                // );
+                $http.post('https://catalogs.test-flow.kcell.kz/camunda/catalogs/api/get/rolloutcatalogids', [2, 4, 5, 6, 7, 8, 9, 11, 12, 16, 22, 23, 60]).then(
+                    function(res){
+                        let newR = {};
+                        for (let i = 0; i < res.data.regions.length ; i++ ) {
+                            let r = res.data.regions[i];
+                            switch(r.name) {
+                                case 'Astana':
+                                    newR['astana'] = r.name
+                                    break;
+                                case 'Almaty':
+                                    newR['almaty'] = r.name
+                                    break;
+                                case 'East':
+                                    newR['east'] = r.name
+                                    break;
+                                case 'North & Central':
+                                    newR['nc'] = r.name
+                                    break;
+                                case 'South':
+                                    newR['south'] = r.name
+                                    break;
+                                case 'West':
+                                    newR['west'] = r.name
+                                    break;
+                                default:
+                                    console.log('not found region id')
+                                    break;
                             }
-                        });
-                        scope.leasingCatalogs.legalTypeTitle = _.keyBy(scope.leasingCatalogs.legalType, 'id');
-                        scope.leasingCatalogs.initiatorTitle = _.keyBy(scope.leasingCatalogs.initiators, 'id');
-                        scope.leasingCatalogs.allUnionProjects = [];
-                        try {
-                            scope.leasingCatalogs.projects.forEach(pbi => {
-                                scope.leasingCatalogs.allUnionProjects = _.uniqBy(scope.leasingCatalogs.allUnionProjects.concat(pbi.project.filter(p => {return (p.id !== null && p.id !== 'null')})), pr => {return pr.id + pr.name });
-                            });
-                            // console.log(scope.leasingCatalogs.allUnionProjects)
-                        } catch (error) {
-                            console.log(error)
                         }
+                        scope.regionsMap = newR
+                        scope.leasingCatalogs.initiators = res.data.ncp_initiator
+                        scope.leasingCatalogs.allUnionProjects = res.data.ncp_projects.map(i => {
+                            return {
+                                id: i.catalogsId,
+                                name: i.name,
+                                initiator: i.initiator
+                            }
+                        })
+                        scope.leasingCatalogs.reasons = res.data.ncp_reason.map(i => {
+                            return {
+                                id: i.id,
+                                reason: i.name,
+                                catalogsId: i.catalogsId
+                            }
+                        })
+                        scope.leasingCatalogs.siteType = res.data.site_type.filter(i => i.id)
+                        scope.leasingCatalogs.rbsCabinetTypes = res.data.rbs_cabinet_type.map(i => {
+                            return {
+                                ...i,
+                                id: i.catalogsId
+                            }
+                        })
+                        scope.leasingCatalogs.bands = res.data.ncp_bands.map(i => {
+                            return {
+                                ...i,
+                                title: i.name
+                            }
+                        })
+                        scope.leasingCatalogs.legalType = res.data.legal_type.map(i => {
+                            return {
+                                ...i,
+                                codeName: scope.getLegalTypeCodeName(i.id)
+                            }
+                        })
+                        scope.leasingCatalogs.contract = res.data.contract_type
+                        scope.leasingCatalogs.contractExecuter = res.data.contract_executors
+                        scope.leasingCatalogs.transmissionType = res.data.transmission_type
+                        scope.leasingCatalogs.branchesKT = res.data.branches_kt.map(i => {
+                            return {
+                                ...i,
+                                id: scope.getKTBranchId(i.name)
+                            }
+                        })
+                        scope.leasingCatalogs.rbsTypes = res.data.rbs_model
                     },
-                    function (error) {
-                        console.log(error.data);
+                    function(error){
+                        console.log(error);
                     }
                 );
+
+                scope.getLegalTypeCodeName = function (id) {
+                    let legalType = [
+                        {"id":"individual", "desc":"Физическое лицо", "udbid":"321"},
+                        {"id":"too", "desc":"ТОО", "udbid":"122"},
+                        {"id":"ao", "desc":"АО", "udbid":"161"},
+                        {"id":"national_kazakhtelecom", "desc":"АО  \"Казахтелеком\"", "udbid":"211"},
+                        {"id":"national_kazpost", "desc":"АО \"Казпочта\"", "udbid":"215"},
+                        {"id":"national_kazteleradio", "desc":"АО \"Казтелерадио\"", "udbid":"214"},
+                        {"id":"gu", "desc":"ГУ", "udbid":"381"},
+                        {"id":"ip", "desc":"ИП", "udbid":"121"},
+                        {"id":"ksk", "desc":"КСК", "udbid":"51"},
+                        {"id":"nao", "desc":"НАО", "udbid":"382"},
+                        {"id":"ooo", "desc":"ООО", "udbid":"383"},
+                        {"id":"own_kcell", "desc":"Собственность Kcell", "udbid":"227"},
+                        {"id":"tercom", "desc":"Терком", "udbid":"221"},
+                        {"id":"esso", "desc":"ЭСО", "udbid":"216"},
+                        {"id":"beeline", "desc":"Beeline", "udbid":"302"},
+                        {"id":"tele2", "desc":"Tele2", "udbid":"341"},
+                        {"id":"beeline", "desc":"Other", "udbid":"384"},
+                        {"id":"kaz_trans_com", "desc":"АО \"KazTransCom\"", "udbid":"361"},
+                        {"id":"lc_commerce", "desc":"ТОО \"LC Commerce\"", "udbid":"362"},
+                        {"id":"vostoktelecom", "desc":"ТОО \"Востоктелеком\"", "udbid":"363"}
+                    ]
+                    return legalType.find(i => i.udbid === id).id
+                }
+
+                scope.getKTBranchId = function (name) {
+                    let branches = [
+                        {"id":"ods", "name":"Объединение Дальняя Связь"},
+                        {"id":"almaty", "name":"РДТ Алматытелеком"},
+                        {"id":"north", "name":"Северная Региональная Дирекция Телекоммуникаций"},
+                        {"id":"center", "name":"Центральная Региональная Дирекция Телекоммуникаций"},
+                        {"id":"west", "name":"Западная Региональная Дирекция Телекоммуникаций"},
+                        {"id":"east", "name":"Восточная Региональная Дирекция Телекоммуникаций"},
+                        {"id":"south", "name":"Южная Региональная Дирекция Телекоммуникаций"},
+                        {"id":"gtuust", "name":"ГЦУСТ"},
+                        {"id":"dis", "name":"Дирекция информационных систем"}
+                    ]
+                    return branches.find(i => i.name === name).id
+                }
 
                 var processList = [];
                 $http.get('/camunda/api/engine/engine/default/process-definition?latest=true').then(
@@ -2184,20 +2304,20 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
 
                 };
                 scope.KWMSProcesses = {};
-                scope.regionsMap = {
-                    'alm': 'Almaty',
-                    'astana': 'Astana',
-                    'nc': 'North & Center',
-                    'east': 'East',
-                    'south': 'South',
-                    'west': 'West'
-                };
                 scope.processDefinitionKeys = {
                     'create-new-tsd': 'Create new TSD',
                     'tsd-processing': 'TSD Processing',
                     'change-tsd':'Change TSD',
                     'cancel-tsd':'Cancel TSD'
                 }
+                // scope.regionsMap = {
+                //     'alm': 'Almaty',
+                //     'astana': 'Astana',
+                //     'nc': 'North & Center',
+                //     'east': 'East',
+                //     'south': 'South',
+                //     'west': 'West'
+                // };
                 scope.contractorShortName = {
                     '4': 'LSE',
                     '5': 'Kcell_region',
