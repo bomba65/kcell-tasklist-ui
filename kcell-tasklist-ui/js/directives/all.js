@@ -2141,7 +2141,7 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                 //         console.log(error.data);
                 //     }
                 // );
-                $http.post('https://catalogs.test-flow.kcell.kz/camunda/catalogs/api/get/rolloutcatalogids', [2, 4, 5, 6, 7, 8, 9, 11, 12, 16, 22, 23, 60]).then(
+                $http.post($rootScope.catalogsServerUrl + '/camunda/catalogs/api/get/rolloutcatalogids', [2, 4, 5, 6, 7, 8, 9, 11, 12, 16, 22, 23, 60]).then(
                     function(res){
                         let newR = {};
                         for (let i = 0; i < res.data.regions.length ; i++ ) {
