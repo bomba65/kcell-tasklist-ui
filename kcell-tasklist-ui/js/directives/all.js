@@ -2062,7 +2062,7 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
 
                 function noProcessSelection(newVal) {
                     var filtered = Object.fromEntries(Object.entries(newVal).filter(([k, v]) => v.value === false));
-                    if ((filtered.Revision || filtered.Invoice || filtered.CreatePR) && !filtered.leasing && !filtered.Dismantle && !filtered.Replacement) {
+                    if ((filtered.Revision || filtered.Invoice || filtered.CreatePR) && !filtered.leasing && !filtered.Dismantle && !filtered.Replacement  && !filtered.tnu_tsd_db && !filtered['change-tsd'] && !filtered['get-rfs-by-permit'] && !filtered['hop-delete']) {
                         scope.RevisionOrMonthlyAct = true;
                     }
                     if (Object.keys(filtered).length === 1) {
@@ -2085,7 +2085,7 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                             // only one process active;
                             scope.onlyProcessActive = Object.keys(filtered)[0];
                         }
-                        if ((filtered.Revision || filtered.Invoice || filtered.CreatePR) && !filtered.leasing && !filtered.Dismantle && !filtered.Replacement) {
+                        if ((filtered.Revision || filtered.Invoice || filtered.CreatePR) && !filtered.leasing && !filtered.Dismantle && !filtered.Replacement && !filtered.tnu_tsd_db && !filtered['change-tsd'] && !filtered['get-rfs-by-permit'] && !filtered['hop-delete']) {
                             scope.RevisionOrMonthlyAct = true;
                         }
                         angular.forEach(filtered, function (process, key) {
@@ -2516,7 +2516,7 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                     if (scope.filter.workType) {
                         if (scope.onlyProcessActive==='Invoice')
                             filter.variables.push({"name": "workType", "operator": "eq", "value": scope.filter.workType});
-                        else if (scope.onlyProcessActive==='Revision' || scope.onlyProcessActive==='CreatePR' || scope.onlyProcessActive==='tnu_tsd_db' || scope.onlyProcessActive==='change-tsd' || scope.onlyProcessActive==='get-rfs-by-permit' || scope.onlyProcessActive==='hop-delete')
+                        else if (scope.onlyProcessActive==='Revision' || scope.onlyProcessActive==='CreatePR')
                             filter.variables.push({"name": "reason", "operator": "eq", "value": scope.filter.workType});
                     }
                     if (scope.filter.unfinished) {
