@@ -823,14 +823,14 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                         scope.filteredDistricts = scope.districtList;
                         scope.filteredDistrictsInCAI = scope.districtList;
                         scope.alphabet = 'abcdefghijklmnopqrstuvwxyz'.split('');
-                        
+
                         scope.leasingCandidate.addressString = '';
                         scope.leasingCandidate.cellAntenna.addressString = '';
-                        
+
                         //tabs
                         scope.minTab = 0;
                         scope.maxTab = 3;
-                        
+
                         scope.selectedSectorTab = 0;
                         scope.leasingCandidate.cellAntenna.sectors[0].active = 'active';
                         scope.leasingCandidate.checkTPSTouched = false;
@@ -1359,7 +1359,7 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                         }
                     }
                 }
-                
+
                 scope.checkAntennaBands = function (bandName, sectorIndex) {
                     if(scope.leasingCandidate.cellAntenna.sectors) {
                         const s = scope.leasingCandidate.cellAntenna.sectors[sectorIndex]
@@ -2029,7 +2029,8 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                     '1': 'P&O',
                     '2': 'TNU',
                     '3': 'S&FM',
-                    '4': 'SAO'
+                    '4': 'SAO',
+                    '5': 'RO'
                 };
                 scope.processInstancesTotal = 0;
                 scope.processInstancesPages = 0;
