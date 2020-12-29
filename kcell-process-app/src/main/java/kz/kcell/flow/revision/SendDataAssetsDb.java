@@ -68,8 +68,8 @@ public class SendDataAssetsDb implements JavaDelegate {
                 status.put("id", 6);
                 status.put("catalog_id", 3);
                 JSONObject subStatus = new JSONObject();
-                status.put("id", 10);
-                status.put("catalog_id", 85);
+                subStatus.put("id", 10);
+                subStatus.put("catalog_id", 85);
                 jsonObject.put("site_status_id", status);
                 jsonObject.put("site_substatus_id", subStatus);
 
