@@ -62,6 +62,7 @@
 
 <form role="form" class="form-horizontal" name="kcell_form" novalidate>
     <script cam-script type="text/form-script">
+<!--    <script>-->
       inject(['$scope', '$http', 'Uri', '$rootScope', '$q', '$timeout', function ($scope, $http, Uri, $rootScope, $q, $timeout) {
             var variables = [
                 'selectedTsd',
@@ -247,12 +248,17 @@
                         $scope[el] = camForm.variableManager.variables[el].value;
                     }
                 });
+                if(!$scope.startedManually && $scope.selectedTsd) {
+                    if($scope.selectedTsd.capacity_id["channel bandwidth"]) {
+                        $scope.selectedTsd.capacity_id["channel_bandwidth"] = $scope.selectedTsd.capacity_id["channel bandwidth"]
+                    }
+                    $scope.oldTsd = angular.copy($scope.selectedTsd)
+                } else if ($scope.startedManually === undefined) {
+                    $scope.startedManually = true;
+                }
                 $scope.variablesFetched = true;
                 $scope.setValues();
 
-                if(!$scope.startedManually) {
-                    $scope.oldTsd = angular.copy($scope.selectedTsd)
-                }
                $http.get('/camunda/api/engine/engine/default/user/' + $rootScope.authentication.name + '/profile').then(
                     function (result) {
                           $scope.initiatorFull = result.data;
@@ -411,8 +417,15 @@
                 return deferred.promise;
             }
 
-            camForm.on('submit', function (e) {
+            $scope.disableButton = function(val) {
+                if(val && val.name === 'Dismantled'){
+                    return true;
+                } else {
+                    return false;
+                }
+            }
 
+            camForm.on('submit', function (e) {
                 camForm.variableManager.createVariable({
                     name: 'startevt_get_rfs_by_permitTaskComment',
                     type: 'String',
@@ -430,12 +443,19 @@
                 });
 
                 if($scope.startedManually){
+                    camForm.variableManager.destroyVariable('selectedTsd')
                     camForm.variableManager.createVariable({
                         name: 'selectedTsd',
                         type: 'Json',
                         value: $scope.selectedTsd
                     });
-                } 
+                    camForm.variableManager.destroyVariable('startedManually')
+                    camForm.variableManager.createVariable({
+      				name: 'startedManually',
+      				type: 'Boolean',
+     				value: $scope.startedManually,
+                });
+                }
 
                 if($scope.permitResolution === 'get') {
                     camForm.variableManager.createVariable({
@@ -482,8 +502,7 @@
       				type: 'Date',
      				value: new Date(),
      				store: true
-                    });
-
+                });
             });
         }]);
 
@@ -496,15 +515,15 @@
             <h4>Change Transmission Survey Data</h4>
         </div>
     </div>
-    <div ng-if="startedManually" class="well">
+    <div ng-show="startedManually" class="well">
         <div class="form-group">
             <div class="col-sm-4">
                 <div class="input-group">
                     <input type="text" ng-model="site_name" name="site_name"
                            typeahead="site as sites.site_name for sites in getSites($viewValue)"
-                           typeahead-on-select="siteSelected($item,$model,$label)" class="form-control" required
+                           typeahead-on-select="siteSelected($item,$model,$label)" class="form-control" ng-required="startedManually"
                            autocomplete="off" placeholder="Site Name">
-                    <input type="hidden" ng-model="site" name="siteId" required/>
+                    <input type="hidden" ng-model="site" name="siteId" ng-required="startedManually"/>
                     <span class="input-group-btn" ng-if="siteName">
                     <button type="button" class="btn btn-default" ng-click="checkSite()">Check</button>
                 </span>
@@ -520,7 +539,11 @@
                         <th>Near End Site</th>
                         <th>Far End Site</th>
                         <th>Business key</th>
-                        <th>TSD version</th>
+                        <th>NE Tx/Rx Freq</th>
+                        <th>FE Tx/Rx Freq</th>
+                        <th>RFS Status</th>
+                        <th>TSD Version</th>
+                        <th>TSD status</th>
                         <th>Add to list</th>
                     </tr>
                     <tr ng-repeat="c in result">
@@ -528,8 +551,12 @@
                         <td>{{c.nearend_id.site_name}}</td>
                         <td>{{c.farend_id.site_name}}</td>
                         <td>{{c.business_key}}</td>
-                        <td>{{c.CONTRACTENDDATE | date : 'dd.MM.yyyy'}}</td>
-                        <td><a ng-click="addTsd(c)" ng-if="!c.selected">add</a></td>
+                        <td>{{c.ne_txrx_frequencies}}</td>
+                        <td>{{c.fe_txrx_frequencies}}</td>
+                        <td>{{c.rfs_status_id ? c.rfs_status_id.name : ''}}</td>
+                        <td>{{c.version}}</td>
+                        <td>{{c.tsd_status_id ? c.tsd_status_id.name : ''}}</td>
+                        <td><button style="border: none; outline:none;background: inherit" ng-style="{'text-decoration' : disableButton(c.tsd_status_id) ? 'line-through' : ''}" ng-click="addTsd(c)" ng-if="!c.selected" ng-disabled="disableButton(c.tsd_status_id)">add</button></td>
                     </tr>
                 </table>
             </div>
@@ -542,7 +569,11 @@
                         <th>Near End Site</th>
                         <th>Far End Site</th>
                         <th>Business key</th>
-                        <th>TSD version</th>
+                        <th>NE Tx/Rx Freq</th>
+                        <th>FE Tx/Rx Freq</th>
+                        <th>RFS Status</th>
+                        <th>TSD Version</th>
+                        <th>TSD status</th>
                         <th>Remove</th>
                     </tr>
                     <tr>
@@ -550,7 +581,11 @@
                         <td>{{selectedTsd.nearend_id.site_name}}</td>
                         <td>{{selectedTsd.farend_id.site_name}}</td>
                         <td>{{selectedTsd.business_key}}</td>
-                        <td>{{selectedTsd.CONTRACTENDDATE | date : 'dd.MM.yyyy'}}</td>
+                        <td>{{selectedTsd.ne_txrx_frequencies}}</td>
+                        <td>{{selectedTsd.fe_txrx_frequencies}}</td>
+                        <td>{{selectedTsd.rfs_status_id ? selectedTsd.rfs_status_id.name : ''}}</td>
+                        <td>{{selectedTsd.version}}</td>
+                        <td>{{selectedTsd.tsd_status_id ? selectedTsd.tsd_status_id.name : ''}}</td>
                         <td><i class="glyphicon glyphicon-trash" ng-click="removeTsd(selectedTsd.id)"></i></td>
                     </tr>
                 </table>
