@@ -299,9 +299,6 @@ public class CreateCandidate implements JavaDelegate {
                 httpPost.addHeader("Content-Type", "application/json;charset=UTF-8");
                 httpPost.addHeader("Referer", baseUri);
 
-                log.info("body value.toString(): ");
-                log.info(value.toString());
-
                 StringEntity inputData = new StringEntity(value.toString());
                 httpPost.setEntity(inputData);
 
@@ -403,14 +400,14 @@ public class CreateCandidate implements JavaDelegate {
                 String res_electrical_line04 = powerSource != null ? (powerSource.hasProp("closestPublic04") ? powerSource.prop("closestPublic04").value().toString() : null) : null;
                 String res_electrical_line10 = powerSource != null ? (powerSource.hasProp("closestPublic10") ? powerSource.prop("closestPublic10").value().toString() : null) : null;
 
-                JSONArray cable_laying_type_id_json_array = powerSource != null ? (powerSource.hasProp("cableLayingType") ? new JSONArray(powerSource.prop("cableLayingType").value().toString()) : null) : null;
-//                SpinJsonNode cable_laying_type_id_json_array = powerSource != null ? (powerSource.hasProp("cableLayingType") ? JSON(powerSource.prop("cableLayingType").value().toString()) : null) : null;
+//                JSONArray cable_laying_type_id_json_array = powerSource != null ? (powerSource.hasProp("cableLayingType") ? new JSONArray(powerSource.prop("cableLayingType") .toString()) : null) : null;
+                SpinJsonNode cable_laying_type_id_json_array = powerSource != null ? (powerSource.hasProp("cableLayingType") ? powerSource.prop("cableLayingType") : null) : null;
 
-//                SpinList cable_laying_type_id_json_list = cable_laying_type_id_json_array.elements();
-//                SpinJsonNode cable_laying_type_id_json_obj = (SpinJsonNode) cable_laying_type_id_json_list.get(0);
-                JSONObject cable_laying_type_id_json_obj = cable_laying_type_id_json_array.getJSONObject(0);
+                SpinList<SpinJsonNode> cable_laying_type_id_json_list = cable_laying_type_id_json_array.elements();
 
-                String cable_laying_type_id = (cable_laying_type_id_json_obj != null && cable_laying_type_id_json_obj.get("id") != null ) ?  cable_laying_type_id_json_obj.get("id").toString() : null;
+                SpinJsonNode cable_laying_type_id_json_obj = cable_laying_type_id_json_list.get(0);
+
+                String cable_laying_type_id = (cable_laying_type_id_json_obj != null && cable_laying_type_id_json_obj.prop("id") != null ) ?  cable_laying_type_id_json_obj.prop("id").value().toString() : null;
 
                 SSLContextBuilder builder = new SSLContextBuilder();
                 builder.loadTrustMaterial(null, new TrustSelfSignedStrategy());
@@ -423,9 +420,11 @@ public class CreateCandidate implements JavaDelegate {
 
                 if (cable_laying_type_id != null) {
                     JSONObject cable_laying_type_id_json = new JSONObject();
+                    JSONArray cable_laying_type_id_json_ar =  new JSONArray();
+                    cable_laying_type_id_json_ar.put(cable_laying_type_id);
                     cable_laying_type_id_json.put("catalog_id", 18);
-                    cable_laying_type_id_json.put("id", cable_laying_type_id);
-                    value.put("cable_laying_type_id", cable_laying_type_id);
+                    cable_laying_type_id_json.put("ids", cable_laying_type_id_json_ar);
+                    value.put("cable_laying_type_id", cable_laying_type_id_json);
                 }
                 if (provideUs3Phase != null) {
                     value.put("power_three_phases", provideUs3Phase);
@@ -447,7 +446,10 @@ public class CreateCandidate implements JavaDelegate {
                     value.put("construction_height", construction_height);
                 }
 
-                HttpPost httpPost = new HttpPost(new URI("https://asset.test-flow.kcell.kz/asset-management/powersources/"));
+                log.info("body value.toString(): ");
+                log.info(value.toString());
+
+                HttpPost httpPost = new HttpPost(new URI("https://asset.test-flow.kcell.kz/asset-management/powerSources/"));
                 //            HttpPost httpPost = new HttpPost(new URI(this.assetsUri + "/asset-management/ncp/"));
                 httpPost.addHeader("Content-Type", "application/json;charset=UTF-8");
                 httpPost.addHeader("Referer", baseUri);
@@ -484,8 +486,14 @@ public class CreateCandidate implements JavaDelegate {
 //                SpinJsonNode du_type_id_json_obj = (SpinJsonNode) du_type_id_json_list.get(0);
 //                String du_type_id = (du_type_id_json_obj != null && du_type_id_json_obj.hasProp("id")) ?  du_type_id_json_obj.prop("id").value().toString() : null;
 
-                JSONArray du_type_id_json_array = cellAntenna != null ? (cellAntenna.hasProp("cn_du") ? new JSONArray(cellAntenna.prop("cn_du").value().toString()) : null) : null;
-                String du_type_id = du_type_id_json_array.getString(0);
+                SpinJsonNode du_type_id_json_array = cellAntenna != null ? (cellAntenna.hasProp("cn_du") ? cellAntenna.prop("cn_du") : null) : null;
+                SpinList<SpinJsonNode> du_type_id_json_list = du_type_id_json_array.elements();
+
+
+//                SpinJsonNode cable_laying_type_id_json_obj = du_type_id_json_list.get(0);
+//                JSONArray du_type_id_json_array = cellAntenna != null ? (cellAntenna.hasProp("cn_du") ? new JSONArray(cellAntenna.prop("cn_du").value().toString()) : null) : null;
+                SpinJsonNode du_type_id = du_type_id_json_list.get(0);
+                String du_unit_string = du_type_id.prop("catalogsId").value().toString();
 
                 SSLContextBuilder builder = new SSLContextBuilder();
                 builder.loadTrustMaterial(null, new TrustSelfSignedStrategy());
@@ -499,9 +507,12 @@ public class CreateCandidate implements JavaDelegate {
                 if (du_type_id != null) {
                     JSONObject du_type_id_json = new JSONObject();
                     du_type_id_json.put("catalog_id", 59);
-                    du_type_id_json.put("id", du_type_id);
+                    du_type_id_json.put("id", du_unit_string);
                     value.put("du_type_id", du_type_id_json);
                 }
+
+                log.info("body value.toString(): ");
+                log.info(value.toString());
 
                 HttpPost httpPost = new HttpPost(new URI("https://asset.test-flow.kcell.kz/asset-management/cellAntennaInfo/"));
                 //            HttpPost httpPost = new HttpPost(new URI(this.assetsUri + "/asset-management/ncp/"));
@@ -579,7 +590,11 @@ public class CreateCandidate implements JavaDelegate {
                 if (site_name != null) {
                     value.put("site_name", site_name);
                 }
-                HttpPost httpPost = new HttpPost(new URI("https://asset.test-flow.kcell.kz/asset-management/createSites/"));
+
+                log.info("body value.toString(): ");
+                log.info(value.toString());
+
+                HttpPost httpPost = new HttpPost(new URI("https://asset.test-flow.kcell.kz/asset-management/sites/"));
                 //            HttpPost httpPost = new HttpPost(new URI(this.assetsUri + "/asset-management/ncp/"));
                 httpPost.addHeader("Content-Type", "application/json;charset=UTF-8");
                 httpPost.addHeader("Referer", baseUri);
