@@ -68,7 +68,7 @@ define('app',[
 						{key:'get-rfs-by-permit', name:'Get RFS by Permit', group:'infrastructure_get_rfs_by_permit'},
 						{key:'leasing', name:'Leasing Rollout Site', group:'infrastructure_leasing_users'},
 						{key:'hop-delete', name:'Hop Delete', group:'infrastructure_hop_delete_users'},
-						{key:'SiteSharingTopProcess', name:'4G Site Sharing', group:'infrastructure_sharing_users', 
+						{key:'SiteSharingTopProcess', name:'4G Site Sharing', group:'infrastructure_sharing_users',
 							subprocesses:[{key:'BeelineHostBeelineSite'},{key:'BeelineHostKcellSite'},{key:'KcellHostBeelineSite'},{key:'ReplanSiteAP'},{key:'KcellHostKcellSite'}]
 						},
 						{key:'Dismantle', name:'Dismantle', group:'infrastructure_dismantle_users', subprocesses:[{key:'sdr_srr_request'}], businessKeyLike: 'SDR-%'},
@@ -121,7 +121,7 @@ define('app',[
             		return res.data;
             	}
         	);
-        },        
+        },
         defaults: function ($rootScope, projects, groups, localStorageService){
 			$rootScope.holidaysForYear = ['7/1/2017', '20/3/2017', '7/7/2017', '1/9/2017', '7/1/2018', '9/3/2018', '30/4/2018',
 					'8/5/2018', '21/8/2018', '31/8/2018', '31/12/2018', '7/1/2019', '10/5/2019', '7/1/2020', '3/1/2020',
@@ -285,7 +285,7 @@ define('app',[
 			if($rootScope.selectedProcess && $rootScope.selectedProcess.key === processKey){
 				return true;
 			} else if($rootScope.selectedProject && _.find($rootScope.selectedProject.processes, { 'key': processKey})){
-				return true;				
+				return true;
 			} else {
 				return false;
 			}
@@ -297,7 +297,7 @@ define('app',[
 					return process.key === processKey;
 				});
 			});
-		}		
+		}
 
 		$rootScope.getCurrentProcesses = function(){
 			var result = [];
