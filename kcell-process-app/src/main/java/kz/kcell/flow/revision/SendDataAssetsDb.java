@@ -1,5 +1,6 @@
 package kz.kcell.flow.revision;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.java.Log;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -41,73 +42,51 @@ public class SendDataAssetsDb implements JavaDelegate {
     public void execute(DelegateExecution delegateExecution) throws Exception {
 
         if (delegateExecution.getVariable("isSiteFromAssets") != null && delegateExecution.getVariable("isSiteFromAssets").toString().equals("true")) {
-                boolean isDismantle = false;
+            boolean isDismantle = false;
 
-                SpinJsonNode jobWorks = delegateExecution.<JsonValue>getVariableTyped("jobWorks").getValue();
-                if (jobWorks.isArray()) {
-                    SpinList<SpinJsonNode> jobWorklist = jobWorks.elements();
-                    for (SpinJsonNode jobWork : jobWorklist) {
-                        if ("2.4".equals(jobWork.prop("sapServiceNumber").stringValue())) {
-                            isDismantle = true;
-                        }
+            SpinJsonNode jobWorks = delegateExecution.<JsonValue>getVariableTyped("jobWorks").getValue();
+            if (jobWorks.isArray()) {
+                SpinList<SpinJsonNode> jobWorklist = jobWorks.elements();
+                for (SpinJsonNode jobWork : jobWorklist) {
+                    if ("2.4".equals(jobWork.prop("sapServiceNumber").stringValue())) {
+                        isDismantle = true;
                     }
                 }
-                if (isDismantle) {
+            }
+            if (isDismantle) {
 
-                    String siteId = String.valueOf(delegateExecution.getVariable("site"));
-                    String site_name = String.valueOf(delegateExecution.getVariable("site_name"));
+                String siteId = String.valueOf(delegateExecution.getVariable("site"));
+                String site_name = String.valueOf(delegateExecution.getVariable("site_name"));
 
-                    SSLContextBuilder builder = new SSLContextBuilder();
-                    builder.loadTrustMaterial(null, new TrustSelfSignedStrategy());
-                    SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(
-                        builder.build());
-                    CloseableHttpClient httpClient = HttpClients.custom().setSSLSocketFactory(
-                        sslsf).build();
+                SSLContextBuilder builder = new SSLContextBuilder();
+                builder.loadTrustMaterial(null, new TrustSelfSignedStrategy());
+                SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(builder.build());
+                CloseableHttpClient httpClient = HttpClients.custom().setSSLSocketFactory(sslsf).build();
 
-                    HttpGet httpGet = new HttpGet(assetsUri + "/asset-management/sites/id/" + siteId);
-                    httpGet.addHeader("Content-Type", "application/json;charset=UTF-8");
-                    httpGet.addHeader("Referer", assetsUri);
-                    HttpResponse response = httpClient.execute(httpGet);
+                JSONObject jsonObject = new JSONObject();
+                JSONObject status = new JSONObject();
+                status.put("id", 6);
+                status.put("catalog_id", 3);
+                JSONObject subStatus = new JSONObject();
+                status.put("id", 10);
+                status.put("catalog_id", 85);
+                jsonObject.put("site_status_id", status);
+                jsonObject.put("site_substatus_id", subStatus);
 
-                    if (response.getStatusLine().getStatusCode() < 200 || response.getStatusLine().getStatusCode() >= 300) {
-                        throw new RuntimeException("Site get by id " + siteId + " returns code " + response.getStatusLine().getStatusCode());
-                    }
+                HttpPut httpPut = new HttpPut(new URI(assetsUri + "/asset-management/sites/id/" + siteId));
+                httpPut.addHeader("Content-Type", "application/json;charset=UTF-8");
+                httpPut.addHeader("Referer", assetsUri);
+                StringEntity inputData = new StringEntity(jsonObject.toString());
+                httpPut.setEntity(inputData);
 
-                    HttpEntity entity = response.getEntity();
-                    String content = EntityUtils.toString(entity);
-
-                    JSONArray sites = new JSONArray(content);
-                    EntityUtils.consume(response.getEntity());
-
-                    for (int i = 0; i < sites.length(); i++) {
-                        JSONObject site = sites.getJSONObject(i);
-
-                        JSONObject jsonObject = new JSONObject();
-                        JSONObject status = new JSONObject();
-                        status.put("id", 6);
-                        status.put("catalog_id", 3);
-                        JSONObject subStatus = new JSONObject();
-                        status.put("id", 10);
-                        status.put("catalog_id", 85);
-                        jsonObject.put("site_status_id", status);
-                        jsonObject.put("site_substatus_id", subStatus);
-
-                        HttpPut httpPut = new HttpPut(new URI(assetsUri + "/asset-management/sites/id/" + site.getLong("id")));
-                        httpPut.addHeader("Content-Type", "application/json;charset=UTF-8");
-                        httpPut.addHeader("Referer", assetsUri);
-                        StringEntity inputData = new StringEntity(jsonObject.toString());
-                        httpPut.setEntity(inputData);
-
-                        CloseableHttpResponse putResponse = httpClient.execute(httpPut);
-                        if (putResponse.getStatusLine().getStatusCode() < 200 || putResponse.getStatusLine().getStatusCode() >= 300) {
-                            throw new RuntimeException("Site put by id " + siteId + " returns code " + putResponse.getStatusLine().getStatusCode());
-                        }
-
-                        EntityUtils.consume(putResponse.getEntity());
-                        putResponse.close();
-                    }
-                    httpClient.close();
+                CloseableHttpResponse putResponse = httpClient.execute(httpPut);
+                if (putResponse.getStatusLine().getStatusCode() < 200 || putResponse.getStatusLine().getStatusCode() >= 300) {
+                    throw new RuntimeException("Site put by id " + siteId + " returns code " + putResponse.getStatusLine().getStatusCode());
                 }
+
+                EntityUtils.consume(putResponse.getEntity());
+                putResponse.close();
+            }
         }
     }
 }
