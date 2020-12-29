@@ -41,7 +41,6 @@ public class SendDataAssetsDb implements JavaDelegate {
     public void execute(DelegateExecution delegateExecution) throws Exception {
 
         if (delegateExecution.getVariable("isSiteFromAssets") != null && delegateExecution.getVariable("isSiteFromAssets").toString().equals("true")) {
-            try {
                 boolean isDismantle = false;
 
                 SpinJsonNode jobWorks = delegateExecution.<JsonValue>getVariableTyped("jobWorks").getValue();
@@ -65,7 +64,7 @@ public class SendDataAssetsDb implements JavaDelegate {
                     CloseableHttpClient httpClient = HttpClients.custom().setSSLSocketFactory(
                         sslsf).build();
 
-                    HttpGet httpGet = new HttpGet(assetsUri + "/asset-management/api/sites/" + siteId);
+                    HttpGet httpGet = new HttpGet(assetsUri + "/asset-management/sites/id/" + siteId);
                     httpGet.addHeader("Content-Type", "application/json;charset=UTF-8");
                     httpGet.addHeader("Referer", assetsUri);
                     HttpResponse response = httpClient.execute(httpGet);
@@ -93,7 +92,7 @@ public class SendDataAssetsDb implements JavaDelegate {
                         jsonObject.put("site_status_id", status);
                         jsonObject.put("site_substatus_id", subStatus);
 
-                        HttpPut httpPut = new HttpPut(new URI(assetsUri + "/asset-management/api/sites/id/" + site.getLong("id")));
+                        HttpPut httpPut = new HttpPut(new URI(assetsUri + "/asset-management/sites/id/" + site.getLong("id")));
                         httpPut.addHeader("Content-Type", "application/json;charset=UTF-8");
                         httpPut.addHeader("Referer", assetsUri);
                         StringEntity inputData = new StringEntity(jsonObject.toString());
@@ -109,9 +108,6 @@ public class SendDataAssetsDb implements JavaDelegate {
                     }
                     httpClient.close();
                 }
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
         }
     }
 }
