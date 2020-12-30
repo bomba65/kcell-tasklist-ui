@@ -84,7 +84,7 @@
             $scope.eLicenseNumber = null;
             $scope.eLicenseDate = null;
             $scope.rfsPermitionNumber = null;
-            $scope.rfsPermitionDate = null;
+            $scope.rfsPermitionDate = new Date();
             $scope.enterRfsChangetsdTaskComment = null;
 
             $scope.antennaDiameter = function () {
@@ -346,23 +346,18 @@
 
 
             camForm.on('submit', function (e) {
-                camForm.variableManager.createVariable({
-                    name: 'rfsPermitionNumber',
-                    type: 'String',
-                    value: $scope.rfsPermitionNumber
-                });
-                camForm.variableManager.createVariable({
-                    name: 'rfsPermitionDate',
-                    type: 'String',
-                    value: $scope.rfsPermitionDate
-                });
-
-                //Костыль
-                camForm.variableManager.createVariable({
-                    name: 'withoutNotifications',
-                    type: 'Boolean',
-                    value: true
-                });
+                if (enterRfsChangetsdTaskResult === 'approved') {
+                    camForm.variableManager.createVariable({
+                        name: 'rfsPermitionNumber',
+                        type: 'String',
+                        value: $scope.rfsPermitionNumber
+                    });
+                    camForm.variableManager.createVariable({
+                        name: 'rfsPermitionDate',
+                        type: 'String',
+                        value: $scope.rfsPermitionDate
+                    });
+                }
 
                 camForm.variableManager.createVariable({
                     name: 'enterRfsChangetsdTaskComment',
@@ -390,13 +385,15 @@
     <div class="form-group">
         <label class="col-sm-2 control-label"><b>TSD number:</b></label>
         <label class="col-sm-6 control-label">{{selectedTsd.business_key}}</label>
+        <label class="col-sm-2 control-label"><b>Version:</b></label>
+        <label class="col-sm-2 control-label">{{selectedTsd.version}}</label>
     </div>
 
     <div class="form-group">
         <label class="col-sm-2 control-label"><b>Region name:</b></label>
-        <label class="col-sm-4 control-label">{{selectedTsd.nearend_id.facility_id.address_id.city_id.district_id.oblast_id.region_id.name}}</label>
+        <label class="col-sm-6 control-label">{{selectedTsd.nearend_id.facility_id.address_id.city_id.district_id.oblast_id.region_id.name}}</label>
         <label class="col-sm-2 control-label"><b>Date:</b></label>
-        <div class="col-sm-4">
+        <div class="col-sm-2">
             <div class="input-group">
                 <input type="text" ng-model="date_of_visit" ng-value="selectedTsd.date | date: 'dd.MM.yyyy'" name="dateOfVisit" class="form-control"
                        datepicker-popup="dd.MM.yyyy" id="dateOfVisit" disabled/>
@@ -1109,17 +1106,19 @@
             </table>
         </div>
     </div>
-
-    <div class="form-group">
-        <label class="col-sm-3 control-label">e-license request number:</label>
-        <input class="col-sm-3 control-label" ng-model="eLicenseNumber" disabled/>
-        <label class="col-sm-2 control-label">Date:</label>
-<!--        <input class="col-sm-3 control-label" type="text" name="eLicenseDate" ng-model="eLicenseDate | date: 'dd.MM.yyyy'" disabled/>-->
-        <div class="custom-like-input">{{eLicenseDate | date: 'dd.MM.yyyy'}}</div>
+    <div class="form-group resolution">
+        <label class="col-sm-2 control-label bolder"><b>e-license request number:</b></label>
+        <div class="col-sm-3">
+            <input class="form-control" ng-model="eLicenseNumber" disabled/>
+        </div>
+        <label class="col-sm-2 col-sm-offset-2 control-label"><b>Date:</b></label>
+        <div class="col-sm-2">
+            <div class="form-control" style="background-color: #eee; width: 100%;">{{eLicenseDate | date: 'dd.MM.yyyy'}}</div>
+        </div>
     </div>
 
-    <div class="form-group">
-        <label class="col-sm-4 control-label">Resolution:</label>
+    <div class="form-group resolution">
+        <label class="col-sm-2 control-label bolder">Resolution:</label>
         <div class="col-sm-8">
             <label class="radio-inline">
                 <input type="radio" ng-model="enterRfsChangetsdTaskResult" name="enterRfsChangetsdTaskResult" value="approved" required> RFS approved
@@ -1131,14 +1130,16 @@
         </div>
     </div>
 
-    <div class="form-group" ng-if="enterRfsChangetsdTaskResult==='approved'">
-        <label class="col-sm-3">RFS permission number:</label>
+    <div class="form-group resolution" ng-if="enterRfsChangetsdTaskResult==='approved'">
+        <div class="col-sm-2">
+            <label class="bolder">RFS permission number:</label>
+        </div>
         <div class="col-sm-3">
             <input class="form-control" type="number" name="rfsPermitionNumber" ng-model="$parent.rfsPermitionNumber" ng-required="enterRfsChangetsdTaskResult === 'approved'" >
             <label class="error" ng-show="kcell_form.rfsPermitionNumber.$error.required && ( kcell_form.rfsPermitionNumber.$touched || view.submitted)">Required field</label>
         </div>
-        <label class="col-sm-1">Date:</label>
-        <div class="col-sm-3">
+        <label class="col-sm-2 col-sm-offset-2">Date:</label>
+        <div class="col-sm-2">
             <div class="input-group">
                 <input type="text" ng-model="$parent.rfsPermitionDate" name="rfsPermitionDate" ng-required="enterRfsChangetsdTaskResult === 'approved'" class="form-control" datepicker-popup="dd.MM.yyyy" is-open="dateOpened" id="rfsPermitionDate" />
                 <label class="error" ng-show="kcell_form.rfsPermitionDate.$error.required && ( kcell_form.rfsPermitionDate.$touched || view.submitted)">Required field</label>

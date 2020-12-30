@@ -88,7 +88,6 @@
                 'region_name',
                 'ne_sitename',
                 'fe_sitename',
-                'resolutions',
                 'date_of_visit',
                 'ne_construction_type',
                 'fe_construction_type',
@@ -146,6 +145,15 @@
                 'south': 'South',
                 'west': 'West'
             };
+            $scope.catalogToRegion = {
+                '1': 'alm',
+                '2': 'astana',
+                '3': 'nc',
+                '4': 'east',
+                '5': 'south',
+                '6': 'west'
+            };
+
             $scope.result = [];
 
             $scope.protectionModeSetted = false;
@@ -559,22 +567,38 @@
                     type: 'Json',
                     value: $scope.selectedTsd
                 });
+                var region = $scope.catalogToRegion[$scope.regionId];
                 camForm.variableManager.createVariable({
                     name: 'region',
                     type: 'Integer',
                     value: $scope.regionId
                 });
                 camForm.variableManager.createVariable({
+                    name: 'regionName',
+                    type: 'String',
+                    value: region
+                });
+                camForm.variableManager.createVariable({
                     name: 'site_name',
                     type: 'String',
                     value: $scope.selectedTsd.nearend_id.site_name
                 });
+                var requestedDate = new Date();
                 camForm.variableManager.createVariable({
-      				name: '$scope.requestedDate',
+      				name: 'requestedDate',
       				type: 'Date',
-     				value: new Date(),
+     				value: requestedDate,
      				store: true
-  		 	 	});
+                });
+
+                $scope.resolutions = [];
+                $scope.resolutions.push({processInstanceId: 'noProcessInstanceId', assignee: $rootScope.authentication.name, assigneeName: $rootScope.authentication.assigneeName, resolution: 'created', comment: $scope.startComment, taskId: 'noTaskId', taskName:'Change TSD Start', taskEndDate: requestedDate,  visibility: 'all'});
+                camForm.variableManager.createVariable({
+      				name: 'resolutions',
+      				type: 'Json',
+     				value: $scope.resolutions,
+     				store: true
+                });
             });
             $scope.disableButton = function(val) {
                 if(val && val.name === 'Dismantled'){
@@ -679,13 +703,15 @@
     <div class="form-group">
         <label class="col-sm-2 control-label"><b>TSD number:</b></label>
         <label class="col-sm-6 control-label">{{selectedTsd.business_key}}</label>
+        <label class="col-sm-2 control-label"><b>Version:</b></label>
+        <label class="col-sm-2 control-label">{{selectedTsd.version}}</label>
     </div>
 
     <div class="form-group">
         <label class="col-sm-2 control-label"><b>Region name:</b></label>
-        <label class="col-sm-4 control-label">{{selectedTsd.nearend_id.facility_id.address_id.city_id.district_id.oblast_id.region_id.name}}</label>
+        <label class="col-sm-6 control-label">{{selectedTsd.nearend_id.facility_id.address_id.city_id.district_id.oblast_id.region_id.name}}</label>
         <label class="col-sm-2 control-label"><b>Date:</b></label>
-        <div class="col-sm-4">
+        <div class="col-sm-2">
             <div class="input-group">
                 <input type="text" ng-model="date_of_visit" ng-value="selectedTsd.date | date: 'dd.MM.yyyy'"
                        name="dateOfVisit" class="form-control"

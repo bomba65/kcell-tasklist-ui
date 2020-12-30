@@ -83,6 +83,14 @@
                 'south': 'South',
                 'west': 'West'
             };
+            $scope.catalogToRegion = {
+                '1': 'alm',
+                '2': 'astana',
+                '3': 'nc',
+                '4': 'east',
+                '5': 'south',
+                '6': 'west'
+            };
             $scope.result = [];
             $scope.protectionModeSetted = false;
             $scope.antenaSetted = false;
@@ -92,7 +100,7 @@
             $scope.hop_link_type = 3;
             $scope.permitResolution = null;
             $scope.eLicenseNumber = null;
-            $scope.eLicenseDate = null;
+            $scope.eLicenseDate = new Date();
             $scope.startevt_get_rfs_by_permit = null;
 
             $scope.setValues = function () {
@@ -427,11 +435,6 @@
 
             camForm.on('submit', function (e) {
                 camForm.variableManager.createVariable({
-                    name: 'startevt_get_rfs_by_permitTaskComment',
-                    type: 'String',
-                    value: $scope.startevt_get_rfs_by_permitTaskComment
-                });
-                camForm.variableManager.createVariable({
                     name: 'isRegion',
                     type: 'Boolean',
                     value: $scope.isRegion
@@ -459,9 +462,9 @@
 
                 if($scope.permitResolution === 'get') {
                     camForm.variableManager.createVariable({
-                    name: 'eLicenseNumber',
-                    type: 'String',
-                    value: $scope.eLicenseNumber
+                        name: 'eLicenseNumber',
+                        type: 'String',
+                        value: $scope.eLicenseNumber
                     });
 
                     camForm.variableManager.createVariable({
@@ -470,16 +473,17 @@
                         value: $scope.eLicenseDate
                     });
                 } else {
-                    camForm.variableManager.createVariable({
+                     camForm.variableManager.createVariable({
                         name: 'startevt_get_rfs_by_permit',
                         type: 'String',
                         value: $scope.startevt_get_rfs_by_permit
-                        });
-                    camForm.variableManager.createVariable({
-                        name: 'authUser',
-                        type: 'Json',
-                        value: $rootScope.authUser
-                        });
+                     });
+                     camForm.variableManager.createVariable({
+                         name: 'authUser',
+                         type: 'Json',
+                         value: $rootScope.authUser
+                     });
+
                 }
 
                 camForm.variableManager.createVariable({
@@ -487,20 +491,37 @@
                     type: 'String',
                     value: $scope.permitResolution
                 });
+                var region = $scope.catalogToRegion[$scope.regionId];
                 camForm.variableManager.createVariable({
                     name: 'region',
                     type: 'Integer',
                     value: $scope.regionId
                 });
                 camForm.variableManager.createVariable({
+                    name: 'regionName',
+                    type: 'String',
+                    value: region
+                });
+                camForm.variableManager.createVariable({
                     name: 'site_name',
                     type: 'String',
                     value: $scope.selectedTsd.nearend_id.site_name
                 });
+
+                var requestedDate = new Date();
                 camForm.variableManager.createVariable({
       				name: 'requestedDate',
       				type: 'Date',
-     				value: new Date(),
+     				value: requestedDate,
+     				store: true
+                });
+
+                $scope.resolutions = [];
+                $scope.resolutions.push({processInstanceId: 'noProcessInstanceId', assignee: $rootScope.authentication.name, assigneeName: $rootScope.authentication.assigneeName, resolution: 'created', comment: $scope.startevt_get_rfs_by_permit, taskId: 'noTaskId', taskName:'TSD Processing Start', taskEndDate: requestedDate,  visibility: 'all'});
+                camForm.variableManager.createVariable({
+      				name: 'resolutions',
+      				type: 'Json',
+     				value: $scope.resolutions,
      				store: true
                 });
             });
