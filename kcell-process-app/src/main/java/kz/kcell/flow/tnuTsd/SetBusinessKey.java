@@ -55,6 +55,7 @@ public class SetBusinessKey implements JavaDelegate {
             .processDefinitionKey("tnu_tsd_db")
             .startedAfter(firstDate)
             .startedBefore(lastDate)
+            .variableValueEquals("region_name", region_name)
             .list()
             .size();
 
