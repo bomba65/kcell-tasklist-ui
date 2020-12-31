@@ -65,15 +65,15 @@ define('app',[
 						{key:'CreatePR', name:'Create PR', group:'infrastructure_pr_users'},
 						{key:'Invoice', name:'Monthly Act', group:'infrastructure_monthly_act_users'},
 						{key:'change-tsd', name:'Change TSD', group:'infrastructure_change_tsd_users'},
-						{key:'get-rfs-by-permit', name:'Get RFS by Permit', group:'infrastructure_get_rfs_by_permit'},
+						{key:'tsd-processing', name:'TSD Processing', group:'infrastructure_get_rfs_by_permit'},
 						{key:'leasing', name:'Leasing Rollout Site', group:'infrastructure_leasing_users'},
-						{key:'hop-delete', name:'Hop Delete', group:'infrastructure_hop_delete_users'},
+						{key:'cancel-tsd', name:'Cancel TSD', group:'infrastructure_hop_delete_users'},
 						{key:'SiteSharingTopProcess', name:'4G Site Sharing', group:'infrastructure_sharing_users',
 							subprocesses:[{key:'BeelineHostBeelineSite'},{key:'BeelineHostKcellSite'},{key:'KcellHostBeelineSite'},{key:'ReplanSiteAP'},{key:'KcellHostKcellSite'}]
 						},
 						{key:'Dismantle', name:'Dismantle', group:'infrastructure_dismantle_users', subprocesses:[{key:'sdr_srr_request'}], businessKeyLike: 'SDR-%'},
 						{key:'Replacement', name:'Replacement', group:'infrastructure_replacement_users', subprocesses:[{key:'sdr_srr_request'}], businessKeyLike: 'SRR-%'},
-						{key:'tnu_tsd_db', name:'TNU', group:'infrastructure_tnu_users'}
+						{key:'create-new-tsd', name:'Create new TSD', group:'infrastructure_tnu_users'}
 					]
 				},
 				{

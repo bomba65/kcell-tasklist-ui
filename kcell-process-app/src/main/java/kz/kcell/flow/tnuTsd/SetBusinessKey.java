@@ -52,7 +52,7 @@ public class SetBusinessKey implements JavaDelegate {
         Integer count = delegateExecution.getProcessEngineServices()
             .getHistoryService()
             .createHistoricProcessInstanceQuery()
-            .processDefinitionKey("tnu_tsd_db")
+            .processDefinitionKey("create-new-tsd")
             .startedAfter(firstDate)
             .startedBefore(lastDate)
             .variableValueEquals("region_name", region_name)

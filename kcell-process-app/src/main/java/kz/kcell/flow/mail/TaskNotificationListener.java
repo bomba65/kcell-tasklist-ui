@@ -95,7 +95,7 @@ public class TaskNotificationListener implements TaskListener {
                 .processDefinitionId(delegateTask.getProcessDefinitionId())
                 .list()
                 .stream()
-                .filter(e-> "tnu_tsd_db".equals(e.getKey()))
+                .filter(e-> "create-new-tsd".equals(e.getKey()))
                 .findAny()
                 .isPresent();
 
@@ -107,7 +107,7 @@ public class TaskNotificationListener implements TaskListener {
                 .processDefinitionId(delegateTask.getProcessDefinitionId())
                 .list()
                 .stream()
-                .filter(e-> "get-rfs-by-permit".equals(e.getKey()))
+                .filter(e-> "tsd-processing".equals(e.getKey()))
                 .findAny()
                 .isPresent();
 

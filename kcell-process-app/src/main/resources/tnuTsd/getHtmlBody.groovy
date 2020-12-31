@@ -37,7 +37,7 @@ html(lang:'en') {
     body {
         p {
             yield 'В рамках рассмотрения заявок по \'
-            b('TNU')
+            b('Create new TSD')
             yield ' в системе \'
             b('Kcell Workflow')
             yield ' на Вас назначена активность \'
@@ -55,7 +55,7 @@ html(lang:'en') {
                     yield 'Процесс: \'
                 }
                 td {
-                    b('TNU')
+                    b('Create new TSD')
                 }
              }
             tr {
