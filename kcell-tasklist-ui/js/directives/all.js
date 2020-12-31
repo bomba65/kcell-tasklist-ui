@@ -834,8 +834,9 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
 
                             scope.dictionary.constructionType = newCatalogsPromiseResult.construction_type;
                             scope.dictionary.transmissionType = newCatalogsPromiseResult.transmission_type;
-                            scope.dictionary.dUnit = newCatalogsPromiseResult.bsc_rnc_status;
                             scope.dictionary.equipmentType = newCatalogsPromiseResult.tr_equipment_type.filter( i => {return (i.hasOwnProperty('id') && i.id !== null)});
+                            scope.dictionary.dUnit = newCatalogsPromiseResult.bsc_rnc_status;
+                            scope.dictionary.FarEndConstructiontype = newCatalogsPromiseResult.fe_construction_type;
                             // scope.dictionary.legalType = newCatalogsPromiseResult.legal_type;
 
                             newCatalogsPromiseResult.rbs_location.forEach(function(item){
