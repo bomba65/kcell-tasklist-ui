@@ -1990,7 +1990,7 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                         title: "PR Creation", value: false
                     },
                     'create-new-tsd': {
-                        title: "TNU", value: false
+                        title: "Create new TSD", value: false
                     },
                     'change-tsd': {
                         title: "Change TSD", value: false
