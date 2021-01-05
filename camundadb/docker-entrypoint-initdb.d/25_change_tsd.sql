@@ -158,13 +158,7 @@ INSERT INTO public.act_id_membership (user_id_, group_id_) VALUES ('Marat.Abdin@
 
 
 -- authorizations
-INSERT INTO public.act_ru_authorization (id_, rev_, type_, group_id_, user_id_, resource_type_, resource_id_, perms_) VALUES ('3095cad6-4327-11ea-b160-8a38eff8d212', 2, 1, 'infrastructure_tnu_users', null, 6, 'create-new-tsd', 4674) ON CONFLICT(id_) DO NOTHING;
-INSERT INTO public.act_ru_authorization (id_, rev_, type_, group_id_, user_id_, resource_type_, resource_id_, perms_) VALUES ('0be3865b-4326-11ea-b160-8a38eff8d212', 3, 1, 'alm_tn_engineer', null, 6, 'create-new-tsd', 258) ON CONFLICT(id_) DO NOTHING;
-INSERT INTO public.act_ru_authorization (id_, rev_, type_, group_id_, user_id_, resource_type_, resource_id_, perms_) VALUES ('0be3865b-4326-11ea-b160-8a38eff8d212', 3, 1, 'astana_tn_engineer', null, 6, 'create-new-tsd', 258) ON CONFLICT(id_) DO NOTHING;
-INSERT INTO public.act_ru_authorization (id_, rev_, type_, group_id_, user_id_, resource_type_, resource_id_, perms_) VALUES ('0be3865b-4326-11ea-b160-8a38eff8d212', 3, 1, 'nc_tn_engineer', null, 6, 'create-new-tsd', 258) ON CONFLICT(id_) DO NOTHING;
-INSERT INTO public.act_ru_authorization (id_, rev_, type_, group_id_, user_id_, resource_type_, resource_id_, perms_) VALUES ('0be3865b-4326-11ea-b160-8a38eff8d212', 3, 1, 'east_tn_engineer', null, 6, 'create-new-tsd', 258) ON CONFLICT(id_) DO NOTHING;
-INSERT INTO public.act_ru_authorization (id_, rev_, type_, group_id_, user_id_, resource_type_, resource_id_, perms_) VALUES ('0be3865b-4326-11ea-b160-8a38eff8d212', 3, 1, 'south_tn_engineer', null, 6, 'create-new-tsd', 258) ON CONFLICT(id_) DO NOTHING;
-INSERT INTO public.act_ru_authorization (id_, rev_, type_, group_id_, user_id_, resource_type_, resource_id_, perms_) VALUES ('0be3865b-4326-11ea-b160-8a38eff8d212', 3, 1, 'west_tn_engineer', null, 6, 'create-new-tsd', 258) ON CONFLICT(id_) DO NOTHING;
-INSERT INTO public.act_ru_authorization (id_, rev_, type_, group_id_, user_id_, resource_type_, resource_id_, perms_) VALUES ('0be3865b-4326-11ea-b160-8a38eff8d212', 3, 1, 'hq_tn_engineer', null, 6, 'create-new-tsd', 258) ON CONFLICT(id_) DO NOTHING;
+INSERT INTO public.act_ru_authorization (id_, rev_, type_, group_id_, user_id_, resource_type_, resource_id_, perms_) VALUES ('de6ea0ad-4f4d-11eb-9b69-0242ac130008', 1, 1, 'infrastructure_get_rfs_by_permit', null, 6, 'tsd-processing', 4674);
+INSERT INTO public.act_ru_authorization (id_, rev_, type_, group_id_, user_id_, resource_type_, resource_id_, perms_) VALUES ('20e34d10-4f4f-11eb-9b69-0242ac130008', 1, 1, 'infrastructure_change_tsd_users', null, 6, 'change-tsd', 4674);
 
 commit;
