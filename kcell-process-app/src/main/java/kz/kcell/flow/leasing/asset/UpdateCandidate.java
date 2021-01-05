@@ -4,6 +4,7 @@ import kz.kcell.flow.files.Minio;
 import lombok.extern.java.Log;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.conn.ssl.TrustSelfSignedStrategy;
@@ -14,7 +15,9 @@ import org.apache.http.ssl.SSLContextBuilder;
 import org.apache.http.util.EntityUtils;
 import org.camunda.bpm.engine.delegate.DelegateExecution;
 import org.camunda.bpm.engine.delegate.JavaDelegate;
+import org.camunda.spin.SpinList;
 import org.camunda.spin.json.SpinJsonNode;
+import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -63,7 +66,7 @@ public class UpdateCandidate implements JavaDelegate {
             String assetsCreatedNeFacilitieId = delegateExecution.getVariable("assetsCreatedNeFacilitieId") != null ? delegateExecution.getVariable("assetsCreatedNeFacilitieId").toString() : null;
             String assetsCreatedCnFacilitieId = delegateExecution.getVariable("assetsCreatedCnFacilitieId") != null ? delegateExecution.getVariable("assetsCreatedCnFacilitieId").toString() : null;
             String assetsCreatedPowerSourcesId = delegateExecution.getVariable("assetsCreatedPowerSourcesId") != null ? delegateExecution.getVariable("assetsCreatedPowerSourcesId").toString() : null;
-            String assetsCreatedCellAntennaId = delegateExecution.getVariable("assetsCreatedCellAntennaId") != null ? delegateExecution.getVariable("assetsCreatedCellAntennaId").toString() : null;
+            String assetsCreatedCellAntennaInfoId = delegateExecution.getVariable("assetsCreatedCellAntennaId") != null ? delegateExecution.getVariable("assetsCreatedCellAntennaId").toString() : null;
 
             SpinJsonNode addressJson = delegateExecution.getVariable("address") != null ? JSON(delegateExecution.getVariable("address")) : null;
             SpinJsonNode cellAntennaJson = delegateExecution.getVariable("cellAntenna") != null ? JSON(delegateExecution.getVariable("cellAntenna")) : null;
@@ -507,8 +510,8 @@ public class UpdateCandidate implements JavaDelegate {
                         transmission_type_id_json.put("id", candidate.prop("transmissionTypeAmCatalogsId").value().toString());
                         value.put("transmission_type_id", transmission_type_id_json);
                     }
-                    if (assetsCreatedCellAntennaId != null) {
-                        value.put("cell_antenna_info_id", assetsCreatedCellAntennaId);
+                    if (assetsCreatedCellAntennaInfoId != null) {
+                        value.put("cell_antenna_info_id", assetsCreatedCellAntennaInfoId);
                     }
                     if (assetsCreatedPowerSourcesId != null) {
                         value.put("power_source_id", assetsCreatedPowerSourcesId);
@@ -547,6 +550,139 @@ public class UpdateCandidate implements JavaDelegate {
                 }catch (Exception e){
                     e.printStackTrace();
                 }
+            }
+            if (updateAssetCandidateTable.equals("powerSources")) {
+
+                SpinJsonNode powerSource = delegateExecution.getVariable("powerSource") != null ? JSON(delegateExecution.getVariable("powerSource")) : null;
+
+                String cableLength = powerSource != null ? (powerSource.hasProp("cableLength") ? powerSource.prop("cableLength").value().toString() : null) : null;
+                Boolean provideUs3Phase = powerSource != null ? (powerSource.hasProp("provideUs3Phase") && powerSource.prop("provideUs3Phase").value().toString().equals("Yes") ? true : false) : null;
+                Boolean agreeToReceiveMonthlyPaymen = powerSource != null ? (powerSource.hasProp("agreeToReceiveMonthlyPaymen") && powerSource.prop("agreeToReceiveMonthlyPaymen").value().toString().equals("Yes") ? true : false) : null;
+                String res_electrical_line04 = powerSource != null ? (powerSource.hasProp("closestPublic04") ? powerSource.prop("closestPublic04").value().toString() : null) : null;
+                String res_electrical_line10 = powerSource != null ? (powerSource.hasProp("closestPublic10") ? powerSource.prop("closestPublic10").value().toString() : null) : null;
+
+//                JSONArray cable_laying_type_id_json_array = powerSource != null ? (powerSource.hasProp("cableLayingType") ? new JSONArray(powerSource.prop("cableLayingType") .toString()) : null) : null;
+                SpinJsonNode cable_laying_type_id_json_array = powerSource != null ? (powerSource.hasProp("cableLayingType") ? powerSource.prop("cableLayingType") : null) : null;
+
+                SpinList<SpinJsonNode> cable_laying_type_id_json_list = cable_laying_type_id_json_array.elements();
+
+                SpinJsonNode cable_laying_type_id_json_obj = cable_laying_type_id_json_list.get(0);
+
+                String cable_laying_type_id = (cable_laying_type_id_json_obj != null && cable_laying_type_id_json_obj.prop("id") != null ) ?  cable_laying_type_id_json_obj.prop("id").value().toString() : null;
+
+                SSLContextBuilder builder = new SSLContextBuilder();
+                builder.loadTrustMaterial(null, new TrustSelfSignedStrategy());
+                SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(
+                    builder.build());
+                CloseableHttpClient httpclient = HttpClients.custom().setSSLSocketFactory(
+                    sslsf).build();
+
+                JSONObject value = new JSONObject();
+
+                if (cable_laying_type_id != null) {
+                    JSONObject cable_laying_type_id_json = new JSONObject();
+                    JSONArray cable_laying_type_id_json_ar =  new JSONArray();
+                    cable_laying_type_id_json_ar.put(cable_laying_type_id);
+                    cable_laying_type_id_json.put("catalog_id", 18);
+                    cable_laying_type_id_json.put("ids", cable_laying_type_id_json_ar);
+                    value.put("cable_laying_type_id", cable_laying_type_id_json);
+                }
+                if (provideUs3Phase != null) {
+                    value.put("power_three_phases", provideUs3Phase);
+                }
+
+                if (cableLength != null) {
+                    value.put("cable_length_connection_point", cableLength);
+                }
+
+                if (agreeToReceiveMonthlyPaymen != null) {
+                    value.put("receive_monthly_payment", agreeToReceiveMonthlyPaymen);
+                }
+
+                if (res_electrical_line04 != null) {
+                    value.put("power_three_phases", provideUs3Phase);
+                }
+
+                if (res_electrical_line10 != null) {
+                    value.put("construction_height", construction_height);
+                }
+
+                log.info("body value.toString(): ");
+                log.info(value.toString());
+
+                HttpPut httpPut = new HttpPut(new URI("https://asset.test-flow.kcell.kz/asset-management/powerSources/id/" + assetsCreatedPowerSourcesId));
+                httpPut.addHeader("Content-Type", "application/json;charset=UTF-8");
+                httpPut.addHeader("Referer", baseUri);
+                StringEntity inputData = new StringEntity(value.toString());
+                httpPut.setEntity(inputData);
+
+                CloseableHttpResponse postResponse = httpclient.execute(httpPut);
+
+                HttpEntity entity = postResponse.getEntity();
+                String responseString = EntityUtils.toString(entity, "UTF-8");
+
+                log.info("powerSources -PUT response code: " + postResponse.getStatusLine().getStatusCode());
+                if (postResponse.getStatusLine().getStatusCode() < 200 || postResponse.getStatusLine().getStatusCode() >= 300) {
+                    throw new RuntimeException("Candidate post returns code " + postResponse.getStatusLine().getStatusCode());
+                }
+            }
+
+            if (updateAssetCandidateTable.equals("cellAntennaInfo")) {
+
+                SpinJsonNode cellAntenna = delegateExecution.getVariable("cellAntenna") != null ? JSON(delegateExecution.getVariable("cellAntenna")) : null;
+
+//                String du_type_id = cellAntenna != null ? (cellAntenna.hasProp("cn_du") ? cellAntenna.prop("cn_du").value() : null) : null;
+
+//                SpinJsonNode du_type_id_json_array = cellAntenna != null ? (cellAntenna.hasProp("cn_du") ? JSON(cellAntenna.prop("cn_du").value().toString()) : null) : null;
+//                SpinList du_type_id_json_list = du_type_id_json_array.elements();
+//                SpinJsonNode du_type_id_json_obj = (SpinJsonNode) du_type_id_json_list.get(0);
+//                String du_type_id = (du_type_id_json_obj != null && du_type_id_json_obj.hasProp("id")) ?  du_type_id_json_obj.prop("id").value().toString() : null;
+
+                SpinJsonNode du_type_id_json_array = cellAntenna != null ? (cellAntenna.hasProp("cn_du") ? cellAntenna.prop("cn_du") : null) : null;
+                SpinList<SpinJsonNode> du_type_id_json_list = du_type_id_json_array.elements();
+
+
+//                SpinJsonNode cable_laying_type_id_json_obj = du_type_id_json_list.get(0);
+//                JSONArray du_type_id_json_array = cellAntenna != null ? (cellAntenna.hasProp("cn_du") ? new JSONArray(cellAntenna.prop("cn_du").value().toString()) : null) : null;
+                SpinJsonNode du_type_id = du_type_id_json_list.get(0);
+                String du_unit_string = du_type_id.prop("catalogsId").value().toString();
+
+                SSLContextBuilder builder = new SSLContextBuilder();
+                builder.loadTrustMaterial(null, new TrustSelfSignedStrategy());
+                SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(
+                    builder.build());
+                CloseableHttpClient httpclient = HttpClients.custom().setSSLSocketFactory(
+                    sslsf).build();
+
+                JSONObject value = new JSONObject();
+
+                if (du_type_id != null) {
+                    JSONObject du_type_id_json = new JSONObject();
+                    du_type_id_json.put("catalog_id", 59);
+                    du_type_id_json.put("id", du_unit_string);
+                    value.put("du_type_id", du_type_id_json);
+                }
+
+                log.info("body value.toString(): ");
+                log.info(value.toString());
+
+                HttpPut httpPut = new HttpPut(new URI("https://asset.test-flow.kcell.kz/asset-management/cellAntennaInfo/id/" + assetsCreatedCellAntennaInfoId));
+                //            HttpPost httpPut = new HttpPost(new URI(this.assetsUri + "/asset-management/ncp/"));
+                httpPut.addHeader("Content-Type", "application/json;charset=UTF-8");
+                httpPut.addHeader("Referer", baseUri);
+                StringEntity inputData = new StringEntity(value.toString());
+                httpPut.setEntity(inputData);
+
+                CloseableHttpResponse postResponse = httpclient.execute(httpPut);
+
+                HttpEntity entity = postResponse.getEntity();
+                String responseString = EntityUtils.toString(entity, "UTF-8");
+
+                log.info("cellAntennaInfo-PUT response code: " + postResponse.getStatusLine().getStatusCode());
+                if (postResponse.getStatusLine().getStatusCode() < 200 || postResponse.getStatusLine().getStatusCode() >= 300) {
+                    throw new RuntimeException("Candidate post returns code " + postResponse.getStatusLine().getStatusCode());
+                }
+
             }
         } else {
             throw new Exception("Error");
