@@ -162,8 +162,8 @@ public class CreateCandidate implements JavaDelegate {
 
                     String cn_assigned_user = candidate != null ? (candidate.hasProp("assignedUser") ? candidate.prop("assignedUser").value().toString() : "") : null;
 
-                    Number cn_height_constr = candidate != null && candidate.hasProp("cn_height_constr") ? Integer.parseInt(candidate.prop("cn_height_constr").value().toString()) : 0;
-                    Number cn_altitude = candidate != null && candidate.hasProp("cn_altitude") ? Integer.parseInt(candidate.prop("cn_altitude").value().toString()) : 0;
+                    Number cn_height_constr = (candidate != null && candidate.hasProp("cn_height_constr") && candidate.prop("cn_height_constr") != null) ? Integer.parseInt(candidate.prop("cn_height_constr").value().toString()) : 0;
+                    Number cn_altitude = candidate != null && candidate.hasProp("cn_altitude") && candidate.prop("cn_altitude") != null ? Integer.parseInt(candidate.prop("cn_altitude").value().toString()) : 0;
                     SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXX"); //2020-01-02T18:00:00.000Z
                     String cn_date_of_visit = candidate != null && candidate.hasProp("dateOfVisit") && candidate.prop("dateOfVisit") != null ? (candidate.prop("dateOfVisit").value().toString()) : null;
                     Date date_of_visit_date = cn_date_of_visit != null ? formatter.parse(cn_date_of_visit) : null;
