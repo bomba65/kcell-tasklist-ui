@@ -4,7 +4,6 @@ import kz.kcell.flow.files.Minio;
 import lombok.extern.java.Log;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.conn.ssl.TrustSelfSignedStrategy;
@@ -15,9 +14,7 @@ import org.apache.http.ssl.SSLContextBuilder;
 import org.apache.http.util.EntityUtils;
 import org.camunda.bpm.engine.delegate.DelegateExecution;
 import org.camunda.bpm.engine.delegate.JavaDelegate;
-import org.camunda.spin.SpinList;
 import org.camunda.spin.json.SpinJsonNode;
-import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -122,11 +119,11 @@ public class UpdateCandidate implements JavaDelegate {
                 regionJson.put("id", region);
 
                 //            initiator_id
-                if (cn_city_catalogs_id != null ) {
-                JSONObject city_id_json = new JSONObject();
-                city_id_json.put("catalog_id", 32);
-                city_id_json.put("id", cn_city_catalogs_id);
-                value.put("city_id", city_id_json);
+                if (cn_city_catalogs_id != null) {
+                    JSONObject city_id_json = new JSONObject();
+                    city_id_json.put("catalog_id", 32);
+                    city_id_json.put("id", cn_city_catalogs_id);
+                    value.put("city_id", city_id_json);
                 }
 
                 if (cn_addr_street_name != null) {
@@ -194,7 +191,7 @@ public class UpdateCandidate implements JavaDelegate {
                 regionJson.put("id", region);
 
                 //            initiator_id
-                if (ne_city_catalogs_id != null ) {
+                if (ne_city_catalogs_id != null) {
                     JSONObject city_id_json = new JSONObject();
                     city_id_json.put("catalog_id", 32);
                     city_id_json.put("id", ne_city_catalogs_id);
@@ -277,7 +274,7 @@ public class UpdateCandidate implements JavaDelegate {
                 }
 
                 //            initiator_id
-                if (cn_constructionType != null ) {
+                if (cn_constructionType != null) {
                     JSONObject construction_type_id_json = new JSONObject();
                     construction_type_id_json.put("catalog_id", 14);
                     construction_type_id_json.put("id", cn_constructionType);
@@ -470,6 +467,86 @@ public class UpdateCandidate implements JavaDelegate {
 //                } else {
 //                    throw new RuntimeException("Candidate address post by not parsed assetsCreatedCnAddressId from response");
 //                }
+            }
+            if (updateAssetCandidateTable.equals("site")) {
+                try {
+                    String site_name = delegateExecution.getVariable("siteName") != null ? delegateExecution.getVariable("siteName").toString() : null;
+                    SpinJsonNode siteTypeJson = delegateExecution.getVariable("siteType") != null ? JSON(delegateExecution.getVariable("siteType")) : null;
+                    Long assetsCreatedSiteId = delegateExecution.getVariableTyped("assetsCreatedSiteId");
+
+                    SSLContextBuilder builder = new SSLContextBuilder();
+                    builder.loadTrustMaterial(null, new TrustSelfSignedStrategy());
+                    SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(
+                        builder.build());
+                    CloseableHttpClient httpclient = HttpClients.custom().setSSLSocketFactory(
+                        sslsf).build();
+
+                    JSONObject value = new JSONObject();
+                    value.put("id", assetsCreatedSiteId);
+                    if (ncpId != null) {
+                        value.put("siteid", ncpId);
+                    }
+                    if (site_name != null) {
+                        value.put("site_name", site_name);
+                    }
+                    if (siteTypeJson != null) {
+                        JSONObject site_type_id_json = new JSONObject();
+                        site_type_id_json.put("catalog_id", 2);
+                        site_type_id_json.put("id", siteTypeJson.prop("assetsId").value().toString());
+                        value.put("site_type_id", site_type_id_json);
+                    }
+
+                    JSONObject site_status_id_json = new JSONObject();
+                    site_status_id_json.put("catalog_id", 3);
+                    site_status_id_json.put("id", 8);
+                    value.put("site_status_id", site_status_id_json);
+
+                    if (candidate != null && candidate.hasProp("transmissionTypeAmCatalogsId")) {
+                        JSONObject transmission_type_id_json = new JSONObject();
+                        transmission_type_id_json.put("catalog_id", 4);
+                        transmission_type_id_json.put("id", candidate.prop("transmissionTypeAmCatalogsId").value().toString());
+                        value.put("transmission_type_id", transmission_type_id_json);
+                    }
+                    if (assetsCreatedCellAntennaId != null) {
+                        value.put("cell_antenna_info_id", assetsCreatedCellAntennaId);
+                    }
+                    if (assetsCreatedPowerSourcesId != null) {
+                        value.put("power_source_id", assetsCreatedPowerSourcesId);
+                    }
+                    if (assetsCreatedNeFacilitieId != null) {
+                        value.put("facility_id", assetsCreatedNeFacilitieId);
+                    }
+                    if (assetsCreatedCnFacilitieId != null) {
+                        value.put("facility_main_id", assetsCreatedCnFacilitieId);
+                    }
+                    if (site_name != null) {
+                        value.put("site_name", site_name);
+                    }
+
+                    log.info("body value.toString(): ");
+                    log.info(value.toString());
+
+                    HttpPut httpPut = new HttpPut(new URI("https://asset.test-flow.kcell.kz/asset-management/sites/id/" + assetsCreatedSiteId));
+                    //            HttpPost httpPost = new HttpPost(new URI(this.assetsUri + "/asset-management/ncp/"));
+                    httpPut.addHeader("Content-Type", "application/json;charset=UTF-8");
+                    httpPut.addHeader("Referer", baseUri);
+                    StringEntity inputData = new StringEntity(value.toString());
+                    httpPut.setEntity(inputData);
+//
+                    CloseableHttpResponse postResponse = httpclient.execute(httpPut);
+//
+                    HttpEntity entity = postResponse.getEntity();
+                    String responseString = EntityUtils.toString(entity, "UTF-8");
+                    JSONObject jsonResponse = new JSONObject(responseString);
+
+                    log.info("put response code: " + postResponse.getStatusLine().getStatusCode());
+
+                    if (postResponse.getStatusLine().getStatusCode() < 200 || postResponse.getStatusLine().getStatusCode() >= 300) {
+                        throw new RuntimeException("Candidate post returns code " + postResponse.getStatusLine().getStatusCode());
+                    }
+                }catch (Exception e){
+                    e.printStackTrace();
+                }
             }
         } else {
             throw new Exception("Error");
