@@ -66,7 +66,8 @@
       inject(['$scope', '$http', 'Uri', '$rootScope', '$q', '$timeout', function ($scope, $http, Uri, $rootScope, $q, $timeout) {
             var variables = [
                 'selectedTsd',
-                'startedManually'
+                'startedManually',
+                'region'
             ];
             camForm.on('form-loaded', function () {
                 variables.forEach(function (el) {
@@ -260,6 +261,9 @@
                         $scope.selectedTsd.capacity_id["channel_bandwidth"] = $scope.selectedTsd.capacity_id["channel bandwidth"]
                     }
                     $scope.oldTsd = angular.copy($scope.selectedTsd)
+                    if($scope.region){
+                        $scope.regionId = $scope.region;
+                    }
                 } else if ($scope.startedManually === undefined) {
                     $scope.startedManually = true;
                 }
@@ -433,6 +437,7 @@
             }
 
             camForm.on('submit', function (e) {
+                try{
                 camForm.variableManager.createVariable({
                     name: 'isRegion',
                     type: 'Boolean',
@@ -453,10 +458,10 @@
                     });
                     camForm.variableManager.destroyVariable('startedManually')
                     camForm.variableManager.createVariable({
-      				name: 'startedManually',
-      				type: 'Boolean',
-     				value: $scope.startedManually,
-                });
+                        name: 'startedManually',
+                        type: 'Boolean',
+                        value: $scope.startedManually,
+                    });
                 }
 
                 if($scope.permitResolution === 'get') {
@@ -484,13 +489,13 @@
                      });
 
                 }
-
                 camForm.variableManager.createVariable({
                     name: 'permitResolution',
                     type: 'String',
                     value: $scope.permitResolution
                 });
                 var region = $scope.catalogToRegion[$scope.regionId];
+                camForm.variableManager.destroyVariable('region')
                 camForm.variableManager.createVariable({
                     name: 'region',
                     type: 'Integer',
@@ -523,6 +528,9 @@
      				value: $scope.resolutions,
      				store: true
                 });
+                } catch(e){
+                    console.log(e);
+                }
             });
         }]);
 
