@@ -1,5 +1,6 @@
 package kz.kcell.flow.leasing.asset;
 
+import com.sun.org.apache.xpath.internal.operations.Bool;
 import kz.kcell.flow.files.Minio;
 import lombok.extern.java.Log;
 import org.apache.http.HttpEntity;
@@ -913,6 +914,122 @@ public class UpdateCandidate implements JavaDelegate {
                 if (postResponse.getStatusLine().getStatusCode() < 200 || postResponse.getStatusLine().getStatusCode() >= 300) {
                     throw new RuntimeException("Candidate post returns code " + postResponse.getStatusLine().getStatusCode());
                 }
+            }
+            if (updateAssetCandidateTable.equals("sectorsAndAntennas")) {
+                JSONObject cellAntenna = new JSONObject(delegateExecution.getVariable("cellAntenna").toString());
+                JSONArray sectors = new JSONArray(cellAntenna.getJSONArray("sectors").toString());
+                Long assetsCreatedSiteId = (Long) delegateExecution.getVariable("assetsCreatedSiteId");
+                char[] alphabet = "abcdefghijklmnopqrstuvwxyz".toCharArray();
+                Boolean different_address = cellAntenna.getJSONObject("address").has("ca_diff_address") && cellAntenna.getJSONObject("address").getBoolean("ca_diff_address");
+
+                for(int i = 0; i<sectors.length(); i++) {
+                    JSONObject sector = sectors.getJSONObject(i);
+
+                    String sector_name = "Sector " + (i+1) + " - Cell " + Character.toUpperCase(alphabet[i]);
+                    Long site_id = assetsCreatedSiteId;
+                    Long facility_id = Long.valueOf(assetsCreatedCnFacilitieId);
+                    Boolean gsm_900 = sector.has("cn_gsm900") && sector.getString("cn_gsm900").contains("Yes");
+                    Boolean dcs_1800 = sector.has("cn_dcs1800") && sector.getString("cn_dcs1800").contains("Yes");
+                    Boolean wcdma_2100 = sector.has("cn_wcdma_2100") && sector.getString("cn_wcdma_2100").contains("Yes");
+                    Boolean umts_900 = sector.has("cn_umts_900") && sector.getString("cn_umts_900").contains("Yes");
+                    Boolean lte800 = sector.has("cn_lte800") && sector.getString("cn_lte800").contains("Yes");
+                    Boolean ret_lte800 = sector.has("cn_ret_lte800") && sector.getString("cn_ret_lte800").contains("Yes");
+                    Boolean lte1800 = sector.has("cn_lte1800") && sector.getString("cn_lte1800").contains("Yes");
+                    Boolean ret_lte1800 = sector.has("cn_ret_lte1800") && sector.getString("cn_ret_lte1800").contains("Yes");
+                    Boolean lte2100 = sector.has("cn_lte2100") && sector.getString("cn_lte2100").contains("Yes");
+                    Boolean ret_lte2100 = sector.has("cn_ret_lte2100") && sector.getString("cn_ret_lte2100").contains("Yes");
+                    Boolean duplex_filter_900_1800 = sector.has("cn_lte2100") && sector.getString("cn_duplex_gsm").contains("Yes");
+                    Boolean diversity_900_1800 = sector.has("cn_lte2100") && sector.getString("cn_diversity").contains("Yes");
+                    Boolean power_splitter_900_1800 = sector.has("cn_lte2100") && sector.getString("cn_power_splitter").contains("Yes");
+                    Boolean hcu_900_1800 = sector.has("cn_lte2100") && sector.getString("cn_hcu").contains("Yes");
+                    Boolean asc = sector.has("cn_lte2100") && sector.getString("cn_lte2100").contains("Yes");
+                    Boolean ret = sector.has("cn_lte2100") && sector.getString("cn_ret").contains("Yes");
+                    Boolean tma_900_1800_wcdma = sector.has("cn_lte2100") && sector.getString("cn_tma_gsm").contains("Yes");
+                    Boolean tcc_900_1800 = sector.has("cn_lte2100") && sector.getString("cn_tcc").contains("Yes");
+                    Boolean extended_range_900_1800 = sector.has("cn_lte2100") && sector.getString("cn_gsm_range").contains("Yes");
+
+                    SSLContextBuilder builder = new SSLContextBuilder();
+                    builder.loadTrustMaterial(null, new TrustSelfSignedStrategy());
+                    SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(
+                        builder.build());
+                    CloseableHttpClient httpclient = HttpClients.custom().setSSLSocketFactory(
+                        sslsf).build();
+
+                    JSONObject value = new JSONObject();
+
+                    if (sector_name != null) { value.put("sector_name", sector_name);}
+                    if (site_id != null) { value.put("site_id", site_id);}
+                    value.put("different_address", different_address);
+                    if (facility_id != null) { value.put("facility_id", facility_id);}
+                    if (gsm_900 != null) { value.put("gsm_900", gsm_900);}
+                    if (dcs_1800 != null) { value.put("dcs_1800", dcs_1800);}
+                    if (wcdma_2100 != null) { value.put("wcdma_2100", wcdma_2100);}
+                    if (umts_900 != null) { value.put("umts_900", umts_900);}
+                    if (lte800 != null) { value.put("lte800", lte800);}
+                    if (ret_lte800 != null) { value.put("ret_lte800", ret_lte800);}
+                    if (lte1800 != null) { value.put("lte1800", lte1800);}
+                    if (ret_lte1800 != null) { value.put("ret_lte1800", ret_lte1800);}
+                    if (lte2100 != null) { value.put("lte2100", lte2100);}
+                    if (ret_lte2100 != null) { value.put("ret_lte2100", ret_lte2100);}
+                    if (duplex_filter_900_1800 != null) { value.put("duplex_filter_900_1800", duplex_filter_900_1800);}
+                    if (diversity_900_1800 != null) { value.put("diversity_900_1800", diversity_900_1800);}
+                    if (power_splitter_900_1800 != null) { value.put("power_splitter_900_1800", power_splitter_900_1800);}
+                    if (hcu_900_1800 != null) { value.put("hcu_900_1800", hcu_900_1800);}
+                    if (asc != null) { value.put("asc", asc);}
+                    if (ret != null) { value.put("ret", ret);}
+                    if (tma_900_1800_wcdma != null) { value.put("tma_900_1800_wcdma", tma_900_1800_wcdma);}
+                    if (tcc_900_1800 != null) { value.put("tcc_900_1800", tcc_900_1800);}
+                    if (extended_range_900_1800 != null) { value.put("extended_range_900_1800", extended_range_900_1800);}
+
+                    HttpPost httpPost = new HttpPost(new URI("https://asset.test-flow.kcell.kz/asset-management/sectors/"));
+                    httpPost.addHeader("Content-Type", "application/json;charset=UTF-8");
+                    httpPost.addHeader("Referer", baseUri);
+                    StringEntity inputData = new StringEntity(value.toString());
+                    httpPost.setEntity(inputData);
+
+                    CloseableHttpResponse postResponse = httpclient.execute(httpPost);
+
+                    HttpEntity entity = postResponse.getEntity();
+                    String responseString = EntityUtils.toString(entity, "UTF-8");
+                    JSONObject jsonResponse = new JSONObject(responseString);
+                    Long sectorId = jsonResponse.has("id") ? jsonResponse.getLong("id") : null;
+
+                    log.info("post response code: " + postResponse.getStatusLine().getStatusCode());
+                    log.info("sector id: " + sectorId);
+                    if (postResponse.getStatusLine().getStatusCode() < 200 || postResponse.getStatusLine().getStatusCode() >= 300) {
+                        throw new RuntimeException("Candidate (Sectors) post returns code " + postResponse.getStatusLine().getStatusCode());
+                    }
+
+                    if (sectorId != null) {
+                        JSONArray antennas = sector.getJSONArray("antennas");
+                        for (int j =0; j< antennas.length(); j++) {
+                            Long azimuth = antennas.getJSONObject(j).getLong("azimuth");
+                            Long suspension_height_antenna = antennas.getJSONObject(j).getLong("suspensionHeight");
+                            JSONObject valueAntenna = new JSONObject();
+                            valueAntenna.put("sector_id", sectorId);
+                            if (azimuth != null) { valueAntenna.put("azimuth", azimuth);}
+                            if (suspension_height_antenna != null) { valueAntenna.put("suspension_height_antenna", suspension_height_antenna);}
+
+                            HttpPost httpPostAntenna = new HttpPost(new URI("https://asset.test-flow.kcell.kz/asset-management/cellAntennas/"));
+                            httpPostAntenna.addHeader("Content-Type", "application/json;charset=UTF-8");
+                            httpPostAntenna.addHeader("Referer", baseUri);
+                            StringEntity inputDataAntenna = new StringEntity(valueAntenna.toString());
+                            httpPostAntenna.setEntity(inputDataAntenna);
+
+                            CloseableHttpResponse postResponseAntenna = httpclient.execute(httpPostAntenna);
+
+                            HttpEntity entityAntenna = postResponseAntenna.getEntity();
+                            String responseStringAntenna = EntityUtils.toString(entityAntenna, "UTF-8");
+                            JSONObject jsonResponseAntenna = new JSONObject(responseStringAntenna);
+                            Long antennaId = jsonResponse.has("id") ? jsonResponse.getLong("id") : null;
+                            log.info("antenna id: " + antennaId);
+                            if (postResponseAntenna.getStatusLine().getStatusCode() < 200 || postResponseAntenna.getStatusLine().getStatusCode() >= 300) {
+                                throw new RuntimeException("Candidate (Antenna)  post returns code " + postResponseAntenna.getStatusLine().getStatusCode());
+                            }
+                        }
+                    }
+                }
+
             }
         } else {
             throw new Exception("Error");

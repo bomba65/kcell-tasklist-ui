@@ -293,7 +293,6 @@ public class CreateCandidate implements JavaDelegate {
                 if (square != null) {
                     value.put("square", square);
                 }
-
                 HttpPost httpPost = new HttpPost(new URI("https://asset.test-flow.kcell.kz/asset-management/facilities/"));
                 //            HttpPost httpPost = new HttpPost(new URI(this.assetsUri + "/asset-management/ncp/"));
                 httpPost.addHeader("Content-Type", "application/json;charset=UTF-8");
