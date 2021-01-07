@@ -547,7 +547,7 @@ public class UpdateCandidate implements JavaDelegate {
                     if (postResponse.getStatusLine().getStatusCode() < 200 || postResponse.getStatusLine().getStatusCode() >= 300) {
                         throw new RuntimeException("Candidate post returns code " + postResponse.getStatusLine().getStatusCode());
                     }
-                }catch (Exception e){
+                } catch (Exception e) {
                     e.printStackTrace();
                 }
             }
@@ -568,7 +568,7 @@ public class UpdateCandidate implements JavaDelegate {
 
                 SpinJsonNode cable_laying_type_id_json_obj = cable_laying_type_id_json_list.get(0);
 
-                String cable_laying_type_id = (cable_laying_type_id_json_obj != null && cable_laying_type_id_json_obj.prop("id") != null ) ?  cable_laying_type_id_json_obj.prop("id").value().toString() : null;
+                String cable_laying_type_id = (cable_laying_type_id_json_obj != null && cable_laying_type_id_json_obj.prop("id") != null) ? cable_laying_type_id_json_obj.prop("id").value().toString() : null;
 
                 SSLContextBuilder builder = new SSLContextBuilder();
                 builder.loadTrustMaterial(null, new TrustSelfSignedStrategy());
@@ -581,7 +581,7 @@ public class UpdateCandidate implements JavaDelegate {
 
                 if (cable_laying_type_id != null) {
                     JSONObject cable_laying_type_id_json = new JSONObject();
-                    JSONArray cable_laying_type_id_json_ar =  new JSONArray();
+                    JSONArray cable_laying_type_id_json_ar = new JSONArray();
                     cable_laying_type_id_json_ar.put(cable_laying_type_id);
                     cable_laying_type_id_json.put("catalog_id", 18);
                     cable_laying_type_id_json.put("ids", cable_laying_type_id_json_ar);
@@ -683,6 +683,236 @@ public class UpdateCandidate implements JavaDelegate {
                     throw new RuntimeException("Candidate post returns code " + postResponse.getStatusLine().getStatusCode());
                 }
 
+            }
+
+            if (updateAssetCandidateTable.equals("renter")) {
+
+                SpinJsonNode renterCompany = delegateExecution.getVariable("renterCompany") != null ? JSON(delegateExecution.getVariable("renterCompany")) : null;
+
+                Long legalType = null;
+                try {
+                    legalType = renterCompany.hasProp("legalType") && renterCompany.prop("legalType").isNumber() ? renterCompany.prop("legalType").numberValue().longValue() : null;
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                Long branchKT = null;
+                try {
+                    branchKT = renterCompany.hasProp("branchKT") && renterCompany.prop("branchKT").isNumber() ? renterCompany.prop("branchKT").numberValue().longValue() : null;
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                String legalName = renterCompany.hasProp("legalName") ? renterCompany.prop("legalName").stringValue() : null;
+                String legalAddress = renterCompany.hasProp("legalAddress") ? renterCompany.prop("legalAddress").stringValue() : null;
+                String telFax = renterCompany.hasProp("telFax") ? renterCompany.prop("telFax").stringValue() : null;
+                String firstLeaderName = renterCompany.hasProp("firstLeaderName") ? renterCompany.prop("firstLeaderName").stringValue() : null;
+                String firstLeaderPos = renterCompany.hasProp("firstLeaderPos") ? renterCompany.prop("firstLeaderPos").stringValue() : null;
+                String email = renterCompany.hasProp("email") ? renterCompany.prop("email").stringValue() : null;
+                String contactName = renterCompany.hasProp("contactName") ? renterCompany.prop("contactName").stringValue() : null;
+                String contactLastName = renterCompany.hasProp("contactLastName") ? renterCompany.prop("contactLastName").stringValue() : null;
+                String contactPosition = renterCompany.hasProp("contactPosition") ? renterCompany.prop("contactPosition").stringValue() : null;
+                String contactInfo = renterCompany.hasProp("contactInfo") ? renterCompany.prop("contactInfo").stringValue() : null;
+
+
+                SSLContextBuilder builder = new SSLContextBuilder();
+                builder.loadTrustMaterial(null, new TrustSelfSignedStrategy());
+                SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(builder.build());
+                CloseableHttpClient httpclient = HttpClients.custom().setSSLSocketFactory(sslsf).build();
+
+                JSONObject value = new JSONObject();
+                value.put("legal_name", legalName);
+                value.put("head_org", firstLeaderName);
+                value.put("contact_person", contactName + " " + contactLastName);
+                value.put("contact_person_phone", contactInfo);
+                value.put("legal_address_id", Long.parseLong(assetsCreatedCnAddressId));
+
+                JSONObject legalTypeValue = new JSONObject();
+                legalTypeValue.put("catalog_id", 22);
+                legalTypeValue.put("id", legalType);
+                value.put("legal_type_id", legalTypeValue);
+
+                JSONObject branchKTValue = new JSONObject();
+                branchKTValue.put("catalog_id", 16);
+                branchKTValue.put("id", branchKT);
+                value.put("branch_kt_id", branchKTValue);
+
+                log.info("body value.toString(): ");
+                log.info(value.toString());
+
+                HttpPost httpPost = new HttpPost(new URI("https://asset.test-flow.kcell.kz/asset-management/renters"));
+                //            HttpPost httpPost = new HttpPost(new URI(this.assetsUri + "/asset-management/ncp/"));
+                httpPost.addHeader("Content-Type", "application/json;charset=UTF-8");
+                httpPost.addHeader("Referer", baseUri);
+                StringEntity inputData = new StringEntity(value.toString());
+                httpPost.setEntity(inputData);
+
+                CloseableHttpResponse postResponse = httpclient.execute(httpPost);
+
+                HttpEntity entity = postResponse.getEntity();
+                String responseString = EntityUtils.toString(entity, "UTF-8");
+
+                log.info("cellAntennaInfo-PUT response code: " + postResponse.getStatusLine().getStatusCode());
+                if (postResponse.getStatusLine().getStatusCode() < 200 || postResponse.getStatusLine().getStatusCode() >= 300) {
+                    throw new RuntimeException("Candidate post returns code " + postResponse.getStatusLine().getStatusCode());
+                }
+
+            }
+
+            if (updateAssetCandidateTable.equals("rbs")) {
+
+                Long rbsLocationId = null;
+                Long bscId = null;
+                if (candidate.hasProp("rbsLocation") && candidate.prop("rbsLocation").hasProp("id") && candidate.prop("rbsLocation").prop("id").isNumber()) {
+                    rbsLocationId = candidate.prop("rbsLocation").prop("id").numberValue().longValue();
+                }
+                if (candidate.hasProp("bsc") && candidate.prop("bsc").hasProp("id") && candidate.prop("bsc").prop("id").isNumber()) {
+                    bscId = candidate.prop("bsc").prop("id").numberValue().longValue();
+                }
+
+                String site_name = delegateExecution.getVariable("siteName") != null ? delegateExecution.getVariable("siteName").toString() : null;
+                Long assetsCreatedSiteId = delegateExecution.getVariableTyped("assetsCreatedSiteId");
+
+                SSLContextBuilder builder = new SSLContextBuilder();
+                builder.loadTrustMaterial(null, new TrustSelfSignedStrategy());
+                SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(builder.build());
+                CloseableHttpClient httpclient = HttpClients.custom().setSSLSocketFactory(sslsf).build();
+
+                JSONObject value = new JSONObject();
+                value.put("rbs_name", site_name);
+                value.put("bsc_rnc_id", bscId);
+                value.put("site_id", assetsCreatedSiteId);
+
+                JSONObject rbsLocationIdValue = new JSONObject();
+                rbsLocationIdValue.put("catalog_id", 13);
+                rbsLocationIdValue.put("id", rbsLocationId);
+                value.put("rbs_location_id", rbsLocationIdValue);
+
+                log.info("body value.toString(): ");
+                log.info(value.toString());
+
+                HttpPost httpPost = new HttpPost(new URI("https://asset.test-flow.kcell.kz/asset-management/rbs"));
+                //            HttpPost httpPost = new HttpPost(new URI(this.assetsUri + "/asset-management/ncp/"));
+                httpPost.addHeader("Content-Type", "application/json;charset=UTF-8");
+                httpPost.addHeader("Referer", baseUri);
+                StringEntity inputData = new StringEntity(value.toString());
+                httpPost.setEntity(inputData);
+
+                CloseableHttpResponse postResponse = httpclient.execute(httpPost);
+
+                HttpEntity entity = postResponse.getEntity();
+                String responseString = EntityUtils.toString(entity, "UTF-8");
+
+                log.info("cellAntennaInfo-PUT response code: " + postResponse.getStatusLine().getStatusCode());
+                if (postResponse.getStatusLine().getStatusCode() < 200 || postResponse.getStatusLine().getStatusCode() >= 300) {
+                    throw new RuntimeException("Candidate post returns code " + postResponse.getStatusLine().getStatusCode());
+                }
+
+            }
+
+            if (updateAssetCandidateTable.equals("rbs")) {
+
+                Long rbsLocationId = null;
+                Long bscId = null;
+                if (candidate.hasProp("rbsLocation") && candidate.prop("rbsLocation").hasProp("id") && candidate.prop("rbsLocation").prop("id").isNumber()) {
+                    rbsLocationId = candidate.prop("rbsLocation").prop("id").numberValue().longValue();
+                }
+                if (candidate.hasProp("bsc") && candidate.prop("bsc").hasProp("id") && candidate.prop("bsc").prop("id").isNumber()) {
+                    bscId = candidate.prop("bsc").prop("id").numberValue().longValue();
+                }
+
+                String site_name = delegateExecution.getVariable("siteName") != null ? delegateExecution.getVariable("siteName").toString() : null;
+                Long assetsCreatedSiteId = delegateExecution.getVariableTyped("assetsCreatedSiteId");
+
+                SSLContextBuilder builder = new SSLContextBuilder();
+                builder.loadTrustMaterial(null, new TrustSelfSignedStrategy());
+                SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(builder.build());
+                CloseableHttpClient httpclient = HttpClients.custom().setSSLSocketFactory(sslsf).build();
+
+                JSONObject value = new JSONObject();
+                value.put("rbs_name", site_name);
+                value.put("bsc_rnc_id", bscId);
+                value.put("site_id", assetsCreatedSiteId);
+
+                JSONObject rbsLocationIdValue = new JSONObject();
+                rbsLocationIdValue.put("catalog_id", 13);
+                rbsLocationIdValue.put("id", rbsLocationId);
+                value.put("rbs_location_id", rbsLocationIdValue);
+
+                log.info("body value.toString(): ");
+                log.info(value.toString());
+
+                HttpPost httpPost = new HttpPost(new URI("https://asset.test-flow.kcell.kz/asset-management/rbs"));
+                //            HttpPost httpPost = new HttpPost(new URI(this.assetsUri + "/asset-management/ncp/"));
+                httpPost.addHeader("Content-Type", "application/json;charset=UTF-8");
+                httpPost.addHeader("Referer", baseUri);
+                StringEntity inputData = new StringEntity(value.toString());
+                httpPost.setEntity(inputData);
+
+                CloseableHttpResponse postResponse = httpclient.execute(httpPost);
+
+                HttpEntity entity = postResponse.getEntity();
+                String responseString = EntityUtils.toString(entity, "UTF-8");
+
+                JSONObject jsonResponse = new JSONObject(responseString);
+                Long rbsCreatedId = jsonResponse.has("id") ? jsonResponse.getLong("id") : null;
+                delegateExecution.setVariable("rbsCreatedId", rbsCreatedId);
+
+                log.info("cellAntennaInfo-PUT response code: " + postResponse.getStatusLine().getStatusCode());
+                if (postResponse.getStatusLine().getStatusCode() < 200 || postResponse.getStatusLine().getStatusCode() >= 300) {
+                    throw new RuntimeException("Candidate post returns code " + postResponse.getStatusLine().getStatusCode());
+                }
+            }
+
+            if (updateAssetCandidateTable.equals("rbsCabinet")) {
+
+                Long rbsCabinetTypeId = delegateExecution.getVariable("plannedCabinetType") != null ? (delegateExecution.getVariable("plannedCabinetType").toString().equals("Indoor") ? 1L : 2L) : null;
+                Long rbsCabinetModelId = null;
+                if (candidate.hasProp("bsc") && candidate.prop("bsc").hasProp("id") && candidate.prop("bsc").prop("id").isNumber()) {
+                    rbsCabinetTypeId = candidate.prop("bsc").prop("id").numberValue().longValue();
+                }
+
+                Long rbsCreatedId = delegateExecution.getVariableTyped("rbsCreatedId");
+
+                SSLContextBuilder builder = new SSLContextBuilder();
+                builder.loadTrustMaterial(null, new TrustSelfSignedStrategy());
+                SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(builder.build());
+                CloseableHttpClient httpclient = HttpClients.custom().setSSLSocketFactory(sslsf).build();
+
+                JSONObject value = new JSONObject();
+                value.put("rbs_id", rbsCreatedId);
+
+                JSONObject rbsCabinetModelIdValue = new JSONObject();
+                rbsCabinetModelIdValue.put("catalog_id", 11);
+                rbsCabinetModelIdValue.put("id", rbsCabinetModelId);
+                value.put("rbs_cabinet_model_id", rbsCabinetModelIdValue);
+
+                JSONObject rbsCabinetTypeIdValue = new JSONObject();
+                rbsCabinetTypeIdValue.put("catalog_id", 12);
+                rbsCabinetTypeIdValue.put("id", rbsCabinetTypeId);
+                value.put("rbs_cabinet_type_id", rbsCabinetTypeIdValue);
+
+                log.info("body value.toString(): ");
+                log.info(value.toString());
+
+                HttpPost httpPost = new HttpPost(new URI("https://asset.test-flow.kcell.kz/asset-management/rbsCabinets"));
+                //            HttpPost httpPost = new HttpPost(new URI(this.assetsUri + "/asset-management/ncp/"));
+                httpPost.addHeader("Content-Type", "application/json;charset=UTF-8");
+                httpPost.addHeader("Referer", baseUri);
+                StringEntity inputData = new StringEntity(value.toString());
+                httpPost.setEntity(inputData);
+
+                CloseableHttpResponse postResponse = httpclient.execute(httpPost);
+
+                HttpEntity entity = postResponse.getEntity();
+                String responseString = EntityUtils.toString(entity, "UTF-8");
+
+                JSONObject jsonResponse = new JSONObject(responseString);
+                Long rbsCabinetCreatedId = jsonResponse.has("id") ? jsonResponse.getLong("id") : null;
+                delegateExecution.setVariable("rbsCabinetCreatedId", rbsCabinetCreatedId);
+
+                log.info("cellAntennaInfo-PUT response code: " + postResponse.getStatusLine().getStatusCode());
+                if (postResponse.getStatusLine().getStatusCode() < 200 || postResponse.getStatusLine().getStatusCode() >= 300) {
+                    throw new RuntimeException("Candidate post returns code " + postResponse.getStatusLine().getStatusCode());
+                }
             }
         } else {
             throw new Exception("Error");
