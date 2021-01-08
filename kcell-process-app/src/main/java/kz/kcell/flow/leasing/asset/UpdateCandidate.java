@@ -809,60 +809,6 @@ public class UpdateCandidate implements JavaDelegate {
 
             }
 
-            if (updateAssetCandidateTable.equals("rbs")) {
-
-                Long rbsLocationId = null;
-                Long bscId = null;
-                if (candidate.hasProp("rbsLocation") && candidate.prop("rbsLocation").hasProp("id") && candidate.prop("rbsLocation").prop("id").isNumber()) {
-                    rbsLocationId = candidate.prop("rbsLocation").prop("id").numberValue().longValue();
-                }
-                if (candidate.hasProp("bsc") && candidate.prop("bsc").hasProp("id") && candidate.prop("bsc").prop("id").isNumber()) {
-                    bscId = candidate.prop("bsc").prop("id").numberValue().longValue();
-                }
-
-                String site_name = delegateExecution.getVariable("siteName") != null ? delegateExecution.getVariable("siteName").toString() : null;
-                Long assetsCreatedSiteId = delegateExecution.getVariableTyped("assetsCreatedSiteId");
-
-                SSLContextBuilder builder = new SSLContextBuilder();
-                builder.loadTrustMaterial(null, new TrustSelfSignedStrategy());
-                SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(builder.build());
-                CloseableHttpClient httpclient = HttpClients.custom().setSSLSocketFactory(sslsf).build();
-
-                JSONObject value = new JSONObject();
-                value.put("rbs_name", site_name);
-                value.put("bsc_rnc_id", bscId);
-                value.put("site_id", assetsCreatedSiteId);
-
-                JSONObject rbsLocationIdValue = new JSONObject();
-                rbsLocationIdValue.put("catalog_id", 13);
-                rbsLocationIdValue.put("id", rbsLocationId);
-                value.put("rbs_location_id", rbsLocationIdValue);
-
-                log.info("body value.toString(): ");
-                log.info(value.toString());
-
-                HttpPost httpPost = new HttpPost(new URI("https://asset.test-flow.kcell.kz/asset-management/rbs"));
-                //            HttpPost httpPost = new HttpPost(new URI(this.assetsUri + "/asset-management/ncp/"));
-                httpPost.addHeader("Content-Type", "application/json;charset=UTF-8");
-                httpPost.addHeader("Referer", baseUri);
-                StringEntity inputData = new StringEntity(value.toString());
-                httpPost.setEntity(inputData);
-
-                CloseableHttpResponse postResponse = httpclient.execute(httpPost);
-
-                HttpEntity entity = postResponse.getEntity();
-                String responseString = EntityUtils.toString(entity, "UTF-8");
-
-                JSONObject jsonResponse = new JSONObject(responseString);
-                Long rbsCreatedId = jsonResponse.has("id") ? jsonResponse.getLong("id") : null;
-                delegateExecution.setVariable("rbsCreatedId", rbsCreatedId);
-
-                log.info("cellAntennaInfo-PUT response code: " + postResponse.getStatusLine().getStatusCode());
-                if (postResponse.getStatusLine().getStatusCode() < 200 || postResponse.getStatusLine().getStatusCode() >= 300) {
-                    throw new RuntimeException("Candidate post returns code " + postResponse.getStatusLine().getStatusCode());
-                }
-            }
-
             if (updateAssetCandidateTable.equals("rbsCabinet")) {
 
                 Long rbsCabinetTypeId = delegateExecution.getVariable("plannedCabinetType") != null ? (delegateExecution.getVariable("plannedCabinetType").toString().equals("Indoor") ? 1L : 2L) : null;
