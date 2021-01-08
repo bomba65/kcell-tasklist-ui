@@ -37,24 +37,10 @@ public class SetBusinessKey implements JavaDelegate {
         String fe_sitename = delegateExecution.getVariable("fe_sitename").toString();
         String region_name = delegateExecution.getVariable("region_name").toString();
 
-        Calendar c = Calendar.getInstance();
-        c.set(Calendar.DAY_OF_YEAR, 1);
-        c.set(Calendar.HOUR, 0);
-        c.set(Calendar.MINUTE, 0);
-        c.set(Calendar.SECOND, 0);
-
-        Date firstDate = c.getTime();
-
-        c.add(Calendar.YEAR, 1);
-
-        Date lastDate = c.getTime();
-
         Integer count = delegateExecution.getProcessEngineServices()
             .getHistoryService()
             .createHistoricProcessInstanceQuery()
             .processDefinitionKey("create-new-tsd")
-            .startedAfter(firstDate)
-            .startedBefore(lastDate)
             .variableValueEquals("region_name", region_name)
             .list()
             .size();
