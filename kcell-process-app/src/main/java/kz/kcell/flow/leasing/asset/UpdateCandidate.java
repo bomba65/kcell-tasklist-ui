@@ -18,6 +18,7 @@ import org.camunda.bpm.engine.delegate.DelegateExecution;
 import org.camunda.bpm.engine.delegate.JavaDelegate;
 import org.camunda.spin.SpinList;
 import org.camunda.spin.json.SpinJsonNode;
+import org.camunda.spin.plugin.variable.SpinValues;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -861,17 +862,17 @@ public class UpdateCandidate implements JavaDelegate {
                     throw new RuntimeException("Candidate post returns code " + postResponse.getStatusLine().getStatusCode());
                 }
             }
-            if (updateAssetCandidateTable.equals("sectorsAndAntennas")) {
+            if (updateAssetCandidateTable.equals("sectors")) {
                 JSONObject cellAntenna = new JSONObject(delegateExecution.getVariable("cellAntenna").toString());
                 JSONArray sectors = new JSONArray(cellAntenna.getJSONArray("sectors").toString());
                 Long assetsCreatedSiteId = (Long) delegateExecution.getVariable("assetsCreatedSiteId");
                 char[] alphabet = "abcdefghijklmnopqrstuvwxyz".toCharArray();
                 Boolean different_address = cellAntenna.getJSONObject("address").has("ca_diff_address") && cellAntenna.getJSONObject("address").getBoolean("ca_diff_address");
 
-                for(int i = 0; i<sectors.length(); i++) {
+                for (int i = 0; i < sectors.length(); i++) {
                     JSONObject sector = sectors.getJSONObject(i);
-
-                    String sector_name = "Sector " + (i+1) + " - Cell " + Character.toUpperCase(alphabet[i]);
+                    Long sectorId = sector.has("assetsCreatedSectorId") ? sector.getLong("assetsCreatedSectorId") : null;
+                    String sector_name = "Sector " + (i + 1) + " - Cell " + Character.toUpperCase(alphabet[i]);
                     Long site_id = assetsCreatedSiteId;
                     Long facility_id = Long.valueOf(assetsCreatedCnFacilitieId);
                     Boolean gsm_900 = sector.has("cn_gsm900") && sector.getString("cn_gsm900").contains("Yes");
@@ -903,80 +904,204 @@ public class UpdateCandidate implements JavaDelegate {
 
                     JSONObject value = new JSONObject();
 
-                    if (sector_name != null) { value.put("sector_name", sector_name);}
-                    if (site_id != null) { value.put("site_id", site_id);}
+                    if (sector_name != null) {
+                        value.put("sector_name", sector_name);
+                    }
+                    if (site_id != null) {
+                        value.put("site_id", site_id);
+                    }
                     value.put("different_address", different_address);
-                    if (facility_id != null) { value.put("facility_id", facility_id);}
-                    if (gsm_900 != null) { value.put("gsm_900", gsm_900);}
-                    if (dcs_1800 != null) { value.put("dcs_1800", dcs_1800);}
-                    if (wcdma_2100 != null) { value.put("wcdma_2100", wcdma_2100);}
-                    if (umts_900 != null) { value.put("umts_900", umts_900);}
-                    if (lte800 != null) { value.put("lte800", lte800);}
-                    if (ret_lte800 != null) { value.put("ret_lte800", ret_lte800);}
-                    if (lte1800 != null) { value.put("lte1800", lte1800);}
-                    if (ret_lte1800 != null) { value.put("ret_lte1800", ret_lte1800);}
-                    if (lte2100 != null) { value.put("lte2100", lte2100);}
-                    if (ret_lte2100 != null) { value.put("ret_lte2100", ret_lte2100);}
-                    if (duplex_filter_900_1800 != null) { value.put("duplex_filter_900_1800", duplex_filter_900_1800);}
-                    if (diversity_900_1800 != null) { value.put("diversity_900_1800", diversity_900_1800);}
-                    if (power_splitter_900_1800 != null) { value.put("power_splitter_900_1800", power_splitter_900_1800);}
-                    if (hcu_900_1800 != null) { value.put("hcu_900_1800", hcu_900_1800);}
-                    if (asc != null) { value.put("asc", asc);}
-                    if (ret != null) { value.put("ret", ret);}
-                    if (tma_900_1800_wcdma != null) { value.put("tma_900_1800_wcdma", tma_900_1800_wcdma);}
-                    if (tcc_900_1800 != null) { value.put("tcc_900_1800", tcc_900_1800);}
-                    if (extended_range_900_1800 != null) { value.put("extended_range_900_1800", extended_range_900_1800);}
-
-                    HttpPost httpPost = new HttpPost(new URI("https://asset.test-flow.kcell.kz/asset-management/sectors/"));
-                    httpPost.addHeader("Content-Type", "application/json;charset=UTF-8");
-                    httpPost.addHeader("Referer", baseUri);
-                    StringEntity inputData = new StringEntity(value.toString());
-                    httpPost.setEntity(inputData);
-
-                    CloseableHttpResponse postResponse = httpclient.execute(httpPost);
-
-                    HttpEntity entity = postResponse.getEntity();
-                    String responseString = EntityUtils.toString(entity, "UTF-8");
-                    JSONObject jsonResponse = new JSONObject(responseString);
-                    Long sectorId = jsonResponse.has("id") ? jsonResponse.getLong("id") : null;
-
-                    log.info("post response code: " + postResponse.getStatusLine().getStatusCode());
-                    log.info("sector id: " + sectorId);
-                    if (postResponse.getStatusLine().getStatusCode() < 200 || postResponse.getStatusLine().getStatusCode() >= 300) {
-                        throw new RuntimeException("Candidate (Sectors) post returns code " + postResponse.getStatusLine().getStatusCode());
+                    if (facility_id != null) {
+                        value.put("facility_id", facility_id);
+                    }
+                    if (gsm_900 != null) {
+                        value.put("gsm_900", gsm_900);
+                    }
+                    if (dcs_1800 != null) {
+                        value.put("dcs_1800", dcs_1800);
+                    }
+                    if (wcdma_2100 != null) {
+                        value.put("wcdma_2100", wcdma_2100);
+                    }
+                    if (umts_900 != null) {
+                        value.put("umts_900", umts_900);
+                    }
+                    if (lte800 != null) {
+                        value.put("lte800", lte800);
+                    }
+                    if (ret_lte800 != null) {
+                        value.put("ret_lte800", ret_lte800);
+                    }
+                    if (lte1800 != null) {
+                        value.put("lte1800", lte1800);
+                    }
+                    if (ret_lte1800 != null) {
+                        value.put("ret_lte1800", ret_lte1800);
+                    }
+                    if (lte2100 != null) {
+                        value.put("lte2100", lte2100);
+                    }
+                    if (ret_lte2100 != null) {
+                        value.put("ret_lte2100", ret_lte2100);
+                    }
+                    if (duplex_filter_900_1800 != null) {
+                        value.put("duplex_filter_900_1800", duplex_filter_900_1800);
+                    }
+                    if (diversity_900_1800 != null) {
+                        value.put("diversity_900_1800", diversity_900_1800);
+                    }
+                    if (power_splitter_900_1800 != null) {
+                        value.put("power_splitter_900_1800", power_splitter_900_1800);
+                    }
+                    if (hcu_900_1800 != null) {
+                        value.put("hcu_900_1800", hcu_900_1800);
+                    }
+                    if (asc != null) {
+                        value.put("asc", asc);
+                    }
+                    if (ret != null) {
+                        value.put("ret", ret);
+                    }
+                    if (tma_900_1800_wcdma != null) {
+                        value.put("tma_900_1800_wcdma", tma_900_1800_wcdma);
+                    }
+                    if (tcc_900_1800 != null) {
+                        value.put("tcc_900_1800", tcc_900_1800);
+                    }
+                    if (extended_range_900_1800 != null) {
+                        value.put("extended_range_900_1800", extended_range_900_1800);
                     }
 
                     if (sectorId != null) {
-                        JSONArray antennas = sector.getJSONArray("antennas");
-                        for (int j =0; j< antennas.length(); j++) {
-                            Long azimuth = antennas.getJSONObject(j).getLong("azimuth");
-                            Long suspension_height_antenna = antennas.getJSONObject(j).getLong("suspensionHeight");
-                            JSONObject valueAntenna = new JSONObject();
-                            valueAntenna.put("sector_id", sectorId);
-                            if (azimuth != null) { valueAntenna.put("azimuth", azimuth);}
-                            if (suspension_height_antenna != null) { valueAntenna.put("suspension_height_antenna", suspension_height_antenna);}
+                        HttpPut httpPut = new HttpPut(new URI("https://asset.test-flow.kcell.kz/asset-management/sectors/id/" + sectorId));
+                        httpPut.addHeader("Content-Type", "application/json;charset=UTF-8");
+                        httpPut.addHeader("Referer", baseUri);
+                        StringEntity inputData = new StringEntity(value.toString());
+                        httpPut.setEntity(inputData);
 
-                            HttpPost httpPostAntenna = new HttpPost(new URI("https://asset.test-flow.kcell.kz/asset-management/cellAntennas/"));
-                            httpPostAntenna.addHeader("Content-Type", "application/json;charset=UTF-8");
-                            httpPostAntenna.addHeader("Referer", baseUri);
-                            StringEntity inputDataAntenna = new StringEntity(valueAntenna.toString());
-                            httpPostAntenna.setEntity(inputDataAntenna);
+                        CloseableHttpResponse postResponse = httpclient.execute(httpPut);
 
-                            CloseableHttpResponse postResponseAntenna = httpclient.execute(httpPostAntenna);
+                        HttpEntity entity = postResponse.getEntity();
+                        String responseString = EntityUtils.toString(entity, "UTF-8");
+                        log.info("put response code: " + postResponse.getStatusLine().getStatusCode());
+                        log.info("sector id: " + sectorId);
+                        if (postResponse.getStatusLine().getStatusCode() < 200 || postResponse.getStatusLine().getStatusCode() >= 300) {
+                            throw new RuntimeException("Candidate (Sectors) post returns code " + postResponse.getStatusLine().getStatusCode());
+                        }
+                    } else {
+                        HttpPost httpPost = new HttpPost(new URI("https://asset.test-flow.kcell.kz/asset-management/sectors/"));
+                        httpPost.addHeader("Content-Type", "application/json;charset=UTF-8");
+                        httpPost.addHeader("Referer", baseUri);
+                        StringEntity inputData = new StringEntity(value.toString());
+                        httpPost.setEntity(inputData);
 
-                            HttpEntity entityAntenna = postResponseAntenna.getEntity();
-                            String responseStringAntenna = EntityUtils.toString(entityAntenna, "UTF-8");
-                            JSONObject jsonResponseAntenna = new JSONObject(responseStringAntenna);
-                            Long antennaId = jsonResponse.has("id") ? jsonResponse.getLong("id") : null;
-                            log.info("antenna id: " + antennaId);
-                            if (postResponseAntenna.getStatusLine().getStatusCode() < 200 || postResponseAntenna.getStatusLine().getStatusCode() >= 300) {
-                                throw new RuntimeException("Candidate (Antenna)  post returns code " + postResponseAntenna.getStatusLine().getStatusCode());
-                            }
+                        CloseableHttpResponse postResponse = httpclient.execute(httpPost);
+
+                        HttpEntity entity = postResponse.getEntity();
+                        String responseString = EntityUtils.toString(entity, "UTF-8");
+                        JSONObject jsonResponse = new JSONObject(responseString);
+                        sectorId = jsonResponse.has("id") ? jsonResponse.getLong("id") : null;
+
+                        log.info("post response code: " + postResponse.getStatusLine().getStatusCode());
+                        log.info("sector id: " + sectorId);
+                        if (postResponse.getStatusLine().getStatusCode() < 200 || postResponse.getStatusLine().getStatusCode() >= 300) {
+                            throw new RuntimeException("Candidate (Sectors) post returns code " + postResponse.getStatusLine().getStatusCode());
+                        }
+
+                        if (sectorId != null) {
+                            cellAntenna.getJSONArray("sectors").getJSONObject(i).put("assetsCreatedSectorId", sectorId);
+                            delegateExecution.setVariable("cellAntenna", SpinValues.jsonValue(cellAntenna.toString()));
+                        } else {
+                            throw new RuntimeException("Candidate site post by not parsed assetsCreatedCnAddressId from response");
                         }
                     }
                 }
-
             }
+
+            if(updateAssetCandidateTable.equals("antenna")) {
+                JSONObject cellAntenna = new JSONObject(delegateExecution.getVariable("cellAntenna").toString());
+                JSONArray sectors = new JSONArray(cellAntenna.getJSONArray("sectors").toString());
+                Long assetsCreatedSiteId = (Long) delegateExecution.getVariable("assetsCreatedSiteId");
+                for (int i = 0; i < sectors.length(); i++) {
+                    JSONObject sector = sectors.getJSONObject(i);
+                    JSONArray antennas = sector.getJSONArray("antennas");
+                    Long sectorId = sector.has("assetsCreatedSectorId") ? sector.getLong("assetsCreatedSectorId") : null;
+                    if (sectorId != null) {
+                        for (int j = 0; j < antennas.length(); j++) {
+                            JSONObject antenna = antennas.getJSONObject(j);
+                            Long antennaId = antenna.has("assetsCreatedAntennaId") ? antenna.getLong("assetsCreatedAntennaId") : null;
+                            SSLContextBuilder builder = new SSLContextBuilder();
+                            builder.loadTrustMaterial(null, new TrustSelfSignedStrategy());
+                            SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(
+                                builder.build());
+                            CloseableHttpClient httpclient = HttpClients.custom().setSSLSocketFactory(
+                                sslsf).build();
+
+                            Long azimuth = antenna.getLong("azimuth");
+                            Long suspension_height_antenna = antenna.getLong("suspensionHeight");
+                            JSONObject valueAntenna = new JSONObject();
+                            valueAntenna.put("sector_id", sectorId);
+                            if (azimuth != null) {
+                                valueAntenna.put("azimuth", azimuth);
+                            }
+                            if (suspension_height_antenna != null) {
+                                valueAntenna.put("suspension_height_antenna", suspension_height_antenna);
+                            }
+
+                            if (antennaId != null) {
+                                HttpPut httpPutAntenna = new HttpPut(new URI("https://asset.test-flow.kcell.kz/asset-management/cellAntennas/id/" + antennaId));
+                                httpPutAntenna.addHeader("Content-Type", "application/json;charset=UTF-8");
+                                httpPutAntenna.addHeader("Referer", baseUri);
+                                StringEntity inputDataAntenna = new StringEntity(valueAntenna.toString());
+                                httpPutAntenna.setEntity(inputDataAntenna);
+
+                                CloseableHttpResponse putResponseAntenna = httpclient.execute(httpPutAntenna);
+
+                                HttpEntity entityAntenna = putResponseAntenna.getEntity();
+                                String responseStringAntenna = EntityUtils.toString(entityAntenna, "UTF-8");
+                                JSONObject jsonResponseAntenna = new JSONObject(responseStringAntenna);
+
+                                log.info("put response code: " + putResponseAntenna.getStatusLine().getStatusCode());
+                                log.info("antenna id: " + antennaId);
+                                if (putResponseAntenna.getStatusLine().getStatusCode() < 200 || putResponseAntenna.getStatusLine().getStatusCode() >= 300) {
+                                    throw new RuntimeException("Candidate (Antenna)  put returns code " + putResponseAntenna.getStatusLine().getStatusCode());
+                                }
+                            } else {
+                                HttpPost httpPostAntenna = new HttpPost(new URI("https://asset.test-flow.kcell.kz/asset-management/cellAntennas/"));
+                                httpPostAntenna.addHeader("Content-Type", "application/json;charset=UTF-8");
+                                httpPostAntenna.addHeader("Referer", baseUri);
+                                StringEntity inputDataAntenna = new StringEntity(valueAntenna.toString());
+                                httpPostAntenna.setEntity(inputDataAntenna);
+
+                                CloseableHttpResponse postResponseAntenna = httpclient.execute(httpPostAntenna);
+
+                                HttpEntity entityAntenna = postResponseAntenna.getEntity();
+                                String responseStringAntenna = EntityUtils.toString(entityAntenna, "UTF-8");
+                                JSONObject jsonResponseAntenna = new JSONObject(responseStringAntenna);
+                                antennaId = jsonResponseAntenna.has("id") ? jsonResponseAntenna.getLong("id") : null;
+
+                                log.info("post response code: " + postResponseAntenna.getStatusLine().getStatusCode());
+                                log.info("antenna id: " + antennaId);
+                                if (postResponseAntenna.getStatusLine().getStatusCode() < 200 || postResponseAntenna.getStatusLine().getStatusCode() >= 300) {
+                                    throw new RuntimeException("Candidate (Antenna)  post returns code " + postResponseAntenna.getStatusLine().getStatusCode());
+                                }
+
+                                if (antennaId != null) {
+                                    cellAntenna.getJSONArray("sectors").getJSONObject(i).getJSONArray("antennas").getJSONObject(j).put("assetsCreatedAntennaId", antennaId);
+                                    delegateExecution.setVariable("cellAntenna", SpinValues.jsonValue(cellAntenna.toString()));
+                                } else {
+                                    throw new RuntimeException("Candidate site post by not parsed assetsCreatedCnAddressId from response");
+                                }
+                            }
+
+                        }
+                    } else {
+                        throw new RuntimeException("sectorId is null");
+                    }
+                }
+            }
+
+
         } else {
             throw new Exception("Error");
         }
