@@ -693,7 +693,7 @@ public class UpdateCandidate implements JavaDelegate {
 
                 Long legalType = null;
                 try {
-                    legalType = renterCompany.hasProp("legalType") && renterCompany.prop("legalType").isNumber() ? renterCompany.prop("legalType").numberValue().longValue() : null;
+                    legalType = renterCompany.hasProp("legalTypeCatalogId") && renterCompany.prop("legalTypeCatalogId").isNumber() ? renterCompany.prop("legalTypeCatalogId").numberValue().longValue() : null;
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
