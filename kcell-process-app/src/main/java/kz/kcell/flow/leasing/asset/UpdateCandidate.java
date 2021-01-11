@@ -474,83 +474,79 @@ public class UpdateCandidate implements JavaDelegate {
 //                }
             }
             if (updateAssetCandidateTable.equals("site")) {
-                try {
-                    String site_name = delegateExecution.getVariable("siteName") != null ? delegateExecution.getVariable("siteName").toString() : null;
-                    SpinJsonNode siteTypeJson = delegateExecution.getVariable("siteType") != null ? JSON(delegateExecution.getVariable("siteType")) : null;
-                    Long assetsCreatedSiteId = delegateExecution.getVariableTyped("assetsCreatedSiteId");
+                String site_name = delegateExecution.getVariable("siteName") != null ? delegateExecution.getVariable("siteName").toString() : null;
+                SpinJsonNode siteTypeJson = delegateExecution.getVariable("siteType") != null ? JSON(delegateExecution.getVariable("siteType")) : null;
+                Long assetsCreatedSiteId = delegateExecution.getVariableTyped("assetsCreatedSiteId");
 
-                    SSLContextBuilder builder = new SSLContextBuilder();
-                    builder.loadTrustMaterial(null, new TrustSelfSignedStrategy());
-                    SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(
-                        builder.build());
-                    CloseableHttpClient httpclient = HttpClients.custom().setSSLSocketFactory(
-                        sslsf).build();
+                SSLContextBuilder builder = new SSLContextBuilder();
+                builder.loadTrustMaterial(null, new TrustSelfSignedStrategy());
+                SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(
+                    builder.build());
+                CloseableHttpClient httpclient = HttpClients.custom().setSSLSocketFactory(
+                    sslsf).build();
 
-                    JSONObject value = new JSONObject();
-                    value.put("id", assetsCreatedSiteId);
-                    if (ncpId != null) {
-                        value.put("siteid", ncpId);
-                    }
-                    if (site_name != null) {
-                        value.put("site_name", site_name);
-                    }
-                    if (siteTypeJson != null) {
-                        JSONObject site_type_id_json = new JSONObject();
-                        site_type_id_json.put("catalog_id", 2);
-                        site_type_id_json.put("id", siteTypeJson.prop("assetsId").value().toString());
-                        value.put("site_type_id", site_type_id_json);
-                    }
+                JSONObject value = new JSONObject();
+                value.put("id", assetsCreatedSiteId);
+                if (ncpId != null) {
+                    value.put("siteid", ncpId);
+                }
+                if (site_name != null) {
+                    value.put("site_name", site_name);
+                }
+                if (siteTypeJson != null) {
+                    JSONObject site_type_id_json = new JSONObject();
+                    site_type_id_json.put("catalog_id", 2);
+                    site_type_id_json.put("id", siteTypeJson.prop("assetsId").value().toString());
+                    value.put("site_type_id", site_type_id_json);
+                }
 
-                    JSONObject site_status_id_json = new JSONObject();
-                    site_status_id_json.put("catalog_id", 3);
-                    site_status_id_json.put("id", 8);
-                    value.put("site_status_id", site_status_id_json);
+                JSONObject site_status_id_json = new JSONObject();
+                site_status_id_json.put("catalog_id", 3);
+                site_status_id_json.put("id", 8);
+                value.put("site_status_id", site_status_id_json);
 
-                    if (candidate != null && candidate.hasProp("transmissionTypeAmCatalogsId")) {
-                        JSONObject transmission_type_id_json = new JSONObject();
-                        transmission_type_id_json.put("catalog_id", 4);
-                        transmission_type_id_json.put("id", candidate.prop("transmissionTypeAmCatalogsId").value().toString());
-                        value.put("transmission_type_id", transmission_type_id_json);
-                    }
-                    if (assetsCreatedCellAntennaInfoId != null) {
-                        value.put("cell_antenna_info_id", assetsCreatedCellAntennaInfoId);
-                    }
-                    if (assetsCreatedPowerSourcesId != null) {
-                        value.put("power_source_id", assetsCreatedPowerSourcesId);
-                    }
-                    if (assetsCreatedNeFacilitieId != null) {
-                        value.put("facility_id", assetsCreatedNeFacilitieId);
-                    }
-                    if (assetsCreatedCnFacilitieId != null) {
-                        value.put("facility_main_id", assetsCreatedCnFacilitieId);
-                    }
-                    if (site_name != null) {
-                        value.put("site_name", site_name);
-                    }
+                if (candidate != null && candidate.hasProp("transmissionTypeAmCatalogsId")) {
+                    JSONObject transmission_type_id_json = new JSONObject();
+                    transmission_type_id_json.put("catalog_id", 4);
+                    transmission_type_id_json.put("id", candidate.prop("transmissionTypeAmCatalogsId").value().toString());
+                    value.put("transmission_type_id", transmission_type_id_json);
+                }
+                if (assetsCreatedCellAntennaInfoId != null) {
+                    value.put("cell_antenna_info_id", assetsCreatedCellAntennaInfoId);
+                }
+                if (assetsCreatedPowerSourcesId != null) {
+                    value.put("power_source_id", assetsCreatedPowerSourcesId);
+                }
+                if (assetsCreatedNeFacilitieId != null) {
+                    value.put("facility_id", assetsCreatedNeFacilitieId);
+                }
+                if (assetsCreatedCnFacilitieId != null) {
+                    value.put("facility_main_id", assetsCreatedCnFacilitieId);
+                }
+                if (site_name != null) {
+                    value.put("site_name", site_name);
+                }
 
-                    log.info("body value.toString(): ");
-                    log.info(value.toString());
+                log.info("body value.toString(): ");
+                log.info(value.toString());
 
-                    HttpPut httpPut = new HttpPut(new URI("https://asset.test-flow.kcell.kz/asset-management/sites/id/" + assetsCreatedSiteId));
-                    //            HttpPost httpPost = new HttpPost(new URI(this.assetsUri + "/asset-management/ncp/"));
-                    httpPut.addHeader("Content-Type", "application/json;charset=UTF-8");
-                    httpPut.addHeader("Referer", baseUri);
-                    StringEntity inputData = new StringEntity(value.toString());
-                    httpPut.setEntity(inputData);
+                HttpPut httpPut = new HttpPut(new URI("https://asset.test-flow.kcell.kz/asset-management/sites/id/" + assetsCreatedSiteId));
+                //            HttpPost httpPost = new HttpPost(new URI(this.assetsUri + "/asset-management/ncp/"));
+                httpPut.addHeader("Content-Type", "application/json;charset=UTF-8");
+                httpPut.addHeader("Referer", baseUri);
+                StringEntity inputData = new StringEntity(value.toString());
+                httpPut.setEntity(inputData);
 //
-                    CloseableHttpResponse postResponse = httpclient.execute(httpPut);
+                CloseableHttpResponse postResponse = httpclient.execute(httpPut);
 //
-                    HttpEntity entity = postResponse.getEntity();
-                    String responseString = EntityUtils.toString(entity, "UTF-8");
-                    JSONObject jsonResponse = new JSONObject(responseString);
+                HttpEntity entity = postResponse.getEntity();
+                String responseString = EntityUtils.toString(entity, "UTF-8");
+                JSONObject jsonResponse = new JSONObject(responseString);
 
-                    log.info("put response code: " + postResponse.getStatusLine().getStatusCode());
+                log.info("put response code: " + postResponse.getStatusLine().getStatusCode());
 
-                    if (postResponse.getStatusLine().getStatusCode() < 200 || postResponse.getStatusLine().getStatusCode() >= 300) {
-                        throw new RuntimeException("Candidate post returns code " + postResponse.getStatusLine().getStatusCode());
-                    }
-                } catch (Exception e) {
-                    e.printStackTrace();
+                if (postResponse.getStatusLine().getStatusCode() < 200 || postResponse.getStatusLine().getStatusCode() >= 300) {
+                    throw new RuntimeException("Candidate post returns code " + postResponse.getStatusLine().getStatusCode());
                 }
             }
             if (updateAssetCandidateTable.equals("powerSources")) {
@@ -1018,7 +1014,7 @@ public class UpdateCandidate implements JavaDelegate {
                 }
             }
 
-            if(updateAssetCandidateTable.equals("antenna")) {
+            if (updateAssetCandidateTable.equals("antenna")) {
                 JSONObject cellAntenna = new JSONObject(delegateExecution.getVariable("cellAntenna").toString());
                 JSONArray sectors = new JSONArray(cellAntenna.getJSONArray("sectors").toString());
                 Long assetsCreatedSiteId = (Long) delegateExecution.getVariable("assetsCreatedSiteId");
