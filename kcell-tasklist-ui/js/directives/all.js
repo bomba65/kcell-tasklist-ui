@@ -4246,6 +4246,160 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                 scope.fillEmptyLines = function(length){
                     return new Array(13-length);
                 }
+                scope.populateSelectFromCatalogId = function (container, id) {
+                    $http.get($rootScope.catalogsServerUrl + '/camunda/catalogs/api/get/id/' + id).then(function (result) {
+                        if (result && result.data) {
+                            scope[container] = _.groupBy(result.data.data.$list, 'id');
+                        }
+                    });
+                }
+
+                scope.populateSelectFromCatalogId('construction_type_id',14);
+                scope.populateSelectFromCatalogId('antenna_diameter_id',20);
+                scope.populateSelectFromCatalogId('protection_mode_id',44);
+                scope.populateSelectFromCatalogId('capacity',45);
+                scope.populateSelectFromCatalogId('rau_subband',46);
+                scope.populateSelectFromCatalogId('link_type_id',47);
+                scope.populateSelectFromCatalogId('polarization_id',48);
+                scope.populateSelectFromCatalogId('region',5);
+
+
+                scope.showProcessInfo = function(index, processInstanceId, businessKey, startDate, processDefinitionKey, userId, processDefinitionId) {
+                    var task = []
+                    $http({
+                        method: 'GET',
+                        headers: {'Accept': 'application/hal+json, application/json; q=0.5'},
+                        url: baseUrl + '/task?processInstanceId=' + processInstanceId,
+                    }).then(
+                        function (tasks) {
+                            var processInstanceTasks = tasks.data._embedded.task;
+                            if (processInstanceTasks && processInstanceTasks.length > 0) {
+                                processInstanceTasks.forEach(function (e) {
+                                    if (e.assignee && tasks.data._embedded.assignee) {
+                                        for (var i = 0; i < tasks.data._embedded.assignee.length; i++) {
+                                            if (tasks.data._embedded.assignee[i].id === e.assignee) {
+                                                e.assigneeObject = tasks.data._embedded.assignee[i];
+                                            }
+                                            $http({
+                                                method: 'GET',
+                                                headers: {'Accept': 'application/hal+json, application/json; q=0.5'},
+                                                url: baseUrl + '/task/' + e.processInstanceId
+                                            }).then(
+                                                function (taskResult) {
+                                                    if (taskResult.data._embedded && taskResult.data._embedded.group) {
+                                                        e.group = taskResult.data._embedded.group[0].id;
+                                                    }
+                                                },
+                                                function (error) {
+                                                    console.log(error.data);
+                                                }
+                                            );
+                                        }
+                                    }
+                                    $http({
+                                        method: 'GET',
+                                        headers: {'Accept': 'application/hal+json, application/json; q=0.5'},
+                                        url: baseUrl + '/task/' + e.id
+                                    }).then(
+                                        function (taskResult) {
+                                            if (taskResult.data._embedded && taskResult.data._embedded.group) {
+                                                e.group = taskResult.data._embedded.group[0].id;
+                                            }
+                                        },
+                                        function (error) {
+                                            console.log(error.data);
+                                        }
+                                    );
+                                });
+                                task = processInstanceTasks;
+                            }
+                            $http.post(baseUrl + '/history/variable-instance?deserializeValues=false', {
+                                processDefinitionKey: processDefinitionKey,
+                                processInstanceId: processInstanceId,
+                            }).then(function (result) {
+                                    let vars = {};
+                                    result.data.forEach(function (v) {
+                                        vars[v.name] = v.value;
+                                    });
+                                    if (processDefinitionKey === 'create-new-tsd') {
+                                        openCreateTsdProcessCardModal(businessKey, startDate, userId, vars, processDefinitionId, task)
+                                    } else {
+                                        openTsdProcessCardModal(businessKey, startDate, userId, vars, processDefinitionId, task)
+                                    }
+                                },
+                                function (error) {
+                                    console.log(error.data);
+                                });
+                        })
+                }
+                function openTsdProcessCardModal(businessKey, startDate, userId, vars, processDefinitionId, task) {
+                    // var oldTsd = JSON.parse(vars.oldTsd);
+                    var selectedTsd = JSON.parse(vars.selectedTsd);
+                    var resolutions = JSON.parse(vars.resolutions);
+                    var eLicenseNumber = vars.eLicenseNumber;
+                    var eLicenseDate = vars.eLicenseDate;
+                    var rfsPermitionNumber = vars.rfsPermitionNumber;
+                    var rfsPermitionDate = vars.rfsPermitionDate;
+                    exModal.open({
+                        scope: {
+                            showDiagram: scope.showDiagram,
+                            showHistory: scope.showHistory,
+                            profiles: scope.profiles,
+                            resolutions,
+                            task,
+                            processDefinitionId,
+                            selectedTsd,
+                            businessKey,
+                            startDate,
+                            userId,
+                            eLicenseNumber,
+                            eLicenseDate,
+                            rfsPermitionNumber,
+                            rfsPermitionDate
+                        },
+                        templateUrl: './js/partials/tsdProcessCardModal.html',
+                        size: 'hg'
+                    }).then(function (results) {
+                    });
+                }
+
+                function openCreateTsdProcessCardModal(businessKey, startDate, userId, vars, processDefinitionId, task) {
+                    var resolutions = JSON.parse(vars.resolutions);
+                    var eLicenseNumber = vars.eLicenseNumber;
+                    var eLicenseDate = vars.eLicenseDate;
+                    var rfsPermitionNumber = vars.rfsPermitionNumber;
+                    var rfsPermitionDate = vars.rfsPermitionDate;
+                    exModal.open({
+                        scope: {
+                            showDiagram: scope.showDiagram,
+                            showHistory: scope.showHistory,
+                            profiles: scope.profiles,
+                            construction_type_id: scope.construction_type_id,
+                            antenna_diameter_id: scope.antenna_diameter_id,
+                            protection_mode_id: scope.protection_mode_id,
+                            capacity: scope.capacity,
+                            rau_subband: scope.rau_subband,
+                            link_type_id: scope.link_type_id,
+                            polarization_id: scope.polarization_id,
+                            region: scope.region,
+                            resolutions,
+                            task,
+                            processDefinitionId,
+                            vars,
+                            businessKey,
+                            startDate,
+                            userId,
+                            eLicenseNumber,
+                            eLicenseDate,
+                            rfsPermitionNumber,
+                            rfsPermitionDate
+                        },
+                        templateUrl: './js/partials/tsdCreateProcessCardModal.html',
+                        size: 'hg'
+                    }).then(function (results) {
+                    });
+                }
+
             },
             templateUrl: './js/directives/search/networkArchitectureSearch.html'
         };
