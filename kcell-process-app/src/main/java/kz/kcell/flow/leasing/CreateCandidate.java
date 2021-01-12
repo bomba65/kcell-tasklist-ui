@@ -175,7 +175,7 @@ public class CreateCandidate implements JavaDelegate {
                     //{"antennaType":"ML 0.6","diameter":"0.6","weight":"14","antennaQuantity":1,"frequencyBand":"8GHz","suspensionHeight":12,"azimuth":"123"}
                     SpinJsonNode ne = delegateExecution.getVariable("transmissionAntenna") != null ? JSON(delegateExecution.getVariable("transmissionAntenna")) : null;
                     String ne_azimuth = ne != null ? (ne.hasProp("azimuth") ? ne.prop("azimuth").value().toString() : "0") : null;
-                    String ne_diameter = ne != null ? (ne.hasProp("diameter") ? ne.prop("diameter").value().toString() : "0") : null;
+                    String ne_diameter = ne != null ? (ne.hasProp("diameter") ? ne.prop("diameter").value().toString().replaceAll("[^(\\d.\\d)]", "") : "0") : null;
                     String ne_frequencyBand = ne != null && ne.hasProp("frequencyBand") ? ne.prop("frequencyBand").value().toString().replaceAll("[^0-9.]", "") : null;
                     Number ne_suspensionHeight = ne != null && ne.hasProp("suspensionHeight") ? (ne.prop("suspensionHeight").numberValue()) : null;
                     String ne_longitude = ne != null && ne.hasProp("address") && ne.prop("address").hasProp("longitude") ? (ne.prop("address").prop("longitude").value().toString()) : cn_longitude != null ? cn_longitude : null;
@@ -191,7 +191,7 @@ public class CreateCandidate implements JavaDelegate {
                     Number fe_artefact_id = 0;
 
                     String fe_azimuth = fe != null && fe.hasProp("azimuth") ? (fe.prop("azimuth").value().toString()) : null;
-                    String fe_diameter = fe != null && fe.hasProp("diameter") ? (fe.prop("diameter").value().toString()) : null;
+                    String fe_diameter = fe != null && fe.hasProp("diameter") ? (fe.prop("diameter").value().toString().replaceAll("[^(\\d.\\d)]", "")) : null;
                     String fe_frequencyBand = fe != null && fe.hasProp("frequencyBand") ? fe.prop("frequencyBand").value().toString().replaceAll("[^0-9.]", "") : null;
                     String fe_suspensionHeight = fe != null && fe.hasProp("suspensionHeight") && fe.prop("suspensionHeight") != null ? fe.prop("suspensionHeight").value().toString() : null;
                     String fe_constructionType = fe != null && fe.hasProp("constructionType") && fe.prop("constructionType") != null ? (fe.prop("constructionType").hasProp("id") ? fe.prop("constructionType").prop("id").value().toString() : null) : null;
