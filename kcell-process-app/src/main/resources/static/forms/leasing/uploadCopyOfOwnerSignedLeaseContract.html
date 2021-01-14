@@ -185,29 +185,106 @@
 
                 $scope.uploadCopyOfOwnerSignedLeaseContractTaskResult = '';
                 $http.get('/api/leasingCatalogs?version=2').then(
-                    function(result){
-                        angular.extend($scope.dictionary, result.data);
-                        if (!$scope.candidate) $scope.candidate = {};
-                        if (!$scope.candidate.rbsLocation) $scope.candidate.rbsLocation = $scope.dictionary.rbsLocation;
-                        $scope.antennasList = $scope.dictionary.antennas;
-                        $scope.bankList = $scope.dictionary.banks;
-                        if (!$scope.powerSource) $scope.powerSource = {};
-                        if (!$scope.powerSource.cableLayingType) $scope.powerSource.cableLayingType = $scope.dictionary.cableLayingType;
-                        $scope.availableBands = $scope.dictionary.bands;
-                        $scope.BSC = $scope.dictionary.BSC;
-                        $scope.frequencyBand = $scope.dictionary.frequencyBand;
-                        $scope.addressesList = $scope.dictionary.addresses;
-                        console.log($scope.dictionary.addresses.length)
-                        console.log('oblastList:')
-                        $scope.oblastList = _.uniqBy($scope.dictionary.addresses, 'oblast').map( (e, index) => { return {"name" : e.oblast, "id" : index} });
-                        $scope.cityList = _.uniqBy($scope.dictionary.addresses, 'city').map( (e, index) => { return {"name" : e.city, "id" : index} });
-                        $scope.districtList = _.uniqBy($scope.dictionary.addresses, 'district').map( (e, index) => { return {"name" : e.district, "id" : index} });
-                        $scope.filteredDistricts = $scope.districtList;
-                        console.log($scope.oblastList.length)
-                        $scope.view.variablesFetched = true;
-                        $scope.catalogsFetched = true;
-                        if ($scope.catalogsFetched && $scope.variablesFetched){
-                            $scope.setNewContract()
+                        function (result) {
+                            angular.extend($scope.dictionary, result.data);
+
+                            var newCatalogsPromise = $http.post($rootScope.catalogsServerUrl + '/camunda/catalogs/api/get/rolloutcatalogids', [ 23, 25, 26, 27, 29, 30, 31, 32, 38, 60]).then(function (promiseResult) {
+                                return promiseResult.data;
+                            });
+                            //contract_type
+
+                            $q.all([newCatalogsPromise]).then(function (allPromises) {
+                                try {
+
+
+                                var newCatalogsPromiseResult = allPromises[0];
+
+                                var newAddresses = [];
+                                var newContract =  [];
+
+                                newCatalogsPromiseResult.contract_type.forEach(function(item){
+                                    let findedOld = null;
+                                    if($scope.dictionary['contract'] !== null) {
+                                        findedOld = $scope.dictionary.contract.find( b => { return b.name === item.name})
+                                        if (findedOld && findedOld !== null) {
+                                            newContract.push({
+                                                "name": item.name,
+                                                "catalogsId": item.catalogsId,
+                                                "id": ( findedOldBsc && findedOldBsc !== null ) ? findedOldBsc.id : ""
+                                            });
+                                        }
+                                    }
+                                });
+
+                                var mappedD = _.keyBy(newCatalogsPromiseResult.district, o => o.catalogsId)
+                                var mappedO = _.keyBy(newCatalogsPromiseResult.oblast, o => o.catalogsId)
+
+                                newCatalogsPromiseResult.city_village.forEach(function(item){
+                                    var tempItem = {
+                                        "city": item.name,
+                                        "catalogsId": item.catalogsId
+                                    };
+                                    if(item['parent']) {
+                                        // var findedDistrict = newCatalogsPromiseResult.district.find(function(d){ return d.catalogsId === item.parent.toString()});
+                                        var findedDistrict = mappedD[item.parent.toString()];
+                                        if(findedDistrict !== null ) {
+                                            tempItem.district = findedDistrict.name
+                                            tempItem.districtCatalogsId = findedDistrict.catalogsId
+                                            if (findedDistrict.hasOwnProperty('parent')){
+                                                // var findedOblast = newCatalogsPromiseResult.oblast.find(function(o){ return o.catalogsId === findedDistrict.parent.toString()});
+                                                var findedOblast = mappedO[findedDistrict.parent.toString()];
+                                                if (findedOblast !== null) {
+                                                    tempItem.oblast = findedOblast.name
+                                                    tempItem.oblastCatalogsId = findedOblast.catalogsId
+                                                }
+                                            }
+                                        }
+                                    }
+                                    console.log('tempItem')
+                                    console.log(tempItem)
+                                    newAddresses.push(tempItem);
+                                });
+
+                                $scope.dictionary.accessStatus = newCatalogsPromiseResult.access_status;
+                                $scope.dictionary.contractExecuter = newCatalogsPromiseResult.contract_executors;
+                                $scope.dictionary.contract = newContract;
+                                $scope.dictionary.currency = newCatalogsPromiseResult.currency;
+                                $scope.dictionary.paymentPeriod = newCatalogsPromiseResult.payment_period;
+                                $scope.addressesList = newAddresses;
+                                $scope.dictionary.addresses = newAddresses;
+
+                                console.log('newAddresses')
+                                console.log(newAddresses)
+                                console.log('$scope.dictionary.addresses')
+                                console.log($scope.dictionary.addresses)
+
+                                if (!$scope.candidate) $scope.candidate = {};
+                                if (!$scope.candidate.rbsLocation) $scope.candidate.rbsLocation = $scope.dictionary.rbsLocation;
+                                $scope.antennasList = $scope.dictionary.antennas;
+                                $scope.bankList = $scope.dictionary.banks;
+                                if (!$scope.powerSource) $scope.powerSource = {};
+                                if (!$scope.powerSource.cableLayingType) $scope.powerSource.cableLayingType = $scope.dictionary.cableLayingType;
+                                $scope.availableBands = $scope.dictionary.bands;
+                                $scope.BSC = $scope.dictionary.BSC;
+                                $scope.frequencyBand = $scope.dictionary.frequencyBand;
+                                $scope.oblastList = _.uniqBy($scope.dictionary.addresses, 'oblast').map( (e, index) => { return {"name" : e.oblast, "id" : index} });
+                                $scope.cityList = _.uniqBy($scope.dictionary.addresses, 'city').map( (e, index) => { return {"name" : e.city, "id" : index, "catalogsId" : e.catalogsId} });
+                                $scope.districtList = _.uniqBy($scope.dictionary.addresses, 'district').map( (e, index) => { return {"name" : e.district, "id" : index} });
+                                $scope.filteredDistricts = $scope.districtList;
+                                $scope.view.variablesFetched = true;
+                                $scope.catalogsFetched = true;
+                                if ($scope.catalogsFetched && $scope.variablesFetched) {
+                                    $scope.setNewContract()
+                                }
+                                } catch (e) {
+                                    console.log('e')
+                                    console.log(e)
+                                }
+                            });
+
+                        },
+                        function (error) {
+                            console.log(error);
                         }
 
                     },
@@ -590,7 +667,7 @@
                     <input class="form-control" id="{{'cci.' + $index}}.ct_contractid_old" name="cci.ct_contractid_old" ng-model="cci.ct_contractid_old" ng-required="cci.ct_acquisitionType !== 'newContract' && uploadCopyOfOwnerSignedLeaseContractTaskResult !== 'refusal'">
                     <label class="error" ng-show="kcell_form.cci.ct_contractid_old.$error.required && ( kcell_form.cci.ct_contractid_old.$touched || view.submitted)">Required field</label>
                 </div>
-                <div class="col-sm-2">
+                <div class="col-sm-2">https://docs.google.com/spreadsheets/d/1ml1JoXu65udrn3Yi1e83Vi6LSgm6qrmqcqGqCmDI8l4/edit?usp=sharing
                     <input type="button" ng-click="getContract(cci.ct_contractid_old, $index)" value="Import Contract" class="btn btn-primary pull-right">
                 </div>
             </div>
