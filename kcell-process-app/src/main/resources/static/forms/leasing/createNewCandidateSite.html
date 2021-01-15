@@ -1597,6 +1597,29 @@
                     s.bands[bandName] = {};
                     s.bands[bandName].active = false;
                 }
+
+                checkAntennaBandsSelected();
+            }
+
+            function checkAntennaBandsSelected(){
+                if($scope.cellAntenna && $scope.cellAntenna.sectors){
+                    angular.forEach($scope.cellAntenna.sectors, function(sector){
+                        if(sector.antennas){
+                            angular.forEach(sector.antennas, function(ant){
+                                var checked = false;
+                                console.log(ant.antennaType);
+                                if(ant.antennaType){
+                                    Object.keys(ant.antennaType).forEach( b => {
+                                        if(ant.antennaType[b]){
+                                            checked = true;
+                                        }
+                                    });
+                                }
+                                ant.sectorAntennaBandsChecked = checked;
+                            });
+                        }
+                    });
+                }
             }
 
             $scope.tabStepRight = function () {
@@ -1655,6 +1678,11 @@
                     deferred.reject('Please fill required fields');
                     return deferred.promise;
                 }
+                if(hasBandsNotSelected()){
+                    deferred.reject('Please select bands in for each cell antennas in sectors');
+                    return deferred.promise;
+                }
+
                 if($scope.farEndInformation.length < 3 && !$scope.threeFarEndNotNecessary.check && $scope.candidate.transmissionType !== 'Provider' && $scope.candidate.transmissionType !== 'Satellite'){
                     deferred.reject('At least 3 Far End Information should be added!!!');
                     return deferred.promise;
@@ -1677,6 +1705,30 @@
                   return deferred.promise;
                 }
             };
+
+        function hasBandsNotSelected(){
+            var hasBandsNotSelected = false;
+            if($scope.cellAntenna && $scope.cellAntenna.sectors){
+                angular.forEach($scope.cellAntenna.sectors, function(sector){
+                    if(sector.antennas){
+                        angular.forEach(sector.antennas, function(ant){
+                            var checked = false;
+                            if(ant.antennaType){
+                                Object.keys(ant.antennaType).forEach( b => {
+                                    if(ant.antennaType[b]){
+                                        checked = true;
+                                    }
+                                });
+                            }
+                            if(!checked){
+                                hasBandsNotSelected = true;
+                            }
+                        });
+                    }
+                });
+            }
+            return hasBandsNotSelected;
+        }
 
             $scope.isError = function(block) {
                 try {
@@ -1719,6 +1771,9 @@
                                             if ($scope.kcell_form[key].$error) {
                                                 error = error || ($scope.kcell_form[key].$error.required && ($scope.kcell_form[key].$touched || $scope.view.submitted));
                                             }
+                                        }
+                                        if(block === 'cellAntennaInformation'){
+                                            error = error || (hasBandsNotSelected() && $scope.view.submitted);
                                         }
                                     }
                                 });
@@ -2204,9 +2259,15 @@
                                                             </td>
                                                             <td  ng-repeat="a in filteredAntennaTypesBySiteType" style="padding-right: 10px">
                                                                 <div class="form-check">
-                                                                    <input type="checkbox" ng-change="countAntennaQuantity(a, $parent.$parent.$index)" ng-model="ant.antennaType[a]" class="form-check-input" name="{{'antennaType_check_' + $parent.$index + '_' + $index}}" id="{{'antennaType_check_' + $parent.$index + '_' + $index}}" >
+                                                                    <input type="checkbox" ng-change="countAntennaQuantity(a, $parent.$parent.$index, ant)" ng-model="ant.antennaType[a]" class="form-check-input" name="{{'antennaType_check_' + $parent.$index + '_' + $index}}" id="{{'antennaType_check_' + $parent.$index + '_' + $index}}" >
                                                                     <label class="form-check-label" for="{{'antennaType_check_' + $parent.$index + '_' + $index}}">{{a}}</label>
                                                                 </div>
+                                                            </td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td></td>
+                                                            <td colspan="filteredAntennaTypesBySiteType.length">
+                                                                <label class="error" ng-show="!ant.sectorAntennaBandsChecked && view.submitted">Required field</label>
                                                             </td>
                                                         </tr>
                                                         </tbody>

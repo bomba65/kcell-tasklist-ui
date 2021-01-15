@@ -1509,8 +1509,10 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
 
                 scope.antennaNameSelected = function (sector, antenna, a) {
                     const obj = scope.antennasList.find(b=>{ return b.antenna === a});
-                    scope.leasingCandidate.cellAntenna.sectors[sector].antennas[antenna].dimension = obj.dimension;
-                    scope.leasingCandidate.cellAntenna.sectors[sector].antennas[antenna].weight = obj.weight;
+                    if(obj){
+                        scope.leasingCandidate.cellAntenna.sectors[sector].antennas[antenna].dimension = obj.dimension;
+                        scope.leasingCandidate.cellAntenna.sectors[sector].antennas[antenna].weight = obj.weight;
+                    }
                 }
 
                 scope.filteredAntennaTypesBySiteType = [];
