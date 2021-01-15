@@ -89,7 +89,7 @@ public class CreateCandidate implements JavaDelegate {
             String cn_constructionType = candidate != null ? (candidate.hasProp("constructionType") && candidate.prop("constructionType").hasProp("catalogsId") ? candidate.prop("constructionType").prop("catalogsId").value().toString() : null) : null;
             String cn_altitude = candidate != null ? (candidate.hasProp("cn_altitude") ? candidate.prop("cn_altitude").value().toString() : null) : null;
 
-            if (cn_altitude.indexOf(".") < 0) {
+            if (cn_altitude!=null && cn_altitude.indexOf(".") < 0) {
                 cn_altitude = cn_altitude + ".0";
             }
 
@@ -486,13 +486,12 @@ public class CreateCandidate implements JavaDelegate {
 //                String du_type_id = (du_type_id_json_obj != null && du_type_id_json_obj.hasProp("id")) ?  du_type_id_json_obj.prop("id").value().toString() : null;
 
                 SpinJsonNode du_type_id_json_array = cellAntenna != null ? (cellAntenna.hasProp("cn_du") ? cellAntenna.prop("cn_du") : null) : null;
-                SpinList<SpinJsonNode> du_type_id_json_list = du_type_id_json_array.elements();
-
-
-//                SpinJsonNode cable_laying_type_id_json_obj = du_type_id_json_list.get(0);
-//                JSONArray du_type_id_json_array = cellAntenna != null ? (cellAntenna.hasProp("cn_du") ? new JSONArray(cellAntenna.prop("cn_du").value().toString()) : null) : null;
-                SpinJsonNode du_type_id = du_type_id_json_list.get(0);
-                String du_unit_string = du_type_id.prop("catalogsId").value().toString();
+                String du_unit_string = null;
+                if(du_type_id_json_array!=null && du_type_id_json_array.elements().size() > 0){
+                    SpinList<SpinJsonNode> du_type_id_json_list = du_type_id_json_array.elements();
+                    SpinJsonNode du_type_id = du_type_id_json_list.get(0);
+                    du_unit_string = du_type_id.prop("catalogsId").value().toString();
+                }
 
                 SSLContextBuilder builder = new SSLContextBuilder();
                 builder.loadTrustMaterial(null, new TrustSelfSignedStrategy());
@@ -503,7 +502,7 @@ public class CreateCandidate implements JavaDelegate {
 
                 JSONObject value = new JSONObject();
 
-                if (du_type_id != null) {
+                if (du_unit_string != null) {
                     JSONObject du_type_id_json = new JSONObject();
                     du_type_id_json.put("catalog_id", 59);
                     du_type_id_json.put("id", du_unit_string);

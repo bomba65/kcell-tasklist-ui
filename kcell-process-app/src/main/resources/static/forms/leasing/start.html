@@ -91,16 +91,9 @@
                 $http.get('/api/leasingCatalogs?version=2').then(
                     function(result){
                         angular.extend($scope.dictionary, result.data);
-                        // console.log(result.data)
                         $scope.dictionary.rbsTypes = [];
-                        // angular.forEach($scope.dictionary.rbsType, function (rbs) {
-                        //     if($scope.dictionary.rbsTypes.indexOf(rbs.rbsType) < 0){
-                        //         $scope.dictionary.rbsTypes.push(rbs.rbsType);
-                        //     }
-                        // })
                         $scope.bands = $scope.dictionary.bands;
                         $scope.years = $scope.dictionary.part;
-                        //$scope.filteredRbsTypes = $scope.dictionary.rbsType;
 
                         $http.get('/camunda/catalogs/api/get/id/2').then(
                             function(result){
@@ -395,14 +388,15 @@
             }, true);
 
             $scope.$watch('siteType', function (siteType) {
-                $scope.rbsTypeObj = {};
-                console.log(siteType && siteType.name.includes('GSite') && $scope.dictionary.rbsType);
-                if (siteType && siteType.name.includes('GSite') && $scope.dictionary.rbsType) {
-                    $scope.filteredRbsTypes = $scope.dictionary.rbsType.filter(t => {return t.siteType === siteType.name});
-                } else {
-                    $scope.filteredRbsTypes = $scope.dictionary.rbsType;
+                if(siteType && $scope.dictionary){
+                    $scope.rbsTypeObj = {};
+                    console.log(siteType && siteType.name.includes('GSite') && $scope.dictionary.rbsType);
+                    if (siteType && siteType.name.includes('GSite') && $scope.dictionary.rbsType) {
+                        $scope.filteredRbsTypes = $scope.dictionary.rbsType.filter(t => {return t.siteType === siteType.name});
+                    } else {
+                        $scope.filteredRbsTypes = $scope.dictionary.rbsType;
+                    }
                 }
-
             }, true);
 
             $scope.preSubmit = function () {
@@ -455,19 +449,14 @@
           }
 
      $scope.$watch('initiator', function (initiator) {
-         $scope.projectsByInitiator = {};
-         $scope.reasonsByProject = [];
-         $scope.projectsByInitiator = _.find($scope.dictionary.projects, function (p) {
-             return p.initiator === initiator.name;
-         })
+        if(initiator && $scope.dictionary){
+            $scope.projectsByInitiator = {};
+            $scope.reasonsByProject = [];
+            $scope.projectsByInitiator = _.find($scope.dictionary.projects, function (p) {
+                return p.initiator === initiator.name;
+            })
+        }
      }, true);
-
-     // $scope.$watch('project', function (project) {
-     //     $scope.reasonsByProject = [];
-     //     $scope.reasonsByProject = _.filter($scope.dictionary.reasons, function (r) {
-     //         if (_.find(r.project, function (p) {return p === project.name; }) ) { return true} else return false;
-     //     })
-     // }, true);
 
      $scope.$watch('ncpID', function (ncpID) {
          if(ncpID && ncpID.length === 5){
@@ -497,23 +486,26 @@
      }, true);
 
      $scope.regionSelected = function (region) {
-         $scope.regionName = _.find($scope.dictionary.regions, function (r) {
-             return r.id === region;
-         }).name;
-         $scope.regionCode = _.find($scope.dictionary.regions, function (r) {
-             return r.id === region;
-         }).code;
-         $scope.regionCatalogId = _.find($scope.dictionary.regions, function (r) {
-             return r.id === region;
-         }).catalogsId;
+        if(region && $scope.dictionary){
+            var found = _.find($scope.dictionary.regions, function (r) {
+                 return r.id === region;
+            });
+            if(found){
+                $scope.regionName = found.name;
+                $scope.regionCode = found.code;
+                $scope.regionCatalogId = found.catalogsId;
+            }
+        }
      }
 
      $scope.types = function (rbsType) {
          return Number(rbsType);
      }
      $scope.setRbsType = function (rbsTypeObj) {
-         $scope.rbsType = rbsTypeObj.rbsType;
-         $scope.rbsTypeId = rbsTypeObj.id;
+        if(rbsTypeObj){
+            $scope.rbsType = rbsTypeObj.rbsType;
+            $scope.rbsTypeId = rbsTypeObj.id;
+        }
      }
 
 
