@@ -52,7 +52,7 @@ public class GetValueFromUDB implements JavaDelegate {
 
                     log.info("createdArtefactId: " + createdArtefactId.toString());
 
-                    String selectArtefactCurrentState = "select ARTEFACTID, NCPID, ONAIR_DATE, G_ONAIR_DATE, INST_STATUS, INST_STATUS_DATE, POWER_STATUS from ARTEFACT_CURRENT_STATE where ARTEFACTID = ?";
+                    String selectArtefactCurrentState = "select ARTEFACTID, NCPID, ONAIR_DATE, G_ONAIR_DATE, INST_STATUS, INST_STATUS_DATE, POWER_STATUS, INST_COMMENTS from ARTEFACT_CURRENT_STATE where ARTEFACTID = ?";
 
                     PreparedStatement selectArtefactCurrentStatePS = udbConnect.prepareStatement(selectArtefactCurrentState);
 
@@ -92,6 +92,8 @@ public class GetValueFromUDB implements JavaDelegate {
                         log.info(firstJson.has("ONAIR_DATE") ? firstJson.getString("ONAIR_DATE") : "");
                         log.info("done G_ONAIR_DATE");
                         log.info(firstJson.has("G_ONAIR_DATE") ? firstJson.getString("G_ONAIR_DATE") : "");
+                        log.info("done INST_COMMENTS");
+                        log.info(firstJson.has("INST_COMMENTS") ? firstJson.getString("INST_COMMENTS") : "");
 
                         if (firstJson.has("INST_STATUS")) {
                             int uis = firstJson.getInt("INST_STATUS");
@@ -137,6 +139,8 @@ public class GetValueFromUDB implements JavaDelegate {
                                 log.info("finishWithSetInstStatus 13");
                                 delegateExecution.setVariable("setInstStatusFromUDB", "Leasing problem");
                                 delegateExecution.setVariable("instStatusFromUDB", uis);
+                                delegateExecution.setVariable("rejectedBy", "Installation works");
+                                delegateExecution.setVariable("rejectedReason", firstJson.getString("INST_COMMENTS"));
                             }
                             log.info("INST_STATUS is not null");
                         }

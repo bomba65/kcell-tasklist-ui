@@ -1,44 +1,29 @@
 package kz.kcell.flow;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.extern.java.Log;
 import org.camunda.bpm.engine.HistoryService;
 import org.camunda.bpm.engine.IdentityService;
 import org.camunda.bpm.engine.delegate.DelegateTask;
-import org.camunda.bpm.engine.delegate.Expression;
 import org.camunda.bpm.engine.delegate.TaskListener;
 import org.camunda.bpm.engine.history.HistoricIdentityLinkLog;
+import org.camunda.bpm.engine.history.HistoricIdentityLinkLogQuery;
+import org.camunda.bpm.engine.impl.HistoricIdentityLinkLogQueryImpl;
 import org.camunda.bpm.engine.identity.User;
-import org.camunda.bpm.engine.impl.identity.Authentication;
+import org.camunda.bpm.engine.identity.Group;
 import org.camunda.bpm.engine.impl.util.json.JSONArray;
-import org.camunda.bpm.engine.impl.util.json.JSONObject;
 import org.camunda.bpm.engine.repository.ProcessDefinition;
-import org.camunda.bpm.engine.rest.mapper.JacksonConfigurator;
-import org.camunda.bpm.engine.task.IdentityLink;
-import org.camunda.bpm.model.bpmn.instance.Process;
-import org.camunda.bpm.model.bpmn.instance.camunda.CamundaProperties;
-import org.camunda.bpm.model.bpmn.instance.camunda.CamundaProperty;
 import org.camunda.spin.SpinList;
 import org.camunda.spin.impl.SpinListImpl;
 import org.camunda.spin.json.SpinJsonNode;
 import org.camunda.spin.plugin.variable.SpinValues;
 import org.camunda.spin.plugin.variable.value.JsonValue;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 
-import javax.script.*;
-import java.io.InputStreamReader;
 import java.text.SimpleDateFormat;
 import java.util.*;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
-import static java.util.stream.Collectors.toList;
 
 @Service
 @Log
@@ -109,6 +94,19 @@ public class TaskHistoryListener implements TaskListener {
             resolution.put("processInstanceId", delegateTask.getProcessInstanceId());
             resolution.put("assignee", delegateTask.getAssignee());
             List<User> users = identityService.createUserQuery().userId(delegateTask.getAssignee()).list();
+            List<HistoricIdentityLinkLog> query = historyService.createHistoricIdentityLinkLogQuery().taskId(delegateTask.getId()).type("candidate").orderByTime().desc().list();
+            String displayName = "";
+            if (query.size() > 0) {
+                String groupId = query.get(0).getGroupId();
+                List<Group> displayList = identityService.createGroupQuery().groupId(groupId).list();
+                if (displayList.size() > 0) {
+                    displayName = displayList.get(0).getName();
+                } else {
+                    displayName = groupId;
+                }
+            }
+            log.info("test: " + displayName);
+
             if(users.size()>0){
                 resolution.put("assigneeName", users.get(0).getFirstName() + " " + users.get(0).getLastName());
             }
@@ -159,6 +157,14 @@ public class TaskHistoryListener implements TaskListener {
             resolutions.add(jsonValue.getValue());
 
             delegateTask.setVariable("resolutions", SpinValues.jsonValue(resolutions.toString()));
+            String resol = checkVariable(delegateTask,delegateTask.getTaskDefinitionKey() + "TaskResult") ? String.valueOf(delegateTask.getVariable(delegateTask.getTaskDefinitionKey() + "TaskResult")) : "";
+            if (resol.toLowerCase() == "rejected") {
+                log.info("test2: " + delegateTask.getName());
+                String comment = checkVariable(delegateTask,delegateTask.getTaskDefinitionKey() + "TaskComment") ? String.valueOf(delegateTask.getVariable(delegateTask.getTaskDefinitionKey() + "TaskComment")) : "";
+                log.info("test3: " + comment);
+                delegateTask.setVariable("rejectedBy", displayName + " (" + delegateTask.getName() + ")");
+                delegateTask.setVariable("rejectedReason", comment);
+            }
         }
     }
 
