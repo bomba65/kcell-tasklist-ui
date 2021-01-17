@@ -21,6 +21,8 @@ public class ApproveMaterialsListByCentralGroupsHeadAssignmentHandler implements
                 delegateTask.addCandidateGroup("hq_infrastructure");
             } else if (group.equals("\"Operation\"")) {
                 delegateTask.addCandidateGroup("hq_operation");
+            } else if (group.equals("\"Roll-out\"")) {
+                delegateTask.addCandidateGroup("hq_rollout");
             }
         }
     }
