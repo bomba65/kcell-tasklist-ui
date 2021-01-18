@@ -688,7 +688,7 @@ public class UpdateCandidate implements JavaDelegate {
 
                 SpinJsonNode renterCompany = delegateExecution.getVariable("renterCompany") != null ? JSON(delegateExecution.getVariable("renterCompany")) : null;
 
-                Long legalType = renterCompany.hasProp("legalTypeCatalogId") && renterCompany.prop("legalTypeCatalogId").isNumber() ? renterCompany.prop("legalTypeCatalogId").numberValue().longValue() : null;
+                Long legalType = delegateExecution.getVariable("legalTypeCatalogId") != null ? Long.valueOf(delegateExecution.getVariable("legalTypeCatalogId").toString()) : null;
                 Long branchKT = renterCompany.hasProp("branchKT") && renterCompany.prop("branchKT").isNumber() ? renterCompany.prop("branchKT").numberValue().longValue() : null;
                 String legalName = renterCompany.hasProp("legalName") ? renterCompany.prop("legalName").stringValue() : null;
                 String legalAddress = renterCompany.hasProp("legalAddress") ? renterCompany.prop("legalAddress").stringValue() : null;
