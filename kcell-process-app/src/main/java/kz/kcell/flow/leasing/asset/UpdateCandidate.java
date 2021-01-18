@@ -795,7 +795,9 @@ public class UpdateCandidate implements JavaDelegate {
 
                 HttpEntity entity = postResponse.getEntity();
                 String responseString = EntityUtils.toString(entity, "UTF-8");
-
+                JSONObject jsonResponse = new JSONObject(responseString);
+                Long rbsCreatedId = jsonResponse.has("id") ? jsonResponse.getLong("id") : null;
+                delegateExecution.setVariable("rbsCreatedId", rbsCreatedId);
                 log.info("cellAntennaInfo-PUT response code: " + postResponse.getStatusLine().getStatusCode());
                 if (postResponse.getStatusLine().getStatusCode() < 200 || postResponse.getStatusLine().getStatusCode() >= 300) {
                     throw new RuntimeException("Candidate post returns code " + postResponse.getStatusLine().getStatusCode());
