@@ -476,7 +476,7 @@ public class UpdateCandidate implements JavaDelegate {
             if (updateAssetCandidateTable.equals("site")) {
                 String site_name = delegateExecution.getVariable("siteName") != null ? delegateExecution.getVariable("siteName").toString() : null;
                 SpinJsonNode siteTypeJson = delegateExecution.getVariable("siteType") != null ? JSON(delegateExecution.getVariable("siteType")) : null;
-                Long assetsCreatedSiteId = delegateExecution.getVariableTyped("assetsCreatedSiteId");
+                Long assetsCreatedSiteId = delegateExecution.getVariable("assetsCreatedSiteId") != null ? Long.valueOf(delegateExecution.getVariable("assetsCreatedSiteId").toString()) : null;
 
                 SSLContextBuilder builder = new SSLContextBuilder();
                 builder.loadTrustMaterial(null, new TrustSelfSignedStrategy());
@@ -768,7 +768,7 @@ public class UpdateCandidate implements JavaDelegate {
                 }
 
                 String site_name = delegateExecution.getVariable("siteName") != null ? delegateExecution.getVariable("siteName").toString() : null;
-                Long assetsCreatedSiteId = delegateExecution.getVariableTyped("assetsCreatedSiteId");
+                Long assetsCreatedSiteId = delegateExecution.getVariable("assetsCreatedSiteId") != null ? Long.valueOf(delegateExecution.getVariable("assetsCreatedSiteId").toString()) : null;
 
                 SSLContextBuilder builder = new SSLContextBuilder();
                 builder.loadTrustMaterial(null, new TrustSelfSignedStrategy());
@@ -815,7 +815,7 @@ public class UpdateCandidate implements JavaDelegate {
                     rbsCabinetTypeId = candidate.prop("bsc").prop("id").numberValue().longValue();
                 }
 
-                Long rbsCreatedId = delegateExecution.getVariableTyped("rbsCreatedId");
+                Long rbsCreatedId = delegateExecution.getVariable("rbsCreatedId") != null ? Long.valueOf(delegateExecution.getVariable("rbsCreatedId").toString()) : null;
 
                 SSLContextBuilder builder = new SSLContextBuilder();
                 builder.loadTrustMaterial(null, new TrustSelfSignedStrategy());
