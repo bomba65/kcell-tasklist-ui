@@ -3,9 +3,8 @@ package kz.kcell.flow.changeTsd;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.extern.java.Log;
-import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
-import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.conn.ssl.TrustSelfSignedStrategy;
@@ -17,23 +16,15 @@ import org.apache.http.ssl.SSLContextBuilder;
 import org.apache.http.util.EntityUtils;
 import org.camunda.bpm.engine.delegate.DelegateExecution;
 import org.camunda.bpm.engine.delegate.JavaDelegate;
-import org.camunda.bpm.engine.delegate.BpmnError;
-import org.apache.http.client.HttpClient;
-import org.json.JSONObject;
 import org.camunda.spin.json.SpinJsonNode;
 import org.camunda.spin.plugin.variable.value.JsonValue;
-import static org.camunda.spin.Spin.*;
+import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import java.math.BigInteger;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.Random;
-import java.util.*;
 
 @Log
 @Service("CreateNewTsd")
@@ -51,11 +42,12 @@ public class CreateNewTsd implements JavaDelegate {
         ObjectNode objectNode = objectMapper.createObjectNode();
 
         SpinJsonNode newTsd = execution.<JsonValue>getVariableTyped("selectedTsd").getValue();
+        execution.setVariable("selectedTsdOld", newTsd);
 
         String tsdId = String.valueOf(newTsd.prop("id"));
 
         SpinJsonNode capacityObj = !newTsd.hasProp("capacity_id") || newTsd.prop("capacity_id") == null ? null : newTsd.prop("capacity_id");
-        if (capacityObj!=null && capacityObj.hasProp("id")) {
+        if (capacityObj != null && capacityObj.hasProp("id")) {
             Integer capacityId = capacityObj.prop("id").numberValue().intValue();
             ObjectNode capacity_id = objectMapper.createObjectNode();
             objectNode.set("capacity_id", capacity_id);
@@ -73,13 +65,13 @@ public class CreateNewTsd implements JavaDelegate {
 
         // fe
         SpinJsonNode farendObj = !newTsd.hasProp("farend_id") || newTsd.prop("farend_id") == null ? null : newTsd.prop("farend_id");
-        if (farendObj!=null && farendObj.hasProp("id")){
+        if (farendObj != null && farendObj.hasProp("id")) {
             Integer farendId = farendObj.prop("id").numberValue().intValue();
             objectNode.put("farend_id", farendId);
         }
 
         SpinJsonNode feAntennaDiametrObj = !newTsd.hasProp("fe_antenna_diameter_id") || newTsd.prop("fe_antenna_diameter_id") == null ? null : newTsd.prop("fe_antenna_diameter_id");
-        if (feAntennaDiametrObj!=null && feAntennaDiametrObj.hasProp("id")) {
+        if (feAntennaDiametrObj != null && feAntennaDiametrObj.hasProp("id")) {
             Integer feAntennaDiameterId = feAntennaDiametrObj.prop("id").numberValue().intValue();
             ObjectNode fe_antenna_diameter_id = objectMapper.createObjectNode();
             objectNode.set("fe_antenna_diameter_id", fe_antenna_diameter_id);
@@ -88,7 +80,7 @@ public class CreateNewTsd implements JavaDelegate {
         }
 
         SpinJsonNode feAntennaDiametrProtectObj = !newTsd.hasProp("fe_antenna_diameter_protect_id") || newTsd.prop("fe_antenna_diameter_protect_id") == null ? null : newTsd.prop("fe_antenna_diameter_protect_id");
-        if (feAntennaDiametrProtectObj!=null && feAntennaDiametrProtectObj.hasProp("id")) {
+        if (feAntennaDiametrProtectObj != null && feAntennaDiametrProtectObj.hasProp("id")) {
             Integer feAntennaDiametrProtectId = feAntennaDiametrProtectObj.prop("id").numberValue().intValue();
             ObjectNode fe_antenna_diameter_protect_id = objectMapper.createObjectNode();
             objectNode.set("fe_antenna_diameter_protect_id", fe_antenna_diameter_protect_id);
@@ -103,7 +95,7 @@ public class CreateNewTsd implements JavaDelegate {
         objectNode.put("fe_different_address", fe_different_address);
 
         SpinJsonNode feFacilityObj = !newTsd.hasProp("fe_facility_id") || newTsd.prop("fe_facility_id") == null ? null : newTsd.prop("fe_facility_id");
-        if (feFacilityObj!=null && feFacilityObj.hasProp("id")) {
+        if (feFacilityObj != null && feFacilityObj.hasProp("id")) {
             Integer feFacilityId = feFacilityObj.prop("id").numberValue().intValue();
             objectNode.put("fe_facility_id", feFacilityId);
         }
@@ -127,7 +119,7 @@ public class CreateNewTsd implements JavaDelegate {
         objectNode.put("fe_power_levels_tx_protect", fe_power_levels_tx_protect);
 
         SpinJsonNode feRauSubbandObj = !newTsd.hasProp("fe_rau_subband_id") || newTsd.prop("fe_rau_subband_id") == null ? null : newTsd.prop("fe_rau_subband_id");
-        if (feRauSubbandObj!=null && feRauSubbandObj.hasProp("id")) {
+        if (feRauSubbandObj != null && feRauSubbandObj.hasProp("id")) {
             Integer feRauSubbandId = feRauSubbandObj.prop("id").numberValue().intValue();
             ObjectNode fe_rau_subband_id = objectMapper.createObjectNode();
             objectNode.set("fe_rau_subband_id", fe_rau_subband_id);
@@ -136,7 +128,7 @@ public class CreateNewTsd implements JavaDelegate {
         }
 
         SpinJsonNode feRauSubbandProtectObj = !newTsd.hasProp("fe_rau_subband_protect_id") || newTsd.prop("fe_rau_subband_protect_id") == null ? null : newTsd.prop("fe_rau_subband_protect_id");
-        if (feRauSubbandProtectObj!=null && feRauSubbandProtectObj.hasProp("id")) {
+        if (feRauSubbandProtectObj != null && feRauSubbandProtectObj.hasProp("id")) {
             Integer feRauSubbandProtectId = feRauSubbandProtectObj.prop("id").numberValue().intValue();
             ObjectNode fe_rau_subband_protect_id = objectMapper.createObjectNode();
             objectNode.set("fe_rau_subband_protect_id", fe_rau_subband_protect_id);
@@ -154,7 +146,7 @@ public class CreateNewTsd implements JavaDelegate {
         objectNode.put("fe_txrx_frequencies_protect", fe_txrx_frequencies_protect);
 
         SpinJsonNode linkTypeObj = !newTsd.hasProp("link_type_id") || newTsd.prop("link_type_id") == null ? null : newTsd.prop("link_type_id");
-        if (linkTypeObj!=null && linkTypeObj.hasProp("id")) {
+        if (linkTypeObj != null && linkTypeObj.hasProp("id")) {
             Integer linkTypeId = linkTypeObj.prop("id").numberValue().intValue();
             ObjectNode link_type_id = objectMapper.createObjectNode();
             objectNode.set("link_type_id", link_type_id);
@@ -164,13 +156,13 @@ public class CreateNewTsd implements JavaDelegate {
 
         //ne
         SpinJsonNode nearendObj = !newTsd.hasProp("nearend_id") || newTsd.prop("nearend_id") == null ? null : newTsd.prop("nearend_id");
-        if (nearendObj!=null && nearendObj.hasProp("id")) {
+        if (nearendObj != null && nearendObj.hasProp("id")) {
             Integer nearendId = nearendObj.prop("id").numberValue().intValue();
             objectNode.put("nearend_id", nearendId);
         }
 
         SpinJsonNode neAntennaDiametrObj = !newTsd.hasProp("ne_antenna_diameter_id") || newTsd.prop("ne_antenna_diameter_id") == null ? null : newTsd.prop("ne_antenna_diameter_id");
-        if (neAntennaDiametrObj!=null && neAntennaDiametrObj.hasProp("id")) {
+        if (neAntennaDiametrObj != null && neAntennaDiametrObj.hasProp("id")) {
             Integer neAntennaDiameterId = neAntennaDiametrObj.prop("id").numberValue().intValue();
             ObjectNode ne_antenna_diameter_id = objectMapper.createObjectNode();
             objectNode.set("ne_antenna_diameter_id", ne_antenna_diameter_id);
@@ -180,7 +172,7 @@ public class CreateNewTsd implements JavaDelegate {
 
 
         SpinJsonNode neAntennaDiametrProtectObj = !newTsd.hasProp("ne_antenna_diameter_protect_id") || newTsd.prop("ne_antenna_diameter_protect_id") == null ? null : newTsd.prop("ne_antenna_diameter_protect_id");
-        if (neAntennaDiametrProtectObj!=null && neAntennaDiametrProtectObj.hasProp("id")) {
+        if (neAntennaDiametrProtectObj != null && neAntennaDiametrProtectObj.hasProp("id")) {
             Integer neAntennaDiametrProtectId = neAntennaDiametrProtectObj.prop("id").numberValue().intValue();
             ObjectNode ne_antenna_diameter_protect_id = objectMapper.createObjectNode();
             objectNode.set("ne_antenna_diameter_protect_id", ne_antenna_diameter_protect_id);
@@ -196,7 +188,7 @@ public class CreateNewTsd implements JavaDelegate {
         objectNode.put("ne_different_address", ne_different_address);
 
         SpinJsonNode neFacilityObj = !newTsd.hasProp("ne_facility_id") || newTsd.prop("ne_facility_id") == null ? null : newTsd.prop("ne_facility_id");
-        if (neFacilityObj!=null && neFacilityObj.hasProp("id")) {
+        if (neFacilityObj != null && neFacilityObj.hasProp("id")) {
             Integer neFacilityId = neFacilityObj.prop("id").numberValue().intValue();
             objectNode.put("ne_facility_id", neFacilityId);
         }
@@ -220,7 +212,7 @@ public class CreateNewTsd implements JavaDelegate {
         objectNode.put("ne_power_levels_tx_protect", ne_power_levels_tx_protect);
 
         SpinJsonNode neRauSubbandObj = !newTsd.hasProp("ne_rau_subband_id") || newTsd.prop("ne_rau_subband_id") == null ? null : newTsd.prop("ne_rau_subband_id");
-        if (neRauSubbandObj!=null && neRauSubbandObj.hasProp("id")) {
+        if (neRauSubbandObj != null && neRauSubbandObj.hasProp("id")) {
             Integer neRauSubbandId = neRauSubbandObj.prop("id").numberValue().intValue();
             ObjectNode ne_rau_subband_id = objectMapper.createObjectNode();
             objectNode.set("ne_rau_subband_id", ne_rau_subband_id);
@@ -229,7 +221,7 @@ public class CreateNewTsd implements JavaDelegate {
         }
 
         SpinJsonNode neRauSubbandProtectObj = !newTsd.hasProp("ne_rau_subband_protect_id") || newTsd.prop("ne_rau_subband_protect_id") == null ? null : newTsd.prop("ne_rau_subband_protect_id");
-        if (neRauSubbandProtectObj!=null && neRauSubbandProtectObj.hasProp("id")) {
+        if (neRauSubbandProtectObj != null && neRauSubbandProtectObj.hasProp("id")) {
             Integer neRauSubbandProtectId = neRauSubbandProtectObj.prop("id").numberValue().intValue();
             ObjectNode ne_rau_subband_protect_id = objectMapper.createObjectNode();
             objectNode.set("ne_rau_subband_protect_id", ne_rau_subband_protect_id);
@@ -253,7 +245,7 @@ public class CreateNewTsd implements JavaDelegate {
         objectNode.put("path_distance", path_distance);
 
         SpinJsonNode polarizationObj = !newTsd.hasProp("polarization_id") || newTsd.prop("polarization_id") == null ? null : newTsd.prop("polarization_id");
-        if (polarizationObj!=null && polarizationObj.hasProp("id")) {
+        if (polarizationObj != null && polarizationObj.hasProp("id")) {
             Integer polarizationId = polarizationObj.prop("id").numberValue().intValue();
             ObjectNode polarization_id = objectMapper.createObjectNode();
             objectNode.set("polarization_id", polarization_id);
@@ -262,7 +254,7 @@ public class CreateNewTsd implements JavaDelegate {
         }
 
         SpinJsonNode protectionModeObj = !newTsd.hasProp("protection_mode_id") || newTsd.prop("protection_mode_id") == null ? null : newTsd.prop("protection_mode_id");
-        if (protectionModeObj!=null && protectionModeObj.hasProp("id")) {
+        if (protectionModeObj != null && protectionModeObj.hasProp("id")) {
             Integer protectionModeId = protectionModeObj.prop("id").numberValue().intValue();
             ObjectNode protection_mode_id = objectMapper.createObjectNode();
             objectNode.set("protection_mode_id", protection_mode_id);
@@ -317,37 +309,44 @@ public class CreateNewTsd implements JavaDelegate {
         nearEndFacility.put("construction_height", nearEndFacilityConstructionHeight);
 
 
-            SSLContextBuilder builder = new SSLContextBuilder();
-            builder.loadTrustMaterial(null, new TrustSelfSignedStrategy());
-            SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(builder.build());
-            CloseableHttpClient httpclient = HttpClients.custom().setSSLSocketFactory(sslsf).build();
+        SSLContextBuilder builder = new SSLContextBuilder();
+        builder.loadTrustMaterial(null, new TrustSelfSignedStrategy());
+        SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(builder.build());
+        CloseableHttpClient httpclient = HttpClients.custom().setSSLSocketFactory(sslsf).build();
 
-            String path = assetsUri + "/asset-management/tsd_mw/id/" + tsdId + "/nearend_id/%7Bnearend_id%7D/farend_id/%7Bfarend_id%7D";
-            HttpResponse httpResponse = executePut(path, httpclient, objectNode.toString());
-            String response = EntityUtils.toString(httpResponse.getEntity());
-            log.info("json:  ----   " + objectNode.toString());
-            log.info("response:  ----   " + response);
-            if (httpResponse.getStatusLine().getStatusCode() < 200 || httpResponse.getStatusLine().getStatusCode() >= 300) {
-                throw new RuntimeException("asset.flow.kcell.kz returns code(Add new data into DB) " + httpResponse.getStatusLine().getStatusCode());
-            }
-            JSONObject json = new JSONObject(response);
-            execution.setVariable("newTsdId", json.getString("id"));
+        String path = assetsUri + "/asset-management/tsd_mw/id/" + tsdId + "/nearend_id/%7Bnearend_id%7D/farend_id/%7Bfarend_id%7D";
+        HttpResponse httpResponse = executePut(path, httpclient, objectNode.toString());
+        String response = EntityUtils.toString(httpResponse.getEntity());
+        log.info("json:  ----   " + objectNode.toString());
+        log.info("response:  ----   " + response);
+        if (httpResponse.getStatusLine().getStatusCode() < 200 || httpResponse.getStatusLine().getStatusCode() >= 300) {
+            throw new RuntimeException("asset.flow.kcell.kz returns code(Add new data into DB) " + httpResponse.getStatusLine().getStatusCode());
+        }
+        JSONObject json = new JSONObject(response);
+        execution.setVariable("newTsdId", json.getString("id"));
+        execution.setVariable("newTsd", SpinJsonNode.JSON(response));
 
-            String pathFacilities = assetsUri + "/asset-management/facilities";
-            HttpResponse httpResponseFarEndFacilities = executePut(pathFacilities + "/id/" + String.valueOf(farEndFacilityId), httpclient, farEndFacility.toString());
-            String responseFarEndFacilities = EntityUtils.toString(httpResponseFarEndFacilities.getEntity());
-            log.info("responsePutFarEndFacilities :  ----   " + responseFarEndFacilities);
-            if (httpResponseFarEndFacilities.getStatusLine().getStatusCode() < 200 || httpResponseFarEndFacilities.getStatusLine().getStatusCode() >= 300) {
-                throw new RuntimeException("asset.flow.kcell.kz returns code(put far_end facilities) " + httpResponseFarEndFacilities.getStatusLine().getStatusCode());
-            }
+        String pathFacilities = assetsUri + "/asset-management/facilities";
+        HttpResponse httpResponseFarEndFacilities = executePut(pathFacilities + "/id/" + String.valueOf(farEndFacilityId), httpclient, farEndFacility.toString());
+        String responseFarEndFacilities = EntityUtils.toString(httpResponseFarEndFacilities.getEntity());
+        log.info("responsePutFarEndFacilities :  ----   " + responseFarEndFacilities);
+        if (httpResponseFarEndFacilities.getStatusLine().getStatusCode() < 200 || httpResponseFarEndFacilities.getStatusLine().getStatusCode() >= 300) {
+            throw new RuntimeException("asset.flow.kcell.kz returns code(put far_end facilities) " + httpResponseFarEndFacilities.getStatusLine().getStatusCode());
+        }
 
-            HttpResponse httpResponseNearEndFacilities = executePut(pathFacilities + "/id/" + String.valueOf(nearEndFacilityId), httpclient, nearEndFacility.toString());
-            String responseNearEndFacilities = EntityUtils.toString(httpResponseNearEndFacilities.getEntity());
-            log.info("responsePutNearEndFacilities :  ----   " + responseNearEndFacilities);
-            if (httpResponseNearEndFacilities.getStatusLine().getStatusCode() < 200 || httpResponseNearEndFacilities.getStatusLine().getStatusCode() >= 300) {
-                throw new RuntimeException("asset.flow.kcell.kz returns code(put near_end facilities) " + httpResponseNearEndFacilities.getStatusLine().getStatusCode());
-            }
+        HttpResponse httpResponseNearEndFacilities = executePut(pathFacilities + "/id/" + String.valueOf(nearEndFacilityId), httpclient, nearEndFacility.toString());
+        String responseNearEndFacilities = EntityUtils.toString(httpResponseNearEndFacilities.getEntity());
+        log.info("responsePutNearEndFacilities :  ----   " + responseNearEndFacilities);
+        if (httpResponseNearEndFacilities.getStatusLine().getStatusCode() < 200 || httpResponseNearEndFacilities.getStatusLine().getStatusCode() >= 300) {
+            throw new RuntimeException("asset.flow.kcell.kz returns code(put near_end facilities) " + httpResponseNearEndFacilities.getStatusLine().getStatusCode());
+        }
 
+//
+//
+//
+//
+//
+//
 
 
     }

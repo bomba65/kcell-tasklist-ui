@@ -49,30 +49,38 @@ public class ApproveRFS implements JavaDelegate {
         ObjectMapper objectMapper = new ObjectMapper();
         ObjectNode objectNode = objectMapper.createObjectNode();
 
-        SpinJsonNode newTsd = execution.<JsonValue>getVariableTyped("selectedTsd").getValue();
 
         Integer newTsdId = Integer.parseInt(String.valueOf(execution.getVariable("newTsdId")));
 
         String permitResolution = String.valueOf(execution.getVariable("permitResolution"));
 
-        if (permitResolution == "keepCurrentRFS") {
-            Long timestamp = newTsd.prop("rfs_date").numberValue().longValue();
+        if (permitResolution.equals("keepCurrentRFS")) {
+            SpinJsonNode selectedTsdOld = execution.<JsonValue>getVariableTyped("selectedTsdOld").getValue();
+            Long timestamp = selectedTsdOld.prop("rfs_date").numberValue().longValue();
             Date date = new Date(timestamp);
             Calendar c = Calendar.getInstance();
             c.setTime(date);
             c.add(Calendar.HOUR, 6);
             objectNode.put("rfs_date", new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ").format(c.getTime()));
 
-            SpinJsonNode rfsStatusObj = newTsd.prop("rfs_status_id") == null ? null : newTsd.prop("rfs_status_id");
+            SpinJsonNode rfsStatusObj = selectedTsdOld.prop("rfs_status_id") == null ? null : selectedTsdOld.prop("rfs_status_id");
             Integer rfsStatusId = rfsStatusObj.prop("id").numberValue().intValue();
             ObjectNode rfs_status_id = objectMapper.createObjectNode();
             objectNode.set("rfs_status_id", rfs_status_id);
             rfs_status_id.put("catalog_id", 92);
             rfs_status_id.put("id", rfsStatusId);
 
-            String rfsNumber = newTsd.prop("rfs_number").stringValue();
+            String rfsNumber = selectedTsdOld.prop("rfs_number").stringValue();
             objectNode.put("rfs_number", rfsNumber);
-        } else if (permitResolution == "reissueRFSpermittion") {
+
+            String elicenseNumber = selectedTsdOld.prop("rfs_number").stringValue();
+            objectNode.put("elicense_number", elicenseNumber);
+
+            Calendar elicenseCalendar = Calendar.getInstance();
+            elicenseCalendar.setTime(new Date(selectedTsdOld.prop("elicense_date").numberValue().longValue()));
+            elicenseCalendar.add(Calendar.HOUR, 6);
+            objectNode.put("elicense_date", new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ").format(elicenseCalendar.getTime()));
+        } else if (permitResolution.equals("reissueRFSpermittion")) {
             String rfsNumber = String.valueOf(execution.getVariable("rfsPermitionNumber"));
             objectNode.put("rfs_number", rfsNumber);
 
@@ -87,8 +95,6 @@ public class ApproveRFS implements JavaDelegate {
             c.setTime(rfsPermitionDateFormatted);
             c.add(Calendar.HOUR, 6);
             objectNode.put("rfs_date", new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ").format(c.getTime()));
-
-
         }
 
 
