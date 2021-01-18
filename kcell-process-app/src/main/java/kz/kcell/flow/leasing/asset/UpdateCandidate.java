@@ -774,10 +774,12 @@ public class UpdateCandidate implements JavaDelegate {
                 value.put("bsc_rnc_id", bscId);
                 value.put("site_id", assetsCreatedSiteId);
 
-                JSONObject rbsLocationIdValue = new JSONObject();
-                rbsLocationIdValue.put("catalog_id", 13);
-                rbsLocationIdValue.put("id", rbsLocationId);
-                value.put("rbs_location_id", rbsLocationIdValue);
+                if (rbsLocationId != null) {
+                    JSONObject rbsLocationIdValue = new JSONObject();
+                    rbsLocationIdValue.put("catalog_id", 13);
+                    rbsLocationIdValue.put("id", rbsLocationId);
+                    value.put("rbs_location_id", rbsLocationIdValue);
+                }
 
                 log.info("body value.toString(): ");
                 log.info(value.toString());
@@ -819,15 +821,19 @@ public class UpdateCandidate implements JavaDelegate {
                 JSONObject value = new JSONObject();
                 value.put("rbs_id", rbsCreatedId);
 
-                JSONObject rbsCabinetModelIdValue = new JSONObject();
-                rbsCabinetModelIdValue.put("catalog_id", 11);
-                rbsCabinetModelIdValue.put("id", rbsCabinetModelId);
-                value.put("rbs_cabinet_model_id", rbsCabinetModelIdValue);
+                if (rbsCabinetModelId != null) {
+                    JSONObject rbsCabinetModelIdValue = new JSONObject();
+                    rbsCabinetModelIdValue.put("catalog_id", 11);
+                    rbsCabinetModelIdValue.put("id", rbsCabinetModelId);
+                    value.put("rbs_cabinet_model_id", rbsCabinetModelIdValue);
+                }
 
-                JSONObject rbsCabinetTypeIdValue = new JSONObject();
-                rbsCabinetTypeIdValue.put("catalog_id", 12);
-                rbsCabinetTypeIdValue.put("id", rbsCabinetTypeId);
-                value.put("rbs_cabinet_type_id", rbsCabinetTypeIdValue);
+                if (rbsCabinetTypeId != null) {
+                    JSONObject rbsCabinetTypeIdValue = new JSONObject();
+                    rbsCabinetTypeIdValue.put("catalog_id", 12);
+                    rbsCabinetTypeIdValue.put("id", rbsCabinetTypeId);
+                    value.put("rbs_cabinet_type_id", rbsCabinetTypeIdValue);
+                }
 
                 log.info("body value.toString(): ");
                 log.info(value.toString());
