@@ -63,7 +63,7 @@ public class SitesController {
 
     @RequestMapping(value = "/id/{id}", method = RequestMethod.GET)
     @ResponseBody
-    public ResponseEntity<String> siteContainsName(@PathVariable("id") Long id) throws Exception {
+    public ResponseEntity<String> siteGetById(@PathVariable("id") Long id) throws Exception {
 
         if (identityService.getCurrentAuthentication() == null || identityService.getCurrentAuthentication().getUserId() == null) {
             log.warning("No user logged in");
@@ -82,7 +82,34 @@ public class SitesController {
         String content = EntityUtils.toString(entity);
 
         if (httpResponse.getStatusLine().getStatusCode() < 200 || httpResponse.getStatusLine().getStatusCode() >= 300) {
-            throw new RuntimeException(assetsUrl + " site getby id = " + id + " returns code " + httpResponse.getStatusLine().getStatusCode());
+            throw new RuntimeException(assetsUrl + " site get by id = " + id + " returns code " + httpResponse.getStatusLine().getStatusCode());
+        }
+
+        return ResponseEntity.ok(content);
+    }
+
+    @RequestMapping(value = "/siteid/{siteid}", method = RequestMethod.GET)
+    @ResponseBody
+    public ResponseEntity<String> siteGetBySiteid(@PathVariable("siteid") String siteid) throws Exception {
+
+        if (identityService.getCurrentAuthentication() == null || identityService.getCurrentAuthentication().getUserId() == null) {
+            log.warning("No user logged in");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
+        }
+
+        SSLContextBuilder builder = new SSLContextBuilder();
+        builder.loadTrustMaterial(null, new TrustSelfSignedStrategy());
+        SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(builder.build());
+        CloseableHttpClient httpclient = HttpClients.custom().setSSLSocketFactory(sslsf).build();
+
+        HttpGet httpGet = new HttpGet(assetsUrl + "/asset-management/sites/siteid/" + siteid);
+        HttpResponse httpResponse = httpclient.execute(httpGet);
+
+        HttpEntity entity = httpResponse.getEntity();
+        String content = EntityUtils.toString(entity);
+
+        if (httpResponse.getStatusLine().getStatusCode() < 200 || httpResponse.getStatusLine().getStatusCode() >= 300) {
+            throw new RuntimeException(assetsUrl + " site get by siteid = " + siteid + " returns code " + httpResponse.getStatusLine().getStatusCode());
         }
 
         return ResponseEntity.ok(content);
