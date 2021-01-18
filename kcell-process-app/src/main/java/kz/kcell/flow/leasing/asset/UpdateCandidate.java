@@ -639,7 +639,7 @@ public class UpdateCandidate implements JavaDelegate {
                 SpinJsonNode du_type_id_json_array = cellAntenna != null ? (cellAntenna.hasProp("cn_du") ? cellAntenna.prop("cn_du") : null) : null;
 
                 String du_unit_string = null;
-                if(du_type_id_json_array!=null && du_type_id_json_array.elements().size() > 0) {
+                if (du_type_id_json_array != null && du_type_id_json_array.elements().size() > 0) {
                     SpinList<SpinJsonNode> du_type_id_json_list = du_type_id_json_array.elements();
 
                     SpinJsonNode du_type_id = du_type_id_json_list.get(0);
@@ -688,18 +688,8 @@ public class UpdateCandidate implements JavaDelegate {
 
                 SpinJsonNode renterCompany = delegateExecution.getVariable("renterCompany") != null ? JSON(delegateExecution.getVariable("renterCompany")) : null;
 
-                Long legalType = null;
-                try {
-                    legalType = renterCompany.hasProp("legalTypeCatalogId") && renterCompany.prop("legalTypeCatalogId").isNumber() ? renterCompany.prop("legalTypeCatalogId").numberValue().longValue() : null;
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-                Long branchKT = null;
-                try {
-                    branchKT = renterCompany.hasProp("branchKT") && renterCompany.prop("branchKT").isNumber() ? renterCompany.prop("branchKT").numberValue().longValue() : null;
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
+                Long legalType = renterCompany.hasProp("legalTypeCatalogId") && renterCompany.prop("legalTypeCatalogId").isNumber() ? renterCompany.prop("legalTypeCatalogId").numberValue().longValue() : null;
+                Long branchKT = renterCompany.hasProp("branchKT") && renterCompany.prop("branchKT").isNumber() ? renterCompany.prop("branchKT").numberValue().longValue() : null;
                 String legalName = renterCompany.hasProp("legalName") ? renterCompany.prop("legalName").stringValue() : null;
                 String legalAddress = renterCompany.hasProp("legalAddress") ? renterCompany.prop("legalAddress").stringValue() : null;
                 String telFax = renterCompany.hasProp("telFax") ? renterCompany.prop("telFax").stringValue() : null;
@@ -724,15 +714,19 @@ public class UpdateCandidate implements JavaDelegate {
                 value.put("contact_person_phone", contactInfo);
                 value.put("legal_address_id", Long.parseLong(assetsCreatedCnAddressId));
 
-                JSONObject legalTypeValue = new JSONObject();
-                legalTypeValue.put("catalog_id", 22);
-                legalTypeValue.put("id", legalType);
-                value.put("legal_type_id", legalTypeValue);
+                if (legalType != null) {
+                    JSONObject legalTypeValue = new JSONObject();
+                    legalTypeValue.put("catalog_id", 22);
+                    legalTypeValue.put("id", legalType);
+                    value.put("legal_type_id", legalTypeValue);
+                }
 
-                JSONObject branchKTValue = new JSONObject();
-                branchKTValue.put("catalog_id", 16);
-                branchKTValue.put("id", branchKT);
-                value.put("branch_kt_id", branchKTValue);
+                if (branchKT != null) {
+                    JSONObject branchKTValue = new JSONObject();
+                    branchKTValue.put("catalog_id", 16);
+                    branchKTValue.put("id", branchKT);
+                    value.put("branch_kt_id", branchKTValue);
+                }
 
                 log.info("body value.toString(): ");
                 log.info(value.toString());
