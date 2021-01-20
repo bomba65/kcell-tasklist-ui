@@ -77,7 +77,7 @@ public class CreateSMSGWClient implements JavaDelegate {
             boolean userAlreadyExists = false;
 
             for (int i = 0; i < responseGetUsersJson.length(); i++) {
-                if (((JSONObject) responseGetUsersJson.get(i)).get("username").equals(clientCompanyLatName)) {
+                if (((JSONObject) responseGetUsersJson.get(i)).get("username").equals(smsGwUsername)) {
                     userAlreadyExists = true;
                     smsGwUserId = ((JSONObject) responseGetUsersJson.get(i)).getString("userId");
                     break;
