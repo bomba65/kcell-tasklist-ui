@@ -539,6 +539,7 @@ public class CreateCandidate implements JavaDelegate {
             }
             if (createAssetCandidateTable.equals("site")) {
                 String site_name = delegateExecution.getVariable("siteName") != null ? delegateExecution.getVariable("siteName").toString() : null;
+                Long createdArtefactId = delegateExecution.getVariable("createdArtefactId") != null ? (Long) delegateExecution.getVariable("createdArtefactId") : null;
                 SpinJsonNode siteTypeJson = delegateExecution.getVariable("siteType") != null ? JSON(delegateExecution.getVariable("siteType")) : null;
 
                 SSLContextBuilder builder = new SSLContextBuilder();
@@ -551,7 +552,9 @@ public class CreateCandidate implements JavaDelegate {
                 JSONObject value = new JSONObject();
                 if (ncpId != null) {
                     value.put("siteid", ncpId);
+                    value.put("ncp_id", Long.valueOf(ncpId));
                 }
+//                value.put("udb_artefact_id", createdArtefactId);
                 if (site_name != null) {
                     value.put("site_name", site_name);
                 }
