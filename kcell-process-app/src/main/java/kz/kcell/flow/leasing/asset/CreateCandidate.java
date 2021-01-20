@@ -554,7 +554,7 @@ public class CreateCandidate implements JavaDelegate {
                     value.put("siteid", ncpId);
                     value.put("ncp_id", Long.valueOf(ncpId));
                 }
-//                value.put("udb_artefact_id", createdArtefactId);
+                value.put("udb_artefact_id", createdArtefactId);
                 if (site_name != null) {
                     value.put("site_name", site_name);
                 }
