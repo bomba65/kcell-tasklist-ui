@@ -22,9 +22,12 @@ import org.apache.http.client.HttpClient;
 import org.json.JSONObject;
 import org.camunda.spin.json.SpinJsonNode;
 import org.camunda.spin.plugin.variable.value.JsonValue;
+
 import static org.camunda.spin.Spin.*;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
@@ -115,6 +118,8 @@ public class ApproveRFS implements JavaDelegate {
     }
 
     private HttpResponse executePut(String url, HttpClient httpClient, String requestBody) throws Exception {
+        System.out.println("Call " + url);
+        System.out.println("body:  " + requestBody);
         StringEntity entity = new StringEntity(requestBody, ContentType.APPLICATION_JSON);
         HttpPut httpPut = new HttpPut(url);
         httpPut.addHeader("Content-Type", "application/json;charset=UTF-8");
