@@ -324,7 +324,7 @@ public class CreateNewTsd implements JavaDelegate {
         }
         JSONObject json = new JSONObject(response);
         execution.setVariable("newTsdId", json.getString("id"));
-        execution.setVariable("newTsd", SpinJsonNode.JSON(response));
+        execution.setVariable("selectedTsd", SpinJsonNode.JSON(response));
 
         String pathFacilities = assetsUri + "/asset-management/facilities";
         HttpResponse httpResponseFarEndFacilities = executePut(pathFacilities + "/id/" + String.valueOf(farEndFacilityId), httpclient, farEndFacility.toString());
