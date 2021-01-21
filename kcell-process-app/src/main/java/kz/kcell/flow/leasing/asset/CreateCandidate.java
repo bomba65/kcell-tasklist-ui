@@ -63,6 +63,7 @@ public class CreateCandidate implements JavaDelegate {
             String altitude = delegateExecution.getVariable("altitude") != null ? delegateExecution.getVariable("altitude").toString() : null;
             String region = delegateExecution.getVariable("regionCatalogId") != null ? delegateExecution.getVariable("regionCatalogId").toString() : null;
 
+            Long assetsCreatedNcp = delegateExecution.getVariable("assetsCreatedNcp") != null ? (Long) delegateExecution.getVariable("assetsCreatedNcp") : null;
             String assetsCreatedCnAddressId = delegateExecution.getVariable("assetsCreatedCnAddressId") != null ? delegateExecution.getVariable("assetsCreatedCnAddressId").toString() : null;
             String assetsCreatedNeAddressId = delegateExecution.getVariable("assetsCreatedNeAddressId") != null ? delegateExecution.getVariable("assetsCreatedNeAddressId").toString() : null;
             String assetsCreatedNeFacilitieId = delegateExecution.getVariable("assetsCreatedNeFacilitieId") != null ? delegateExecution.getVariable("assetsCreatedNeFacilitieId").toString() : null;
@@ -76,8 +77,9 @@ public class CreateCandidate implements JavaDelegate {
             SpinJsonNode candidate = delegateExecution.getVariable("candidate") != null ? JSON(delegateExecution.getVariable("candidate")) : null;
             SpinJsonNode transmissionAntenna = delegateExecution.getVariable("transmissionAntenna") != null ? JSON(delegateExecution.getVariable("transmissionAntenna")) : null;
 
-            String ne_longitude = transmissionAntenna != null ? (transmissionAntenna.hasProp("longitude") ? transmissionAntenna.prop("longitude").value().toString() : null) : null;
-            String ne_latitude = transmissionAntenna != null ? (transmissionAntenna.hasProp("latitude") ? transmissionAntenna.prop("latitude").value().toString() : null) : null;
+
+            String ne_longitude = (transmissionAntenna != null && transmissionAntenna.hasProp("address") && transmissionAntenna.prop("address") != null) ? (transmissionAntenna.prop("address").hasProp("longitude") ? transmissionAntenna.prop("address").prop("longitude").value().toString() : null) : null;
+            String ne_latitude = (transmissionAntenna != null && transmissionAntenna.hasProp("address") && transmissionAntenna.prop("address") != null) ? (transmissionAntenna.prop("address").hasProp("latitude") ? transmissionAntenna.prop("address").prop("latitude").value().toString() : null) : null;
             String ne_city_catalogs_id = (transmissionAntenna != null && transmissionAntenna.hasProp("address") && transmissionAntenna.prop("address") != null) ? (transmissionAntenna.prop("address").hasProp("city_catalogs_id") ? transmissionAntenna.prop("address").prop("city_catalogs_id").value().toString() : null) : null;
             String ne_addr_street_name = (transmissionAntenna != null && transmissionAntenna.hasProp("address") && transmissionAntenna.prop("address") != null) ? (transmissionAntenna.prop("address").hasProp("cn_addr_street") ? transmissionAntenna.prop("address").prop("cn_addr_street").value().toString() : null) : null;
             String ne_addr_building_name = (transmissionAntenna != null && transmissionAntenna.hasProp("address") && transmissionAntenna.prop("address") != null) ? (transmissionAntenna.prop("address").hasProp("cn_addr_building") ? transmissionAntenna.prop("address").prop("cn_addr_building").value().toString() : null) : null;
@@ -404,9 +406,16 @@ public class CreateCandidate implements JavaDelegate {
 
                 SpinList<SpinJsonNode> cable_laying_type_id_json_list = cable_laying_type_id_json_array.elements();
 
-                SpinJsonNode cable_laying_type_id_json_obj = cable_laying_type_id_json_list.get(0);
+                String cable_laying_type_id = null;
+                int index = 0;
+                JSONArray cable_laying_type_id_json_ar =  new JSONArray();
+                for (SpinJsonNode cable_laying_type_id_json_obj : cable_laying_type_id_json_list) {
+                    cable_laying_type_id = (cable_laying_type_id_json_obj != null && cable_laying_type_id_json_obj.prop("id") != null ) ?  cable_laying_type_id_json_obj.prop("id").value().toString() : null;
+                    cable_laying_type_id_json_ar.put(cable_laying_type_id);
+                    index++;
+                }
 
-                String cable_laying_type_id = (cable_laying_type_id_json_obj != null && cable_laying_type_id_json_obj.prop("id") != null ) ?  cable_laying_type_id_json_obj.prop("id").value().toString() : null;
+
 
                 SSLContextBuilder builder = new SSLContextBuilder();
                 builder.loadTrustMaterial(null, new TrustSelfSignedStrategy());
@@ -417,10 +426,8 @@ public class CreateCandidate implements JavaDelegate {
 
                 JSONObject value = new JSONObject();
 
-                if (cable_laying_type_id != null) {
+                if (cable_laying_type_id_json_ar != null && cable_laying_type_id_json_ar.length() > 0) {
                     JSONObject cable_laying_type_id_json = new JSONObject();
-                    JSONArray cable_laying_type_id_json_ar =  new JSONArray();
-                    cable_laying_type_id_json_ar.put(cable_laying_type_id);
                     cable_laying_type_id_json.put("catalog_id", 18);
                     cable_laying_type_id_json.put("ids", cable_laying_type_id_json_ar);
                     value.put("cable_laying_type_id", cable_laying_type_id_json);
@@ -552,7 +559,7 @@ public class CreateCandidate implements JavaDelegate {
                 JSONObject value = new JSONObject();
                 if (ncpId != null) {
                     value.put("siteid", ncpId);
-                    value.put("ncp_id", Long.valueOf(ncpId));
+                    value.put("ncp_id", Long.valueOf(assetsCreatedNcp));
                 }
                 value.put("udb_artefact_id", createdArtefactId);
                 if (site_name != null) {
