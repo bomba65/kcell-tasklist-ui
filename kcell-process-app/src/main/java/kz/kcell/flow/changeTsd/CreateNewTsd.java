@@ -42,7 +42,6 @@ public class CreateNewTsd implements JavaDelegate {
         ObjectNode objectNode = objectMapper.createObjectNode();
 
         SpinJsonNode newTsd = execution.<JsonValue>getVariableTyped("selectedTsd").getValue();
-        execution.setVariable("selectedTsdOld", newTsd);
 
         String tsdId = String.valueOf(newTsd.prop("id"));
 

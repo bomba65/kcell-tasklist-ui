@@ -58,29 +58,29 @@ public class ApproveRFS implements JavaDelegate {
         String permitResolution = String.valueOf(execution.getVariable("permitResolution"));
 
         if (permitResolution.equals("keepCurrentRFS")) {
-            SpinJsonNode selectedTsdOld = execution.<JsonValue>getVariableTyped("selectedTsdOld").getValue();
-            Long timestamp = selectedTsdOld.prop("rfs_date").numberValue().longValue();
+            SpinJsonNode oldTsd = execution.<JsonValue>getVariableTyped("oldTsd").getValue();
+            Long timestamp = oldTsd.prop("rfs_date").numberValue().longValue();
             Date date = new Date(timestamp);
             Calendar c = Calendar.getInstance();
             c.setTime(date);
             c.add(Calendar.HOUR, 6);
             objectNode.put("rfs_date", new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ").format(c.getTime()));
 
-            SpinJsonNode rfsStatusObj = selectedTsdOld.prop("rfs_status_id") == null ? null : selectedTsdOld.prop("rfs_status_id");
+            SpinJsonNode rfsStatusObj = oldTsd.prop("rfs_status_id") == null ? null : oldTsd.prop("rfs_status_id");
             Integer rfsStatusId = rfsStatusObj.prop("id").numberValue().intValue();
             ObjectNode rfs_status_id = objectMapper.createObjectNode();
             objectNode.set("rfs_status_id", rfs_status_id);
             rfs_status_id.put("catalog_id", 92);
             rfs_status_id.put("id", rfsStatusId);
 
-            String rfsNumber = selectedTsdOld.prop("rfs_number").stringValue();
+            String rfsNumber = oldTsd.prop("rfs_number").stringValue();
             objectNode.put("rfs_number", rfsNumber);
 
-            String elicenseNumber = selectedTsdOld.prop("rfs_number").stringValue();
+            String elicenseNumber = oldTsd.prop("rfs_number").stringValue();
             objectNode.put("elicense_number", elicenseNumber);
 
             Calendar elicenseCalendar = Calendar.getInstance();
-            elicenseCalendar.setTime(new Date(selectedTsdOld.prop("elicense_date").numberValue().longValue()));
+            elicenseCalendar.setTime(new Date(oldTsd.prop("elicense_date").numberValue().longValue()));
             elicenseCalendar.add(Calendar.HOUR, 6);
             objectNode.put("elicense_date", new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ").format(elicenseCalendar.getTime()));
         } else if (permitResolution.equals("reissueRFSpermittion")) {
