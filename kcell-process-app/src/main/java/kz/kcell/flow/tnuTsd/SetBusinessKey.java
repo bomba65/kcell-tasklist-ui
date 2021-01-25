@@ -47,7 +47,10 @@ public class SetBusinessKey implements JavaDelegate {
 
         SimpleDateFormat sdf = new SimpleDateFormat("ddMMyy");
 
-        String businessKey = ne_sitename + "-" + fe_sitename + "(" + regionsTitle.get(region_name) + StringUtils.leftPad(String.valueOf(count+1), 4, '0') + "-" + sdf.format(new Date()) + ")";
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(new Date());
+        calendar.add(Calendar.HOUR, 6);
+        String businessKey = ne_sitename + "-" + fe_sitename + "(" + regionsTitle.get(region_name) + StringUtils.leftPad(String.valueOf(count+1), 4, '0') + "-" + sdf.format(calendar.getTime()) + ")";
         delegateExecution.setProcessBusinessKey(businessKey);
         delegateExecution.setVariable("tnuTsdNumber", businessKey);
 

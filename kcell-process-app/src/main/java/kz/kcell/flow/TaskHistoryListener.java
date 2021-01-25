@@ -121,7 +121,11 @@ public class TaskHistoryListener implements TaskListener {
             resolution.put("taskId", delegateTask.getId());
             resolution.put("taskDefinitionKey", delegateTask.getTaskDefinitionKey());
             resolution.put("taskName", delegateTask.getName());
-            resolution.put("taskEndDate", new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXX").format(new Date()));
+
+            Calendar calendar = Calendar.getInstance();
+            calendar.setTime(new Date());
+            calendar.add(Calendar.HOUR, 6);
+            resolution.put("taskEndDate", new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXX").format(calendar.getTime()));
 
             if(checkVariable(delegateTask,delegateTask.getTaskDefinitionKey() + "Files") && !checkVariable(delegateTask,delegateTask.getTaskDefinitionKey() + "DeletedFiles")) {
                 JSONArray filesJSONArray = new JSONArray(String.valueOf(delegateTask.getVariable(delegateTask.getTaskDefinitionKey() + "Files")));
@@ -138,10 +142,14 @@ public class TaskHistoryListener implements TaskListener {
                 resolution.putPOJO("attachments", attachments);
             }
 
-            resolution.put("assignDate", new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXX").format(delegateTask.getCreateTime()));
+            calendar.setTime(delegateTask.getCreateTime());
+            calendar.add(Calendar.HOUR, 6);
+            resolution.put("assignDate", new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXX").format(calendar.getTime()));
             List<HistoricIdentityLinkLog> logs = historyService.createHistoricIdentityLinkLogQuery().taskId(delegateTask.getId()).type("assignee").operationType("add").userId(delegateTask.getAssignee()).orderByTime().desc().list();
             if(logs.size() > 0){
-                resolution.put("claimDate", new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXX").format(logs.get(0).getTime()));
+                calendar.setTime(logs.get(0).getTime());
+                calendar.add(Calendar.HOUR, 6);
+                resolution.put("claimDate", new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXX").format(calendar.getTime()));
             }
 
             if (checkVariable(delegateTask,delegateTask.getTaskDefinitionKey() + "TaskAttachments") && !checkVariable(delegateTask,delegateTask.getTaskDefinitionKey() + "DeletedFiles")) {

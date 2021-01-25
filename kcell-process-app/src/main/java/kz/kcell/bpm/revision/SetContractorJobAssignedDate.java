@@ -12,6 +12,11 @@ public class SetContractorJobAssignedDate implements TaskListener {
 
     @Override
     public void notify(DelegateTask delegateTask) {
+
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(new Date());
+        calendar.add(Calendar.HOUR, 6);
+
         if (delegateTask.hasVariable("contractorJobAssignedDate")) {
             Date contractorJobAssignedDate = (Date) delegateTask.getVariable("contractorJobAssignedDate");
 
@@ -25,10 +30,10 @@ public class SetContractorJobAssignedDate implements TaskListener {
 
 
             if (afterModifyList > 0) {
-                delegateTask.setVariable("contractorJobAssignedDate", new Date());
+                delegateTask.setVariable("contractorJobAssignedDate", calendar.getTime());
             }
         } else {
-            delegateTask.setVariable("contractorJobAssignedDate", new Date());
+            delegateTask.setVariable("contractorJobAssignedDate", calendar.getTime());
         }
 
         String mainContract = String.valueOf(delegateTask.getVariable("mainContract"));

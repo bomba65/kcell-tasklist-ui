@@ -15,6 +15,7 @@ import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 
+import java.util.Calendar;
 import java.util.Date;
 
 @Service
@@ -51,7 +52,11 @@ public class RevisionStatusListener implements ExecutionListener {
             status.put("statusId", statusId);
             status.put("statusName", statusName);
             status.put("comment", comment);
-            status.put("date", (new Date()).getTime());
+
+            Calendar calendar = Calendar.getInstance();
+            calendar.setTime(new Date());
+            calendar.add(Calendar.HOUR, 6);
+            status.put("date", calendar.getTime().getTime());
             status.put("returnStatus", returnStatus);
             status.put("parentStatus", parentStatus);
 

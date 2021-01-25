@@ -75,7 +75,11 @@ public class GenerateDocument implements JavaDelegate {
 
         varsMap.put("$sitename", delegateExecution.getVariable("site_name").toString());
         varsMap.put("$requestNumber", delegateExecution.getBusinessKey());
-        varsMap.put("$infilldate", dformat.format(new Date()));
+
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(new Date());
+        calendar.add(Calendar.HOUR, 6);
+        varsMap.put("$infilldate", dformat.format(calendar.getTime()));
 
         SpinJsonNode initiatorFull = delegateExecution.<JsonValue>getVariableTyped("initiatorFull").getValue();
         varsMap.put("$creator", initiatorFull.prop("firstName").toString().replaceAll("\"","") + " " + initiatorFull.prop("lastName").toString().replaceAll("\"",""));

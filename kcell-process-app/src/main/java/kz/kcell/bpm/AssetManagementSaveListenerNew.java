@@ -48,7 +48,10 @@ public class AssetManagementSaveListenerNew implements TaskListener {
             e.printStackTrace();
         }
 
-        delegateTask.setVariable("performDate", new Date());
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(new Date());
+        calendar.add(Calendar.HOUR, 6);
+        delegateTask.setVariable("performDate", calendar.getTime());
     }
 
     public void saveCommandsToAssetManagement(JsonNode summaries, String siteId) {
