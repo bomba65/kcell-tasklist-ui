@@ -175,9 +175,11 @@ public class TaskHistoryListener implements TaskListener {
             SpinList<SpinJsonNode> rejections = new SpinListImpl<>();
             if (delegateTask.hasVariable("rejections")){
                 rejections = delegateTask.<JsonValue>getVariableTyped("rejections").getValue().elements();
-                prevGroup = rejections.get(0).prop("groupId").numberValue().intValue();
-                if (prevGroup != currentGroup || prevGroup == 0) {
-                    rejections.removeAll(rejections);
+                if (rejections.size() > 0) {
+                    prevGroup = rejections.get(0).prop("groupId").numberValue().intValue();
+                    if (prevGroup != currentGroup || prevGroup == 0) {
+                        rejections.removeAll(rejections);
+                    }
                 }
             }
 
@@ -264,8 +266,8 @@ public class TaskHistoryListener implements TaskListener {
                 rejection.put("groupId", currentGroup);
                 JsonValue rejectionValue = SpinValues.jsonValue(rejection.toString()).create();
                 rejections.add(rejectionValue.getValue());
+                delegateTask.setVariable("rejections", SpinValues.jsonValue(rejections.toString()));
             }
-            delegateTask.setVariable("rejections", SpinValues.jsonValue(rejections.toString()));
         }
     }
 
