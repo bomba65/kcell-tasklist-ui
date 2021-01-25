@@ -1,10 +1,17 @@
 package kz.kcell.flow.leasing;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.extern.java.Log;
 import org.camunda.bpm.engine.delegate.DelegateExecution;
 import org.camunda.bpm.engine.delegate.JavaDelegate;
 import org.camunda.bpm.engine.impl.util.json.JSONArray;
 import org.camunda.bpm.engine.impl.util.json.JSONObject;
+import org.camunda.spin.SpinList;
+import org.camunda.spin.impl.SpinListImpl;
+import org.camunda.spin.json.SpinJsonNode;
+import org.camunda.spin.plugin.variable.SpinValues;
+import org.camunda.spin.plugin.variable.value.JsonValue;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
@@ -139,8 +146,16 @@ public class GetValueFromUDB implements JavaDelegate {
                                 log.info("finishWithSetInstStatus 13");
                                 delegateExecution.setVariable("setInstStatusFromUDB", "Leasing problem");
                                 delegateExecution.setVariable("instStatusFromUDB", uis);
-                                delegateExecution.setVariable("rejectedBy", "Installation works");
-                                delegateExecution.setVariable("rejectedReason", firstJson.getString("INST_COMMENTS"));
+                                SpinList<SpinJsonNode> rejections = new SpinListImpl<>();
+                                ObjectMapper mapper = new ObjectMapper();
+                                ObjectNode rejection = mapper.createObjectNode();
+                                rejection.put("rejectedBy", "Installation works");
+                                rejection.put("rejectedReason", firstJson.getString("INST_COMMENTS"));
+                                rejection.put("groupId", 0);
+                                JsonValue rejectionValue = SpinValues.jsonValue(rejection.toString()).create();
+                                rejections.add(rejectionValue.getValue());
+                                delegateExecution.setVariable("rejections", SpinValues.jsonValue(rejections.toString()));
+
                             }
                             log.info("INST_STATUS is not null");
                         }

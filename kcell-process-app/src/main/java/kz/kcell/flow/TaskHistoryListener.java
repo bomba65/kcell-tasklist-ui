@@ -63,6 +63,67 @@ public class TaskHistoryListener implements TaskListener {
       "cancel-tsd"
     );
 
+    private final List<String> groupOne = Arrays.asList(
+        "estimateTechnicalCapabilityRes",
+        "checkAndApproveFE",
+        "approveByCentralTR"
+    );
+
+    private final List<String> groupTwo = Arrays.asList(
+        "confirmPermissionInstallationBS",
+        "requestTechnicalParametersKT",
+        "confirmPaymentDevelopmentOfTCKT",
+        "receivingTS",
+        "signingLeaseContractAddAgreementKT",
+        "sendMessageToStartPaymentKT",
+        "reqKZTRwithTechEquipmentParams",
+        "receivingContractDevDesignEstimate",
+        "registrationCommercialOffer",
+        "confirmReceiptEstimate",
+        "receivingContractInstallationWorks",
+        "requestTechnicalParametersKP",
+        "confirmReceiptResponseKP",
+        "signingLeaseContractAddAgreementKP",
+        "sendMessageToStartPaymentKP",
+        "confirmPermissionToInstallFE",
+        "requestTechnicalParametersKTForFE",
+        "reqKZTRwithTechEquipmentParamsForFE",
+        "requestTechnicalParametersKPFE",
+        "receivingContractDevDesignEstimateForFE",
+        "confirmPaymentDevelopmentOfTCKTForFE",
+        "confirmReceiptResponseKPFE",
+        "receivingTSForFE",
+        "confirmReceiptEstimateForFE",
+        "signingLeaseContractAddAgreementKPFE",
+        "signingLeaseContractAddAgreementForFE",
+        "sendMessageToStartPaymentKTForFE",
+        "receivingContractInstallationWorksForFE",
+        "confirmSendMessageToStartPaymentKPFE"
+    );
+
+    private final List<String> groupThree = Arrays.asList(
+        "confirmLoadingLeaseContractInSAPCM",
+        "confirmApprovalLeaseContractInSAPCM",
+        "uploadCopyOfOwnerSignedLeaseContract",
+        "contractRentLoadingSAP",
+        "approvalContractRentInSAP",
+        "powerContractLoadingInSAP",
+        "approvalPowerContractInSAP",
+        "uploadSignedOwnerLeaseContract"
+    );
+
+    private final List<String> groupFour = Arrays.asList(
+        "uploadRSDandVSDfiles",
+        "uploadTSDfile"
+    );
+
+    private final List<String> groupFive = Arrays.asList(
+        "confirmActOfPerformanceTechnicalConditions",
+        "fillDetailsOfTheFarendContract",
+        "fillDetailsOfTheCandidateContract",
+        "confirmSigningLeaseContract"
+    );
+
     @Override
     public void notify(DelegateTask delegateTask) {
 
@@ -86,9 +147,44 @@ public class TaskHistoryListener implements TaskListener {
                 resolutions = delegateTask.<JsonValue>getVariableTyped("resolutions").getValue().elements();
             }
 
+            String taskId = delegateTask.getTaskDefinitionKey();
+            Integer prevGroup = 0;
+            Integer currentGroup = 0;
+
+            boolean isGroupOne = groupOne.stream().filter(e-> e.equals(taskId)).findAny().isPresent();
+            boolean isGroupTwo = groupTwo.stream().filter(e-> e.equals(taskId)).findAny().isPresent();
+            boolean isGroupThree = groupThree.stream().filter(e-> e.equals(taskId)).findAny().isPresent();
+            boolean isGroupFour = groupFour.stream().filter(e-> e.equals(taskId)).findAny().isPresent();
+            boolean isGroupFive = groupFive.stream().filter(e-> e.equals(taskId)).findAny().isPresent();
+            if (isGroupOne) {
+                currentGroup = 1;
+            }
+            if (isGroupTwo) {
+                currentGroup = 2;
+            }
+            if (isGroupThree) {
+                currentGroup = 3;
+            }
+            if (isGroupFour) {
+                currentGroup = 4;
+            }
+            if (isGroupFive) {
+                currentGroup = 5;
+            }
+            log.info("currentGroup: " + currentGroup);
+            SpinList<SpinJsonNode> rejections = new SpinListImpl<>();
+            if (delegateTask.hasVariable("rejections")){
+                rejections = delegateTask.<JsonValue>getVariableTyped("rejections").getValue().elements();
+                prevGroup = rejections.get(0).prop("groupId").numberValue().intValue();
+                if (prevGroup != currentGroup || prevGroup == 0) {
+                    rejections.removeAll(rejections);
+                }
+            }
+
             ObjectMapper mapper = new ObjectMapper();
 
             ObjectNode resolution = mapper.createObjectNode();
+            ObjectNode rejection = mapper.createObjectNode();
 //            delegateTask.getProcessDefinitionId();/**/
 
             resolution.put("processInstanceId", delegateTask.getProcessInstanceId());
@@ -158,13 +254,18 @@ public class TaskHistoryListener implements TaskListener {
 
             delegateTask.setVariable("resolutions", SpinValues.jsonValue(resolutions.toString()));
             String resol = checkVariable(delegateTask,delegateTask.getTaskDefinitionKey() + "TaskResult") ? String.valueOf(delegateTask.getVariable(delegateTask.getTaskDefinitionKey() + "TaskResult")) : "";
-            if (resol.toLowerCase() == "rejected") {
+            log.info("resol.toLowerCase: "+ resol.toLowerCase());
+            if (resol.toLowerCase().equals("rejected") || resol.toLowerCase().equals("reject") || resol.toLowerCase().equals("refusal")) {
                 log.info("test2: " + delegateTask.getName());
                 String comment = checkVariable(delegateTask,delegateTask.getTaskDefinitionKey() + "TaskComment") ? String.valueOf(delegateTask.getVariable(delegateTask.getTaskDefinitionKey() + "TaskComment")) : "";
                 log.info("test3: " + comment);
-                delegateTask.setVariable("rejectedBy", displayName + " (" + delegateTask.getName() + ")");
-                delegateTask.setVariable("rejectedReason", comment);
+                rejection.put("rejectedBy", displayName + " (" + delegateTask.getName() + ")");
+                rejection.put("rejectedReason", comment);
+                rejection.put("groupId", currentGroup);
+                JsonValue rejectionValue = SpinValues.jsonValue(rejection.toString()).create();
+                rejections.add(rejectionValue.getValue());
             }
+            delegateTask.setVariable("rejections", SpinValues.jsonValue(rejections.toString()));
         }
     }
 

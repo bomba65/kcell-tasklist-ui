@@ -29,6 +29,7 @@
                 'planingInput',
                 'ne_tr_parameters',
                 'ne_tr_rate',
+                'rejections',
             ];
 
             $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
@@ -171,20 +172,6 @@
                 $scope.modifyCandidateSiteTaskResult = '';
                 $scope.view.variablesFetched = true;
 
-                let resolutions = $scope.resolutions.filter(x => x.resolution.toLowerCase().indexOf("reject") > -1)
-                let resolution = resolutions[resolutions.length-1]
-                if (resolution) {
-                    $scope.rejectionComment = resolution.comment
-                    $scope.rejectionTaskName = resolution.taskName
-                    let taskId = resolution.taskId
-                    if (taskId) {
-                        return $http.get(`/camunda/api/engine/engine/default/history/identity-link-log?taskId=${taskId}`).then(function (res) {
-                            $scope.rejectionCandidateGroup = res.data.find(x => x.type === 'candidate').groupId
-                        }, function (error) {
-                            console.log(error);
-                        });
-                    }
-                }
             });
 
             camForm.on('submit', function (evt) {
@@ -295,18 +282,36 @@
         }]);
 
     </script>
-    <div class="form-group" ng-if="rejectionTaskName">
-        <label class="col-sm-3 control-label" style="color: red">Was rejected by:</label>
-        <div class="col-sm-9">
-            <label style="padding-top: 5px">{{rejectionCandidateGroup}} ({{rejectionTaskName}})</label>
+    <div ng-repeat="rejection in rejections">
+        <div class="form-group" >
+            <label class="col-sm-3 control-label" style="color: red">Was rejected by:</label>
+            <div class="col-sm-9">
+                <label style="padding-top: 5px">{{rejection.rejectedBy}}</label>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-3 control-label" style="color: red">Rejection reason:</label>
+            <div class="col-sm-9">
+                <textarea class="form-control"  style="resize: none" ng-model="rejection.rejectedReason" disabled> </textarea>
+            </div>
         </div>
     </div>
-    <div class="form-group" ng-if="rejectionTaskName">
-        <label class="col-sm-3 control-label" style="color: red">Rejection reason:</label>
-        <div class="col-sm-9">
-            <textarea class="form-control" disabled  style="resize: none" ng-model="rejectionComment"> </textarea>
-        </div>
-    </div>
+
+
+<!--    <div ng-if="powerProblem === 'Yes' || setInstStatusFromUDB === 'Leasing problem'">-->
+<!--        <div class="form-group" ng-if="rejectedBy">-->
+<!--            <label class="col-sm-3 control-label" style="color: red">Was rejected by:</label>-->
+<!--            <div class="col-sm-9">-->
+<!--                <label style="padding-top: 5px">{{rejectedBy}}</label>-->
+<!--            </div>-->
+<!--        </div>-->
+<!--        <div class="form-group" ng-if="rejectedReason">-->
+<!--            <label class="col-sm-3 control-label" style="color: red">Rejection reason:</label>-->
+<!--            <div class="col-sm-9">-->
+<!--                <textarea class="form-control"  style="resize: none" ng-model="rejectedReason"> </textarea>-->
+<!--            </div>-->
+<!--        </div>-->
+<!--    </div>-->
 
     <div class="form-group">
         <label class="col-sm-12 control-label">
