@@ -804,6 +804,13 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                         scope.leasingCandidate.cellAntenna.cn_du = [];
                     }
                 }
+                for (let s of scope.leasingCandidate.cellAntenna.sectors) {
+                    s.antennas.forEach( a => {
+                        if (a.antennaType && typeof a.antennaType === 'string'){
+                            return a.antennaType = {};
+                        }
+                    });
+                }
                 $http.get('/api/leasingCatalogs').then(
                     function (result) {
                         try{
