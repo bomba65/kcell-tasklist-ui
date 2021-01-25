@@ -76,7 +76,7 @@ public class ApproveRFS implements JavaDelegate {
             String rfsNumber = oldTsd.prop("rfs_number").stringValue();
             objectNode.put("rfs_number", rfsNumber);
 
-            String elicenseNumber = oldTsd.prop("rfs_number").stringValue();
+            String elicenseNumber = oldTsd.prop("elicense_number").stringValue();
             objectNode.put("elicense_number", elicenseNumber);
 
             Calendar elicenseCalendar = Calendar.getInstance();
