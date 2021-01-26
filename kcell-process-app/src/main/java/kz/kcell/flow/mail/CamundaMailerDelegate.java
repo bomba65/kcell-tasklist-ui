@@ -24,6 +24,9 @@ public class CamundaMailerDelegate implements JavaDelegate {
     @Autowired
     private JavaMailSender mailSender;
 
+    @Autowired
+    private JrBlankGenerator jrBlankGenerator;
+
     private final List<String> disabledProcesses = Arrays.asList("AftersalesPBX");
 
     @Override
@@ -97,6 +100,14 @@ public class CamundaMailerDelegate implements JavaDelegate {
             DataSource source = new ByteArrayDataSource(is, "application/pdf");
             helper.addAttachment("instruction.pdf", source);
             fis.close();
+            is.close();
+        }
+        if("send_notification_revision".equals(delegateExecution.getCurrentActivityId())) {
+            String jrNumber = (String) delegateExecution.getVariable("jrNumber");
+            ByteArrayInputStream is = new ByteArrayInputStream(jrBlankGenerator.generate(delegateExecution));
+            DataSource source = new ByteArrayDataSource(is, "application/pdf");
+            String fileName = jrNumber.replace("-####", "").replace("-##", "") + ".xlsx";
+            helper.addAttachment(fileName, source);
             is.close();
         }
         String[] emails = separateEmails(addresses);
