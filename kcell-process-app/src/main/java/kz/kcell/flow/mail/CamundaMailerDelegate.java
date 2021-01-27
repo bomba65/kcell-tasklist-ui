@@ -105,7 +105,7 @@ public class CamundaMailerDelegate implements JavaDelegate {
         if("send_notification_revision".equals(delegateExecution.getCurrentActivityId())) {
             String jrNumber = (String) delegateExecution.getVariable("jrNumber");
             ByteArrayInputStream is = new ByteArrayInputStream(jrBlankGenerator.generate(delegateExecution));
-            DataSource source = new ByteArrayDataSource(is, "application/pdf");
+            DataSource source = new ByteArrayDataSource(is, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
             String fileName = jrNumber.replace("-####", "").replace("-##", "") + ".xlsx";
             helper.addAttachment(fileName, source);
             is.close();
