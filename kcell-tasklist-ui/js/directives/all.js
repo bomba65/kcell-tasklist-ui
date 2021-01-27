@@ -2672,7 +2672,7 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                     );
                 };
                 scope.getSites = function(val) {
-                    return $http.get($rootScope.assetsServerUrl + '/asset-management/sites/name/contains/'+val).then(
+                    return $http.get('/camunda/sites/name/contains/'+val).then(
                         function(response){
                             console.log(response)
                             response.data.forEach(function(e){
@@ -2685,7 +2685,7 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                     scope.filter.nearend = $item.site_name;
                 };
                 scope.checkSite = function(){
-                    return $http.get($rootScope.assetsServerUrl + '/asset-management/tsd_mw?nearend_id=' + $scope.site).then(
+                    return $http.get('/camunda/tsd_mw?nearend_id=' + $scope.site).then(
                         function(response) {
                             $scope.result = response.data;
                         });
@@ -2726,7 +2726,7 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                 }
                 scope.titles = {};
                 scope.populateSelectFromCatalog = function (containers, id) {
-                    $http.get($rootScope.catalogsServerUrl + '/camunda/catalogs/api/get/id/' + id).then(function (result) {
+                    $http.get('/camunda/catalogs/api/get/id/' + id).then(function (result) {
                         if (result && result.data && result.data.data && result.data.data.$list) {
                             angular.forEach(containers, function (container) {
                                 scope[container] = result.data.data.$list;
@@ -4549,7 +4549,7 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                     return new Array(13-length);
                 }
                 scope.populateSelectFromCatalogId = function (container, id) {
-                    $http.get($rootScope.catalogsServerUrl + '/camunda/catalogs/api/get/id/' + id).then(function (result) {
+                    $http.get('/camunda/catalogs/api/get/id/' + id).then(function (result) {
                         if (result && result.data) {
                             scope[container] = _.groupBy(result.data.data.$list, 'id');
                         }
