@@ -136,8 +136,9 @@ public class CamundaApplication extends SpringBootProcessApplication {
     public KcellIdentityProviderPlugin kcellIdentityProviderPlugin() {
         KcellIdentityProviderPlugin plugin = new KcellIdentityProviderPlugin();
         // Set some defaults
-        plugin.setServerUrl("ldaps://ldap.kcell.kz:636/");
-        plugin.setAcceptUntrustedCertificates(true);
+        //plugin.setServerUrl("ldaps://ldap.kcell.kz:636/");
+        plugin.setServerUrl("ldap://kcell.kz:389/");
+        //plugin.setAcceptUntrustedCertificates(true);
         plugin.setManagerDn("CN=flow,OU=Special,OU=KCELL,DC=kcell,DC=kz");
         plugin.setBaseDn("DC=kcell,DC=kz");
         plugin.setUserSearchBase("OU=KCELL");
@@ -154,7 +155,7 @@ public class CamundaApplication extends SpringBootProcessApplication {
         plugin.setGroupMemberAttribute("member");
         plugin.setSortControlSupported(true);
         plugin.setAuthorizationCheckEnabled(false);
-        plugin.setUseSsl(true);
+        //plugin.setUseSsl(true);
 
         return plugin;
     }
