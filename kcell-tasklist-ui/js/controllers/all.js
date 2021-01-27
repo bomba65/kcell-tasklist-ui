@@ -1393,6 +1393,7 @@ return module.controller('mainCtrl', ['$scope', '$rootScope', 'toasty', 'Authent
             { id: 'ALTA_Tel', value: 'Alta Tel' },
             { id: 'Arlan_SI', value: 'Arlan Si' },
             { id: 'Line_Eng', value: 'Line Eng' },
+            { id: '##', value: 'Not Assigned'},
         ];
 
         $scope.regionList = [
@@ -1411,7 +1412,7 @@ return module.controller('mainCtrl', ['$scope', '$rootScope', 'toasty', 'Authent
             { id: 'SAO', value: 'SAO' },
             { id: 'S&FM', value: 'S&FM' },
             { id: 'TNU', value: 'TNU' },
-            { id: 'rollout', value: 'ROLLOUT' },
+            { id: 'RO', value: 'Roll-out' },
         ];
 
         $scope.headList = [
@@ -1538,12 +1539,14 @@ return module.controller('mainCtrl', ['$scope', '$rootScope', 'toasty', 'Authent
                     return 'arlan_si';
                 } else if (jrNumber.indexOf("Logycom") !== -1) {
                     return 'logycom';
-                } else if (jrNumber.indexOf("Line_Eng") !== -1) {
+                } else if (jrNumber.indexOf("LSE") !== -1) {
                     return 'line_eng';
                 } else if (jrNumber.indexOf("ALTA_Tel") !== -1) {
                     return 'alta_tel';
                 } else if (jrNumber.indexOf("KR") !== -1) {
                     return 'kcell_region';
+                } else {
+                    return 'not_assigned'
                 }
             } else {
                 return null
@@ -1560,6 +1563,8 @@ return module.controller('mainCtrl', ['$scope', '$rootScope', 'toasty', 'Authent
                     return 'tnu';
                 } else if (jrNumber.indexOf("S&FM") !== -1) {
                     return 'sfm';
+                } else if (jrNumber.indexOf("RO") !== -1) {
+                    return 'ro'
                 }
             }
         };
@@ -1716,8 +1721,8 @@ return module.controller('mainCtrl', ['$scope', '$rootScope', 'toasty', 'Authent
 
         $scope.regions = ['.almaty', '.astana', '.north_central', '.east', '.south', '.west'];
         $scope.regionsFiltered = ['.almaty', '.astana', '.north_central', '.east', '.south', '.west'];
-        $scope.subContractors = ['.kcell_region', '.logycom', '.alta_tel', '.arlan_si', '.line_eng'];
-        $scope.unitsR = ['.sao', '.po', '.sfm', '.tnu'];
+        $scope.subContractors = ['.kcell_region', '.logycom', '.alta_tel', '.arlan_si', '.line_eng', '.not_assigned'];
+        $scope.unitsR = ['.sao', '.po', '.sfm', '.tnu', '.ro'];
 
         $scope.checkRegionView = function(region){
             if($rootScope.hasGroup('head_kcell_users')){
@@ -2346,27 +2351,35 @@ return module.controller('mainCtrl', ['$scope', '$rootScope', 'toasty', 'Authent
                         'check_power': 'Wait Power Checking',
                         'approve_jr': 'Wait Central Unit Approval',
                         'approve_transmission_works': 'Wait Central Unit Approval (Transmission works)',
+                        'approve_optical_transmission_works': 'Wait Central Unit Approval (Transmission works - optical)',
                         'approve_jr_budget': 'Wait Budget Approval (Transmission works)',
                         'update_leasing_status_special': 'Wait Central Acquisition Approval',
                         'update_leasing_status_general': 'Wait Region Acquisition Approval',
                         'modify_jr': 'Wait Modify JR',
+                        'attach_ml_inhouse': 'Wait for material list attach by Kcell',
                         'approve_material_list_region': 'Wait Material List Approval by Initiator',
+                        'approve_material_list_tnu_region': 'Wait Material List Approval by TNU (Region)',
                         'approve_material_list_center_po': 'Wait Material List Approval by Central Unit (P&O)',
+                        'approve_material_list_center_op': 'Wait Material List Approval by Central Unit (SAO)',
                         'approve_material_list_center_tr': 'Wait Material List Approval by Central Unit (TNU)',
                         'approve_material_list_center_fm': 'Wait Material List Approval by Central Unit (S&FM)',
-                        'approve_material_list_center_op': 'Wait Material List Approval by Central Unit (SAO)',
-                        'approve_material_list_center1': 'Wait Material List Approval by Central Unit',
-                        'approve_material_list_tnu_region': 'Wait Material List Approval by TNU (Region)',
+                        'approve_material_list_center_ro': 'Wait Material List Approval by Central Unit (Roll-out)',
+                        'approve_material_list_center1': 'Wait Material List Approval by Center', //нет в задаче 1324
+                        'check_ml_rollout': 'Wait Check Material List by Center Rollout Group',
+                        'attach_tr_inhouse': 'Wait Upload TR by Initiator',
                         'validate_tr': 'Wait TR Validation', //validate_tr
                         'validate_tr_bycenter_po': 'Wait TR Validation by Central unit (P&O)',
+                        'validate_tr_bycenter_op': 'Wait TR Validation by Central unit (SAO)',
                         'validate_tr_bycenter_tr': 'Wait TR Validation by Central unit (TNU)',
                         'validate_tr_bycenter_fm': 'Wait TR Validation by Central unit (S&FM)',
-                        'validate_tr_bycenter_op': 'Wait TR Validation by Central unit (SAO)',
+                        'validate_tr_bycenter_ro': 'Wait TR Validation by Central unit (Roll-out)',
+                        'check_tr_rollout': 'Wait TR Check by Center Rollout Group',
                         'set_materials_dispatch_status_alm': 'Wait Materials Dispatch (Alm)',
                         'set_materials_dispatch_status_astana': 'Wait Materials Dispatch (Astana)',
                         'set_materials_dispatch_status_atyrau': 'Wait Materials Dispatch (Atyrau)',
                         'set_materials_dispatch_status_aktau': 'Wait Materials Dispatch (Aktau)',
                         'set_materials_dispatch_status_aktobe': 'Wait Materials Dispatch (Aktobe)',
+                        'attach_ml_inhouse_additional': 'Wait additional material list attach by Kcell',
                         'set_materials_dispatch_status': 'Wait Materials Dispatch',
                         'approve_additional_material_list_region': 'Wait Additional Material List Approval by Initiator',
                         'approve_additional_material_list_tnu_region': 'Wait Additional Material List Approval by TNU (Region)',
@@ -2375,11 +2388,16 @@ return module.controller('mainCtrl', ['$scope', '$rootScope', 'toasty', 'Authent
                         'approve_additional_material_list_center_tr': 'Wait Additional Material List Approval by Central Unit (TNU)',
                         'approve_additional_material_list_center_fm': 'Wait Additional Material List Approval by Central Unit (S&FM)',
                         'approve_additional_material_list_center_op': 'Wait Additional Material List Approval by Central Unit (SAO)',
+                        'approve_additional_material_list_center_ro': 'Wait Additional Material List Approval by Central Unit (Roll-out)',
+                        'check_ml_rollout_additional': 'Wait Additional Material List Check by Center Rollout Group',
+                        'attach_tr_inhouse_additional': 'Wait Upload Additional TR by Initiator',
                         'validate_additional_tr': 'Wait Additional TR Validation',
                         'validate_additional_tr_bycenter_po': 'Wait Additional TR Validation by Central unit (P&O)',
                         'validate_additional_tr_bycenter_tr': 'Wait Additional TR Validation by Central unit (TNU)',
                         'validate_additional_tr_bycenter_fm': 'Wait Additional TR Validation by Central unit (S&FM)',
                         'validate_additional_tr_bycenter_op': 'Wait Additional TR Validation by Central unit (SAO)',
+                        'validate_additional_tr_bycenter_ro': 'Wait Additional TR Validation by Central unit (Roll-out)',
+                        'check_tr_rollout_additional': 'Wait Additional TR Check by Center Rollout Group',
                         'set_additional_materials_dispatch_status_alm': 'Wait Additional Materials Dispatch (Alm)',
                         'set_additional_materials_dispatch_status_astana': 'Wait Additional Materials Dispatch (Astana)',
                         'set_additional_materials_dispatch_status_atyrau': 'Wait Additional Materials Dispatch (Atyrau)',
@@ -2392,10 +2410,11 @@ return module.controller('mainCtrl', ['$scope', '$rootScope', 'toasty', 'Authent
                         'accept_work_planning_group': 'Wait Acceptance of Performed Works by Planing Group',
                         'sign_region_head': 'Wait Acceptance of Performed Works by Region Head',
                         'attach-scan-copy-of-acceptance-form': 'Wait Attach of scan copy of Acceptance Form',
+                        'check_docs': 'Wait Check documents by Center Group',
                         'upload_tr_contractor': 'Wait for Upload TR', //upload_tr_contractor
-                        'upload_additional_tr_contractor': 'Wait Additional for Upload TR',
+                        'upload_additional_tr_contractor': 'Wait for Upload Additional TR',
                         'attach_material_list_contractor': 'Wait for Attach Material List by Contractor', //attach_material_list_contractor
-                        'attach_additional_material_list_contractor': 'Wait for Additional Attach Material List by Contractor',
+                        'attach_additional_material_list_contractor': 'Wait for Additional Material List by Contractor',
                         'fill_applied_changes_info': 'Wait for Fill Applied Changes Info' //fill_applied_changes_info
                     }
 
@@ -2406,29 +2425,37 @@ return module.controller('mainCtrl', ['$scope', '$rootScope', 'toasty', 'Authent
                                 'check_power', //check_power
                                 'approve_jr', //approve_jr
                                 'approve_transmission_works', //approve_transmission_works
+                                'approve_optical_transmission_works',
                                 'approve_jr_budget', //approve_jr_budget
                                 'update_leasing_status_special', //update_leasing_status_special
                                 'update_leasing_status_general', //update_leasing_status_general
-                                // 'modify_jr' //modify_jr
+                                'modify_jr' //modify_jr
                             ],
                             'revisionMaterialsPreparationTasks': [
+                                'attach_ml_inhouse',
                                 'approve_material_list_region', //approve_material_list_region
                                 'approve_material_list_tnu_region',
                                 'approve_material_list_center_po', //approve_material_list_center P&O
                                 'approve_material_list_center_op', //approve_material_list_center Operation
                                 'approve_material_list_center_tr', //approve_material_list_center Transmission
                                 'approve_material_list_center_fm', //approve_material_list_center S&FM
+                                'approve_material_list_center_ro',
                                 'approve_material_list_center1',
+                                'check_ml_rollout',
+                                'attach_tr_inhouse',
                                 'validate_tr', //validate_tr
                                 'validate_tr_bycenter_po',
                                 'validate_tr_bycenter_op',
                                 'validate_tr_bycenter_tr',
                                 'validate_tr_bycenter_fm',
+                                'validate_tr_bycenter_ro',
+                                'check_tr_rollout',
                                 'set_materials_dispatch_status_alm',
                                 'set_materials_dispatch_status_astana',
                                 'set_materials_dispatch_status_atyrau',
                                 'set_materials_dispatch_status_aktau',
                                 'set_materials_dispatch_status_aktobe',
+                                'attach_ml_inhouse_additional',
                                 'approve_additional_material_list_region',
                                 'approve_additional_material_list_tnu_region',
                                 'approve_additional_material_list_center1',
@@ -2436,11 +2463,16 @@ return module.controller('mainCtrl', ['$scope', '$rootScope', 'toasty', 'Authent
                                 'approve_additional_material_list_center_op',
                                 'approve_additional_material_list_center_tr',
                                 'approve_additional_material_list_center_fm',
+                                'approve_additional_material_list_center_ro',
+                                'check_ml_rollout_additional',
+                                'attach_tr_inhouse_additional',
                                 'validate_additional_tr',
                                 'validate_additional_tr_bycenter_po',
                                 'validate_additional_tr_bycenter_op',
                                 'validate_additional_tr_bycenter_tr',
                                 'validate_additional_tr_bycenter_fm',
+                                'validate_additional_tr_bycenter_ro',
+                                'check_tr_rollout_additional',
                                 'set_additional_materials_dispatch_status_alm',
                                 'set_additional_materials_dispatch_status_astana',
                                 'set_additional_materials_dispatch_status_atyrau',
@@ -2455,6 +2487,7 @@ return module.controller('mainCtrl', ['$scope', '$rootScope', 'toasty', 'Authent
                                 'accept_work_planning_group',
                                 'sign_region_head',
                                 'attach-scan-copy-of-acceptance-form',
+                                'check_docs',
                             ]
                         },
                         'invoice-open-tasks': [
@@ -2471,9 +2504,9 @@ return module.controller('mainCtrl', ['$scope', '$rootScope', 'toasty', 'Authent
                     $scope.contractorTasks = {
                         'revision-open-tasks': [
                             'attach_material_list_contractor', //attach_material_list_contractor
+                            'attach_additional_material_list_contractor',
                             'upload_tr_contractor', //upload_tr_contractor
-                            // 'upload_additional_tr_contractor',
-                            // 'attach_additional_material_list_contractor',
+                            'upload_additional_tr_contractor',
                             'fill_applied_changes_info' //fill_applied_changes_info
                         ],
                         'invoice-open-tasks': [
@@ -2558,10 +2591,11 @@ return module.controller('mainCtrl', ['$scope', '$rootScope', 'toasty', 'Authent
                                             t.taskDefinitionKey = t.taskDefinitionKey + '_fm'
                                         } else if (t.name.indexOf('Operation') != -1) {
                                             t.taskDefinitionKey = t.taskDefinitionKey + '_op'
+                                        } else if (t.name.indexOf('Roll-out')) {
+                                            t.taskDefinitionKey = t.taskDefinitionKey + '_ro'
                                         }
                                     }
                                 })
-
                                 taskInstances = taskInstances.filter(function (task) {
                                     var pid = task.processInstanceId;
                                     var jr = processInstances[pid].jrNumber;
@@ -2631,7 +2665,6 @@ return module.controller('mainCtrl', ['$scope', '$rootScope', 'toasty', 'Authent
                                     }
                                 );
                                 $scope.tasksByIdAndUnitCounted = tasksByIdAndUnitCounted;
-
                                 var tasksByIdAndContractorCounted = _.mapValues(
                                     tasksByIdAndContractorGrouped,
                                     function (tasks) {
