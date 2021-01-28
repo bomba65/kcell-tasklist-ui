@@ -813,8 +813,8 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                         // var trAntennaTypePromise = $http.get($rootScope.catalogsServerUrl + '/camunda/catalogs/api/get/id/20').then(function(promiseResult){return promiseResult.data;});
                         // var antennaModelPromise = $http.get($rootScope.catalogsServerUrl + '/camunda/catalogs/api/get/id/19').then(function(promiseResult){return promiseResult.data;});
                         // var antennaLocationsPromise = $http.get($rootScope.catalogsServerUrl + '/camunda/catalogs/api/get/id/64').then(function(promiseResult){return promiseResult.data;});
-                        var newCatalogsPromise = $http.post($rootScope.catalogsServerUrl + '/camunda/catalogs/api/get/rolloutcatalogids', [14, 4, 13, 15, 21, 22, 30, 31, 32, 40, 59]).then(function(promiseResult){return promiseResult.data;});
-                        var newBscRncsPromise = $http.get($rootScope.assetsServerUrl + '/asset-management/bcs_rnc').then(function(promiseResult){return promiseResult.data;});
+                        var newCatalogsPromise = $http.post('/camunda/catalogs/api/get/rolloutcatalogids', [14, 4, 13, 15, 21, 22, 30, 31, 32, 40, 59]).then(function(promiseResult){return promiseResult.data;});
+                        var newBscRncsPromise = $http.get('/camunda/asset-management/bcs_rnc').then(function(promiseResult){return promiseResult.data;});
                         // $q.all([antennaTypePromise, trAntennaTypePromise, antennaModelPromise, antennaLocationsPromise, newCatalogsPromise]).then(function(allPromises) {
                         $q.all([newCatalogsPromise, newBscRncsPromise]).then(function(allPromises) {
                             // var antennaTypePromiseResult = allPromises[0];
@@ -2143,7 +2143,7 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                 //         console.log(error.data);
                 //     }
                 // );
-                $http.post($rootScope.catalogsServerUrl + '/camunda/catalogs/api/get/rolloutcatalogids', [2, 4, 5, 6, 7, 8, 9, 11, 12, 16, 22, 23, 60]).then(
+                $http.post('/camunda/catalogs/api/get/rolloutcatalogids', [2, 4, 5, 6, 7, 8, 9, 11, 12, 16, 22, 23, 60]).then(
                     function(res){
                         let newR = {};
                         for (let i = 0; i < res.data.regions.length ; i++ ) {
@@ -2635,7 +2635,7 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                 };
 
                 scope.getSite = function (val) {
-                    return $http.get('/asset-management/api/sites/search/findByNameIgnoreCaseContaining?name=' + val).then(
+                    return $http.get('/camunda/sites/search/findByNameIgnoreCaseContaining?name=' + val).then(
                         function (response) {
                             var sites = _.flatMap(response.data._embedded.sites, function (s) {
                                 if (s.params.site_name) {
@@ -2655,7 +2655,7 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                     );
                 };
                 scope.getSiteId = function (val) {
-                    return $http.get('/asset-management/api/sites/search/findByNameIgnoreCaseContaining?name=' + val).then(
+                    return $http.get('/camunda/sites/search/findByNameIgnoreCaseContaining?name=' + val).then(
                         function (response) {
                             var sites = _.flatMap(response.data._embedded.sites, function (s) {
                                 if (s.name) {
