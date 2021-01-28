@@ -2635,7 +2635,7 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                 };
 
                 scope.getSite = function (val) {
-                    return $http.get('/camunda/sites/search/findByNameIgnoreCaseContaining?name=' + val).then(
+                    return $http.get('/asset-management/api/sites/search/findByNameIgnoreCaseContaining?name=' + val).then(
                         function (response) {
                             var sites = _.flatMap(response.data._embedded.sites, function (s) {
                                 if (s.params.site_name) {
@@ -2655,7 +2655,7 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                     );
                 };
                 scope.getSiteId = function (val) {
-                    return $http.get('/camunda/sites/search/findByNameIgnoreCaseContaining?name=' + val).then(
+                    return $http.get('/asset-management/api/sites/search/findByNameIgnoreCaseContaining?name=' + val).then(
                         function (response) {
                             var sites = _.flatMap(response.data._embedded.sites, function (s) {
                                 if (s.name) {

@@ -55,25 +55,4 @@ public class AssetsController {
         return ResponseEntity.ok(content);
     }
 
-    @RequestMapping(value = "/api/plans/search/findCurrentPlanSites", method = RequestMethod.GET, produces = {"application/json"})
-    @ResponseBody
-    public ResponseEntity<String> findCurrentPlanSites() throws Exception {
-
-        SSLContextBuilder builder = new SSLContextBuilder();
-        builder.loadTrustMaterial(null, new TrustSelfSignedStrategy());
-        SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(builder.build());
-        CloseableHttpClient httpclient = HttpClients.custom().setSSLSocketFactory(sslsf).build();
-
-        HttpGet httpGet = new HttpGet(assetUrl + "/asset-management/api/plans/search/findCurrentPlanSites");
-        HttpResponse httpResponse = httpclient.execute(httpGet);
-
-        HttpEntity entity = httpResponse.getEntity();
-        String content = EntityUtils.toString(entity);
-
-        if (httpResponse.getStatusLine().getStatusCode() < 200 || httpResponse.getStatusLine().getStatusCode() >= 300) {
-            throw new RuntimeException(assetUrl + " " + httpResponse.getStatusLine().getStatusCode() + ": " + httpResponse.getStatusLine().getReasonPhrase());
-        }
-
-        return ResponseEntity.ok(content);
-    }
 }

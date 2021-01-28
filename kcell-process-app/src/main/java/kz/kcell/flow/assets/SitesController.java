@@ -87,31 +87,4 @@ public class SitesController {
 
         return ResponseEntity.ok(content);
     }
-
-    @RequestMapping(value = "/search/findByNameIgnoreCaseContaining", method = RequestMethod.GET)
-    @ResponseBody
-    public ResponseEntity<String> findByNameIgnoreCaseContaining(@RequestParam(value = "name", required = false) String name) throws Exception {
-
-        if (identityService.getCurrentAuthentication() == null || identityService.getCurrentAuthentication().getUserId() == null) {
-            log.warning("No user logged in");
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
-        }
-
-        SSLContextBuilder builder = new SSLContextBuilder();
-        builder.loadTrustMaterial(null, new TrustSelfSignedStrategy());
-        SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(builder.build());
-        CloseableHttpClient httpclient = HttpClients.custom().setSSLSocketFactory(sslsf).build();
-
-        HttpGet httpGet = new HttpGet(assetsUrl + "/asset-management/search/findByNameIgnoreCaseContaining?name=" + name);
-        HttpResponse httpResponse = httpclient.execute(httpGet);
-
-        HttpEntity entity = httpResponse.getEntity();
-        String content = EntityUtils.toString(entity);
-
-        if (httpResponse.getStatusLine().getStatusCode() < 200 || httpResponse.getStatusLine().getStatusCode() >= 300) {
-            throw new RuntimeException(assetsUrl + " site get by name = " + name + " returns code " + httpResponse.getStatusLine().getStatusCode());
-        }
-
-        return ResponseEntity.ok(content);
-    }
 }
