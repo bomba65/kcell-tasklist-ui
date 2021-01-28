@@ -1539,7 +1539,7 @@ return module.controller('mainCtrl', ['$scope', '$rootScope', 'toasty', 'Authent
                     return 'arlan_si';
                 } else if (jrNumber.indexOf("Logycom") !== -1) {
                     return 'logycom';
-                } else if (jrNumber.indexOf("LSE") !== -1) {
+                } else if ((jrNumber.indexOf("LSE") !== -1) || (jrNumber.indexOf("Line_Eng") !== -1)) {
                     return 'line_eng';
                 } else if (jrNumber.indexOf("ALTA_Tel") !== -1) {
                     return 'alta_tel';
