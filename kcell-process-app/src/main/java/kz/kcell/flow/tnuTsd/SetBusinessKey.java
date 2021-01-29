@@ -37,20 +37,26 @@ public class SetBusinessKey implements JavaDelegate {
         String fe_sitename = delegateExecution.getVariable("fe_sitename").toString();
         String region_name = delegateExecution.getVariable("region_name").toString();
 
-        Integer count = delegateExecution.getProcessEngineServices()
+        Long count1 = delegateExecution.getProcessEngineServices()
+            .getHistoryService()
+            .createHistoricProcessInstanceQuery()
+            .processDefinitionKey("tnu_tsd_db")
+            .variableValueEquals("region_name", region_name)
+            .count();
+
+        Long count = delegateExecution.getProcessEngineServices()
             .getHistoryService()
             .createHistoricProcessInstanceQuery()
             .processDefinitionKey("create-new-tsd")
             .variableValueEquals("region_name", region_name)
-            .list()
-            .size();
+            .count();
 
         SimpleDateFormat sdf = new SimpleDateFormat("ddMMyy");
 
         Calendar calendar = Calendar.getInstance();
         calendar.setTime(new Date());
         calendar.add(Calendar.HOUR, 6);
-        String businessKey = ne_sitename + "-" + fe_sitename + "(" + regionsTitle.get(region_name) + StringUtils.leftPad(String.valueOf(count+1), 4, '0') + "-" + sdf.format(calendar.getTime()) + ")";
+        String businessKey = ne_sitename + "-" + fe_sitename + "(" + regionsTitle.get(region_name) + StringUtils.leftPad(String.valueOf(count1 + count + 1), 4, '0') + "-" + sdf.format(calendar.getTime()) + ")";
         delegateExecution.setProcessBusinessKey(businessKey);
         delegateExecution.setVariable("tnuTsdNumber", businessKey);
 
