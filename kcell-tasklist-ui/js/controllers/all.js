@@ -285,6 +285,8 @@ return module.controller('mainCtrl', ['$scope', '$rootScope', 'toasty', 'Authent
                     }
                 })
                 $scope.taskIds = [{id: 'all', name: 'All'}]
+                $scope.taskIds.push({id: 'accept_work_planning_group', name: 'Accept and sign by planning group'});
+                $scope.taskIds.push({id: 'accept_work_maintenance_group', name: 'Accept and sign by maintanance group'});
                 $scope.taskIds = $scope.taskIds.concat(userTasksFiltered);
             });
     }
