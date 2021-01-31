@@ -23,7 +23,8 @@ def binding = ["processName": processName,
                "businessKey": execution.processBusinessKey,
                "starter": starter,
                "startTime": format.format(startTime.getTime()),
-               "status": statusObj.statusName
+               "status": statusObj.statusName,
+               "sitename": site_name
 ]
 
 def template = '''\
@@ -72,6 +73,14 @@ html(lang:'en') {
                }
                td {
                    b(startTime)
+               }
+            }
+            tr {
+               td {
+                   yield 'Сайт: '
+               }
+               td {
+                   b(sitename)
                }
             }
             tr {
