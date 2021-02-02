@@ -835,7 +835,7 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                             scope.dictionary.constructionType = newCatalogsPromiseResult.construction_type;
                             scope.dictionary.transmissionType = newCatalogsPromiseResult.transmission_type;
                             scope.dictionary.equipmentType = newCatalogsPromiseResult.tr_equipment_type.filter( i => {return (i.hasOwnProperty('id') && i.id !== null)});
-                            scope.dictionary.dUnit = newCatalogsPromiseResult.bsc_rnc_status;
+                            scope.dictionary.dUnit = newCatalogsPromiseResult.digital_unit_types;
                             scope.dictionary.FarEndConstructiontype = newCatalogsPromiseResult.fe_construction_type;
                             scope.dictionary.radioUnit = newCatalogsPromiseResult.radio_unit_types;
                             // scope.dictionary.legalType = newCatalogsPromiseResult.legal_type;
