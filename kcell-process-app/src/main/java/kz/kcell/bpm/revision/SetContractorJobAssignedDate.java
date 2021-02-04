@@ -15,7 +15,6 @@ public class SetContractorJobAssignedDate implements TaskListener {
 
         Calendar calendar = Calendar.getInstance();
         calendar.setTime(new Date());
-        calendar.add(Calendar.HOUR, 6);
 
         if (delegateTask.hasVariable("contractorJobAssignedDate")) {
             Date contractorJobAssignedDate = (Date) delegateTask.getVariable("contractorJobAssignedDate");

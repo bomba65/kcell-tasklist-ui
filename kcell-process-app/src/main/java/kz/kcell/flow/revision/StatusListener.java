@@ -51,7 +51,6 @@ public class StatusListener implements ExecutionListener {
 
         Calendar calendar = Calendar.getInstance();
         calendar.setTime(new Date());
-        calendar.add(Calendar.HOUR, 6);
         status.put("date", calendar.getTime().getTime());
         status.put("returnStatus", returnStatus);
         status.put("parentStatus", parentStatus);

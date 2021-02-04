@@ -21,7 +21,6 @@ public class VariableSetStatus implements ExecutionListener {
         if (variable.equals("generalStatus") || variable.equals("installationStatus")) {
             Calendar calendar = Calendar.getInstance();
             calendar.setTime(new Date());
-            calendar.add(Calendar.HOUR, 6);
             delegateExecution.setVariable(variable + "UpdatedDate", calendar.getTime());
         }
 

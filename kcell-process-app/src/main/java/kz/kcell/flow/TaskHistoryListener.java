@@ -124,7 +124,6 @@ public class TaskHistoryListener implements TaskListener {
 
             Calendar calendar = Calendar.getInstance();
             calendar.setTime(new Date());
-            calendar.add(Calendar.HOUR, 6);
             resolution.put("taskEndDate", new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXX").format(calendar.getTime()));
 
             if(checkVariable(delegateTask,delegateTask.getTaskDefinitionKey() + "Files") && !checkVariable(delegateTask,delegateTask.getTaskDefinitionKey() + "DeletedFiles")) {
@@ -143,12 +142,10 @@ public class TaskHistoryListener implements TaskListener {
             }
 
             calendar.setTime(delegateTask.getCreateTime());
-            calendar.add(Calendar.HOUR, 6);
             resolution.put("assignDate", new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXX").format(calendar.getTime()));
             List<HistoricIdentityLinkLog> logs = historyService.createHistoricIdentityLinkLogQuery().taskId(delegateTask.getId()).type("assignee").operationType("add").userId(delegateTask.getAssignee()).orderByTime().desc().list();
             if(logs.size() > 0){
                 calendar.setTime(logs.get(0).getTime());
-                calendar.add(Calendar.HOUR, 6);
                 resolution.put("claimDate", new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXX").format(calendar.getTime()));
             }
 
