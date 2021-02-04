@@ -2214,15 +2214,23 @@ return module.controller('mainCtrl', ['$scope', '$rootScope', 'toasty', 'Authent
                 }
             } else {
                 if ($scope.task) {
-                    var query = {
+                    console.log('0192849217491274897129487219847');
+                    console.log($scope.task);
+                    let query = {
                         taskDefinitionKey: $scope.task,
                         processDefinitionKey: $scope.getProcessDefinition(),
-                        unfinished: true,
-                        processVariables: []
+                        unfinished: true
                     };
 
                     if ($scope.task === 'no_task') {
                         delete query.taskDefinitionKey;
+                    }
+
+                    if ($scope.task === 'intermediate_wait_invoiced' || $scope.task === 'intermediate_wait_acts_passed') {
+                        query.variables = []
+                        query.activityIdIn = [$scope.task]
+                    } else {
+                        query.processVariables = []
                     }
 
                     if ($scope.currentReport === 'revision-open-tasks' && ($scope.task.endsWith('_po') || $scope.task.endsWith('_op') || $scope.task.endsWith('_tr') || $scope.task.endsWith('_fm'))) {
@@ -2250,18 +2258,38 @@ return module.controller('mainCtrl', ['$scope', '$rootScope', 'toasty', 'Authent
                         query.taskName = revisionTaskName[$scope.task];
                     }
                     if ($scope.contractFilter !== null && $scope.contractFilter !== 'all') {
-                        query.processVariables.push({
-                            name: 'mainContract',
-                            operator: $scope.contractFilter === 'new' ? 'eq' : 'neq',
-                            value: 'Roll-outRevision2020'
-                        })
+                        if ($scope.task === 'intermediate_wait_invoiced' || $scope.task === 'intermediate_wait_acts_passed') {
+                            query.variables.push({
+                                name: 'mainContract',
+                                operator: $scope.contractFilter === 'new' ? 'eq' : 'neq',
+                                value: 'Roll-outRevision2020'
+                            })
+                        } else {
+                            query.processVariables.push({
+                                name: 'mainContract',
+                                operator: $scope.contractFilter === 'new' ? 'eq' : 'neq',
+                                value: 'Roll-outRevision2020'
+                            })
+                        }
                     }
                     // var taskInstancesPromise = $http.post($scope.baseUrl + '/history/task', taskQuery).then(function (response) {
                     //     return response.data;
                     // });
                     if ($scope.filter.reason) {
                         if ($scope.getProcessDefinition() === 'Revision') {
-                            query.processVariables = [{name: 'reason', operator: 'eq', value: $scope.filter.reason}];
+                            if ($scope.task === 'intermediate_wait_invoiced' || $scope.task === 'intermediate_wait_acts_passed') {
+                                query.variable = [{
+                                    name: 'reason',
+                                    operator: 'eq',
+                                    value: $scope.filter.reason
+                                }];
+                            } else {
+                                query.processVariables = [{
+                                    name: 'reason',
+                                    operator: 'eq',
+                                    value: $scope.filter.reason
+                                }];
+                            }
                         } else if ($scope.getProcessDefinition() === 'Invoice') {
                             query.processVariables = [{name: 'workType', operator: 'eq', value: $scope.filter.reason}];
                         }
@@ -2275,7 +2303,11 @@ return module.controller('mainCtrl', ['$scope', '$rootScope', 'toasty', 'Authent
                     // }
                     if ($scope.region) {
                         var region = $scope.region === 'north_central' ? 'nc' : ($scope.region === 'almaty' ? 'alm' : $scope.region);
-                        query.processVariables.push({name: 'siteRegion', operator: 'eq', value: region});
+                        if ($scope.task === 'intermediate_wait_invoiced' || $scope.task === 'intermediate_wait_acts_passed') {
+                            query.variables.push({name: 'siteRegion', operator: 'eq', value: region});
+                        } else {
+                            query.processVariables.push({name: 'siteRegion', operator: 'eq', value: region});
+                        }
                     }
                     if ($scope.task === 'no_task') {
                         var searchString ='';
@@ -2314,24 +2346,48 @@ return module.controller('mainCtrl', ['$scope', '$rootScope', 'toasty', 'Authent
                     }
                     console.log(query)
 
-                    $http.post($scope.baseUrl + '/history/task', query).then(function (response) {
+                    var filterUrl = $scope.baseUrl + '/history/task';
+
+                    if ($scope.task === 'intermediate_wait_invoiced' || $scope.task === 'intermediate_wait_acts_passed') {
+                        filterUrl = $scope.baseUrl + '/process-instance';
+                    }
+
+                    $http.post(filterUrl, query).then(function (response) {
                         var tasks = response.data;
                         var processInstanceIds = _.map(tasks, 'processInstanceId');
+                        if ($scope.task === 'intermediate_wait_invoiced' || $scope.task === 'intermediate_wait_acts_passed') {
+                            processInstanceIds = _.map(tasks, 'id');
+                        }
                         return $http.post($scope.baseUrl + '/history/variable-instance', {
                             processInstanceIdIn: processInstanceIds
                         }).then(function (response) {
                             var variables = response.data;
                             var variablesByProcessInstance = _.groupBy(variables, 'processInstanceId');
-                            return _.map(tasks, function (task) {
-                                return _.assign({}, task, {
-                                    variables: _.keyBy(
-                                        variablesByProcessInstance[task.processInstanceId],
-                                        'name'
-                                    )
+                            console.log(variablesByProcessInstance);
+                            console.log(tasks);
+
+                            if ($scope.task === 'intermediate_wait_invoiced' || $scope.task === 'intermediate_wait_acts_passed') {
+                                return _.map(tasks, function (task) {
+                                    return _.assign({}, task, {
+                                        variables: _.keyBy(
+                                            variablesByProcessInstance[task.id],
+                                            'name'
+                                        )
+                                    });
                                 });
-                            });
+                            } else {
+                                return _.map(tasks, function (task) {
+                                    return _.assign({}, task, {
+                                        variables: _.keyBy(
+                                            variablesByProcessInstance[task.processInstanceId],
+                                            'name'
+                                        )
+                                    });
+                                });
+                            }
                         });
                     }).then(function (tasks) {
+                        console.log(tasks);
                         $scope.tasks = tasks.filter(function (task) {
                             var jr = task.variables.jrNumber.value;
                             return ($scope.regionFilter ? ($scope.regionFilter === 'all' ? true : jr.indexOf($scope.regionFilter) > -1) : true) &&
@@ -2339,19 +2395,21 @@ return module.controller('mainCtrl', ['$scope', '$rootScope', 'toasty', 'Authent
                                 ($scope.unitFilter ? ($scope.unitFilter === 'all' ? true : jr.indexOf($scope.unitFilter) > -1) : true)
                         })
                         for (let i = 0; i < $scope.tasks.length; i++) {
-                            $http.get(`${$scope.baseUrl}/task/${$scope.tasks[i].id}/identity-links`).then((response) => {
-                                var groups = response.data
-                                var groupList = ''
-                                for (let j = 0; j < groups.length; j++) {
-                                    if (groups[j].groupId) {
-                                        groupList += groups[j].groupId
-                                        if (groups.length > 1) {
-                                            groupList += ', '
+                            if ($scope.task !== 'intermediate_wait_invoiced' && $scope.task !== 'intermediate_wait_acts_passed') {
+                                $http.get(`${$scope.baseUrl}/task/${$scope.tasks[i].id}/identity-links`).then((response) => {
+                                    var groups = response.data
+                                    var groupList = ''
+                                    for (let j = 0; j < groups.length; j++) {
+                                        if (groups[j].groupId) {
+                                            groupList += groups[j].groupId
+                                            if (groups.length > 1) {
+                                                groupList += ', '
+                                            }
                                         }
                                     }
-                                }
-                                $scope.tasks[i].groupId = groupList
-                            })
+                                    $scope.tasks[i].groupId = groupList
+                                })
+                            }
                         }
                     });
 
@@ -2424,6 +2482,8 @@ return module.controller('mainCtrl', ['$scope', '$rootScope', 'toasty', 'Authent
                         'sign_region_head': 'Wait Acceptance of Performed Works by Region Head',
                         'attach-scan-copy-of-acceptance-form': 'Wait Attach of scan copy of Acceptance Form',
                         'check_docs': 'Wait Check documents by Center Group',
+                        'intermediate_wait_invoiced': 'Final Accepted, waiting prep. Fin act (Revision)',
+                        'intermediate_wait_acts_passed': 'Final Accepted, waiting prep. Fin act (Roll-out)',
                         'upload_tr_contractor': 'Wait for Upload TR', //upload_tr_contractor
                         'upload_additional_tr_contractor': 'Wait for Upload Additional TR',
                         'attach_material_list_contractor': 'Wait for Attach Material List by Contractor', //attach_material_list_contractor
@@ -2501,6 +2561,8 @@ return module.controller('mainCtrl', ['$scope', '$rootScope', 'toasty', 'Authent
                                 'sign_region_head',
                                 'attach-scan-copy-of-acceptance-form',
                                 'check_docs',
+                                'intermediate_wait_invoiced',
+                                'intermediate_wait_acts_passed',
                             ]
                         },
                         'invoice-open-tasks': [
@@ -2547,7 +2609,6 @@ return module.controller('mainCtrl', ['$scope', '$rootScope', 'toasty', 'Authent
                         }
                         var processInstancesPromise = $http.post($scope.baseUrl + '/history/process-instance', processQuery).then(function (response) {
                             var processInstances = _.keyBy(response.data, 'id');
-
                             return $http.post($scope.baseUrl + '/history/variable-instance', {
                                 variableName: 'jrNumber',
                                 processInstanceIdIn: _.keys(processInstances)
@@ -2585,14 +2646,24 @@ return module.controller('mainCtrl', ['$scope', '$rootScope', 'toasty', 'Authent
                                 value: 'Roll-outRevision2020'
                             })
                         }
+
+                        var intermediate_wait_invoicedPromise = $http.get($scope.baseUrl + '/history/activity-instance?activityId=intermediate_wait_invoiced&unfinished=true').then(function (activityResult) {
+                            return activityResult.data;
+                        });
+
+                        var intermediate_wait_acts_passedPromise = $http.get($scope.baseUrl + '/history/activity-instance?activityId=intermediate_wait_acts_passed&unfinished=true').then(function (activityResult) {
+                            return activityResult.data;
+                        });
                         var taskInstancesPromise = $http.post($scope.baseUrl + '/history/task', taskQuery).then(function (response) {
                             return response.data;
                         });
 
-                        $q.all([processInstancesPromise, taskInstancesPromise])
+                        $q.all([processInstancesPromise, taskInstancesPromise, intermediate_wait_invoicedPromise, intermediate_wait_acts_passedPromise])
                             .then(async function (results) {
                                 var processInstances = results[0];
                                 var taskInstances = results[1];
+                                var intermediate_wait_invoicedInstances = results[2];
+                                var intermediate_wait_acts_passedInstances = results[3];
 
                                 angular.forEach(taskInstances,function (t) {
                                     if (['approve_material_list_center', 'validate_tr_bycenter', 'approve_additional_material_list_center', 'validate_additional_tr_bycenter'].indexOf(t.taskDefinitionKey) !== -1) {
@@ -2608,19 +2679,46 @@ return module.controller('mainCtrl', ['$scope', '$rootScope', 'toasty', 'Authent
                                             t.taskDefinitionKey = t.taskDefinitionKey + '_ro'
                                         }
                                     }
-                                })
+                                });
                                 taskInstances = taskInstances.filter(function (task) {
                                     var pid = task.processInstanceId;
                                     var jr = processInstances[pid].jrNumber;
                                     return ($scope.regionFilter ? ($scope.regionFilter === 'all' ? true : jr.indexOf($scope.regionFilter) > -1) : true) &&
                                         ($scope.subContractorFilter ? ($scope.subContractorFilter === 'all' ? true : jr.indexOf($scope.subContractorFilter) > -1) : true) &&
                                         ($scope.unitFilter ? ($scope.unitFilter === 'all' ? true : jr.indexOf($scope.unitFilter) > -1) : true)
-                                })
+                                });
+                                intermediate_wait_invoicedInstances = intermediate_wait_invoicedInstances.filter(function (task) {
+                                    var pid = task.processInstanceId;
+                                    var jr = processInstances[pid].jrNumber;
+                                    return ($scope.regionFilter ? ($scope.regionFilter === 'all' ? true : jr.indexOf($scope.regionFilter) > -1) : true) &&
+                                        ($scope.subContractorFilter ? ($scope.subContractorFilter === 'all' ? true : jr.indexOf($scope.subContractorFilter) > -1) : true) &&
+                                        ($scope.unitFilter ? ($scope.unitFilter === 'all' ? true : jr.indexOf($scope.unitFilter) > -1) : true)
+                                });
+                                intermediate_wait_acts_passedInstances = intermediate_wait_acts_passedInstances.filter(function (task) {
+                                    var pid = task.processInstanceId;
+                                    var jr = processInstances[pid].jrNumber;
+                                    return ($scope.regionFilter ? ($scope.regionFilter === 'all' ? true : jr.indexOf($scope.regionFilter) > -1) : true) &&
+                                        ($scope.subContractorFilter ? ($scope.subContractorFilter === 'all' ? true : jr.indexOf($scope.subContractorFilter) > -1) : true) &&
+                                        ($scope.unitFilter ? ($scope.unitFilter === 'all' ? true : jr.indexOf($scope.unitFilter) > -1) : true)
+                                });
 
                                 var taskInstancesByDefinition = _.groupBy(
                                     taskInstances,
                                     'taskDefinitionKey'
                                 );
+
+                                var intermediate_wait_acts_passedInstancesByDefinition = _.groupBy(
+                                    intermediate_wait_acts_passedInstances,
+                                    'activityId'
+                                );
+
+                                var intermediate_wait_invoicedByDefinition = _.groupBy(
+                                    intermediate_wait_invoicedInstances,
+                                    'activityId'
+                                );
+
+                                taskInstancesByDefinition['intermediate_wait_invoiced'] = intermediate_wait_invoicedByDefinition['intermediate_wait_invoiced'];
+                                taskInstancesByDefinition['intermediate_wait_acts_passed'] = intermediate_wait_acts_passedInstancesByDefinition['intermediate_wait_acts_passed'];
 
                                 var tasksByIdAndRegionGrouped = _.mapValues(
                                     taskInstancesByDefinition,
