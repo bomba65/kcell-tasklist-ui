@@ -31,6 +31,7 @@ select
         when '2' then 'Transmission works'
         when '3' then 'Infrastructure works'
         when '4' then 'Operation works'
+        when '5' then 'Roll-out works'
         else null
         end as "JR Reason",
     pi.start_time_ + interval '6 hour' as "Requested Date",
