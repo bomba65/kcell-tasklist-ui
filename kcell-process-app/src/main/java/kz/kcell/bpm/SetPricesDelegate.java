@@ -25,6 +25,7 @@ public class SetPricesDelegate implements TaskListener {
     public void notify(DelegateTask delegateTask) {
         try {
             String mainContract = delegateTask.getVariable("mainContract").toString();
+            String priority = delegateTask.getVariable("priority").toString();
 
             ObjectMapper mapper = new ObjectMapper();
 
@@ -66,6 +67,10 @@ public class SetPricesDelegate implements TaskListener {
                     }
 
                     BigDecimal unitWorkPrice = new BigDecimal(worksPriceMap.get(work.get("sapServiceNumber").textValue()));
+
+                    if (priority.equals("emergency")) {
+                        unitWorkPrice = unitWorkPrice.multiply(new BigDecimal("1.2"));
+                    }
                     BigDecimal unitTransportationPrice = unitWorkPrice.multiply(new BigDecimal("0.08"));
                     unitTransportationPrice = unitTransportationPrice.setScale(2, RoundingMode.DOWN);
 
@@ -147,6 +152,11 @@ public class SetPricesDelegate implements TaskListener {
 
                     JsonNode priceJson = worksPriceMap.get(work.get("sapServiceNumber").textValue());
                     BigDecimal unitWorkPrice = new BigDecimal(priceJson.get(siteRegion).get(work.has("materialsProvidedBy") && "subcontractor".equals(work.get("materialsProvidedBy").textValue()) ? "with_material" : "without_material").textValue());
+
+                    if (priority.equals("emergency")) {
+                        unitWorkPrice = unitWorkPrice.multiply(new BigDecimal("1.2"));
+                    }
+
                     BigDecimal unitTransportationPrice = unitWorkPrice.multiply(new BigDecimal("0.00"));
                     unitTransportationPrice = unitTransportationPrice.setScale(2, RoundingMode.DOWN);
 
