@@ -1517,13 +1517,21 @@ return module.controller('mainCtrl', ['$scope', '$rootScope', 'toasty', 'Authent
                     return 'almaty';
                 } else if (jrNumber.startsWith("East")) {
                     return 'east';
+                } else if (jrNumber.startsWith("E-")) {
+                    return 'east';
                 } else if (jrNumber.startsWith("N&C")) {
                     return 'north_central';
                 } else if (jrNumber.startsWith("South")) {
                     return 'south';
+                } else if (jrNumber.startsWith("S-")) {
+                    return 'south';
                 } else if (jrNumber.startsWith("West")) {
                     return 'west';
+                } else if (jrNumber.startsWith("W-")) {
+                    return 'west';
                 } else if (jrNumber.startsWith("Astana")) {
+                    return 'astana';
+                } else if (jrNumber.startsWith("Ast-")) {
                     return 'astana';
                 } else {
                     return 'no_region';
