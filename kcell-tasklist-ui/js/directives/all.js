@@ -2153,7 +2153,6 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                                     newR['astana'] = r.name
                                     break;
                                 case 'Almaty':
-                                    newR['almaty'] = r.name
                                     newR['alm'] = r.name
                                     break;
                                 case 'East':
