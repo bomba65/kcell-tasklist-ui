@@ -529,7 +529,7 @@ return module.controller('mainCtrl', ['$scope', '$rootScope', 'toasty', 'Authent
                 }
                 $scope[processSearchResults] = results.data;
                 if($scope[processSearchResults].length > 0){
-                    _.forEach(['site_name', 'priority', 'validityDate', 'requestedDate','starter'], function(variable) {
+                    _.forEach(['site_name', 'priority', 'acceptanceDate', 'contractorJobAssignedDate','starter'], function(variable) {
                         var varSearchParams = {processInstanceIdIn: _.map($scope[processSearchResults], 'id'), variableName: variable};
                         $http({
                             method: 'POST',
@@ -543,17 +543,22 @@ return module.controller('mainCtrl', ['$scope', '$rootScope', 'toasty', 'Authent
                                         return v.processInstanceId === el.id;
                                     });
                                     if(f){
-                                        el[variable] = f[0].value;
-                                        if(variable === 'starter'){
-                                            $http.get(baseUrl + '/user/' + f[0].value + '/profile').then(
-                                                function (result) {
-                                                    el[variable] = result.data.firstName + " " + result.data.lastName;
-                                                },
-                                                function (error) {
-                                                    console.log(error.data);
-                                                }
-                                            );
+                                        if (variable === 'acceptanceDate') {
+                                            el[variable] = f[0] !== void(0) ? f[0].value : null;
+                                        } else {
+                                            el[variable] = f[0].value;
+                                            if(variable === 'starter'){
+                                                $http.get(baseUrl + '/user/' + f[0].value + '/profile').then(
+                                                    function (result) {
+                                                        el[variable] = result.data.firstName + " " + result.data.lastName;
+                                                    },
+                                                    function (error) {
+                                                        console.log(error.data);
+                                                    }
+                                                );
+                                            }
                                         }
+
 
                                     }
                                 });
