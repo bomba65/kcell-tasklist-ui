@@ -3569,16 +3569,6 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                                             $q.all(scope.jobModel.resolutions.value.map(function (resolution) {
                                                 return $http.get("/camunda/api/engine/engine/default/history/task?processInstanceId=" + resolution.processInstanceId + "&taskId=" + resolution.taskId);
                                             })).then(function (tasks) {
-                                                tasks.forEach(function (e, index) {
-                                                    if (e.data.length > 0) {
-                                                        scope.jobModel.resolutions.value[index].taskName = e.data[0].name;
-                                                        try {
-                                                            scope.jobModel.resolutions.value[index].taskEndDate = new Date(e.data[0].endTime);
-                                                        } catch (e) {
-                                                            console.log(e);
-                                                        }
-                                                    }
-                                                });
                                                 asynCall2 = true;
                                                 if (asynCall1 && asynCall2) {
                                                     if (processDefinitionKey === 'CreatePR'){
@@ -4068,16 +4058,6 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                                             $q.all(scope.dismantleInfo.resolutions.value.map(function (resolution) {
                                                 return $http.get("/camunda/api/engine/engine/default/history/task?processInstanceId=" + resolution.processInstanceId + "&taskId=" + resolution.taskId);
                                             })).then(function (tasks) {
-                                                tasks.forEach(function (e, index) {
-                                                    if (e.data.length > 0) {
-                                                        scope.dismantleInfo.resolutions.value[index].taskName = e.data[0].name;
-                                                        try {
-                                                            scope.dismantleInfo.resolutions.value[index].taskEndDate = new Date(e.data[0].endTime);
-                                                        } catch (e) {
-                                                            console.log(e);
-                                                        }
-                                                    }
-                                                });
                                                 asynCall2 = true;
                                                 if (asynCall1 && asynCall2) {
                                                     openProcessCardModalDismantle(processDefinitionId, businessKey, index);
@@ -4220,16 +4200,6 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                                             $q.all(scope.replacementInfo.resolutions.value.map(function (resolution) {
                                                 return $http.get("/camunda/api/engine/engine/default/history/task?processInstanceId=" + resolution.processInstanceId + "&taskId=" + resolution.taskId);
                                             })).then(function (tasks) {
-                                                tasks.forEach(function (e, index) {
-                                                    if (e.data.length > 0) {
-                                                        scope.replacementInfo.resolutions.value[index].taskName = e.data[0].name;
-                                                        try {
-                                                            scope.replacementInfo.resolutions.value[index].taskEndDate = new Date(e.data[0].endTime);
-                                                        } catch (e) {
-                                                            console.log(e);
-                                                        }
-                                                    }
-                                                });
                                                 asynCall2 = true;
                                                 if (asynCall1 && asynCall2) {
                                                     openProcessCardModalReplacement(processDefinitionId, businessKey, index);
@@ -4440,16 +4410,6 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                                             $q.all(scope.leasingInfo.resolutions.value.map(function (resolution) {
                                                 return $http.get("/camunda/api/engine/engine/default/history/task?processInstanceId=" + resolution.processInstanceId + "&taskId=" + resolution.taskId);
                                             })).then(function (tasks) {
-                                                tasks.forEach(function (e, index) {
-                                                    if (e.data.length > 0) {
-                                                        scope.leasingInfo.resolutions.value[index].taskName = e.data[0].name;
-                                                        try {
-                                                            scope.leasingInfo.resolutions.value[index].taskEndDate = new Date(e.data[0].endTime);
-                                                        } catch (e) {
-                                                            console.log(e);
-                                                        }
-                                                    }
-                                                });
                                                 asynCall2 = true;
                                                 if (asynCall1 && asynCall2) {
                                                     openProcessCardModalLeasing(processDefinitionId, businessKey, index);
