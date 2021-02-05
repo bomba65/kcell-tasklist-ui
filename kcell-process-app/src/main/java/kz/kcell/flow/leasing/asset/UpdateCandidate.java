@@ -598,11 +598,11 @@ public class UpdateCandidate implements JavaDelegate {
                 }
 
                 if (res_electrical_line04 != null) {
-                    value.put("power_three_phases", provideUs3Phase);
+                    value.put("res_electrical_line04", res_electrical_line04);
                 }
 
                 if (res_electrical_line10 != null) {
-                    value.put("construction_height", construction_height);
+                    value.put("res_electrical_line10", res_electrical_line04);
                 }
 
                 log.info("body value.toString(): ");
