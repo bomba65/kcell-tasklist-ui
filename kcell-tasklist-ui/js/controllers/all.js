@@ -2218,9 +2218,8 @@ return module.controller('mainCtrl', ['$scope', '$rootScope', 'toasty', 'Authent
                     }
                 }
             } else {
+                console.log("HERE");
                 if ($scope.task) {
-                    console.log('0192849217491274897129487219847');
-                    console.log($scope.task);
                     let query = {
                         taskDefinitionKey: $scope.task,
                         processDefinitionKey: $scope.getProcessDefinition(),
@@ -2314,6 +2313,22 @@ return module.controller('mainCtrl', ['$scope', '$rootScope', 'toasty', 'Authent
                             query.processVariables.push({name: 'siteRegion', operator: 'eq', value: region});
                         }
                     }
+                    if ($scope.subContractor && ($scope.task === 'intermediate_wait_invoiced' || $scope.task === 'intermediate_wait_acts_passed')) {
+                        var contractorMap = {'all': 'all',
+                        'kcell_region': 'KR',
+                        'logycom': 'Logycom',
+                        'alta_tel': 'ALTA_Tel',
+                        'arlan_si': 'Arlan_SI',
+                        'line_eng': 'Line_Eng',
+                        'not_assigned': '##'
+                        };
+
+                        query.variables.push({
+                            name: 'jrNumber',
+                            operator: 'like',
+                            value: '%-' + contractorMap[$scope.subContractor] + '-%'
+                        });
+                    }
                     if ($scope.task === 'no_task') {
                         var searchString ='';
                         if ($scope.regionFilter && $scope.regionFilter !== 'all') {
@@ -2363,34 +2378,37 @@ return module.controller('mainCtrl', ['$scope', '$rootScope', 'toasty', 'Authent
                         if ($scope.task === 'intermediate_wait_invoiced' || $scope.task === 'intermediate_wait_acts_passed') {
                             processInstanceIds = _.map(tasks, 'id');
                         }
-                        return $http.post($scope.baseUrl + '/history/variable-instance', {
-                            processInstanceIdIn: processInstanceIds
-                        }).then(function (response) {
-                            var variables = response.data;
-                            var variablesByProcessInstance = _.groupBy(variables, 'processInstanceId');
-                            console.log(variablesByProcessInstance);
-                            console.log(tasks);
+                        console.log(processInstanceIds);
+                        if(processInstanceIds.length > 0){
+                            return $http.post($scope.baseUrl + '/history/variable-instance', {
+                                processInstanceIdIn: processInstanceIds
+                            }).then(function (response) {
+                                var variables = response.data;
+                                var variablesByProcessInstance = _.groupBy(variables, 'processInstanceId');
+                                console.log(variablesByProcessInstance);
+                                console.log(tasks);
 
-                            if ($scope.task === 'intermediate_wait_invoiced' || $scope.task === 'intermediate_wait_acts_passed') {
-                                return _.map(tasks, function (task) {
-                                    return _.assign({}, task, {
-                                        variables: _.keyBy(
-                                            variablesByProcessInstance[task.id],
-                                            'name'
-                                        )
+                                if ($scope.task === 'intermediate_wait_invoiced' || $scope.task === 'intermediate_wait_acts_passed') {
+                                    return _.map(tasks, function (task) {
+                                        return _.assign({}, task, {
+                                            variables: _.keyBy(
+                                                variablesByProcessInstance[task.id],
+                                                'name'
+                                            )
+                                        });
                                     });
-                                });
-                            } else {
-                                return _.map(tasks, function (task) {
-                                    return _.assign({}, task, {
-                                        variables: _.keyBy(
-                                            variablesByProcessInstance[task.processInstanceId],
-                                            'name'
-                                        )
+                                } else {
+                                    return _.map(tasks, function (task) {
+                                        return _.assign({}, task, {
+                                            variables: _.keyBy(
+                                                variablesByProcessInstance[task.processInstanceId],
+                                                'name'
+                                            )
+                                        });
                                     });
-                                });
-                            }
-                        });
+                                }
+                            });
+                        }
                     }).then(function (tasks) {
                         console.log(tasks);
                         $scope.tasks = tasks.filter(function (task) {
@@ -2596,7 +2614,7 @@ return module.controller('mainCtrl', ['$scope', '$rootScope', 'toasty', 'Authent
                     };
 
                     if ($scope.currentReport === 'revision-open-tasks') {
-
+                        console.log('fklsjlkfjsdfds');
                         var processQuery = {
                             "processDefinitionKey": "Revision",
                             "unfinished": true,
