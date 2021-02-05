@@ -26,17 +26,19 @@ import java.net.URLEncoder;
 public class SitesController {
 
     private final String assetsUrl;
+    private final String assetsLeasingUrl;
 
     @Autowired
     private IdentityService identityService;
 
-    private SitesController(@Value("${asset.url:https://asset.test-flow.kcell.kz}") String assetsUrl) {
+    private SitesController(@Value("${asset.url:https://asset.test-flow.kcell.kz}") String assetsUrl, @Value("${asset.leasing_url:https://asset.flow.kcell.kz}") String assetsLeasingUrl) {
         this.assetsUrl = assetsUrl;
+        this.assetsLeasingUrl = assetsLeasingUrl;
     }
 
     @RequestMapping(value = "/name/contains/{name}", method = RequestMethod.GET)
     @ResponseBody
-    public ResponseEntity<String> siteContainsName(@PathVariable("name") String name) throws Exception {
+    public ResponseEntity<String> siteContainsName(@PathVariable("name") String name, @RequestParam(required = false) Boolean forRollout) throws Exception {
 
         if (identityService.getCurrentAuthentication() == null || identityService.getCurrentAuthentication().getUserId() == null) {
             log.warning("No user logged in");
@@ -47,15 +49,21 @@ public class SitesController {
         builder.loadTrustMaterial(null, new TrustSelfSignedStrategy());
         SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(builder.build());
         CloseableHttpClient httpclient = HttpClients.custom().setSSLSocketFactory(sslsf).build();
+        String baseUrl = assetsUrl;
 
-        HttpGet httpGet = new HttpGet(assetsUrl + "/asset-management/sites/name/contains/" + name);
+        if (forRollout != null && forRollout) {
+            baseUrl = assetsLeasingUrl;
+//            log.info("assets baseUrl for search by name: " + (forRollout ? "assetsLeasingUrl" : "assetsUrl") );
+        }
+
+        HttpGet httpGet = new HttpGet(baseUrl + "/asset-management/sites/name/contains/" + name);
         HttpResponse httpResponse = httpclient.execute(httpGet);
 
         HttpEntity entity = httpResponse.getEntity();
         String content = EntityUtils.toString(entity);
 
         if (httpResponse.getStatusLine().getStatusCode() < 200 || httpResponse.getStatusLine().getStatusCode() >= 300) {
-            throw new RuntimeException(assetsUrl + " site contains name = " + name + " returns code " + httpResponse.getStatusLine().getStatusCode());
+            throw new RuntimeException(baseUrl + " site contains name = " + name + " returns code " + httpResponse.getStatusLine().getStatusCode());
         }
 
         return ResponseEntity.ok(content);
