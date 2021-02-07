@@ -36,6 +36,7 @@
             ];
 
             $scope.jobModel = {};
+            $scope.newProjectChangedFlag = false;
             $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
                 function(result){
                     $scope.processInstanceId = result.data.processInstanceId;
@@ -96,6 +97,14 @@
                 } else {
                     camForm.variableManager.variableValue('createJRResult', 'rejected');
                 }
+                if ( $scope.newProjectChangedFlag === true && $scope.project !== $scope.newProject ) {
+                    camForm.variableManager.destroyVariable('project');
+                    camForm.variableManager.createVariable({
+                        name: 'project',
+                        type: 'String',
+                        value: $scope.newProject
+                    });
+                }
                 var visibility = 'all';
                 if($scope.centralGroupApprovalEngineerComment && $scope.centralGroupApprovalEngineerCommentVisibility){
                     visibility = $scope.centralGroupApprovalEngineerCommentVisibility;
@@ -121,6 +130,14 @@
                 $scope.centralGroupApprovalEngineerTaskResult = camForm.variableManager.variableValue('centralGroupApprovalEngineerTaskResult');
             });
 
+            $scope.projectTypeChange = function() {
+                if ($scope.jobModel && $scope.jobModel.project && $scope.jobModel.project.value && $scope.jobModel.project.originalValue) {
+                    $scope.newProjectChangedFlag = true;
+                    $scope.jobModel.project.value = $scope.newProject;
+                    $scope.jobModel.project.originalValue = $scope.newProject;
+                }
+            }
+
             $scope.isVisible = function (resolution) {
                return !resolution.visibility || resolution.visibility === 'all' || (resolution.visibility === 'kcell' && $rootScope.hasGroup('kcellUsers'));
             }
@@ -131,6 +148,57 @@
         }]);
     </script>
     <job-request job-model="jobModel"></job-request>
+    <div class="form-group">
+        <label class="col-sm-3 control-label">Type of project:</label>
+        <div class="col-sm-3">
+            <select ng-model="newProject" name="project" class="form-control selectpicker" ng-change="projectTypeChange()" select-picker>
+                <option style="display:none" value=""></option>
+                <option value="N/A" selected>N/A</option>
+                <option value="4G Sharing">4G Sharing</option>
+                <option ng-if="reason === '2'" value="Other - (Re-routing, re-planning, etc.)">Other - (Re-routing, re-planning, etc.)</option>
+                <option ng-if="reason === '2'" value="Transmission FIX/IPVPN">Transmission FIX/IPVPN</option>
+                <option ng-if="reason === '2'" value="Transmission PBX">Transmission PBX</option>
+                <option ng-if="reason === '2'" value="Transmission 1+1">Transmission 1+1</option>
+                <option ng-if="reason === '2'" value="Transmission Upgrades">Transmission Upgrades</option>
+                <option ng-if="reason === '2'" value="Transmission Revision LTE">Transmission Revision LTE</option>
+
+                <option ng-if="reason === '3'" value="Air conditioner planned installation 1+1 for transmission (53 sites)">Air conditioner planned installation 1+1 for transmission (53 sites)</option>
+                <option ng-if="reason === '3'" value="Power system planned modernization 40 sites(ZTE B121)">Power system planned modernization 40 sites(ZTE B121)</option>
+                <option ng-if="reason === '3'" value="Termobox installation for «4G sharing» project">Termobox installation for «4G sharing» project</option>
+                <option ng-if="reason === '3'" value="Termobox installation for transmission (TN)">Termobox installation for transmission (TN)</option>
+                <option ng-if="reason === '3'" value="Termobox installation for «rollout»">Termobox installation for «rollout»</option>
+                <option ng-if="reason === '3'" value="Установка ИБП для организации услуги fix клиенту (по запросу от группы трансмиссии)">Установка ИБП для организации услуги fix клиенту (по запросу от группы трансмиссии)</option>
+
+                <option ng-if="reason === '1'" value="LTE 2019">LTE 2019</option>
+                <option ng-if="reason === '1'" value="LTE 2100 2019">LTE 2100 2019</option>
+                <option ng-if="reason === '1'" value="LTE 1800 2019">LTE 1800 2019</option>
+                <option ng-if="reason === '1'" value="2G+3G Roll-Out 2019">2G+3G Roll-Out 2019</option>
+                <option ng-if="reason === '1'" value="ZTE SWAP">ZTE SWAP</option>
+                <option ng-if="reason === '1'" value="CA_LTE1800">CA_LTE1800</option>
+                <option ng-if="reason === '1'" value="3CCA_LTE2100">3CCA_LTE2100</option>
+                <option ng-if="reason === '1'" value="MIMO 4x4">MIMO 4x4</option>
+                <option ng-if="reason === '1'" value="CEM">CEM</option>
+                <option ng-if="reason === '1'" value="SES">SES</option>
+                <option value="Roll-Out 2020">Roll-Out 2020</option>
+                <option value="250+">250+</option>
+                <option value="Roll-Out 2021">Roll-Out 2021</option>
+                <option ng-if="reason === '5'" value=" 2G/3G from 2019"> 2G/3G from 2019 </option>
+                <option ng-if="reason === '5'" value=" 65 - Com. Block"> 65 - Com. Block </option>
+                <option ng-if="reason === '5'" value=" RND 2020"> RND 2020 </option>
+                <option ng-if="reason === '5'" value=" LTE from 2019"> LTE from 2019 </option>
+                <option ng-if="reason === '5'" value=" LTE 2020"> LTE 2020 </option>
+                <option ng-if="reason === '5'" value=" Com. Block 2020"> Com. Block 2020 </option>
+                <option ng-if="reason === '5'" value=" LTE 2019"> LTE 2019 </option>
+                <option ng-if="reason === '5'" value=" B2B 2020"> B2B 2020 </option>
+                <option ng-if="reason === '5'" value=" 250+"> 250+ </option>
+                <option ng-if="reason === '5'" value=" Com. Block (3 Reg.)"> Com. Block (3 Reg.) </option>
+                <option ng-if="reason === '5'" value=" ERG"> ERG </option>
+                <option ng-if="reason === '5'" value=" License settlement"> License settlement </option>
+                <option ng-if="reason === '5'" value=" Kazminerals LTE Project"> Kazminerals LTE Project </option>
+            </select>
+            <label class="error" ng-if="kcell_form.project.$error.required && ( kcell_form.project.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
     <div class="form-group">
         <label class="col-sm-4 control-label">Resolution</label>
         <div class="col-sm-8">
