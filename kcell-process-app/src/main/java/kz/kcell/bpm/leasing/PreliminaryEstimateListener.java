@@ -8,8 +8,8 @@ public class PreliminaryEstimateListener implements TaskListener {
     public void notify(DelegateTask delegateTask) {
         String siteRegion = delegateTask.getVariable("siteRegion").toString();
         String ncpID = delegateTask.getVariable("ncpID").toString();
-        if (ncpID != null && ncpID.startsWith("11") && !siteRegion.equals("Astana")) {
-            siteRegion = "Astana";
+        if (ncpID != null && ncpID.startsWith("11") && !siteRegion.equals("astana")) {
+            siteRegion = "astana";
             delegateTask.setVariable("siteRegion", siteRegion);
         }
         delegateTask.addCandidateGroup(siteRegion + "_power");
