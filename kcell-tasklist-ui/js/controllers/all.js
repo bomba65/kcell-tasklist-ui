@@ -203,24 +203,14 @@ return module.controller('mainCtrl', ['$scope', '$rootScope', 'toasty', 'Authent
     }
 
     $scope.getSite = function (val) {
-        return $http.get('/camunda/sites/search/findByNameIgnoreCaseContaining?name=' + val).then(
-            function (response) {
-                var sites = _.flatMap(response.data._embedded.sites, function (s) {
-                    if (s.params.site_name) {
-                        return s.params.site_name.split(',').map(function (sitename) {
-                            return {
-                                name: s.name,
-                                id: s._links.self.href.substring(s._links.self.href.lastIndexOf('/') + 1),
-                                site_name: sitename
-                            };
-                        })
-                    } else {
-                        return [];
-                    }
+        return $http.get('/camunda/sites/name/contains/'+val).then(
+            function(response){
+                console.log(response)
+                response.data.forEach(function(e){
+                    e.name = e.site_name;
                 });
-                return sites;
-            }
-        );
+                return response.data;
+            });
     };
 
     $scope.siteSelected = function ($item) {

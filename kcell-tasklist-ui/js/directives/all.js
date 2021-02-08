@@ -2811,12 +2811,16 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                     );
                 };
                 scope.getSiteId = function (val) {
-                    return $http.get('/camunda/sites/name/contains/' + val + '?forRollout=true').then(
-                        function (response) {
-                            return response.data
-                        }
-                    );
+                    return $http.get('/camunda/sites/name/contains/'+val + '?forRollout=true').then(
+                        function(response){
+                            console.log(response)
+                            response.data.forEach(function(e){
+                                e.name = e.siteid;
+                            });
+                            return response.data;
+                        });
                 };
+
                 scope.getSites = function(val) {
                     return $http.get('/camunda/sites/name/contains/'+val).then(
                         function(response){
