@@ -215,7 +215,7 @@ return module.controller('mainCtrl', ['$scope', '$rootScope', 'toasty', 'Authent
 
     $scope.siteSelected = function ($item) {
         $scope.siteName = $item.name;
-        $scope.site = $item.id;
+        $scope.site = $item.siteid;
         $scope.site_name = $item.site_name;
     };
 
@@ -460,7 +460,7 @@ return module.controller('mainCtrl', ['$scope', '$rootScope', 'toasty', 'Authent
             }
         }
         if ($scope.site && $scope.site_name) {
-            queryParams.variables.push({name: "site", value: $scope.site, operator: "eq"});
+            queryParams.variables.push({name: "siteName", value: $scope.site, operator: "eq"});
         }
         if ($scope.priority === 'emergency') {
             queryParams.variables.push({name: "priority", value: "emergency", operator: "eq"});
