@@ -146,64 +146,81 @@ public class TaskHistoryListener implements TaskListener {
             if (delegateTask.hasVariable("resolutions")){
                 resolutions = delegateTask.<JsonValue>getVariableTyped("resolutions").getValue().elements();
             }
-
-            String taskId = delegateTask.getTaskDefinitionKey();
-            Integer prevGroup = 0;
-            Integer currentGroup = 0;
-
-            boolean isGroupOne = groupOne.stream().filter(e-> e.equals(taskId)).findAny().isPresent();
-            boolean isGroupTwo = groupTwo.stream().filter(e-> e.equals(taskId)).findAny().isPresent();
-            boolean isGroupThree = groupThree.stream().filter(e-> e.equals(taskId)).findAny().isPresent();
-            boolean isGroupFour = groupFour.stream().filter(e-> e.equals(taskId)).findAny().isPresent();
-            boolean isGroupFive = groupFive.stream().filter(e-> e.equals(taskId)).findAny().isPresent();
-            if (isGroupOne) {
-                currentGroup = 1;
-            }
-            if (isGroupTwo) {
-                currentGroup = 2;
-            }
-            if (isGroupThree) {
-                currentGroup = 3;
-            }
-            if (isGroupFour) {
-                currentGroup = 4;
-            }
-            if (isGroupFive) {
-                currentGroup = 5;
-            }
-            log.info("currentGroup: " + currentGroup);
-            SpinList<SpinJsonNode> rejections = new SpinListImpl<>();
-            if (delegateTask.hasVariable("rejections")){
-                rejections = delegateTask.<JsonValue>getVariableTyped("rejections").getValue().elements();
-                if (rejections.size() > 0) {
-                    prevGroup = rejections.get(0).prop("groupId").numberValue().intValue();
-                    if (prevGroup != currentGroup || prevGroup == 0) {
-                        rejections.removeAll(rejections);
-                    }
-                }
-            }
-
+            List<User> users = identityService.createUserQuery().userId(delegateTask.getAssignee()).list();
             ObjectMapper mapper = new ObjectMapper();
-
             ObjectNode resolution = mapper.createObjectNode();
             ObjectNode rejection = mapper.createObjectNode();
-//            delegateTask.getProcessDefinitionId();/**/
 
             resolution.put("processInstanceId", delegateTask.getProcessInstanceId());
             resolution.put("assignee", delegateTask.getAssignee());
-            List<User> users = identityService.createUserQuery().userId(delegateTask.getAssignee()).list();
-            List<HistoricIdentityLinkLog> query = historyService.createHistoricIdentityLinkLogQuery().taskId(delegateTask.getId()).type("candidate").orderByTime().desc().list();
-            String displayName = "";
-            if (query.size() > 0) {
-                String groupId = query.get(0).getGroupId();
-                List<Group> displayList = identityService.createGroupQuery().groupId(groupId).list();
-                if (displayList.size() > 0) {
-                    displayName = displayList.get(0).getName();
-                } else {
-                    displayName = groupId;
+
+            String resol = checkVariable(delegateTask,delegateTask.getTaskDefinitionKey() + "TaskResult") ? String.valueOf(delegateTask.getVariable(delegateTask.getTaskDefinitionKey() + "TaskResult")) : "";
+
+            if (definitions.stream()
+                .filter(e-> "leasing".equals(e.getKey()))
+                .findAny()
+                .isPresent()) {
+                String taskId = delegateTask.getTaskDefinitionKey();
+                Integer prevGroup = 0;
+                Integer currentGroup = 0;
+
+                boolean isGroupOne = groupOne.stream().filter(e-> e.equals(taskId)).findAny().isPresent();
+                boolean isGroupTwo = groupTwo.stream().filter(e-> e.equals(taskId)).findAny().isPresent();
+                boolean isGroupThree = groupThree.stream().filter(e-> e.equals(taskId)).findAny().isPresent();
+                boolean isGroupFour = groupFour.stream().filter(e-> e.equals(taskId)).findAny().isPresent();
+                boolean isGroupFive = groupFive.stream().filter(e-> e.equals(taskId)).findAny().isPresent();
+                if (isGroupOne) {
+                    currentGroup = 1;
+                }
+                if (isGroupTwo) {
+                    currentGroup = 2;
+                }
+                if (isGroupThree) {
+                    currentGroup = 3;
+                }
+                if (isGroupFour) {
+                    currentGroup = 4;
+                }
+                if (isGroupFive) {
+                    currentGroup = 5;
+                }
+                log.info("currentGroup: " + currentGroup);
+                SpinList<SpinJsonNode> rejections = new SpinListImpl<>();
+                if (delegateTask.hasVariable("rejections")){
+                    rejections = delegateTask.<JsonValue>getVariableTyped("rejections").getValue().elements();
+                    if (rejections.size() > 0) {
+                        prevGroup = rejections.get(0).prop("groupId").numberValue().intValue();
+                        if (prevGroup != currentGroup || prevGroup == 0) {
+                            rejections.removeAll(rejections);
+                        }
+                    }
+                }
+
+                List<HistoricIdentityLinkLog> query = historyService.createHistoricIdentityLinkLogQuery().taskId(delegateTask.getId()).type("candidate").orderByTime().desc().list();
+                String displayName = "";
+                if (query.size() > 0) {
+                    String groupId = query.get(0).getGroupId();
+                    List<Group> displayList = identityService.createGroupQuery().groupId(groupId).list();
+                    if (displayList.size() > 0) {
+                        displayName = displayList.get(0).getName();
+                    } else {
+                        displayName = groupId;
+                    }
+                }
+                log.info("test: " + displayName);
+                if (resol.toLowerCase().equals("rejected") || resol.toLowerCase().equals("reject") || resol.toLowerCase().equals("refusal")) {
+                    log.info("test2: " + delegateTask.getName());
+                    String comment = checkVariable(delegateTask,delegateTask.getTaskDefinitionKey() + "TaskComment") ? String.valueOf(delegateTask.getVariable(delegateTask.getTaskDefinitionKey() + "TaskComment")) : "";
+                    log.info("test3: " + comment);
+                    rejection.put("rejectedBy", displayName + " (" + delegateTask.getName() + ")");
+                    rejection.put("rejectedReason", comment);
+                    rejection.put("groupId", currentGroup);
+                    JsonValue rejectionValue = SpinValues.jsonValue(rejection.toString()).create();
+                    rejections.add(rejectionValue.getValue());
+                    delegateTask.setVariable("rejections", SpinValues.jsonValue(rejections.toString()));
                 }
             }
-            log.info("test: " + displayName);
+
 
             if(users.size()>0){
                 resolution.put("assigneeName", users.get(0).getFirstName() + " " + users.get(0).getLastName());
@@ -255,19 +272,7 @@ public class TaskHistoryListener implements TaskListener {
             resolutions.add(jsonValue.getValue());
 
             delegateTask.setVariable("resolutions", SpinValues.jsonValue(resolutions.toString()));
-            String resol = checkVariable(delegateTask,delegateTask.getTaskDefinitionKey() + "TaskResult") ? String.valueOf(delegateTask.getVariable(delegateTask.getTaskDefinitionKey() + "TaskResult")) : "";
-            log.info("resol.toLowerCase: "+ resol.toLowerCase());
-            if (resol.toLowerCase().equals("rejected") || resol.toLowerCase().equals("reject") || resol.toLowerCase().equals("refusal")) {
-                log.info("test2: " + delegateTask.getName());
-                String comment = checkVariable(delegateTask,delegateTask.getTaskDefinitionKey() + "TaskComment") ? String.valueOf(delegateTask.getVariable(delegateTask.getTaskDefinitionKey() + "TaskComment")) : "";
-                log.info("test3: " + comment);
-                rejection.put("rejectedBy", displayName + " (" + delegateTask.getName() + ")");
-                rejection.put("rejectedReason", comment);
-                rejection.put("groupId", currentGroup);
-                JsonValue rejectionValue = SpinValues.jsonValue(rejection.toString()).create();
-                rejections.add(rejectionValue.getValue());
-                delegateTask.setVariable("rejections", SpinValues.jsonValue(rejections.toString()));
-            }
+
         }
     }
 
