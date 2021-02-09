@@ -635,8 +635,19 @@ public class CreateCandidate implements JavaDelegate {
                         newArtefactRRPreparedStatement.setNull(i++, Types.DATE);
                     }
                     newArtefactRRPreparedStatement.setString(i++, cn_address); //ADDRESS
-                    newArtefactRRPreparedStatement.setString(i++, "N " + latitude.replace(".", ",")); //LATITUDE
-                    newArtefactRRPreparedStatement.setString(i++, "E " + longitude.replace(".", ",")); //LONGITUDE
+
+
+                    if (cn_latitude != null) {
+                        newArtefactRRPreparedStatement.setString(i++, "N " + cn_latitude.replace(".", ",")); //LATITUDE
+                    } else {
+                        newArtefactRRPreparedStatement.setNull(i++, Types.VARCHAR);
+                    }
+                    if (cn_longitude != null) {
+                        newArtefactRRPreparedStatement.setString(i++, "E " + cn_longitude.replace(".", ",")); //LONGITUDE
+                    } else {
+                        newArtefactRRPreparedStatement.setNull(i++, Types.VARCHAR);
+
+                    }
                     if (cn_constructionType != null) {
                         newArtefactRRPreparedStatement.setLong(i++, Integer.parseInt(cn_constructionType)); //CONSTR_TYPE
                     } else {
