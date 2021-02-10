@@ -313,18 +313,6 @@ public class CreateNewTsd implements JavaDelegate {
         SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(builder.build());
         CloseableHttpClient httpclient = HttpClients.custom().setSSLSocketFactory(sslsf).build();
 
-        String path = assetsUri + "/asset-management/tsd_mw/id/" + tsdId + "/nearend_id/%7Bnearend_id%7D/farend_id/%7Bfarend_id%7D";
-        HttpResponse httpResponse = executePut(path, httpclient, objectNode.toString());
-        String response = EntityUtils.toString(httpResponse.getEntity());
-        log.info("json:  ----   " + objectNode.toString());
-        log.info("response:  ----   " + response);
-        if (httpResponse.getStatusLine().getStatusCode() < 200 || httpResponse.getStatusLine().getStatusCode() >= 300) {
-            throw new RuntimeException("asset.flow.kcell.kz returns code(Add new data into DB) " + httpResponse.getStatusLine().getStatusCode());
-        }
-        JSONObject json = new JSONObject(response);
-        execution.setVariable("newTsdId", json.getString("id"));
-        execution.setVariable("selectedTsd", SpinJsonNode.JSON(response));
-
         String pathFacilities = assetsUri + "/asset-management/facilities";
         HttpResponse httpResponseFarEndFacilities = executePut(pathFacilities + "/id/" + String.valueOf(farEndFacilityId), httpclient, farEndFacility.toString());
         String responseFarEndFacilities = EntityUtils.toString(httpResponseFarEndFacilities.getEntity());
@@ -339,6 +327,19 @@ public class CreateNewTsd implements JavaDelegate {
         if (httpResponseNearEndFacilities.getStatusLine().getStatusCode() < 200 || httpResponseNearEndFacilities.getStatusLine().getStatusCode() >= 300) {
             throw new RuntimeException("asset.flow.kcell.kz returns code(put near_end facilities) " + httpResponseNearEndFacilities.getStatusLine().getStatusCode());
         }
+
+        String path = assetsUri + "/asset-management/tsd_mw/id/" + tsdId + "/nearend_id/%7Bnearend_id%7D/farend_id/%7Bfarend_id%7D";
+        HttpResponse httpResponse = executePut(path, httpclient, objectNode.toString());
+        String response = EntityUtils.toString(httpResponse.getEntity());
+        log.info("json:  ----   " + objectNode.toString());
+        log.info("response:  ----   " + response);
+        if (httpResponse.getStatusLine().getStatusCode() < 200 || httpResponse.getStatusLine().getStatusCode() >= 300) {
+            throw new RuntimeException("asset.flow.kcell.kz returns code(Add new data into DB) " + httpResponse.getStatusLine().getStatusCode());
+        }
+        JSONObject json = new JSONObject(response);
+        execution.setVariable("newTsdId", json.getString("id"));
+        execution.setVariable("selectedTsd", SpinJsonNode.JSON(response));
+
 
 //
 //

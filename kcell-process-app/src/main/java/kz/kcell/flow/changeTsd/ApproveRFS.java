@@ -59,30 +59,40 @@ public class ApproveRFS implements JavaDelegate {
 
         if (permitResolution.equals("keepCurrentRFS")) {
             SpinJsonNode oldTsd = execution.<JsonValue>getVariableTyped("oldTsd").getValue();
-            Long timestamp = oldTsd.prop("rfs_date").numberValue().longValue();
-            Date date = new Date(timestamp);
-            Calendar c = Calendar.getInstance();
-            c.setTime(date);
-            c.add(Calendar.HOUR, 6);
-            objectNode.put("rfs_date", new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ").format(c.getTime()));
 
-            SpinJsonNode rfsStatusObj = oldTsd.prop("rfs_status_id") == null ? null : oldTsd.prop("rfs_status_id");
-            Integer rfsStatusId = rfsStatusObj.prop("id").numberValue().intValue();
-            ObjectNode rfs_status_id = objectMapper.createObjectNode();
-            objectNode.set("rfs_status_id", rfs_status_id);
-            rfs_status_id.put("catalog_id", 92);
-            rfs_status_id.put("id", rfsStatusId);
+            if(oldTsd.hasProp("rfs_date") && oldTsd.prop("rfs_date") != null && oldTsd.prop("rfs_date").value() != null){
+                Long timestamp = oldTsd.prop("rfs_date").numberValue().longValue();
+                Date date = new Date(timestamp);
+                Calendar c = Calendar.getInstance();
+                c.setTime(date);
+                c.add(Calendar.HOUR, 6);
+                objectNode.put("rfs_date", new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ").format(c.getTime()));
+            }
 
-            String rfsNumber = oldTsd.prop("rfs_number").stringValue();
-            objectNode.put("rfs_number", rfsNumber);
+            if(oldTsd.hasProp("rfs_status_id") &&  oldTsd.prop("rfs_status_id") != null && oldTsd.prop("rfs_status_id").hasProp("id") && oldTsd.prop("rfs_status_id").prop("id")!=null && oldTsd.prop("rfs_status_id").prop("id").value()!=null){
+                SpinJsonNode rfsStatusObj = oldTsd.prop("rfs_status_id");
+                Integer rfsStatusId = rfsStatusObj.prop("id").numberValue().intValue();
+                ObjectNode rfs_status_id = objectMapper.createObjectNode();
+                objectNode.set("rfs_status_id", rfs_status_id);
+                rfs_status_id.put("catalog_id", 92);
+                rfs_status_id.put("id", rfsStatusId);
+            }
 
-            String elicenseNumber = oldTsd.prop("elicense_number").stringValue();
-            objectNode.put("elicense_number", elicenseNumber);
+            if(oldTsd.hasProp("rfs_number") && oldTsd.prop("rfs_number") != null && oldTsd.prop("rfs_number").value() != null){
+                String rfsNumber = oldTsd.prop("rfs_number").stringValue();
+                objectNode.put("rfs_number", rfsNumber);
+            }
+            if(oldTsd.hasProp("elicense_number") && oldTsd.prop("elicense_number") != null && oldTsd.prop("elicense_number").value() != null) {
+                String elicenseNumber = oldTsd.prop("elicense_number").stringValue();
+                objectNode.put("elicense_number", elicenseNumber);
+            }
 
-            Calendar elicenseCalendar = Calendar.getInstance();
-            elicenseCalendar.setTime(new Date(oldTsd.prop("elicense_date").numberValue().longValue()));
-            elicenseCalendar.add(Calendar.HOUR, 6);
-            objectNode.put("elicense_date", new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ").format(elicenseCalendar.getTime()));
+            if(oldTsd.hasProp("elicense_date") && oldTsd.prop("elicense_date") != null && oldTsd.prop("elicense_date").value() != null) {
+                Calendar elicenseCalendar = Calendar.getInstance();
+                elicenseCalendar.setTime(new Date(oldTsd.prop("elicense_date").numberValue().longValue()));
+                elicenseCalendar.add(Calendar.HOUR, 6);
+                objectNode.put("elicense_date", new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ").format(elicenseCalendar.getTime()));
+            }
         } else if (permitResolution.equals("reissueRFSpermittion")) {
             String rfsNumber = String.valueOf(execution.getVariable("rfsPermitionNumber"));
             objectNode.put("rfs_number", rfsNumber);
