@@ -152,20 +152,20 @@ public class CreateCandidate implements JavaDelegate {
                     String res_10kv = powerSource != null && powerSource.hasProp("closestPublic10") && powerSource.prop("closestPublic10").value() != null ? (powerSource.prop("closestPublic10").value().toString()) : null;
 
                     SpinJsonNode candidate = delegateExecution.getVariable("candidate") != null ? JSON(delegateExecution.getVariable("candidate")) : null;
-                    String cn_longitude = candidate != null && candidate.hasProp("longitude") && candidate.prop("longitude") != null ? (candidate.prop("longitude").value().toString()) : null;
-                    String cn_latitude = candidate != null && candidate.hasProp("latitude") && candidate.prop("latitude") != null ? (candidate.prop("latitude").value().toString()) : null;
-                    String cn_siteName = candidate != null && candidate.hasProp("siteName") && candidate.prop("siteName") != null ? (candidate.prop("siteName").value().toString()) : null;
-                    String cn_comments = candidate != null ? (candidate.hasProp("comments") && candidate.prop("comments") != null ? candidate.prop("comments").value().toString() : null) : null;
+                    String cn_longitude = candidate != null && candidate.hasProp("longitude") && candidate.prop("longitude") != null && candidate.prop("longitude").value()!=null ? (candidate.prop("longitude").value().toString()) : null;
+                    String cn_latitude = candidate != null && candidate.hasProp("latitude") && candidate.prop("latitude") != null && candidate.prop("latitude").value()!=null ? (candidate.prop("latitude").value().toString()) : null;
+                    String cn_siteName = candidate != null && candidate.hasProp("siteName") && candidate.prop("siteName") != null && candidate.prop("siteName").value()!=null ? (candidate.prop("siteName").value().toString()) : null;
+                    String cn_comments = candidate != null ? (candidate.hasProp("comments") && candidate.prop("comments") != null && candidate.prop("comments").value()!=null ? candidate.prop("comments").value().toString() : null) : null;
                     Number cn_square = candidate != null && candidate.hasProp("square") && candidate.prop("square") != null ? (candidate.prop("square").numberValue()) : null;
-                    String cn_rbs_location = candidate != null && candidate.hasProp("rbsLocation") && candidate.prop("rbsLocation") != null && candidate.prop("rbsLocation").hasProp("id") && candidate.prop("rbsLocation").prop("id") != null ? (candidate.prop("rbsLocation").prop("id").value().toString()) : null;
-                    String cn_constructionType = candidate != null ? (candidate.hasProp("constructionType") && candidate.prop("constructionType").hasProp("id") ? candidate.prop("constructionType").prop("id").value().toString() : "0") : null;
+                    String cn_rbs_location = candidate != null && candidate.hasProp("rbsLocation") && candidate.prop("rbsLocation") != null && candidate.prop("rbsLocation").hasProp("id") && candidate.prop("rbsLocation").prop("id") != null && candidate.prop("rbsLocation").prop("id").value()!=null ? (candidate.prop("rbsLocation").prop("id").value().toString()) : null;
+                    String cn_constructionType = candidate != null ? (candidate.hasProp("constructionType") && candidate.prop("constructionType").hasProp("id") && candidate.prop("constructionType").prop("id").value()!=null ? candidate.prop("constructionType").prop("id").value().toString() : "0") : null;
 
-                    String cn_assigned_user = candidate != null ? (candidate.hasProp("assignedUser") ? candidate.prop("assignedUser").value().toString() : "") : null;
+                    String cn_assigned_user = candidate != null ? (candidate.hasProp("assignedUser") && candidate.prop("assignedUser")!=null && candidate.prop("assignedUser").value()!=null ? candidate.prop("assignedUser").value().toString() : "") : null;
 
-                    Number cn_height_constr = (candidate != null && candidate.hasProp("cn_height_constr") && candidate.prop("cn_height_constr") != null) ? Integer.parseInt(candidate.prop("cn_height_constr").value().toString()) : 0;
-                    Number cn_altitude = candidate != null && candidate.hasProp("cn_altitude") && candidate.prop("cn_altitude") != null ? Integer.parseInt(candidate.prop("cn_altitude").value().toString()) : 0;
+                    Number cn_height_constr = (candidate != null && candidate.hasProp("cn_height_constr") && candidate.prop("cn_height_constr") != null) && candidate.prop("cn_height_constr").value()!=null ? Integer.parseInt(candidate.prop("cn_height_constr").value().toString()) : 0;
+                    Number cn_altitude = candidate != null && candidate.hasProp("cn_altitude") && candidate.prop("cn_altitude") != null && candidate.prop("cn_altitude").value()!=null ? Integer.parseInt(candidate.prop("cn_altitude").value().toString()) : 0;
                     SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXX"); //2020-01-02T18:00:00.000Z
-                    String cn_date_of_visit = candidate != null && candidate.hasProp("dateOfVisit") && candidate.prop("dateOfVisit") != null ? (candidate.prop("dateOfVisit").value().toString()) : null;
+                    String cn_date_of_visit = candidate != null && candidate.hasProp("dateOfVisit") && candidate.prop("dateOfVisit") != null && candidate.prop("dateOfVisit").value()!=null ? (candidate.prop("dateOfVisit").value().toString()) : null;
                     Date date_of_visit_date = cn_date_of_visit != null ? formatter.parse(cn_date_of_visit) : null;
                     Calendar date_of_visit = Calendar.getInstance();
                     date_of_visit.setTime(date_of_visit_date);
@@ -174,12 +174,12 @@ public class CreateCandidate implements JavaDelegate {
 
                     //{"antennaType":"ML 0.6","diameter":"0.6","weight":"14","antennaQuantity":1,"frequencyBand":"8GHz","suspensionHeight":12,"azimuth":"123"}
                     SpinJsonNode ne = delegateExecution.getVariable("transmissionAntenna") != null ? JSON(delegateExecution.getVariable("transmissionAntenna")) : null;
-                    String ne_azimuth = ne != null ? (ne.hasProp("azimuth") ? ne.prop("azimuth").value().toString() : "0") : null;
-                    String ne_diameter = ne != null ? (ne.hasProp("diameter") ? ne.prop("diameter").value().toString().replaceAll("[^(\\d.\\d)]", "") : "0") : null;
-                    String ne_frequencyBand = ne != null && ne.hasProp("frequencyBand") ? ne.prop("frequencyBand").value().toString().replaceAll("[^0-9.]", "") : null;
+                    String ne_azimuth = ne != null ? (ne.hasProp("azimuth") && ne.prop("azimuth").value()!=null ? ne.prop("azimuth").value().toString() : "0") : null;
+                    String ne_diameter = ne != null ? (ne.hasProp("diameter") && ne.prop("diameter").value()!=null ? ne.prop("diameter").value().toString().replaceAll("[^(\\d.\\d)]", "") : "0") : null;
+                    String ne_frequencyBand = ne != null && ne.hasProp("frequencyBand") && ne.prop("frequencyBand").value()!=null ? ne.prop("frequencyBand").value().toString().replaceAll("[^0-9.]", "") : null;
                     Number ne_suspensionHeight = ne != null && ne.hasProp("suspensionHeight") ? (ne.prop("suspensionHeight").numberValue()) : null;
-                    String ne_longitude = ne != null && ne.hasProp("address") && ne.prop("address").hasProp("longitude") ? (ne.prop("address").prop("longitude").value().toString()) : cn_longitude != null ? cn_longitude : null;
-                    String ne_latitude = ne != null && ne.hasProp("address") && ne.prop("address").hasProp("latitude") ? (ne.prop("address").prop("latitude").value().toString()) : cn_latitude != null ? cn_latitude : null;
+                    String ne_longitude = ne != null && ne.hasProp("address") && ne.prop("address").hasProp("longitude") && ne.prop("address").prop("longitude").value()!=null ? (ne.prop("address").prop("longitude").value().toString()) : cn_longitude != null ? cn_longitude : null;
+                    String ne_latitude = ne != null && ne.hasProp("address") && ne.prop("address").hasProp("latitude") && ne.prop("address").prop("latitude").value()!=null ? (ne.prop("address").prop("latitude").value().toString()) : cn_latitude != null ? cn_latitude : null;
 
 
 //                    farEndInformation
@@ -190,14 +190,14 @@ public class CreateCandidate implements JavaDelegate {
 
                     Number fe_artefact_id = 0;
 
-                    String fe_azimuth = fe != null && fe.hasProp("azimuth") ? (fe.prop("azimuth").value().toString()) : null;
-                    String fe_diameter = fe != null && fe.hasProp("diameter") ? (fe.prop("diameter").value().toString().replaceAll("[^(\\d.\\d)]", "")) : null;
-                    String fe_frequencyBand = fe != null && fe.hasProp("frequencyBand") ? fe.prop("frequencyBand").value().toString().replaceAll("[^0-9.]", "") : null;
-                    String fe_suspensionHeight = fe != null && fe.hasProp("suspensionHeight") && fe.prop("suspensionHeight") != null ? fe.prop("suspensionHeight").value().toString() : null;
-                    String fe_constructionType = fe != null && fe.hasProp("constructionType") && fe.prop("constructionType") != null ? (fe.prop("constructionType").hasProp("id") ? fe.prop("constructionType").prop("id").value().toString() : null) : null;
-                    String fe_sitename = fe != null && fe.hasProp("farEndName") && fe.prop("farEndName") != null ? fe.prop("farEndName").value().toString() : null;
-                    String fe_comment = fe != null && fe.hasProp("comments") && fe.prop("comments") != null ? fe.prop("comments").value().toString() : null;
-                    String fe_survey_date = fe != null && fe.hasProp("surveyDate") && fe.prop("surveyDate") != null ? (fe.prop("surveyDate").value().toString()) : null;
+                    String fe_azimuth = fe != null && fe.hasProp("azimuth") && fe.prop("azimuth").value()!=null ? (fe.prop("azimuth").value().toString()) : null;
+                    String fe_diameter = fe != null && fe.hasProp("diameter") && fe.prop("diameter").value()!=null ? (fe.prop("diameter").value().toString().replaceAll("[^(\\d.\\d)]", "")) : null;
+                    String fe_frequencyBand = fe != null && fe.hasProp("frequencyBand") && fe.prop("frequencyBand").value()!=null ? fe.prop("frequencyBand").value().toString().replaceAll("[^0-9.]", "") : null;
+                    String fe_suspensionHeight = fe != null && fe.hasProp("suspensionHeight") && fe.prop("suspensionHeight") != null && fe.prop("suspensionHeight").value()!=null ? fe.prop("suspensionHeight").value().toString() : null;
+                    String fe_constructionType = fe != null && fe.hasProp("constructionType") && fe.prop("constructionType") != null ? (fe.prop("constructionType").hasProp("id") && fe.prop("constructionType").prop("id").value()!=null ? fe.prop("constructionType").prop("id").value().toString() : null) : null;
+                    String fe_sitename = fe != null && fe.hasProp("farEndName") && fe.prop("farEndName") != null && fe.prop("farEndName").value()!=null ? fe.prop("farEndName").value().toString() : null;
+                    String fe_comment = fe != null && fe.hasProp("comments") && fe.prop("comments") != null && fe.prop("comments").value()!=null ? fe.prop("comments").value().toString() : null;
+                    String fe_survey_date = fe != null && fe.hasProp("surveyDate") && fe.prop("surveyDate") != null && fe.prop("surveyDate").value()!=null ? (fe.prop("surveyDate").value().toString()) : null;
                     Date fe_formated_survey_date = fe_survey_date != null ? formatter.parse(fe_survey_date) : null;
                     Calendar fe_cal_survey_date = Calendar.getInstance();
                     if (fe_formated_survey_date != null){
@@ -205,23 +205,23 @@ public class CreateCandidate implements JavaDelegate {
                         fe_cal_survey_date.add(Calendar.HOUR_OF_DAY, 6);
                     }
 
-                    String fe_legal_name = fe != null && fe.hasProp("renterCompany") && fe.prop("renterCompany").hasProp("legalName") ? fe.prop("renterCompany").prop("legalName").value().toString() : null;
-                    String fe_legal_address = fe != null && fe.hasProp("renterCompany") && fe.prop("renterCompany").hasProp("fe_legal_address") ? fe.prop("renterCompany").prop("fe_legal_address").value().toString() : null;
-                    String fe_phone_fax = fe != null && fe.hasProp("renterCompany") && fe.prop("renterCompany").hasProp("telFax") ? fe.prop("renterCompany").prop("telFax").value().toString() : null;
-                    String fe_leader_name = fe != null && fe.hasProp("renterCompany") && fe.prop("renterCompany").hasProp("firstLeaderName") ? fe.prop("renterCompany").prop("firstLeaderName").value().toString() : null;
-                    String fe_leader_position = fe != null && fe.hasProp("renterCompany") && fe.prop("renterCompany").hasProp("firstLeaderPosition") ? fe.prop("renterCompany").prop("firstLeaderPosition").value().toString() : null;
-                    String fe_email = fe != null && fe.hasProp("renterCompany") && fe.prop("renterCompany").hasProp("email") ? fe.prop("renterCompany").prop("email").value().toString() : null;
-                    String fe_contact_name = fe != null && fe.hasProp("renterCompany") && fe.prop("renterCompany").hasProp("name") ? fe.prop("renterCompany").prop("name").value().toString() : null;
-                    String fe_contact_position = fe != null && fe.hasProp("renterCompany") && fe.prop("renterCompany").hasProp("position") ? fe.prop("renterCompany").prop("position").value().toString() : null;
-                    String fe_contact_information = fe != null && fe.hasProp("renterCompany") && fe.prop("renterCompany").hasProp("contactInformation") ? fe.prop("renterCompany").prop("contactInformation").value().toString() : null;
-                    String fe_name = fe != null && fe.hasProp("farEndName") ? fe.prop("farEndName").value().toString() : null;
-                    String fe_square = fe != null && fe.hasProp("square") ? fe.prop("square").value().toString() : null;
-                    String fe_antennas_quantity = fe != null && fe.hasProp("antennasQuantity") ? fe.prop("antennasQuantity").value().toString() : null;
-                    String fe_weight = fe != null && fe.hasProp("weight") ? fe.prop("weight").value().toString() : null;
-                    String fe_suspension_height = fe != null && fe.hasProp("suspensionHeight") && fe.prop("suspensionHeight") != null ? fe.prop("suspensionHeight").value().toString() : null;
-                    String fe_comments = fe != null && fe.hasProp("comments") && fe.prop("comments") != null ? fe.prop("comments").value().toString() : null;
-                    String fe_results_visit_objects = fe != null && fe.hasProp("resultsOfVisit") && fe.prop("resultsOfVisit") != null ? fe.prop("resultsOfVisit").value().toString() : null;
-                    String fe_equipment_type = fe != null && fe.hasProp("equipmentType") && fe.prop("equipmentType").value() != null  ? fe.prop("equipmentType").value().toString() : null;
+                    String fe_legal_name = fe != null && fe.hasProp("renterCompany") && fe.prop("renterCompany").hasProp("legalName") && fe.prop("renterCompany").prop("legalName").value()!=null ? fe.prop("renterCompany").prop("legalName").value().toString() : null;
+                    String fe_legal_address = fe != null && fe.hasProp("renterCompany") && fe.prop("renterCompany").hasProp("fe_legal_address") && fe.prop("renterCompany").prop("fe_legal_address").value()!=null ? fe.prop("renterCompany").prop("fe_legal_address").value().toString() : null;
+                    String fe_phone_fax = fe != null && fe.hasProp("renterCompany") && fe.prop("renterCompany").hasProp("telFax") && fe.prop("renterCompany").prop("telFax").value()!=null ? fe.prop("renterCompany").prop("telFax").value().toString() : null;
+                    String fe_leader_name = fe != null && fe.hasProp("renterCompany") && fe.prop("renterCompany").hasProp("firstLeaderName") && fe.prop("renterCompany").prop("firstLeaderName").value()!=null ? fe.prop("renterCompany").prop("firstLeaderName").value().toString() : null;
+                    String fe_leader_position = fe != null && fe.hasProp("renterCompany") && fe.prop("renterCompany").hasProp("firstLeaderPosition") && fe.prop("renterCompany").prop("firstLeaderPosition").value()!=null ? fe.prop("renterCompany").prop("firstLeaderPosition").value().toString() : null;
+                    String fe_email = fe != null && fe.hasProp("renterCompany") && fe.prop("renterCompany").hasProp("email") && fe.prop("renterCompany").prop("email").value()!=null ? fe.prop("renterCompany").prop("email").value().toString() : null;
+                    String fe_contact_name = fe != null && fe.hasProp("renterCompany") && fe.prop("renterCompany").hasProp("name") && fe.prop("renterCompany").prop("name").value()!=null ? fe.prop("renterCompany").prop("name").value().toString() : null;
+                    String fe_contact_position = fe != null && fe.hasProp("renterCompany") && fe.prop("renterCompany").hasProp("position") && fe.prop("renterCompany").prop("position").value()!=null ? fe.prop("renterCompany").prop("position").value().toString() : null;
+                    String fe_contact_information = fe != null && fe.hasProp("renterCompany") && fe.prop("renterCompany").hasProp("contactInformation") && fe.prop("renterCompany").prop("contactInformation").value()!=null? fe.prop("renterCompany").prop("contactInformation").value().toString() : null;
+                    String fe_name = fe != null && fe.hasProp("farEndName") && fe.prop("farEndName").value()!=null ? fe.prop("farEndName").value().toString() : null;
+                    String fe_square = fe != null && fe.hasProp("square") && fe.prop("square").value()!=null? fe.prop("square").value().toString() : null;
+                    String fe_antennas_quantity = fe != null && fe.hasProp("antennasQuantity") && fe.prop("antennasQuantity").value()!=null ? fe.prop("antennasQuantity").value().toString() : null;
+                    String fe_weight = fe != null && fe.hasProp("weight") && fe.prop("weight").value()!=null ? fe.prop("weight").value().toString() : null;
+                    String fe_suspension_height = fe != null && fe.hasProp("suspensionHeight") && fe.prop("suspensionHeight") != null && fe.prop("suspensionHeight").value()!=null ? fe.prop("suspensionHeight").value().toString() : null;
+                    String fe_comments = fe != null && fe.hasProp("comments") && fe.prop("comments") != null && fe.prop("comments").value()!=null ? fe.prop("comments").value().toString() : null;
+                    String fe_results_visit_objects = fe != null && fe.hasProp("resultsOfVisit") && fe.prop("resultsOfVisit") != null && fe.prop("resultsOfVisit").value()!=null ? fe.prop("resultsOfVisit").value().toString() : null;
+                    String fe_equipment_type = fe != null && fe.hasProp("equipmentType") && fe.prop("equipmentType").value() != null && fe.prop("equipmentType").value()!=null  ? fe.prop("equipmentType").value().toString() : null;
 
                     String SelectArtefactBySite = "select * from ARTEFACT where SITENAME = ?";
                     PreparedStatement selectArtefactBySitePreparedStatement = udbConnect.prepareStatement(SelectArtefactBySite);
@@ -239,26 +239,26 @@ public class CreateCandidate implements JavaDelegate {
 
 
                     String fe_address = fe != null ? ("" +
-                        (fe.hasProp("address") && fe.prop("address").hasProp("cn_addr_oblast") ? fe.prop("address").prop("cn_addr_oblast").value().toString() : "") +
-                        (fe.hasProp("address") && fe.prop("address").hasProp("cn_addr_district") && fe.prop("address").prop("cn_addr_district") != null ? ", " + fe.prop("address").prop("cn_addr_district").value().toString() : "") +
-                        (fe.hasProp("address") && fe.prop("address").hasProp("cn_addr_city") && fe.prop("address").prop("cn_addr_city") != null ? ", " + fe.prop("address").prop("cn_addr_city").value().toString() : "") +
-                        (fe.hasProp("address") && fe.prop("address").hasProp("cn_addr_street") && fe.prop("address").prop("cn_addr_street") != null ? ", " + fe.prop("address").prop("cn_addr_street").value().toString() : "") +
-                        (fe.hasProp("address") && fe.prop("address").hasProp("cn_addr_building") && fe.prop("address").prop("cn_addr_building") != null ? ", " + fe.prop("address").prop("cn_addr_building").value().toString() : "") +
-                        (fe.hasProp("address") && fe.prop("address").hasProp("cn_addr_cadastral_number") && fe.prop("address").prop("cn_addr_cadastral_number") != null ? ", " + fe.prop("address").prop("cn_addr_cadastral_number").value().toString() : "") +
-                        (fe.hasProp("address") && fe.prop("address").hasProp("cn_addr_note") && fe.prop("address").prop("cn_addr_note") != null ? ", " + fe.prop("address").prop("cn_addr_note").value().toString() : "")) : null;
+                        (fe.hasProp("address") && fe.prop("address").hasProp("cn_addr_oblast") && fe.prop("address").prop("cn_addr_oblast").value()!=null ? fe.prop("address").prop("cn_addr_oblast").value().toString() : "") +
+                        (fe.hasProp("address") && fe.prop("address").hasProp("cn_addr_district") && fe.prop("address").prop("cn_addr_district") != null && fe.prop("address").prop("cn_addr_district").value()!=null ? ", " + fe.prop("address").prop("cn_addr_district").value().toString() : "") +
+                        (fe.hasProp("address") && fe.prop("address").hasProp("cn_addr_city") && fe.prop("address").prop("cn_addr_city") != null && fe.prop("address").prop("cn_addr_city").value()!=null ? ", " + fe.prop("address").prop("cn_addr_city").value().toString() : "") +
+                        (fe.hasProp("address") && fe.prop("address").hasProp("cn_addr_street") && fe.prop("address").prop("cn_addr_street") != null && fe.prop("address").prop("cn_addr_street").value()!=null ? ", " + fe.prop("address").prop("cn_addr_street").value().toString() : "") +
+                        (fe.hasProp("address") && fe.prop("address").hasProp("cn_addr_building") && fe.prop("address").prop("cn_addr_building") != null && fe.prop("address").prop("cn_addr_building").value()!=null ? ", " + fe.prop("address").prop("cn_addr_building").value().toString() : "") +
+                        (fe.hasProp("address") && fe.prop("address").hasProp("cn_addr_cadastral_number") && fe.prop("address").prop("cn_addr_cadastral_number") != null && fe.prop("address").prop("cn_addr_cadastral_number").value()!=null ? ", " + fe.prop("address").prop("cn_addr_cadastral_number").value().toString() : "") +
+                        (fe.hasProp("address") && fe.prop("address").hasProp("cn_addr_note") && fe.prop("address").prop("cn_addr_note") != null && fe.prop("address").prop("cn_addr_note").value()!=null ? ", " + fe.prop("address").prop("cn_addr_note").value().toString() : "")) : null;
 
                     SpinJsonNode renterCompany = delegateExecution.getVariable("renterCompany") != null ? JSON(delegateExecution.getVariable("renterCompany")) : null;
-                    String cn_legal_name = renterCompany != null && renterCompany.hasProp("legalName") && renterCompany.prop("legalName") != null ? (renterCompany.prop("legalName").value().toString()) : null;
-                    String cn_phone_fax = renterCompany != null && renterCompany.hasProp("telFax") && renterCompany.prop("telFax") != null ? (renterCompany.prop("telFax").value().toString()) : null;
-                    String cn_legal_address = renterCompany != null && renterCompany.hasProp("legalAddress") && renterCompany.prop("legalAddress") != null ? (renterCompany.prop("legalAddress").value().toString()) : null;
-                    String cn_leader_name = renterCompany != null && renterCompany.hasProp("firstLeaderName") && renterCompany.prop("firstLeaderName") != null ? (renterCompany.prop("firstLeaderName").value().toString()) : null;
-                    String cn_leader_position = renterCompany != null && renterCompany.hasProp("firstLeaderPos") && renterCompany.prop("firstLeaderPos") != null ? (renterCompany.prop("firstLeaderPos").value().toString()) : null;
-                    String cn_email = renterCompany != null && renterCompany.hasProp("email") && renterCompany.prop("email") != null ? (renterCompany.prop("email").value().toString()) : null;
-                    String cn_contact_name = renterCompany != null && renterCompany.hasProp("contactName") && renterCompany.prop("contactName") != null ? (renterCompany.prop("contactName").value().toString()) : "" +
-                        " " + renterCompany != null && renterCompany.hasProp("contactLastName") && renterCompany.prop("contactLastName") != null ? (renterCompany.prop("contactLastName").value().toString()) : ""
+                    String cn_legal_name = renterCompany != null && renterCompany.hasProp("legalName") && renterCompany.prop("legalName") != null && renterCompany.prop("legalName").value()!=null ? (renterCompany.prop("legalName").value().toString()) : null;
+                    String cn_phone_fax = renterCompany != null && renterCompany.hasProp("telFax") && renterCompany.prop("telFax") != null && renterCompany.prop("telFax").value()!=null ? (renterCompany.prop("telFax").value().toString()) : null;
+                    String cn_legal_address = renterCompany != null && renterCompany.hasProp("legalAddress") && renterCompany.prop("legalAddress") != null && renterCompany.prop("legalAddress").value()!=null ? (renterCompany.prop("legalAddress").value().toString()) : null;
+                    String cn_leader_name = renterCompany != null && renterCompany.hasProp("firstLeaderName") && renterCompany.prop("firstLeaderName") != null && renterCompany.prop("firstLeaderName").value()!=null ? (renterCompany.prop("firstLeaderName").value().toString()) : null;
+                    String cn_leader_position = renterCompany != null && renterCompany.hasProp("firstLeaderPos") && renterCompany.prop("firstLeaderPos") != null && renterCompany.prop("firstLeaderPos").value()!=null ? (renterCompany.prop("firstLeaderPos").value().toString()) : null;
+                    String cn_email = renterCompany != null && renterCompany.hasProp("email") && renterCompany.prop("email") != null && renterCompany.prop("email").value()!=null ? (renterCompany.prop("email").value().toString()) : null;
+                    String cn_contact_name = renterCompany != null && renterCompany.hasProp("contactName") && renterCompany.prop("contactName") != null && renterCompany.prop("contactName").value()!=null ? (renterCompany.prop("contactName").value().toString()) : "" +
+                        " " + renterCompany != null && renterCompany.hasProp("contactLastName") && renterCompany.prop("contactLastName") != null && renterCompany.prop("contactLastName").value()!=null ? (renterCompany.prop("contactLastName").value().toString()) : ""
                         ;
-                    String cn_contact_position = renterCompany != null && renterCompany.hasProp("contactPosition") && renterCompany.prop("contactPosition") != null ? (renterCompany.prop("contactPosition").value().toString()) : null;
-                    String cn_contact_information = renterCompany != null && renterCompany.hasProp("contactInfo") && renterCompany.prop("contactInfo") != null ? (renterCompany.prop("contactInfo").value().toString()) : null;
+                    String cn_contact_position = renterCompany != null && renterCompany.hasProp("contactPosition") && renterCompany.prop("contactPosition") != null && renterCompany.prop("contactPosition").value()!=null ? (renterCompany.prop("contactPosition").value().toString()) : null;
+                    String cn_contact_information = renterCompany != null && renterCompany.hasProp("contactInfo") && renterCompany.prop("contactInfo") != null && renterCompany.prop("contactInfo").value()!=null ? (renterCompany.prop("contactInfo").value().toString()) : null;
 
                     String contact_person = renterCompany != null ? ("" + (renterCompany.hasProp("contactName") && !renterCompany.prop("contactName").equals(null) ? renterCompany.prop("contactName").value().toString() : "") +
                         " " + (renterCompany.hasProp("contactPosition") && !renterCompany.prop("contactPosition").equals(null) ? renterCompany.prop("contactPosition").value().toString() : "") +
@@ -274,7 +274,7 @@ public class CreateCandidate implements JavaDelegate {
                         (address.hasProp("cn_addr_cadastral_number") && address.prop("cn_addr_cadastral_number") != null ? ", " + address.prop("cn_addr_cadastral_number").value().toString() : "") +
                         (address.hasProp("cn_addr_note") && address.prop("cn_addr_note") != null ? ", " + address.prop("cn_addr_note").value().toString() : "")) : null;
 
-                    String cn_bsc = candidate != null ? (candidate.hasProp("bsc") ? (candidate.prop("bsc").hasProp("id") ? candidate.prop("bsc").prop("id").value().toString() : null) : null) : null;
+                    String cn_bsc = candidate != null ? (candidate.hasProp("bsc") ? (candidate.prop("bsc").hasProp("id") && candidate.prop("bsc").prop("id").value()!=null ? candidate.prop("bsc").prop("id").value().toString() : null) : null) : null;
                     String trType = candidate != null ? (candidate.hasProp("transmissionType") ? candidate.prop("transmissionType").value().toString() : null) : null;
                     Integer cn_bscInt = cn_bsc != null ? Integer.parseInt(cn_bsc) : null;
 
