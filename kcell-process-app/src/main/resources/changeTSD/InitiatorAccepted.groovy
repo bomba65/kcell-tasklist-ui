@@ -2,10 +2,20 @@ import groovy.json.JsonSlurper
 import groovy.text.markup.MarkupTemplateEngine
 import groovy.text.markup.TemplateConfiguration
 import java.text.SimpleDateFormat
+import org.springframework.core.io.ClassPathResource
 
 def processName = execution.getProcessEngineServices().getRepositoryService().getProcessDefinition(execution.getProcessDefinitionId()).getName()
 def procInst = execution.getProcessEngineServices().getHistoryService().createHistoricProcessInstanceQuery().processInstanceId(execution.getProcessInstanceId()).singleResult();
 def format = new SimpleDateFormat("dd.MM.yyyy HH:mm");
+
+
+def properties = new Properties()
+properties.load(new ClassPathResource('application.properties').inputStream);
+
+def link =  properties.'asset.url'
+
+def newTsdId = execution.getVariable("newTsdId")
+link = link + "/kcell-tasklist-ui/#/assets/tsd/" + newTsdId
 
 
 def startTime = Calendar.getInstance();
@@ -20,6 +30,7 @@ def assignTime = Calendar.getInstance();
 assignTime.add(Calendar.HOUR, 6);
 
 def binding = ["processName": processName,
+               "link": link,
                "businessKey": execution.processBusinessKey,
                "starter": starter,
                "startTime": format.format(startTime.getTime()),
@@ -78,6 +89,11 @@ html(lang:'en') {
                }
             }
          }
+        newLine()
+        p {
+            yield 'Для просмотра заявки Вам необходимо пройти по следующей ссылке: '
+            a(href: link, link)
+        }
         newLine()
         hr()
         p {
