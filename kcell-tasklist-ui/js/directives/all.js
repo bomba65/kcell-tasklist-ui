@@ -811,7 +811,7 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                         }
                     });
                 }
-                $http.get('/api/leasingCatalogs').then(
+                $http.get('/api/leasingCatalogs?version=3').then(
                     function (result) {
                         try{
                         angular.extend(scope.dictionary, result.data);
