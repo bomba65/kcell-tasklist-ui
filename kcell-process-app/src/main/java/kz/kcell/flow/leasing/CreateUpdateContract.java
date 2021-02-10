@@ -155,13 +155,13 @@ public class CreateUpdateContract implements JavaDelegate {
                             Number ct_bank_id = 0;
                             Number ct_legal_type = 0;
 
-                            String ci_address = "" + (ci.prop("address").hasProp("cn_addr_oblast") ? ci.prop("address").prop("cn_addr_oblast").stringValue() : "") +
-                                (ci.prop("address").hasProp("cn_addr_district") ? ", " + ci.prop("address").prop("cn_addr_district").stringValue() : "") +
-                                (ci.prop("address").hasProp("cn_addr_city") ? ", " + ci.prop("address").prop("cn_addr_city").stringValue() : "") +
-                                (ci.prop("address").hasProp("cn_addr_street") ? ", " + ci.prop("address").prop("cn_addr_street").stringValue() : "") +
-                                (ci.prop("address").hasProp("cn_addr_building") ? ", " + ci.prop("address").prop("cn_addr_building").stringValue() : "") +
-                                (ci.prop("address").hasProp("cn_addr_cadastral_number") ? ", " + ci.prop("address").prop("cn_addr_cadastral_number").stringValue() : "") +
-                                (ci.prop("address").hasProp("cn_addr_note") ? ", " + ci.prop("address").prop("cn_addr_note").stringValue() : "");
+                            String ci_address = "" + (ci.prop("address").hasProp("cn_addr_oblast") ? ci.prop("address").prop("cn_addr_oblast").value().toString() : "") +
+                                (ci.prop("address").hasProp("cn_addr_district") && ci.prop("address").prop("cn_addr_district").value() != null ? ", " + ci.prop("address").prop("cn_addr_district").value().toString() : "") +
+                                (ci.prop("address").hasProp("cn_addr_city") ? ", " + ci.prop("address").prop("cn_addr_city").value().toString() : "") +
+                                (ci.prop("address").hasProp("cn_addr_street") ? ", " + ci.prop("address").prop("cn_addr_street").value().toString() : "") +
+                                (ci.prop("address").hasProp("cn_addr_building") ? ", " + ci.prop("address").prop("cn_addr_building").value().toString() : "") +
+                                (ci.prop("address").hasProp("cn_addr_cadastral_number") ? ", " + ci.prop("address").prop("cn_addr_cadastral_number").value().toString() : "") +
+                                (ci.prop("address").hasProp("cn_addr_note") ? ", " + ci.prop("address").prop("cn_addr_note").value().toString() : "");
 
                             String ct_contact_person = ci.hasProp("ct_contact_person") ? ci.prop("ct_contact_person").stringValue() : ""; // notReq
                             String ct_contact_phone = ci.prop("ct_contact_phone").stringValue();
@@ -207,7 +207,7 @@ public class CreateUpdateContract implements JavaDelegate {
 //                                if (ci.prop("legalType").hasProp("udbid")) {
 //                                    log.info("legalType has prop udbid");
 //                                    log.info(ci.prop("legalType").prop("udbid").value().toString());
-//                                    legalType = Integer.parseInt(ci.prop("legalType").prop("udbid").stringValue());
+//                                    legalType = Integer.parseInt(ci.prop("legalType").prop("udbid").value().toString());
 //                                }
 //                            }
 
