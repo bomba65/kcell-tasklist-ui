@@ -3342,6 +3342,7 @@ return module.controller('mainCtrl', ['$scope', '$rootScope', 'toasty', 'Authent
                 $scope.sitenameMap = {};
                 $scope.siteTypeMap = {};
                 $scope.projectMap = {};
+                $scope.reasonMap = {};
                 $scope.generalStatusUpdatedDateMap = {};
 
                 $scope.generalStatuses = [
@@ -3800,6 +3801,16 @@ return module.controller('mainCtrl', ['$scope', '$rootScope', 'toasty', 'Authent
                         }).then(function (response) {
                             $scope.generalStatusUpdatedDateMap = _.mapValues(_.keyBy(response.data, 'processInstanceId'), 'value');
                         });
+
+                        $http.post($scope.baseUrl + '/history/variable-instance?deserializeValues=false', {
+                            processInstanceIdIn: procInstIdArray,
+                            variableName: 'reason'
+                        }).then(function (response) {
+                            $scope.reasonMap = _.mapValues(_.keyBy(response.data, 'processInstanceId'), function(p){
+                                return p.value ? JSON.parse(p.value).reason : '';
+                            });
+                        });
+                        
 
                         var activeProcInstIdArray = [];
                         $scope.processIntancesList.forEach(p => {
