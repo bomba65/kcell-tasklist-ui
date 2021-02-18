@@ -935,9 +935,9 @@ public class CreateCandidate implements JavaDelegate {
                         newArtefactExtTSDPreparedStatement.setFloat(i++, Float.parseFloat(fe_diameter)); // FE_ANTENNADIAMETER
                     }
                     if (fe_suspensionHeight != null) {
-                        Integer fe_suspensionHeightInt = Integer.parseInt(fe_suspensionHeight);
+                        Float fe_suspensionHeightInt = Float.parseFloat(fe_suspensionHeight);
                         if (fe_suspensionHeightInt != null  && trType != "Provider" && trType != "Satellite") {
-                            newArtefactExtTSDPreparedStatement.setLong(i++, fe_suspensionHeightInt); // FE_SUSPENSIONHEIGHT
+                            newArtefactExtTSDPreparedStatement.setFloat(i++, fe_suspensionHeightInt); // FE_SUSPENSIONHEIGHT
                         } else {
                             newArtefactExtTSDPreparedStatement.setNull(i++, Types.BIGINT);
                         }
