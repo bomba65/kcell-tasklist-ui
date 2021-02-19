@@ -1237,9 +1237,9 @@ public class CreateCandidate implements JavaDelegate {
                     }
 
                     if (fe_suspension_height != null) {
-                        ARTEFACT_RR_TR_PreparedStatement.setLong(i++, Integer.parseInt(fe_suspension_height)); // SUSPENSION_HEIGHT
+                        ARTEFACT_RR_TR_PreparedStatement.setFloat(i++, Float.parseFloat(fe_suspension_height)); // SUSPENSION_HEIGHT
                     } else {
-                        ARTEFACT_RR_TR_PreparedStatement.setNull(i++, Types.INTEGER);
+                        ARTEFACT_RR_TR_PreparedStatement.setNull(i++, Types.BIGINT);
                     }
 
                     if (fe_azimuth != null) {
@@ -1338,9 +1338,9 @@ public class CreateCandidate implements JavaDelegate {
                     }
 
                     if (fe_suspension_height != null) {
-                        ARTEFACT_RR_TR_ANTENNA_PreparedStatement.setLong(i++, Integer.parseInt(fe_suspension_height)); // SUSPENSION_HEIGHT
+                        ARTEFACT_RR_TR_ANTENNA_PreparedStatement.setFloat(i++, Float.parseFloat(fe_suspension_height)); // SUSPENSION_HEIGHT
                     } else {
-                        ARTEFACT_RR_TR_ANTENNA_PreparedStatement.setNull(i++, Types.INTEGER);
+                        ARTEFACT_RR_TR_ANTENNA_PreparedStatement.setNull(i++, Types.FLOAT);
                     }
 
                     if (fe_azimuth != null) {
