@@ -152,20 +152,20 @@ public class CreateCandidate implements JavaDelegate {
                     String res_10kv = powerSource != null && powerSource.hasProp("closestPublic10") && powerSource.prop("closestPublic10").value() != null ? (powerSource.prop("closestPublic10").value().toString()) : null;
 
                     SpinJsonNode candidate = delegateExecution.getVariable("candidate") != null ? JSON(delegateExecution.getVariable("candidate")) : null;
-                    String cn_longitude = candidate != null && candidate.hasProp("longitude") && candidate.prop("longitude") != null && candidate.prop("longitude").value()!=null ? (candidate.prop("longitude").value().toString()) : null;
-                    String cn_latitude = candidate != null && candidate.hasProp("latitude") && candidate.prop("latitude") != null && candidate.prop("latitude").value()!=null ? (candidate.prop("latitude").value().toString()) : null;
-                    String cn_siteName = candidate != null && candidate.hasProp("siteName") && candidate.prop("siteName") != null && candidate.prop("siteName").value()!=null ? (candidate.prop("siteName").value().toString()) : null;
-                    String cn_comments = candidate != null ? (candidate.hasProp("comments") && candidate.prop("comments") != null && candidate.prop("comments").value()!=null ? candidate.prop("comments").value().toString() : null) : null;
+                    String cn_longitude = candidate != null && candidate.hasProp("longitude") && candidate.prop("longitude") != null && candidate.prop("longitude").value() != null ? (candidate.prop("longitude").value().toString()) : null;
+                    String cn_latitude = candidate != null && candidate.hasProp("latitude") && candidate.prop("latitude") != null && candidate.prop("latitude").value() != null ? (candidate.prop("latitude").value().toString()) : null;
+                    String cn_siteName = candidate != null && candidate.hasProp("siteName") && candidate.prop("siteName") != null && candidate.prop("siteName").value() != null ? (candidate.prop("siteName").value().toString()) : null;
+                    String cn_comments = candidate != null ? (candidate.hasProp("comments") && candidate.prop("comments") != null && candidate.prop("comments").value() != null ? candidate.prop("comments").value().toString() : null) : null;
                     Number cn_square = candidate != null && candidate.hasProp("square") && candidate.prop("square") != null ? (candidate.prop("square").numberValue()) : null;
-                    String cn_rbs_location = candidate != null && candidate.hasProp("rbsLocation") && candidate.prop("rbsLocation") != null && candidate.prop("rbsLocation").hasProp("id") && candidate.prop("rbsLocation").prop("id") != null && candidate.prop("rbsLocation").prop("id").value()!=null ? (candidate.prop("rbsLocation").prop("id").value().toString()) : null;
-                    String cn_constructionType = candidate != null ? (candidate.hasProp("constructionType") && candidate.prop("constructionType").hasProp("id") && candidate.prop("constructionType").prop("id").value()!=null ? candidate.prop("constructionType").prop("id").value().toString() : "0") : null;
+                    String cn_rbs_location = candidate != null && candidate.hasProp("rbsLocation") && candidate.prop("rbsLocation") != null && candidate.prop("rbsLocation").hasProp("id") && candidate.prop("rbsLocation").prop("id") != null && candidate.prop("rbsLocation").prop("id").value() != null ? (candidate.prop("rbsLocation").prop("id").value().toString()) : null;
+                    String cn_constructionType = candidate != null ? (candidate.hasProp("constructionType") && candidate.prop("constructionType").hasProp("id") && candidate.prop("constructionType").prop("id").value() != null ? candidate.prop("constructionType").prop("id").value().toString() : "0") : null;
 
-                    String cn_assigned_user = candidate != null ? (candidate.hasProp("assignedUser") && candidate.prop("assignedUser")!=null && candidate.prop("assignedUser").value()!=null ? candidate.prop("assignedUser").value().toString() : "") : null;
+                    String cn_assigned_user = candidate != null ? (candidate.hasProp("assignedUser") && candidate.prop("assignedUser") != null && candidate.prop("assignedUser").value() != null ? candidate.prop("assignedUser").value().toString() : "") : null;
 
-                    Number cn_height_constr = (candidate != null && candidate.hasProp("cn_height_constr") && candidate.prop("cn_height_constr") != null) && candidate.prop("cn_height_constr").value()!=null ? Integer.parseInt(candidate.prop("cn_height_constr").value().toString()) : 0;
-                    Number cn_altitude = candidate != null && candidate.hasProp("cn_altitude") && candidate.prop("cn_altitude") != null && candidate.prop("cn_altitude").value()!=null ? Integer.parseInt(candidate.prop("cn_altitude").value().toString()) : 0;
+                    Number cn_height_constr = (candidate != null && candidate.hasProp("cn_height_constr") && candidate.prop("cn_height_constr") != null) && candidate.prop("cn_height_constr").value() != null ? Integer.parseInt(candidate.prop("cn_height_constr").value().toString()) : 0;
+                    Number cn_altitude = candidate != null && candidate.hasProp("cn_altitude") && candidate.prop("cn_altitude") != null && candidate.prop("cn_altitude").value() != null ? Integer.parseInt(candidate.prop("cn_altitude").value().toString()) : 0;
                     SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXX"); //2020-01-02T18:00:00.000Z
-                    String cn_date_of_visit = candidate != null && candidate.hasProp("dateOfVisit") && candidate.prop("dateOfVisit") != null && candidate.prop("dateOfVisit").value()!=null ? (candidate.prop("dateOfVisit").value().toString()) : null;
+                    String cn_date_of_visit = candidate != null && candidate.hasProp("dateOfVisit") && candidate.prop("dateOfVisit") != null && candidate.prop("dateOfVisit").value() != null ? (candidate.prop("dateOfVisit").value().toString()) : null;
                     Date date_of_visit_date = cn_date_of_visit != null ? formatter.parse(cn_date_of_visit) : null;
                     Calendar date_of_visit = Calendar.getInstance();
                     date_of_visit.setTime(date_of_visit_date);
@@ -174,54 +174,54 @@ public class CreateCandidate implements JavaDelegate {
 
                     //{"antennaType":"ML 0.6","diameter":"0.6","weight":"14","antennaQuantity":1,"frequencyBand":"8GHz","suspensionHeight":12,"azimuth":"123"}
                     SpinJsonNode ne = delegateExecution.getVariable("transmissionAntenna") != null ? JSON(delegateExecution.getVariable("transmissionAntenna")) : null;
-                    String ne_azimuth = ne != null ? (ne.hasProp("azimuth") && ne.prop("azimuth").value()!=null ? ne.prop("azimuth").value().toString() : "0") : null;
-                    String ne_diameter = ne != null ? (ne.hasProp("diameter") && ne.prop("diameter").value()!=null ? ne.prop("diameter").value().toString().replaceAll("[^(\\d.\\d)]", "") : "0") : null;
-                    String ne_frequencyBand = ne != null && ne.hasProp("frequencyBand") && ne.prop("frequencyBand").value()!=null ? ne.prop("frequencyBand").value().toString().replaceAll("[^0-9.]", "") : null;
+                    String ne_azimuth = ne != null ? (ne.hasProp("azimuth") && ne.prop("azimuth").value() != null ? ne.prop("azimuth").value().toString() : "0") : null;
+                    String ne_diameter = ne != null ? (ne.hasProp("diameter") && ne.prop("diameter").value() != null ? ne.prop("diameter").value().toString().replaceAll("[^(\\d.\\d)]", "") : "0") : null;
+                    String ne_frequencyBand = ne != null && ne.hasProp("frequencyBand") && ne.prop("frequencyBand").value() != null ? ne.prop("frequencyBand").value().toString().replaceAll("[^0-9.]", "") : null;
                     Number ne_suspensionHeight = ne != null && ne.hasProp("suspensionHeight") ? (ne.prop("suspensionHeight").numberValue()) : null;
-                    String ne_longitude = ne != null && ne.hasProp("address") && ne.prop("address").hasProp("longitude") && ne.prop("address").prop("longitude").value()!=null ? (ne.prop("address").prop("longitude").value().toString()) : cn_longitude != null ? cn_longitude : null;
-                    String ne_latitude = ne != null && ne.hasProp("address") && ne.prop("address").hasProp("latitude") && ne.prop("address").prop("latitude").value()!=null ? (ne.prop("address").prop("latitude").value().toString()) : cn_latitude != null ? cn_latitude : null;
+                    String ne_longitude = ne != null && ne.hasProp("address") && ne.prop("address").hasProp("longitude") && ne.prop("address").prop("longitude").value() != null ? (ne.prop("address").prop("longitude").value().toString()) : cn_longitude != null ? cn_longitude : null;
+                    String ne_latitude = ne != null && ne.hasProp("address") && ne.prop("address").hasProp("latitude") && ne.prop("address").prop("latitude").value() != null ? (ne.prop("address").prop("latitude").value().toString()) : cn_latitude != null ? cn_latitude : null;
 
 
 //                    farEndInformation
 
                     SpinJsonNode feJson = delegateExecution.getVariable("farEndInformation") != null ? JSON(delegateExecution.getVariable("farEndInformation")) : null;
                     SpinList farEnds = feJson != null ? feJson.elements() : null;
-                    SpinJsonNode fe = farEnds != null && farEnds.size()>0 ? (SpinJsonNode) farEnds.get(0) : null;
+                    SpinJsonNode fe = farEnds != null && farEnds.size() > 0 ? (SpinJsonNode) farEnds.get(0) : null;
 
                     Number fe_artefact_id = 0;
 
-                    String fe_azimuth = fe != null && fe.hasProp("azimuth") && fe.prop("azimuth").value()!=null ? (fe.prop("azimuth").value().toString()) : null;
-                    String fe_diameter = fe != null && fe.hasProp("diameter") && fe.prop("diameter").value()!=null ? (fe.prop("diameter").value().toString().replaceAll("[^(\\d.\\d)]", "")) : null;
-                    String fe_frequencyBand = fe != null && fe.hasProp("frequencyBand") && fe.prop("frequencyBand").value()!=null ? fe.prop("frequencyBand").value().toString().replaceAll("[^0-9.]", "") : null;
-                    String fe_suspensionHeight = fe != null && fe.hasProp("suspensionHeight") && fe.prop("suspensionHeight") != null && fe.prop("suspensionHeight").value()!=null ? fe.prop("suspensionHeight").value().toString() : null;
-                    String fe_constructionType = fe != null && fe.hasProp("constructionType") && fe.prop("constructionType") != null ? (fe.prop("constructionType").hasProp("id") && fe.prop("constructionType").prop("id").value()!=null ? fe.prop("constructionType").prop("id").value().toString() : null) : null;
-                    String fe_sitename = fe != null && fe.hasProp("farEndName") && fe.prop("farEndName") != null && fe.prop("farEndName").value()!=null ? fe.prop("farEndName").value().toString() : null;
-                    String fe_comment = fe != null && fe.hasProp("comments") && fe.prop("comments") != null && fe.prop("comments").value()!=null ? fe.prop("comments").value().toString() : null;
-                    String fe_survey_date = fe != null && fe.hasProp("surveyDate") && fe.prop("surveyDate") != null && fe.prop("surveyDate").value()!=null ? (fe.prop("surveyDate").value().toString()) : null;
+                    String fe_azimuth = fe != null && fe.hasProp("azimuth") && fe.prop("azimuth").value() != null ? (fe.prop("azimuth").value().toString()) : null;
+                    String fe_diameter = fe != null && fe.hasProp("diameter") && fe.prop("diameter").value() != null ? (fe.prop("diameter").value().toString().replaceAll("[^(\\d.\\d)]", "")) : null;
+                    String fe_frequencyBand = fe != null && fe.hasProp("frequencyBand") && fe.prop("frequencyBand").value() != null ? fe.prop("frequencyBand").value().toString().replaceAll("[^0-9.]", "") : null;
+                    String fe_suspensionHeight = fe != null && fe.hasProp("suspensionHeight") && fe.prop("suspensionHeight") != null && fe.prop("suspensionHeight").value() != null ? fe.prop("suspensionHeight").value().toString() : null;
+                    String fe_constructionType = fe != null && fe.hasProp("constructionType") && fe.prop("constructionType") != null ? (fe.prop("constructionType").hasProp("id") && fe.prop("constructionType").prop("id").value() != null ? fe.prop("constructionType").prop("id").value().toString() : null) : null;
+                    String fe_sitename = fe != null && fe.hasProp("farEndName") && fe.prop("farEndName") != null && fe.prop("farEndName").value() != null ? fe.prop("farEndName").value().toString() : null;
+                    String fe_comment = fe != null && fe.hasProp("comments") && fe.prop("comments") != null && fe.prop("comments").value() != null ? fe.prop("comments").value().toString() : null;
+                    String fe_survey_date = fe != null && fe.hasProp("surveyDate") && fe.prop("surveyDate") != null && fe.prop("surveyDate").value() != null ? (fe.prop("surveyDate").value().toString()) : null;
                     Date fe_formated_survey_date = fe_survey_date != null ? formatter.parse(fe_survey_date) : null;
                     Calendar fe_cal_survey_date = Calendar.getInstance();
-                    if (fe_formated_survey_date != null){
+                    if (fe_formated_survey_date != null) {
                         fe_cal_survey_date.setTime(fe_formated_survey_date);
                         fe_cal_survey_date.add(Calendar.HOUR_OF_DAY, 6);
                     }
 
-                    String fe_legal_name = fe != null && fe.hasProp("renterCompany") && fe.prop("renterCompany").hasProp("legalName") && fe.prop("renterCompany").prop("legalName").value()!=null ? fe.prop("renterCompany").prop("legalName").value().toString() : null;
-                    String fe_legal_address = fe != null && fe.hasProp("renterCompany") && fe.prop("renterCompany").hasProp("fe_legal_address") && fe.prop("renterCompany").prop("fe_legal_address").value()!=null ? fe.prop("renterCompany").prop("fe_legal_address").value().toString() : null;
-                    String fe_phone_fax = fe != null && fe.hasProp("renterCompany") && fe.prop("renterCompany").hasProp("telFax") && fe.prop("renterCompany").prop("telFax").value()!=null ? fe.prop("renterCompany").prop("telFax").value().toString() : null;
-                    String fe_leader_name = fe != null && fe.hasProp("renterCompany") && fe.prop("renterCompany").hasProp("firstLeaderName") && fe.prop("renterCompany").prop("firstLeaderName").value()!=null ? fe.prop("renterCompany").prop("firstLeaderName").value().toString() : null;
-                    String fe_leader_position = fe != null && fe.hasProp("renterCompany") && fe.prop("renterCompany").hasProp("firstLeaderPosition") && fe.prop("renterCompany").prop("firstLeaderPosition").value()!=null ? fe.prop("renterCompany").prop("firstLeaderPosition").value().toString() : null;
-                    String fe_email = fe != null && fe.hasProp("renterCompany") && fe.prop("renterCompany").hasProp("email") && fe.prop("renterCompany").prop("email").value()!=null ? fe.prop("renterCompany").prop("email").value().toString() : null;
-                    String fe_contact_name = fe != null && fe.hasProp("renterCompany") && fe.prop("renterCompany").hasProp("name") && fe.prop("renterCompany").prop("name").value()!=null ? fe.prop("renterCompany").prop("name").value().toString() : null;
-                    String fe_contact_position = fe != null && fe.hasProp("renterCompany") && fe.prop("renterCompany").hasProp("position") && fe.prop("renterCompany").prop("position").value()!=null ? fe.prop("renterCompany").prop("position").value().toString() : null;
-                    String fe_contact_information = fe != null && fe.hasProp("renterCompany") && fe.prop("renterCompany").hasProp("contactInformation") && fe.prop("renterCompany").prop("contactInformation").value()!=null? fe.prop("renterCompany").prop("contactInformation").value().toString() : null;
-                    String fe_name = fe != null && fe.hasProp("farEndName") && fe.prop("farEndName").value()!=null ? fe.prop("farEndName").value().toString() : null;
-                    String fe_square = fe != null && fe.hasProp("square") && fe.prop("square").value()!=null? fe.prop("square").value().toString() : null;
-                    String fe_antennas_quantity = fe != null && fe.hasProp("antennasQuantity") && fe.prop("antennasQuantity").value()!=null ? fe.prop("antennasQuantity").value().toString() : null;
-                    String fe_weight = fe != null && fe.hasProp("weight") && fe.prop("weight").value()!=null ? fe.prop("weight").value().toString() : null;
-                    String fe_suspension_height = fe != null && fe.hasProp("suspensionHeight") && fe.prop("suspensionHeight") != null && fe.prop("suspensionHeight").value()!=null ? fe.prop("suspensionHeight").value().toString() : null;
-                    String fe_comments = fe != null && fe.hasProp("comments") && fe.prop("comments") != null && fe.prop("comments").value()!=null ? fe.prop("comments").value().toString() : null;
-                    String fe_results_visit_objects = fe != null && fe.hasProp("resultsOfVisit") && fe.prop("resultsOfVisit") != null && fe.prop("resultsOfVisit").value()!=null ? fe.prop("resultsOfVisit").value().toString() : null;
-                    String fe_equipment_type = fe != null && fe.hasProp("equipmentType") && fe.prop("equipmentType").value() != null && fe.prop("equipmentType").value()!=null  ? fe.prop("equipmentType").value().toString() : null;
+                    String fe_legal_name = fe != null && fe.hasProp("renterCompany") && fe.prop("renterCompany").hasProp("legalName") && fe.prop("renterCompany").prop("legalName").value() != null ? fe.prop("renterCompany").prop("legalName").value().toString() : null;
+                    String fe_legal_address = fe != null && fe.hasProp("renterCompany") && fe.prop("renterCompany").hasProp("fe_legal_address") && fe.prop("renterCompany").prop("fe_legal_address").value() != null ? fe.prop("renterCompany").prop("fe_legal_address").value().toString() : null;
+                    String fe_phone_fax = fe != null && fe.hasProp("renterCompany") && fe.prop("renterCompany").hasProp("telFax") && fe.prop("renterCompany").prop("telFax").value() != null ? fe.prop("renterCompany").prop("telFax").value().toString() : null;
+                    String fe_leader_name = fe != null && fe.hasProp("renterCompany") && fe.prop("renterCompany").hasProp("firstLeaderName") && fe.prop("renterCompany").prop("firstLeaderName").value() != null ? fe.prop("renterCompany").prop("firstLeaderName").value().toString() : null;
+                    String fe_leader_position = fe != null && fe.hasProp("renterCompany") && fe.prop("renterCompany").hasProp("firstLeaderPosition") && fe.prop("renterCompany").prop("firstLeaderPosition").value() != null ? fe.prop("renterCompany").prop("firstLeaderPosition").value().toString() : null;
+                    String fe_email = fe != null && fe.hasProp("renterCompany") && fe.prop("renterCompany").hasProp("email") && fe.prop("renterCompany").prop("email").value() != null ? fe.prop("renterCompany").prop("email").value().toString() : null;
+                    String fe_contact_name = fe != null && fe.hasProp("renterCompany") && fe.prop("renterCompany").hasProp("name") && fe.prop("renterCompany").prop("name").value() != null ? fe.prop("renterCompany").prop("name").value().toString() : null;
+                    String fe_contact_position = fe != null && fe.hasProp("renterCompany") && fe.prop("renterCompany").hasProp("position") && fe.prop("renterCompany").prop("position").value() != null ? fe.prop("renterCompany").prop("position").value().toString() : null;
+                    String fe_contact_information = fe != null && fe.hasProp("renterCompany") && fe.prop("renterCompany").hasProp("contactInformation") && fe.prop("renterCompany").prop("contactInformation").value() != null ? fe.prop("renterCompany").prop("contactInformation").value().toString() : null;
+                    String fe_name = fe != null && fe.hasProp("farEndName") && fe.prop("farEndName").value() != null ? fe.prop("farEndName").value().toString() : null;
+                    String fe_square = fe != null && fe.hasProp("square") && fe.prop("square").value() != null ? fe.prop("square").value().toString() : null;
+                    String fe_antennas_quantity = fe != null && fe.hasProp("antennasQuantity") && fe.prop("antennasQuantity").value() != null ? fe.prop("antennasQuantity").value().toString() : null;
+                    String fe_weight = fe != null && fe.hasProp("weight") && fe.prop("weight").value() != null ? fe.prop("weight").value().toString() : null;
+                    String fe_suspension_height = fe != null && fe.hasProp("suspensionHeight") && fe.prop("suspensionHeight") != null && fe.prop("suspensionHeight").value() != null ? fe.prop("suspensionHeight").value().toString() : null;
+                    String fe_comments = fe != null && fe.hasProp("comments") && fe.prop("comments") != null && fe.prop("comments").value() != null ? fe.prop("comments").value().toString() : null;
+                    String fe_results_visit_objects = fe != null && fe.hasProp("resultsOfVisit") && fe.prop("resultsOfVisit") != null && fe.prop("resultsOfVisit").value() != null ? fe.prop("resultsOfVisit").value().toString() : null;
+                    String fe_equipment_type = fe != null && fe.hasProp("equipmentType") && fe.prop("equipmentType").value() != null && fe.prop("equipmentType").value() != null ? fe.prop("equipmentType").value().toString() : null;
 
                     String SelectArtefactBySite = "select * from ARTEFACT where SITENAME = ?";
                     PreparedStatement selectArtefactBySitePreparedStatement = udbConnect.prepareStatement(SelectArtefactBySite);
@@ -231,7 +231,7 @@ public class CreateCandidate implements JavaDelegate {
                     selectArtefactBySitePreparedStatement.setString(i++, fe_sitename); // sitename
                     ResultSet resultSet = selectArtefactBySitePreparedStatement.executeQuery();
 
-                    if (resultSet.next() == false ) {
+                    if (resultSet.next() == false) {
                         log.info("not Found");
                     } else {
                         fe_artefact_id = resultSet.getInt("ARTEFACTID");
@@ -239,26 +239,25 @@ public class CreateCandidate implements JavaDelegate {
 
 
                     String fe_address = fe != null ? ("" +
-                        (fe.hasProp("address") && fe.prop("address").hasProp("cn_addr_oblast") && fe.prop("address").prop("cn_addr_oblast").value()!=null ? fe.prop("address").prop("cn_addr_oblast").value().toString() : "") +
-                        (fe.hasProp("address") && fe.prop("address").hasProp("cn_addr_district") && fe.prop("address").prop("cn_addr_district") != null && fe.prop("address").prop("cn_addr_district").value()!=null ? ", " + fe.prop("address").prop("cn_addr_district").value().toString() : "") +
-                        (fe.hasProp("address") && fe.prop("address").hasProp("cn_addr_city") && fe.prop("address").prop("cn_addr_city") != null && fe.prop("address").prop("cn_addr_city").value()!=null ? ", " + fe.prop("address").prop("cn_addr_city").value().toString() : "") +
-                        (fe.hasProp("address") && fe.prop("address").hasProp("cn_addr_street") && fe.prop("address").prop("cn_addr_street") != null && fe.prop("address").prop("cn_addr_street").value()!=null ? ", " + fe.prop("address").prop("cn_addr_street").value().toString() : "") +
-                        (fe.hasProp("address") && fe.prop("address").hasProp("cn_addr_building") && fe.prop("address").prop("cn_addr_building") != null && fe.prop("address").prop("cn_addr_building").value()!=null ? ", " + fe.prop("address").prop("cn_addr_building").value().toString() : "") +
-                        (fe.hasProp("address") && fe.prop("address").hasProp("cn_addr_cadastral_number") && fe.prop("address").prop("cn_addr_cadastral_number") != null && fe.prop("address").prop("cn_addr_cadastral_number").value()!=null ? ", " + fe.prop("address").prop("cn_addr_cadastral_number").value().toString() : "") +
-                        (fe.hasProp("address") && fe.prop("address").hasProp("cn_addr_note") && fe.prop("address").prop("cn_addr_note") != null && fe.prop("address").prop("cn_addr_note").value()!=null ? ", " + fe.prop("address").prop("cn_addr_note").value().toString() : "")) : null;
+                        (fe.hasProp("address") && fe.prop("address").hasProp("cn_addr_oblast") && fe.prop("address").prop("cn_addr_oblast").value() != null ? fe.prop("address").prop("cn_addr_oblast").value().toString() : "") +
+                        (fe.hasProp("address") && fe.prop("address").hasProp("cn_addr_district") && fe.prop("address").prop("cn_addr_district") != null && fe.prop("address").prop("cn_addr_district").value() != null ? ", " + fe.prop("address").prop("cn_addr_district").value().toString() : "") +
+                        (fe.hasProp("address") && fe.prop("address").hasProp("cn_addr_city") && fe.prop("address").prop("cn_addr_city") != null && fe.prop("address").prop("cn_addr_city").value() != null ? ", " + fe.prop("address").prop("cn_addr_city").value().toString() : "") +
+                        (fe.hasProp("address") && fe.prop("address").hasProp("cn_addr_street") && fe.prop("address").prop("cn_addr_street") != null && fe.prop("address").prop("cn_addr_street").value() != null ? ", " + fe.prop("address").prop("cn_addr_street").value().toString() : "") +
+                        (fe.hasProp("address") && fe.prop("address").hasProp("cn_addr_building") && fe.prop("address").prop("cn_addr_building") != null && fe.prop("address").prop("cn_addr_building").value() != null ? ", " + fe.prop("address").prop("cn_addr_building").value().toString() : "") +
+                        (fe.hasProp("address") && fe.prop("address").hasProp("cn_addr_cadastral_number") && fe.prop("address").prop("cn_addr_cadastral_number") != null && fe.prop("address").prop("cn_addr_cadastral_number").value() != null ? ", " + fe.prop("address").prop("cn_addr_cadastral_number").value().toString() : "") +
+                        (fe.hasProp("address") && fe.prop("address").hasProp("cn_addr_note") && fe.prop("address").prop("cn_addr_note") != null && fe.prop("address").prop("cn_addr_note").value() != null ? ", " + fe.prop("address").prop("cn_addr_note").value().toString() : "")) : null;
 
                     SpinJsonNode renterCompany = delegateExecution.getVariable("renterCompany") != null ? JSON(delegateExecution.getVariable("renterCompany")) : null;
-                    String cn_legal_name = renterCompany != null && renterCompany.hasProp("legalName") && renterCompany.prop("legalName") != null && renterCompany.prop("legalName").value()!=null ? (renterCompany.prop("legalName").value().toString()) : null;
-                    String cn_phone_fax = renterCompany != null && renterCompany.hasProp("telFax") && renterCompany.prop("telFax") != null && renterCompany.prop("telFax").value()!=null ? (renterCompany.prop("telFax").value().toString()) : null;
-                    String cn_legal_address = renterCompany != null && renterCompany.hasProp("legalAddress") && renterCompany.prop("legalAddress") != null && renterCompany.prop("legalAddress").value()!=null ? (renterCompany.prop("legalAddress").value().toString()) : null;
-                    String cn_leader_name = renterCompany != null && renterCompany.hasProp("firstLeaderName") && renterCompany.prop("firstLeaderName") != null && renterCompany.prop("firstLeaderName").value()!=null ? (renterCompany.prop("firstLeaderName").value().toString()) : null;
-                    String cn_leader_position = renterCompany != null && renterCompany.hasProp("firstLeaderPos") && renterCompany.prop("firstLeaderPos") != null && renterCompany.prop("firstLeaderPos").value()!=null ? (renterCompany.prop("firstLeaderPos").value().toString()) : null;
-                    String cn_email = renterCompany != null && renterCompany.hasProp("email") && renterCompany.prop("email") != null && renterCompany.prop("email").value()!=null ? (renterCompany.prop("email").value().toString()) : null;
-                    String cn_contact_name = renterCompany != null && renterCompany.hasProp("contactName") && renterCompany.prop("contactName") != null && renterCompany.prop("contactName").value()!=null ? (renterCompany.prop("contactName").value().toString()) : "" +
-                        " " + renterCompany != null && renterCompany.hasProp("contactLastName") && renterCompany.prop("contactLastName") != null && renterCompany.prop("contactLastName").value()!=null ? (renterCompany.prop("contactLastName").value().toString()) : ""
-                        ;
-                    String cn_contact_position = renterCompany != null && renterCompany.hasProp("contactPosition") && renterCompany.prop("contactPosition") != null && renterCompany.prop("contactPosition").value()!=null ? (renterCompany.prop("contactPosition").value().toString()) : null;
-                    String cn_contact_information = renterCompany != null && renterCompany.hasProp("contactInfo") && renterCompany.prop("contactInfo") != null && renterCompany.prop("contactInfo").value()!=null ? (renterCompany.prop("contactInfo").value().toString()) : null;
+                    String cn_legal_name = renterCompany != null && renterCompany.hasProp("legalName") && renterCompany.prop("legalName") != null && renterCompany.prop("legalName").value() != null ? (renterCompany.prop("legalName").value().toString()) : null;
+                    String cn_phone_fax = renterCompany != null && renterCompany.hasProp("telFax") && renterCompany.prop("telFax") != null && renterCompany.prop("telFax").value() != null ? (renterCompany.prop("telFax").value().toString()) : null;
+                    String cn_legal_address = renterCompany != null && renterCompany.hasProp("legalAddress") && renterCompany.prop("legalAddress") != null && renterCompany.prop("legalAddress").value() != null ? (renterCompany.prop("legalAddress").value().toString()) : null;
+                    String cn_leader_name = renterCompany != null && renterCompany.hasProp("firstLeaderName") && renterCompany.prop("firstLeaderName") != null && renterCompany.prop("firstLeaderName").value() != null ? (renterCompany.prop("firstLeaderName").value().toString()) : null;
+                    String cn_leader_position = renterCompany != null && renterCompany.hasProp("firstLeaderPos") && renterCompany.prop("firstLeaderPos") != null && renterCompany.prop("firstLeaderPos").value() != null ? (renterCompany.prop("firstLeaderPos").value().toString()) : null;
+                    String cn_email = renterCompany != null && renterCompany.hasProp("email") && renterCompany.prop("email") != null && renterCompany.prop("email").value() != null ? (renterCompany.prop("email").value().toString()) : null;
+                    String cn_contact_name = renterCompany != null && renterCompany.hasProp("contactName") && renterCompany.prop("contactName") != null && renterCompany.prop("contactName").value() != null ? (renterCompany.prop("contactName").value().toString()) : "" +
+                        " " + renterCompany != null && renterCompany.hasProp("contactLastName") && renterCompany.prop("contactLastName") != null && renterCompany.prop("contactLastName").value() != null ? (renterCompany.prop("contactLastName").value().toString()) : "";
+                    String cn_contact_position = renterCompany != null && renterCompany.hasProp("contactPosition") && renterCompany.prop("contactPosition") != null && renterCompany.prop("contactPosition").value() != null ? (renterCompany.prop("contactPosition").value().toString()) : null;
+                    String cn_contact_information = renterCompany != null && renterCompany.hasProp("contactInfo") && renterCompany.prop("contactInfo") != null && renterCompany.prop("contactInfo").value() != null ? (renterCompany.prop("contactInfo").value().toString()) : null;
 
                     String contact_person = renterCompany != null ? ("" + (renterCompany.hasProp("contactName") && !renterCompany.prop("contactName").equals(null) ? renterCompany.prop("contactName").value().toString() : "") +
                         " " + (renterCompany.hasProp("contactPosition") && !renterCompany.prop("contactPosition").equals(null) ? renterCompany.prop("contactPosition").value().toString() : "") +
@@ -274,7 +273,7 @@ public class CreateCandidate implements JavaDelegate {
                         (address.hasProp("cn_addr_cadastral_number") && address.prop("cn_addr_cadastral_number") != null ? ", " + address.prop("cn_addr_cadastral_number").value().toString() : "") +
                         (address.hasProp("cn_addr_note") && address.prop("cn_addr_note") != null ? ", " + address.prop("cn_addr_note").value().toString() : "")) : null;
 
-                    String cn_bsc = candidate != null ? (candidate.hasProp("bsc") ? (candidate.prop("bsc").hasProp("id") && candidate.prop("bsc").prop("id").value()!=null ? candidate.prop("bsc").prop("id").value().toString() : null) : null) : null;
+                    String cn_bsc = candidate != null ? (candidate.hasProp("bsc") ? (candidate.prop("bsc").hasProp("id") && candidate.prop("bsc").prop("id").value() != null ? candidate.prop("bsc").prop("id").value().toString() : null) : null) : null;
                     String trType = candidate != null ? (candidate.hasProp("transmissionType") ? candidate.prop("transmissionType").value().toString() : null) : null;
                     Integer cn_bscInt = cn_bsc != null ? Integer.parseInt(cn_bsc) : null;
 
@@ -457,7 +456,7 @@ public class CreateCandidate implements JavaDelegate {
                         newArtefactCurrentStatePreparedStatement.setNull(i++, Types.BIGINT);
 
                     }
-                    if (trType != null && ( trType.equals("Provider") || trType.equals("Satellite"))) {
+                    if (trType != null && (trType.equals("Provider") || trType.equals("Satellite"))) {
                         newArtefactCurrentStatePreparedStatement.setLong(i++, trType.equals("Provider") ? 22 : 23); //EQUIPMENT_TYPE
                     } else {
                         newArtefactCurrentStatePreparedStatement.setNull(i++, Types.BIGINT);
@@ -471,7 +470,7 @@ public class CreateCandidate implements JavaDelegate {
                     } else {
                         newArtefactCurrentStatePreparedStatement.setNull(i++, Types.VARCHAR);
                     }
-                     // CAND_STATUS_PERSON (current user) // current or start ?????? (who complete create candidate task?)
+                    // CAND_STATUS_PERSON (current user) // current or start ?????? (who complete create candidate task?)
 //                    newArtefactCurrentStatePreparedStatement.setDate(i++, new java.sql.Date(new Date().getTime())); // CAND_STATUS_DATE
                     newArtefactCurrentStatePreparedStatement.setLong(i++, 1); // RR_STATUS first insert value mast be = 1
                     if (cn_assigned_user != null) { // RR_STATUS_PERSON (current user)
@@ -530,7 +529,7 @@ public class CreateCandidate implements JavaDelegate {
                     }
 //                    newArtefactCurrentStatePreparedStatement.setLong(i++, 7); // GS_STATUS
                     newArtefactCurrentStatePreparedStatement.setNull(i++, Types.BIGINT); //GS_STATUS
-                    if (trType != null && ( trType.equals("Provider") || trType.equals("Satellite"))) {
+                    if (trType != null && (trType.equals("Provider") || trType.equals("Satellite"))) {
                         newArtefactCurrentStatePreparedStatement.setLong(i++, 3); //FE_STATUS
                     } else {
                         newArtefactCurrentStatePreparedStatement.setNull(i++, Types.BIGINT);
@@ -778,12 +777,107 @@ public class CreateCandidate implements JavaDelegate {
 //                    log.info(createdArtefactRRStatusId.toString());
 
 //                    udbConnect.commit();
+
+                    // insert ARTEFACT_RR_CELL_ANTENNA
+                    Long createdArtefactRRCellAntennaId = null;
+                    String artefactRRCellAntennaReturnStatus[] = {"CELL_ANTENNA_ID"};
+                    String insertNewArtefactRRCellAntenna = "INSERT INTO ARTEFACT_RR_CELL_ANTENNA(CELL_ANTENNA_ID, ANTENNAID, ANTENNA_QUANTITY, AZIMUTH, DIMENSION, RR_ID, SUSPENSION_HEIGHT, WEIGHT) values (ARTEFACT_RR_CELL_ANTENNA_SEQ.nextval, ?, ?, ?, ?, ?, ?, ?)";
+                    PreparedStatement newArtefactRRCellAntennaPreparedStatement = udbConnect.prepareStatement(insertNewArtefactRRCellAntenna, artefactRRCellAntennaReturnStatus);
+
+                    SpinJsonNode cellAntenna = delegateExecution.getVariable("cellAntenna") != null ? JSON(delegateExecution.getVariable("cellAntenna")) : null;
+                    SpinJsonNode sectorsJSON = cellAntenna.prop("sectors");
+                    SpinList sectorsList = sectorsJSON != null ? sectorsJSON.elements() : null;
+
+                    String antennaNameString = "";
+                    String udbIdString = "";
+                    String azimuthString = "";
+                    Integer quantitySum = 0;
+                    String dimensionString = "";
+                    String suspensionHeightString = "";
+                    String weightString = "";
+                    Integer antennaCount = 0;
+                    if (sectorsList != null && sectorsList.size() > 0) {
+                        for (int j = 0; j < sectorsList.size(); j++) {
+                            SpinJsonNode sector = (SpinJsonNode) sectorsList.get(j);
+                            SpinJsonNode antennaJSON = sector.prop("antennas");
+                            SpinList antennaList = antennaJSON != null ? antennaJSON.elements() : null;
+                            if (antennaList != null && antennaList.size() > 0) {
+                                for (int k = 0; k < antennaList.size(); k ++) {
+                                    SpinJsonNode antenna = (SpinJsonNode) antennaList.get(k);
+
+                                    String antennaName = antenna.prop("antennaName").value().toString();
+                                    if (antennaNameString.indexOf(antennaName) == -1 && antennaCount < 3) {
+                                        antennaNameString += antennaName + ", ";
+                                        String udbId = antenna.prop("udb_id").value().toString();
+                                        udbIdString += udbId + ", ";
+
+                                        String azimuth = antenna.prop("azimuth").value().toString();
+                                        azimuthString += azimuth + "/";
+
+                                        Integer quantity = (Integer) antenna.prop("quantity").value();
+                                        quantitySum += quantity;
+
+                                        String dimension = antenna.prop("dimension").value().toString();
+                                        dimensionString += dimension + ",";
+
+                                        String suspensionHeight = antenna.prop("suspensionHeight").value().toString();
+                                        suspensionHeightString += suspensionHeight + "/";
+
+                                        String weight = antenna.prop("weight").value().toString();
+                                        weightString += weight + "/";
+                                        antennaCount ++;
+                                    }
+
+                                }
+                            }
+
+                        }
+                    }
+                    if (udbIdString.lastIndexOf(",") == udbIdString.length() - 1) {
+                        udbIdString = udbIdString.substring(0, udbIdString.lastIndexOf(","));
+                    }
+                    if (azimuthString.lastIndexOf("/") == azimuthString.length() - 1) {
+                        azimuthString = azimuthString.substring(0, azimuthString.lastIndexOf("/"));
+                    }
+                    if (dimensionString.lastIndexOf(",") == dimensionString.length() - 1) {
+                        dimensionString = dimensionString.substring(0, dimensionString.lastIndexOf(","));
+                    }
+                    if (suspensionHeightString.lastIndexOf("/") == suspensionHeightString.length() - 1) {
+                        suspensionHeightString = suspensionHeightString.substring(0, suspensionHeightString.lastIndexOf("/"));
+                    }
+                    if (weightString.lastIndexOf("/") == weightString.length() - 1) {
+                        weightString = weightString.substring(0, weightString.lastIndexOf("/"));
+                    }
+
+                    i = 1;
+                    newArtefactRRCellAntennaPreparedStatement.setString(i++, udbIdString);
+                    newArtefactRRCellAntennaPreparedStatement.setInt(i++, quantitySum);
+                    newArtefactRRCellAntennaPreparedStatement.setString(i++, azimuthString);
+                    newArtefactRRCellAntennaPreparedStatement.setString(i++, dimensionString);
+                    if (createdArtefactRRId != null) {
+                        newArtefactRRCellAntennaPreparedStatement.setLong(i++, createdArtefactRRId);
+                    } else {
+                        newArtefactRRCellAntennaPreparedStatement.setNull(i++, Types.BIGINT);
+                    }
+                    newArtefactRRCellAntennaPreparedStatement.setString(i++, suspensionHeightString);
+                    newArtefactRRCellAntennaPreparedStatement.setString(i++, weightString);
+
+                    log.info("newNewArtefactRRCellAntennaPreparedStatement.executeUpdate()");
+                    newArtefactRRCellAntennaPreparedStatement.executeUpdate();
+                    log.info("successfull insert to database!");
+
+                    ResultSet artefactRRCellAntennaIdResultSet = newArtefactRRCellAntennaPreparedStatement.getGeneratedKeys();
+                    artefactRRCellAntennaIdResultSet.next();
+                    createdArtefactRRCellAntennaId = artefactRRCellAntennaIdResultSet.getLong(1);
+                    log.info("createdArtefactRRCellAntennaId:");
+                    log.info(createdArtefactRRCellAntennaId.toString());
+
                     //insert ARTEFACT_TSD_EXT
                     Long createdArtefactExtTSDId = null;
                     String artefactExtTSDReturnStatus[] = {"TSDID"};
                     StringBuilder insertNewArtefactExtTSDbuilder = new StringBuilder("INSERT INTO ARTEFACT_TSD_EXT (TSDID, ARTEFACTID, INSERT_DATE, INSERT_PERSON");
                     StringBuilder insertNewArtefactExtTSDbuilderValues = new StringBuilder(") VALUES (ARTEFACT_TSD_SEQ.nextval, ?, SYSDATE, ?");
-                    if (trType != null && ( trType.equals("Provider") || trType.equals("Satellite"))) {
+                    if (trType != null && (trType.equals("Provider") || trType.equals("Satellite"))) {
                         insertNewArtefactExtTSDbuilder.append(", EQUIPMENT_ID"); // EQUIPMENT_ID
                         insertNewArtefactExtTSDbuilderValues.append(", ?");
                     }
@@ -796,7 +890,7 @@ public class CreateCandidate implements JavaDelegate {
                         insertNewArtefactExtTSDbuilderValues.append(", ?");
                     }
 
-                    if (trType != null && ( trType.equals("Provider") || trType.equals("Satellite"))){
+                    if (trType != null && (trType.equals("Provider") || trType.equals("Satellite"))) {
                         insertNewArtefactExtTSDbuilder.append(", FE_SITENAME");
                         insertNewArtefactExtTSDbuilderValues.append(", ?");
                     } else if (fe_sitename != null) {
@@ -847,7 +941,7 @@ public class CreateCandidate implements JavaDelegate {
                         insertNewArtefactExtTSDbuilder.append(", FE_TXRF_FREQUENCY");
                         insertNewArtefactExtTSDbuilderValues.append(", ?");
                     }
-                    if (fe_comment != null  && trType != "Provider" && trType != "Satellite") {
+                    if (fe_comment != null && trType != "Provider" && trType != "Satellite") {
                         insertNewArtefactExtTSDbuilder.append(", COMMENTS");
                         insertNewArtefactExtTSDbuilderValues.append(", ?");
                     }
@@ -869,7 +963,7 @@ public class CreateCandidate implements JavaDelegate {
 //                    newArtefactExtTSDPreparedStatement.setDate(i++, new java.sql.Date(new Date().getTime())); // INSERT_DATE
                     newArtefactExtTSDPreparedStatement.setString(i++, starter); // INSERT_PERSON
 
-                    if (trType != null && ( trType.equals("Provider") || trType.equals("Satellite"))) {
+                    if (trType != null && (trType.equals("Provider") || trType.equals("Satellite"))) {
                         newArtefactExtTSDPreparedStatement.setLong(i++, trType.equals("Provider") ? 22 : 23); //EQUIPMENT_ID
                     }
                     if (cn_longitude != null) {
@@ -878,7 +972,7 @@ public class CreateCandidate implements JavaDelegate {
                     if (cn_latitude != null) {
                         newArtefactExtTSDPreparedStatement.setString(i++, "N " + ne_latitude.replace(".", ",")); // NE_LATITUDE
                     }
-                    if (trType != null && ( trType.equals("Provider") || trType.equals("Satellite"))){
+                    if (trType != null && (trType.equals("Provider") || trType.equals("Satellite"))) {
                         newArtefactExtTSDPreparedStatement.setString(i++, trType.equals("Provider") ? "Rented channel" : "Satellite"); // FE_SITENAME
                     } else if (fe_sitename != null) {
                         newArtefactExtTSDPreparedStatement.setString(i++, fe_sitename); // FE_SITENAME
@@ -891,10 +985,10 @@ public class CreateCandidate implements JavaDelegate {
                             newArtefactExtTSDPreparedStatement.setNull(i++, Types.BIGINT);
                         }
                     }
-                    if (fe_address != null  && trType != "Provider" && trType != "Satellite") {
+                    if (fe_address != null && trType != "Provider" && trType != "Satellite") {
                         newArtefactExtTSDPreparedStatement.setString(i++, fe_address); // FE_ADDRESS
                     }
-                    if (fe_formated_survey_date != null  && trType != "Provider" && trType != "Satellite") {
+                    if (fe_formated_survey_date != null && trType != "Provider" && trType != "Satellite") {
                         newArtefactExtTSDPreparedStatement.setDate(i++, new java.sql.Date(fe_cal_survey_date.getTimeInMillis())); // SURVEY_DATE (fe_survey_date)
                     }
                     if (ne_azimuth != null) {
@@ -936,7 +1030,7 @@ public class CreateCandidate implements JavaDelegate {
                     }
                     if (fe_suspensionHeight != null) {
                         Float fe_suspensionHeightInt = Float.parseFloat(fe_suspensionHeight);
-                        if (fe_suspensionHeightInt != null  && trType != "Provider" && trType != "Satellite") {
+                        if (fe_suspensionHeightInt != null && trType != "Provider" && trType != "Satellite") {
                             newArtefactExtTSDPreparedStatement.setFloat(i++, fe_suspensionHeightInt); // FE_SUSPENSIONHEIGHT
                         } else {
                             newArtefactExtTSDPreparedStatement.setNull(i++, Types.BIGINT);
@@ -944,16 +1038,16 @@ public class CreateCandidate implements JavaDelegate {
                     }
                     if (fe_frequencyBand != null) {
                         Integer fe_frequencyBandInt = Integer.parseInt(fe_frequencyBand);
-                        if (fe_frequencyBandInt != null  && trType != "Provider" && trType != "Satellite") {
+                        if (fe_frequencyBandInt != null && trType != "Provider" && trType != "Satellite") {
                             newArtefactExtTSDPreparedStatement.setLong(i++, fe_frequencyBandInt); // FE_TXRF_FREQUENCY
                         } else {
                             newArtefactExtTSDPreparedStatement.setNull(i++, Types.BIGINT);
                         }
                     }
-                    if (fe_comment != null  && trType != "Provider" && trType != "Satellite") {
+                    if (fe_comment != null && trType != "Provider" && trType != "Satellite") {
                         newArtefactExtTSDPreparedStatement.setString(i++, fe_comment); // COMMENTS
                     }
-                    if (fe_artefact_id != null && fe_artefact_id.longValue() > 0  && trType != "Provider" && trType != "Satellite") {
+                    if (fe_artefact_id != null && fe_artefact_id.longValue() > 0 && trType != "Provider" && trType != "Satellite") {
                         newArtefactExtTSDPreparedStatement.setLong(i++, fe_artefact_id.longValue()); // fe_artefact_id
                     }
                     log.info("newArtefactExtTSDPreparedStatement.executeUpdate()");
@@ -1002,7 +1096,7 @@ public class CreateCandidate implements JavaDelegate {
                         ARTEFACT_RR_POWER_PreparedStatement.setNull(i++, Types.BIGINT);
                     }
                     if (landlord_monthly_pc != null) {
-                        if (landlord_monthly_pc.equals("Yes")){
+                        if (landlord_monthly_pc.equals("Yes")) {
                             ARTEFACT_RR_POWER_PreparedStatement.setLong(i++, 1); //LANDLORD_MONTHLY_PC
                         } else {
                             ARTEFACT_RR_POWER_PreparedStatement.setLong(i++, 0); //LANDLORD_MONTHLY_PC
@@ -1032,7 +1126,7 @@ public class CreateCandidate implements JavaDelegate {
                     log.info(createdArtefactRrPowerId.toString());
 
 
-                // INSERT INTO ARTEFACT_RR_RENTER CN
+                    // INSERT INTO ARTEFACT_RR_RENTER CN
                     Long createdArtefactRrRenterCnId = null;
                     String artefactRrRenterCnId[] = {"RENTER_ID"};
                     String INSERT_ARTEFACT_RR_RENTER = "INSERT INTO ARTEFACT_RR_RENTER (RENTER_ID, RR_ID, TYPE, LEGAL_NAME, LEGAL_ADDRESS, PHONE_FAX, LEADER_NAME, LEADER_POSITION, EMAIL, CONTACT_NAME, CONTACT_POSITION, CONTACT_INFORMATION) VALUES (ARTEFACT_RR_RENTER_SEQ.nextval, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"; //(13029, 10365, 1, 'ОРТПЦ (КазТелеРадио)', 'Almaty, st, Zheltoksana 38,                                                                             Uralsk city, st. Zheleznodorozhnaya 1', '71-75-73, 71-75-78, 71-75-72 (Almaty)', 'Efrimenko Viktor Pavlovich', 'Glavny injener', null, 'Sharafutdinov Serik                  ', null, '50-62-77, 50-35-90                     87112 51-39-32');
@@ -1098,7 +1192,7 @@ public class CreateCandidate implements JavaDelegate {
                     log.info(createdArtefactRrRenterCnId.toString());
 
 
-                // INSERT INTO ARTEFACT_RR_RENTER FE
+                    // INSERT INTO ARTEFACT_RR_RENTER FE
                     Long createdArtefactRrRenterFeId = null;
                     String artefactRrRenterFeId[] = {"RENTER_ID"};
                     String INSERT_ARTEFACT_RR_RENTER_FE = "INSERT INTO ARTEFACT_RR_RENTER (RENTER_ID, RR_ID, TYPE, LEGAL_NAME, LEGAL_ADDRESS, PHONE_FAX, LEADER_NAME, LEADER_POSITION, EMAIL, CONTACT_NAME, CONTACT_POSITION, CONTACT_INFORMATION) VALUES (ARTEFACT_RR_RENTER_SEQ.nextval, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"; //(13029, 10365, 1, 'ОРТПЦ (КазТелеРадио)', 'Almaty, st, Zheltoksana 38,                                                                             Uralsk city, st. Zheleznodorozhnaya 1', '71-75-73, 71-75-78, 71-75-72 (Almaty)', 'Efrimenko Viktor Pavlovich', 'Glavny injener', null, 'Sharafutdinov Serik                  ', null, '50-62-77, 50-35-90                     87112 51-39-32');
@@ -1114,7 +1208,7 @@ public class CreateCandidate implements JavaDelegate {
                         ARTEFACT_RR_RENTER_FE_PreparedStatement.setNull(i++, Types.VARCHAR);
                     }
                     if (fe_address != null) {
-                        ARTEFACT_RR_RENTER_FE_PreparedStatement.setString(i++, fe_address ); // LEGAL_ADDRESS
+                        ARTEFACT_RR_RENTER_FE_PreparedStatement.setString(i++, fe_address); // LEGAL_ADDRESS
                     } else {
                         ARTEFACT_RR_RENTER_FE_PreparedStatement.setNull(i++, Types.VARCHAR);
                     }
@@ -1175,7 +1269,7 @@ public class CreateCandidate implements JavaDelegate {
                     i = 1;
                     ARTEFACT_RR_TR_PreparedStatement.setLong(i++, createdArtefactRRId); // RR_ID
                     if (fe_name != null) {
-                        ARTEFACT_RR_TR_PreparedStatement.setString(i++, fe_name ); // FE_NAME
+                        ARTEFACT_RR_TR_PreparedStatement.setString(i++, fe_name); // FE_NAME
                     } else {
                         ARTEFACT_RR_TR_PreparedStatement.setNull(i++, Types.VARCHAR);
                     }
@@ -1205,11 +1299,11 @@ public class CreateCandidate implements JavaDelegate {
                     }
 
                     if (fe_equipment_type != null) {
-                        if (fe_equipment_type.toUpperCase().equals("TN2P")){
+                        if (fe_equipment_type.toUpperCase().equals("TN2P")) {
                             ARTEFACT_RR_TR_PreparedStatement.setLong(i++, 2); // EQUIPMENT_TYPE fe.equipmentType
-                        } else if (fe_equipment_type.toUpperCase().equals("TN20P")){
+                        } else if (fe_equipment_type.toUpperCase().equals("TN20P")) {
                             ARTEFACT_RR_TR_PreparedStatement.setLong(i++, 6); // EQUIPMENT_TYPE fe.equipmentType
-                        } else if (fe_equipment_type.toUpperCase().equals("TN6P")){
+                        } else if (fe_equipment_type.toUpperCase().equals("TN6P")) {
                             ARTEFACT_RR_TR_PreparedStatement.setLong(i++, 4); // EQUIPMENT_TYPE fe.equipmentType
                         } else {
                             ARTEFACT_RR_TR_PreparedStatement.setNull(i++, Types.INTEGER);
@@ -1267,7 +1361,7 @@ public class CreateCandidate implements JavaDelegate {
                         ARTEFACT_RR_TR_PreparedStatement.setNull(i++, Types.VARCHAR);
                     }
 
-                    if (fe_artefact_id != null && fe_artefact_id.longValue() > 0 ) {
+                    if (fe_artefact_id != null && fe_artefact_id.longValue() > 0) {
                         ARTEFACT_RR_TR_PreparedStatement.setLong(i++, fe_artefact_id.longValue()); // FE_ARTEFACTID
                     } else {
                         ARTEFACT_RR_TR_PreparedStatement.setNull(i++, Types.INTEGER);
@@ -1296,11 +1390,11 @@ public class CreateCandidate implements JavaDelegate {
                     i = 1;
                     ARTEFACT_RR_TR_ANTENNA_PreparedStatement.setLong(i++, createdArtefactRRId);// RR_ID
                     if (fe_equipment_type != null) {
-                        if (fe_equipment_type.toUpperCase().equals("TN2P")){
+                        if (fe_equipment_type.toUpperCase().equals("TN2P")) {
                             ARTEFACT_RR_TR_ANTENNA_PreparedStatement.setLong(i++, 2); // EQUIP_ID fe.equipmentType
-                        } else if (fe_equipment_type.toUpperCase().equals("TN20P")){
+                        } else if (fe_equipment_type.toUpperCase().equals("TN20P")) {
                             ARTEFACT_RR_TR_ANTENNA_PreparedStatement.setLong(i++, 6); // EQUIP_ID fe.equipmentType
-                        } else if (fe_equipment_type.toUpperCase().equals("TN6P")){
+                        } else if (fe_equipment_type.toUpperCase().equals("TN6P")) {
                             ARTEFACT_RR_TR_ANTENNA_PreparedStatement.setLong(i++, 4); // EQUIP_ID fe.equipmentType
                         } else {
                             ARTEFACT_RR_TR_ANTENNA_PreparedStatement.setNull(i++, Types.INTEGER); // EQUIP_ID
@@ -1452,8 +1546,8 @@ public class CreateCandidate implements JavaDelegate {
                     // --Create new candidate form files:
 
 //                    for (int j=0; j<createNewCandidateSiteFiles.size(); j++) {
-                    if (createNewCandidateSiteFiles != null && createNewCandidateSiteFiles.size()>0){
-                        for (int j=0; j<1; j++) {
+                    if (createNewCandidateSiteFiles != null && createNewCandidateSiteFiles.size() > 0) {
+                        for (int j = 0; j < 1; j++) {
                             SpinJsonNode file = (SpinJsonNode) createNewCandidateSiteFiles.get(j);
                             if (file != null) {
                                 String INSERT_ARTEFACT_RR_FILE = "INSERT INTO ARTEFACT_RR_FILE (FILE_ID, RR_ID, FILENAME, LASTUPDATED, RR_FILE) VALUES (ARTEFACT_RR_FILE_SEQ.nextval, ?, ?, SYSDATE, ?)";
@@ -1468,7 +1562,7 @@ public class CreateCandidate implements JavaDelegate {
                                 i = 1;
                                 ARTEFACT_RR_FILE_PreparedStatement.setLong(i++, createdArtefactRRId);// RR_ID
                                 ARTEFACT_RR_FILE_PreparedStatement.setString(i++, file.hasProp("name") ? file.prop("name").value().toString() : "");
-    //                            ARTEFACT_RR_FILE_PreparedStatement.setDate(i++, new java.sql.Date(new Date().getTime())); // INSERT_DATE
+                                //                            ARTEFACT_RR_FILE_PreparedStatement.setDate(i++, new java.sql.Date(new Date().getTime())); // INSERT_DATE
                                 ARTEFACT_RR_FILE_PreparedStatement.setBinaryStream(i++, rrFileIs);
                                 ARTEFACT_RR_FILE_PreparedStatement.executeUpdate();
                                 log.info("Successfully inserted");
@@ -1477,7 +1571,8 @@ public class CreateCandidate implements JavaDelegate {
                     }
 
                     // --ARTEFACT_TSD_LEASING_ACTION
-                    log.info("INSERT INTO ARTEFACT_TSD_LEASING_ACTION preparedStatement SQL UPDATE VALUES");log.info("INSERT INTO ARTEFACT_TSD_LEASING_ACTION preparedStatement SQL UPDATE VALUES");
+                    log.info("INSERT INTO ARTEFACT_TSD_LEASING_ACTION preparedStatement SQL UPDATE VALUES");
+                    log.info("INSERT INTO ARTEFACT_TSD_LEASING_ACTION preparedStatement SQL UPDATE VALUES");
                     Long tsdLeasingActionId = null;
                     String tsdLeasingAction[] = {"LEASING_STATUS_ACTION_ID"};
                     String INSERT_ARTEFACT_TSD_LEASING_ACTION = "INSERT INTO ARTEFACT_TSD_LEASING_ACTION (LEASING_STATUS_ACTION_ID, ARTEFACTID, LEASING_STATUS_ID, INSERTDATE) VALUES (ARTEFACT_TSD_LEASING_ACTI_SEQ.nextval, ?, ?, SYSDATE)";

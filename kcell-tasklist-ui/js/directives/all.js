@@ -1519,6 +1519,7 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                     if(obj){
                         scope.leasingCandidate.cellAntenna.sectors[sector].antennas[antenna].dimension = obj.dimension;
                         scope.leasingCandidate.cellAntenna.sectors[sector].antennas[antenna].weight = obj.weight;
+                        scope.leasingCandidate.cellAntenna.sectors[sector].antennas[antenna].udb_id = obj.udbid;
                     }
                 }
 
