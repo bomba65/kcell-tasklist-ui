@@ -271,11 +271,11 @@ public class StartOutsideCreatedProcesses {
         regions.put("North & Central", "nc");
         regions.put("Astana", "astana");
 
-        Map<String, Integer> reasons = new HashMap<>();
-        reasons.put("P&O", 1);
-        reasons.put("SAO", 4);
-        reasons.put("TNU", 2);
-        reasons.put("S&FM", 3);
+        Map<String, String> reasons = new HashMap<>();
+        reasons.put("P&O","1");
+        reasons.put("SAO", "4");
+        reasons.put("TNU", "2");
+        reasons.put("S&FM", "3");
 
         List<String> startedProcessInstances = new ArrayList<>();
 
