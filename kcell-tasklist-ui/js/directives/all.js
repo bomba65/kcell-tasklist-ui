@@ -822,14 +822,18 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                         // var antennaLocationsPromise = $http.get($rootScope.catalogsServerUrl + '/camunda/catalogs/api/get/id/64').then(function(promiseResult){return promiseResult.data;});
                         var newCatalogsPromise = $http.post('/camunda/catalogs/api/get/rolloutcatalogids', [14, 4, 13, 15, 21, 22, 30, 31, 32, 40, 59]).then(function(promiseResult){return promiseResult.data;});
                         var newBscRncsPromise = $http.get('/camunda/asset-management/bcs_rnc').then(function(promiseResult){return promiseResult.data;});
+                        var trAntennaTypePromise = $http.get('/camunda/catalogs/api/get/id/20').then(function(promiseResult){return promiseResult.data;});
+                        var newFrequenciesPromise = $http.get('/camunda/catalogs/api/get/id/17').then(function(promiseResult){return promiseResult.data;});
                         // $q.all([antennaTypePromise, trAntennaTypePromise, antennaModelPromise, antennaLocationsPromise, newCatalogsPromise]).then(function(allPromises) {
-                        $q.all([newCatalogsPromise, newBscRncsPromise]).then(function(allPromises) {
+                        $q.all([newCatalogsPromise, newBscRncsPromise, trAntennaTypePromise, newFrequenciesPromise]).then(function(allPromises) {
                             // var antennaTypePromiseResult = allPromises[0];
                             // var trAntennaTypePromiseResult = allPromises[1];
                             // var antennaModelPromiseResult = allPromises[2];
                             // var antennaLocationsPromiseResult = allPromises[3];
                             var newCatalogsPromiseResult = allPromises[0];
                             var newBscRncsPromiseResult = allPromises[1];
+                            var trAntennaTypePromiseResult = allPromises[2];
+                            var newFrequenciesPromiseResult = allPromises[3];
                             var newBscRncs = [];
                             // var newAntennas = [];
                             // var newAntennaTypes =  [];
@@ -838,6 +842,7 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                             var newRbsLocation =  [];
                             var newLegalType =  [];
                             var newAddresses =  [];
+                            var newAntennaType =  [];
 
                             scope.dictionary.constructionType = newCatalogsPromiseResult.construction_type;
                             scope.dictionary.transmissionType = newCatalogsPromiseResult.transmission_type;
@@ -846,6 +851,28 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                             scope.dictionary.FarEndConstructiontype = newCatalogsPromiseResult.fe_construction_type;
                             scope.dictionary.radioUnit = newCatalogsPromiseResult.radio_unit_types;
                             // scope.dictionary.legalType = newCatalogsPromiseResult.legal_type;
+                            var newFrequencies =  [];
+
+                            newFrequenciesPromiseResult.data.$list.forEach(function(e){
+                                var tempItem = {
+                                    frequency: e.value + 'GHz',
+                                    diameters: []
+                                };
+                                if(e.TR_Antenna_Type){
+                                    e.TR_Antenna_Type.value.forEach(function(v){
+                                        trAntennaTypePromiseResult.data.$list.forEach(function(t){
+                                            if(t.id === v){
+                                                if(t['Antenna Diameter']) {
+                                                    tempItem.diameters.push(t['Antenna Diameter'].value.replace(/([a-zA-Z ])/g, ""));
+                                                }
+                                            }
+                                        });
+                                    });
+                                    newFrequencies.push(tempItem);
+                                }
+                            });
+                            console.log(newFrequencies);
+                            scope.dictionary.frequencies = newFrequencies;
 
                             newCatalogsPromiseResult.rbs_location.forEach(function(item){
                                 newRbsLocation.push({
@@ -931,6 +958,40 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                             //     }
                             //     newAntennaType.push(tempItem);
                             // });
+
+                            trAntennaTypePromiseResult.data.$list.forEach(function(item){
+                                var tempItem = {
+                                    "name": item.value,
+                                    "frequencies": []
+                                };
+                                newFrequenciesPromiseResult.data.$list.forEach(function(e){
+                                    if(e.TR_Antenna_Type){
+                                        e.TR_Antenna_Type.value.forEach(function(v){
+                                            if(item.id === v){
+                                                tempItem.frequencies.push(e.value+'GHz');
+                                            }
+                                        });
+                                    }
+                                });
+
+                                //if ($scope.dictionary.antennaType) {
+                                //    const findedOldDictAntennaType = $scope.dictionary.antennaType.find(a => { return a.name === item.value})
+                                //    if (findedOldDictAntennaType && findedOldDictAntennaType.hasOwnProperty('frequencies') && findedOldDictAntennaType.frequencies.length > 0) {
+                                //        tempItem.frequencies = findedOldDictAntennaType.frequencies;
+                                //    }
+                                //}
+                                if(item['Antenna Diameter']) {
+                                    tempItem.diameter = item['Antenna Diameter'].value;
+                                }
+                                if(item['Weight']) {
+                                    tempItem.weight = item['Weight'].value.split(' ')[0];
+                                }
+                                if(item.udb_id){
+                                    tempItem.idbid = item.udb_id.value;
+                                }
+                                newAntennaType.push(tempItem);
+                            });
+                            scope.dictionary.antennaType = newAntennaType;
                             var mappedD = _.keyBy(newCatalogsPromiseResult.district, o => o.catalogsId)
                             var mappedO = _.keyBy(newCatalogsPromiseResult.oblast, o => o.catalogsId)
                             newCatalogsPromiseResult.city_village.forEach(function(item){

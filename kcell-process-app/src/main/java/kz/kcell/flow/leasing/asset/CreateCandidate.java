@@ -89,9 +89,9 @@ public class CreateCandidate implements JavaDelegate {
 
 //            SpinJsonNode constructionType = delegateExecution.getVariable("candidate") != null ? (candidate.hasProp("constructionType") ? JSON(candidate.prop("constructionType").value().toString()) : null) : null;
             String cn_constructionType = candidate != null ? (candidate.hasProp("constructionType") && candidate.prop("constructionType").hasProp("catalogsId") ? candidate.prop("constructionType").prop("catalogsId").value().toString() : null) : null;
-            String cn_altitude = candidate != null ? (candidate.hasProp("cn_altitude") ? candidate.prop("cn_altitude").value().toString() : null) : null;
+            String cn_altitude = candidate != null ? (candidate.hasProp("cn_altitude") && candidate.prop("cn_altitude") != null && candidate.prop("cn_altitude").value() != null ? candidate.prop("cn_altitude").value().toString() : null) : null;
 
-            if (cn_altitude!=null && cn_altitude.indexOf(".") < 0) {
+            if (cn_altitude != null && cn_altitude.indexOf(".") < 0) {
                 cn_altitude = cn_altitude + ".0";
             }
 
@@ -126,11 +126,11 @@ public class CreateCandidate implements JavaDelegate {
                 regionJson.put("id", region);
 
                 //            initiator_id
-                if (cn_city_catalogs_id != null ) {
-                JSONObject city_id_json = new JSONObject();
-                city_id_json.put("catalog_id", 32);
-                city_id_json.put("id", cn_city_catalogs_id);
-                value.put("city_id", city_id_json);
+                if (cn_city_catalogs_id != null) {
+                    JSONObject city_id_json = new JSONObject();
+                    city_id_json.put("catalog_id", 32);
+                    city_id_json.put("id", cn_city_catalogs_id);
+                    value.put("city_id", city_id_json);
                 }
 
                 if (cn_addr_street_name != null) {
@@ -198,7 +198,7 @@ public class CreateCandidate implements JavaDelegate {
                 regionJson.put("id", region);
 
                 //            initiator_id
-                if (ne_city_catalogs_id != null ) {
+                if (ne_city_catalogs_id != null) {
                     JSONObject city_id_json = new JSONObject();
                     city_id_json.put("catalog_id", 32);
                     city_id_json.put("id", ne_city_catalogs_id);
@@ -281,7 +281,7 @@ public class CreateCandidate implements JavaDelegate {
                 }
 
                 //            initiator_id
-                if (cn_constructionType != null ) {
+                if (cn_constructionType != null) {
                     JSONObject construction_type_id_json = new JSONObject();
                     construction_type_id_json.put("catalog_id", 14);
                     construction_type_id_json.put("id", cn_constructionType);
@@ -408,13 +408,12 @@ public class CreateCandidate implements JavaDelegate {
 
                 String cable_laying_type_id = null;
                 int index = 0;
-                JSONArray cable_laying_type_id_json_ar =  new JSONArray();
+                JSONArray cable_laying_type_id_json_ar = new JSONArray();
                 for (SpinJsonNode cable_laying_type_id_json_obj : cable_laying_type_id_json_list) {
-                    cable_laying_type_id = (cable_laying_type_id_json_obj != null && cable_laying_type_id_json_obj.prop("id") != null ) ?  cable_laying_type_id_json_obj.prop("id").value().toString() : null;
+                    cable_laying_type_id = (cable_laying_type_id_json_obj != null && cable_laying_type_id_json_obj.prop("id") != null) ? cable_laying_type_id_json_obj.prop("id").value().toString() : null;
                     cable_laying_type_id_json_ar.put(cable_laying_type_id);
                     index++;
                 }
-
 
 
                 SSLContextBuilder builder = new SSLContextBuilder();
@@ -493,11 +492,13 @@ public class CreateCandidate implements JavaDelegate {
 //                String du_type_id = (du_type_id_json_obj != null && du_type_id_json_obj.hasProp("id")) ?  du_type_id_json_obj.prop("id").value().toString() : null;
 
                 SpinJsonNode du_type_id_json_array = cellAntenna != null ? (cellAntenna.hasProp("cn_du") ? cellAntenna.prop("cn_du") : null) : null;
-                String du_unit_string = null;
-                if(du_type_id_json_array!=null && du_type_id_json_array.elements().size() > 0){
+                JSONArray duArray = new JSONArray();
+                if (du_type_id_json_array != null && du_type_id_json_array.elements().size() > 0) {
                     SpinList<SpinJsonNode> du_type_id_json_list = du_type_id_json_array.elements();
-                    SpinJsonNode du_type_id = du_type_id_json_list.get(0);
-                    du_unit_string = du_type_id.prop("catalogsId").value().toString();
+                    for (int i = 0; i < du_type_id_json_list.size(); i++) {
+                        SpinJsonNode du_type_id = du_type_id_json_list.get(i);
+                        duArray.put(du_type_id.prop("catalogsId").value());
+                    }
                 }
 
                 SSLContextBuilder builder = new SSLContextBuilder();
@@ -567,19 +568,19 @@ public class CreateCandidate implements JavaDelegate {
                 }
                 if (siteTypeJson != null) {
                     JSONObject site_type_id_json = new JSONObject();
-                    site_type_id_json.put("catalog_id",2);
+                    site_type_id_json.put("catalog_id", 2);
                     site_type_id_json.put("id", siteTypeJson.prop("assetsId").value().toString());
                     value.put("site_type_id", site_type_id_json);
                 }
 
-                    JSONObject site_status_id_json = new JSONObject();
-                    site_status_id_json.put("catalog_id",3);
-                    site_status_id_json.put("id", 8);
-                    value.put("site_status_id", site_status_id_json);
+                JSONObject site_status_id_json = new JSONObject();
+                site_status_id_json.put("catalog_id", 3);
+                site_status_id_json.put("id", 8);
+                value.put("site_status_id", site_status_id_json);
 
                 if (candidate != null && candidate.hasProp("transmissionTypeAmCatalogsId")) {
                     JSONObject transmission_type_id_json = new JSONObject();
-                    transmission_type_id_json.put("catalog_id",4);
+                    transmission_type_id_json.put("catalog_id", 4);
                     transmission_type_id_json.put("id", candidate.prop("transmissionTypeAmCatalogsId").value().toString());
                     value.put("transmission_type_id", transmission_type_id_json);
                 }
