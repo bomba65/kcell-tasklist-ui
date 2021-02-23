@@ -294,14 +294,16 @@
                         var antennaLocationsPromise = $http.get('/camunda/catalogs/api/get/id/64').then(function(promiseResult){return promiseResult.data;});
                         var newCatalogsPromise = $http.post('/camunda/catalogs/api/get/rolloutcatalogids', [14, 4, 13, 15, 21, 22, 30, 31, 32, 40, 59, 109]).then(function(promiseResult){return promiseResult.data;});
                         var newBscRncsPromise = $http.get('/camunda/asset-management/bcs_rnc').then(function(promiseResult){return promiseResult.data;});
+                        var newFrequenciesPromise = $http.get('/camunda/catalogs/api/get/id/17').then(function(promiseResult){return promiseResult.data;});
 
-                        $q.all([antennaTypePromise, trAntennaTypePromise, antennaModelPromise, antennaLocationsPromise, newCatalogsPromise, newBscRncsPromise]).then(function(allPromises) {
+                        $q.all([antennaTypePromise, trAntennaTypePromise, antennaModelPromise, antennaLocationsPromise, newCatalogsPromise, newBscRncsPromise, newFrequenciesPromise]).then(function(allPromises) {
                             var antennaTypePromiseResult = allPromises[0];
                             var trAntennaTypePromiseResult = allPromises[1];
                             var antennaModelPromiseResult = allPromises[2];
                             var antennaLocationsPromiseResult = allPromises[3];
                             var newCatalogsPromiseResult = allPromises[4];
                             var newBscRncsPromiseResult = allPromises[5];
+                            var newFrequenciesPromiseResult = allPromises[6];
                             var newBscRncs = [];
                             var newAntennas = [];
                             var newAntennaTypes =  [];
@@ -310,12 +312,34 @@
                             var newRbsLocation =  [];
                             var newLegalType =  [];
                             var newAddresses =  [];
+                            var newFrequencies =  [];
+
+                            newFrequenciesPromiseResult.data.$list.forEach(function(e){
+                                var tempItem = {
+                                    frequency: e.value + 'GHz',
+                                    diameters: []
+                                };
+                                if(e.TR_Antenna_Type){
+                                    e.TR_Antenna_Type.value.forEach(function(v){
+                                        trAntennaTypePromiseResult.data.$list.forEach(function(t){
+                                            if(t.id === v){
+                                                if(t['Antenna Diameter']) {
+                                                    tempItem.diameters.push(t['Antenna Diameter'].value.replace(/([a-zA-Z ])/g, ""));
+                                                }
+                                            }
+                                        });
+                                    });
+                                    newFrequencies.push(tempItem);
+                                }
+                            });
+                            console.log(newFrequencies);
 
                             $scope.dictionary.constructionType = newCatalogsPromiseResult.construction_type;
                             $scope.dictionary.transmissionType = newCatalogsPromiseResult.transmission_type;
                             $scope.dictionary.dUnit = newCatalogsPromiseResult.digital_unit_types;
                             $scope.dictionary.FarEndConstructiontype = newCatalogsPromiseResult.fe_construction_type;
                             $scope.dictionary.equipmentType = newCatalogsPromiseResult.tr_equipment_type.filter( i => {return (i.hasOwnProperty('id') && i.id !== null)});
+                            $scope.dictionary.frequencies = newFrequencies;
                             // $scope.dictionary.legalType = newCatalogsPromiseResult.legal_type;
 
                             newCatalogsPromiseResult.rbs_location.forEach(function(item){
@@ -392,12 +416,22 @@
                                     "name": item.value,
                                     "frequencies": []
                                 };
-                                if ($scope.dictionary.antennaType) {
-                                 const findedOldDictAntennaType = $scope.dictionary.antennaType.find(a => { return a.name === item.value})
-                                    if (findedOldDictAntennaType && findedOldDictAntennaType.hasOwnProperty('frequencies') && findedOldDictAntennaType.frequencies.length > 0) {
-                                        tempItem.frequencies = findedOldDictAntennaType.frequencies;
+                                newFrequenciesPromiseResult.data.$list.forEach(function(e){
+                                    if(e.TR_Antenna_Type){
+                                        e.TR_Antenna_Type.value.forEach(function(v){
+                                            if(item.id === v){
+                                                tempItem.frequencies.push(e.value+'GHz');
+                                            }
+                                        });
                                     }
-                                }
+                                });
+
+                                //if ($scope.dictionary.antennaType) {
+                                //    const findedOldDictAntennaType = $scope.dictionary.antennaType.find(a => { return a.name === item.value})
+                                //    if (findedOldDictAntennaType && findedOldDictAntennaType.hasOwnProperty('frequencies') && findedOldDictAntennaType.frequencies.length > 0) {
+                                //        tempItem.frequencies = findedOldDictAntennaType.frequencies;
+                                //    }
+                                //}
                                 if(item['Antenna Diameter']) {
                                     tempItem.diameter = item['Antenna Diameter'].value;
                                 }
@@ -409,32 +443,32 @@
                                 }
                                 newAntennaType.push(tempItem);
                             });
-                                var mappedD = _.keyBy(newCatalogsPromiseResult.district, o => o.catalogsId)
-                                var mappedO = _.keyBy(newCatalogsPromiseResult.oblast, o => o.catalogsId)
+                            var mappedD = _.keyBy(newCatalogsPromiseResult.district, o => o.catalogsId)
+                            var mappedO = _.keyBy(newCatalogsPromiseResult.oblast, o => o.catalogsId)
 
-                                newCatalogsPromiseResult.city_village.forEach(function(item){
-                                    var tempItem = {
-                                        "city": item.name,
-                                        "catalogsId": item.catalogsId
-                                    };
-                                    if(item['parent']) {
-                                        // var findedDistrict = newCatalogsPromiseResult.district.find(function(d){ return d.catalogsId === item.parent.toString()});
-                                        var findedDistrict = mappedD[item.parent.toString()];
-                                        if(findedDistrict !== null ) {
-                                            tempItem.district = findedDistrict.name
-                                            tempItem.districtCatalogsId = findedDistrict.catalogsId
-                                            if (findedDistrict.hasOwnProperty('parent')){
-                                                // var findedOblast = newCatalogsPromiseResult.oblast.find(function(o){ return o.catalogsId === findedDistrict.parent.toString()});
-                                                var findedOblast = mappedO[findedDistrict.parent.toString()];
-                                                if (findedOblast !== null) {
-                                                    tempItem.oblast = findedOblast.name
-                                                    tempItem.oblastCatalogsId = findedOblast.catalogsId
-                                                }
+                            newCatalogsPromiseResult.city_village.forEach(function(item){
+                                var tempItem = {
+                                    "city": item.name,
+                                    "catalogsId": item.catalogsId
+                                };
+                                if(item['parent']) {
+                                    // var findedDistrict = newCatalogsPromiseResult.district.find(function(d){ return d.catalogsId === item.parent.toString()});
+                                    var findedDistrict = mappedD[item.parent.toString()];
+                                    if(findedDistrict !== null ) {
+                                        tempItem.district = findedDistrict.name
+                                        tempItem.districtCatalogsId = findedDistrict.catalogsId
+                                        if (findedDistrict.hasOwnProperty('parent')){
+                                            // var findedOblast = newCatalogsPromiseResult.oblast.find(function(o){ return o.catalogsId === findedDistrict.parent.toString()});
+                                            var findedOblast = mappedO[findedDistrict.parent.toString()];
+                                            if (findedOblast !== null) {
+                                                tempItem.oblast = findedOblast.name
+                                                tempItem.oblastCatalogsId = findedOblast.catalogsId
                                             }
                                         }
                                     }
-                                    newAddresses.push(tempItem);
-                                });
+                                }
+                                newAddresses.push(tempItem);
+                            });
                             $scope.antennasList = newAntennas;
                             $scope.dictionary.antennas = newAntennas;
                             $scope.dictionary.antennaTypes = newAntennaTypes;
@@ -1228,26 +1262,27 @@
             };
 
             $scope.defineByAntennaType = function (antennaType, type) {
-                if(antennaType){
-                    if (type==='transmission') {
-                    angular.forEach($scope.dictionary.antennaType, function (type) {
-                        if(type.name === antennaType){
-                            $scope.transmissionAntenna.diameter = type.diameter;
-                            $scope.transmissionAntenna.weight = type.weight;
-                        }
-                    });
+                if (antennaType) {
+                    if (type === 'transmission') {
+                        console.log($scope.dictionary.antennaType);
+                        console.log(type);
+                        angular.forEach($scope.dictionary.antennaType, function (type) {
+                            if(type.name === antennaType) {
+                                $scope.transmissionAntenna.diameter = type.diameter;
+                                $scope.transmissionAntenna.weight = type.weight;
+                            }
+                        });
                     }
                     else {
-                    angular.forEach($scope.dictionary.antennaType, function (type) {
-                        if(type.name === antennaType){
-                            $scope.currentFarEnd.diameter = type.diameter;
-                            $scope.currentFarEnd.weight = type.weight;
-                        }
-                    });
-
+                        angular.forEach($scope.dictionary.antennaType, function (type) {
+                            if(type.name === antennaType) {
+                                $scope.currentFarEnd.diameter = type.diameter;
+                                $scope.currentFarEnd.weight = type.weight;
+                            }
+                        });
                     }
                 } else {
-                    if (type==='transmission') {
+                    if (type === 'transmission') {
                         $scope.transmissionAntenna.diameter = undefined;
                         $scope.transmissionAntenna.weight = undefined;
                     } else {
