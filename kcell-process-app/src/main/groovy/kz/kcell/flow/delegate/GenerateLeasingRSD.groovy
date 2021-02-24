@@ -340,7 +340,7 @@ class GenerateLeasingRSD implements ExecutionListener {
             cityName: cellAntennaJson.address.cn_addr_city,
             siteName: execution.getVariable("siteName").toString(),
             siteType: siteTypeJson.name,
-            bsc: candidateJson.bsc.name,
+            bsc: (candidateJson.bsc instanceof String ? candidateJson.bsc : candidateJson.bsc.name),
             coordinatesN: candidateJson.latitude,
             coordinatesE: candidateJson.longitude,
             altitude: candidateJson.cn_altitude,
