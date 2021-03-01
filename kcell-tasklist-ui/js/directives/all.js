@@ -1420,12 +1420,20 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                     }
                 };
 
+                scope.siteAddressCitySelected = function ($item) {
+                    scope.leasingCandidate.address.cn_addr_district = _.find(scope.dictionary.addresses, {'city': $item.name}).district;
+                    if (!scope.leasingCandidate.address.cn_addr_oblast) {
+                        scope.leasingCandidate.address.cn_addr_oblast = _.find(scope.dictionary.addresses, {'city': $item.name}).oblast;
+                    }
+                };
+
                 scope.addressCitySelected = function ($item) {
                     scope.currentFarEnd.address.cn_addr_district = _.find(scope.dictionary.addresses, {'city': $item.name}).district;
                     if (!scope.currentFarEnd.address.cn_addr_oblast) {
                         scope.currentFarEnd.address.cn_addr_oblast = _.find(scope.dictionary.addresses, {'city': $item.name}).oblast;
                     }
                 };
+
 
                 scope.getCity = function (val) {
                     if (val.length < 2) {
