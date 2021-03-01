@@ -1458,6 +1458,20 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                     }
                 };
 
+                scope.filterDistrictAfterSelectOblInCAI = function (cn_addr_oblast) {
+                    scope.leasingCandidate.cellAntenna.address.cn_addr_oblast = cn_addr_oblast
+                    scope.leasingCandidate.cellAntenna.address.cn_addr_district = ''
+                    scope.leasingCandidate.cellAntenna.address.cn_addr_city = ''
+                    if(scope.leasingCandidate.cellAntenna.address.cn_addr_oblast && scope.leasingCandidate.cellAntenna.address.cn_addr_oblast !== ''){
+                        scope.leasingCandidate.filteredByOblast = scope.dictionary.addresses.filter(a => {return a.oblast === scope.leasingCandidate.cellAntenna.address.cn_addr_oblast});
+                        scope.leasingCandidate.filteredDistrictsInCAI = _.uniqBy(scope.filteredByOblast, 'district').map( (e, index) => { return {"name" : e.district, "id" : index} });
+                        scope.leasingCandidate.cityList = _.uniqBy(scope.filteredByOblast, 'city').map( (e, index) => { return {"name" : e.city, "id" : index, "catalogsId" : e.catalogsId} });
+                    } else {
+                        scope.leasingCandidate.filteredDistrictsInCAI = scope.districtList;
+                        scope.leasingCandidate.cityList = _.uniqBy(scope.dictionary.addresses, 'city').map( (e, index) => { return {"name" : e.city, "id" : index, "catalogsId" : e.catalogsId} });
+                    }
+                }
+
                 scope.addressCitySelectedCN = function ($item) {
                     scope.leasingCandidate.address.cn_addr_district = _.find(scope.dictionary.addresses, {'city': $item.name}).district;
                     scope.leasingCandidate.address.cn_addr_oblast = _.find(scope.dictionary.addresses, {'city': $item.name}).oblast;
@@ -1470,6 +1484,22 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                     return _.filter(scope.leasingCandidate.cityList, function (o) {
                         return o.name.toLowerCase().includes(val.toLowerCase());
                     })
+                };
+
+                scope.cellInfoAddressCitySelected = function ($item) {
+                    if ($item.catalogsId) {
+                        scope.leasingCandidate. cellAntenna.address.city_catalogs_id = $item.catalogsId;
+                    }
+                    let findByCity = {};
+                    if (scope.leasingCandidate.cellAntenna.address.cn_addr_oblast && scope.leasingCandidate.cellAntenna.address.cn_addr_oblast !== null && scope.leasingCandidate.cellAntenna.address.cn_addr_oblast !== '') {
+                        findByCity = _.find(scope.dictionary.addresses, {'city': $item.name, 'oblast' : scope.leasingCandidate.cellAntenna.address.cn_addr_oblast})
+                    } else {
+                        findByCity = _.find(scope.dictionary.addresses, {'city': $item.name})
+                    }
+                    scope.leasingCandidate.cellAntenna.address.cn_addr_district = findByCity ? findByCity.district : '';
+                    if (!scope.leasingCandidate.cellAntenna.address.cn_addr_oblast || scope.leasingCandidate.cellAntenna.address.cn_addr_oblast !== findByCity.oblast ) {
+                        scope.leasingCandidate.cellAntenna.address.cn_addr_oblast = findByCity ? findByCity.oblast : '';
+                    }
                 };
 
                 scope.getCity = function (val) {
