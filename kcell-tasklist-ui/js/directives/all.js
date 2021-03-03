@@ -871,7 +871,6 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                                     newFrequencies.push(tempItem);
                                 }
                             });
-                            console.log(newFrequencies);
                             scope.dictionary.frequencies = newFrequencies;
 
                             newCatalogsPromiseResult.rbs_location.forEach(function(item){
@@ -992,6 +991,13 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                                 newAntennaType.push(tempItem);
                             });
                             scope.dictionary.antennaType = newAntennaType;
+
+                            if(scope.leasingCandidate.transmissionAntenna && scope.leasingCandidate.transmissionAntenna.antennaType && scope.leasingCandidate.transmissionAntenna.antennaType !== null) {
+                                scope.leasingCandidate.frequenciesByAntennaType = _.find(scope.dictionary.antennaType, function (p) {
+                                    return p.name === scope.leasingCandidate.transmissionAntenna.antennaType;
+                                })
+                            }
+
                             var mappedD = _.keyBy(newCatalogsPromiseResult.district, o => o.catalogsId)
                             var mappedO = _.keyBy(newCatalogsPromiseResult.oblast, o => o.catalogsId)
                             newCatalogsPromiseResult.city_village.forEach(function(item){
@@ -1027,7 +1033,6 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
 
                             scope.dictionary.legalTypeTitle = _.keyBy(scope.dictionary.legalType, 'id');
                             scope.dictionary.antennasList = scope.dictionary.antennas;
-                            scope.dictionary.antennaType = scope.dictionary.antennaType;
                             scope.addressesList = newAddresses;
                             scope.dictionary.addresses = newAddresses;
                             scope.dictionary.BSC = newBscRncs;
@@ -1081,7 +1086,6 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                                 scope.catalogsFetched = true;
                                 scope.openFarEndInformation(0);
                             });
-
                         }
                     catch(e){
                         console.log(e)
@@ -1422,7 +1426,7 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
 
                 scope.siteAddressCitySelected = function ($item) {
                     scope.leasingCandidate.address.cn_addr_district = _.find(scope.dictionary.addresses, {'city': $item.name}).district;
-                    if (!scope.leasingCandidate.address.cn_addr_oblast) {
+                    if (!scope.leasingCandidate.address.cn_addr_oblast || scope.leasingCandidate.address.cn_addr_oblast !== _.find(scope.dictionary.addresses, {'city': $item.name}).oblast) {
                         scope.leasingCandidate.address.cn_addr_oblast = _.find(scope.dictionary.addresses, {'city': $item.name}).oblast;
                     }
                 };
@@ -1452,15 +1456,15 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                         scope.leasingCandidate.filteredByOblast = scope.dictionary.addresses.filter(a => {
                             return a.oblast === scope.leasingCandidate.address.cn_addr_oblast
                         });
-                        scope.leasingCandidate.filteredDistricts = _.uniqBy(scope.leasingCandidate.filteredByOblast, 'district').map((e, index) => {
+                        scope.filteredDistricts = _.uniqBy(scope.leasingCandidate.filteredByOblast, 'district').map((e, index) => {
                             return {"name": e.district, "id": index}
                         });
-                        scope.leasingCandidate.cityList = _.uniqBy(scope.leasingCandidate.filteredByOblast, 'city').map((e, index) => {
+                        scope.cityList = _.uniqBy(scope.leasingCandidate.filteredByOblast, 'city').map((e, index) => {
                             return {"name": e.city, "id": index}
                         });
                     } else {
-                        scope.leasingCandidate.filteredDistricts = scope.districtList;
-                        scope.leasingCandidate.cityList = _.uniqBy(scope.dictionary.addresses, 'city').map((e, index) => {
+                        scope.filteredDistricts = scope.districtList;
+                        scope.cityList = _.uniqBy(scope.dictionary.addresses, 'city').map((e, index) => {
                             return {"name": e.city, "id": index}
                         });
                     }
