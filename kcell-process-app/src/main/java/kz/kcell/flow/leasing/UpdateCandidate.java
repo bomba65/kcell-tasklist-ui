@@ -76,7 +76,7 @@ public class UpdateCandidate implements JavaDelegate {
 
                     SpinJsonNode siteTypeJson = delegateExecution.getVariable("siteType") != null ? JSON(delegateExecution.getVariable("siteType")) : null;
                     SpinJsonNode siteType = siteTypeJson != null && siteTypeJson.hasProp("id") ? siteTypeJson.prop("id") : null;
-                    String siteTypeString = siteType != null ? siteType.value().toString() : null;
+                    String siteTypeString = siteType != null && siteType.value()!=null ? siteType.value().toString() : null;
                     Integer siteTypeInt = siteTypeString != null ? Integer.parseInt(siteTypeString) : null;
 
                     SpinJsonNode powerSource = delegateExecution.hasVariable("powerSource") ? JSON(delegateExecution.getVariable("powerSource")) : null;
@@ -87,46 +87,46 @@ public class UpdateCandidate implements JavaDelegate {
                     String res_10kv = powerSource != null && powerSource.hasProp("closestPublic10") && powerSource.prop("closestPublic10").value() != null ? (powerSource.prop("closestPublic10").value().toString()) : null;
 
                     SpinJsonNode candidate = delegateExecution.getVariable("candidate") != null ? JSON(delegateExecution.getVariable("candidate")) : null;
-                    String cn_longitude = candidate != null && candidate.hasProp("longitude") && candidate.prop("longitude") != null ? "E " + candidate.prop("longitude").value().toString().replace(".", ",") : null;
-                    String cn_latitude = candidate != null && candidate.hasProp("latitude") && candidate.prop("latitude") != null ? "N " + candidate.prop("latitude").value().toString().replace(".", ",") : null;
-                    String cn_siteName = candidate != null && candidate.hasProp("siteName") && candidate.prop("siteName") != null ? candidate.prop("siteName").value().toString() : null;
-                    String cn_comments = candidate != null && candidate.hasProp("comments") && candidate.prop("comments") != null ? candidate.prop("comments").value().toString() : null;
+                    String cn_longitude = candidate != null && candidate.hasProp("longitude") && candidate.prop("longitude") != null && candidate.prop("longitude").value()!=null ? "E " + candidate.prop("longitude").value().toString().replace(".", ",") : null;
+                    String cn_latitude = candidate != null && candidate.hasProp("latitude") && candidate.prop("latitude") != null && candidate.prop("latitude").value()!=null ? "N " + candidate.prop("latitude").value().toString().replace(".", ",") : null;
+                    String cn_siteName = candidate != null && candidate.hasProp("siteName") && candidate.prop("siteName") != null && candidate.prop("siteName").value()!=null ? candidate.prop("siteName").value().toString() : null;
+                    String cn_comments = candidate != null && candidate.hasProp("comments") && candidate.prop("comments") != null && candidate.prop("comments").value()!=null ? candidate.prop("comments").value().toString() : null;
                     Number cn_square = candidate != null && candidate.hasProp("square") && candidate.prop("square") != null ? candidate.prop("square").numberValue() : null;
-                    String cn_constructionType = candidate != null && candidate.hasProp("constructionType") && candidate.prop("constructionType").hasProp("id") && candidate.prop("constructionType").prop("id") != null ? candidate.prop("constructionType").prop("id").value().toString() : null;
-                    String trType = candidate != null ? (candidate.hasProp("transmissionType") ? candidate.prop("transmissionType").value().toString() : null) : null;
+                    String cn_constructionType = candidate != null && candidate.hasProp("constructionType") && candidate.prop("constructionType").hasProp("id") && candidate.prop("constructionType").prop("id") != null && candidate.prop("constructionType").prop("id").value()!=null ? candidate.prop("constructionType").prop("id").value().toString() : null;
+                    String trType = candidate != null ? (candidate.hasProp("transmissionType") && candidate.prop("transmissionType").value()!=null ? candidate.prop("transmissionType").value().toString() : null) : null;
 
-                    Number cn_height_constr = candidate.hasProp("cn_height_constr") ? Integer.parseInt(candidate.prop("cn_height_constr").value().toString()) : 0;
-                    Number cn_altitude = candidate.hasProp("cn_altitude") ? Integer.parseInt(candidate.prop("cn_altitude").value().toString()) : 0;
+                    Number cn_height_constr = candidate.hasProp("cn_height_constr") && candidate.prop("cn_height_constr").value()!=null ? Integer.parseInt(candidate.prop("cn_height_constr").value().toString()) : 0;
+                    Number cn_altitude = candidate.hasProp("cn_altitude") && candidate.prop("cn_altitude").value()!=null ? Integer.parseInt(candidate.prop("cn_altitude").value().toString()) : 0;
 
-                    String cn_rbs_location = candidate != null && candidate.hasProp("rbsLocation") && candidate.prop("rbsLocation") != null && candidate.prop("rbsLocation").hasProp("id") && candidate.prop("rbsLocation").prop("id") != null ? (candidate.prop("rbsLocation").prop("id").value().toString()) : null;
+                    String cn_rbs_location = candidate != null && candidate.hasProp("rbsLocation") && candidate.prop("rbsLocation") != null && candidate.prop("rbsLocation").hasProp("id") && candidate.prop("rbsLocation").prop("id") != null && candidate.prop("rbsLocation").prop("id").value()!=null ? (candidate.prop("rbsLocation").prop("id").value().toString()) : null;
 
                     SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXX"); //2020-01-02T18:00:00.000Z
-                    String cn_date_of_visit = candidate != null && candidate.hasProp("dateOfVisit") && candidate.prop("dateOfVisit") != null ? (candidate.prop("dateOfVisit").value().toString()) : null;
+                    String cn_date_of_visit = candidate != null && candidate.hasProp("dateOfVisit") && candidate.prop("dateOfVisit") != null && candidate.prop("dateOfVisit").value()!=null ? (candidate.prop("dateOfVisit").value().toString()) : null;
                     Date date_of_visit_date = cn_date_of_visit != null ? formatter.parse(cn_date_of_visit) : null;
                     Calendar date_of_visit = Calendar.getInstance();
                     date_of_visit.setTime(date_of_visit_date);
                     date_of_visit.add(Calendar.HOUR_OF_DAY, 6);
 
                     SpinJsonNode ne = delegateExecution.getVariable("transmissionAntenna") != null ? JSON(delegateExecution.getVariable("transmissionAntenna")) : null;
-                    String ne_azimuth = ne != null ? (ne.hasProp("azimuth") ? ne.prop("azimuth").value().toString() : "0") : null;
-                    String ne_diameter = ne != null ? (ne.hasProp("diameter") ? ne.prop("diameter").value().toString().replaceAll("[^(\\d.\\d)]", "") : "0") : null;
-                    String ne_frequencyBand = ne != null && ne.hasProp("frequencyBand") ? ne.prop("frequencyBand").value().toString().replaceAll("[^0-9.]", "") : null;
+                    String ne_azimuth = ne != null ? (ne.hasProp("azimuth") && ne.prop("azimuth").value()!=null ? ne.prop("azimuth").value().toString() : "0") : null;
+                    String ne_diameter = ne != null ? (ne.hasProp("diameter") && ne.prop("diameter").value() != null ? ne.prop("diameter").value().toString().replaceAll("[^(\\d.\\d)]", "") : "0") : null;
+                    String ne_frequencyBand = ne != null && ne.hasProp("frequencyBand") && ne.prop("frequencyBand").value()!=null ? ne.prop("frequencyBand").value().toString().replaceAll("[^0-9.]", "") : null;
                     Number ne_suspensionHeight = ne != null && ne.hasProp("suspensionHeight") ? (ne.prop("suspensionHeight").numberValue()) : null;
-                    String ne_longitude = ne != null && ne.hasProp("address") && ne.prop("address").hasProp("longitude") ? (ne.prop("address").prop("longitude").value().toString()) : null;
-                    String ne_latitude = ne != null && ne.hasProp("address") && ne.prop("address").hasProp("latitude") ? (ne.prop("address").prop("latitude").value().toString()) : null;
+                    String ne_longitude = ne != null && ne.hasProp("address") && ne.prop("address").hasProp("longitude") && ne.prop("address").prop("longitude").value()!=null ? (ne.prop("address").prop("longitude").value().toString()) : null;
+                    String ne_latitude = ne != null && ne.hasProp("address") && ne.prop("address").hasProp("latitude") && ne.prop("address").prop("latitude").value()!=null ? (ne.prop("address").prop("latitude").value().toString()) : null;
 
                     SpinJsonNode feJson = delegateExecution.getVariable("farEndInformation") != null ? JSON(delegateExecution.getVariable("farEndInformation")) : null;
                     SpinList farEnds = feJson != null ? feJson.elements() : null;
                     SpinJsonNode fe = (farEnds != null && farEnds.size() > 0) ? (SpinJsonNode) farEnds.get(0) : null;
 
-                    String fe_azimuth = fe != null && fe.hasProp("azimuth") ? (fe.prop("azimuth").value().toString()) : null;
-                    String fe_diameter = fe != null && fe.hasProp("diameter") ? (fe.prop("diameter").value().toString().replaceAll("[^(\\d.\\d)]", "")) : null;
-                    String fe_frequencyBand = fe != null && fe.hasProp("frequencyBand") ? fe.prop("frequencyBand").value().toString().replaceAll("[^0-9.]", "") : null;
-                    String fe_suspensionHeight = fe != null && fe.hasProp("suspensionHeight") && fe.prop("suspensionHeight") != null ? fe.prop("suspensionHeight").value().toString() : null;
-                    String fe_constructionType = fe != null && fe.hasProp("constructionType") && fe.prop("constructionType") != null ? (fe.prop("constructionType").hasProp("id") ? fe.prop("constructionType").prop("id").value().toString() : null) : null;
-                    String fe_sitename = fe != null && fe.hasProp("farEndName") && fe.prop("farEndName") != null ? fe.prop("farEndName").value().toString() : null;
-                    String fe_comment = fe != null && fe.hasProp("comments") && fe.prop("comments") != null ? fe.prop("comments").value().toString() : null;
-                    String fe_survey_date = fe != null && fe.hasProp("surveyDate") && fe.prop("surveyDate") != null ? (fe.prop("surveyDate").value().toString()) : null;
+                    String fe_azimuth = fe != null && fe.hasProp("azimuth") && fe.prop("azimuth").value()!=null ? (fe.prop("azimuth").value().toString()) : null;
+                    String fe_diameter = fe != null && fe.hasProp("diameter") && fe.prop("diameter").value()!=null ? (fe.prop("diameter").value().toString().replaceAll("[^(\\d.\\d)]", "")) : null;
+                    String fe_frequencyBand = fe != null && fe.hasProp("frequencyBand") && fe.prop("frequencyBand").value()!=null ? fe.prop("frequencyBand").value().toString().replaceAll("[^0-9.]", "") : null;
+                    String fe_suspensionHeight = fe != null && fe.hasProp("suspensionHeight") && fe.prop("suspensionHeight") != null && fe.prop("suspensionHeight").value()!=null ? fe.prop("suspensionHeight").value().toString() : null;
+                    String fe_constructionType = fe != null && fe.hasProp("constructionType") && fe.prop("constructionType") != null ? (fe.prop("constructionType").hasProp("id") && fe.prop("constructionType").prop("id").value()!=null ? fe.prop("constructionType").prop("id").value().toString() : null) : null;
+                    String fe_sitename = fe != null && fe.hasProp("farEndName") && fe.prop("farEndName") != null && fe.prop("farEndName").value() != null ? fe.prop("farEndName").value().toString() : null;
+                    String fe_comment = fe != null && fe.hasProp("comments") && fe.prop("comments") != null && fe.prop("comments").value()!=null ? fe.prop("comments").value().toString() : null;
+                    String fe_survey_date = fe != null && fe.hasProp("surveyDate") && fe.prop("surveyDate") != null && fe.prop("surveyDate").value() != null ? (fe.prop("surveyDate").value().toString()) : null;
                     Date fe_formated_survey_date = fe_survey_date != null ? formatter.parse(fe_survey_date) : null;
                     Calendar fe_cal_survey_date = Calendar.getInstance();
                     if (fe_formated_survey_date != null){
@@ -134,25 +134,25 @@ public class UpdateCandidate implements JavaDelegate {
                         fe_cal_survey_date.add(Calendar.HOUR_OF_DAY, 6);
                     }
 
-                    String fe_legal_name = fe != null && fe.hasProp("renterCompany") && fe.prop("renterCompany").hasProp("legalName") ? fe.prop("renterCompany").prop("legalName").value().toString() : null;
-                    String fe_legal_address = fe != null && fe.hasProp("renterCompany") && fe.prop("renterCompany").hasProp("fe_legal_address") ? fe.prop("renterCompany").prop("fe_legal_address").value().toString() : null;
-                    String fe_phone_fax = fe != null && fe.hasProp("renterCompany") && fe.prop("renterCompany").hasProp("telFax") ? fe.prop("renterCompany").prop("telFax").value().toString() : null;
-                    String fe_leader_name = fe != null && fe.hasProp("renterCompany") && fe.prop("renterCompany").hasProp("firstLeaderName") ? fe.prop("renterCompany").prop("firstLeaderName").value().toString() : null;
-                    String fe_leader_position = fe != null && fe.hasProp("renterCompany") && fe.prop("renterCompany").hasProp("firstLeaderPosition") ? fe.prop("renterCompany").prop("firstLeaderPosition").value().toString() : null;
-                    String fe_email = fe != null && fe.hasProp("renterCompany") && fe.prop("renterCompany").hasProp("email") ? fe.prop("renterCompany").prop("email").value().toString() : null;
-                    String fe_contact_name = fe != null && fe.hasProp("renterCompany") && fe.prop("renterCompany").hasProp("name") ? fe.prop("renterCompany").prop("name").value().toString() : null;
-                    String fe_contact_position = fe != null && fe.hasProp("renterCompany") && fe.prop("renterCompany").hasProp("position") ? fe.prop("renterCompany").prop("position").value().toString() : null;
-                    String fe_contact_information = fe != null && fe.hasProp("renterCompany") && fe.prop("renterCompany").hasProp("contactInformation") ? fe.prop("renterCompany").prop("contactInformation").value().toString() : null;
-                    String fe_name = fe != null && fe.hasProp("farEndName") ? fe.prop("farEndName").value().toString() : null;
-                    String fe_square = fe != null && fe.hasProp("square") ? fe.prop("square").value().toString() : null;
-                    String fe_antennas_quantity = fe != null && fe.hasProp("antennasQuantity") ? fe.prop("antennasQuantity").value().toString() : null;
-                    String fe_weight = fe != null && fe.hasProp("weight") ? fe.prop("weight").value().toString() : null;
-                    String fe_suspension_height = fe != null && fe.hasProp("suspensionHeight") && fe.prop("suspensionHeight") != null ? fe.prop("suspensionHeight").value().toString() : null;
-                    String fe_comments = fe != null && fe.hasProp("comments") && fe.prop("comments") != null ? fe.prop("comments").value().toString() : null;
-                    String fe_results_visit_objects = fe != null && fe.hasProp("resultsOfVisit") && fe.prop("resultsOfVisit") != null ? fe.prop("resultsOfVisit").value().toString() : null;
+                    String fe_legal_name = fe != null && fe.hasProp("renterCompany") && fe.prop("renterCompany").hasProp("legalName") && fe.prop("renterCompany").prop("legalName").value()!=null ? fe.prop("renterCompany").prop("legalName").value().toString() : null;
+                    String fe_legal_address = fe != null && fe.hasProp("renterCompany") && fe.prop("renterCompany").hasProp("fe_legal_address") && fe.prop("renterCompany").prop("fe_legal_address").value()!=null ? fe.prop("renterCompany").prop("fe_legal_address").value().toString() : null;
+                    String fe_phone_fax = fe != null && fe.hasProp("renterCompany") && fe.prop("renterCompany").hasProp("telFax") && fe.prop("renterCompany").prop("telFax").value()!=null ? fe.prop("renterCompany").prop("telFax").value().toString() : null;
+                    String fe_leader_name = fe != null && fe.hasProp("renterCompany") && fe.prop("renterCompany").hasProp("firstLeaderName") && fe.prop("renterCompany").prop("firstLeaderName").value()!=null ? fe.prop("renterCompany").prop("firstLeaderName").value().toString() : null;
+                    String fe_leader_position = fe != null && fe.hasProp("renterCompany") && fe.prop("renterCompany").hasProp("firstLeaderPosition") && fe.prop("renterCompany").prop("firstLeaderPosition").value()!=null ? fe.prop("renterCompany").prop("firstLeaderPosition").value().toString() : null;
+                    String fe_email = fe != null && fe.hasProp("renterCompany") && fe.prop("renterCompany").hasProp("email") && fe.prop("renterCompany").prop("email").value()!=null ? fe.prop("renterCompany").prop("email").value().toString() : null;
+                    String fe_contact_name = fe != null && fe.hasProp("renterCompany") && fe.prop("renterCompany").hasProp("name") && fe.prop("renterCompany").prop("name").value()!=null ? fe.prop("renterCompany").prop("name").value().toString() : null;
+                    String fe_contact_position = fe != null && fe.hasProp("renterCompany") && fe.prop("renterCompany").hasProp("position") && fe.prop("renterCompany").prop("position").value()!=null ? fe.prop("renterCompany").prop("position").value().toString() : null;
+                    String fe_contact_information = fe != null && fe.hasProp("renterCompany") && fe.prop("renterCompany").hasProp("contactInformation") && fe.prop("renterCompany").prop("contactInformation").value()!=null ? fe.prop("renterCompany").prop("contactInformation").value().toString() : null;
+                    String fe_name = fe != null && fe.hasProp("farEndName") && fe.prop("farEndName").value()!=null ? fe.prop("farEndName").value().toString() : null;
+                    String fe_square = fe != null && fe.hasProp("square") && fe.prop("square").value()!=null ? fe.prop("square").value().toString() : null;
+                    String fe_antennas_quantity = fe != null && fe.hasProp("antennasQuantity") && fe.prop("antennasQuantity").value()!=null ? fe.prop("antennasQuantity").value().toString() : null;
+                    String fe_weight = fe != null && fe.hasProp("weight") && fe.prop("weight").value()!=null ? fe.prop("weight").value().toString() : null;
+                    String fe_suspension_height = fe != null && fe.hasProp("suspensionHeight") && fe.prop("suspensionHeight") != null && fe.prop("suspensionHeight").value()!=null ? fe.prop("suspensionHeight").value().toString() : null;
+                    String fe_comments = fe != null && fe.hasProp("comments") && fe.prop("comments") != null && fe.prop("comments").value()!=null ? fe.prop("comments").value().toString() : null;
+                    String fe_results_visit_objects = fe != null && fe.hasProp("resultsOfVisit") && fe.prop("resultsOfVisit") != null && fe.prop("resultsOfVisit").value()!=null ? fe.prop("resultsOfVisit").value().toString() : null;
 //                    String fe_equipment_type = fe != null && fe.hasProp("equipmentType") && fe.prop("equipmentType").value() != null  ? fe.prop("equipmentType").value().toString() : null;
 
-                    String fe_equipment_type_string = fe != null && fe.hasProp("equipmentType") ? (fe.prop("equipmentType").value().toString()) : null;
+                    String fe_equipment_type_string = fe != null && fe.hasProp("equipmentType") && fe.prop("equipmentType").value()!=null ? (fe.prop("equipmentType").value().toString()) : null;
 //                    TN2P		2
 //                    TN20P		6
 //                    TN6P		4
