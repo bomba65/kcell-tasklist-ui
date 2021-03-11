@@ -645,14 +645,14 @@ public class UpdateCandidate implements JavaDelegate {
                         ARTEFACT_RR_POWER_PreparedStatement.setNull(i++, Types.BIGINT);
                     }
                     if (res_4kv != null) {
-                        ARTEFACT_RR_POWER_PreparedStatement.setLong(i++, Integer.parseInt(res_4kv)); //RES_4KV
+                        ARTEFACT_RR_POWER_PreparedStatement.setFloat(i++, Float.parseFloat(res_4kv)); //RES_4KV
                     } else {
-                        ARTEFACT_RR_POWER_PreparedStatement.setNull(i++, Types.BIGINT);
+                        ARTEFACT_RR_POWER_PreparedStatement.setNull(i++, Types.FLOAT);
                     }
                     if (res_10kv != null) {
-                        ARTEFACT_RR_POWER_PreparedStatement.setLong(i++, Integer.parseInt(res_10kv)); //RES_10KV
+                        ARTEFACT_RR_POWER_PreparedStatement.setFloat(i++, Float.parseFloat(res_10kv)); //RES_10KV
                     } else {
-                        ARTEFACT_RR_POWER_PreparedStatement.setNull(i++, Types.BIGINT);
+                        ARTEFACT_RR_POWER_PreparedStatement.setNull(i++, Types.FLOAT);
                     }
                     ARTEFACT_RR_POWER_PreparedStatement.setLong(i++, createdArtefactRrPowerId); //RR Power Id
 
