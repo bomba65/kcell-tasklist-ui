@@ -833,7 +833,7 @@ public class CreateCandidate implements JavaDelegate {
 
                         }
                     }
-                    if (udbIdString.lastIndexOf(",") == udbIdString.length() - 1) {
+                    if (!udbIdString.equals("") && udbIdString.lastIndexOf(",") == udbIdString.length() - 1) {
                         udbIdString = udbIdString.substring(0, udbIdString.lastIndexOf(","));
                     }
                     if (azimuthString.lastIndexOf("/") == azimuthString.length() - 1) {
