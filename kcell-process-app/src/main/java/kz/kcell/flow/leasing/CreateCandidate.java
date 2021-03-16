@@ -806,7 +806,7 @@ public class CreateCandidate implements JavaDelegate {
                                     SpinJsonNode antenna = (SpinJsonNode) antennaList.get(k);
 
                                     String antennaName = antenna.prop("antennaName").value().toString();
-                                    if (antennaNameString.indexOf(antennaName) == -1 && antennaCount < 3) {
+                                    if (antenna.hasProp("udb_id") && antenna.prop("udb_id")!=null && antenna.prop("udb_id").value()!=null && antennaNameString.indexOf(antennaName) == -1 && antennaCount < 3) {
                                         antennaNameString += antennaName + ", ";
                                         String udbId = antenna.prop("udb_id").value().toString();
                                         udbIdString += udbId + ", ";
