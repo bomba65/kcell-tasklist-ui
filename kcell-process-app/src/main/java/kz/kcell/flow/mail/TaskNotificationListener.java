@@ -99,30 +99,6 @@ public class TaskNotificationListener implements TaskListener {
                 .findAny()
                 .isPresent();
 
-        boolean isRFSByPermitProcess =
-            delegateTask
-                .getProcessEngineServices()
-                .getRepositoryService()
-                .createProcessDefinitionQuery()
-                .processDefinitionId(delegateTask.getProcessDefinitionId())
-                .list()
-                .stream()
-                .filter(e-> "tsd-processing".equals(e.getKey()))
-                .findAny()
-                .isPresent();
-
-        boolean isChangeTsdProcess =
-            delegateTask
-                .getProcessEngineServices()
-                .getRepositoryService()
-                .createProcessDefinitionQuery()
-                .processDefinitionId(delegateTask.getProcessDefinitionId())
-                .list()
-                .stream()
-                .filter(e-> "change-tsd".equals(e.getKey()))
-                .findAny()
-                .isPresent();
-
         final Set<String> recipientEmails = new HashSet<>();
         if (TaskListener.EVENTNAME_CREATE.equals(delegateTask.getEventName())) {
             if (delegateTask.getAssignee() != null) recipientEmails.addAll(getAssigneeAddresses(delegateTask, true));
