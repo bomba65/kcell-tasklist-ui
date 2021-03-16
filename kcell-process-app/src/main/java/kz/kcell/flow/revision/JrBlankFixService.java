@@ -501,7 +501,7 @@ public class JrBlankFixService {
 
 
             Set<String> ccList = identityService.createUserQuery().userId(runtimeService.getVariable(processId, "starter").toString()).list().stream().map(user -> user.getId()).collect(Collectors.toSet());
-            ccList.addAll(Arrays.asList("Yernaz.Kalingarayev@kcell.kz"));
+            ccList.addAll(Arrays.asList("Stanislav.Li@kcell.kz"));
             if (reason != null && reason.equals("3")) {
                 ccList.add("Tatyana.Solovyova@kcell.kz");
             }
