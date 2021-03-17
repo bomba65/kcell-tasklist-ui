@@ -836,16 +836,16 @@ public class CreateCandidate implements JavaDelegate {
                     if (!udbIdString.equals("") && udbIdString.lastIndexOf(",") == udbIdString.length() - 1) {
                         udbIdString = udbIdString.substring(0, udbIdString.lastIndexOf(","));
                     }
-                    if (azimuthString.lastIndexOf("/") == azimuthString.length() - 1) {
+                    if (!azimuthString.equals("") && azimuthString.lastIndexOf("/") == azimuthString.length() - 1) {
                         azimuthString = azimuthString.substring(0, azimuthString.lastIndexOf("/"));
                     }
-                    if (dimensionString.lastIndexOf(",") == dimensionString.length() - 1) {
+                    if (dimensionString!=null && dimensionString.lastIndexOf(",") == dimensionString.length() - 1) {
                         dimensionString = dimensionString.substring(0, dimensionString.lastIndexOf(","));
                     }
-                    if (suspensionHeightString.lastIndexOf("/") == suspensionHeightString.length() - 1) {
+                    if (suspensionHeightString!=null && suspensionHeightString.lastIndexOf("/") == suspensionHeightString.length() - 1) {
                         suspensionHeightString = suspensionHeightString.substring(0, suspensionHeightString.lastIndexOf("/"));
                     }
-                    if (weightString.lastIndexOf("/") == weightString.length() - 1) {
+                    if (weightString!=null && weightString.lastIndexOf("/") == weightString.length() - 1) {
                         weightString = weightString.substring(0, weightString.lastIndexOf("/"));
                     }
 
