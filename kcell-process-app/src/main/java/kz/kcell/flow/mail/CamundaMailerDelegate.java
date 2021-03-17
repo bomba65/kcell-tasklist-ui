@@ -85,10 +85,6 @@ public class CamundaMailerDelegate implements JavaDelegate {
                 .filter(e-> e.getKey().equals("Revision") || e.getKey().equals("Invoice"))
                 .count();
 
-        if(isRevisionMonthlyActCount > 0 && addresses!=null && !addresses.contains("Stanislav.Li@kcell.kz")){
-            addresses = addresses + ",Stanislav.Li@kcell.kz";
-        }
-
         MimeMessage message = mailSender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(message, true);
 
