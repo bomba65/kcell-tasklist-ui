@@ -60,7 +60,8 @@ public class TaskHistoryListener implements TaskListener {
       "create-new-tsd",
       "change-tsd",
       "tsd-processing",
-      "cancel-tsd"
+      "cancel-tsd",
+      "monthlyAct"
     );
 
     private final List<String> groupOne = Arrays.asList(

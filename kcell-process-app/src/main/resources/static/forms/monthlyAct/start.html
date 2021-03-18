@@ -1,0 +1,1019 @@
+<style>
+    .my-group .form-control{
+        width:50%;
+    }
+    .modal-lg.modal-dialog{
+        width: 90%;
+    }
+    input[type=number]::-webkit-inner-spin-button,
+    input[type=number]::-webkit-outer-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+    }
+
+    .animate-if {
+        background:white;
+        overflow: hidden;
+        transition: 0.4s;
+        padding: 13px;
+        margin-bottom: 0px;
+        color: #b3b3b3;
+        background-color: #fff;
+        border: 2px solid #b3b3b3;
+        border-radius: 0;
+        -webkit-box-shadow: none;
+        box-shadow: none;
+    }
+
+    .animate-if.ng-enter, .animate-if.ng-leave {
+        transition:all 0.3s cubic-bezier(0.250, 0.460, 0.450, 0.940) ;
+    }
+
+    .animate-if.ng-enter,
+    .animate-if.ng-leave.ng-leave-active {
+        opacity:0;
+        max-height:0;
+        padding-top: 0px;
+        padding-bottom: 0px;
+    }
+
+    .animate-if.ng-leave,
+    .animate-if.ng-enter.ng-enter-active {
+        opacity:1;
+        max-height: 500px;
+        padding-top: 13px;
+        padding-bottom: 13px;
+    }
+</style>
+<form role="form" class="form-horizontal" name="kcell_form" novalidate>
+    <script cam-script type="text/form-script">
+        inject(['$scope', '$http', '$rootScope', '$q', '$timeout', function ($scope, $http, $rootScope, $q, $timeout) {
+            var variablesToCreate = [
+                {
+                    name: 'jobRequests',
+                    type: 'Json',
+                    submit: true,
+                    store: true
+                },
+                {
+                    name: 'selectedRevisions',
+                    type: 'Json',
+                    submit: true,
+                    store: true
+                },
+                {
+                    name: 'resolutions',
+                    type: 'Json',
+                    submit: true,
+                    store: true,
+                    value: []
+                },
+                {
+                    name: 'initiatorFull',
+                    type: 'Json',
+                    submit: true,
+                    store: true
+                },
+                {
+                    name: 'periodDate',
+                    type: 'Date',
+                    submit: true,
+                    store: true
+                },
+                {
+                    name: 'monthOfFormalPeriod',
+                    type: 'String',
+                    submit: true,
+                    store: true
+                },
+                {
+                    name: 'yearOfFormalPeriod',
+                    type: 'String',
+                    submit: true,
+                    store: true
+                },
+                {
+                    name: 'formalPeriod',
+                    type: 'String',
+                    submit: true,
+                    store: true
+                },
+                {
+                    name: 'maNumber',
+                    type: 'String',
+                    submit: true,
+                    store: true
+                },
+                {
+                    name: 'contractor',
+                    type: 'String',
+                    submit: true,
+                    store: true
+                }
+            ];
+
+            $scope.subcontractors = [
+                'LINE',
+                'ALTA',
+                'ARLAN',
+                'LOGYCOM'
+            ];
+
+            $scope.mapContractors = {
+                'alta':'ALTA',
+                'arlan':'ARLAN',
+                'logycom':'LOGYCOM',
+                'lse':'LINE'
+            }
+
+            $scope.mapContractorsReverse = {
+                'ALTA':'alta',
+                'ARLAN':'arlan',
+                'LOGYCOM':'logycom',
+                'LINE':'lse'
+            }
+
+            $scope.months = [
+                {id: 'jan', label: 'January', order: '1'},
+                {id: 'feb', label: 'February', order: '2'},
+                {id: 'mar', label: 'March', order: '3'},
+                {id: 'apr', label: 'April', order: '4'},
+                {id: 'may', label: 'May', order: '5'},
+                {id: 'jun', label: 'June', order: '6'},
+                {id: 'jul', label: 'July', order: '7'},
+                {id: 'aug', label: 'August', order: '8'},
+                {id: 'sep', label: 'September', order: '9'},
+                {id: 'oct', label: 'October', order: '10'},
+                {id: 'nov', label: 'November', order: '11'},
+                {id: 'dec', label: 'December', order: '12'}
+            ];
+
+            $scope.monthsTitle = {
+                'January': '01',
+                'February': '02',
+                'March': '03',
+                'April': '04',
+                'May': '05',
+                'June': '06',
+                'July': '07',
+                'August': '08',
+                'September': '09',
+                'October': '10',
+                'November': '11',
+                'December': '12'
+            };
+
+            $scope.monthsTitleRu = {
+                'January': 'Январь',
+                'February': 'Февраль',
+                'March': 'Март',
+                'April': 'Апрель',
+                'May': 'Май',
+                'June': 'Июнь',
+                'July': 'Июль',
+                'August': 'Август',
+                'September': 'Сентябрь',
+                'October': 'Октябрь',
+                'November': 'Ноябрь',
+                'December': 'Декабрь'
+            };
+
+            $scope.contractorCode = {
+                'lse': 4,
+                'Kcell_region': 5,
+                'alta': 6,
+                'logycom': 7,
+                'arlan': 8
+            };
+
+            $scope.regionsMap = {
+                'alm': 'Almaty',
+                'astana': 'Astana',
+                'nc': 'N&C',
+                'east': 'East',
+                'south': 'South',
+                'west': 'West'
+            };
+
+            $scope.reasonShortName = {
+                '1': 'P&O',
+                '2': 'TNU',
+                '3': 'S&FM',
+                '4': 'SAO'
+            };
+
+            $scope.regionsTitle = {
+                'alm': 'Alm',
+                'astana': 'Astana',
+                'nc': 'N&C',
+                'east': 'East',
+                'south': 'South',
+                'west': 'West'
+            };
+
+            $scope.jobRequests = [];
+            $scope.previousInvoiceCount = 0;
+
+            $scope.$watch('selectedRevisions', function (selectedRevisions) {
+                $scope.kcell_form.$setValidity('selectedCount', Object.keys(selectedRevisions).length > 0);
+            }, true);
+
+            var currentDate = new Date;
+            var catalogs = {};
+            $scope.years = [currentDate.getFullYear(), currentDate.getFullYear()-1, currentDate.getFullYear()-2];
+
+            camForm.on('form-loaded', function () {
+                variablesToCreate.forEach(function (el) {
+                    camForm.variableManager.fetchVariable(el.name);
+                });
+                $http.get($rootScope.getCatalogsHttpByName('catalogs')).then(
+                        function (result) {
+                            angular.extend($scope, result.data);
+                            angular.extend(catalogs, result.data);
+                        },
+                        function (error) {
+                            console.log(error.data);
+                        }
+                );
+            });
+
+            camForm.on('variables-fetched', function () {
+                variablesToCreate.forEach(function (el) {
+                    if (camForm.variableManager.variables[el.name].type === undefined) {
+                        camForm.variableManager.variables[el.name].type = el.type;
+                        if (el.value) {
+                            camForm.variableManager.variables[el.name].value = el.value;
+                        }
+                    }
+                });
+                $http.get('/camunda/api/engine/engine/default/user/' + $rootScope.authentication.name + '/profile').then(
+                    function (result) {
+                        $scope.initiatorFull = result.data;
+                        $rootScope.authentication.assigneeName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
+                    },
+                    function (error) {
+                    }
+                );
+                $http.get("/camunda/api/engine/engine/default/group?member=" + $rootScope.authentication.name).then(
+                        function (result) {
+                            angular.forEach(result.data, function(group){
+                                if(group.id.indexOf('hq_contractor_') == 0){
+                                    $scope.contractor = group.id.replace('hq_contractor_', '');
+                                    $scope.subcontractor = $scope.mapContractors[$scope.contractor];
+                                    $scope.initiator = 'subcontractor';
+                                }
+                            });
+                            if(!$scope.contractor){
+                                $scope.initiator = 'kcell';
+                            }
+                            console.log('contractor: ', $scope.contractor);
+                        },
+                        function (error) {
+                        }
+                );
+            });
+
+            function open($event) {
+                $event.preventDefault();
+                $event.stopPropagation();
+                $scope.dateFieldOpened = true;
+            };
+
+            $scope.jobModel = {};
+            $scope.selectedWorks = [];
+            $scope.selectedRevisions = {};
+            $scope.alreadyInInvoiceRevisions = {};
+            $scope.open = open;
+            $scope.periodDateSelected = periodDateSelected;
+            $scope.formalPeriodMonthSelected = formalPeriodMonthSelected;
+            $scope.formalPeriodYearSelected = formalPeriodYearSelected;
+            $scope.refreshJobRequests = refreshJobRequests;
+            $scope.subcontractorChanged = subcontractorChanged;
+
+            function periodDateSelected(){
+                $scope.selectedRevisions = {};
+                refreshJobRequests();
+            }
+
+            function subcontractorChanged(){
+                $scope.contractor = $scope.mapContractorsReverse[$scope.subcontractor];
+                $scope.selectedRevisions = {};
+                refreshJobRequests();
+            }
+
+            function formalPeriodMonthSelected(){
+                checkMonthlyActs();
+            }
+
+            function formalPeriodYearSelected(){
+                checkMonthlyActs();
+            }
+
+
+            function refreshJobRequests() {
+                $scope.alreadyInInvoiceRevisions = {};
+                $scope.jobRequests = [];
+                reDrawTable();
+
+                var processParams = {
+                    processDefinitionKey: 'Revision',
+                    activityIdIn: ['intermediate_wait_invoiced'],
+                    "variables":
+                            [
+                                {"name": "contractor", "operator": "eq", "value": $scope.contractorCode[$scope.contractor]},
+                                {"name": "acceptPerformedJob", "operator": "eq", "value": 'scan attached'},
+                                {"name": "mainContract", "operator": "eq", "value": 'Roll-outRevision2020'}
+                            ]
+                };
+
+                $http({
+                    method: 'POST',
+                    headers: {'Accept': 'application/hal+json, application/json; q=0.5'},
+                    data: processParams,
+                    url: '/camunda/api/engine/engine/default/process-instance'
+                }).then(function (results) {
+                    var processes = results.data;
+
+                    processes.forEach(function(x){
+                        if(notInSelected(x.id) && !$scope.alreadyInInvoiceRevisions[x.id]){
+                            var jobRequest = {
+                                selected: false,
+                                businessKey: x.businessKey,
+                                processInstanceId: x.id
+                            };
+                            $scope.jobRequests.push(jobRequest);
+                        }
+                    });
+
+                    if($scope.jobRequests.length > 0){
+                        var counter = 0;
+                        var variables = ['site_name', 'priority', 'performDate', 'contractorJobAssignedDate', 'acceptanceDate', 'siteRegion', 'reason'];
+                        _.forEach(variables, function(variable) {
+                            var varSearchParams = {processInstanceIdIn: _.map($scope.jobRequests, 'processInstanceId'), variableName: variable};
+                            $http({
+                                method: 'POST',
+                                headers:{'Accept':'application/hal+json, application/json; q=0.5'},
+                                data: varSearchParams,
+                                url: '/camunda/api/engine/engine/default/variable-instance'
+                            }).then(
+                                function(vars){
+                                    angular.forEach($scope.jobRequests, function(el){
+                                        var f = _.filter(vars.data, function(v) {
+                                            return v.processInstanceId === el.processInstanceId;
+                                        });
+                                        if(f && f[0]){
+                                            el[variable] = f[0].value;
+                                        }
+                                    });
+                                    counter++;
+
+                                    //ждем пока отработают все запросы с variables
+                                    if(variables.length === counter){
+                                        angular.forEach($scope.jobRequests, function (request) {
+                                            var taskParams = {
+                                                taskDefinitionKeyIn: ['accept_work_initiator'],
+                                                processInstanceBusinessKey: request.businessKey
+                                            };
+
+                                            $http({
+                                                method: 'POST',
+                                                headers: {'Accept': 'application/hal+json, application/json; q=0.5'},
+                                                data: taskParams,
+                                                url: '/camunda/api/engine/engine/default/history/task'
+                                            }).then(function (res) {
+                                                if(request.performDate){
+                                                    request.acceptWorkStartTime = request.performDate;
+                                                } else {
+                                                    var acceptWorkInitiator = _.maxBy(_.filter(res.data, function(task){
+                                                        return task.taskDefinitionKey === 'accept_work_initiator' || task.taskDefinitionKey === 'UserTask_1i7na4a';
+                                                    }), function(o) { return o.startTime; });
+
+                                                    if(acceptWorkInitiator){
+                                                        request.acceptWorkStartTime = acceptWorkInitiator.startTime;
+                                                    }
+                                                }
+
+                                                if(request.acceptanceDate){
+                                                    request.acceptWorkEndTime = request.acceptanceDate;
+                                                } else {
+                                                    var acceptWorkInitiator = _.maxBy(_.filter(res.data, function(task){
+                                                        return task.taskDefinitionKey === 'accept_work_initiator' || task.taskDefinitionKey === 'UserTask_1i7na4a';
+                                                    }), function(o) { return o.endTime; });
+
+                                                    if(acceptWorkInitiator){
+                                                        request.acceptWorkEndTime = acceptWorkInitiator.endTime;
+                                                    }
+                                                }
+                                            });
+                                        });
+                                    }
+                                },
+                                function(error){
+                                    console.log(error.data);
+                                }
+                            );
+                        });
+
+                        // attach_material_list_contractor, fill_applied_changes_info - task, first date
+                        // modify_jr - last date
+                        // validate_tr - task, approved last date
+                        // accept_work_initiator - task, approved last date
+                    }
+                });
+
+                $http({
+                    method: 'POST',
+                    headers: {'Accept': 'application/hal+json, application/json; q=0.5'},
+                    data: {
+                        processDefinitionKey: 'monthlyAct',
+                        "variables":
+                                [{"name": "contractor", "operator": "eq", "value": $scope.contractor},
+                                 {"name": "mainContract", "operator": "eq", "value": "Roll-outRevision2020"}
+                                ]
+                    },
+                    url: '/camunda/api/engine/engine/default/process-instance'
+                }).then(function (results) {
+                    var invoices = _.map(results.data, _.property('id'));
+                    $http({
+                        method: 'POST',
+                        headers: {'Accept': 'application/hal+json, application/json; q=0.5'},
+                        data: {
+                            processInstanceIdIn: invoices,
+                            "variableName":"selectedRevisions"
+                        },
+                        url: '/camunda/api/engine/engine/default/variable-instance?deserializeValues=false'
+                    }).then(function (result) {
+                        if(result.data){
+                            angular.forEach(result.data, function(revisions){
+                                for(var propt in JSON.parse(revisions.value)){
+                                    $scope.alreadyInInvoiceRevisions[propt] = {};
+                                    $scope.jobRequests = _.filter($scope.jobRequests, function(jobRequest){
+                                        return jobRequest.processInstanceId !== propt;
+                                    });
+                                }
+                            });
+                        }
+                    });
+                });
+            }
+
+            function checkMonthlyActs(){
+                $scope.previousInvoiceCount = 0;
+                var query = {};
+
+                if($scope.contractor && $scope.monthOfFormalPeriod && $scope.yearOfFormalPeriod){
+                    var formalPeriod = $scope.monthOfFormalPeriod + ' ' + $scope.yearOfFormalPeriod;
+                    query = {
+                        "processDefinitionKey" : "monthlyAct",
+                        "variables" :
+                                [{
+                                    "name": "formalPeriod",
+                                    "operator": "eq",
+                                    "value" : formalPeriod
+                                },{
+                                    "name": "contractor",
+                                    "operator": "eq",
+                                    "value" : $scope.contractor
+                                },{
+                                    "name": "mainContract",
+                                    "operator": "eq",
+                                    "value" : 'Roll-outRevision2020'
+                                }]
+                    };
+                    $http.post('/camunda/api/engine/engine/default/history/process-instance/count',query).then(
+                        function(result){
+                            $scope.previousInvoiceCount = result.data.count;
+                        },
+                        function(error){
+                            console.log(error);
+                        }
+                    );
+                }
+            }
+
+            function notInSelected(processInstanceId){
+                return !$scope.selectedRevisions[processInstanceId];
+            }
+
+            $scope.processInstanceId = undefined;
+            $scope.selectedView = undefined;
+            $scope.pkey = undefined;
+            $scope.addSelected = addSelected;
+            $scope.removeJobRequest = removeJobRequest;
+            $scope.countSelected = countSelected;
+            $scope.selectAll = selectAll;
+
+            var selected = false;
+            function selectAll(){
+                angular.forEach($scope.jobRequests, function(x){
+                    x.selected = !selected;
+                });
+                if(selected === true){
+                    selected = false;
+                } else {
+                    selected = true;
+                }
+            }
+
+            function addSelected(){
+                var list = [];
+                angular.forEach($scope.jobRequests, function (el) {
+                    if(el.selected){
+                        list.push(el);
+                    }
+                });
+                var size = list.length;
+                var count = 0;
+                list.forEach(function (el) {
+                    $http.get("/camunda/api/engine/engine/default/process-instance/"+el.processInstanceId+"/variables/jobWorks?deserializeValue=false").then(function (result) {
+                        $scope.selectedRevisions[el.processInstanceId] = el;
+                        $scope.selectedRevisions[el.processInstanceId].works = JSON.parse(result.data.value);
+                        count++;
+                        if(size === count){
+                            refreshJobRequests();
+                        }
+                        $http.get("/camunda/api/engine/engine/default/process-instance/"+el.processInstanceId+"/variables/workPrices?deserializeValue=false").then(function (result) {
+                            $scope.selectedRevisions[el.processInstanceId].workPrices = JSON.parse(result.data.value);
+                        });
+                    });
+                });
+            }
+
+            function removeJobRequest(processInstanceId){
+                delete $scope.selectedRevisions[processInstanceId];
+                refreshJobRequests();
+            }
+
+            function reDrawTable(){
+                $scope.reqularWorks = [];
+                $scope.emergencyWorks = [];
+
+                for(var propt in $scope.selectedRevisions){
+                    var processDetailCopy = angular.copy($scope.selectedRevisions[propt]);
+                    if(processDetailCopy.priority === 'emergency'){
+                        $scope.emergencyWorks.push(processDetailCopy);
+                    } else {
+                        $scope.reqularWorks.push(processDetailCopy);
+                    }
+                }
+            }
+
+            function countSelected() {
+                return Object.keys($scope.selectedRevisions).length;
+            }
+
+            $scope.toggleProcessView = function(processInstanceId, selectedView){
+                if($scope.processInstanceId === processInstanceId && $scope.selectedView === selectedView){
+                    $scope.processInstanceId = undefined;
+                    $scope.selectedView = undefined;
+                    $scope.jobModel = {};
+                } else {
+                    $scope.jobModel = {};
+                    $scope.processInstanceId = processInstanceId;
+                    $scope.selectedView = selectedView;
+                    $scope.jobModel.state = 'ACTIVE';
+                    $http({
+                        method: 'GET',
+                        headers:{'Accept':'application/hal+json, application/json; q=0.5'},
+                        url: '/camunda/api/engine/engine/default/task?processInstanceId='+processInstanceId
+                    }).then(
+                            function(tasks){
+                                var processInstanceTasks = tasks.data._embedded.task;
+                                if(processInstanceTasks && processInstanceTasks.length > 0){
+                                    processInstanceTasks.forEach(function(e){
+                                        if(e.assignee && tasks.data._embedded.assignee){
+                                            for(var i=0;i<tasks.data._embedded.assignee.length;i++){
+                                                if(tasks.data._embedded.assignee[i].id === e.assignee){
+                                                    e.assigneeObject = tasks.data._embedded.assignee[i];
+                                                }
+                                            }
+                                        }
+                                    });
+                                }
+                                $http.get('/camunda/api/engine/engine/default/history/variable-instance?deserializeValues=false&processInstanceId='+processInstanceId).then(
+                                        function(result){
+                                            var workFiles = [];
+                                            result.data.forEach(function(el){
+                                                $scope.jobModel[el.name] = el;
+                                                if(el.type === 'File' || el.type === 'Bytes'){
+                                                    $scope.jobModel[el.name].contentUrl = '/camunda/api/engine/engine/default/history/variable-instance/'+el.id+'/data';
+                                                }
+                                                if(el.type === 'Json'){
+                                                    $scope.jobModel[el.name].value = JSON.parse(el.value);
+                                                }
+                                                if(el.name.startsWith('works_') && el.name.includes('_file_')){
+                                                    workFiles.push(el);
+                                                }
+                                            });
+                                            if($scope.jobModel['siteWorksFiles']){
+                                                _.forEach($scope.jobModel['siteWorksFiles'].value, function(file){
+                                                    var workIndex = file.name.split('_')[1];
+                                                    if (!$scope.jobModel.jobWorks.value[workIndex].files) {
+                                                        $scope.jobModel.jobWorks.value[workIndex].files = [];
+                                                    }
+                                                    if(_.findIndex($scope.jobModel.jobWorks.value[workIndex].files, function(f) { return f.name == file.name; }) < 0){
+                                                        $scope.jobModel.jobWorks.value[workIndex].files.push(file);
+                                                    }
+                                                });
+                                            }
+                                            _.forEach(workFiles, function(file){
+                                                var workIndex = file.name.split('_')[1];
+                                                if (!$scope.jobModel.jobWorks.value[workIndex].files) {
+                                                    $scope.jobModel.jobWorks.value[workIndex].files = [];
+                                                }
+                                                if(_.findIndex($scope.jobModel.jobWorks.value[workIndex].files, function(f) { return f.name == file.name; }) < 0){
+                                                    $scope.jobModel.jobWorks.value[workIndex].files.push(file);
+                                                }
+                                            });
+                                            $scope.jobModel.tasks = processInstanceTasks;
+                                            angular.extend($scope.jobModel, catalogs);
+                                        },
+                                        function(error){
+                                            console.log(error.data);
+                                        }
+                                );
+                            },
+                            function(error){
+                                console.log(error.data);
+                            }
+                    );
+                }
+            };
+
+            camForm.on('submit', function (e) {
+                variablesToCreate.forEach(function (el) {
+                    if (el.submit) {
+                        camForm.variableManager.variableValue(el.name, $scope[el.name]);
+                    }
+                });
+
+                camForm.variableManager.variableValue('initiatorFull', $scope.initiatorFull);
+                var periodDate = new Date($scope.periodDate);
+                camForm.variableManager.variableValue('periodDate', periodDate);
+                camForm.variableManager.variableValue('resolutions', []);
+                camForm.variableManager.variableValue('contractor', $scope.contractor);
+
+                camForm.variableManager.variableValue('monthOfFormalPeriod', $scope.monthOfFormalPeriod);
+                camForm.variableManager.variableValue('yearOfFormalPeriod', $scope.yearOfFormalPeriod);
+                var formalPeriod = $scope.monthOfFormalPeriod + ' ' + $scope.yearOfFormalPeriod;
+                camForm.variableManager.variableValue('formalPeriod', formalPeriod);
+                camForm.variableManager.variableValue('maNumber', $scope.maNumber);
+
+                var requests = [];
+                angular.forEach($scope.jobRequests, function (jobRequest) {
+                    if(jobRequest.selected){
+                        requests.push(jobRequest);
+                    }
+                });
+
+                if ($scope.disableInvoicePush) {
+                    var pushInvoice = 'disable';
+                } else { var pushInvoice = 'enable' }
+
+                camForm.variableManager.createVariable({
+                    name: 'pushInvoice',
+                    type: 'String',
+                    value: pushInvoice
+                });
+
+                camForm.variableManager.variableValue('jobRequests', JSON.parse(angular.toJson(requests)));
+                camForm.variableManager.variableValue('selectedRevisions', $scope.selectedRevisions);
+            });
+
+            $scope.preSubmit = function(){
+                var deferred = $q.defer();
+
+                $scope.maNumber = $scope.subcontractor.toUpperCase() + '-' + $scope.yearOfFormalPeriod + '-' + $scope.monthsTitle[$scope.monthOfFormalPeriod];
+                camForm.businessKey = $scope.maNumber;
+
+                if($scope.previousInvoiceCount > 0){
+                    deferred.reject('Identical monthly acts are found, please change region, type of work or period');
+                    return deferred.promise;
+                } else {
+                    deferred.resolve();
+                    return deferred.promise;
+                }
+            }
+
+            $scope.exportToExcel = function(){
+                var tbl = document.getElementById('xlsxWorks');
+                var ws = XLSX.utils.table_to_sheet(tbl, {dateNF:'DD.MM.YYYY'});
+
+                var wb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb, ws, 'New Sheet Name 1');
+
+                return XLSX.writeFile(wb, 'monthlyAct.xlsx');
+            }
+
+            $scope.regionsOrderMap = {
+                'alm': 1,
+                'astana': 2,
+                'nc': 3,
+                'east': 4,
+                'south': 5,
+                'west': 6
+            };
+
+            $scope.reasonsOrderMap = {
+                '5': 1,
+                '1': 2,
+                '2': 3,
+                '3': 4,
+                '4': 5
+            };
+
+            $scope.orderReason = function(w){
+                return $scope.reasonsOrderMap[w.reason];
+            }
+
+            $scope.orderRegion = function(w){
+                return $scope.regionsOrderMap[w.siteRegion];
+            }
+
+            $scope.orderBusinessKey = function(w){
+                return Number(w.businessKey.replace("-Ro","").substr(w.businessKey.replace("-Ro","").lastIndexOf("-")+1, w.businessKey.replace("-Ro","").length));
+            }
+        }]);
+    </script>
+
+    <h4>Revision Monthly Technical Act</h4>
+
+    <div class="form-group" ng-show="initiator == 'kcell'">
+        <label class="col-sm-3 control-label">Subcontractor:</label>
+        <div class="col-sm-3">
+            <select class="form-control selectpicker" select-picker title="" select-model="subcontractors" cam-variable-name="subcontractor" name="subcontractor" required cam-variable-type="String" ng-change="subcontractorChanged()">
+                <option value="">select subcontractor</option>
+                <option value="{{r}}" ng-repeat="r in subcontractors">{{r}}</option>
+            </select>
+            <label class="error" ng-if="kcell_form.subcontractor.$error.required && ( kcell_form.subcontractor.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label class="col-sm-3 control-label">Monthly Act №:</label>
+        <div class="col-sm-3">
+            <input type="text" name="rolloutBussinessKey" class="form-control" disabled
+                   value="{{subcontractor.toUpperCase()}}-{{yearOfFormalPeriod?yearOfFormalPeriod:'####'}}-{{monthOfFormalPeriod?monthsTitle[monthOfFormalPeriod]:'##'}}" />
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label class="col-sm-3 control-label">Period:</label>
+        <div class="col-sm-6">
+            <select class="select selectpicker" select-picker title="" select-model="months" name="monthOfFormalPeriod" ng-model="monthOfFormalPeriod" required ng-change="formalPeriodMonthSelected()">
+                <option value="">select month</option>
+                <option ng-repeat="m in months" value="{{m.label}}">{{m.label}}</option>
+            </select>
+            <select class="custom-select selectpicker" select-picker title="" select-model="years" name="yearOfFormalPeriod" ng-model="yearOfFormalPeriod" required ng-change="formalPeriodYearSelected()">
+                <option value="">select year</option>
+                <option value="{{y}}" ng-repeat="y in years">{{y}}</option>
+            </select>
+            <label class="error" ng-if="(kcell_form.monthOfFormalPeriod.$error.required || kcell_form.yearOfFormalPeriod.$error.required) && (kcell_form.monthOfFormalPeriod.$touched || kcell_form.yearOfFormalPeriod.$touched  || view.submitted)">Required fields</label>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-3 control-label">Show all accepted works until:</label>
+        <div class="col-sm-3">
+            <div class="input-group">
+                <input type="text" ng-model="periodDate" name="periodDate" required class="form-control" datepicker-popup="dd.MM.yyyy hh:mm" is-open="dateFieldOpened" id="periodDate" min-date="datepickerOptions.minDate" ng-change="periodDateSelected()" />
+                <span class="input-group-btn">
+                        <button type="button" class="btn btn-default" ng-click="open($event)">
+                            <i class="glyphicon glyphicon-calendar"></i>
+                        </button>
+                    </span>
+            </div>
+            <label class="error" ng-if="kcell_form.periodDate.$error.required && ( kcell_form.periodDate.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+
+    <div>
+        <div class="form-group" ng-if="previousInvoiceCount > 0">
+            <label class="col-sm-6 control-label error">Identical monthly acts are found, please change period</label>
+        </div>
+
+        <tabset class="my-tab-head my-tab" justified="true" id="jobRequestId">
+            <tab style="float: left; width: 50%">
+                <tab-heading><span class="glyphicon glyphicon-check"></span> Filter ({{jobRequests.length}}) </tab-heading>
+                <div style="margin-bottom: 20px;"></div>
+                <div class="row" ng-show="jobRequests && jobRequests.length">
+                    <div class="col-md-12">
+                        <a ng-click="addSelected()" class="btn btn-primary" style="margin-bottom: 5px;margin-top: 5px;"><i class="glyphicon glyphicon-plus"></i> Add Selected</a>
+                    </div>
+                </div>
+                <div style="margin-bottom: 20px;"></div>
+                <div class="col-sm-12">
+                    <div class="row">
+                        <table class="table table-condensed">
+                            <thead>
+                            <tr>
+                                <th><input type="checkbox" ng-model="selected" ng-click="selectAll()"></th>
+                                <th>Job Request Number</th>
+                                <th>Sitename</th>
+                                <th>Acceptance date</th>
+                            </tr>
+                            </thead>
+                            <tbody ng-repeat="jobRequest in jobRequests | orderBy:orderBusinessKey" ng-show="jobRequests && jobRequests.length">
+                            <tr>
+                                <td>
+                                    <input type="checkbox" name="{{jobRequest.processInstanceId}}" ng-model="jobRequest.selected" />
+                                </td>
+                                <td><a ng-click="toggleProcessView(jobRequest.processInstanceId, 'list')">{{jobRequest.businessKey}}</a></td>
+                                <td>{{jobRequest.site_name}}</td>
+                                <td>{{jobRequest.acceptanceDate | date:'dd.MM.yyyy'}}</td>
+                            </tr>
+                            <tr ng-if="processInstanceId === jobRequest.processInstanceId && jobModel && selectedView === 'list'">
+                                <td colspan="4">
+                                    <job-request job-model="jobModel"></job-request>
+                                </td>
+                            </tr>
+                            </tbody>
+                            <tbody ng-hide="jobRequests && jobRequests.length">
+                            <tr>
+                                <td colspan="4" style="text-align: center">No rows to display</td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </tab>
+            <tab style="float: right; width: 50%">
+                <tab-heading ng-class="{error: kcell_form.$invalid && view.submitted}">
+                    <span class="glyphicon glyphicon-list" ng-class="{error: kcell_form.$invalid && view.submitted}"></span> Selected for monthly act ({{countSelected()}})
+                </tab-heading>
+                <div class="col-sm-12">
+                    <div class="row">
+                        <div style="margin-bottom: 20px;"></div>
+                        <h4>Номер акта: {{subcontractor.toUpperCase()}}-{{yearOfFormalPeriod?yearOfFormalPeriod:'####'}}-{{monthOfFormalPeriod?monthsTitle[monthOfFormalPeriod]:'##'}}. </h4>
+                        <div style="margin-bottom: 10px;"></div>
+                        <h4>Отчетный период: {{monthsTitleRu[monthOfFormalPeriod]}} {{yearOfFormalPeriod}}</h4>
+
+                        <h3>
+                            Месячный технический акт выполненных работ {{contractorsTitle[subcontractor]}} согласно Договора Подряда на Выполнение Работ по Внедрению и Модификации No {{}}
+                        </h3>
+
+                        <a style="float: right" ng-if="reqularWorks.length > 0 || emergencyWorks.length > 0" id="xlsxClick" ng-click="exportToExcel()">Export to Excel</a>
+
+                        <h3>Плановые работы</h3>
+                        <table class="table table-bordered" class="form-group" name="works" id="works">
+                            <thead>
+                                <th>#</th>
+                                <th>Заявка на выполнение работ</th>
+                                <th>Сайт</th>
+                                <th>Регион</th>
+                                <th>Тип работы</th>
+                                <th>Наименование Работ</th>
+                                <th>Кол-во работ</th>
+                                <th>Дата Заказа</th>
+                                <th>Дата Выполнения</th>
+                                <th>Согласованный срок выполнения работ (Дата)</th>
+                                <th>Задержка, дней</th>
+                            </thead>
+                            <tbody ng-repeat="value in reqularWorks | orderBy: [orderReason,orderRegion,orderBusinessKey]">
+                                <tr ng-repeat="w in value.works">
+                                    <td ng-if="$first" rowspan="{{value.works.length}}">
+                                        {{$parent.$parent.$index+1}}
+                                    </td>
+                                    <td ng-if="$first" rowspan="{{value.works.length}}">
+                                        <a ng-click="toggleProcessView(value.processInstanceId, 'table1')">{{value.businessKey}}</a> <a class="glyphicon glyphicon-trash" aria-hidden="true" ng-click="removeJobRequest(value.processInstanceId)"></a>
+                                    </td>
+                                    <td ng-if="$first" rowspan="{{value.works.length}}">
+                                        {{value.site_name}}
+                                    </td>
+                                    <td ng-if="$first" rowspan="{{value.works.length}}">
+                                        {{regionsMap[value.region]}}
+                                    </td>
+                                    <td ng-if="$first" rowspan="{{value.works.length}}">
+                                        {{reasonsTitle[value.reason]}}
+                                    </td>
+                                    <td>{{w.displayServiceName}}</td>
+                                    <td>{{w.quantity}}</td>
+                                    <td ng-if="$first" rowspan="{{value.works.length}}">
+                                        {{value.contractorJobAssignedDate | date:'dd.MM.yyyy'}}
+                                    </td>
+                                    <td ng-if="$first" rowspan="{{value.works.length}}">
+                                        {{value.performDate | date:'dd.MM.yyyy'}}
+                                    </td>
+                                    <td ng-if="$first" rowspan="{{value.works.length}}">
+
+                                    </td>
+                                    <td ng-if="$first" rowspan="{{value.works.length}}">
+
+                                     </td>
+                                </tr>
+                                <tr ng-if="processInstanceId === value.processInstanceId && jobModel && selectedView === 'table1'">
+                                    <td colspan="11">
+                                        <job-request job-model="jobModel"></job-request>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        <h3>Внеплановые работы</h3>
+                        <table class="table table-bordered" class="form-group" name="works" id="works">
+                            <thead>
+                                <th>#</th>
+                                <th>Заявка на выполнение работ</th>
+                                <th>Сайт</th>
+                                <th>Регион</th>
+                                <th>Тип работы</th>
+                                <th>Наименование Работ</th>
+                                <th>Кол-во работ</th>
+                                <th>Дата Заказа</th>
+                                <th>Дата Выполнения</th>
+                                <th>Согласованный срок выполнения работ (Дата)</th>
+                                <th>Задержка, часы</th>
+                            </thead>
+                            <tbody ng-repeat="value in emergencyWorks | orderBy: [orderReason,orderRegion,orderBusinessKey]">
+                                <tr ng-repeat="w in value.works">
+                                    <td ng-if="$first" rowspan="{{value.works.length}}">
+                                        {{$parent.$parent.$index+1}}
+                                    </td>
+                                    <td ng-if="$first" rowspan="{{value.works.length}}">
+                                        <a ng-click="toggleProcessView(value.processInstanceId, 'table2')">{{value.businessKey}}</a> <a class="glyphicon glyphicon-trash" aria-hidden="true" ng-click="removeJobRequest(value.processInstanceId)"></a>
+                                    </td>
+                                    <td ng-if="$first" rowspan="{{value.works.length}}">
+                                        {{value.site_name}}
+                                    </td>
+                                    <td ng-if="$first" rowspan="{{value.works.length}}">
+                                        {{regionsMap[value.region]}}
+                                    </td>
+                                    <td ng-if="$first" rowspan="{{value.works.length}}">
+                                        {{reasonsTitle[value.reason]}}
+                                    </td>
+                                    <td>{{w.displayServiceName}}</td>
+                                    <td>{{w.quantity}}</td>
+                                    <td ng-if="$first" rowspan="{{value.works.length}}">
+                                        {{value.contractorJobAssignedDate | date:'dd.MM.yyyy'}}
+                                    </td>
+                                    <td ng-if="$first" rowspan="{{value.works.length}}">
+                                        {{value.performDate | date:'dd.MM.yyyy'}}
+                                    </td>
+                                    <td ng-if="$first" rowspan="{{value.works.length}}">
+
+                                    </td>
+                                    <td ng-if="$first" rowspan="{{value.works.length}}">
+
+                                    </td>
+                                </tr>
+                                <tr ng-if="processInstanceId === value.processInstanceId && jobModel && selectedView === 'table2'">
+                                    <td colspan="11">
+                                        <job-request job-model="jobModel"></job-request>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </tab>
+        </tabset>
+    </div>
+
+    <table class="table table-condensed" class="form-group" name="xlsxWorks" id="xlsxWorks" style="display: none;">
+        <thead>
+        <th>#</th>
+        <th>Заявка на выполнение работ</th>
+        <th>Сайт</th>
+        <th>Регион</th>
+        <th>Тип работы</th>
+        <th>Наименование Работ</th>
+        <th>Кол-во работ</th>
+        <th>Дата Заказа</th>
+        <th>Дата Выполнения</th>
+        <th>Согласованный срок выполнения работ (Дата)</th>
+        <th>Задержка, дней</th>
+        </thead>
+        <tbody ng-repeat="(key, value) in selectedRevisions">
+        <tr ng-repeat="w in value.works">
+            <td ng-if="$first" rowspan="{{value.works.length}}">
+                {{$parent.$parent.$index+1}}
+            </td>
+            <td ng-if="$first" rowspan="{{value.works.length}}">
+                {{value.businessKey}}
+            </td>
+            <td ng-if="$first" rowspan="{{value.works.length}}">
+                {{value.site_name}}
+            </td>
+            <td ng-if="$first" rowspan="{{value.works.length}}">
+                {{regionsMap[value.siteRegion]}}
+            </td>
+            <td ng-if="$first" rowspan="{{value.works.length}}">
+                {{reasonsTitle[value.reason]}}
+            </td>
+            <td>{{w.displayServiceName}}</td>
+            <td>{{w.quantity}}</td>
+            <td ng-if="$first" rowspan="{{value.works.length}}">
+                {{value.contractorJobAssignedDate | date:'dd.MM.yyyy'}}
+            </td>
+            <td ng-if="$first" rowspan="{{value.works.length}}">
+                {{value.performDate | date:'dd.MM.yyyy'}}
+            </td>
+            <td ng-if="$first" rowspan="{{value.works.length}}">
+
+            </td>
+            <td ng-if="$first" rowspan="{{value.works.length}}">
+
+            </td>
+        </tr>
+        </tbody>
+    </table>
+</form>

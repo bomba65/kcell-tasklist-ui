@@ -64,6 +64,7 @@ define('app',[
 						},
 						{key:'CreatePR', name:'Create PR', group:'infrastructure_pr_users'},
 						{key:'Invoice', name:'Monthly Act', group:'infrastructure_monthly_act_users'},
+						{key:'monthlyAct', name:'New Monthly Act', group:'infrastructure_monthly_act_users'},
 						{key:'change-tsd', name:'Change TSD', group:'infrastructure_change_tsd_users'},
 						{key:'tsd-processing', name:'TSD Processing', group:'infrastructure_get_rfs_by_permit'},
 						{key:'leasing', name:'Leasing Rollout Site', group:'infrastructure_leasing_users'},
