@@ -839,13 +839,13 @@ public class CreateCandidate implements JavaDelegate {
                     if (!azimuthString.equals("") && azimuthString.lastIndexOf("/") == azimuthString.length() - 1) {
                         azimuthString = azimuthString.substring(0, azimuthString.lastIndexOf("/"));
                     }
-                    if (dimensionString!=null && dimensionString.lastIndexOf(",") == dimensionString.length() - 1) {
+                    if (!dimensionString.equals("") && dimensionString.lastIndexOf(",") == dimensionString.length() - 1) {
                         dimensionString = dimensionString.substring(0, dimensionString.lastIndexOf(","));
                     }
-                    if (suspensionHeightString!=null && suspensionHeightString.lastIndexOf("/") == suspensionHeightString.length() - 1) {
+                    if (!suspensionHeightString.equals("") && suspensionHeightString.lastIndexOf("/") == suspensionHeightString.length() - 1) {
                         suspensionHeightString = suspensionHeightString.substring(0, suspensionHeightString.lastIndexOf("/"));
                     }
-                    if (weightString!=null && weightString.lastIndexOf("/") == weightString.length() - 1) {
+                    if (!weightString.equals("") && weightString.lastIndexOf("/") == weightString.length() - 1) {
                         weightString = weightString.substring(0, weightString.lastIndexOf("/"));
                     }
 
