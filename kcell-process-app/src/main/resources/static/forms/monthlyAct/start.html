@@ -109,6 +109,12 @@
                     type: 'String',
                     submit: true,
                     store: true
+                },
+                {
+                    name: 'mainContract',
+                    type: 'String',
+                    submit: true,
+                    store: true
                 }
             ];
 
@@ -131,6 +137,13 @@
                 'ARLAN':'arlan',
                 'LOGYCOM':'logycom',
                 'LINE':'lse'
+            }
+
+            $scope.mapSubcontractorsToNum = {
+                'ALTA':'6',
+                'ARLAN':'8',
+                'LOGYCOM':'7',
+                'LINE':'4'
             }
 
             $scope.months = [
@@ -311,150 +324,153 @@
 
 
             function refreshJobRequests() {
-                $scope.alreadyInInvoiceRevisions = {};
-                $scope.jobRequests = [];
-                reDrawTable();
 
-                var processParams = {
-                    processDefinitionKey: 'Revision',
-                    activityIdIn: ['intermediate_wait_invoiced'],
-                    "variables":
-                            [
-                                {"name": "contractor", "operator": "eq", "value": $scope.contractorCode[$scope.contractor]},
-                                {"name": "acceptPerformedJob", "operator": "eq", "value": 'scan attached'},
-                                {"name": "mainContract", "operator": "eq", "value": 'Roll-outRevision2020'}
-                            ]
-                };
+                if($scope.contractor && $scope.periodDate){
+                    $scope.alreadyInInvoiceRevisions = {};
+                    $scope.jobRequests = [];
+                    reDrawTable();
 
-                $http({
-                    method: 'POST',
-                    headers: {'Accept': 'application/hal+json, application/json; q=0.5'},
-                    data: processParams,
-                    url: '/camunda/api/engine/engine/default/process-instance'
-                }).then(function (results) {
-                    var processes = results.data;
+                    var processParams = {
+                        processDefinitionKey: 'Revision',
+                        activityIdIn: ['intermediate_wait_invoiced'],
+                        "variables":
+                                [
+                                    {"name": "contractor", "operator": "eq", "value": $scope.contractorCode[$scope.contractor]},
+                                    {"name": "acceptPerformedJob", "operator": "eq", "value": 'scan attached'},
+                                    {"name": "mainContract", "operator": "eq", "value": 'Roll-outRevision2020'}
+                                ]
+                    };
 
-                    processes.forEach(function(x){
-                        if(notInSelected(x.id) && !$scope.alreadyInInvoiceRevisions[x.id]){
-                            var jobRequest = {
-                                selected: false,
-                                businessKey: x.businessKey,
-                                processInstanceId: x.id
-                            };
-                            $scope.jobRequests.push(jobRequest);
+                    $http({
+                        method: 'POST',
+                        headers: {'Accept': 'application/hal+json, application/json; q=0.5'},
+                        data: processParams,
+                        url: '/camunda/api/engine/engine/default/process-instance'
+                    }).then(function (results) {
+                        var processes = results.data;
+
+                        processes.forEach(function(x){
+                            if(notInSelected(x.id) && !$scope.alreadyInInvoiceRevisions[x.id]){
+                                var jobRequest = {
+                                    selected: false,
+                                    businessKey: x.businessKey,
+                                    processInstanceId: x.id
+                                };
+                                $scope.jobRequests.push(jobRequest);
+                            }
+                        });
+
+                        if($scope.jobRequests.length > 0){
+                            var counter = 0;
+                            var variables = ['site_name', 'priority', 'performDate', 'contractorJobAssignedDate', 'acceptanceDate', 'siteRegion', 'reason'];
+                            _.forEach(variables, function(variable) {
+                                var varSearchParams = {processInstanceIdIn: _.map($scope.jobRequests, 'processInstanceId'), variableName: variable};
+                                $http({
+                                    method: 'POST',
+                                    headers:{'Accept':'application/hal+json, application/json; q=0.5'},
+                                    data: varSearchParams,
+                                    url: '/camunda/api/engine/engine/default/variable-instance'
+                                }).then(
+                                    function(vars){
+                                        angular.forEach($scope.jobRequests, function(el){
+                                            var f = _.filter(vars.data, function(v) {
+                                                return v.processInstanceId === el.processInstanceId;
+                                            });
+                                            if(f && f[0]){
+                                                el[variable] = f[0].value;
+                                            }
+                                        });
+                                        counter++;
+
+                                        //ждем пока отработают все запросы с variables
+                                        if(variables.length === counter){
+                                            angular.forEach($scope.jobRequests, function (request) {
+                                                var taskParams = {
+                                                    taskDefinitionKeyIn: ['accept_work_initiator'],
+                                                    processInstanceBusinessKey: request.businessKey
+                                                };
+
+                                                $http({
+                                                    method: 'POST',
+                                                    headers: {'Accept': 'application/hal+json, application/json; q=0.5'},
+                                                    data: taskParams,
+                                                    url: '/camunda/api/engine/engine/default/history/task'
+                                                }).then(function (res) {
+                                                    if(request.performDate){
+                                                        request.acceptWorkStartTime = request.performDate;
+                                                    } else {
+                                                        var acceptWorkInitiator = _.maxBy(_.filter(res.data, function(task){
+                                                            return task.taskDefinitionKey === 'accept_work_initiator' || task.taskDefinitionKey === 'UserTask_1i7na4a';
+                                                        }), function(o) { return o.startTime; });
+
+                                                        if(acceptWorkInitiator){
+                                                            request.acceptWorkStartTime = acceptWorkInitiator.startTime;
+                                                        }
+                                                    }
+
+                                                    if(request.acceptanceDate){
+                                                        request.acceptWorkEndTime = request.acceptanceDate;
+                                                    } else {
+                                                        var acceptWorkInitiator = _.maxBy(_.filter(res.data, function(task){
+                                                            return task.taskDefinitionKey === 'accept_work_initiator' || task.taskDefinitionKey === 'UserTask_1i7na4a';
+                                                        }), function(o) { return o.endTime; });
+
+                                                        if(acceptWorkInitiator){
+                                                            request.acceptWorkEndTime = acceptWorkInitiator.endTime;
+                                                        }
+                                                    }
+                                                });
+                                            });
+                                        }
+                                    },
+                                    function(error){
+                                        console.log(error.data);
+                                    }
+                                );
+                            });
+
+                            // attach_material_list_contractor, fill_applied_changes_info - task, first date
+                            // modify_jr - last date
+                            // validate_tr - task, approved last date
+                            // accept_work_initiator - task, approved last date
                         }
                     });
 
-                    if($scope.jobRequests.length > 0){
-                        var counter = 0;
-                        var variables = ['site_name', 'priority', 'performDate', 'contractorJobAssignedDate', 'acceptanceDate', 'siteRegion', 'reason'];
-                        _.forEach(variables, function(variable) {
-                            var varSearchParams = {processInstanceIdIn: _.map($scope.jobRequests, 'processInstanceId'), variableName: variable};
-                            $http({
-                                method: 'POST',
-                                headers:{'Accept':'application/hal+json, application/json; q=0.5'},
-                                data: varSearchParams,
-                                url: '/camunda/api/engine/engine/default/variable-instance'
-                            }).then(
-                                function(vars){
-                                    angular.forEach($scope.jobRequests, function(el){
-                                        var f = _.filter(vars.data, function(v) {
-                                            return v.processInstanceId === el.processInstanceId;
-                                        });
-                                        if(f && f[0]){
-                                            el[variable] = f[0].value;
-                                        }
-                                    });
-                                    counter++;
-
-                                    //ждем пока отработают все запросы с variables
-                                    if(variables.length === counter){
-                                        angular.forEach($scope.jobRequests, function (request) {
-                                            var taskParams = {
-                                                taskDefinitionKeyIn: ['accept_work_initiator'],
-                                                processInstanceBusinessKey: request.businessKey
-                                            };
-
-                                            $http({
-                                                method: 'POST',
-                                                headers: {'Accept': 'application/hal+json, application/json; q=0.5'},
-                                                data: taskParams,
-                                                url: '/camunda/api/engine/engine/default/history/task'
-                                            }).then(function (res) {
-                                                if(request.performDate){
-                                                    request.acceptWorkStartTime = request.performDate;
-                                                } else {
-                                                    var acceptWorkInitiator = _.maxBy(_.filter(res.data, function(task){
-                                                        return task.taskDefinitionKey === 'accept_work_initiator' || task.taskDefinitionKey === 'UserTask_1i7na4a';
-                                                    }), function(o) { return o.startTime; });
-
-                                                    if(acceptWorkInitiator){
-                                                        request.acceptWorkStartTime = acceptWorkInitiator.startTime;
-                                                    }
-                                                }
-
-                                                if(request.acceptanceDate){
-                                                    request.acceptWorkEndTime = request.acceptanceDate;
-                                                } else {
-                                                    var acceptWorkInitiator = _.maxBy(_.filter(res.data, function(task){
-                                                        return task.taskDefinitionKey === 'accept_work_initiator' || task.taskDefinitionKey === 'UserTask_1i7na4a';
-                                                    }), function(o) { return o.endTime; });
-
-                                                    if(acceptWorkInitiator){
-                                                        request.acceptWorkEndTime = acceptWorkInitiator.endTime;
-                                                    }
-                                                }
-                                            });
-                                        });
-                                    }
-                                },
-                                function(error){
-                                    console.log(error.data);
-                                }
-                            );
-                        });
-
-                        // attach_material_list_contractor, fill_applied_changes_info - task, first date
-                        // modify_jr - last date
-                        // validate_tr - task, approved last date
-                        // accept_work_initiator - task, approved last date
-                    }
-                });
-
-                $http({
-                    method: 'POST',
-                    headers: {'Accept': 'application/hal+json, application/json; q=0.5'},
-                    data: {
-                        processDefinitionKey: 'monthlyAct',
-                        "variables":
-                                [{"name": "contractor", "operator": "eq", "value": $scope.contractor},
-                                 {"name": "mainContract", "operator": "eq", "value": "Roll-outRevision2020"}
-                                ]
-                    },
-                    url: '/camunda/api/engine/engine/default/process-instance'
-                }).then(function (results) {
-                    var invoices = _.map(results.data, _.property('id'));
                     $http({
                         method: 'POST',
                         headers: {'Accept': 'application/hal+json, application/json; q=0.5'},
                         data: {
-                            processInstanceIdIn: invoices,
-                            "variableName":"selectedRevisions"
+                            processDefinitionKey: 'monthlyAct',
+                            "variables":
+                                    [{"name": "contractor", "operator": "eq", "value": $scope.contractor},
+                                     {"name": "mainContract", "operator": "eq", "value": "Roll-outRevision2020"}
+                                    ]
                         },
-                        url: '/camunda/api/engine/engine/default/variable-instance?deserializeValues=false'
-                    }).then(function (result) {
-                        if(result.data){
-                            angular.forEach(result.data, function(revisions){
-                                for(var propt in JSON.parse(revisions.value)){
-                                    $scope.alreadyInInvoiceRevisions[propt] = {};
-                                    $scope.jobRequests = _.filter($scope.jobRequests, function(jobRequest){
-                                        return jobRequest.processInstanceId !== propt;
-                                    });
-                                }
-                            });
-                        }
+                        url: '/camunda/api/engine/engine/default/process-instance'
+                    }).then(function (results) {
+                        var invoices = _.map(results.data, _.property('id'));
+                        $http({
+                            method: 'POST',
+                            headers: {'Accept': 'application/hal+json, application/json; q=0.5'},
+                            data: {
+                                processInstanceIdIn: invoices,
+                                "variableName":"selectedRevisions"
+                            },
+                            url: '/camunda/api/engine/engine/default/variable-instance?deserializeValues=false'
+                        }).then(function (result) {
+                            if(result.data){
+                                angular.forEach(result.data, function(revisions){
+                                    for(var propt in JSON.parse(revisions.value)){
+                                        $scope.alreadyInInvoiceRevisions[propt] = {};
+                                        $scope.jobRequests = _.filter($scope.jobRequests, function(jobRequest){
+                                            return jobRequest.processInstanceId !== propt;
+                                        });
+                                    }
+                                });
+                            }
+                        });
                     });
-                });
+                }
             }
 
             function checkMonthlyActs(){
@@ -678,6 +694,7 @@
 
                 camForm.variableManager.variableValue('jobRequests', JSON.parse(angular.toJson(requests)));
                 camForm.variableManager.variableValue('selectedRevisions', $scope.selectedRevisions);
+                camForm.variableManager.variableValue('mainContract', 'Roll-outRevision2020');
             });
 
             $scope.preSubmit = function(){
@@ -848,7 +865,7 @@
                         <h4>Отчетный период: {{monthsTitleRu[monthOfFormalPeriod]}} {{yearOfFormalPeriod}}</h4>
 
                         <h3>
-                            Месячный технический акт выполненных работ {{contractorsTitle[subcontractor]}} согласно Договора Подряда на Выполнение Работ по Внедрению и Модификации No {{}}
+                            Месячный технический акт выполненных работ {{contractorsTitle[mapSubcontractorsToNum[subcontractor]]}} согласно Договора Подряда на Выполнение Работ по Внедрению и Модификации No {{}}
                         </h3>
 
                         <a style="float: right" ng-if="reqularWorks.length > 0 || emergencyWorks.length > 0" id="xlsxClick" ng-click="exportToExcel()">Export to Excel</a>
@@ -880,7 +897,7 @@
                                         {{value.site_name}}
                                     </td>
                                     <td ng-if="$first" rowspan="{{value.works.length}}">
-                                        {{regionsMap[value.region]}}
+                                        {{regionsMap[value.siteRegion]}}
                                     </td>
                                     <td ng-if="$first" rowspan="{{value.works.length}}">
                                         {{reasonsTitle[value.reason]}}
@@ -935,7 +952,7 @@
                                         {{value.site_name}}
                                     </td>
                                     <td ng-if="$first" rowspan="{{value.works.length}}">
-                                        {{regionsMap[value.region]}}
+                                        {{regionsMap[value.siteRegion]}}
                                     </td>
                                     <td ng-if="$first" rowspan="{{value.works.length}}">
                                         {{reasonsTitle[value.reason]}}

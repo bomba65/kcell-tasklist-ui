@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" id="Definitions_0qouoga" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="4.4.0">
   <bpmn:process id="monthlyAct" name="Generate Monthly Act Roll-out &#38; Revision 2020" isExecutable="true">
-    <bpmn:startEvent id="StartEvent_1" camunda:formKey="embedded:app:forms/monthlyAct/start.html">
+    <bpmn:startEvent id="StartEvent_1" camunda:formKey="embedded:app:forms/monthlyAct/start.html" camunda:initiator="starter">
       <bpmn:outgoing>Flow_03lgb4l</bpmn:outgoing>
     </bpmn:startEvent>
     <bpmn:sequenceFlow id="Flow_03lgb4l" sourceRef="StartEvent_1" targetRef="ma_contractor" />
-    <bpmn:userTask id="ma_contractor" name="Подрядчик" camunda:formKey="embedded:app:forms/monthlyAct/contractor.html" camunda:candidateGroups="hq_contractors">
+    <bpmn:userTask id="ma_contractor" name="Check by Contractor" camunda:formKey="embedded:app:forms/monthlyAct/contractor.html">
+      <bpmn:documentation>Check by Contractor</bpmn:documentation>
       <bpmn:extensionElements>
         <camunda:taskListener class="kz.kcell.bpm.assignments.ma.ContractorAssignmentHandler" event="create" />
       </bpmn:extensionElements>
@@ -37,7 +38,8 @@
       <bpmn:incoming>Flow_0t1dkwx</bpmn:incoming>
       <bpmn:outgoing>Flow_1cge7k2</bpmn:outgoing>
     </bpmn:serviceTask>
-    <bpmn:userTask id="save_invoices" name="Scan invoice, act" camunda:formKey="embedded:app:forms/monthlyAct/saveInvoices.html">
+    <bpmn:userTask id="save_invoices" name="Attach scan copy of documents" camunda:asyncBefore="true" camunda:formKey="embedded:app:forms/monthlyAct/saveInvoices.html" camunda:candidateGroups="hq_ma_responsible">
+      <bpmn:documentation>Attach scan copy of documents</bpmn:documentation>
       <bpmn:incoming>Flow_1cge7k2</bpmn:incoming>
       <bpmn:outgoing>Flow_1c2ec77</bpmn:outgoing>
     </bpmn:userTask>
@@ -45,9 +47,6 @@
       <bpmn:incoming>Flow_0dynz4p</bpmn:incoming>
     </bpmn:endEvent>
     <bpmn:sequenceFlow id="Flow_1c2ec77" sourceRef="save_invoices" targetRef="ma_save_assets" />
-    <bpmn:sequenceFlow id="Flow_0jh9es0" sourceRef="Gateway_1jn512t" targetRef="Gateway_1twtkn1">
-      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${hasRolllout== 'true'}</bpmn:conditionExpression>
-    </bpmn:sequenceFlow>
     <bpmn:sequenceFlow id="Flow_0np7luq" sourceRef="Gateway_1jn512t" targetRef="Gateway_0nchfc7">
       <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${hasPO== 'true'}</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
@@ -68,21 +67,12 @@
     </bpmn:sequenceFlow>
     <bpmn:exclusiveGateway id="Gateway_0ziynl7" default="Flow_0lg8lfy">
       <bpmn:incoming>Flow_0njkk9a</bpmn:incoming>
-      <bpmn:incoming>Flow_06n0a2s</bpmn:incoming>
       <bpmn:outgoing>Flow_0p5srvt</bpmn:outgoing>
       <bpmn:outgoing>Flow_0lg8lfy</bpmn:outgoing>
     </bpmn:exclusiveGateway>
     <bpmn:sequenceFlow id="Flow_0p5srvt" sourceRef="Gateway_0ziynl7" targetRef="ma_rollout_modify">
-      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${ma_rolloutResult=='modify'}</bpmn:conditionExpression>
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${ma_rolloutTaskResult=='modify'}</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
-    <bpmn:exclusiveGateway id="Gateway_1twtkn1">
-      <bpmn:incoming>Flow_0jh9es0</bpmn:incoming>
-      <bpmn:incoming>Flow_1g0s73s</bpmn:incoming>
-      <bpmn:outgoing>Flow_0zymwgz</bpmn:outgoing>
-      <bpmn:outgoing>Flow_06n0a2s</bpmn:outgoing>
-    </bpmn:exclusiveGateway>
-    <bpmn:sequenceFlow id="Flow_0zymwgz" sourceRef="Gateway_1twtkn1" targetRef="ma_rollout" />
-    <bpmn:sequenceFlow id="Flow_1g0s73s" sourceRef="ma_rollout_modify" targetRef="Gateway_1twtkn1" />
     <bpmn:sequenceFlow id="Flow_0lg8lfy" sourceRef="Gateway_0ziynl7" targetRef="Gateway_1hbinw4" />
     <bpmn:exclusiveGateway id="Gateway_07el11w" default="Flow_14j16en">
       <bpmn:incoming>Flow_0sbs92o</bpmn:incoming>
@@ -91,7 +81,7 @@
     </bpmn:exclusiveGateway>
     <bpmn:sequenceFlow id="Flow_14j16en" sourceRef="Gateway_07el11w" targetRef="Gateway_1hbinw4" />
     <bpmn:sequenceFlow id="Flow_0osklgk" sourceRef="Gateway_07el11w" targetRef="ma_po_modify">
-      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${ma_poResult=='modify'}</bpmn:conditionExpression>
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${ma_poTaskResult=='modify'}</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
     <bpmn:exclusiveGateway id="Gateway_0nchfc7">
       <bpmn:incoming>Flow_0np7luq</bpmn:incoming>
@@ -107,7 +97,7 @@
     </bpmn:exclusiveGateway>
     <bpmn:sequenceFlow id="Flow_11j8ktj" sourceRef="Gateway_19p71bx" targetRef="Gateway_1hbinw4" />
     <bpmn:sequenceFlow id="Flow_0c56g7k" sourceRef="Gateway_19p71bx" targetRef="ma_tnu1_modify">
-      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${ma_tnu1Result=='modify'}</bpmn:conditionExpression>
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${ma_tnu1TaskResult=='modify'}</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
     <bpmn:exclusiveGateway id="Gateway_0kadxc8">
       <bpmn:incoming>Flow_1l01mbw</bpmn:incoming>
@@ -123,7 +113,7 @@
     </bpmn:exclusiveGateway>
     <bpmn:sequenceFlow id="Flow_1lwgxmn" sourceRef="Gateway_0hm6s0b" targetRef="Gateway_1hbinw4" />
     <bpmn:sequenceFlow id="Flow_1tnyuvi" sourceRef="Gateway_0hm6s0b" targetRef="ma_tnu2_modify">
-      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${ma_tnu2Result=='modify'}</bpmn:conditionExpression>
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${ma_tnu2TaskResult=='modify'}</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
     <bpmn:exclusiveGateway id="Gateway_0ckoftu">
       <bpmn:incoming>Flow_1chos38</bpmn:incoming>
@@ -139,7 +129,7 @@
     </bpmn:exclusiveGateway>
     <bpmn:sequenceFlow id="Flow_1qrcfzh" sourceRef="Gateway_1wf5hsj" targetRef="Gateway_1hbinw4" />
     <bpmn:sequenceFlow id="Flow_1reirvz" sourceRef="Gateway_1wf5hsj" targetRef="ma_tnu3_mo">
-      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${ma_tnu3Result=='modify'}</bpmn:conditionExpression>
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${ma_tnu3TaskResult=='modify'}</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
     <bpmn:exclusiveGateway id="Gateway_1llvh5s">
       <bpmn:incoming>Flow_0tgi49x</bpmn:incoming>
@@ -155,7 +145,7 @@
     </bpmn:exclusiveGateway>
     <bpmn:sequenceFlow id="Flow_1ellraa" sourceRef="Gateway_1ervzdf" targetRef="Gateway_1hbinw4" />
     <bpmn:sequenceFlow id="Flow_0k6h1xi" sourceRef="Gateway_1ervzdf" targetRef="ma_sfm_modify">
-      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${ma_sfmResult=='modify'}</bpmn:conditionExpression>
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${ma_sfmTaskResult=='modify'}</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
     <bpmn:exclusiveGateway id="Gateway_0lvgqey">
       <bpmn:incoming>Flow_0t8j5mz</bpmn:incoming>
@@ -171,7 +161,7 @@
     </bpmn:exclusiveGateway>
     <bpmn:sequenceFlow id="Flow_1cf5qti" sourceRef="Gateway_1iulr2z" targetRef="Gateway_1hbinw4" />
     <bpmn:sequenceFlow id="Flow_0atv2ja" sourceRef="Gateway_1iulr2z" targetRef="ma_sao_modify">
-      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${ma_saoResult=='modify'}</bpmn:conditionExpression>
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${ma_saoTaskResult=='modify'}</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
     <bpmn:exclusiveGateway id="Gateway_1jp8p9a">
       <bpmn:incoming>Flow_1pvct11</bpmn:incoming>
@@ -185,73 +175,135 @@
       <bpmn:incoming>Flow_1c2ec77</bpmn:incoming>
       <bpmn:outgoing>Flow_0dynz4p</bpmn:outgoing>
     </bpmn:serviceTask>
-    <bpmn:userTask id="ma_rollout" name="Roll-out" camunda:formKey="embedded:app:forms/monthlyAct/rollout.html">
+    <bpmn:userTask id="ma_rollout" name="Check by Center Roll-out" camunda:formKey="embedded:app:forms/monthlyAct/rollout.html" camunda:candidateGroups="hq_rollout">
+      <bpmn:documentation>Check by Center Roll-out</bpmn:documentation>
+      <bpmn:extensionElements>
+        <camunda:taskListener class="kz.kcell.bpm.ma.MaSetReasonValues" event="complete" />
+      </bpmn:extensionElements>
       <bpmn:incoming>Flow_0zymwgz</bpmn:incoming>
       <bpmn:outgoing>Flow_0njkk9a</bpmn:outgoing>
     </bpmn:userTask>
-    <bpmn:userTask id="ma_po" name="P&#38;O" camunda:formKey="embedded:app:forms/monthlyAct/po.html">
+    <bpmn:userTask id="ma_po" name="Check by Center P&#38;O" camunda:formKey="embedded:app:forms/monthlyAct/po.html" camunda:candidateGroups="hq_optimization_specialist">
+      <bpmn:documentation>Check by Center P&amp;O</bpmn:documentation>
+      <bpmn:extensionElements>
+        <camunda:taskListener class="kz.kcell.bpm.ma.MaSetReasonValues" event="complete" />
+      </bpmn:extensionElements>
       <bpmn:incoming>Flow_1bluu2l</bpmn:incoming>
       <bpmn:outgoing>Flow_0sbs92o</bpmn:outgoing>
     </bpmn:userTask>
-    <bpmn:userTask id="ma_tnu1" name="TNU1" camunda:formKey="embedded:app:forms/monthlyAct/tnu1.html">
+    <bpmn:userTask id="ma_tnu1" name="Check by Center TNU1" camunda:formKey="embedded:app:forms/monthlyAct/tnu1.html" camunda:candidateGroups="hq_transmission_specialist">
+      <bpmn:documentation>Check by Center TNU1</bpmn:documentation>
+      <bpmn:extensionElements>
+        <camunda:taskListener class="kz.kcell.bpm.ma.MaSetReasonValues" event="complete" />
+      </bpmn:extensionElements>
       <bpmn:incoming>Flow_1ue5ocb</bpmn:incoming>
       <bpmn:outgoing>Flow_0bkarjv</bpmn:outgoing>
     </bpmn:userTask>
-    <bpmn:userTask id="ma_rollout_modify" name="Modify" camunda:formKey="embedded:app:forms/monthlyAct/rolloutModify.html">
+    <bpmn:userTask id="ma_rollout_modify" name="Modify MA Roll-out" camunda:formKey="embedded:app:forms/monthlyAct/rolloutModify.html">
+      <bpmn:documentation>Modify MA Roll-out</bpmn:documentation>
+      <bpmn:extensionElements>
+        <camunda:taskListener class="kz.kcell.bpm.assignments.ma.ContractorAssignmentHandler" event="create" />
+        <camunda:taskListener class="kz.kcell.bpm.ma.MaRemoveFromMainList" event="complete" />
+      </bpmn:extensionElements>
       <bpmn:incoming>Flow_0p5srvt</bpmn:incoming>
       <bpmn:outgoing>Flow_1g0s73s</bpmn:outgoing>
     </bpmn:userTask>
-    <bpmn:userTask id="ma_po_modify" name="Modify" camunda:formKey="embedded:app:forms/monthlyAct/poModify.html">
+    <bpmn:userTask id="ma_po_modify" name="Modify MA P&#38;O" camunda:formKey="embedded:app:forms/monthlyAct/poModify.html">
+      <bpmn:documentation>Modify MA P&amp;O</bpmn:documentation>
+      <bpmn:extensionElements>
+        <camunda:taskListener class="kz.kcell.bpm.assignments.ma.ContractorAssignmentHandler" event="create" />
+        <camunda:taskListener class="kz.kcell.bpm.ma.MaRemoveFromMainList" event="complete" />
+      </bpmn:extensionElements>
       <bpmn:incoming>Flow_0osklgk</bpmn:incoming>
       <bpmn:outgoing>Flow_1wdk83z</bpmn:outgoing>
     </bpmn:userTask>
-    <bpmn:userTask id="ma_tnu1_modify" name="Modify" camunda:formKey="embedded:app:forms/monthlyAct/tnu1Modify.html">
+    <bpmn:userTask id="ma_tnu1_modify" name="Modify MA TNU" camunda:formKey="embedded:app:forms/monthlyAct/tnu1Modify.html">
+      <bpmn:documentation>Modify MA TNU</bpmn:documentation>
+      <bpmn:extensionElements>
+        <camunda:taskListener class="kz.kcell.bpm.assignments.ma.ContractorAssignmentHandler" event="create" />
+        <camunda:taskListener class="kz.kcell.bpm.ma.MaRemoveFromMainList" event="complete" />
+      </bpmn:extensionElements>
       <bpmn:incoming>Flow_0c56g7k</bpmn:incoming>
       <bpmn:outgoing>Flow_1uc547v</bpmn:outgoing>
     </bpmn:userTask>
-    <bpmn:userTask id="ma_tnu2" name="TNU2" camunda:formKey="embedded:app:forms/monthlyAct/tnu2.html">
+    <bpmn:userTask id="ma_tnu2" name="Check by Center TNU2" camunda:formKey="embedded:app:forms/monthlyAct/tnu2.html" camunda:candidateGroups="hq_transmission_specialist">
+      <bpmn:documentation>Check by Center TNU2</bpmn:documentation>
+      <bpmn:extensionElements>
+        <camunda:taskListener class="kz.kcell.bpm.ma.MaSetReasonValues" event="complete" />
+      </bpmn:extensionElements>
       <bpmn:incoming>Flow_0kytbff</bpmn:incoming>
       <bpmn:outgoing>Flow_17t1oi9</bpmn:outgoing>
     </bpmn:userTask>
-    <bpmn:userTask id="ma_tnu2_modify" name="Modify" camunda:formKey="embedded:app:forms/monthlyAct/tnu2Modify.html">
+    <bpmn:userTask id="ma_tnu2_modify" name="Modify MA TNU" camunda:formKey="embedded:app:forms/monthlyAct/tnu2Modify.html">
+      <bpmn:documentation>Modify MA TNU</bpmn:documentation>
+      <bpmn:extensionElements>
+        <camunda:taskListener class="kz.kcell.bpm.assignments.ma.ContractorAssignmentHandler" event="create" />
+        <camunda:taskListener class="kz.kcell.bpm.ma.MaRemoveFromMainList" event="complete" />
+      </bpmn:extensionElements>
       <bpmn:incoming>Flow_1tnyuvi</bpmn:incoming>
       <bpmn:outgoing>Flow_18ga5sm</bpmn:outgoing>
     </bpmn:userTask>
-    <bpmn:userTask id="ma_tnu3" name="TNU3" camunda:formKey="embedded:app:forms/monthlyAct/tnu3.html">
+    <bpmn:userTask id="ma_tnu3" name="Check by Center TNU3" camunda:formKey="embedded:app:forms/monthlyAct/tnu3.html" camunda:candidateGroups="hq_transmission_specialist">
+      <bpmn:documentation>Check by Center TNU3</bpmn:documentation>
+      <bpmn:extensionElements>
+        <camunda:taskListener class="kz.kcell.bpm.ma.MaSetReasonValues" event="complete" />
+      </bpmn:extensionElements>
       <bpmn:incoming>Flow_00ddw6l</bpmn:incoming>
       <bpmn:outgoing>Flow_15usteh</bpmn:outgoing>
     </bpmn:userTask>
-    <bpmn:userTask id="ma_tnu3_mo" name="Modify" camunda:formKey="embedded:app:forms/monthlyAct/tnu3Modify.html">
+    <bpmn:userTask id="ma_tnu3_mo" name="Modify MA TNU" camunda:formKey="embedded:app:forms/monthlyAct/tnu3Modify.html">
+      <bpmn:documentation>Modify MA TNU</bpmn:documentation>
+      <bpmn:extensionElements>
+        <camunda:taskListener class="kz.kcell.bpm.assignments.ma.ContractorAssignmentHandler" event="create" />
+        <camunda:taskListener class="kz.kcell.bpm.ma.MaRemoveFromMainList" event="complete" />
+      </bpmn:extensionElements>
       <bpmn:incoming>Flow_1reirvz</bpmn:incoming>
       <bpmn:outgoing>Flow_1j198ea</bpmn:outgoing>
     </bpmn:userTask>
-    <bpmn:userTask id="ma_sfm_modify" name="Modify" camunda:formKey="embedded:app:forms/monthlyAct/sfmModify.html">
+    <bpmn:userTask id="ma_sfm_modify" name="Modify MA S&#38;FM" camunda:formKey="embedded:app:forms/monthlyAct/sfmModify.html">
+      <bpmn:documentation>Modify MA S&amp;FM</bpmn:documentation>
+      <bpmn:extensionElements>
+        <camunda:taskListener class="kz.kcell.bpm.assignments.ma.ContractorAssignmentHandler" event="create" />
+        <camunda:taskListener class="kz.kcell.bpm.ma.MaRemoveFromMainList" event="complete" />
+      </bpmn:extensionElements>
       <bpmn:incoming>Flow_0k6h1xi</bpmn:incoming>
       <bpmn:outgoing>Flow_0t8j5mz</bpmn:outgoing>
     </bpmn:userTask>
-    <bpmn:userTask id="ma_sfm" name="S&#38;FM" camunda:formKey="embedded:app:forms/monthlyAct/sfm.html">
+    <bpmn:userTask id="ma_sfm" name="Check by Center S&#38;FM" camunda:formKey="embedded:app:forms/monthlyAct/sfm.html" camunda:candidateGroups="hq_infrastructure_specialist">
+      <bpmn:documentation>Check by Center S&amp;FM</bpmn:documentation>
+      <bpmn:extensionElements>
+        <camunda:taskListener class="kz.kcell.bpm.ma.MaSetReasonValues" event="complete" />
+      </bpmn:extensionElements>
       <bpmn:incoming>Flow_08zdt7w</bpmn:incoming>
       <bpmn:outgoing>Flow_0gqpu0c</bpmn:outgoing>
     </bpmn:userTask>
-    <bpmn:userTask id="ma_sao" name="SAO" camunda:formKey="embedded:app:forms/monthlyAct/sao.html">
+    <bpmn:userTask id="ma_sao" name="Check by Center SAO" camunda:formKey="embedded:app:forms/monthlyAct/sao.html" camunda:candidateGroups="hq_operation_specialist">
+      <bpmn:documentation>Check by Center SAO</bpmn:documentation>
+      <bpmn:extensionElements>
+        <camunda:taskListener class="kz.kcell.bpm.ma.MaSetReasonValues" event="complete" />
+      </bpmn:extensionElements>
       <bpmn:incoming>Flow_08sjj56</bpmn:incoming>
       <bpmn:outgoing>Flow_0m68yqn</bpmn:outgoing>
     </bpmn:userTask>
-    <bpmn:userTask id="ma_sao_modify" name="Modify" camunda:formKey="embedded:app:forms/monthlyAct/saoModify.html">
+    <bpmn:userTask id="ma_sao_modify" name="Modify MA SAO" camunda:formKey="embedded:app:forms/monthlyAct/saoModify.html">
+      <bpmn:documentation>Modify MA SAO</bpmn:documentation>
+      <bpmn:extensionElements>
+        <camunda:taskListener class="kz.kcell.bpm.assignments.ma.ContractorAssignmentHandler" event="create" />
+        <camunda:taskListener class="kz.kcell.bpm.ma.MaRemoveFromMainList" event="complete" />
+      </bpmn:extensionElements>
       <bpmn:incoming>Flow_0atv2ja</bpmn:incoming>
       <bpmn:outgoing>Flow_0cerp2h</bpmn:outgoing>
     </bpmn:userTask>
     <bpmn:sequenceFlow id="Flow_1cge7k2" sourceRef="save_acts" targetRef="save_invoices" />
-    <bpmn:sequenceFlow id="Flow_06n0a2s" sourceRef="Gateway_1twtkn1" targetRef="Gateway_0ziynl7" />
     <bpmn:inclusiveGateway id="Gateway_1jn512t">
       <bpmn:incoming>Flow_0gx8xmy</bpmn:incoming>
-      <bpmn:outgoing>Flow_0jh9es0</bpmn:outgoing>
       <bpmn:outgoing>Flow_0np7luq</bpmn:outgoing>
       <bpmn:outgoing>Flow_1l01mbw</bpmn:outgoing>
       <bpmn:outgoing>Flow_1chos38</bpmn:outgoing>
       <bpmn:outgoing>Flow_0tgi49x</bpmn:outgoing>
       <bpmn:outgoing>Flow_1wlo63l</bpmn:outgoing>
       <bpmn:outgoing>Flow_1pvct11</bpmn:outgoing>
+      <bpmn:outgoing>Flow_0jh9es0</bpmn:outgoing>
     </bpmn:inclusiveGateway>
     <bpmn:inclusiveGateway id="Gateway_1hbinw4">
       <bpmn:incoming>Flow_0lg8lfy</bpmn:incoming>
@@ -263,6 +315,16 @@
       <bpmn:incoming>Flow_1cf5qti</bpmn:incoming>
       <bpmn:outgoing>Flow_0t1dkwx</bpmn:outgoing>
     </bpmn:inclusiveGateway>
+    <bpmn:exclusiveGateway id="Gateway_1twtkn1">
+      <bpmn:incoming>Flow_1g0s73s</bpmn:incoming>
+      <bpmn:incoming>Flow_0jh9es0</bpmn:incoming>
+      <bpmn:outgoing>Flow_0zymwgz</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:sequenceFlow id="Flow_0zymwgz" sourceRef="Gateway_1twtkn1" targetRef="ma_rollout" />
+    <bpmn:sequenceFlow id="Flow_1g0s73s" sourceRef="ma_rollout_modify" targetRef="Gateway_1twtkn1" />
+    <bpmn:sequenceFlow id="Flow_0jh9es0" sourceRef="Gateway_1jn512t" targetRef="Gateway_1twtkn1">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${hasRollout== 'true'}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
     <bpmn:textAnnotation id="TextAnnotation_0tcv5jq">
       <bpmn:text>стартует подрядчик, выбирает период, период уникальный</bpmn:text>
     </bpmn:textAnnotation>
@@ -516,13 +578,6 @@
       <bpmndi:BPMNEdge id="Flow_03lgb4l_di" bpmnElement="Flow_03lgb4l">
         <di:waypoint x="338" y="887" />
         <di:waypoint x="430" y="887" />
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Flow_06n0a2s_di" bpmnElement="Flow_06n0a2s">
-        <di:waypoint x="835" y="250" />
-        <di:waypoint x="1145" y="250" />
-        <bpmndi:BPMNLabel>
-          <dc:Bounds x="987" y="152" width="7" height="14" />
-        </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNShape id="_BPMNShape_StartEvent_2" bpmnElement="StartEvent_1">
         <dc:Bounds x="302" y="869" width="36" height="36" />
