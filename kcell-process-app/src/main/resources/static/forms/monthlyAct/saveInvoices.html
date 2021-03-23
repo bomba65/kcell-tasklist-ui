@@ -1,0 +1,465 @@
+<form role="form" class="form-horizontal" name="kcell_form" novalidate>
+    <script cam-script type="text/form-script">
+        inject(['$scope', '$http', 'Uri', '$rootScope', '$q', 'Upload', '$timeout', function ($scope, $http, Uri, $rootScope, $q, Upload, $timeout) {
+            var variables = [
+                'selectedRevisions',
+                'resolutions',
+                'periodDate',
+                'monthOfFormalPeriod',
+                'yearOfFormalPeriod',
+                'formalPeriod',
+                'maNumber',
+                'contractor',
+                'subcontractor'
+            ];
+
+            $scope.monthsTitleRu = {
+                'January': 'Январь',
+                'February': 'Февраль',
+                'March': 'Март',
+                'April': 'Апрель',
+                'May': 'Май',
+                'June': 'Июнь',
+                'July': 'Июль',
+                'August': 'Август',
+                'September': 'Сентябрь',
+                'October': 'Октябрь',
+                'November': 'Ноябрь',
+                'December': 'Декабрь'
+            };
+
+            $scope.regionsMap = {
+                'alm': 'Almaty',
+                'astana': 'Astana',
+                'nc': 'N&C',
+                'east': 'East',
+                'south': 'South',
+                'west': 'West'
+            };
+
+            $scope.mapSubcontractorsToNum = {
+                'ALTA':'6',
+                'ARLAN':'8',
+                'LOGYCOM':'7',
+                'LINE':'4'
+            }
+
+            $scope.scanFiles = {};
+            $scope.scanFiles.type = 'Json';
+            $scope.scanFiles.value = [];
+
+            $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
+                    function(result){
+                        $scope.processInstanceId = result.data.processInstanceId;
+                    },
+                    function (error) {
+                        console.log(error.data);
+                    }
+            );
+
+            camForm.on('form-loaded', function () {
+                variables.forEach(function (el) {
+                    camForm.variableManager.fetchVariable(el);
+                });
+                $http.get($rootScope.getCatalogsHttpByName('catalogs')).then(
+                        function (result) {
+                            angular.extend($scope, result.data);
+                            angular.extend(catalogs, result.data);
+                        },
+                        function (error) {
+                            console.log(error.data);
+                        }
+                );
+                camForm.variableManager.createVariable({
+                    name: 'save_invoicesTaskResult',
+                    type: 'String',
+                    value: ''
+                });
+                $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name+ "/profile").then(function(result){
+                    $rootScope.authentication.assigneeName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
+                });
+            });
+
+            camForm.on('variables-fetched', function () {
+                variables.forEach(function (el) {
+                    $scope[el] = camForm.variableManager.variables[el].value;
+                });
+                reDrawTable();
+            });
+
+            camForm.on('submit', function () {
+                camForm.variableManager.variableValue('save_invoicesTaskResult', $scope.save_invoicesTaskResult);
+
+                camForm.variableManager.createVariable({
+                    name: 'invoiceNumber',
+                    type: 'String',
+                    value: $scope.invoiceNumber
+                });
+                camForm.variableManager.createVariable({
+                    name: 'invoiceDate',
+                    type: 'String',
+                    value: $scope.invoiceDate
+                });
+                camForm.variableManager.createVariable($scope.scanFiles);
+                camForm.variableManager.destroyVariable('resolutions');
+            });
+
+            function reDrawTable(){
+                $scope.reqularWorks = [];
+                $scope.emergencyWorks = [];
+
+                for(var propt in $scope.selectedRevisions){
+                    var processDetailCopy = angular.copy($scope.selectedRevisions[propt]);
+                    if(processDetailCopy.priority === 'emergency'){
+                        $scope.emergencyWorks.push(processDetailCopy);
+                    } else {
+                        $scope.reqularWorks.push(processDetailCopy);
+                    }
+                }
+
+                $scope.regularWorksTotalPrice = 0;
+                angular.forEach($scope.reqularWorks, function(rw){
+                    if(rw.workPrices){
+                        angular.forEach(rw.workPrices, function(wp){
+                            if(wp.total){
+                                $scope.regularWorksTotalPrice = $scope.regularWorksTotalPrice + Number(wp.total);
+                            }
+                        });
+                    }
+                });
+                $scope.emergencyWorksTotalPrice = 0;
+                angular.forEach($scope.emergencyWorks, function(rw){
+                    if(rw.workPrices){
+                        angular.forEach(rw.workPrices, function(wp){
+                            if(wp.total){
+                                $scope.emergencyWorksTotalPrice = $scope.emergencyWorksTotalPrice + Number(wp.total);
+                            }
+                        });
+                    }
+                });
+            }
+
+            $scope.toggleProcessView = function(processInstanceId, selectedView){
+                if($scope.processInstanceId === processInstanceId && $scope.selectedView === selectedView){
+                    $scope.processInstanceId = undefined;
+                    $scope.selectedView = undefined;
+                    $scope.jobModel = {};
+                } else {
+                    $scope.jobModel = {};
+                    $scope.processInstanceId = processInstanceId;
+                    $scope.selectedView = selectedView;
+                    $scope.jobModel.state = 'ACTIVE';
+                    $http({
+                        method: 'GET',
+                        headers:{'Accept':'application/hal+json, application/json; q=0.5'},
+                        url: '/camunda/api/engine/engine/default/task?processInstanceId='+processInstanceId
+                    }).then(
+                        function(tasks){
+                            var processInstanceTasks = tasks.data._embedded.task;
+                            if(processInstanceTasks && processInstanceTasks.length > 0){
+                                processInstanceTasks.forEach(function(e){
+                                    if(e.assignee && tasks.data._embedded.assignee){
+                                        for(var i=0;i<tasks.data._embedded.assignee.length;i++){
+                                            if(tasks.data._embedded.assignee[i].id === e.assignee){
+                                                e.assigneeObject = tasks.data._embedded.assignee[i];
+                                            }
+                                        }
+                                    }
+                                });
+                            }
+                            $http.get('/camunda/api/engine/engine/default/history/variable-instance?deserializeValues=false&processInstanceId='+processInstanceId).then(
+                                    function(result){
+                                        var workFiles = [];
+                                        result.data.forEach(function(el){
+                                            $scope.jobModel[el.name] = el;
+                                            if(el.type === 'File' || el.type === 'Bytes'){
+                                                $scope.jobModel[el.name].contentUrl = '/camunda/api/engine/engine/default/history/variable-instance/'+el.id+'/data';
+                                            }
+                                            if(el.type === 'Json'){
+                                                $scope.jobModel[el.name].value = JSON.parse(el.value);
+                                            }
+                                            if(el.name.startsWith('works_') && el.name.includes('_file_')){
+                                                workFiles.push(el);
+                                            }
+                                        });
+                                        if($scope.jobModel['siteWorksFiles']){
+                                            _.forEach($scope.jobModel['siteWorksFiles'].value, function(file){
+                                                var workIndex = file.name.split('_')[1];
+                                                if (!$scope.jobModel.jobWorks.value[workIndex].files) {
+                                                    $scope.jobModel.jobWorks.value[workIndex].files = [];
+                                                }
+                                                if(_.findIndex($scope.jobModel.jobWorks.value[workIndex].files, function(f) { return f.name == file.name; }) < 0){
+                                                    $scope.jobModel.jobWorks.value[workIndex].files.push(file);
+                                                }
+                                            });
+                                        }
+                                        _.forEach(workFiles, function(file){
+                                            var workIndex = file.name.split('_')[1];
+                                            if (!$scope.jobModel.jobWorks.value[workIndex].files) {
+                                                $scope.jobModel.jobWorks.value[workIndex].files = [];
+                                            }
+                                            if(_.findIndex($scope.jobModel.jobWorks.value[workIndex].files, function(f) { return f.name == file.name; }) < 0){
+                                                $scope.jobModel.jobWorks.value[workIndex].files.push(file);
+                                            }
+                                        });
+                                        $scope.jobModel.tasks = processInstanceTasks;
+                                        angular.extend($scope.jobModel, catalogs);
+                                    },
+                                    function(error){
+                                        console.log(error.data);
+                                    }
+                            );
+                        },
+                        function(error){
+                            console.log(error.data);
+                        }
+                    );
+                }
+            };
+
+            $scope.fileSelected = function(el, bindedInput){
+                $timeout(function () {
+                    $scope.$apply(function () {
+                        uploadFileToMinio(el.files[0], bindedInput);
+                    });
+                })
+            };
+
+            function uploadFileToMinio(file, bindedInput) {
+                var fileIndex = $scope.scanFiles.value.length;
+
+                var fileToUpload = {
+                    name: 'scan_file_' + fileIndex,
+                    type: 'Json',
+                    value: {
+                        name: file.name.replace(/[/\\?%*:|"<>]/g, '-'),
+                        isNew: true,
+                        path: $scope.processInstanceId + '/' + camForm.taskId + '/' + file.name.replace(/[/\\?%*:|"<>]/g, '-')
+                    }
+                };
+                $http({method: 'GET', url: '/camunda/uploads/put/' + fileToUpload.value.path, transformResponse: [] }).
+                then(function(response) {
+                    $http.put(response.data, file, {headers: {'Content-Type': undefined}}).then(
+                        function () {
+                            $scope.scanFiles.value.push(fileToUpload);
+                            angular.element(document.querySelector('#scan_file_' + fileIndex)).val(null);
+                            $(bindedInput).val('');
+                        },
+                        function (error) {
+                            console.log(error.data);
+                        }
+                    );
+                }, function(error){
+                    console.log(error.data);
+                });
+            }
+
+            $scope.clearFile = function (fileIndex) {
+                $scope.scanFiles.value.splice(fileIndex, 1);
+            }
+        }]);
+    </script>
+
+    <div class="form-group">
+        <label class="col-sm-3 control-label">Subcontractor:</label>
+        <label class="col-sm-3 control-label">{{subcontractor}}</label>
+    </div>
+
+    <div class="form-group">
+        <label class="col-sm-3 control-label">Monthly Act #:</label>
+        <label class="col-sm-3 control-label">{{maNumber}}</label>
+    </div>
+
+    <div class="form-group">
+        <label class="col-sm-3 control-label">Period:</label>
+        <label class="col-sm-3 control-label">{{monthsTitleRu[monthOfFormalPeriod]}} {{yearOfFormalPeriod}}</label>
+    </div>
+
+    <h4>Номер акта: {{maNumber}} </h4>
+    <h4>Отчетный период: {{monthsTitleRu[monthOfFormalPeriod]}} {{yearOfFormalPeriod}} </h4>
+
+    <h3>
+        Месячный технический акт выполненных работ {{contractorsTitle[mapSubcontractorsToNum[subcontractor]]}} согласно Договора Подряда на Выполнение Работ по Внедрению и Модификации No {{}}
+    </h3>
+
+    <h3>Плановые работы</h3>
+    <table class="table table-bordered" class="form-group" name="works" id="works">
+        <thead>
+        <th>#</th>
+        <th>Заявка на выполнение работ</th>
+        <th>Сайт</th>
+        <th>Регион</th>
+        <th>Тип работы</th>
+        <th>Наименование Работ</th>
+        <th>Кол-во работ</th>
+        <th>Стоимость работы</th>
+        <th>Цена</th>
+        <th>Дата Заказа</th>
+        <th>Дата Выполнения</th>
+        <th>Согласованный срок выполнения работ (Дата)</th>
+        <th>Задержка, дней</th>
+        </thead>
+        <tbody ng-repeat="value in reqularWorks | orderBy: [orderReason,orderRegion,orderBusinessKey]">
+        <tr ng-repeat="w in value.workPrices">
+            <td ng-if="$first" rowspan="{{value.works.length}}">
+                {{$parent.$parent.$index+1}}
+            </td>
+            <td ng-if="$first" rowspan="{{value.works.length}}">
+                <a ng-click="toggleProcessView(value.processInstanceId, 'table1')">{{value.businessKey}}</a>
+            </td>
+            <td ng-if="$first" rowspan="{{value.works.length}}">
+                {{value.site_name}}
+            </td>
+            <td ng-if="$first" rowspan="{{value.works.length}}">
+                {{regionsMap[value.siteRegion]}}
+            </td>
+            <td ng-if="$first" rowspan="{{value.works.length}}">
+                {{reasonsTitle[value.reason]}}
+            </td>
+            <td>{{w.displayServiceName}}</td>
+            <td>{{w.quantity}}</td>
+            <td>{{w.basePrice}}</td>
+            <td>{{w.total}}</td>
+            <td ng-if="$first" rowspan="{{value.works.length}}">
+                {{value.contractorJobAssignedDate | date:'dd.MM.yyyy'}}
+            </td>
+            <td ng-if="$first" rowspan="{{value.works.length}}">
+                {{value.performDate | date:'dd.MM.yyyy'}}
+            </td>
+            <td ng-if="$first" rowspan="{{value.works.length}}">
+                {{value.dueDate | date:'dd.MM.yyyy'}}
+            </td>
+            <td ng-if="$first" rowspan="{{value.works.length}}">
+                {{value.delay}}
+            </td>
+        </tr>
+        <tr ng-if="processInstanceId === value.processInstanceId && jobModel && selectedView === 'table1'">
+            <td colspan="13">
+                <job-request job-model="jobModel"></job-request>
+            </td>
+        </tr>
+        </tbody>
+        <tbody>
+            <tr>
+                <td colspan="8" style="text-align: right">Итог</td>
+                <td>{{emergencyWorksTotalPrice}}</td>
+                <td colspan="4"></td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h3>Внеплановые работы</h3>
+    <table class="table table-bordered" class="form-group" name="works" id="works">
+        <thead>
+        <th>#</th>
+        <th>Заявка на выполнение работ</th>
+        <th>Сайт</th>
+        <th>Регион</th>
+        <th>Тип работы</th>
+        <th>Наименование Работ</th>
+        <th>Кол-во работ</th>
+        <th>Стоимость работы</th>
+        <th>Цена</th>
+        <th>Дата Заказа</th>
+        <th>Дата Выполнения</th>
+        <th>Согласованный срок выполнения работ (Дата)</th>
+        <th>Задержка, часы</th>
+        </thead>
+        <tbody ng-repeat="value in emergencyWorks | orderBy: [orderReason,orderRegion,orderBusinessKey]">
+        <tr ng-repeat="w in value.workPrices">
+            <td ng-if="$first" rowspan="{{value.works.length}}">
+                {{$parent.$parent.$index+1}}
+            </td>
+            <td ng-if="$first" rowspan="{{value.works.length}}">
+                <a ng-click="toggleProcessView(value.processInstanceId, 'table2')">{{value.businessKey}}</a>
+            <td ng-if="$first" rowspan="{{value.works.length}}">
+                {{value.site_name}}
+            </td>
+            <td ng-if="$first" rowspan="{{value.works.length}}">
+                {{regionsMap[value.siteRegion]}}
+            </td>
+            <td ng-if="$first" rowspan="{{value.works.length}}">
+                {{reasonsTitle[value.reason]}}
+            </td>
+            <td>{{w.displayServiceName}}</td>
+            <td>{{w.quantity}}</td>
+            <td>{{w.basePrice}}</td>
+            <td>{{w.total}}</td>
+            <td ng-if="$first" rowspan="{{value.works.length}}">
+                {{value.contractorJobAssignedDate | date:'dd.MM.yyyy'}}
+            </td>
+            <td ng-if="$first" rowspan="{{value.works.length}}">
+                {{value.performDate | date:'dd.MM.yyyy'}}
+            </td>
+            <td ng-if="$first" rowspan="{{value.works.length}}">
+                {{value.dueDate | date:'dd.MM.yyyy'}}
+            </td>
+            <td ng-if="$first" rowspan="{{value.works.length}}">
+                {{value.delay}}
+            </td>
+        </tr>
+        <tr ng-if="processInstanceId === value.processInstanceId && jobModel && selectedView === 'table2'">
+            <td colspan="13">
+                <job-request job-model="jobModel"></job-request>
+            </td>
+        </tr>
+        </tbody>
+        <tbody>
+            <tr>
+                <td colspan="8" style="text-align: right">Итог</td>
+                <td>{{emergencyWorksTotalPrice}}</td>
+                <td colspan="4"></td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div class="form-group">
+        <label class="col-sm-4 control-label">Пожалуйста введите номер Инвойса:</label>
+        <div class="col-sm-3">
+            <input type="text" class="form-control" name="invoiceNumber" required ng-model="invoiceNumber" />
+            <label class="error" ng-show="kcell_form.invoiceNumber.$error.required && ( kcell_form.invoiceNumber.$touched || view.submitted)">Required field</label>
+        </div>
+        <label class="col-sm-1 control-label">Дата:</label>
+        <div class="col-sm-3">
+            <div class="input-group">
+                <input type="text" ng-model="invoiceDate" name="invoiceDate" required class="form-control" datepicker-popup="dd.MM.yyyy"
+                       is-open="invoiceDateFieldOpened" min-date="datepickerOptions.minDate"  />
+                <span class="input-group-btn">
+                        <button type="button" class="btn btn-default" ng-click="invoiceDateFieldOpened = true">
+                            <i class="glyphicon glyphicon-calendar"></i>
+                        </button>
+                    </span>
+            </div>
+            <label class="error" ng-show="kcell_form.invoiceDate.$error.required && ( kcell_form.invoiceDate.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+
+    <div class="form-group" ng-show="scanFiles.value && scanFiles.value.length > 0">
+        <label class="col-sm-4 control-label"></label>
+        <div class="col-md-8">
+            <div ng-repeat="file in scanFiles.value">
+                {{$index + 1}}.
+                <a ng-click="download(file)">{{file.value.name}}</a> | <a ng-click="clearFile($index)"><i class="glyphicon glyphicon-trash"></i></a>
+            </div>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-4 control-label">Пожалуйста прикрепите скан копии документов:</label>
+        <div class="col-md-8">
+            <label class="input-group-btn">
+                    <span class="btn btn-default">
+                        Choose File <input type="file" id="scan_file_{{scanFiles.value.length}}" name="scan_file_{{scanFiles.value.length}}" ng-model="file.file"  style="display: none;" onchange="angular.element(this).scope().fileSelected(this, '#scanFilesName');$('#scanFilesName').val(this.files[0].name)" >
+                    </span>
+            </label>
+            <input type="hidden" class="form-control upload-filename" id="scanFilesName" placeholder="No File Chosen" readonly>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label class="col-sm-4 control-label">Comments</label>
+        <div class="col-sm-8">
+            <textarea class="form-control" rows="4" maxlength="500" cam-variable-name="save_invoicesComment" name="save_invoicesTaskComment" ng-required="save_invoicesTaskResult == 'cancel'" cam-variable-type="String"></textarea>
+            <label class="error" ng-show="kcell_form.save_invoicesTaskComment.$error.required && ( kcell_form.save_invoicesTaskComment.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+</form>

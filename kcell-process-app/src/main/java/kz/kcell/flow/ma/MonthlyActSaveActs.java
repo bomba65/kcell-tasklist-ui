@@ -4,7 +4,6 @@ import lombok.extern.java.Log;
 import org.camunda.bpm.engine.IdentityService;
 import org.camunda.bpm.engine.RuntimeService;
 import org.camunda.bpm.engine.delegate.DelegateExecution;
-import org.camunda.bpm.engine.delegate.ExecutionListener;
 import org.camunda.bpm.engine.delegate.JavaDelegate;
 import org.camunda.bpm.engine.identity.User;
 import org.camunda.spin.json.SpinJsonNode;
@@ -108,6 +107,7 @@ public class MonthlyActSaveActs implements JavaDelegate {
 
         Bindings bindings1 = groovyEngine.createBindings();
         bindings1.put("maNumber", maNumber);
+        bindings1.put("selectedRevisions", delegateExecution.getVariable("selectedRevisions"));
         String result = String.valueOf(template1.eval(bindings1));
         InputStream is = new ByteArrayInputStream(result.getBytes());
         String fileName = maNumber + ".pdf";
