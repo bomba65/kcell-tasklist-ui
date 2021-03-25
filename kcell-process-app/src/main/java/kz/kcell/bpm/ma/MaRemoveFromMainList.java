@@ -62,7 +62,7 @@ public class MaRemoveFromMainList implements TaskListener {
             }
         } else if("ma_tnu1_modify".equals(delegateTask.getTaskDefinitionKey())){
             for(String revisionId: selectedRevisions.fieldNames()){
-                if(selectedRevisions.prop(revisionId).prop("reason").equals("2")){
+                if(selectedRevisions.prop(revisionId).prop("reason").equals("2") && (selectedRevisions.prop(revisionId).prop("siteRegion").equals("nc") || selectedRevisions.prop(revisionId).prop("siteRegion").equals("astana"))){
                     selectedList.add(revisionId);
                 }
             }
@@ -84,7 +84,7 @@ public class MaRemoveFromMainList implements TaskListener {
             }
         } else if("ma_tnu2_modify".equals(delegateTask.getTaskDefinitionKey())){
             for(String revisionId: selectedRevisions.fieldNames()){
-                if(selectedRevisions.prop(revisionId).prop("reason").equals("2")){
+                if(selectedRevisions.prop(revisionId).prop("reason").equals("2") && (selectedRevisions.prop(revisionId).prop("siteRegion").equals("east") || selectedRevisions.prop(revisionId).prop("siteRegion").equals("south"))){
                     selectedList.add(revisionId);
                 }
             }
@@ -106,7 +106,7 @@ public class MaRemoveFromMainList implements TaskListener {
             }
         } else if("ma_tnu3_modify".equals(delegateTask.getTaskDefinitionKey())){
             for(String revisionId: selectedRevisions.fieldNames()){
-                if(selectedRevisions.prop(revisionId).prop("reason").equals("2")){
+                if(selectedRevisions.prop(revisionId).prop("reason").equals("2") && (selectedRevisions.prop(revisionId).prop("siteRegion").equals("alm") || selectedRevisions.prop(revisionId).prop("siteRegion").equals("west"))){
                     selectedList.add(revisionId);
                 }
             }

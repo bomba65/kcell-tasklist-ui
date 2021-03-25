@@ -82,7 +82,7 @@ public class MonthlyActSaveActs implements JavaDelegate {
                 .filter(userEmail -> userEmail != null && !userEmail.isEmpty())
                 .collect(Collectors.toSet()));
         }
-        if("true".equals(delegateExecution.getVariable("hasTNU"))){
+        if("true".equals(delegateExecution.getVariable("hasTNU1")) || "true".equals(delegateExecution.getVariable("hasTNU2")) || "true".equals(delegateExecution.getVariable("hasTNU3"))){
             contractorEmails.addAll(identityService.createUserQuery().memberOfGroup("hq_transmission_specialist").list().stream()
                 .map(User::getEmail)
                 .filter(userEmail -> userEmail != null && !userEmail.isEmpty())
