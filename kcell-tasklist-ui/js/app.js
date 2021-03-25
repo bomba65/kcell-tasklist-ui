@@ -101,6 +101,13 @@ define('app',[
 						{key:'Demand', name:'Demand and AOP', group:'demand_uat_users'},
 						{key:'UAT', name:'UAT protocol', group:'demand_uat_users'}
 					]
+				},
+				{
+					"key" : "RPA",
+					"name" : "RPA",
+					"processes" : [
+						{key:'SSU', name:'SSU', group:'rpa_ssu_users'}
+					]
 				}
 			];
 		},

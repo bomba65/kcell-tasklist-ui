@@ -1,0 +1,353 @@
+<style>
+    .my-group .form-control{
+        width:50%;
+    }
+    .modal-lg.modal-dialog{
+        width: 90%;
+    }
+    input[type=number]::-webkit-inner-spin-button,
+    input[type=number]::-webkit-outer-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+    }
+
+    .animate-if {
+        background:white;
+        overflow: hidden;
+        transition: 0.4s;
+        padding: 13px;
+        margin-bottom: 0px;
+        color: #b3b3b3;
+        background-color: #fff;
+        border: 2px solid #b3b3b3;
+        border-radius: 0;
+        -webkit-box-shadow: none;
+        box-shadow: none;
+    }
+
+    .animate-if.ng-enter, .animate-if.ng-leave {
+        transition:all 0.3s cubic-bezier(0.250, 0.460, 0.450, 0.940) ;
+    }
+
+    .animate-if.ng-enter,
+    .animate-if.ng-leave.ng-leave-active {
+        opacity:0;
+        max-height:0;
+        padding-top: 0px;
+        padding-bottom: 0px;
+    }
+
+    .animate-if.ng-leave,
+    .animate-if.ng-enter.ng-enter-active {
+        opacity:1;
+        max-height: 500px;
+        padding-top: 13px;
+        padding-bottom: 13px;
+    }
+
+    .center {
+        margin-left: auto;
+        margin-right: auto;
+    }
+    
+    .customtr {
+        margin: 10px;
+        width: 235px;
+        height: 40px;
+    }
+</style>
+<form role="form" class="form-horizontal" name="kcell_form" novalidate>
+    <script cam-script type="text/form-script">
+        inject(['$scope', '$http', '$rootScope', '$q', '$timeout', function ($scope, $http, $rootScope, $q, $timeout) {
+            var variablesToCreate = [
+                {
+                    name: 'ssu_id',
+                    type: 'String',
+                    submit: true,
+                    store: true
+                },
+            ];
+
+            $scope.ssu_id = undefined;
+
+            camForm.on('form-loaded', function () {
+                variablesToCreate.forEach(function (el) {
+                    camForm.variableManager.fetchVariable(el.name);
+                });
+            });
+
+            camForm.on('variables-fetched', function () {
+                variablesToCreate.forEach(function (el) {
+                    if (camForm.variableManager.variables[el.name].type === undefined) {
+                        camForm.variableManager.variables[el.name].type = el.type;
+                        if (el.value) {
+                            camForm.variableManager.variables[el.name].value = el.value;
+                        }
+                    }
+                });
+                $http.get('/camunda/api/engine/engine/default/user/' + $rootScope.authentication.name + '/profile').then(
+                    function (result) {
+                        $scope.initiatorFull = result.data;
+                        $rootScope.authentication.assigneeName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
+                    },
+                    function (error) {
+                    }
+                );
+            });
+
+            camForm.on('submit', function (e) {
+                variablesToCreate.forEach(function (el) {
+                    if (el.submit) {
+                        camForm.variableManager.variableValue(el.name, $scope[el.name]);
+                    }
+                });
+
+                camForm.variableManager.createVariable($scope.files);
+            });
+
+            $scope.chooseSSU = function(ssu_id){
+                scope.ssu_id = ssu_id;
+            };
+
+            $scope.files = {};
+            $scope.files.type = 'Json';
+            $scope.files.name = 'files';
+            $scope.files.value = [];
+
+            $scope.fileSelected = function(el, bindedInput){
+                $timeout(function () {
+                    $scope.$apply(function () {
+                        uploadFileToMinio(el.files[0], bindedInput);
+                    });
+                })
+            };
+
+            function uploadFileToMinio(file, bindedInput) {
+                var fileIndex = $scope.files.value.length;
+
+                var fileToUpload = {
+                    name: 'file_' + fileIndex,
+                    type: 'Json',
+                    value: {
+                        name: file.name.replace(/[/\\?%*:|"<>]/g, '-'),
+                        created: new Date(),
+                        createdBy: $rootScope.authentication.assigneeName,
+                        path: $scope.processInstanceId + '/' + camForm.taskId + '/' + file.name.replace(/[/\\?%*:|"<>]/g, '-')
+                    }
+                };
+                $http({method: 'GET', url: '/camunda/uploads/put/' + fileToUpload.value.path, transformResponse: [] }).
+                then(function(response) {
+                    $http.put(response.data, file, {headers: {'Content-Type': undefined}}).then(
+                        function () {
+                            $scope.files.value.push(fileToUpload.value);
+                            angular.element(document.querySelector('#file_' + fileIndex)).val(null);
+                            $(bindedInput).val('');
+                        },
+                        function (error) {
+                            console.log(error.data);
+                        }
+                    );
+                }, function(error){
+                    console.log(error.data);
+                });
+            }
+
+            $scope.clearFile = function (fileIndex) {
+                $scope.files.value.splice(fileIndex, 1);
+            }
+        }]);
+    </script>
+
+    <div class="form-group">
+        <label class="col-sm-12 control-label" style="text-align: center">Запуск процесса SSU</label>
+    </div>
+    <table class="center" ng-show="!ssu_id">
+        <tbody>
+            <tr>
+                <td>
+                    <button type="button" class="btn btn-default customtr" ng-click="chooseSSU('1')">Создание ID Customer</button>
+                </td>
+                <td>
+                    <button type="button" class="btn btn-default customtr" ng-click="chooseSSU('5')">Процесс 5</button>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <button type="button" class="btn btn-default customtr"  ng-click="chooseSSU('2')">Создание FA/BA</button>
+                </td>
+                <td>
+                    <button type="button" class="btn btn-default customtr"  ng-click="chooseSSU('6')">Процесс 6</button>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <button type="button" class="btn btn-default customtr"  ng-click="chooseSSU('3')">Создание PPB</button>
+                </td>
+                <td>
+                    <button type="button" class="btn btn-default customtr"  ng-click="chooseSSU('7')">Процесс 7</button>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <button type="button" class="btn btn-default customtr"  ng-click="chooseSSU('4')">Изменение кредитного лимита</button>
+                </td>
+                <td>
+                    <button type="button" class="btn btn-default customtr"  ng-click="chooseSSU('8')">Процесс 8</button>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <div ng-show="ssu_id">
+        <h4>Массовое создание ID customers</h4>
+
+        <div class="row">
+            <div class="form-group col-sm-6">
+            </div>
+            <div class="form-group col-sm-6">
+                Контактное лицо
+            </div>
+        </div>
+        <div class="row">
+            <div class="form-group col-sm-6">
+                <label class="col-sm-4 control-label">БИН*:</label>
+                <div class="col-sm-8">
+                    <input type="text" cam-variable-name="bin" cam-variable-type="String" name="bin" class="form-control" autocomplete="off" required>
+                    <label class="error" ng-if="kcell_form.bin.$error.required && ( kcell_form.bin.$touched || view.submitted)">Required field</label>
+                </div>
+            </div>
+            <div class="form-group col-sm-6">
+                <label class="col-sm-4 control-label">Пол*:</label>
+                <div class="col-sm-8">
+                    <select cam-variable-name="gender" name="gender" cam-variable-type="String" class="form-control selectpicker" select-picker required title="">
+                        <option style="display:none" value=""></option>
+                        <option value="male">Мужской</option>
+                        <option value="female">Женский</option>
+                    </select>
+                    <label class="error" ng-if="kcell_form.gender.$error.required && ( kcell_form.gender.$touched || view.submitted)">Required field</label>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="form-group col-sm-6">
+                <label class="col-sm-4 control-label">Подтип выставлен.*:</label>
+                <div class="col-sm-8">
+                    <select cam-variable-name="subtype" name="subtype" cam-variable-type="String" class="form-control selectpicker" select-picker required title="">
+                        <option style="display:none" value=""></option>
+                        <option value="GNE">GNE</option>
+                    </select>
+                    <label class="error" ng-if="kcell_form.subtype.$error.required && ( kcell_form.subtype.$touched || view.submitted)">Required field</label>
+                </div>
+            </div>
+            <div class="form-group col-sm-6">
+                <label class="col-sm-4 control-label">Имя*:</label>
+                <div class="col-sm-8">
+                    <input type="text" cam-variable-name="cp_name" cam-variable-type="String" name="cp_name" class="form-control" required>
+                    <label class="error" ng-if="kcell_form.cp_name.$error.required && ( kcell_form.cp_name.$touched || view.submitted)">Required field</label>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="form-group col-sm-6">
+            </div>
+            <div class="form-group col-sm-6">
+                <label class="col-sm-4 control-label">Фамилия*:</label>
+                <div class="col-sm-8">
+                    <input type="text" cam-variable-name="cp_surname" cam-variable-type="String" name="cp_surname" class="form-control" required>
+                    <label class="error" ng-if="kcell_form.cp_surname.$error.required && ( kcell_form.cp_surname.$touched || view.submitted)">Required field</label>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="form-group col-sm-6">
+            </div>
+            <div class="form-group col-sm-6">
+                <label class="col-sm-4 control-label">Телефон*:</label>
+                <div class="col-sm-8">
+                    <input type="text" cam-variable-name="cp_phone_number" cam-variable-type="String" name="cp_phone_number" class="form-control" required>
+                    <label class="error" ng-if="kcell_form.cp_phone_number.$error.required && ( kcell_form.cp_phone_number.$touched || view.submitted)">Required field</label>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="form-group col-sm-6">
+            </div>
+            <div class="form-group col-sm-6">
+                <label class="col-sm-4 control-label">Юредический адрес*:</label>
+                <div class="col-sm-8">
+                    <input type="text" cam-variable-name="legal_add" cam-variable-type="String" name="legal_add" class="form-control" required>
+                    <label class="error" ng-if="kcell_form.legal_add.$error.required && ( kcell_form.legal_add.$touched || view.submitted)">Required field</label>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="form-group col-sm-6">
+            </div>
+            <div class="form-group col-sm-6">
+                <label class="col-sm-4 control-label">Почтовый индекс*:</label>
+                <div class="col-sm-8">
+                    <input type="text" cam-variable-name="post_ind" cam-variable-type="String" name="post_ind" class="form-control" required>
+                    <label class="error" ng-if="kcell_form.post_ind.$error.required && ( kcell_form.post_ind.$touched || view.submitted)">Required field</label>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="form-group col-sm-6">
+            </div>
+            <div class="form-group col-sm-6">
+                <label class="col-sm-4 control-label">Email (для доставки счетов)*:</label>
+                <div class="col-sm-8">
+                    <input type="text" cam-variable-name="delivery_email" cam-variable-type="String" name="delivery_email" class="form-control">
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="form-group col-sm-12">
+                <label class="col-sm-2 control-label">Attachments:</label>
+                <div class="col-md-10">
+                    <label class="input-group-btn">
+                        <span class="btn btn-default">
+                            Choose File <input type="file" id="file_{{files.value.length}}" name="file_{{files.value.length}}" ng-model="file.file"  style="display: none;" onchange="angular.element(this).scope().fileSelected(this, '#filesName');$('#filesName').val(this.files[0].name)" >
+                        </span>
+                    </label>
+                    <input type="hidden" class="form-control upload-filename" id="filesName" placeholder="No File Chosen" readonly>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="form-group col-sm-12">
+                <label class="col-sm-2 control-label"></label>
+                <div class="col-md-10">
+                    <table class="table table-bordered">
+                        <thead>
+                            <tr>
+                                <th>File name</th>
+                                <th>Created</th>
+                                <th>Created By</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr ng-repeat="f in files.value">
+                                <td>{{f.name}}</td>
+                                <td>{{f.created | date:'dd.MM.yyyy'}}</td>
+                                <td>{{f.createdBy}}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="form-group col-sm-12">
+                <label class="col-sm-2 control-label">Требуется ли создание биллингового объекта:</label>
+                <div class="col-md-10">
+                    <label class="input-group-btn">
+                        <span class="btn btn-default">
+                            Choose File <input type="file" id="file_{{files.value.length}}" name="file_{{files.value.length}}" ng-model="file.file"  style="display: none;" onchange="angular.element(this).scope().fileSelected(this, '#filesName');$('#filesName').val(this.files[0].name)" >
+                        </span>
+                    </label>
+                    <input type="hidden" class="form-control upload-filename" id="filesName" placeholder="No File Chosen" readonly>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
