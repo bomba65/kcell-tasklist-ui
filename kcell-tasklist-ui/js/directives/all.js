@@ -2386,20 +2386,11 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                     }
                 );
                 var allKWMSProcesses = {
-                    Revision: {
-                        title: "Revision", value: false
-                    },
-                    Invoice: {
-                        title: "Monthly Act", value: false
-                    },
                     Dismantle: {
                         title: "Dismantle", value: false
                     },
                     Replacement: {
                         title: "Replacement", value: false
-                    },
-                    leasing: {
-                        title: "Roll-out", value: false
                     },
                     CreatePR: {
                         title: "PR Creation", value: false
@@ -2418,6 +2409,23 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                     }
 
                 };
+
+                if($rootScope.hasGroup('search_revision')){
+                    allKWMSProcesses.Revision = {
+                        title: "Revision", value: false
+                    }
+                }
+                if($rootScope.hasGroup('search_monthlyact')){
+                    allKWMSProcesses.Invoice = {
+                        title: "Monthly Act", value: false
+                    }
+                }
+                if($rootScope.hasGroup('search_rollout')){
+                    allKWMSProcesses.leasing = {
+                        title: "Roll-out", value: false
+                    }
+                }
+
                 scope.KWMSProcesses = {};
                 scope.processDefinitionKeys = {
                     'create-new-tsd': 'Create new TSD',

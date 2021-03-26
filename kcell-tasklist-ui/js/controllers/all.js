@@ -1349,6 +1349,11 @@ return module.controller('mainCtrl', ['$scope', '$rootScope', 'toasty', 'Authent
 }]).controller('statisticsCtrl', ['$scope', '$rootScope', '$filter', '$http', '$state', '$stateParams', '$q', '$location', 'AuthenticationService',
     function ($scope, $rootScope, $filter, $http, $state, $stateParams, $q, $location, AuthenticationService) {
 
+
+        if(!$rootScope.hasGroup('statistics_revision') && !$rootScope.hasGroup('statistics_monthlyact')){
+            $state.go('tasks');
+        }
+
         $rootScope.currentPage = {
             name: 'statistics'
         };
@@ -3061,6 +3066,10 @@ return module.controller('mainCtrl', ['$scope', '$rootScope', 'toasty', 'Authent
         }
     }]).controller('leasingStatisticsCtrl', ['$scope', '$rootScope', '$filter', '$http', '$state', '$stateParams', '$q', '$location', 'AuthenticationService',
         function ($scope, $rootScope, $filter, $http, $state, $stateParams, $q, $location, AuthenticationService) {
+
+            if(!$rootScope.hasGroup('statistics_rollout')){
+                $state.go('tasks');
+            }
 
             $rootScope.currentPage = {
                 name: 'statistics'
