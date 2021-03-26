@@ -362,8 +362,9 @@ return module.controller('mainCtrl', ['$scope', '$rootScope', 'toasty', 'Authent
     $scope.getExcelFile = function () {
         if($scope.xlsxPreparedRevision) {
             var tbl = document.getElementById('revisionsSearchTask');
-            var ws = XLSX.utils.table_to_sheet(tbl, {dateNF: 'DD.MM.YYYY'});
+            var ws = XLSX.utils.table_to_sheet(tbl, {dateNF: 'DD.MM.YYYY', cellDates:true}); 
             var wb = XLSX.utils.book_new();
+
             XLSX.utils.book_append_sheet(wb, ws, 'New Sheet Name 1');
             return XLSX.writeFile(wb, 'revision-search-task-result.xlsx');
         } else {
