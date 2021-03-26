@@ -35,7 +35,6 @@ def binding = ["quantity":quantity, "bin":bin, "subtype":subtype, "gender":gende
                "cp_phone_number":cp_phone_number, "legal_add":legal_add, "post_ind":post_ind, "delivery_email":delivery_email,
                "contract_date": contract_date!=null ? formatDate.format(calendar.getTime()) : null, "delivery_add":delivery_add, "delivery_index":delivery_index,
                "acc_region":acc_region, "acc_template":acc_template, "acc_format":acc_format,"credit_limit":credit_limit,"contract_num":contract_num]
-
 def template = '''\
 html(lang:'en') {
     head {

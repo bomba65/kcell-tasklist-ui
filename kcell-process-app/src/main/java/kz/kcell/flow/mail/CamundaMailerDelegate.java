@@ -1,10 +1,16 @@
 package kz.kcell.flow.mail;
 
+import kz.kcell.flow.files.Minio;
 import org.apache.commons.io.IOUtils;
 import org.camunda.bpm.engine.delegate.DelegateExecution;
 import org.camunda.bpm.engine.delegate.JavaDelegate;
+import org.camunda.spin.SpinList;
+import org.camunda.spin.json.SpinJsonNode;
+import org.camunda.spin.plugin.variable.value.JsonValue;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.core.io.InputStreamSource;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 
@@ -12,6 +18,7 @@ import javax.activation.DataSource;
 import javax.mail.internet.MimeMessage;
 import javax.mail.util.ByteArrayDataSource;
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
 import java.util.List;
@@ -26,6 +33,9 @@ public class CamundaMailerDelegate implements JavaDelegate {
 
     @Autowired
     private JrBlankGenerator jrBlankGenerator;
+
+    @Autowired
+    private Minio minio;
 
     private final List<String> disabledProcesses = Arrays.asList("AftersalesPBX");
 
@@ -105,6 +115,21 @@ public class CamundaMailerDelegate implements JavaDelegate {
             String fileName = jrNumber.replace("-####", "").replace("-##", "") + ".xlsx";
             helper.addAttachment(fileName, source);
             is.close();
+        }
+        if("ssu_send_application".equals(delegateExecution.getCurrentActivityId())) {
+            SpinJsonNode files = delegateExecution.<JsonValue>getVariableTyped("files").getValue();
+            if (files.isArray()) {
+                SpinList<SpinJsonNode> filesList = files.elements();
+                for (SpinJsonNode file : filesList) {
+                    String path = file.prop("path").stringValue();
+                    String name = file.prop("name").stringValue();
+
+                    InputStream is = minio.getObject(path);
+                    DataSource source = new ByteArrayDataSource(is, file.prop("type").stringValue());
+                    helper.addAttachment(name, source);
+                    is.close();
+                }
+            }
         }
         String[] emails = separateEmails(addresses);
         if (isFreephone &&  "SendTask_0t8xjuw".equals(delegateExecution.getCurrentActivityId())) {

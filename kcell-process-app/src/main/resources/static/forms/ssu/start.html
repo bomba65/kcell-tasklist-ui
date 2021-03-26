@@ -77,11 +77,58 @@
                     type: 'Date',
                     submit: true,
                     store: true
+                },
+                {
+                    name: 'gender',
+                    type: 'String',
+                    submit: true,
+                    store: true
+                },
+                {
+                    name: 'subtype',
+                    type: 'String',
+                    submit: true,
+                    store: true
+                },
+                {
+                    name: 'acc_region',
+                    type: 'String',
+                    submit: true,
+                    store: true
+                },
+                {
+                    name: 'acc_template',
+                    type: 'String',
+                    submit: true,
+                    store: true
+                },
+                {
+                    name: 'acc_format',
+                    type: 'String',
+                    submit: true,
+                    store: true
                 }
             ];
 
             $scope.ssu_id = undefined;
             $scope.billingObject = 'no';
+            $scope.indexPattern = '[0-9]{6}';
+
+            $scope.populateSelectFromCatalog = function (containers, id) {
+                $http.get('/camunda/catalogs/api/get/id/' + id).then(function (result) {
+                    if (result && result.data) {
+                        angular.forEach(containers, function (container) {
+                            $scope[container] = result.data.data.$list;
+                        });
+                    }
+                });
+            }
+
+            $scope.populateSelectFromCatalog(['subtypeList'], 123);
+            $scope.populateSelectFromCatalog(['genderList'], 127);
+            $scope.populateSelectFromCatalog(['regionList'], 126);
+            $scope.populateSelectFromCatalog(['templateList'], 125);
+            $scope.populateSelectFromCatalog(['formatList'], 124);
 
             camForm.on('form-loaded', function () {
                 variablesToCreate.forEach(function (el) {
@@ -145,6 +192,7 @@
                         name: file.name.replace(/[/\\?%*:|"<>]/g, '-'),
                         created: new Date(),
                         createdBy: $rootScope.authentication.assigneeName,
+                        type: file.type,
                         path: $scope.processInstanceId + '/' + camForm.taskId + '/' + file.name.replace(/[/\\?%*:|"<>]/g, '-')
                     }
                 };
@@ -243,10 +291,8 @@
             <div class="form-group col-sm-6">
                 <label class="col-sm-4 control-label">Пол*:</label>
                 <div class="col-sm-8">
-                    <select cam-variable-name="gender" name="gender" cam-variable-type="String" class="form-control selectpicker" select-picker required title="">
-                        <option style="display:none" value=""></option>
-                        <option value="male">Мужской</option>
-                        <option value="female">Женский</option>
+                    <select ng-model="gender" name="gender" class="form-control" required title="">
+                        <option ng-repeat="ct in genderList" ng-value="ct.value">{{ct.value}}</option>
                     </select>
                     <label class="error" ng-if="kcell_form.gender.$error.required && ( kcell_form.gender.$touched || view.submitted)">Required field</label>
                 </div>
@@ -256,9 +302,8 @@
             <div class="form-group col-sm-6">
                 <label class="col-sm-4 control-label">Подтип выставлен.*:</label>
                 <div class="col-sm-8">
-                    <select cam-variable-name="subtype" name="subtype" cam-variable-type="String" class="form-control selectpicker" select-picker required title="">
-                        <option style="display:none" value=""></option>
-                        <option value="GNE">GNE</option>
+                    <select ng-model="subtype" name="subtype" class="form-control" required>
+                        <option ng-repeat="ct in subtypeList" ng-value="ct.value">{{ct.value}}</option>
                     </select>
                     <label class="error" ng-if="kcell_form.subtype.$error.required && ( kcell_form.subtype.$touched || view.submitted)">Required field</label>
                 </div>
@@ -310,8 +355,9 @@
             <div class="form-group col-sm-6">
                 <label class="col-sm-4 control-label">Почтовый индекс*:</label>
                 <div class="col-sm-8">
-                    <input type="text" cam-variable-name="post_ind" cam-variable-type="String" name="post_ind" class="form-control" required>
+                    <input type="text" cam-variable-name="post_ind" cam-variable-type="String" name="post_ind" class="form-control" required ng-pattern="indexPattern" maxlength="6">
                     <label class="error" ng-if="kcell_form.post_ind.$error.required && ( kcell_form.post_ind.$touched || view.submitted)">Required field</label>
+                    <label class="error" ng-if="kcell_form.post_ind.$error.pattern && ( kcell_form.post_ind.$touched || view.submitted)">6 символов, только цифры</label>
                 </div>
             </div>
         </div>
@@ -319,7 +365,7 @@
             <div class="form-group col-sm-6">
             </div>
             <div class="form-group col-sm-6">
-                <label class="col-sm-4 control-label">Email (для доставки счетов)*:</label>
+                <label class="col-sm-4 control-label">Email (для доставки счетов):</label>
                 <div class="col-sm-8">
                     <input type="text" cam-variable-name="delivery_email" cam-variable-type="String" name="delivery_email" class="form-control">
                 </div>
@@ -403,11 +449,8 @@
                 <div class="form-group col-sm-6">
                     <label class="col-sm-4 control-label">Регион счета*:</label>
                     <div class="col-sm-8">
-                        <select cam-variable-name="acc_region" name="acc_region" cam-variable-type="String" class="form-control selectpicker" select-picker ng-required="billingObject!=='no'" title="">
-                            <option style="display:none" value=""></option>
-                            <option value="almaty">г. Алматы</option>
-                            <option value="nursultan">г. Нур-султан</option>
-                            <option value="shymkent">г. Шымкент</option>
+                        <select ng-model="acc_region" name="acc_region" class="form-control" ng-required="billingObject!=='no'">
+                            <option ng-repeat="ct in regionList" ng-value="ct.value">{{ct.value}}</option>
                         </select>
                         <label class="error" ng-if="kcell_form.acc_region.$error.required && ( kcell_form.acc_region.$touched || view.submitted)">Required field</label>
                     </div>
@@ -423,9 +466,8 @@
                 <div class="form-group col-sm-6">
                     <label class="col-sm-4 control-label">Шаблон счета*:</label>
                     <div class="col-sm-8">
-                        <select cam-variable-name="acc_template" name="acc_template" cam-variable-type="String" class="form-control selectpicker" select-picker ng-required="billingObject!=='no'" title="">
-                            <option style="display:none" value=""></option>
-                            <option value="chetNaOplatu">Счет на оплату</option>
+                        <select ng-model="acc_template" name="acc_template" class="form-control" ng-required="billingObject!=='no'">
+                            <option ng-repeat="ct in templateList" ng-value="ct.value">{{ct.value}}</option>
                         </select>
                         <label class="error" ng-if="kcell_form.acc_template.$error.required && ( kcell_form.acc_template.$touched || view.submitted)">Required field</label>
                     </div>
@@ -435,15 +477,15 @@
                 <div class="form-group col-sm-6">
                     <label class="col-sm-4 control-label">Индекс адреса доставки:</label>
                     <div class="col-sm-8">
-                        <input type="text" cam-variable-name="delivery_index" cam-variable-type="String" name="delivery_index" class="form-control" maxlength="6">
+                        <input type="text" cam-variable-name="delivery_index" cam-variable-type="String" name="delivery_index" class="form-control" maxlength="6" ng-pattern="indexPattern">
+                        <label class="error" ng-if="kcell_form.delivery_index.$error.pattern && ( kcell_form.delivery_index.$touched || view.submitted)">6 символов, только цифры</label>
                     </div>
                 </div>
                 <div class="form-group col-sm-6">
                     <label class="col-sm-4 control-label">Формат счета*:</label>
                     <div class="col-sm-8">
-                        <select cam-variable-name="acc_format" name="acc_format" cam-variable-type="String" class="form-control selectpicker" select-picker ng-required="billingObject!=='no'" title="">
-                            <option style="display:none" value=""></option>
-                            <option value="osf">ЭСф+акт</option>
+                        <select ng-model="acc_format" name="acc_format" class="form-control" ng-required="billingObject!=='no'">
+                            <option ng-repeat="ct in formatList" ng-value="ct.value">{{ct.value}}</option>
                         </select>
                         <label class="error" ng-if="kcell_form.acc_format.$error.required && ( kcell_form.acc_format.$touched || view.submitted)">Required field</label>
                     </div>
