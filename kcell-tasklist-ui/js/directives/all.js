@@ -2407,20 +2407,19 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                     'cancel-tsd': {
                         title: "Cancel TSD", value: false
                     }
-
                 };
 
-                if($rootScope.hasGroup('search_revision')){
+                if($rootScope.hasGroup('search_revision') || $rootScope.hasGroup('infrastructure_revision_users')){
                     allKWMSProcesses.Revision = {
                         title: "Revision", value: false
                     }
                 }
-                if($rootScope.hasGroup('search_monthlyact')){
+                if($rootScope.hasGroup('search_monthlyact') || $rootScope.hasGroup('infrastructure_monthly_act_users')){
                     allKWMSProcesses.Invoice = {
                         title: "Monthly Act", value: false
                     }
                 }
-                if($rootScope.hasGroup('search_rollout')){
+                if($rootScope.hasGroup('search_rollout') || $rootScope.hasGroup('infrastructure_leasing_users')){
                     allKWMSProcesses.leasing = {
                         title: "Roll-out", value: false
                     }

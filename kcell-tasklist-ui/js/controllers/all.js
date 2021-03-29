@@ -1350,7 +1350,7 @@ return module.controller('mainCtrl', ['$scope', '$rootScope', 'toasty', 'Authent
     function ($scope, $rootScope, $filter, $http, $state, $stateParams, $q, $location, AuthenticationService) {
 
 
-        if(!$rootScope.hasGroup('statistics_revision') && !$rootScope.hasGroup('statistics_monthlyact')){
+        if(!$rootScope.hasGroup('statistics_revision') && !$rootScope.hasGroup('statistics_monthlyact') && !$rootScope.hasGroup('infrastructure_revision_users') && !$rootScope.hasGroup('infrastructure_monthly_act_users')){
             $state.go('tasks');
         }
 
@@ -3067,7 +3067,7 @@ return module.controller('mainCtrl', ['$scope', '$rootScope', 'toasty', 'Authent
     }]).controller('leasingStatisticsCtrl', ['$scope', '$rootScope', '$filter', '$http', '$state', '$stateParams', '$q', '$location', 'AuthenticationService',
         function ($scope, $rootScope, $filter, $http, $state, $stateParams, $q, $location, AuthenticationService) {
 
-            if(!$rootScope.hasGroup('statistics_rollout')){
+            if(!$rootScope.hasGroup('statistics_rollout') && !$rootScope.hasGroup('infrastructure_leasing_users')){
                 $state.go('tasks');
             }
 

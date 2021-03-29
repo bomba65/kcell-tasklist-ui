@@ -152,7 +152,11 @@ define('app',[
 				var p = angular.copy(project);
 				p.processes = [];
 				angular.forEach(project.processes, function(process){
-					if(hasGroup(process.group)){
+					if(hasGroup(process.group) || (
+						(process.key === 'leasing' && (hasGroup('statistics_rollout') || hasGroup('search_rollout'))) ||
+						(process.key === 'revision' && (hasGroup('statistics_revision') || hasGroup('search_revision'))) ||
+						(process.key === 'invoice' && (hasGroup('statistics_monthlyact') || hasGroup('search_monthlyact')))
+					  )){
 						p.processes.push(process);
 					}
 				});
