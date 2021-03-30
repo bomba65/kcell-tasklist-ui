@@ -11,7 +11,7 @@ public class RegionHqLeasingAssignmentHandler implements TaskListener {
         String siteObjectType = delegateTask.getVariable("siteObjectType").toString();
         JSONObject candidate = new JSONObject(delegateTask.getVariable("candidate").toString());
 
-        if (candidate.has("constructionType") && candidate.getJSONObject("constructionType").getString("id").equals("141")) {
+        if (candidate.has("constructionType") && candidate.getJSONObject("constructionType").getString("id").equals("18")) {
             delegateTask.addCandidateGroup("hq_leasing");
         } else {
             if (siteObjectType.equals("national")) {

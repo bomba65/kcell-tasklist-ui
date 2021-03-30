@@ -16,7 +16,7 @@ public class ConfirmPermissionListener implements TaskListener {
             siteRegion = "astana";
             delegateTask.setVariable("siteRegion", siteRegion);
         }
-        if (candidate.has("constructionType") && candidate.getJSONObject("constructionType").getString("id").equals("141")) {
+        if (candidate.has("constructionType") && candidate.getJSONObject("constructionType").getString("id").equals("18")) {
             delegateTask.addCandidateGroup("hq_leasing");
         } else {
             delegateTask.addCandidateGroup(siteRegion + "_leasing");
