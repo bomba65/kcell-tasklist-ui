@@ -2452,24 +2452,42 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                     }
                 };
 
-                scope.isProcessVisible = function (process){
-                    if(process === 'Revision'){
-                        if($rootScope.hasGroup('search_revision') || $rootScope.hasGroup('infrastructure_revision_users')){
+                scope.isProcessVisible = function (process) {
+                    if (process === 'Revision') {
+                        if ($rootScope.hasGroup('search_revision') || $rootScope.hasGroup('infrastructure_revision_users')) {
                             return true;
                         } else
                             return false;
-                    } else if(process === 'Invoice'){
-                        if($rootScope.hasGroup('search_monthlyact') || $rootScope.hasGroup('infrastructure_monthly_act_users')){
+                    } else if (process === 'Invoice') {
+                        if ($rootScope.hasGroup('search_monthlyact') || $rootScope.hasGroup('infrastructure_monthly_act_users')) {
                             return true;
                         } else
                             return false;
-                    } else if(process === 'leasing'){
-                        if($rootScope.hasGroup('search_rollout') || $rootScope.hasGroup('infrastructure_leasing_users')){
+                    } else if (process === 'leasing') {
+                        if ($rootScope.hasGroup('search_rollout') || $rootScope.hasGroup('infrastructure_leasing_users')) {
                             return true;
                         } else
                             return false;
                     } else
                         return true;
+                }
+                if($rootScope.hasGroup('search_revision') || $rootScope.hasGroup('infrastructure_revision_users')){
+                    allKWMSProcesses.Revision = {
+                        title: "Revision", value: false
+                    }
+                }
+                if($rootScope.hasGroup('search_monthlyact') || $rootScope.hasGroup('infrastructure_monthly_act_users')){
+                    allKWMSProcesses.Invoice = {
+                        title: "Monthly Act", value: false
+                    }
+                    allKWMSProcesses.monthlyAct = {
+                        title: "Monthly Act Roll-out & Revision 2020", value: false
+                    }
+                }
+                if($rootScope.hasGroup('search_rollout') || $rootScope.hasGroup('infrastructure_leasing_users')){
+                    allKWMSProcesses.leasing = {
+                        title: "Roll-out", value: false
+                    }
                 }
 
                 scope.KWMSProcesses = {};
@@ -2557,7 +2575,7 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                             // only one process active;
                             scope.onlyProcessActive = Object.keys(filtered)[0];
                         }
-                        if ((filtered.Revision || filtered.Invoice || filtered.CreatePR) && !filtered.leasing && !filtered.Dismantle && !filtered.Replacement && !filtered['create-new-tsd'] && !filtered['change-tsd'] && !filtered['tsd-processing'] && !filtered['cancel-tsd']) {
+                        if ((filtered.Revision || filtered.Invoice || filtered.monthlyAct || filtered.CreatePR) && !filtered.leasing && !filtered.Dismantle && !filtered.Replacement && !filtered['create-new-tsd'] && !filtered['change-tsd'] && !filtered['tsd-processing'] && !filtered['cancel-tsd']) {
                             scope.RevisionOrMonthlyAct = true;
                         }
                         angular.forEach(filtered, function (process, key) {
@@ -2598,7 +2616,7 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                         scope.filter.requestedDateRange = undefined;
                         scope.filter.requestor = undefined;
                     }
-                    if (scope.onlyProcessActive!=='Invoice') {
+                    if (scope.onlyProcessActive!=='Invoice' && scope.onlyProcessActive!=='monthlyAct') {
                         scope.filter.initiator = undefined;
                         scope.filter.businessKeyFilterType = 'all';
                         scope.filter.businessKey = undefined;
@@ -2607,7 +2625,7 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                         scope.filter.yearOfFormalPeriod = undefined;
 
                     }
-                    if (scope.onlyProcessActive==='Invoice') {
+                    if (scope.onlyProcessActive==='Invoice' || scope.onlyProcessActive==='monthlyAct') {
                         // siteId&sitename are common filters except if Invoice selected
                         scope.filter.siteId = undefined;
                         scope.filter.sitename = undefined;
@@ -3784,7 +3802,7 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                             compareDate: new Date('2019-02-05T06:00:00.000'),
                         },
                         templateUrl: './js/partials/processCardModal.html',
-                        size: (scope.jobModel.processDefinitionKey === 'Invoice' ? 'hg' : 'lg')
+                        size: ((scope.jobModel.processDefinitionKey === 'Invoice' || scope.jobModel.processDefinitionKey === 'monthlyAct') ? 'hg' : 'lg')
                     }).then(function (results) {
                     });
                 }
