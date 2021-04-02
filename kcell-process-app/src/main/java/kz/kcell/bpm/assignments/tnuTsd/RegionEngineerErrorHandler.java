@@ -12,11 +12,11 @@ public class RegionEngineerErrorHandler implements TaskListener {
     public void notify(DelegateTask delegateTask) {
         String region_name = delegateTask.getVariable("region_name").toString();
         Map<String, String> map = new HashMap<>();
-        map.put("alm", "Andrey.Ivanov@kcell.kz");
-        map.put("astana", "Alexandr.Galat@kcell.kz,Marat.Abdin@kcell.kz");
-        map.put("nc", "Alexandr.Galat@kcell.kz,Marat.Abdin@kcell.kz");
+        map.put("alm", "Andrey.Ivanov@kcell.kz,Nikolay.Ustinov@kcell.kz");
+        map.put("astana", "Alexandr.Galat@kcell.kz,Marat.Abdin@kcell.kz,Nikolay.Ustinov@kcell.kz");
+        map.put("nc", "Alexandr.Galat@kcell.kz,Marat.Abdin@kcell.kz,Nikolay.Ustinov@kcell.kz");
         map.put("east", "Nikolay.Ustinov@kcell.kz");
-        map.put("south", "Samat.Dautov@kcell.kz");
+        map.put("south", "Samat.Dautov@kcell.kz,Nikolay.Ustinov@kcell.kz");
         map.put("west", "Nikolay.Ustinov@kcell.kz");
 
         if(map.get(region_name).contains(",")){
