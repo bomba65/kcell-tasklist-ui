@@ -1738,7 +1738,7 @@ return module.controller('mainCtrl', ['$scope', '$rootScope', 'toasty', 'Authent
         $scope.unitsR = ['.sao', '.po', '.sfm', '.tnu', '.ro'];
 
         $scope.checkRegionView = function(region){
-            if($rootScope.hasGroup('head_kcell_users')){
+            if($rootScope.hasGroup('head_kcell_users') || $rootScope.hasGroup('statistics_revision') || $rootScope.hasGroup('statistics_monthlyact')){
                 return true;
             } else if($rootScope.hasGroup('alm_kcell_users')){
                 return region === '.almaty';

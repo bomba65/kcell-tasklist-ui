@@ -2468,11 +2468,13 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                     //scope.initiatorId = $item.id;
                 };
                 var KWMSproject = _.find($rootScope.projects, {'key': 'NetworkInfrastructure'});
+
                 angular.forEach(allKWMSProcesses, function (value, processKey) {
                     if (_.find(KWMSproject.processes, {'key': processKey})) {
                         scope.KWMSProcesses[processKey] = value;
                     }
                 });
+
                 function isEmpty(obj) {
                     return Object.keys(obj).length === 0;
                 }
@@ -2873,10 +2875,13 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                         sorting: [{sortBy: "startTime", sortOrder: "desc"}],
                         variables: [],
                         activeActivityIdIn: [],
-                        processInstanceBusinessKeyLike: '%-%',
-                        processDefinitionKeyNotIn: excludeProcesses
+                        processInstanceBusinessKeyLike: '%-%'
 
                     }
+                    if(excludeProcesses.length > 0){
+                        filter.processDefinitionKeyNotIn = excludeProcesses;
+                    }
+
                     if(scope.selectedProcessInstances.indexOf('Dismantle')!==-1 && scope.selectedProcessInstances.indexOf('Replacement')===-1){
                         filter.variables.push({"name": "requestType", "operator": "eq", "value": "dismantle"});
                     }

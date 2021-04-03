@@ -262,6 +262,9 @@ INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('infrastructure_month
 INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('b2bDelivery', 1, 'B2B Delivery', 'WORKFLOW');
 INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('b2bSales', 1, 'B2B Sales', 'WORKFLOW');
 
+INSERT INTO public.act_id_group (id_, rev_, name_, type_) VALUES ('search_revision', 1, 'search_revision', 'WORKFLOW');
+INSERT INTO public.act_id_group (id_, rev_, name_, type_) VALUES ('statistics_revision', 1, 'statistics_revision', 'WORKFLOW');
+
 --memberships
 INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('demo', 'infrastructure_revision_users');
 INSERT INTO act_id_membership (user_id_, group_id_) VALUES ('demo', 'infrastructure_monthly_act_users');
@@ -1046,6 +1049,11 @@ INSERT INTO act_ru_authorization (id_, rev_, type_, group_id_, user_id_, resourc
 
 --USER AUTHORIZATION
 INSERT INTO act_ru_authorization (id_, rev_, type_, group_id_, user_id_, resource_type_, resource_id_, perms_) VALUES ('06e2fd21-6569-11e7-b615-0242ac150007', 1, 1, 'kcellUsers', NULL, 1, '*', 2);
+
+INSERT INTO public.act_ru_authorization (id_, rev_, type_, group_id_, user_id_, resource_type_, resource_id_, perms_) VALUES ('d93cac11-8e4d-11eb-b07d-62c55968a2e2', 1, 1, 'search_revision', null, 2, 'search_revision', 2);
+INSERT INTO public.act_ru_authorization (id_, rev_, type_, group_id_, user_id_, resource_type_, resource_id_, perms_) VALUES ('e3935d90-9467-11eb-b07d-62c55968a2e2', 1, 1, 'statistics_revision', null, 2, 'statistics_revision', 2);
+INSERT INTO public.act_ru_authorization (id_, rev_, type_, group_id_, user_id_, resource_type_, resource_id_, perms_) VALUES ('eba9a7b7-9479-11eb-b07d-62c55968a2e2', 1, 1, 'search_revision', null, 6, 'Revision', 4672);
+INSERT INTO public.act_ru_authorization (id_, rev_, type_, group_id_, user_id_, resource_type_, resource_id_, perms_) VALUES ('6e1a8d6d-946a-11eb-b07d-62c55968a2e2', 5, 1, 'statistics_revision', null, 6, 'Revision', 4674);
 
 --CONTRACTORS
 INSERT INTO act_ru_authorization (id_, rev_, type_, group_id_, user_id_, resource_type_, resource_id_, perms_) VALUES ('008d9ff1-4f69-11e7-a8c6-0242ac120007', 1, 1, 'contractor_users', NULL, 8, '*', 8);

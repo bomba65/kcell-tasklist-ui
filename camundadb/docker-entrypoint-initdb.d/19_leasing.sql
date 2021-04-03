@@ -36,6 +36,9 @@ INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('west_rollout', 1, 'w
 INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('hq_power', 1, 'hq_power', 'WORKFLOW') ON CONFLICT(id_) DO NOTHING;
 INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('hq_transmission', 1, 'hq_transmission', 'WORKFLOW') ON CONFLICT(id_) DO NOTHING;
 INSERT INTO act_id_group (id_, rev_, name_, type_) VALUES ('infrastructure_leasing_users', 1, 'infrastructure_leasing_users', 'WORKFLOW') ON CONFLICT(id_) DO NOTHING;
+INSERT INTO public.act_id_group (id_, rev_, name_, type_) VALUES ('statistics_rollout', 1, 'statistics_rollout', 'WORKFLOW') ON CONFLICT(id_) DO NOTHING;
+INSERT INTO public.act_id_group (id_, rev_, name_, type_) VALUES ('search_rollout', 1, 'search_rollout', 'WORKFLOW') ON CONFLICT(id_) DO NOTHING;
+
 --USERS
 INSERT INTO public.act_id_user(id_, rev_, first_, last_, email_, pwd_, salt_, picture_id_, lock_exp_time_, attempts_) VALUES ('Saken.Dochshanov@kcell.kz', 1, 'Saken', 'Dochshanov', 'Saken.Dochshanov@kcell.kz', '{SHA}ieSV55Qc+eQOaYDRSha/AjzNTJE=', null, null, null, null) ON CONFLICT(id_) DO NOTHING;
 INSERT INTO public.act_id_user(id_, rev_, first_, last_, email_, pwd_, salt_, picture_id_, lock_exp_time_, attempts_) VALUES ('Daniyar.Yespayev@kcell.kz', 1, 'Daniyar', 'Yespayev', 'Daniyar.Yespayev@kcell.kz', '{SHA}ieSV55Qc+eQOaYDRSha/AjzNTJE=', null, null, null, null) ON CONFLICT(id_) DO NOTHING;
@@ -694,4 +697,9 @@ INSERT INTO public.act_ru_authorization (id_, rev_, type_, group_id_, user_id_, 
 INSERT INTO public.act_ru_authorization (id_, rev_, type_, group_id_, user_id_, resource_type_, resource_id_, perms_) VALUES ('1709eb30-883d-11ea-8e49-0242ac13000a', 1, 1, 'hq_rollout', null, 6, 'leasing', 258);
 INSERT INTO public.act_ru_authorization (id_, rev_, type_, group_id_, user_id_, resource_type_, resource_id_, perms_) VALUES ('3b937de4-839c-11ea-829d-0242ac13000b', 3, 1, 'infrastructure_leasing_users', null, 6, 'leasing', 4930);
 INSERT INTO public.act_ru_authorization (id_, rev_, type_, group_id_, user_id_, resource_type_, resource_id_, perms_) VALUES ('5494e44a-dc8b-11ea-8886-0242ac15000a', 1, 1, 'infrastructure_leasing_users', null, 8, 'leasing', 14);
+
+INSERT INTO public.act_ru_authorization (group_id_, user_id_, resource_type_, resource_id_, perms_) VALUES ('statistics_rollout', null, 2, 'statistics_rollout', 2);
+INSERT INTO public.act_ru_authorization (group_id_, user_id_, resource_type_, resource_id_, perms_) VALUES ('search_rollout', null, 2, 'search_rollout', 2);
+INSERT INTO public.act_ru_authorization (group_id_, user_id_, resource_type_, resource_id_, perms_) VALUES ('search_rollout', null, 6, 'leasing', 4672);
+INSERT INTO public.act_ru_authorization (group_id_, user_id_, resource_type_, resource_id_, perms_) VALUES ('statistics_rollout', null, 6, 'leasing', 576);
 commit;

@@ -154,8 +154,9 @@ define('app',[
 				angular.forEach(project.processes, function(process){
 					if(hasGroup(process.group) || (
 						(process.key === 'leasing' && (hasGroup('statistics_rollout') || hasGroup('search_rollout'))) ||
-						(process.key === 'revision' && (hasGroup('statistics_revision') || hasGroup('search_revision'))) ||
-						(process.key === 'invoice' && (hasGroup('statistics_monthlyact') || hasGroup('search_monthlyact')))
+						(process.key === 'Revision' && (hasGroup('statistics_revision') || hasGroup('search_revision'))) ||
+						(process.key === 'Invoice' && (hasGroup('statistics_monthlyact') || hasGroup('search_monthlyact'))) ||
+						(process.key === 'monthlyAct' && (hasGroup('statistics_monthlyact') || hasGroup('search_monthlyact')))
 					  )){
 						p.processes.push(process);
 					}
