@@ -1363,6 +1363,7 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                                 if (type.name === antennaType) {
                                     scope.leasingCandidate.transmissionAntenna.diameter = type.diameter;
                                     scope.leasingCandidate.transmissionAntenna.weight = type.weight;
+                                    scope.leasingCandidate.transmissionAntenna.udb_id = type.udb_id;
                                 }
                             });
                         } else {

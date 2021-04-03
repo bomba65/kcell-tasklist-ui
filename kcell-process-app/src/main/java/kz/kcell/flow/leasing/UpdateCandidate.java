@@ -114,6 +114,9 @@ public class UpdateCandidate implements JavaDelegate {
                     Number ne_suspensionHeight = ne != null && ne.hasProp("suspensionHeight") ? (ne.prop("suspensionHeight").numberValue()) : null;
                     String ne_longitude = ne != null && ne.hasProp("address") && ne.prop("address").hasProp("longitude") && ne.prop("address").prop("longitude").value()!=null ? (ne.prop("address").prop("longitude").value().toString()) : null;
                     String ne_latitude = ne != null && ne.hasProp("address") && ne.prop("address").hasProp("latitude") && ne.prop("address").prop("latitude").value()!=null ? (ne.prop("address").prop("latitude").value().toString()) : null;
+                    String ne_type_udb_id = ne != null && ne.hasProp("udb_id") && ne.prop("udb_id").value() != null ? (ne.prop("udb_id").value().toString()) : null;
+                    String ne_antenna_quantity = ne != null && ne.hasProp("antennaQuantity") && ne.prop("antennaQuantity").value() != null ? (ne.prop("antennaQuantity").value().toString()) : null;
+                    String ne_weight = ne != null && ne.hasProp("weight") && ne.prop("weight").value()!=null ? ne.prop("weight").value().toString() : null;
 
                     SpinJsonNode feJson = delegateExecution.getVariable("farEndInformation") != null ? JSON(delegateExecution.getVariable("farEndInformation")) : null;
                     SpinList farEnds = feJson != null ? feJson.elements() : null;
@@ -882,34 +885,21 @@ public class UpdateCandidate implements JavaDelegate {
 
                     i = 1;
                     ARTEFACT_RR_TR_ANTENNA_PreparedStatement.setLong(i++, createdArtefactRRId);// RR_ID
-//                    if (fe_equipment_type != null) {
-//                        if (fe_equipment_type.equals("TN2P")){
-//                            ARTEFACT_RR_TR_ANTENNA_PreparedStatement.setLong(i++, 2); // EQUIP_ID fe.equipmentType
-//                        } else if (fe_equipment_type.equals("TN20P")){
-//                            ARTEFACT_RR_TR_ANTENNA_PreparedStatement.setLong(i++, 6); // EQUIP_ID fe.equipmentType
-//                        } else if (fe_equipment_type.equals("TN6P")){
-//                            ARTEFACT_RR_TR_ANTENNA_PreparedStatement.setLong(i++, 4); // EQUIP_ID fe.equipmentType
-//                        } else {
-//                            ARTEFACT_RR_TR_ANTENNA_PreparedStatement.setNull(i++, Types.INTEGER); // EQUIP_ID
-//                        }
-//                    } else {
-//                        ARTEFACT_RR_TR_ANTENNA_PreparedStatement.setNull(i++, Types.INTEGER); // EQUIP_ID
-//                    }
-                    if (fe_equipment_type != null) {
-                        ARTEFACT_RR_TR_ANTENNA_PreparedStatement.setLong(i++, fe_equipment_type.longValue()); // equipment_id
+                    if (ne_type_udb_id != null) {
+                        ARTEFACT_RR_TR_ANTENNA_PreparedStatement.setLong(i++, Long.valueOf(ne_type_udb_id)); // equipment_id
                     } else {
                         ARTEFACT_RR_TR_ANTENNA_PreparedStatement.setNull(i++, Types.INTEGER);
                     }
-                    if (fe_antennas_quantity != null) {
-                        ARTEFACT_RR_TR_ANTENNA_PreparedStatement.setLong(i++, Integer.parseInt(fe_antennas_quantity)); // ANTENNA_QUANTITY
+                    if (ne_antenna_quantity != null) {
+                        ARTEFACT_RR_TR_ANTENNA_PreparedStatement.setLong(i++, Integer.parseInt(ne_antenna_quantity)); // ANTENNA_QUANTITY
                     } else {
                         ARTEFACT_RR_TR_ANTENNA_PreparedStatement.setNull(i++, Types.INTEGER);
                     }
 
-                    if (fe_frequencyBand != null) {
-                        Integer fe_frequencyBandInt = Integer.parseInt(fe_frequencyBand);
-                        if (fe_frequencyBandInt != null) {
-                            ARTEFACT_RR_TR_ANTENNA_PreparedStatement.setLong(i++, fe_frequencyBandInt); // FE_TXRF_FREQUENCY
+                    if (ne_frequencyBand != null) {
+                        Integer ne_frequencyBandInt = Integer.parseInt(ne_frequencyBand);
+                        if (ne_frequencyBandInt != null) {
+                            ARTEFACT_RR_TR_ANTENNA_PreparedStatement.setLong(i++, ne_frequencyBandInt); // NE_TXRF_FREQUENCY
                         } else {
                             ARTEFACT_RR_TR_ANTENNA_PreparedStatement.setNull(i++, Types.BIGINT);
                         }
@@ -917,26 +907,26 @@ public class UpdateCandidate implements JavaDelegate {
                         ARTEFACT_RR_TR_ANTENNA_PreparedStatement.setNull(i++, Types.BIGINT);
                     }
 
-                    if (fe_diameter != null) {
-                        ARTEFACT_RR_TR_ANTENNA_PreparedStatement.setFloat(i++, Float.parseFloat(fe_diameter)); // DMTR fe.diameter
+                    if (ne_diameter != null) {
+                        ARTEFACT_RR_TR_ANTENNA_PreparedStatement.setFloat(i++, Float.parseFloat(ne_diameter)); // DMTR ne.diameter
                     } else {
                         ARTEFACT_RR_TR_ANTENNA_PreparedStatement.setNull(i++, Types.FLOAT);
                     }
 
-                    if (fe_weight != null) {
-                        ARTEFACT_RR_TR_ANTENNA_PreparedStatement.setLong(i++, Integer.parseInt(fe_weight)); // WEIGHT
+                    if (ne_weight != null) {
+                        ARTEFACT_RR_TR_ANTENNA_PreparedStatement.setLong(i++, Integer.parseInt(ne_weight)); // WEIGHT
                     } else {
                         ARTEFACT_RR_TR_ANTENNA_PreparedStatement.setNull(i++, Types.INTEGER);
                     }
 
-                    if (fe_suspension_height != null) {
-                        ARTEFACT_RR_TR_ANTENNA_PreparedStatement.setLong(i++, Integer.parseInt(fe_suspension_height)); // SUSPENSION_HEIGHT
+                    if (ne_suspensionHeight != null) {
+                        ARTEFACT_RR_TR_ANTENNA_PreparedStatement.setFloat(i++, ne_suspensionHeight.floatValue()); // SUSPENSION_HEIGHT
                     } else {
-                        ARTEFACT_RR_TR_ANTENNA_PreparedStatement.setNull(i++, Types.INTEGER);
+                        ARTEFACT_RR_TR_ANTENNA_PreparedStatement.setNull(i++, Types.FLOAT);
                     }
 
-                    if (fe_azimuth != null) {
-                        ARTEFACT_RR_TR_ANTENNA_PreparedStatement.setFloat(i++, Float.parseFloat(fe_azimuth)); // AZIMUTH
+                    if (ne_azimuth != null) {
+                        ARTEFACT_RR_TR_ANTENNA_PreparedStatement.setFloat(i++, Float.parseFloat(ne_azimuth)); // AZIMUTH
                     } else {
                         ARTEFACT_RR_TR_ANTENNA_PreparedStatement.setNull(i++, Types.INTEGER);
                     }
