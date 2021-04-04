@@ -818,27 +818,28 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
 
                         // var antennaTypePromise = $http.get($rootScope.catalogsServerUrl + '/camunda/catalogs/api/get/id/34').then(function(promiseResult){return promiseResult.data;});
                         // var trAntennaTypePromise = $http.get($rootScope.catalogsServerUrl + '/camunda/catalogs/api/get/id/20').then(function(promiseResult){return promiseResult.data;});
-                        // var antennaModelPromise = $http.get($rootScope.catalogsServerUrl + '/camunda/catalogs/api/get/id/19').then(function(promiseResult){return promiseResult.data;});
-                        // var antennaLocationsPromise = $http.get($rootScope.catalogsServerUrl + '/camunda/catalogs/api/get/id/64').then(function(promiseResult){return promiseResult.data;});
                         var newCatalogsPromise = $http.post('/camunda/catalogs/api/get/rolloutcatalogids', [14, 4, 13, 15, 21, 22, 30, 31, 32, 40, 59]).then(function(promiseResult){return promiseResult.data;});
                         var newBscRncsPromise = $http.get('/camunda/asset-management/bcs_rnc').then(function(promiseResult){return promiseResult.data;});
                         var trAntennaTypePromise = $http.get('/camunda/catalogs/api/get/id/20').then(function(promiseResult){return promiseResult.data;});
                         var newFrequenciesPromise = $http.get('/camunda/catalogs/api/get/id/17').then(function(promiseResult){return promiseResult.data;});
+                        var antennaModelPromise = $http.get('/camunda/catalogs/api/get/id/19').then(function(promiseResult){return promiseResult.data;});
+                         var antennaLocationsPromise = $http.get($rootScope.catalogsServerUrl + '/camunda/catalogs/api/get/id/64').then(function(promiseResult){return promiseResult.data;});
                         // $q.all([antennaTypePromise, trAntennaTypePromise, antennaModelPromise, antennaLocationsPromise, newCatalogsPromise]).then(function(allPromises) {
-                        $q.all([newCatalogsPromise, newBscRncsPromise, trAntennaTypePromise, newFrequenciesPromise]).then(function(allPromises) {
+                        $q.all([newCatalogsPromise, newBscRncsPromise, trAntennaTypePromise, newFrequenciesPromise], antennaModelPromise, antennaLocationsPromise).then(function(allPromises) {
                             // var antennaTypePromiseResult = allPromises[0];
                             // var trAntennaTypePromiseResult = allPromises[1];
                             // var antennaModelPromiseResult = allPromises[2];
-                            // var antennaLocationsPromiseResult = allPromises[3];
                             var newCatalogsPromiseResult = allPromises[0];
                             var newBscRncsPromiseResult = allPromises[1];
                             var trAntennaTypePromiseResult = allPromises[2];
                             var newFrequenciesPromiseResult = allPromises[3];
+                            var antennaModelPromiseResult = allPromises[4];
+                            var antennaLocationsPromiseResult = allPromises[5];
                             var newBscRncs = [];
-                            // var newAntennas = [];
+                            var newAntennas = [];
                             // var newAntennaTypes =  [];
                             // var newAntennaType =  [];
-                            // var newAntennaLocations =  [];
+                             var newAntennaLocations =  [];
                             var newRbsLocation =  [];
                             var newLegalType =  [];
                             var newAddresses =  [];
@@ -913,34 +914,37 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                                 newLegalType.push(newItem);
                             });
 
-                            // antennaModelPromiseResult.data.$list.forEach(function(item){
-                            //     var tempItem = {
-                            //         "antenna": item.value,
-                            //         "description": ""
-                            //     };
-                            //     if(item.dimensions){
-                            //         tempItem.dimension = item.dimensions.value;
-                            //     }
-                            //     if(item.weight){
-                            //         tempItem.weight = item.weight.value;
-                            //     }
-                            //     if(item.udb_id){
-                            //         tempItem.idbid = item.udb_id.value;
-                            //     }
-                            //     newAntennas.push(tempItem);
-                            // });
+                            antennaModelPromiseResult.data.$list.forEach(function(item){
+                                var tempItem = {
+                                    "antenna": item.value,
+                                    "description": ""
+                                };
+                                if(item.dimensions){
+                                    tempItem.dimension = item.dimensions.value;
+                                }
+                                if(item.weight){
+                                    tempItem.weight = item.weight.value;
+                                }
+                                if(item.udb_id){
+                                    tempItem.idbid = item.udb_id.value;
+                                }
+                                if(item.id){
+                                    tempItem.catalog_value_id = item.id.value;
+                                }
+                                newAntennas.push(tempItem);
+                            });
                             // antennaTypePromiseResult.data.$list.forEach(function(item){
                             //     newAntennaTypes.push({
                             //         "name": item.value,
                             //         "id": item.id
                             //     });
                             // });
-                            // antennaLocationsPromiseResult.data.$list.forEach(function(item){
-                            //     newAntennaLocations.push({
-                            //         "name": item.value,
-                            //         "id": item.id
-                            //     });
-                            // });
+                            antennaLocationsPromiseResult.data.$list.forEach(function(item){
+                                newAntennaLocations.push({
+                                    "name": item.value,
+                                    "id": item.id
+                                });
+                            });
                             // trAntennaTypePromiseResult.data.$list.forEach(function(item){
                             //     var tempItem = {
                             //         "name": item.name,
@@ -988,6 +992,9 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                                 if(item.udb_id){
                                     tempItem.idbid = item.udb_id.value;
                                 }
+                                if(item.id){
+                                    tempItem.catalog_value_id = item.id.value;
+                                }
                                 newAntennaType.push(tempItem);
                             });
                             scope.dictionary.antennaType = newAntennaType;
@@ -1023,16 +1030,15 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                                 }
                                 newAddresses.push(tempItem);
                             });
-                            // scope.antennasList = newAntennas;
-                            // scope.dictionary.antennas = newAntennas;
+                            scope.antennasList = newAntennas;
+                            scope.dictionary.antennas = newAntennas;
                             // scope.dictionary.antennaTypes = newAntennaTypes;
                             // scope.dictionary.antennaType = newAntennaType;
-                            // scope.dictionary.antennaLocation = newAntennaLocations;
+                            scope.dictionary.antennaLocation = newAntennaLocations;
                             scope.dictionary.rbsLocation = newRbsLocation;
                             scope.dictionary.legalType = newLegalType;
 
                             scope.dictionary.legalTypeTitle = _.keyBy(scope.dictionary.legalType, 'id');
-                            scope.dictionary.antennasList = scope.dictionary.antennas;
                             scope.addressesList = newAddresses;
                             scope.dictionary.addresses = newAddresses;
                             scope.dictionary.BSC = newBscRncs;
@@ -1079,8 +1085,6 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                                     scope.leasingCandidate.cellAntenna.addressString += index > 0 ? ', ' + s : s
                                 }
                             });
-
-                            scope.antennasList = scope.dictionary.antennas;
                             scope.frequencyBand = scope.dictionary.frequencyBand;
 
                                 scope.catalogsFetched = true;
@@ -1623,9 +1627,19 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                     if(obj){
                         scope.leasingCandidate.cellAntenna.sectors[sector].antennas[antenna].dimension = obj.dimension;
                         scope.leasingCandidate.cellAntenna.sectors[sector].antennas[antenna].weight = obj.weight;
-                        scope.leasingCandidate.cellAntenna.sectors[sector].antennas[antenna].udb_id = obj.udbid;
+                        scope.leasingCandidate.cellAntenna.sectors[sector].antennas[antenna].udb_id = obj.idbid;
+                        scope.leasingCandidate.cellAntenna.sectors[sector].antennas[antenna].catalog_value_id = obj.catalog_value_id;                        
                     }
                 }
+
+                scope.antennaLocationSelected = function (sector, antenna, a) {
+                    const obj = scope.dictionary.antennaLocation.find(b=>{ return b.name === a});
+                    if(obj){
+                        scope.leasingCandidate.cellAntenna.sectors[sector].antennas[antenna].cn_antenna_loc_catalog_value_id = obj.id;                        
+                    }
+                }
+
+                antennaNameSelected
 
                 scope.filteredAntennaTypesBySiteType = [];
                 if (scope.leasingCandidate.siteType) {

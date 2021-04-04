@@ -1044,7 +1044,23 @@ public class UpdateCandidate implements JavaDelegate {
                                 valueAntenna.put("azimuth", azimuth);
                             }
                             if (suspension_height_antenna != null) {
-                                valueAntenna.put("suspension_height_antenna", suspension_height_antenna);
+                                valueAntenna.put("suspension_height_antennas", suspension_height_antenna);
+                            }
+
+                            if(antenna.has("catalog_value_id")){
+                                Long antenna_model_catalog_id = antenna.getLong("catalog_value_id");
+                                JSONObject antennaModel = new JSONObject();
+                                antennaModel.put("catalog_id", 19);
+                                antennaModel.put("id", antenna_model_catalog_id);
+                                valueAntenna.put("antenna_model_id", antennaModel);
+                            }
+
+                            if(antenna.has("cn_antenna_loc_catalog_value_id")){
+                                Long cn_antenna_loc_catalog_value_id = antenna.getLong("cn_antenna_loc_catalog_value_id");
+                                JSONObject antennaLocation = new JSONObject();
+                                antennaLocation.put("catalog_id", 64);
+                                antennaLocation.put("id", cn_antenna_loc_catalog_value_id);
+                                valueAntenna.put("antenna_location_id", antennaLocation);
                             }
 
                             if (antennaId != null) {
