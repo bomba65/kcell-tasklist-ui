@@ -17,6 +17,7 @@ define([
 //	'./demandProcess',
 	'./bulksmsRichText',
 	'./aftersales/infoAftersalesSearch',
-	'./search/deliveryPortalSearch'
+	'./search/deliveryPortalSearch',
+	'./search/rpaSearch'
 //	'./search/demandSearch',
 	], function(){});

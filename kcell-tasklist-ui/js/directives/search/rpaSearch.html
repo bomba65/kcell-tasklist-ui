@@ -1,0 +1,104 @@
+
+<div class="row">
+    <div class=" form-group col-sm-12" style="margin-bottom:25px !important;" ng-show="KWMSProcessesCount>1">
+        <div class="col-sm-2"><h4>Processes:</h4></div>
+        <div class="col-sm-10" style="padding-left:10px !important;">
+            <div class="d-inline" ng-repeat="(key, process) in KWMSProcesses">
+                <button type="button" class="btn btn-default" ng-class="process.value? 'active': ''"
+                        ng-click="toggleProcess(key)">{{process.title}}
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="form-group col-sm-4">
+        <div class="col-sm-12 checkbox-inline custom-checkbox" >
+            <input type="checkbox"  value="true" ng-model="filter.unfinished" ng-disabled="filter.finished" name="show_active">show only Active
+            <div style="display: inline-block;width: 25px;"></div>
+            <input type="checkbox" value="true"  ng-model="filter.finished" ng-disabled="filter.unfinished" name="show_closed">show only Closed
+        </div>
+
+    </div></div>
+<div class="row">
+    <div class="form-group col-sm-4">
+        <label class="col-sm-4 control-label">Year:</label>
+        <div class="col-sm-4">
+            <select ng-model="filter.beginYear" class="form-control selectpicker" select-picker title="" ng-options="y as y for y in years"></select>
+        </div>
+        <div class="col-sm-4">
+            <select ng-model="filter.endYear" class="form-control selectpicker" select-picker title="" ng-options="y as y for y in years"></select>
+        </div>
+    </div>
+    <div class="form-group col-sm-4">
+        <label class="col-sm-4 control-label">Business key:</label>
+        <div class="col-sm-3">
+            <select ng-model="filter.businessKeyFilterType" class="form-control selectpicker" select-picker title="" ng-init="filter.businessKeyFilterType = 'eq'">
+                <option value="eq">=</option>
+                <option value="like">like</option>
+            </select>
+        </div>
+        <div class="col-sm-5">
+            <input type="text" ng-model="filter.businessKey" class="form-control" />
+        </div>
+    </div>
+    <div class="form-group col-sm-4">
+        <label class="col-sm-4 control-label">Requestor:</label>
+        <div class="col-sm-8">
+            <input type="text" ng-model="filter.requestor" class="form-control" placeholder="Name.Surname@kcell.kz" />
+        </div>
+    </div>    
+</div>
+<div class="row">
+    <div class="form-group col-sm-12">
+        <div class="col-sm-12">
+            <center>
+                <a class="btn btn-default" ng-click="clearFilters()">Clear filters</a>
+                <a class="btn btn-primary" ng-click="search(true)"><i class="glyphicon glyphicon-search"></i>
+                    Search ({{processInstancesTotal}})</a>
+            </center>
+        </div>
+    </div>
+</div>
+<div style="margin-bottom: 20px;"></div>
+
+<div>
+    <table class="table table-condensed table-hover" ng-if="processInstances.length>0" id="revisionsTable" name="revisionsTable">
+        <thead class="fixed-header">
+        <tr>
+            <th>#</th>
+            <th>Business Key</th>
+            <th>Process Name</th>
+            <th>Requested By</th>
+            <th>Requested Date</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr ng-repeat="pi in processInstances" class="pi-{{pi.state == 'EXTERNALLY_TERMINATED'?'COMPLETED':pi.state}}">
+            <td>{{(filter.page-1)*20 + $index + 1}}</td>
+            <td>
+                {{pi.businessKey}}
+            </td>
+            <td>{{pi.processDefinitionName}}</td>
+            <td>
+                {{profiles[pi.startUserId] ? profiles[pi.startUserId].firstName : pi.startUserId}} {{profiles[pi.startUserId] ? profiles[pi.startUserId].lastName : ''}}
+            </td>
+            <td>
+                {{pi.startTime | date:'dd MMM yyyy'}}
+            </td>
+        </tr>
+        </tbody>
+        <tbody>
+        <tr>
+            <td colspan="7" style="text-align: center">
+                <a ng-disabled="filter.page <= 1" ng-click="filter.page <= 1 || selectPage(1)" class="btn btn-pagination"> << </a>
+                <a ng-disabled="filter.page <= 1" ng-click="filter.page <= 1 || prevPage()" class="btn btn-pagination"> < </a>
+                <a ng-repeat="page in getPages()" ng-disabled="filter.page == page" ng-click="filter.page == page || selectPage(page)" ng-class="filter.page == page? 'btn-pagination-active':''" class="btn btn-pagination">{{page}}</a>
+                <a ng-disabled="filter.page >= processInstancesPages" ng-click="filter.page >= processInstancesPages || nextPage()" class="btn btn-pagination"> > </a>
+                <a ng-disabled="filter.page >= processInstancesPages" ng-click="filter.page >= processInstancesPages || selectPage(processInstancesPages)" class="btn btn-pagination"> >> </a>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+</div>
