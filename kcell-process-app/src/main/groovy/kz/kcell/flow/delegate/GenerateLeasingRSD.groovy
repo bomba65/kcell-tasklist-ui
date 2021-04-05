@@ -270,7 +270,7 @@ class GenerateLeasingRSD implements ExecutionListener {
                             tr {
                               td (width:"14.2%", style: "font-weight: bold", "Radio Unit type (RU)")
                               for(int j=0;j<main.mainInfo[ii].body.size();j++){
-                                td (width: main.mainInfo[ii].width + "%", main.mainInfo[ii].body[j].cn_radio_unit)
+                                td (width: main.mainInfo[ii].width + "%", main.mainInfo[ii].body[j].cn_radio_unit.name)
                               }
                             }
 
