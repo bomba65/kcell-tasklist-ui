@@ -1622,6 +1622,15 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                     //scope.selectedAntennaSector = scope.cellAntenna.sectors[index];
                 }
 
+                scope.defineSiteObjectType = function () {
+                    if(scope.renterCompany && (scope.renterCompany.legalType === 'national_kazakhtelecom' || scope.renterCompany.legalType === 'national_kazteleradio' || scope.renterCompany.legalType === 'national_kazpost')){
+                        scope.siteObjectType = 'national';
+                    } else {
+                        scope.siteObjectType = 'other';
+                    }
+                    scope.legalType = scope.renterCompany.legalType;
+                }
+
                 scope.antennaNameSelected = function (sector, antenna, a) {
                     const obj = scope.antennasList.find(b=>{ return b.antenna === a});
                     if(obj){
