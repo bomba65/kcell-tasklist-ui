@@ -270,7 +270,7 @@ class GenerateLeasingRSD implements ExecutionListener {
                             tr {
                               td (width:"14.2%", style: "font-weight: bold", "Radio Unit type (RU)")
                               for(int j=0;j<main.mainInfo[ii].body.size();j++){
-                                td (width: main.mainInfo[ii].width + "%", main.mainInfo[ii].body[j].cn_radio_unit.name)
+                                td (width: main.mainInfo[ii].width + "%", main.mainInfo[ii].body[j].cn_radio_unit)
                               }
                             }
 
@@ -420,7 +420,7 @@ class GenerateLeasingRSD implements ExecutionListener {
                                         cn_direction: bands2.has("cn_direction") ? bands2.get("cn_direction").toString() : "",
                                         cn_height: bands2.has("cn_height") ? bands2.get("cn_height").toString() : "",
                                         cn_hcu: bands2.has("cn_hcu") ? (bands2.getBoolean("cn_hcu") ? "Yes" : "No") : "No",
-                                        cn_radio_unit: bands2.has("cn_radio_unit") ? bands2.get("cn_radio_unit").toString() : "",
+                                        cn_radio_unit: bands2.has("cn_radio_unit") && bands2.getJSONObject("cn_radio_unit").has("name") ? bands2.getJSONObject("cn_radio_unit").getString("name") : "",
                                         cn_tcc: bands2.has("cn_tcc") ? (bands2.getBoolean("cn_tcc") ? "Yes" : "No") : "No",
                                         cn_gsm_range: bands2.has("cn_gsm_range") ? (bands2.getBoolean("cn_gsm_range") ? "Yes" : "No") : "No",
                                         cn_tma: bands2.has("cn_tma") ? (bands2.getBoolean("cn_tma") ? "Yes" : "No") : "No",
