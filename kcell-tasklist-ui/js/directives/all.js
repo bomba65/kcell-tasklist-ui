@@ -2416,8 +2416,17 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                     Replacement: {
                         title: "Replacement", value: false
                     },
+                    Revision: {
+                        title: "Revision", value: false
+                    },
                     CreatePR: {
                         title: "PR Creation", value: false
+                    },
+                    Invoice: {
+                        title: "Monthly Act", value: false
+                    },
+                    leasing: {
+                        title: "Roll-out", value: false
                     },
                     'create-new-tsd': {
                         title: "Create new TSD", value: false
@@ -2433,20 +2442,24 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                     }
                 };
 
-                if($rootScope.hasGroup('search_revision') || $rootScope.hasGroup('infrastructure_revision_users')){
-                    allKWMSProcesses.Revision = {
-                        title: "Revision", value: false
-                    }
-                }
-                if($rootScope.hasGroup('search_monthlyact') || $rootScope.hasGroup('infrastructure_monthly_act_users')){
-                    allKWMSProcesses.Invoice = {
-                        title: "Monthly Act", value: false
-                    }
-                }
-                if($rootScope.hasGroup('search_rollout') || $rootScope.hasGroup('infrastructure_leasing_users')){
-                    allKWMSProcesses.leasing = {
-                        title: "Roll-out", value: false
-                    }
+                scope.isProcessVisible = function (process){
+                    if(process === 'Revision'){
+                        if($rootScope.hasGroup('search_revision') || $rootScope.hasGroup('infrastructure_revision_users')){
+                            return true;
+                        } else
+                            return false;
+                    } else if(process === 'Invoice'){
+                        if($rootScope.hasGroup('search_monthlyact') || $rootScope.hasGroup('infrastructure_monthly_act_users')){
+                            return true;
+                        } else
+                            return false;
+                    } else if(process === 'leasing'){
+                        if($rootScope.hasGroup('search_rollout') || $rootScope.hasGroup('infrastructure_leasing_users')){
+                            return true;
+                        } else
+                            return false;
+                    } else
+                        return true;
                 }
 
                 scope.KWMSProcesses = {};
