@@ -804,14 +804,14 @@ public class CreateCandidate implements JavaDelegate {
                             SpinJsonNode antennaJSON = sector.prop("antennas");
                             SpinList antennaList = antennaJSON != null ? antennaJSON.elements() : null;
                             if (antennaList != null && antennaList.size() > 0) {
-                                for (int k = 0; k < antennaList.size(); k ++) {
+                                for (int k = 0; k < antennaList.size(); k++) {
                                     SpinJsonNode antenna = (SpinJsonNode) antennaList.get(k);
 
                                     String antennaName = antenna.prop("antennaName").value().toString();
                                     if (antenna.hasProp("udb_id") && antenna.prop("udb_id")!=null && antenna.prop("udb_id").value()!=null && antennaNameString.indexOf(antennaName) == -1 && antennaCount < 3) {
                                         antennaNameString += antennaName + ", ";
                                         String udbId = antenna.prop("udb_id").value().toString();
-                                        udbIdString += udbId + ", ";
+                                        udbIdString += udbId + ":";
 
                                         String azimuth = antenna.prop("azimuth").value().toString();
                                         azimuthString += azimuth + "/";
@@ -835,8 +835,8 @@ public class CreateCandidate implements JavaDelegate {
 
                         }
                     }
-                    if (!udbIdString.equals("") && udbIdString.lastIndexOf(",") == udbIdString.length() - 1) {
-                        udbIdString = udbIdString.substring(0, udbIdString.lastIndexOf(","));
+                    if (!udbIdString.equals("") && udbIdString.lastIndexOf(":") == udbIdString.length() - 1) {
+                        udbIdString = udbIdString.substring(0, udbIdString.lastIndexOf(":"));
                     }
                     if (!azimuthString.equals("") && azimuthString.lastIndexOf("/") == azimuthString.length() - 1) {
                         azimuthString = azimuthString.substring(0, azimuthString.lastIndexOf("/"));
