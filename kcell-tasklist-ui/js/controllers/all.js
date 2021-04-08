@@ -1770,11 +1770,13 @@ return module.controller('mainCtrl', ['$scope', '$rootScope', 'toasty', 'Authent
         $scope.regionFilterSelected = function(val) {
             $scope.regionFilter = val;
             $scope.headRegion = _.find($scope.headList, r => r.code === val)
+            console.log($scope.headRegion)
             if (val !== 'all') {
                 $scope.regionsFiltered = $scope.regions.filter(el => el.indexOf($scope.headRegion.id) !== -1)
             } else {
                 $scope.regionsFiltered = [...$scope.regions];
             }
+            console.log($scope.regionsFiltered)
             $scope.drowStatistics();
         }
 
@@ -2323,11 +2325,11 @@ return module.controller('mainCtrl', ['$scope', '$rootScope', 'toasty', 'Authent
                     if ($scope.task === 'no_task') {
                         var searchString ='';
                         if ($scope.regionFilter && $scope.regionFilter !== 'all') {
-                            searchString = $scope.regionFilter + '%';
+                            searchString = $scope.regionFilter.replace('Astana','Ast') + '%';
                         }
                         if ($scope.subContractorFilter && $scope.subContractorFilter !== 'all') {
                             if ($scope.regionFilter && $scope.regionFilter !== 'all') {
-                                searchString = $scope.regionFilter + '-' + $scope.subContractorFilter + '%'
+                                searchString = $scope.regionFilter.replace('Astana','Ast') + '-' + $scope.subContractorFilter + '%'
                             } else {
                                 searchString = '%' + $scope.subContractorFilter + '%'
                             }
@@ -2404,6 +2406,7 @@ return module.controller('mainCtrl', ['$scope', '$rootScope', 'toasty', 'Authent
                         console.log(tasks);
                         $scope.tasks = tasks.filter(function (task) {
                             var jr = task.variables.jrNumber.value;
+                            jr = jr.replace('Ast-','Astana-')
                             return ($scope.regionFilter ? ($scope.regionFilter === 'all' ? true : jr.indexOf($scope.regionFilter) > -1) : true) &&
                                 ($scope.subContractorFilter ? ($scope.subContractorFilter === 'all' ? true : jr.indexOf($scope.subContractorFilter) > -1) : true) &&
                                 ($scope.unitFilter ? ($scope.unitFilter === 'all' ? true : jr.indexOf($scope.unitFilter) > -1) : true)
@@ -2697,6 +2700,7 @@ return module.controller('mainCtrl', ['$scope', '$rootScope', 'toasty', 'Authent
                                 taskInstances = taskInstances.filter(function (task) {
                                     var pid = task.processInstanceId;
                                     var jr = processInstances[pid].jrNumber;
+                                    jr = jr.replace('Ast-','Astana-')
                                     return ($scope.regionFilter ? ($scope.regionFilter === 'all' ? true : jr.indexOf($scope.regionFilter) > -1) : true) &&
                                         ($scope.subContractorFilter ? ($scope.subContractorFilter === 'all' ? true : jr.indexOf($scope.subContractorFilter) > -1) : true) &&
                                         ($scope.unitFilter ? ($scope.unitFilter === 'all' ? true : jr.indexOf($scope.unitFilter) > -1) : true)
@@ -2704,6 +2708,7 @@ return module.controller('mainCtrl', ['$scope', '$rootScope', 'toasty', 'Authent
                                 intermediate_wait_invoicedInstances = intermediate_wait_invoicedInstances.filter(function (task) {
                                     var pid = task.processInstanceId;
                                     var jr = processInstances[pid].jrNumber;
+                                    jr = jr.replace('Ast-','Astana-')
                                     return ($scope.regionFilter ? ($scope.regionFilter === 'all' ? true : jr.indexOf($scope.regionFilter) > -1) : true) &&
                                         ($scope.subContractorFilter ? ($scope.subContractorFilter === 'all' ? true : jr.indexOf($scope.subContractorFilter) > -1) : true) &&
                                         ($scope.unitFilter ? ($scope.unitFilter === 'all' ? true : jr.indexOf($scope.unitFilter) > -1) : true)
@@ -2711,6 +2716,7 @@ return module.controller('mainCtrl', ['$scope', '$rootScope', 'toasty', 'Authent
                                 intermediate_wait_acts_passedInstances = intermediate_wait_acts_passedInstances.filter(function (task) {
                                     var pid = task.processInstanceId;
                                     var jr = processInstances[pid].jrNumber;
+                                    jr = jr.replace('Ast-','Astana-')
                                     return ($scope.regionFilter ? ($scope.regionFilter === 'all' ? true : jr.indexOf($scope.regionFilter) > -1) : true) &&
                                         ($scope.subContractorFilter ? ($scope.subContractorFilter === 'all' ? true : jr.indexOf($scope.subContractorFilter) > -1) : true) &&
                                         ($scope.unitFilter ? ($scope.unitFilter === 'all' ? true : jr.indexOf($scope.unitFilter) > -1) : true)
