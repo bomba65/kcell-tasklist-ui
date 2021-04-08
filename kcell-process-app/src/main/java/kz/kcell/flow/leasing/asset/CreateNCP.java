@@ -86,9 +86,13 @@ public class CreateNCP implements JavaDelegate {
             initiator_id_json.put("id", initiatorJson.prop("catalogsId").value().toString());
 
             //            project_id
-            JSONObject project_id_json = new JSONObject();
-            project_id_json.put("catalog_id", 8);
-            project_id_json.put("id", projectJson.prop("assetId").value().toString());
+            if(projectJson.hasProp("assetId") && projectJson.prop("assetId").value()!=null){
+                JSONObject project_id_json = new JSONObject();
+                project_id_json.put("catalog_id", 8);
+                project_id_json.put("id", projectJson.prop("assetId").value().toString());
+
+                value.put("project_id", project_id_json);
+            }
 
             //            reason_id
             JSONObject reason_id_json = new JSONObject();
@@ -105,7 +109,6 @@ public class CreateNCP implements JavaDelegate {
             value.put("latitude", "N " + latitude.replace(".", ","));
             value.put("longitude", "E " + longitude.replace(".", ","));
             value.put("initiator_id", initiator_id_json);
-            value.put("project_id", project_id_json);
             value.put("reason_id", reason_id_json);
             value.put("site_type_id", site_type_id_json);
 
