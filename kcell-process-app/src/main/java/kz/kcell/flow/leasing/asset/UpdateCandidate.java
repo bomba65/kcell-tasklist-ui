@@ -151,7 +151,7 @@ public class UpdateCandidate implements JavaDelegate {
 
                 log.info(value.toString());
 
-                HttpPut httpPut = new HttpPut(new URI("https://asset.test-flow.kcell.kz/asset-management/addresses/id/" + assetsCreatedCnAddressId));
+                HttpPut httpPut = new HttpPut(new URI(assetsUri + "/asset-management/addresses/id/" + assetsCreatedCnAddressId));
                 //            HttpPost httpPost = new HttpPost(new URI(this.assetsUri + "/asset-management/ncp/"));
                 httpPut.addHeader("Content-Type", "application/json;charset=UTF-8");
                 httpPut.addHeader("Referer", baseUri);
@@ -223,7 +223,7 @@ public class UpdateCandidate implements JavaDelegate {
 
                 log.info(value.toString());
 
-                HttpPut httpPut = new HttpPut(new URI("https://asset.test-flow.kcell.kz/asset-management/addresses/id/" + assetsCreatedNeAddressId));
+                HttpPut httpPut = new HttpPut(new URI(assetsUri + "/asset-management/addresses/id/" + assetsCreatedNeAddressId));
                 //            HttpPost httpPost = new HttpPost(new URI(this.assetsUri + "/asset-management/ncp/"));
                 httpPut.addHeader("Content-Type", "application/json;charset=UTF-8");
                 httpPut.addHeader("Referer", baseUri);
@@ -294,7 +294,7 @@ public class UpdateCandidate implements JavaDelegate {
                     value.put("square", square);
                 }
 
-                HttpPut httpPut = new HttpPut(new URI("https://asset.test-flow.kcell.kz/asset-management/facilities/id/" + assetsCreatedCnFacilitieId));
+                HttpPut httpPut = new HttpPut(new URI(assetsUri + "/asset-management/facilities/id/" + assetsCreatedCnFacilitieId));
                 //            HttpPut httpPut = new HttpPut(new URI(this.assetsUri + "/asset-management/ncp/"));
                 httpPut.addHeader("Content-Type", "application/json;charset=UTF-8");
                 httpPut.addHeader("Referer", baseUri);
@@ -364,7 +364,7 @@ public class UpdateCandidate implements JavaDelegate {
                     value.put("square", square);
                 }
 
-                HttpPut httpPut = new HttpPut(new URI("https://asset.test-flow.kcell.kz/asset-management/facilities/id/" + assetsCreatedNeFacilitieId));
+                HttpPut httpPut = new HttpPut(new URI(assetsUri + "/asset-management/facilities/id/" + assetsCreatedNeFacilitieId));
                 //            HttpPut httpPut = new HttpPut(new URI(this.assetsUri + "/asset-management/ncp/"));
                 httpPut.addHeader("Content-Type", "application/json;charset=UTF-8");
                 httpPut.addHeader("Referer", baseUri);
@@ -530,7 +530,7 @@ public class UpdateCandidate implements JavaDelegate {
                 log.info("body value.toString(): ");
                 log.info(value.toString());
 
-                HttpPut httpPut = new HttpPut(new URI("https://asset.test-flow.kcell.kz/asset-management/sites/id/" + assetsCreatedSiteId));
+                HttpPut httpPut = new HttpPut(new URI(assetsUri + "/asset-management/sites/id/" + assetsCreatedSiteId));
                 //            HttpPost httpPost = new HttpPost(new URI(this.assetsUri + "/asset-management/ncp/"));
                 httpPut.addHeader("Content-Type", "application/json;charset=UTF-8");
                 httpPut.addHeader("Referer", baseUri);
@@ -608,7 +608,7 @@ public class UpdateCandidate implements JavaDelegate {
                 log.info("body value.toString(): ");
                 log.info(value.toString());
 
-                HttpPut httpPut = new HttpPut(new URI("https://asset.test-flow.kcell.kz/asset-management/powerSources/id/" + assetsCreatedPowerSourcesId));
+                HttpPut httpPut = new HttpPut(new URI(assetsUri + "/asset-management/powerSources/id/" + assetsCreatedPowerSourcesId));
                 httpPut.addHeader("Content-Type", "application/json;charset=UTF-8");
                 httpPut.addHeader("Referer", baseUri);
                 StringEntity inputData = new StringEntity(value.toString());
@@ -665,7 +665,7 @@ public class UpdateCandidate implements JavaDelegate {
                 log.info("body value.toString(): ");
                 log.info(value.toString());
 
-                HttpPut httpPut = new HttpPut(new URI("https://asset.test-flow.kcell.kz/asset-management/cellAntennaInfo/id/" + assetsCreatedCellAntennaInfoId));
+                HttpPut httpPut = new HttpPut(new URI(assetsUri + "/asset-management/cellAntennaInfo/id/" + assetsCreatedCellAntennaInfoId));
                 //            HttpPost httpPut = new HttpPost(new URI(this.assetsUri + "/asset-management/ncp/"));
                 httpPut.addHeader("Content-Type", "application/json;charset=UTF-8");
                 httpPut.addHeader("Referer", baseUri);
@@ -731,7 +731,7 @@ public class UpdateCandidate implements JavaDelegate {
                 log.info("body value.toString(): ");
                 log.info(value.toString());
 
-                HttpPost httpPost = new HttpPost(new URI("https://asset.test-flow.kcell.kz/asset-management/renters"));
+                HttpPost httpPost = new HttpPost(new URI(assetsUri + "/asset-management/renters"));
                 //            HttpPost httpPost = new HttpPost(new URI(this.assetsUri + "/asset-management/ncp/"));
                 httpPost.addHeader("Content-Type", "application/json;charset=UTF-8");
                 httpPost.addHeader("Referer", baseUri);
@@ -784,7 +784,7 @@ public class UpdateCandidate implements JavaDelegate {
                 log.info("body value.toString(): ");
                 log.info(value.toString());
 
-                HttpPost httpPost = new HttpPost(new URI("https://asset.test-flow.kcell.kz/asset-management/rbs"));
+                HttpPost httpPost = new HttpPost(new URI(assetsUri + "/asset-management/rbs"));
                 //            HttpPost httpPost = new HttpPost(new URI(this.assetsUri + "/asset-management/ncp/"));
                 httpPost.addHeader("Content-Type", "application/json;charset=UTF-8");
                 httpPost.addHeader("Referer", baseUri);
@@ -840,7 +840,7 @@ public class UpdateCandidate implements JavaDelegate {
                 log.info("body value.toString(): ");
                 log.info(value.toString());
 
-                HttpPost httpPost = new HttpPost(new URI("https://asset.test-flow.kcell.kz/asset-management/rbsCabinets"));
+                HttpPost httpPost = new HttpPost(new URI(assetsUri + "/asset-management/rbsCabinets"));
                 //            HttpPost httpPost = new HttpPost(new URI(this.assetsUri + "/asset-management/ncp/"));
                 httpPost.addHeader("Content-Type", "application/json;charset=UTF-8");
                 httpPost.addHeader("Referer", baseUri);
@@ -972,7 +972,7 @@ public class UpdateCandidate implements JavaDelegate {
                     }
 
                     if (sectorId != null) {
-                        HttpPut httpPut = new HttpPut(new URI("https://asset.test-flow.kcell.kz/asset-management/sectors/id/" + sectorId));
+                        HttpPut httpPut = new HttpPut(new URI(assetsUri + "/asset-management/sectors/id/" + sectorId));
                         httpPut.addHeader("Content-Type", "application/json;charset=UTF-8");
                         httpPut.addHeader("Referer", baseUri);
                         StringEntity inputData = new StringEntity(value.toString());
@@ -988,7 +988,7 @@ public class UpdateCandidate implements JavaDelegate {
                             throw new RuntimeException("Candidate (Sectors) post returns code " + postResponse.getStatusLine().getStatusCode());
                         }
                     } else {
-                        HttpPost httpPost = new HttpPost(new URI("https://asset.test-flow.kcell.kz/asset-management/sectors/"));
+                        HttpPost httpPost = new HttpPost(new URI(assetsUri + "/asset-management/sectors/"));
                         httpPost.addHeader("Content-Type", "application/json;charset=UTF-8");
                         httpPost.addHeader("Referer", baseUri);
                         StringEntity inputData = new StringEntity(value.toString());
@@ -1064,7 +1064,7 @@ public class UpdateCandidate implements JavaDelegate {
                             }
 
                             if (antennaId != null) {
-                                HttpPut httpPutAntenna = new HttpPut(new URI("https://asset.test-flow.kcell.kz/asset-management/cellAntennas/id/" + antennaId));
+                                HttpPut httpPutAntenna = new HttpPut(new URI(assetsUri + "/asset-management/cellAntennas/id/" + antennaId));
                                 httpPutAntenna.addHeader("Content-Type", "application/json;charset=UTF-8");
                                 httpPutAntenna.addHeader("Referer", baseUri);
                                 StringEntity inputDataAntenna = new StringEntity(valueAntenna.toString());
@@ -1082,7 +1082,7 @@ public class UpdateCandidate implements JavaDelegate {
                                     throw new RuntimeException("Candidate (Antenna)  put returns code " + putResponseAntenna.getStatusLine().getStatusCode());
                                 }
                             } else {
-                                HttpPost httpPostAntenna = new HttpPost(new URI("https://asset.test-flow.kcell.kz/asset-management/cellAntennas/"));
+                                HttpPost httpPostAntenna = new HttpPost(new URI(assetsUri + "/asset-management/cellAntennas/"));
                                 httpPostAntenna.addHeader("Content-Type", "application/json;charset=UTF-8");
                                 httpPostAntenna.addHeader("Referer", baseUri);
                                 StringEntity inputDataAntenna = new StringEntity(valueAntenna.toString());

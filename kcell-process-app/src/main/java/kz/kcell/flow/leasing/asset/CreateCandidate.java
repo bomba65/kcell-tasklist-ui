@@ -153,7 +153,7 @@ public class CreateCandidate implements JavaDelegate {
 
                 log.info(value.toString());
 
-                HttpPost httpPost = new HttpPost(new URI("https://asset.test-flow.kcell.kz/asset-management/adresses/"));
+                HttpPost httpPost = new HttpPost(new URI(assetsUri + "/asset-management/adresses/"));
                 //            HttpPost httpPost = new HttpPost(new URI(this.assetsUri + "/asset-management/ncp/"));
                 httpPost.addHeader("Content-Type", "application/json;charset=UTF-8");
                 httpPost.addHeader("Referer", baseUri);
@@ -225,7 +225,7 @@ public class CreateCandidate implements JavaDelegate {
 
                 log.info(value.toString());
 
-                HttpPost httpPost = new HttpPost(new URI("https://asset.test-flow.kcell.kz/asset-management/adresses/"));
+                HttpPost httpPost = new HttpPost(new URI(assetsUri + "/asset-management/adresses/"));
                 //            HttpPost httpPost = new HttpPost(new URI(this.assetsUri + "/asset-management/ncp/"));
                 httpPost.addHeader("Content-Type", "application/json;charset=UTF-8");
                 httpPost.addHeader("Referer", baseUri);
@@ -295,7 +295,7 @@ public class CreateCandidate implements JavaDelegate {
                 if (square != null) {
                     value.put("square", square);
                 }
-                HttpPost httpPost = new HttpPost(new URI("https://asset.test-flow.kcell.kz/asset-management/facilities/"));
+                HttpPost httpPost = new HttpPost(new URI(assetsUri + "/asset-management/facilities/"));
                 //            HttpPost httpPost = new HttpPost(new URI(this.assetsUri + "/asset-management/ncp/"));
                 httpPost.addHeader("Content-Type", "application/json;charset=UTF-8");
                 httpPost.addHeader("Referer", baseUri);
@@ -365,7 +365,7 @@ public class CreateCandidate implements JavaDelegate {
                     value.put("square", square);
                 }
 
-                HttpPost httpPost = new HttpPost(new URI("https://asset.test-flow.kcell.kz/asset-management/facilities/"));
+                HttpPost httpPost = new HttpPost(new URI(assetsUri + "/asset-management/facilities/"));
                 //            HttpPost httpPost = new HttpPost(new URI(this.assetsUri + "/asset-management/ncp/"));
                 httpPost.addHeader("Content-Type", "application/json;charset=UTF-8");
                 httpPost.addHeader("Referer", baseUri);
@@ -454,7 +454,7 @@ public class CreateCandidate implements JavaDelegate {
                 log.info("body value.toString(): ");
                 log.info(value.toString());
 
-                HttpPost httpPost = new HttpPost(new URI("https://asset.test-flow.kcell.kz/asset-management/powerSources/"));
+                HttpPost httpPost = new HttpPost(new URI(assetsUri + "/asset-management/powerSources/"));
                 //            HttpPost httpPost = new HttpPost(new URI(this.assetsUri + "/asset-management/ncp/"));
                 httpPost.addHeader("Content-Type", "application/json;charset=UTF-8");
                 httpPost.addHeader("Referer", baseUri);
@@ -510,17 +510,17 @@ public class CreateCandidate implements JavaDelegate {
 
                 JSONObject value = new JSONObject();
 
-                if (du_unit_string != null) {
+                if (duArray.length() > 0) {
                     JSONObject du_type_id_json = new JSONObject();
                     du_type_id_json.put("catalog_id", 59);
-                    du_type_id_json.put("id", du_unit_string);
-                    value.put("du_type_id", du_type_id_json);
+                    du_type_id_json.put("ids", duArray);
+                    value.put("du_types", du_type_id_json);
                 }
 
                 log.info("body value.toString(): ");
                 log.info(value.toString());
 
-                HttpPost httpPost = new HttpPost(new URI("https://asset.test-flow.kcell.kz/asset-management/cellAntennaInfo/"));
+                HttpPost httpPost = new HttpPost(new URI(assetsUri + "/asset-management/cellAntennaInfo/"));
                 //            HttpPost httpPost = new HttpPost(new URI(this.assetsUri + "/asset-management/ncp/"));
                 httpPost.addHeader("Content-Type", "application/json;charset=UTF-8");
                 httpPost.addHeader("Referer", baseUri);
@@ -603,7 +603,7 @@ public class CreateCandidate implements JavaDelegate {
                 log.info("body value.toString(): ");
                 log.info(value.toString());
 
-                HttpPost httpPost = new HttpPost(new URI("https://asset.test-flow.kcell.kz/asset-management/sites/"));
+                HttpPost httpPost = new HttpPost(new URI(assetsUri + "/asset-management/sites/"));
                 //            HttpPost httpPost = new HttpPost(new URI(this.assetsUri + "/asset-management/ncp/"));
                 httpPost.addHeader("Content-Type", "application/json;charset=UTF-8");
                 httpPost.addHeader("Referer", baseUri);

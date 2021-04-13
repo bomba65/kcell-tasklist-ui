@@ -113,7 +113,7 @@ public class CreateNCP implements JavaDelegate {
             value.put("site_type_id", site_type_id_json);
 
 
-            HttpPost httpPost = new HttpPost(new URI("https://asset.test-flow.kcell.kz/asset-management/ncp/"));
+            HttpPost httpPost = new HttpPost(new URI(assetsUri + "/asset-management/ncp/"));
 //            HttpPost httpPost = new HttpPost(new URI(this.assetsUri + "/asset-management/ncp/"));
             httpPost.addHeader("Content-Type", "application/json;charset=UTF-8");
             httpPost.addHeader("Referer", baseUri);
