@@ -1,5 +1,6 @@
 package kz.kcell.flow.ma;
 
+import kz.kcell.flow.files.Minio;
 import lombok.extern.java.Log;
 import org.camunda.bpm.engine.IdentityService;
 import org.camunda.bpm.engine.RuntimeService;
@@ -43,6 +44,9 @@ public class MonthlyActSaveActs implements JavaDelegate {
 
     @Autowired
     IdentityService identityService;
+
+    @Autowired
+    Minio minioClient;
 
     @Override
     public void execute(DelegateExecution delegateExecution) throws Exception {
@@ -106,12 +110,18 @@ public class MonthlyActSaveActs implements JavaDelegate {
         final CompiledScript template1 = ((Compilable) groovy).compile(reader1);
 
         Bindings bindings1 = groovyEngine.createBindings();
-        bindings1.put("maNumber", maNumber);
+
+        bindings1.put("businessKey", delegateExecution.getProcessBusinessKey());
         bindings1.put("selectedRevisions", delegateExecution.getVariable("selectedRevisions"));
+        bindings1.put("monthOfFormalPeriod", delegateExecution.getVariable("monthOfFormalPeriod").toString());
+        bindings1.put("yearOfFormalPeriod", delegateExecution.getVariable("yearOfFormalPeriod").toString());
+        bindings1.put("subcontractor", delegateExecution.getVariable("subcontractor").toString());
+
         String result = String.valueOf(template1.eval(bindings1));
         InputStream is = new ByteArrayInputStream(result.getBytes());
-        String fileName = maNumber + ".pdf";
-        DataSource source = new ByteArrayDataSource(is, "application/pdf");
+        String fileName = maNumber + ".html";
+        DataSource source = new ByteArrayDataSource(is, "text/html");
+
         messageHelper.addAttachment(fileName, source);
         mailSender.send(message);
 

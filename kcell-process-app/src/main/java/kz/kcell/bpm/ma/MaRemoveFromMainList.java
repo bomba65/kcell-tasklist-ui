@@ -23,10 +23,10 @@ public class MaRemoveFromMainList implements TaskListener {
                 }
             }
 
-            SpinJsonNode rolloutReqularWorks = delegateTask.<JsonValue>getVariableTyped("rolloutReqularWorks").getValue();
+            SpinJsonNode rolloutRegularWorks = delegateTask.<JsonValue>getVariableTyped("rolloutRegularWorks").getValue();
             SpinJsonNode rolloutEmergencyWorks = delegateTask.<JsonValue>getVariableTyped("rolloutEmergencyWorks").getValue();
 
-            rolloutReqularWorks.elements().forEach(work -> {
+            rolloutRegularWorks.elements().forEach(work -> {
                 reasonList.add(work.prop("processInstanceId").stringValue());
             });
             rolloutEmergencyWorks.elements().forEach(work -> {
@@ -45,10 +45,10 @@ public class MaRemoveFromMainList implements TaskListener {
                 }
             }
 
-            SpinJsonNode poReqularWorks = delegateTask.<JsonValue>getVariableTyped("poReqularWorks").getValue();
+            SpinJsonNode poRegularWorks = delegateTask.<JsonValue>getVariableTyped("poRegularWorks").getValue();
             SpinJsonNode poEmergencyWorks = delegateTask.<JsonValue>getVariableTyped("poEmergencyWorks").getValue();
 
-            poReqularWorks.elements().forEach(work -> {
+            poRegularWorks.elements().forEach(work -> {
                 reasonList.add(work.prop("processInstanceId").stringValue());
             });
             poEmergencyWorks.elements().forEach(work -> {
@@ -67,10 +67,10 @@ public class MaRemoveFromMainList implements TaskListener {
                 }
             }
 
-            SpinJsonNode tnuReqularWorks = delegateTask.<JsonValue>getVariableTyped("tnuReqularWorks").getValue();
+            SpinJsonNode tnuRegularWorks = delegateTask.<JsonValue>getVariableTyped("tnuRegularWorks").getValue();
             SpinJsonNode tnuEmergencyWorks = delegateTask.<JsonValue>getVariableTyped("tnuEmergencyWorks").getValue();
 
-            tnuReqularWorks.elements().forEach(work -> {
+            tnuRegularWorks.elements().forEach(work -> {
                 reasonList.add(work.prop("processInstanceId").stringValue());
             });
             tnuEmergencyWorks.elements().forEach(work -> {
@@ -89,10 +89,10 @@ public class MaRemoveFromMainList implements TaskListener {
                 }
             }
 
-            SpinJsonNode tnuReqularWorks = delegateTask.<JsonValue>getVariableTyped("tnuReqularWorks").getValue();
+            SpinJsonNode tnuRegularWorks = delegateTask.<JsonValue>getVariableTyped("tnuRegularWorks").getValue();
             SpinJsonNode tnuEmergencyWorks = delegateTask.<JsonValue>getVariableTyped("tnuEmergencyWorks").getValue();
 
-            tnuReqularWorks.elements().forEach(work -> {
+            tnuRegularWorks.elements().forEach(work -> {
                 reasonList.add(work.prop("processInstanceId").stringValue());
             });
             tnuEmergencyWorks.elements().forEach(work -> {
@@ -111,10 +111,10 @@ public class MaRemoveFromMainList implements TaskListener {
                 }
             }
 
-            SpinJsonNode tnuReqularWorks = delegateTask.<JsonValue>getVariableTyped("tnuReqularWorks").getValue();
+            SpinJsonNode tnuRegularWorks = delegateTask.<JsonValue>getVariableTyped("tnuRegularWorks").getValue();
             SpinJsonNode tnuEmergencyWorks = delegateTask.<JsonValue>getVariableTyped("tnuEmergencyWorks").getValue();
 
-            tnuReqularWorks.elements().forEach(work -> {
+            tnuRegularWorks.elements().forEach(work -> {
                 reasonList.add(work.prop("processInstanceId").stringValue());
             });
             tnuEmergencyWorks.elements().forEach(work -> {
@@ -133,10 +133,10 @@ public class MaRemoveFromMainList implements TaskListener {
                 }
             }
 
-            SpinJsonNode sfmReqularWorks = delegateTask.<JsonValue>getVariableTyped("sfmReqularWorks").getValue();
+            SpinJsonNode sfmRegularWorks = delegateTask.<JsonValue>getVariableTyped("sfmRegularWorks").getValue();
             SpinJsonNode sfmEmergencyWorks = delegateTask.<JsonValue>getVariableTyped("sfmEmergencyWorks").getValue();
 
-            sfmReqularWorks.elements().forEach(work -> {
+            sfmRegularWorks.elements().forEach(work -> {
                 reasonList.add(work.prop("processInstanceId").stringValue());
             });
             sfmEmergencyWorks.elements().forEach(work -> {
@@ -155,10 +155,10 @@ public class MaRemoveFromMainList implements TaskListener {
                 }
             }
 
-            SpinJsonNode saoReqularWorks = delegateTask.<JsonValue>getVariableTyped("saoReqularWorks").getValue();
+            SpinJsonNode saoRegularWorks = delegateTask.<JsonValue>getVariableTyped("saoRegularWorks").getValue();
             SpinJsonNode saoEmergencyWorks = delegateTask.<JsonValue>getVariableTyped("saoEmergencyWorks").getValue();
 
-            saoReqularWorks.elements().forEach(work -> {
+            saoRegularWorks.elements().forEach(work -> {
                 reasonList.add(work.prop("processInstanceId").stringValue());
             });
             saoEmergencyWorks.elements().forEach(work -> {
