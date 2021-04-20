@@ -54,7 +54,10 @@ html(lang:'en') {
         p('Email доставки: ' + delivery_email + '#')
         if (billingObject != 'no') {
             newLine()
+<<<<<<< HEAD
             p('Номер договора: ' + contract_num + '#')
+=======
+>>>>>>> 3793c308e (RPA-26: added new fields)
             p('Дата договора: ' + contract_date + '#')
             p('Адрес доставки: ' + delivery_add + '#')
             p('Индекс адреса доставки: ' + delivery_index + '#')
