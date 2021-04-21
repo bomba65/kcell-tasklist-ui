@@ -91,7 +91,7 @@ class GenerateLeasingRSD implements ExecutionListener {
                             td (width:"7%",style:"vertical-align:top;")
                             td (width:"7%", style:"vertical-align:top;")
                             td (width:"20%",style:"font-weight: bold;border:1px solid", "Visiting Date:")
-                            td (width:"23%",style:"border:1px solid",header.dateOfVisit)
+                            td (width:"23%",style:"border:1px solid",header.visitingDate)
                         }
                         tr {
                             td (width:"20%",style:"font-weight: bold;border:1px solid", "Site type:")
@@ -335,6 +335,24 @@ class GenerateLeasingRSD implements ExecutionListener {
             }
         }
 
+        def cn_duNames = ""
+        cellAntennaJson.cn_du.each { du ->
+            cn_duNames += du.name
+            cn_duNames += ", "
+        }
+        cn_duNames = cn_duNames.substring(0, cn_duNames.length()-2);
+
+        for(int i=0;i<bandsArr.length();i++){
+            JSONObject obj = bandsArr.getJSONObject(i);
+            bandNames += obj.get("title")
+
+            if(i < bandsArr.length()-1) {
+                bandNames += ", "
+            }
+        }
+
+        def globalFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXX")
+        def formatDate = new SimpleDateFormat("dd.MM.yyyy")
 
         def headerInfo = [
             cityName: cellAntennaJson.address.cn_addr_city,
@@ -346,10 +364,10 @@ class GenerateLeasingRSD implements ExecutionListener {
             altitude: candidateJson.cn_altitude,
             heightOfConstruction: candidateJson.cn_height_constr,
             rbsType: candidateJson.rbsType,
-            duType: cellAntennaJson.cn_du.toString(),
+            duType: cn_duNames,
             regionName: execution.getVariable("regionName").toString(),
-            date: new Date(),
-            visitingDate: candidateJson.dateOfVisit,
+            date: formatDate.format(new Date()),
+            visitingDate: candidateJson.dateOfVisit != null ? formatDate.format(globalFormat.parse(candidateJson.dateOfVisit)) : '',
             planningEngineer: "Regional planning engineer",
             band: bandNames,
         ]
