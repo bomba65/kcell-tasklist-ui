@@ -45,7 +45,7 @@ public class CreateCandidate implements JavaDelegate {
     public CreateCandidate(Minio minioClient, @Value("${mail.message.baseurl:http://localhost}") String baseUri, @Value("${asset.url:https://asset.test-flow.kcell.kz}") String assetsUri) {
         this.minioClient = minioClient;
         this.baseUri = baseUri;
-        this.assetsUri = assetsUri;
+        this.assetsUri = "https://asset.test-flow.kcell.kz";
     }
 
     @Override
@@ -626,6 +626,73 @@ public class CreateCandidate implements JavaDelegate {
                     delegateExecution.setVariable("assetsCreatedSiteId", siteId);
                 } else {
                     throw new RuntimeException("Candidate site post by not parsed assetsCreatedCnAddressId from response");
+                }
+            }
+
+            if (createAssetCandidateTable.equals("renter")) {
+
+                SpinJsonNode renterCompany = delegateExecution.getVariable("renterCompany") != null ? JSON(delegateExecution.getVariable("renterCompany")) : null;
+
+                Long legalType = delegateExecution.getVariable("legalTypeCatalogId") != null ? Long.valueOf(delegateExecution.getVariable("legalTypeCatalogId").toString()) : null;
+                Long branchKT = renterCompany.hasProp("branchKT") && renterCompany.prop("branchKT").isNumber() ? renterCompany.prop("branchKT").numberValue().longValue() : null;
+                String legalName = renterCompany.hasProp("legalName") ? renterCompany.prop("legalName").stringValue() : null;
+                String firstLeaderName = renterCompany.hasProp("firstLeaderName") ? renterCompany.prop("firstLeaderName").stringValue() : null;
+                String contactName = renterCompany.hasProp("contactName") ? renterCompany.prop("contactName").stringValue() : null;
+                String contactLastName = renterCompany.hasProp("contactLastName") ? renterCompany.prop("contactLastName").stringValue() : null;
+                String contactInfo = renterCompany.hasProp("contactInfo") ? renterCompany.prop("contactInfo").stringValue() : null;
+
+                SSLContextBuilder builder = new SSLContextBuilder();
+                builder.loadTrustMaterial(null, new TrustSelfSignedStrategy());
+                SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(builder.build());
+                CloseableHttpClient httpclient = HttpClients.custom().setSSLSocketFactory(sslsf).build();
+
+                JSONObject value = new JSONObject();
+                value.put("legal_name", legalName);
+                value.put("head_org", firstLeaderName);
+                value.put("contact_person", contactName + " " + contactLastName);
+                value.put("contact_person_phone", contactInfo);
+                value.put("legal_address_id", Long.parseLong(assetsCreatedCnAddressId));
+
+                if (legalType != null) {
+                    JSONObject legalTypeValue = new JSONObject();
+                    legalTypeValue.put("catalog_id", 22);
+                    legalTypeValue.put("id", legalType);
+                    value.put("legal_type_id", legalTypeValue);
+                }
+
+                if (branchKT != null) {
+                    JSONObject branchKTValue = new JSONObject();
+                    branchKTValue.put("catalog_id", 16);
+                    branchKTValue.put("id", branchKT);
+                    value.put("branch_kt_id", branchKTValue);
+                }
+
+                log.info("body value.toString(): ");
+                log.info(value.toString());
+
+                HttpPost httpPost = new HttpPost(new URI(this.assetsUri + "/asset-management/renters"));
+                httpPost.addHeader("Content-Type", "application/json;charset=UTF-8");
+                httpPost.addHeader("Referer", baseUri);
+                StringEntity inputData = new StringEntity(value.toString());
+                httpPost.setEntity(inputData);
+
+                CloseableHttpResponse postResponse = httpclient.execute(httpPost);
+
+                HttpEntity entity = postResponse.getEntity();
+
+                String responseString = EntityUtils.toString(entity, "UTF-8");
+                JSONObject jsonResponse = new JSONObject(responseString);
+                Long renterId = jsonResponse.has("id") ? jsonResponse.getLong("id") : null;
+
+                if (renterId != null) {
+                    delegateExecution.setVariable("assetsCreatedRenterId", renterId);
+                } else {
+                    throw new RuntimeException("Candidate site post by not parsed assetsCreatedCnAddressId from response");
+                }
+
+                log.info("renters create POST response code: " + postResponse.getStatusLine().getStatusCode());
+                if (postResponse.getStatusLine().getStatusCode() < 200 || postResponse.getStatusLine().getStatusCode() >= 300) {
+                    throw new RuntimeException("Candidate post returns code " + postResponse.getStatusLine().getStatusCode());
                 }
             }
         } else {
