@@ -45,7 +45,7 @@ public class CreateCandidate implements JavaDelegate {
     public CreateCandidate(Minio minioClient, @Value("${mail.message.baseurl:http://localhost}") String baseUri, @Value("${asset.url:https://asset.test-flow.kcell.kz}") String assetsUri) {
         this.minioClient = minioClient;
         this.baseUri = baseUri;
-        this.assetsUri = "https://asset.test-flow.kcell.kz";
+        this.assetsUri = assetsUri;
     }
 
     @Override
