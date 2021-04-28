@@ -483,6 +483,66 @@ define(['../module'], function(module){
                         }
                     });
                 }
+                scope.showProcessInfo = function (index, processInstanceId, businessKey, processDefinitionKey, userId, startDate) {
+                    $http.post(baseUrl + '/history/variable-instance?deserializeValues=false', {
+                        processDefinitionKey: processDefinitionKey,
+                        processInstanceId: processInstanceId,
+                    }).then(async function (result) {
+                            scope.businessKey = businessKey;
+                            scope.userFullName = null;
+                            scope.startDate = startDate
+                            await $http.get('/camunda/api/engine/engine/default/user/' + userId + '/profile').then(
+                                function (result) {
+                                    scope.userFullName = result.data.firstName + ' ' + result.data.lastName;
+                                },
+                                function (error) {
+                                    console.log(error.data);
+                                }
+                            );
+                            var vars = {};
+                            result.data.forEach(function (v) {
+                                vars[v.name] = v.value;
+                            })
+                            scope.processVars = Object.assign({}, vars)
+                            openPaymentProcessCardModal()
+                        },
+                        function (error) {
+                            console.log(error.data);
+                        });
+                };
+                function openPaymentProcessCardModal() {
+                    const processesName = {
+                        '1': 'Создание ID Customer',
+                        '5': 'Процесс 5',
+                        '2': 'Создание FA/BA',
+                        '6': 'Процесс 6',
+                        '3': 'Создание PPB',
+                        '7': 'Процесс 7',
+                        '4': 'Изменение кредитного лимита',
+                        '8': 'Процесс 8',
+                    };
+                    exModal.open({
+                        scope: {
+                            vars: scope.processVars,
+                            attached: JSON.parse(scope.processVars.files),
+                            businessKey: scope.businessKey,
+                            startDate: scope.startDate,
+                            fullName: scope.userFullName,
+                            processesName: processesName,
+                            download: function(path) {
+                                $http({method: 'GET', url: '/camunda/uploads/get/' + path, transformResponse: [] }).
+                                then(function(response) {
+                                    document.getElementById('fileDownloadIframe').src = response.data;
+                                }, function(error){
+                                    console.log(error);
+                                });
+                            },
+                        },
+                        templateUrl: './js/partials/rpaProcessCardModal.html',
+                        size: 'hg'
+                    }).then(function (results) {
+                    });
+                }
 
                 scope.populateSelectFromCatalogId('construction_type_id',14);
                 scope.populateSelectFromCatalogId('antenna_diameter_id',20);
