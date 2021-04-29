@@ -449,6 +449,8 @@
                                 if (address.cadastral_number) {
                                     $scope[site] = $scope[site] + ($scope[site] ? ', ' : '') + address.cadastral_number;
                                 }
+                                $scope.calculateAllDMS();
+
                             } else {
                                 $scope[site] = undefined;
                                 $scope[fetched] = false;
@@ -608,6 +610,31 @@
             $scope.cancelCreateNewSite = function () {
                 $scope.creatingNewSite = false
             };
+
+            $scope.calculateAllDMS = function (){
+                if($scope.selectedTsd && ($scope.selectedTsd.nearend_id.facility_id.latitude)){
+                    $scope.ne_latitude_dms = $scope.calculateDMS($scope.selectedTsd.nearend_id.facility_id.latitude);
+                }
+                if($scope.selectedTsd && ($scope.selectedTsd.nearend_id.facility_id.longitude)){
+                    $scope.ne_longitude_dms = $scope.calculateDMS($scope.selectedTsd.nearend_id.facility_id.longitude);
+                }
+
+                if($scope.selectedTsd && ($scope.selectedTsd.farend_id.facility_id.latitude)){
+                    $scope.fe_latitude_dms = $scope.calculateDMS($scope.selectedTsd.farend_id.facility_id.latitude);
+                }
+                if($scope.selectedTsd && ($scope.selectedTsd.farend_id.facility_id.longitude)){
+                    $scope.fe_longitude_dms = $scope.calculateDMS($scope.selectedTsd.farend_id.facility_id.longitude);
+                }
+            }
+
+            $scope.calculateDMS = function(deg) {
+                var totalSeconds = deg * 3600;
+                var degrees = Math.floor(deg);
+                totalSeconds -= degrees * 3600;
+                var minutes = Math.floor(totalSeconds / 60);
+                totalSeconds -= (minutes * 60);
+                return degrees+"-"+minutes+"-"+totalSeconds.toFixed(2);
+            }
         }]);
     </script>
     <iframe id="fileDownloadIframe" style="display:none;"></iframe>
@@ -933,6 +960,29 @@
                                required cam-variable-name="fe_longitude" cam-variable-type="String">
                         <label class="error" ng-if="kcell_form.fe_longitude.$error.required && ( kcell_form.fe_longitude.$touched || view.submitted)">Required field</label>
                         <label class="error" ng-if="kcell_form.fe_longitude.$error.pattern && ( kcell_form.fe_latitude.$touched || view.submitted)">Expected: 46.493000 <- Longtitude <- 87.315000</label>
+                    </td>
+                </tr>
+                <tr>
+                    <td align="right" colspan="2">Coordinates (Deg Min Sec):</td>
+                    <td>N</td>
+                    <td align="center">
+                        <input type="text" class="form-control" ng-model="ne_latitude_dms" id="ne_latitude_dms" name="ne_latitude_dms" disabled
+                               required cam-variable-name="ne_latitude_dms" cam-variable-type="String">
+                    </td>
+                    <td>E</td>
+                    <td align="center">
+                        <input type="text" class="form-control" ng-model="ne_longitude_dms" id="ne_longitude_dms" name="ne_longitude_dms" disabled
+                               required cam-variable-name="ne_longitude_dms" cam-variable-type="String">
+                    </td>
+                    <td>N</td>
+                    <td align="center">
+                        <input type="text" class="form-control" ng-model="fe_latitude_dms" id="fe_latitude_dms" name="fe_latitude_dms" disabled
+                               required cam-variable-name="fe_latitude_dms" cam-variable-type="String">
+                    </td>
+                    <td>E</td>
+                    <td align="center">
+                        <input type="text" class="form-control" ng-model="fe_longitude_dms" id="fe_longitude_dms" name="fe_longitude_dms" disabled
+                               required cam-variable-name="fe_longitude_dms" cam-variable-type="String">
                     </td>
                 </tr>
                 <tr>

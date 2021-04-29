@@ -73,6 +73,15 @@
                 $scope.selectedTsd.fe_antenna_diameter_protect_id.id = $scope.selectedTsd.ne_antenna_diameter_protect_id.id
            };
 
+            $scope.calculateDMS = function(deg) {
+                var totalSeconds = deg * 3600;
+                var degrees = Math.floor(deg);
+                totalSeconds -= degrees * 3600;
+                var minutes = Math.floor(totalSeconds / 60);
+                totalSeconds -= (minutes * 60);
+                return degrees+"-"+minutes+"-"+totalSeconds.toFixed(2);
+            }
+
            $scope.changeParams = function () {
                 if($scope.selectedTsd.nearend_id.facility_id.latitude && $scope.selectedTsd.nearend_id.facility_id.longitude && $scope.selectedTsd.farend_id.facility_id.latitude && $scope.selectedTsd.farend_id.facility_id.longitude) {
                     $scope.selectedTsd.path_distance = parseFloat((6372795 * Math.acos(Math.sin($scope.selectedTsd.nearend_id.facility_id.latitude.replace(",", '.') * (3.14159265358979/180)) * Math.sin($scope.selectedTsd.farend_id.facility_id.latitude.replace(",", '.') * (3.14159265358979/180)) + Math.cos($scope.selectedTsd.nearend_id.facility_id.latitude.replace(",", '.') * (3.14159265358979/180)) *  Math.cos($scope.selectedTsd.farend_id.facility_id.latitude.replace(",", '.') * (3.14159265358979/180)) * Math.cos(Math.abs($scope.selectedTsd.nearend_id.facility_id.longitude.replace(",", '.') * (3.14159265358979/180) - $scope.selectedTsd.farend_id.facility_id.longitude.replace(",", '.') * (3.14159265358979/180)))) / 1000).toFixed(3))
@@ -87,6 +96,8 @@
                     }
                     $scope.selectedTsd.fe_azimuth = parseFloat($scope.selectedTsd.fe_azimuth.toFixed(2))
                 }
+
+                $scope.calculateAllDMS();
             }
 
            $scope.protectionMode = function () {
@@ -179,8 +190,6 @@
                 }
            };
 
-
-
             camForm.on('store', function () {
                    camForm.variableManager.variableValue('checkByCenterEngineerTaskResult', $scope.checkByCenterEngineerTaskResult);
             });
@@ -189,6 +198,23 @@
                 $scope.checkByCenterEngineerTaskResult = camForm.variableManager.variableValue('checkByCenterEngineerTaskResult');
             });
 
+            $scope.calculateAllDMS = function (){
+
+                if($scope.selectedTsd && ($scope.selectedTsd.nearend_id.facility_id.latitude)){
+                    $scope.ne_latitude_dms = $scope.calculateDMS($scope.selectedTsd.nearend_id.facility_id.latitude);
+                }
+                if($scope.selectedTsd && ($scope.selectedTsd.nearend_id.facility_id.longitude)){
+                    $scope.ne_longitude_dms = $scope.calculateDMS($scope.selectedTsd.nearend_id.facility_id.longitude);
+                }
+
+                if($scope.selectedTsd && ($scope.selectedTsd.farend_id.facility_id.latitude)){
+                    $scope.fe_latitude_dms = $scope.calculateDMS($scope.selectedTsd.farend_id.facility_id.latitude);
+                }
+                if($scope.selectedTsd && ($scope.selectedTsd.farend_id.facility_id.longitude)){
+                    $scope.fe_longitude_dms = $scope.calculateDMS($scope.selectedTsd.farend_id.facility_id.longitude);
+                }
+
+            }
 
             camForm.on('variables-fetched', function () {
                 variables.forEach(function (el) {
@@ -201,6 +227,8 @@
                 console.log($scope.authUser)
                 $scope.variablesFetched = true;
                 $scope.setValues();
+
+                $scope.calculateAllDMS();
 
                 $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name + "/profile").then(function (result) {
                     $rootScope.authentication.assigneeName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
@@ -496,7 +524,7 @@
                         <input type="text" class="form-control"  ng-if="startTsd.nearend_id.facility_id.latitude === oldTsd.nearend_id.facility_id.latitude" ng-model="selectedTsd.nearend_id.facility_id.latitude" name="ne_latitude" required ng-pattern="latitudePattern" ng-change="changeParams()"/>
                         <div class="input-group" style="width: 100%" ng-show="startTsd.nearend_id.facility_id.latitude !== oldTsd.nearend_id.facility_id.latitude">
                             <input type="text" class="form-control" name="ne_latitude"
-                                   ng-model="selectedTsd.nearend_id.facility_id.latitude" required/>
+                                   ng-model="selectedTsd.nearend_id.facility_id.latitude" required ng-change="changeParams()"/>
                             <span class="input-group-addon">{{oldTsd.nearend_id.facility_id.latitude}}</span>
                         </div>
                         <label class="error"
@@ -511,7 +539,7 @@
                         <input type="text" class="form-control" ng-if="startTsd.nearend_id.facility_id.longitude === oldTsd.nearend_id.facility_id.longitude" ng-model="selectedTsd.nearend_id.facility_id.longitude" name="ne_longitude" required ng-pattern="longitudePattern" ng-change="changeParams()"/>
                         <div class="input-group" style="width: 100%" ng-show="startTsd.nearend_id.facility_id.longitude !== oldTsd.nearend_id.facility_id.longitude">
                             <input type="text" class="form-control" name="ne_longitude"
-                                   ng-model="selectedTsd.nearend_id.facility_id.longitude" required/>
+                                   ng-model="selectedTsd.nearend_id.facility_id.longitude" required ng-change="changeParams()"/>
                             <span class="input-group-addon">{{oldTsd.nearend_id.facility_id.longitude}}</span>
                         </div>
                         <label class="error"
@@ -550,6 +578,25 @@
                         <label class="error"
                                ng-if="kcell_form.fe_longitude.$error.pattern && ( kcell_form.fe_longitude.$touched || view.submitted)">Expected:
                             46.493000 <- Longtitude <- 87.315000</label>
+                    </td>
+                </tr>
+                <tr>
+                    <td align="right" colspan="2">Coordinates (Deg Min Sec):</td>
+                    <td>N</td>
+                    <td align="center">
+                        <input type="text" class="form-control" ng-model="ne_latitude_dms" readonly />
+                    </td>
+                    <td>E</td>
+                    <td align="center">
+                        <input type="text" class="form-control" ng-model="ne_longitude_dms" readonly />
+                    </td>
+                    <td>N</td>
+                    <td align="center">
+                        <input type="text" class="form-control" ng-model="fe_latitude_dms" readonly />
+                    </td>
+                    <td>E</td>
+                    <td align="center">
+                        <input type="text" class="form-control" ng-model="fe_longitude_dms" readonly />
                     </td>
                 </tr>
                 <tr>
