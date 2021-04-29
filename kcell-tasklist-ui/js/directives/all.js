@@ -883,19 +883,11 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
 
                             newBscRncsPromiseResult.forEach(function(item){
                                 if (item.bsc_rnc_name && !item.bsc_rnc_name.includes('test') && !item.bsc_rnc_name.includes('test')) {
-                                    let findedOldBsc = null;
-                                    if(scope.dictionary['BSC'] !== null) {
-                                        findedOldBsc = scope.dictionary.BSC.find( b => { return b.name === item.bsc_rnc_name})
-                                        if (findedOldBsc && findedOldBsc !== null) {
-                                            newBscRncs.push({
-                                                "name": item.bsc_rnc_name,
-                                                "assetsid": item.id,
-                                                "bscid": item.bscid,
-                                                "id": ( findedOldBsc && findedOldBsc !== null ) ? findedOldBsc.id : ""
-                                            });
-                                        }
-                                    }
-
+                                    newBscRncs.push({
+                                        "name": item.bsc_rnc_name,
+                                        "assetsid": item.id,
+                                        "id": item.bscid
+                                    });
                                 }
                             });
 
@@ -1229,7 +1221,12 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                             const sinDeltaLongFE = Math.sin(ne_long_radians - fe_long_radians)
                             const angleDelta = Math.acos(sinNeLat*sinFeLat + cosFeLat*cosNeLat*cosDeltaLong)
                             const angleDiff = Math.atan2(sinDeltaLongNE*cosFeLat, (cosNeLat*sinFeLat-cosFeLat*sinNeLat*cosDeltaLong) )
-                            const neAzimuth = Math.round(180*(angleDiff % (2*pi))/pi*100)/100
+
+                            function mod(n, m) {
+                                return ((n % m) + m) % m;
+                            }
+
+                            const neAzimuth = Math.round(180*mod(angleDiff,(2*pi))/pi*100)/100
                             scope.leasingCandidate.transmissionAntenna.azimuth = neAzimuth;
                         } else {
                             alert('Заполните корректно поля FE Longitude, FE Latitude, NE Longitude, NE Latitude')

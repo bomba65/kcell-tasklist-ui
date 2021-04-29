@@ -352,19 +352,11 @@
 
                             newBscRncsPromiseResult.forEach(function(item){
                                 if (item.bsc_rnc_name && !item.bsc_rnc_name.includes('test') && !item.bsc_rnc_name.includes('test')) {
-                                    let findedOldBsc = null;
-                                    if($scope.dictionary['BSC'] !== null) {
-                                        findedOldBsc = $scope.dictionary.BSC.find( b => { return b.name === item.bsc_rnc_name})
-                                        if (findedOldBsc && findedOldBsc !== null) {
-                                            newBscRncs.push({
-                                                "name": item.bsc_rnc_name,
-                                                "assetsid": item.id,
-                                                "bscid": item.bscid,
-                                                "id": ( findedOldBsc && findedOldBsc !== null ) ? findedOldBsc.id : ""
-                                            });
-                                        }
-                                    }
-
+                                    newBscRncs.push({
+                                        "name": item.bsc_rnc_name,
+                                        "assetsid": item.id,
+                                        "id": item.bscid
+                                    });
                                 }
                             });
 
@@ -485,7 +477,6 @@
 
                             if (!$scope.powerSource.cableLayingType) $scope.powerSource.cableLayingType = $scope.dictionary.cableLayingType;
                             $scope.availableBands = $scope.dictionary.bands;
-                            $scope.BSC = $scope.dictionary.BSC;
                             $scope.frequencyBand = $scope.dictionary.frequencyBand;
                             $scope.constructionTypesList = $scope.dictionary.constructionType;
                             $scope.addressesList = newAddresses;
@@ -955,7 +946,11 @@
                         const sinDeltaLongFE = Math.sin(ne_long_radians - fe_long_radians)
                         const angleDelta = Math.acos(sinNeLat*sinFeLat + cosFeLat*cosNeLat*cosDeltaLong)
                         const angleDiff = Math.atan2(sinDeltaLongNE*cosFeLat, (cosNeLat*sinFeLat-cosFeLat*sinNeLat*cosDeltaLong) )
-                        const neAzimuth = Math.round(180*(angleDiff % (2*pi))/pi*100)/100
+                        function mod(n, m) {
+                            return ((n % m) + m) % m;
+                        }
+                        const neAzimuth = Math.round(180*mod(angleDiff,(2*pi))/pi*100)/100
+                                // =180*(MOD(B16,2*H23)/H23)
                         $scope.transmissionAntenna.azimuth = neAzimuth;
                     } else {
                         alert('Заполните корректно поля FE Longitude, FE Latitude, NE Longitude, NE Latitude')
@@ -2997,7 +2992,6 @@
                             <div class="col-sm-3">
                                 <input class="form-control" type="number" id="TRazimuth" name="TRazimuth"
                                        ng-model="transmissionAntenna.azimuth"
-                                       disabled
                                        placeholder="(0-360)">
                                 <label class="error"
                                        ng-show="kcell_form.TRazimuth.$error.pattern && ( kcell_form.TRazimuth.$touched || view.submitted)">Неверный формат</label>
