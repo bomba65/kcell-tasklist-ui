@@ -21,6 +21,7 @@ import org.camunda.bpm.engine.delegate.BpmnError;
 import org.apache.http.client.HttpClient;
 import org.json.JSONObject;
 
+import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
@@ -92,6 +93,11 @@ public class SendDataToAssets implements JavaDelegate {
         objectNode.put("fe_power_levels_rx_protect", fe_protection_power_level_rx);
         objectNode.put("fe_power_levels_tx", fe_power_level_tx);
         objectNode.put("fe_power_levels_tx_protect", fe_protection_power_level_tx);
+
+        objectNode.put("fe_power_levels_rx_w", calculatePower(fe_power_level_rx));
+        objectNode.put("fe_power_levels_rx_protect_w", calculatePower(fe_protection_power_level_rx));
+        objectNode.put("fe_power_levels_tx_w", calculatePower(fe_power_level_tx));
+        objectNode.put("fe_power_levels_tx_protect_w", calculatePower(fe_protection_power_level_tx));
         objectNode.put("business_key", business_key);
         Calendar c = Calendar.getInstance();
         c.setTime(date);
@@ -164,6 +170,10 @@ public class SendDataToAssets implements JavaDelegate {
         objectNode.put("ne_power_levels_rx_protect", ne_protection_power_level_rx);
         objectNode.put("ne_power_levels_tx", ne_power_level_tx);
         objectNode.put("ne_power_levels_tx_protect", ne_protection_power_level_tx);
+        objectNode.put("ne_power_levels_rx_w", calculatePower(ne_power_level_rx));
+        objectNode.put("ne_power_levels_rx_protect_w", calculatePower(ne_protection_power_level_rx));
+        objectNode.put("ne_power_levels_tx_w", calculatePower(ne_power_level_tx));
+        objectNode.put("ne_power_levels_tx_protect_w", calculatePower(ne_protection_power_level_tx));
 
         ObjectNode ne_rau_subband_id = objectMapper.createObjectNode();
         ne_rau_subband_id.put("catalog_id", 46);
@@ -196,16 +206,16 @@ public class SendDataToAssets implements JavaDelegate {
         objectNode.set("protection_mode_id", protection_mode_id);
 
         ObjectNode neFacilityNode = objectMapper.createObjectNode();
-        neFacilityNode.put("altitude",ne_altitude );
-        neFacilityNode.put("construction_height",ne_construction_height);
+        neFacilityNode.put("altitude", ne_altitude);
+        neFacilityNode.put("construction_height", ne_construction_height);
         ObjectNode ne_construction_type_id = objectMapper.createObjectNode();
         ne_construction_type_id.put("catalog_id", 14);
         ne_construction_type_id.put("id", ne_construction_type);
         neFacilityNode.set("construction_type_id", ne_construction_type_id);
 
         ObjectNode feFacilityNode = objectMapper.createObjectNode();
-        feFacilityNode.put("altitude",fe_altitude );
-        feFacilityNode.put("construction_height",fe_construction_height);
+        feFacilityNode.put("altitude", fe_altitude);
+        feFacilityNode.put("construction_height", fe_construction_height);
         ObjectNode fe_construction_type_id = objectMapper.createObjectNode();
         fe_construction_type_id.put("catalog_id", 14);
         fe_construction_type_id.put("id", fe_construction_type);
@@ -253,9 +263,8 @@ public class SendDataToAssets implements JavaDelegate {
         } catch (Exception e) {
             throw new BpmnError("error", e.getMessage());
         }
-        
-
     }
+
     private HttpResponse executePut(String url, HttpClient httpClient, String requestBody) throws Exception {
         StringEntity entity = new StringEntity(requestBody, ContentType.APPLICATION_JSON);
         HttpPut httpPut = new HttpPut(url);
@@ -270,5 +279,27 @@ public class SendDataToAssets implements JavaDelegate {
         httpPost.addHeader("Content-Type", "application/json;charset=UTF-8");
         httpPost.setEntity(entity);
         return httpClient.execute(httpPost);
+    }
+
+    private String calculateDMS(Double deg) {
+        if (deg != null) {
+            double totalSeconds = deg * 3600.0;
+            double degrees = Math.floor(deg);
+            totalSeconds -= degrees * 3600.0;
+            double minutes = Math.floor(totalSeconds / 60.0);
+            totalSeconds -= (minutes * 60.0);
+            return degrees + "-" + minutes + "-" + new DecimalFormat("##.00").format(totalSeconds);
+        } else {
+            return null;
+        }
+    }
+
+    private Double calculatePower(Integer dbm) {
+        if (dbm != null) {
+            Integer power = (dbm - 30) / 10;
+            return Math.pow(10, power);
+        } else {
+            return null;
+        }
     }
 }

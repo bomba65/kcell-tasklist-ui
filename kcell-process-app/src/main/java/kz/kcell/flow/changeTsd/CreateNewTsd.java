@@ -22,6 +22,7 @@ import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
@@ -107,15 +108,19 @@ public class CreateNewTsd implements JavaDelegate {
 
         Integer fe_power_levels_rx = !newTsd.hasProp("fe_power_levels_rx") || newTsd.prop("fe_power_levels_rx").isNull() ? null : newTsd.prop("fe_power_levels_rx").isString() ? Integer.parseInt(newTsd.prop("fe_power_levels_rx").stringValue()) : newTsd.prop("fe_power_levels_rx").numberValue().intValue();
         objectNode.put("fe_power_levels_rx", fe_power_levels_rx);
+        objectNode.put("fe_power_levels_rx_w", calculatePower(fe_power_levels_rx));
 
         Integer fe_power_levels_rx_protect = !newTsd.hasProp("fe_power_levels_rx_protect") || newTsd.prop("fe_power_levels_rx_protect").isNull() ? null : newTsd.prop("fe_power_levels_rx_protect").isString() ? Integer.parseInt(newTsd.prop("fe_power_levels_rx_protect").stringValue()) : newTsd.prop("fe_power_levels_rx_protect").numberValue().intValue();
         objectNode.put("fe_power_levels_rx_protect", fe_power_levels_rx_protect);
+        objectNode.put("fe_power_levels_rx_protect_w", calculatePower(fe_power_levels_rx_protect));
 
         Integer fe_power_levels_tx = !newTsd.hasProp("fe_power_levels_tx") || newTsd.prop("fe_power_levels_tx").isNull() ? null : newTsd.prop("fe_power_levels_tx").isString() ? Integer.parseInt(newTsd.prop("fe_power_levels_tx").stringValue()) : newTsd.prop("fe_power_levels_tx").numberValue().intValue();
         objectNode.put("fe_power_levels_tx", fe_power_levels_tx);
+        objectNode.put("fe_power_levels_tx_w", calculatePower(fe_power_levels_tx));
 
         Integer fe_power_levels_tx_protect = !newTsd.hasProp("fe_power_levels_tx_protect") || newTsd.prop("fe_power_levels_tx_protect").isNull() ? null : newTsd.prop("fe_power_levels_tx_protect").isString() ? Integer.parseInt(newTsd.prop("fe_power_levels_tx_protect").stringValue()) : newTsd.prop("fe_power_levels_tx_protect").numberValue().intValue();
         objectNode.put("fe_power_levels_tx_protect", fe_power_levels_tx_protect);
+        objectNode.put("fe_power_levels_tx_protect_w", calculatePower(fe_power_levels_tx_protect));
 
         SpinJsonNode feRauSubbandObj = !newTsd.hasProp("fe_rau_subband_id") || newTsd.prop("fe_rau_subband_id") == null ? null : newTsd.prop("fe_rau_subband_id");
         if (feRauSubbandObj != null && feRauSubbandObj.hasProp("id")) {
@@ -200,15 +205,19 @@ public class CreateNewTsd implements JavaDelegate {
 
         Integer ne_power_levels_rx = !newTsd.hasProp("ne_power_levels_rx") || newTsd.prop("ne_power_levels_rx").isNull() ? null : newTsd.prop("ne_power_levels_rx").isString() ? Integer.parseInt(newTsd.prop("ne_power_levels_rx").stringValue()) : newTsd.prop("ne_power_levels_rx").numberValue().intValue();
         objectNode.put("ne_power_levels_rx", ne_power_levels_rx);
+        objectNode.put("ne_power_levels_rx_w", calculatePower(ne_power_levels_rx));
 
         Integer ne_power_levels_rx_protect = !newTsd.hasProp("ne_power_levels_rx_protect") || newTsd.prop("ne_power_levels_rx_protect").isNull() ? null : newTsd.prop("ne_power_levels_rx_protect").isString() ? Integer.parseInt(newTsd.prop("ne_power_levels_rx_protect").stringValue()) : newTsd.prop("ne_power_levels_rx_protect").numberValue().intValue();
         objectNode.put("ne_power_levels_rx_protect", ne_power_levels_rx_protect);
+        objectNode.put("ne_power_levels_rx_protect_w", calculatePower(ne_power_levels_rx_protect));
 
         Integer ne_power_levels_tx = !newTsd.hasProp("ne_power_levels_tx") || newTsd.prop("ne_power_levels_tx").isNull() ? null : newTsd.prop("ne_power_levels_tx").isString() ? Integer.parseInt(newTsd.prop("ne_power_levels_tx").stringValue()) : newTsd.prop("ne_power_levels_tx").numberValue().intValue();
         objectNode.put("ne_power_levels_tx", ne_power_levels_tx);
+        objectNode.put("ne_power_levels_tx_w", calculatePower(ne_power_levels_tx));
 
         Integer ne_power_levels_tx_protect = !newTsd.hasProp("ne_power_levels_tx_protect") || newTsd.prop("ne_power_levels_tx_protect").isNull() ? null : newTsd.prop("ne_power_levels_tx_protect").isString() ? Integer.parseInt(newTsd.prop("ne_power_levels_tx_protect").stringValue()) : newTsd.prop("ne_power_levels_tx_protect").numberValue().intValue();
         objectNode.put("ne_power_levels_tx_protect", ne_power_levels_tx_protect);
+        objectNode.put("ne_power_levels_tx_protect_w", calculatePower(ne_power_levels_tx_protect));
 
         SpinJsonNode neRauSubbandObj = !newTsd.hasProp("ne_rau_subband_id") || newTsd.prop("ne_rau_subband_id") == null ? null : newTsd.prop("ne_rau_subband_id");
         if (neRauSubbandObj != null && neRauSubbandObj.hasProp("id")) {
@@ -282,7 +291,9 @@ public class CreateNewTsd implements JavaDelegate {
         }
         farEndFacility.put("altitude", farEndFacilityAltitude);
         farEndFacility.put("longitude", farEndFacilityLongitude);
+        farEndFacility.put("longitude_dms", calculateDMS(Double.parseDouble(farEndFacilityLongitude)));
         farEndFacility.put("latitude", farEndFacilityLatitude);
+        farEndFacility.put("latitude_dms", calculateDMS(Double.parseDouble(farEndFacilityLatitude)));
         farEndFacility.put("construction_height", farEndFacilityConstructionHeight);
 
 
@@ -304,7 +315,9 @@ public class CreateNewTsd implements JavaDelegate {
         }
         nearEndFacility.put("altitude", nearEndFacilityAltitude);
         nearEndFacility.put("longitude", nearEndFacilityLongitude);
+        nearEndFacility.put("longitude_dms", calculateDMS(Double.parseDouble(nearEndFacilityLongitude)));
         nearEndFacility.put("latitude", nearEndFacilityLatitude);
+        nearEndFacility.put("latitude_dms", calculateDMS(Double.parseDouble(nearEndFacilityLatitude)));
         nearEndFacility.put("construction_height", nearEndFacilityConstructionHeight);
 
 
@@ -358,6 +371,28 @@ public class CreateNewTsd implements JavaDelegate {
         httpPut.setEntity(entity);
         return httpClient.execute(httpPut);
 
+    }
+
+    private String calculateDMS(Double deg) {
+        if (deg != null) {
+            double totalSeconds = deg * 3600.0;
+            double degrees = Math.floor(deg);
+            totalSeconds -= degrees * 3600.0;
+            double minutes = Math.floor(totalSeconds / 60.0);
+            totalSeconds -= (minutes * 60.0);
+            return degrees + "-" + minutes + "-" + new DecimalFormat("##.00").format(totalSeconds);
+        } else {
+            return null;
+        }
+    }
+
+    private Double calculatePower(Integer dbm) {
+        if (dbm != null) {
+            Integer power = (dbm - 30) / 10;
+            return Math.pow(10, power);
+        } else {
+            return null;
+        }
     }
 
 }
