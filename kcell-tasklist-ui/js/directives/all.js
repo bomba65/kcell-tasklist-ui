@@ -1648,14 +1648,14 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                         scope.leasingCandidate.cellAntenna.sectors[sector].antennas[antenna].dimension = obj.dimension;
                         scope.leasingCandidate.cellAntenna.sectors[sector].antennas[antenna].weight = obj.weight;
                         scope.leasingCandidate.cellAntenna.sectors[sector].antennas[antenna].udb_id = obj.idbid;
-                        scope.leasingCandidate.cellAntenna.sectors[sector].antennas[antenna].catalog_value_id = obj.catalog_value_id;                        
+                        scope.leasingCandidate.cellAntenna.sectors[sector].antennas[antenna].catalog_value_id = obj.catalog_value_id;
                     }
                 }
 
                 scope.antennaLocationSelected = function (sector, antenna, a) {
                     const obj = scope.dictionary.antennaLocation.find(b=>{ return b.name === a});
                     if(obj){
-                        scope.leasingCandidate.cellAntenna.sectors[sector].antennas[antenna].cn_antenna_loc_catalog_value_id = obj.id;                        
+                        scope.leasingCandidate.cellAntenna.sectors[sector].antennas[antenna].cn_antenna_loc_catalog_value_id = obj.id;
                     }
                 }
 
@@ -4521,6 +4521,7 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                                 }
                                 $http.get(baseUrl + '/history/variable-instance?deserializeValues=false&processInstanceId=' + scope.processInstances[index].id).then(
                                     function (result) {
+                                        console.log(result.data)
                                         var files = [];
                                         var uploadRSDandVSDfilesFiles = [];
                                         var uploadTSDfileFiles = [];
@@ -4584,6 +4585,113 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                 };
                 function openProcessCardModalLeasing(processDefinitionId, businessKey, index) {
                     console.log(scope.leasingInfo);
+                    scope.leasingInfo.computedAntennaName = ''
+                    scope.leasingInfo.computedDimensions = ''
+                    scope.leasingInfo.computedWeight = ''
+                    scope.leasingInfo.computedQuantity = ''
+                    scope.leasingInfo.computedLocations = ''
+                    scope.leasingInfo.computedAzimuth = ''
+                    scope.leasingInfo.computedSuspension = ''
+                    scope.leasingInfo.computedRadioUnits = ''
+                    scope.leasingInfo.computedCableLaying = ''
+                    scope.leasingInfo.computedDuTypes = ''
+                    if(scope.leasingInfo.cellAntenna) {
+                        if(scope.leasingInfo.cellAntenna.value.sectors.length) {
+                            scope.leasingInfo.computedAntennaName = scope.leasingInfo.cellAntenna.value.sectors.map(i => {
+                                let arr = [];
+                                i.antennas.forEach(j => {
+                                    arr.push(j.antennaName)
+                                })
+                                return arr
+                            }).join('/ ')
+                            scope.leasingInfo.computedDimensions = scope.leasingInfo.cellAntenna.value.sectors.map(i => {
+                                let arr = [];
+                                i.antennas.forEach(j => {
+                                    arr.push(j.dimension)
+                                })
+                                return arr
+                            }).join('/ ')
+                            scope.leasingInfo.computedWeight = scope.leasingInfo.cellAntenna.value.sectors.map(i => {
+                                let arr = [];
+                                i.antennas.forEach(j => {
+                                    arr.push(j.weight)
+                                })
+                                return arr
+                            }).join('/ ')
+                            scope.leasingInfo.computedQuantity = scope.leasingInfo.cellAntenna.value.sectors.map(i => {
+                                let arr = 0;
+                                i.antennas.forEach(j => {
+                                    arr += +j.quantity;
+                                })
+                                return arr
+                            })
+                            scope.leasingInfo.computedLocations = scope.leasingInfo.cellAntenna.value.sectors.map(i => {
+                                let arr = [];
+                                i.antennas.forEach(j => {
+                                    arr.push(j.cn_antenna_loc)
+                                })
+                                return arr
+                            }).join('/ ')
+                            scope.leasingInfo.computedAntennaTypes = scope.leasingInfo.cellAntenna.value.sectors.map(i => {
+                                let arr = [];
+                                i.antennas.forEach(j => {
+                                    for(let [key, value] of Object.entries(j.antennaType)) {
+                                        if (value) {
+                                            arr.push(key)
+                                        }
+                                    }
+                                })
+                                return arr
+                            }).flat(Infinity).join('/ ')
+                            scope.leasingInfo.computedAzimuth = scope.leasingInfo.cellAntenna.value.sectors.map(i => {
+                                let arr = [];
+                                if(i.antennas.length > 0) {
+                                    arr.push(i.antennas[0].azimuth)
+                                }
+
+                                return arr
+                            }).join('/ ')
+                            scope.leasingInfo.computedSuspension = scope.leasingInfo.cellAntenna.value.sectors.map(i => {
+                                let arr = [];
+                                if(i.antennas.length > 0) {
+                                    arr.push(i.antennas[0].suspensionHeight)
+                                }
+
+                                return arr
+                            }).join('/ ')
+                            scope.leasingInfo.computedRadioUnits = scope.leasingInfo.cellAntenna.value.sectors.map(i => {
+                                let arr = [];
+                                for(let [key, value] of Object.entries(i.bands)) {
+                                    if (value) {
+                                        arr.push(value.cn_radio_unit.name)
+                                    }
+                                }
+
+                                return arr
+                            }).join('/ ')
+                        }
+                        if (scope.leasingInfo.cellAntenna.value.cn_du && Array.isArray(scope.leasingInfo.cellAntenna.value.cn_du)) {
+                            scope.leasingInfo.computedDuTypes = scope.leasingInfo.cellAntenna.value.cn_du.map(i => {
+                                let arr = [];
+                                arr.push(i.name)
+                                return arr
+                            }).join('/ ')
+                        }
+                    }
+
+                    if(scope.leasingInfo.powerSource) {
+                        if (scope.leasingInfo.powerSource.value.cableLayingType && Array.isArray(scope.leasingInfo.powerSource.value.cableLayingType)) {
+                            scope.leasingInfo.computedCableLaying = scope.leasingInfo.powerSource.value.cableLayingType.map(i => {
+                                let arr = [];
+                                if (i.value) {
+                                    arr.push(i.title)
+                                }
+
+                                return arr
+                            }).join('/ ')
+                        }
+
+                    }
                     exModal.open({
                         scope: {
                             leasingInfo: scope.leasingInfo,
@@ -4596,6 +4704,7 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                             $index: index,
                             businessKey: businessKey,
                             catalogs: scope.leasingCatalogs,
+                            transmission: false,
                             download: function(path) {
                                 $http({method: 'GET', url: '/camunda/uploads/get/' + path, transformResponse: [] }).
                                 then(function(response) {
@@ -4606,7 +4715,7 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                             }
                         },
                         templateUrl: './js/partials/leasingCardModal.html',
-                        size: 'lg'
+                        size: 'hg'
                     }).then(function(results){
                     });
                 }
