@@ -4726,6 +4726,28 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                                         value = false
                                     } else value = key === name && !value;
                                 }
+                            },
+                            addressToString: function (address) {
+                                let string = [];
+                                let array = [
+                                    'cn_addr_oblast',
+                                    'cn_addr_district',
+                                    'cn_addr_city',
+                                    'cn_addr_street',
+                                    'cn_addr_building',
+                                    'cn_addr_cadastral_number',
+                                    'cn_addr_note',
+                                ]
+                                if (address) {
+                                    array.forEach(i => {
+                                        for(let [key, value] of Object.entries(address)) {
+                                            if (key === i && value) {
+                                                string.push(value)
+                                            }
+                                        }
+                                    })
+                                }
+                                return string.join(', ');
                             }
                         },
                         templateUrl: './js/partials/leasingCardModal.html',
