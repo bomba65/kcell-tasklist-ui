@@ -4595,7 +4595,8 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                     scope.leasingInfo.computedRadioUnits = ''
                     scope.leasingInfo.computedCableLaying = ''
                     scope.leasingInfo.computedDuTypes = ''
-                    if(scope.leasingInfo.cellAntenna) {
+
+                    if(scope.leasingInfo.cellAntenna && scope.leasingInfo.cellAntenna.type === 'Json') {
                         if(scope.leasingInfo.cellAntenna.value.sectors.length) {
                             scope.leasingInfo.computedAntennaName = scope.leasingInfo.cellAntenna.value.sectors.map(i => {
                                 let arr = [];
@@ -4662,7 +4663,7 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                             scope.leasingInfo.computedRadioUnits = scope.leasingInfo.cellAntenna.value.sectors.map(i => {
                                 let arr = [];
                                 for(let [key, value] of Object.entries(i.bands)) {
-                                    if (value) {
+                                    if (value.active && value.cn_radio_unit) {
                                         arr.push(value.cn_radio_unit.name)
                                     }
                                 }
@@ -4670,7 +4671,8 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                                 return arr
                             }).join('/ ')
                         }
-                        if (scope.leasingInfo.cellAntenna.value.cn_du && Array.isArray(scope.leasingInfo.cellAntenna.value.cn_du)) {
+
+                        if (scope.leasingInfo.cellAntenna.value.cn_du) {
                             scope.leasingInfo.computedDuTypes = scope.leasingInfo.cellAntenna.value.cn_du.map(i => {
                                 let arr = [];
                                 arr.push(i.name)
@@ -4679,7 +4681,7 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                         }
                     }
 
-                    if(scope.leasingInfo.powerSource) {
+                    if(scope.leasingInfo.powerSource && scope.leasingInfo.powerSource.type === 'Json') {
                         if (scope.leasingInfo.powerSource.value.cableLayingType && Array.isArray(scope.leasingInfo.powerSource.value.cableLayingType)) {
                             scope.leasingInfo.computedCableLaying = scope.leasingInfo.powerSource.value.cableLayingType.map(i => {
                                 let arr = [];
@@ -4704,7 +4706,12 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                             $index: index,
                             businessKey: businessKey,
                             catalogs: scope.leasingCatalogs,
-                            transmission: false,
+                            tabs: {
+                                candidate: true,
+                                transmission: false,
+                                radio: false,
+                                power: false,
+                            },
                             download: function(path) {
                                 $http({method: 'GET', url: '/camunda/uploads/get/' + path, transformResponse: [] }).
                                 then(function(response) {
@@ -4712,6 +4719,13 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                                 }, function(error){
                                     console.log(error);
                                 });
+                            },
+                            changeTab: function(name) {
+                                for (let [key, value] of Object.entries(this.$parent.tabs)) {
+                                    if (key === name && value) {
+                                        value = false
+                                    } else value = key === name && !value;
+                                }
                             }
                         },
                         templateUrl: './js/partials/leasingCardModal.html',
