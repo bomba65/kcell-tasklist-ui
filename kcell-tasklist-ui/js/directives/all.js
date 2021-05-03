@@ -1505,6 +1505,7 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                 };
 
                 scope.getCityCN = function (val) {
+                    scope.leasingCandidate.cityList = _.uniqBy(scope.dictionary.addresses, 'city').map( (e, index) => { return {"name" : e.city, "id" : index, "catalogsId" : e.catalogsId} });
                     if (val.length < 2) {
                         return []
                     }
@@ -1515,7 +1516,7 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
 
                 scope.cellInfoAddressCitySelected = function ($item) {
                     if ($item.catalogsId) {
-                        scope.leasingCandidate. cellAntenna.address.city_catalogs_id = $item.catalogsId;
+                        scope.leasingCandidate.cellAntenna.address.city_catalogs_id = $item.catalogsId;
                     }
                     let findByCity = {};
                     if (scope.leasingCandidate.cellAntenna.address.cn_addr_oblast && scope.leasingCandidate.cellAntenna.address.cn_addr_oblast !== null && scope.leasingCandidate.cellAntenna.address.cn_addr_oblast !== '') {
@@ -1633,12 +1634,12 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                 }
 
                 scope.defineSiteObjectType = function () {
-                    if(scope.renterCompany && (scope.renterCompany.legalType === 'national_kazakhtelecom' || scope.renterCompany.legalType === 'national_kazteleradio' || scope.renterCompany.legalType === 'national_kazpost')){
+                    if(scope.leasingCandidate.renterCompany && (scope.leasingCandidate.renterCompany.legalType === 'national_kazakhtelecom' || scope.leasingCandidate.renterCompany.legalType === 'national_kazteleradio' || scope.leasingCandidate.renterCompany.legalType === 'national_kazpost')){
                         scope.siteObjectType = 'national';
                     } else {
                         scope.siteObjectType = 'other';
                     }
-                    scope.legalType = scope.renterCompany.legalType;
+                    scope.legalType = scope.leasingCandidate.renterCompany?.legalType;
                 }
 
                 scope.antennaNameSelected = function (sector, antenna, a) {
@@ -1657,8 +1658,6 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                         scope.leasingCandidate.cellAntenna.sectors[sector].antennas[antenna].cn_antenna_loc_catalog_value_id = obj.id;                        
                     }
                 }
-
-                antennaNameSelected
 
                 scope.filteredAntennaTypesBySiteType = [];
                 if (scope.leasingCandidate.siteType) {
