@@ -1,3 +1,8 @@
+<style>
+    .form-control.ng-invalid {
+        border-color: #E74C3C;
+    }
+</style>
 <form role="form" class="form-horizontal" name="kcell_form" novalidate>
     <script cam-script type="text/form-script">
         inject(['$scope', '$http', 'Uri', '$rootScope', '$q', 'Upload', '$timeout', function ($scope, $http, Uri, $rootScope, $q, Upload, $timeout) {
@@ -44,6 +49,13 @@
                 'LOGYCOM':'7',
                 'LINE':'4'
             }
+
+            $scope.mapSubcontractorsCompletionAct = {
+                'ALTA':'№87649 от 01.10.2020 г',
+                'ARLAN':'№ 88323 от 27.11.2020 г',
+                'LOGYCOM':'№ 88327 от 20.11.2020 г',
+                'LINE':'№87073 от 19.08.2020 г'
+            };
             var catalogs = {};
 
             $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
@@ -216,156 +228,160 @@
     <h4>Отчетный период: {{monthsTitleRu[monthOfFormalPeriod]}} {{yearOfFormalPeriod}} </h4>
 
     <h3>
-        Месячный технический акт выполненных работ {{contractorsTitle[mapSubcontractorsToNum[subcontractor]]}} согласно Договора Подряда на Выполнение Работ по Внедрению и Модификации No {{}}
+        Месячный технический акт выполненных работ {{contractorsTitle[mapSubcontractorsToNum[subcontractor]]}} согласно Договора Подряда на Выполнение Работ по Внедрению и модификации {{mapSubcontractorsCompletionAct[subcontractor]}}
     </h3>
 
     <h3 style="text-align: center">Плановые работы</h3>
-    <table class="table table-bordered" class="form-group" name="works" id="works">
-        <thead>
-        <th>#</th>
-        <th>Заявка на выполнение работ</th>
-        <th>Сайт</th>
-        <th>Регион</th>
-        <th>Наименование Работ</th>
-        <th>Кол-во работ</th>
-        <th>Дата Заказа</th>
-        <th>Дата Выполнения</th>
-        <th>Согласованный срок выполнения работ (Дата)</th>
-        <th style="width: 8%">Задержка, дней</th>
-        <th>Одобрено</th>
-        <th>Отклонено</th>
-        <th>Комментарий</th>
-        </thead>
-        <tbody ng-repeat="value in sfmRegularWorks | orderBy: [orderReason,orderRegion,orderBusinessKey]">
-        <tr ng-repeat="w in value.works">
-            <td ng-if="$first" rowspan="{{value.works.length}}">
-                {{$parent.$parent.$index+1}}
-            </td>
-            <td ng-if="$first" rowspan="{{value.works.length}}">
-                <a ng-click="toggleProcessView(value.processInstanceId, 'table1')">{{value.businessKey}}</a> <a class="glyphicon glyphicon-trash" aria-hidden="true" ng-click="removeRegularWork($parent.$parent.$index)"></a>
-            </td>
-            <td ng-if="$first" rowspan="{{value.works.length}}">
-                {{value.site_name}}
-            </td>
-            <td ng-if="$first" rowspan="{{value.works.length}}">
-                {{regionsMap[value.siteRegion]}}
-            </td>
-            <td>{{w.displayServiceName}}</td>
-            <td>{{w.quantity}}</td>
-            <td ng-if="$first" rowspan="{{value.works.length}}">
-                {{value.contractorJobAssignedDate | date:'dd.MM.yyyy'}}
-            </td>
-            <td ng-if="$first" rowspan="{{value.works.length}}">
-                {{value.performDate | date:'dd.MM.yyyy'}}
-            </td>
-            <td ng-if="$first" rowspan="{{value.works.length}}">
-                <div class="input-group">
-                    <input type="text" ng-model="value.dueDate" name="regularDueDate{{$parent.$parent.$index}}" required class="form-control" datepicker-popup="dd.MM.yyyy" is-open="regularDate['dateFieldOpened' + $parent.$parent.$index]" min-date="datepickerOptions.minDate" />
-                    <span class="input-group-btn">
-                        <button type="button" class="btn btn-default" ng-click="regularDate['dateFieldOpened' + $parent.$parent.$index] = true">
-                            <i class="glyphicon glyphicon-calendar"></i>
-                        </button>
-                    </span>
-                </div>
-                <label class="error" ng-show="kcell_form['regularDueDate' + $parent.$parent.$index].$error.required && ( kcell_form['regularDueDate' + $parent.$parent.$index].$touched || view.submitted)">Required field</label>
-            </td>
-            <td ng-if="$first" rowspan="{{value.works.length}}">
-                <input type="number" class="form-control" name="regularDelay{{$parent.$parent.$index}}" required ng-model="value.delay" min="0"/>
-                <label class="error" ng-show="kcell_form['regularDelay' + $parent.$parent.$index].$error.required && ( kcell_form['regularDelay' + $parent.$parent.$index].$touched || view.submitted)">Required field</label>
-            </td>
-            <td ng-if="$first" rowspan="{{value.works.length}}">
-                <input type="radio" name="regularDecision{{$parent.$parent.$index}}" ng-model="value.decision" value="approve" disabled />
-            </td>
-            <td ng-if="$first" rowspan="{{value.works.length}}">
-                <input type="radio" name="regularDecision{{$parent.$parent.$index}}" ng-model="value.decision" value="decline" disabled />
-            </td>
-            <td ng-if="$first" rowspan="{{value.works.length}}">
-                {{value.comment}}
-            </td>
-        </tr>
-        <tr ng-if="processInstanceId === value.processInstanceId && jobModel && selectedView === 'table1'">
-            <td colspan="13">
-                <job-request job-model="jobModel"></job-request>
-            </td>
-        </tr>
-        </tbody>
-    </table>
+    <div class="table-responsive">
+        <table class="table table-bordered" class="form-group" name="works" id="works">
+            <thead>
+            <th>#</th>
+            <th>Заявка на выполнение работ</th>
+            <th>Сайт</th>
+            <th>Регион</th>
+            <th>Наименование Работ</th>
+            <th>Кол-во работ</th>
+            <th>Дата Заказа</th>
+            <th>Дата Выполнения</th>
+            <th>Согласованный срок выполнения работ (Дата)</th>
+            <th style="width: 8%">Задержка, дней</th>
+            <th>Одобрено</th>
+            <th>Отклонено</th>
+            <th>Комментарий</th>
+            </thead>
+            <tbody ng-repeat="value in sfmRegularWorks | orderBy: [orderReason,orderRegion,orderBusinessKey]">
+            <tr ng-repeat="w in value.works">
+                <td ng-if="$first" rowspan="{{value.works.length}}">
+                    {{$parent.$parent.$index+1}}
+                </td>
+                <td ng-if="$first" rowspan="{{value.works.length}}">
+                    <a ng-click="toggleProcessView(value.processInstanceId, 'table1')">{{value.businessKey}}</a> <a class="glyphicon glyphicon-trash" aria-hidden="true" ng-click="removeRegularWork($parent.$parent.$index)"></a>
+                </td>
+                <td ng-if="$first" rowspan="{{value.works.length}}">
+                    {{value.site_name}}
+                </td>
+                <td ng-if="$first" rowspan="{{value.works.length}}">
+                    {{regionsMap[value.siteRegion]}}
+                </td>
+                <td>{{w.displayServiceName}}</td>
+                <td>{{w.quantity}}</td>
+                <td ng-if="$first" rowspan="{{value.works.length}}">
+                    {{value.contractorJobAssignedDate | date:'dd.MM.yyyy'}}
+                </td>
+                <td ng-if="$first" rowspan="{{value.works.length}}">
+                    {{value.performDate | date:'dd.MM.yyyy'}}
+                </td>
+                <td ng-if="$first" rowspan="{{value.works.length}}">
+                    <div class="input-group">
+                        <input type="text" ng-model="value.dueDate" name="regularDueDate{{$parent.$parent.$index}}" required class="form-control" datepicker-popup="dd.MM.yyyy" is-open="regularDate['dateFieldOpened' + $parent.$parent.$index]" min-date="datepickerOptions.minDate" />
+                        <span class="input-group-btn">
+                            <button type="button" class="btn btn-default" ng-click="regularDate['dateFieldOpened' + $parent.$parent.$index] = true">
+                                <i class="glyphicon glyphicon-calendar"></i>
+                            </button>
+                        </span>
+                    </div>
+                    <label class="error" ng-show="kcell_form['regularDueDate' + $parent.$parent.$index].$error.required && ( kcell_form['regularDueDate' + $parent.$parent.$index].$touched || view.submitted)">Required field</label>
+                </td>
+                <td ng-if="$first" rowspan="{{value.works.length}}">
+                    <input type="number" class="form-control" name="regularDelay{{$parent.$parent.$index}}" required ng-model="value.delay" min="0"/>
+                    <label class="error" ng-show="kcell_form['regularDelay' + $parent.$parent.$index].$error.required && ( kcell_form['regularDelay' + $parent.$parent.$index].$touched || view.submitted)">Required field</label>
+                </td>
+                <td ng-if="$first" rowspan="{{value.works.length}}">
+                    <input type="radio" name="regularDecision{{$parent.$parent.$index}}" ng-model="value.decision" value="approve" disabled />
+                </td>
+                <td ng-if="$first" rowspan="{{value.works.length}}">
+                    <input type="radio" name="regularDecision{{$parent.$parent.$index}}" ng-model="value.decision" value="decline" disabled />
+                </td>
+                <td ng-if="$first" rowspan="{{value.works.length}}">
+                    {{value.comment}}
+                </td>
+            </tr>
+            <tr ng-if="processInstanceId === value.processInstanceId && jobModel && selectedView === 'table1'">
+                <td colspan="13">
+                    <job-request job-model="jobModel"></job-request>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
 
     <h3 style="text-align: center">Внеплановые работы</h3>
-    <table class="table table-bordered" class="form-group" name="works" id="works">
-        <thead>
-        <th>#</th>
-        <th>Заявка на выполнение работ</th>
-        <th>Сайт</th>
-        <th>Регион</th>
-        <th>Наименование Работ</th>
-        <th>Кол-во работ</th>
-        <th>Дата Заказа</th>
-        <th>Дата Выполнения</th>
-        <th style="width: 8%">Согласованный срок выполнения работ (Дата)</th>
-        <th>Задержка, часы</th>
-        <th>
-            Одобрено
-        </th>
-        <th>
-            Отклонено
-        </th>
-        <th>Комментарий</th>
-        </thead>
-        <tbody ng-repeat="value in sfmEmergencyWorks | orderBy: [orderReason,orderRegion,orderBusinessKey]">
-        <tr ng-repeat="w in value.works">
-            <td ng-if="$first" rowspan="{{value.works.length}}">
-                {{$parent.$parent.$index+1}}
-            </td>
-            <td ng-if="$first" rowspan="{{value.works.length}}">
-                <a ng-click="toggleProcessView(value.processInstanceId, 'table2')">{{value.businessKey}}</a> <a class="glyphicon glyphicon-trash" aria-hidden="true" ng-click="removeEmergencyWork($parent.$parent.$index)"></a>
-            </td>
-            <td ng-if="$first" rowspan="{{value.works.length}}">
-                {{value.site_name}}
-            </td>
-            <td ng-if="$first" rowspan="{{value.works.length}}">
-                {{regionsMap[value.siteRegion]}}
-            </td>
-            <td>{{w.displayServiceName}}</td>
-            <td>{{w.quantity}}</td>
-            <td ng-if="$first" rowspan="{{value.works.length}}">
-                {{value.contractorJobAssignedDate | date:'dd.MM.yyyy hh:mm:ss'}}
-            </td>
-            <td ng-if="$first" rowspan="{{value.works.length}}">
-                {{value.performDate | date:'dd.MM.yyyy hh:mm:ss'}}
-            </td>
-            <td ng-if="$first" rowspan="{{value.works.length}}">
-                <div class="input-group">
-                    <input type="text" ng-model="value.dueDate" name="emergencyDueDate{{$parent.$parent.$index}}" required class="form-control" datepicker-popup="dd.MM.yyyy hh:mm:ss" is-open="emergencyDate['dateFieldOpened' + $parent.$parent.$index]" min-date="datepickerOptions.minDate" />
-                    <span class="input-group-btn">
-                        <button type="button" class="btn btn-default" ng-click="emergencyDate['dateFieldOpened' + $parent.$parent.$index] = true">
-                            <i class="glyphicon glyphicon-calendar"></i>
-                        </button>
-                    </span>
-                </div>
-                <label class="error" ng-show="kcell_form['emergencyDueDate' + $parent.$parent.$index].$error.required && ( kcell_form['emergencyDueDate' + $parent.$parent.$index].$touched || view.submitted)">Required field</label>
-            </td>
-            <td ng-if="$first" rowspan="{{value.works.length}}">
-                <input type="number" class="form-control" name="emergencyDelay{{$parent.$parent.$index}}" required ng-model="value.delay" min="0"/>
-                <label class="error" ng-show="kcell_form['emergencyDelay' + $parent.$parent.$index].$error.required && ( kcell_form['emergencyDelay' + $parent.$parent.$index].$touched || view.submitted)">Required field</label>
-            </td>
-            <td ng-if="$first" rowspan="{{value.works.length}}">
-                <input type="radio" name="emergencyDecision{{$parent.$parent.$index}}" ng-model="value.decision" value="approve" disabled />
-            </td>
-            <td ng-if="$first" rowspan="{{value.works.length}}">
-                <input type="radio" name="emergencyDecision{{$parent.$parent.$index}}" ng-model="value.decision" value="decline" disabled />
-            </td>
-            <td ng-if="$first" rowspan="{{value.works.length}}">
-                {{value.comment}}
-            </td>
-        </tr>
-        <tr ng-if="processInstanceId === value.processInstanceId && jobModel && selectedView === 'table2'">
-            <td colspan="13">
-                <job-request job-model="jobModel"></job-request>
-            </td>
-        </tr>
-        </tbody>
-    </table>
+    <div class="table-responsive">
+        <table class="table table-bordered" class="form-group" name="works" id="works">
+            <thead>
+            <th>#</th>
+            <th>Заявка на выполнение работ</th>
+            <th>Сайт</th>
+            <th>Регион</th>
+            <th>Наименование Работ</th>
+            <th>Кол-во работ</th>
+            <th>Дата Заказа</th>
+            <th>Дата Выполнения</th>
+            <th style="width: 8%">Согласованный срок выполнения работ (Дата)</th>
+            <th>Задержка, часы</th>
+            <th>
+                Одобрено
+            </th>
+            <th>
+                Отклонено
+            </th>
+            <th>Комментарий</th>
+            </thead>
+            <tbody ng-repeat="value in sfmEmergencyWorks | orderBy: [orderReason,orderRegion,orderBusinessKey]">
+            <tr ng-repeat="w in value.works">
+                <td ng-if="$first" rowspan="{{value.works.length}}">
+                    {{$parent.$parent.$index+1}}
+                </td>
+                <td ng-if="$first" rowspan="{{value.works.length}}">
+                    <a ng-click="toggleProcessView(value.processInstanceId, 'table2')">{{value.businessKey}}</a> <a class="glyphicon glyphicon-trash" aria-hidden="true" ng-click="removeEmergencyWork($parent.$parent.$index)"></a>
+                </td>
+                <td ng-if="$first" rowspan="{{value.works.length}}">
+                    {{value.site_name}}
+                </td>
+                <td ng-if="$first" rowspan="{{value.works.length}}">
+                    {{regionsMap[value.siteRegion]}}
+                </td>
+                <td>{{w.displayServiceName}}</td>
+                <td>{{w.quantity}}</td>
+                <td ng-if="$first" rowspan="{{value.works.length}}">
+                    {{value.contractorJobAssignedDate | date:'dd.MM.yyyy hh:mm:ss'}}
+                </td>
+                <td ng-if="$first" rowspan="{{value.works.length}}">
+                    {{value.performDate | date:'dd.MM.yyyy hh:mm:ss'}}
+                </td>
+                <td ng-if="$first" rowspan="{{value.works.length}}">
+                    <div class="input-group">
+                        <input type="text" ng-model="value.dueDate" name="emergencyDueDate{{$parent.$parent.$index}}" required class="form-control" datepicker-popup="dd.MM.yyyy hh:mm:ss" is-open="emergencyDate['dateFieldOpened' + $parent.$parent.$index]" min-date="datepickerOptions.minDate" />
+                        <span class="input-group-btn">
+                            <button type="button" class="btn btn-default" ng-click="emergencyDate['dateFieldOpened' + $parent.$parent.$index] = true">
+                                <i class="glyphicon glyphicon-calendar"></i>
+                            </button>
+                        </span>
+                    </div>
+                    <label class="error" ng-show="kcell_form['emergencyDueDate' + $parent.$parent.$index].$error.required && ( kcell_form['emergencyDueDate' + $parent.$parent.$index].$touched || view.submitted)">Required field</label>
+                </td>
+                <td ng-if="$first" rowspan="{{value.works.length}}">
+                    <input type="number" class="form-control" name="emergencyDelay{{$parent.$parent.$index}}" required ng-model="value.delay" min="0"/>
+                    <label class="error" ng-show="kcell_form['emergencyDelay' + $parent.$parent.$index].$error.required && ( kcell_form['emergencyDelay' + $parent.$parent.$index].$touched || view.submitted)">Required field</label>
+                </td>
+                <td ng-if="$first" rowspan="{{value.works.length}}">
+                    <input type="radio" name="emergencyDecision{{$parent.$parent.$index}}" ng-model="value.decision" value="approve" disabled />
+                </td>
+                <td ng-if="$first" rowspan="{{value.works.length}}">
+                    <input type="radio" name="emergencyDecision{{$parent.$parent.$index}}" ng-model="value.decision" value="decline" disabled />
+                </td>
+                <td ng-if="$first" rowspan="{{value.works.length}}">
+                    {{value.comment}}
+                </td>
+            </tr>
+            <tr ng-if="processInstanceId === value.processInstanceId && jobModel && selectedView === 'table2'">
+                <td colspan="13">
+                    <job-request job-model="jobModel"></job-request>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
 
     <div class="form-group">
         <label class="col-sm-4 control-label">Comments</label>

@@ -1,3 +1,8 @@
+<style>
+    .form-control.ng-invalid {
+        border-color: #E74C3C;
+    }
+</style>
 <form role="form" class="form-horizontal" name="kcell_form" novalidate>
     <script cam-script type="text/form-script">
         inject(['$scope', '$http', 'Uri', '$rootScope', '$q', 'Upload', '$timeout', function ($scope, $http, Uri, $rootScope, $q, Upload, $timeout) {
@@ -46,6 +51,13 @@
                 'LOGYCOM':'7',
                 'LINE':'4'
             }
+
+            $scope.mapSubcontractorsCompletionAct = {
+                'ALTA':'№87649 от 01.10.2020 г',
+                'ARLAN':'№ 88323 от 27.11.2020 г',
+                'LOGYCOM':'№ 88327 от 20.11.2020 г',
+                'LINE':'№87073 от 19.08.2020 г'
+            };
 
             $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
                     function(result){
@@ -280,7 +292,7 @@
     <h4>Отчетный период: {{monthsTitleRu[monthOfFormalPeriod]}} {{yearOfFormalPeriod}} </h4>
 
     <h3>
-        Месячный технический акт выполненных работ {{contractorsTitle[mapSubcontractorsToNum[subcontractor]]}} согласно Договора Подряда на Выполнение Работ по Внедрению и Модификации No {{}}
+        Месячный технический акт выполненных работ {{contractorsTitle[mapSubcontractorsToNum[subcontractor]]}} согласно Договора Подряда на Выполнение Работ по Внедрению и модификации {{mapSubcontractorsCompletionAct[subcontractor]}}
     </h3>
 
     <tabset class="my-tab-head my-tab" justified="true" id="jobRequestId">
@@ -288,289 +300,297 @@
             <tab-heading> Technical information </tab-heading>
 
             <h3 style="text-align: center">Плановые работы</h3>
-            <table class="table table-bordered" class="form-group" name="rworks">
-                <thead>
-                <th>#</th>
-                <th>Заявка на выполнение работ</th>
-                <th>Сайт</th>
-                <th>Регион</th>
-                <th>Наименование Работ</th>
-                <th>Кол-во работ</th>
-                <th>Дата Заказа</th>
-                <th>Дата Выполнения</th>
-                <th>Согласованный срок выполнения работ (Дата)</th>
-                <th>Задержка, дней</th>
-                <th>
-                    <input type="radio" name="regularDecision" ng-model="radio.regularDecision" value="approve" ng-change="regularSelectAll()" />
-                    Одобрено
-                </th>
-                <th>
-                    <input type="radio" name="regularDecision" ng-model="radio.regularDecision" value="decline" ng-change="regularSelectAll()" />
-                    Отклонено
-                </th>
-                <th>Комментарий</th>
-                </thead>
-                <tbody ng-repeat="value in saoRegularWorks | orderBy: [orderReason,orderRegion,orderBusinessKey]">
-                <tr ng-repeat="w in value.works">
-                    <td ng-if="$first" rowspan="{{value.works.length}}">
-                        {{$parent.$parent.$index+1}}
-                    </td>
-                    <td ng-if="$first" rowspan="{{value.works.length}}">
-                        <a ng-click="toggleProcessView(value.processInstanceId, 'table1')">{{value.businessKey}}</a>
-                    </td>
-                    <td ng-if="$first" rowspan="{{value.works.length}}">
-                        {{value.site_name}}
-                    </td>
-                    <td ng-if="$first" rowspan="{{value.works.length}}">
-                        {{regionsMap[value.siteRegion]}}
-                    </td>
-                    <td>{{w.displayServiceName}}</td>
-                    <td>{{w.quantity}}</td>
-                    <td ng-if="$first" rowspan="{{value.works.length}}">
-                        {{value.contractorJobAssignedDate | date:'dd.MM.yyyy'}}
-                    </td>
-                    <td ng-if="$first" rowspan="{{value.works.length}}">
-                        {{value.performDate | date:'dd.MM.yyyy'}}
-                    </td>
-                    <td ng-if="$first" rowspan="{{value.works.length}}">
-                        {{value.dueDate | date:'dd.MM.yyyy' }}
-                    </td>
-                    <td ng-if="$first" rowspan="{{value.works.length}}">
-                        {{value.delay}}
-                    </td>
-                    <td ng-if="$first" rowspan="{{value.works.length}}">
-                        <input type="radio" name="regularDecision{{$parent.$parent.$index}}" ng-model="value.decision" required value="approve" ng-change="regularSelect()" />
-                        <label class="error" ng-show="kcell_form['regularDecision' + $parent.$parent.$index].$error.required && ( kcell_form['regularDecision' + $parent.$parent.$index].$touched || view.submitted)">Required field</label>
-                    </td>
-                    <td ng-if="$first" rowspan="{{value.works.length}}">
-                        <input type="radio" name="regularDecision{{$parent.$parent.$index}}" ng-model="value.decision" required value="decline" ng-change="regularSelect()" />
-                        <label class="error" ng-show="kcell_form['regularDecision' + $parent.$parent.$index].$error.required && ( kcell_form['regularDecision' + $parent.$parent.$index].$touched || view.submitted)">Required field</label>
-                    </td>
-                    <td ng-if="$first" rowspan="{{value.works.length}}">
-                        <textarea class="form-control" name="regularComment{{$parent.$parent.$index}}" ng-model="value.comment" ng-required="value.decision === 'decline'"/>
-                        <label class="error" ng-show="kcell_form['regularComment' + $parent.$parent.$index].$error.required && ( kcell_form['regularComment' + $parent.$parent.$index].$touched || view.submitted)">Required field</label>
-                    </td>
-                </tr>
-                <tr ng-if="processInstanceId === value.processInstanceId && jobModel && selectedView === 'table1'">
-                    <td colspan="13">
-                        <job-request job-model="jobModel"></job-request>
-                    </td>
-                </tr>
-                </tbody>
-            </table>
+            <div class="table-responsive">
+                <table class="table table-bordered" class="form-group" name="rworks">
+                    <thead>
+                    <th>#</th>
+                    <th>Заявка на выполнение работ</th>
+                    <th>Сайт</th>
+                    <th>Регион</th>
+                    <th>Наименование Работ</th>
+                    <th>Кол-во работ</th>
+                    <th>Дата Заказа</th>
+                    <th>Дата Выполнения</th>
+                    <th>Согласованный срок выполнения работ (Дата)</th>
+                    <th>Задержка, дней</th>
+                    <th>
+                        <input type="radio" name="regularDecision" ng-model="radio.regularDecision" value="approve" ng-change="regularSelectAll()" />
+                        Одобрено
+                    </th>
+                    <th>
+                        <input type="radio" name="regularDecision" ng-model="radio.regularDecision" value="decline" ng-change="regularSelectAll()" />
+                        Отклонено
+                    </th>
+                    <th>Комментарий</th>
+                    </thead>
+                    <tbody ng-repeat="value in saoRegularWorks | orderBy: [orderReason,orderRegion,orderBusinessKey]">
+                    <tr ng-repeat="w in value.works">
+                        <td ng-if="$first" rowspan="{{value.works.length}}">
+                            {{$parent.$parent.$index+1}}
+                        </td>
+                        <td ng-if="$first" rowspan="{{value.works.length}}">
+                            <a ng-click="toggleProcessView(value.processInstanceId, 'table1')">{{value.businessKey}}</a>
+                        </td>
+                        <td ng-if="$first" rowspan="{{value.works.length}}">
+                            {{value.site_name}}
+                        </td>
+                        <td ng-if="$first" rowspan="{{value.works.length}}">
+                            {{regionsMap[value.siteRegion]}}
+                        </td>
+                        <td>{{w.displayServiceName}}</td>
+                        <td>{{w.quantity}}</td>
+                        <td ng-if="$first" rowspan="{{value.works.length}}">
+                            {{value.contractorJobAssignedDate | date:'dd.MM.yyyy'}}
+                        </td>
+                        <td ng-if="$first" rowspan="{{value.works.length}}">
+                            {{value.performDate | date:'dd.MM.yyyy'}}
+                        </td>
+                        <td ng-if="$first" rowspan="{{value.works.length}}">
+                            {{value.dueDate | date:'dd.MM.yyyy' }}
+                        </td>
+                        <td ng-if="$first" rowspan="{{value.works.length}}">
+                            {{value.delay}}
+                        </td>
+                        <td ng-if="$first" rowspan="{{value.works.length}}">
+                            <input type="radio" name="regularDecision{{$parent.$parent.$index}}" ng-model="value.decision" required value="approve" ng-change="regularSelect()" />
+                            <label class="error" ng-show="kcell_form['regularDecision' + $parent.$parent.$index].$error.required && ( kcell_form['regularDecision' + $parent.$parent.$index].$touched || view.submitted)">Required field</label>
+                        </td>
+                        <td ng-if="$first" rowspan="{{value.works.length}}">
+                            <input type="radio" name="regularDecision{{$parent.$parent.$index}}" ng-model="value.decision" required value="decline" ng-change="regularSelect()" />
+                            <label class="error" ng-show="kcell_form['regularDecision' + $parent.$parent.$index].$error.required && ( kcell_form['regularDecision' + $parent.$parent.$index].$touched || view.submitted)">Required field</label>
+                        </td>
+                        <td ng-if="$first" rowspan="{{value.works.length}}">
+                            <textarea class="form-control" name="regularComment{{$parent.$parent.$index}}" ng-model="value.comment" ng-required="value.decision === 'decline'"/>
+                            <label class="error" ng-show="kcell_form['regularComment' + $parent.$parent.$index].$error.required && ( kcell_form['regularComment' + $parent.$parent.$index].$touched || view.submitted)">Required field</label>
+                        </td>
+                    </tr>
+                    <tr ng-if="processInstanceId === value.processInstanceId && jobModel && selectedView === 'table1'">
+                        <td colspan="13">
+                            <job-request job-model="jobModel"></job-request>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
 
             <h3 style="text-align: center">Внеплановые работы</h3>
-            <table class="table table-bordered" class="form-group" name="eworks">
-                <thead>
-                <th>#</th>
-                <th>Заявка на выполнение работ</th>
-                <th>Сайт</th>
-                <th>Регион</th>
-                <th>Наименование Работ</th>
-                <th>Кол-во работ</th>
-                <th>Дата Заказа</th>
-                <th>Дата Выполнения</th>
-                <th>Согласованный срок выполнения работ (Дата)</th>
-                <th>Задержка, часы</th>
-                <th>
-                    <input type="radio" name="emergencyDecision" ng-model="radio.emergencyDecision" value="approve" ng-change="emergencySelectAll()" />
-                    Одобрено
-                </th>
-                <th>
-                    <input type="radio" name="emergencyDecision" ng-model="radio.emergencyDecision" value="decline" ng-change="emergencySelectAll()" />
-                    Отклонено
-                </th>
-                <th>Комментарий</th>
-                </thead>
-                <tbody ng-repeat="value in saoEmergencyWorks | orderBy: [orderReason,orderRegion,orderBusinessKey]">
-                <tr ng-repeat="w in value.works">
-                    <td ng-if="$first" rowspan="{{value.works.length}}">
-                        {{$parent.$parent.$index+1}}
-                    </td>
-                    <td ng-if="$first" rowspan="{{value.works.length}}">
-                        <a ng-click="toggleProcessView(value.processInstanceId, 'table2')">{{value.businessKey}}</a>
-                    </td>
-                    <td ng-if="$first" rowspan="{{value.works.length}}">
-                        {{value.site_name}}
-                    </td>
-                    <td ng-if="$first" rowspan="{{value.works.length}}">
-                        {{regionsMap[value.siteRegion]}}
-                    </td>
-                    <td>{{w.displayServiceName}}</td>
-                    <td>{{w.quantity}}</td>
-                    <td ng-if="$first" rowspan="{{value.works.length}}">
-                        {{value.contractorJobAssignedDate | date:'dd.MM.yyyy hh:mm:ss'}}
-                    </td>
-                    <td ng-if="$first" rowspan="{{value.works.length}}">
-                        {{value.performDate | date:'dd.MM.yyyy hh:mm:ss'}}
-                    </td>
-                    <td ng-if="$first" rowspan="{{value.works.length}}">
-                        {{value.dueDate | date:'dd.MM.yyyy hh:mm:ss' }}
-                    </td>
-                    <td ng-if="$first" rowspan="{{value.works.length}}">
-                        {{value.delay}}
-                    </td>
-                    <td ng-if="$first" rowspan="{{value.works.length}}">
-                        <input type="radio" name="emergencyDecision{{$parent.$parent.$index}}" ng-model="value.decision" required value="approve" ng-change="emergencySelect()" />
-                        <label class="error" ng-show="kcell_form['emergencyDecision' + $parent.$parent.$index].$error.required && ( kcell_form['emergencyDecision' + $parent.$parent.$index].$touched || view.submitted)">Required field</label>
-                    </td>
-                    <td ng-if="$first" rowspan="{{value.works.length}}">
-                        <input type="radio" name="emergencyDecision{{$parent.$parent.$index}}" ng-model="value.decision" required value="decline" ng-change="emergencySelect()" />
-                        <label class="error" ng-show="kcell_form['emergencyDecision' + $parent.$parent.$index].$error.required && ( kcell_form['emergencyDecision' + $parent.$parent.$index].$touched || view.submitted)">Required field</label>
-                    </td>
-                    <td ng-if="$first" rowspan="{{value.works.length}}">
-                        <textarea class="form-control" name="emergencyComment{{$parent.$parent.$index}}" ng-model="value.comment" ng-required="value.decision === 'decline'"/>
-                        <label class="error" ng-show="kcell_form['emergencyComment' + $parent.$parent.$index].$error.required && ( kcell_form['emergencyComment' + $parent.$parent.$index].$touched || view.submitted)">Required field</label>
-                    </td>
-                </tr>
-                <tr ng-if="processInstanceId === value.processInstanceId && jobModel && selectedView === 'table2'">
-                    <td colspan="13">
-                        <job-request job-model="jobModel"></job-request>
-                    </td>
-                </tr>
-                </tbody>
-            </table>
+            <div class="table-responsive">
+                <table class="table table-bordered" class="form-group" name="eworks">
+                    <thead>
+                    <th>#</th>
+                    <th>Заявка на выполнение работ</th>
+                    <th>Сайт</th>
+                    <th>Регион</th>
+                    <th>Наименование Работ</th>
+                    <th>Кол-во работ</th>
+                    <th>Дата Заказа</th>
+                    <th>Дата Выполнения</th>
+                    <th>Согласованный срок выполнения работ (Дата)</th>
+                    <th>Задержка, часы</th>
+                    <th>
+                        <input type="radio" name="emergencyDecision" ng-model="radio.emergencyDecision" value="approve" ng-change="emergencySelectAll()" />
+                        Одобрено
+                    </th>
+                    <th>
+                        <input type="radio" name="emergencyDecision" ng-model="radio.emergencyDecision" value="decline" ng-change="emergencySelectAll()" />
+                        Отклонено
+                    </th>
+                    <th>Комментарий</th>
+                    </thead>
+                    <tbody ng-repeat="value in saoEmergencyWorks | orderBy: [orderReason,orderRegion,orderBusinessKey]">
+                    <tr ng-repeat="w in value.works">
+                        <td ng-if="$first" rowspan="{{value.works.length}}">
+                            {{$parent.$parent.$index+1}}
+                        </td>
+                        <td ng-if="$first" rowspan="{{value.works.length}}">
+                            <a ng-click="toggleProcessView(value.processInstanceId, 'table2')">{{value.businessKey}}</a>
+                        </td>
+                        <td ng-if="$first" rowspan="{{value.works.length}}">
+                            {{value.site_name}}
+                        </td>
+                        <td ng-if="$first" rowspan="{{value.works.length}}">
+                            {{regionsMap[value.siteRegion]}}
+                        </td>
+                        <td>{{w.displayServiceName}}</td>
+                        <td>{{w.quantity}}</td>
+                        <td ng-if="$first" rowspan="{{value.works.length}}">
+                            {{value.contractorJobAssignedDate | date:'dd.MM.yyyy hh:mm:ss'}}
+                        </td>
+                        <td ng-if="$first" rowspan="{{value.works.length}}">
+                            {{value.performDate | date:'dd.MM.yyyy hh:mm:ss'}}
+                        </td>
+                        <td ng-if="$first" rowspan="{{value.works.length}}">
+                            {{value.dueDate | date:'dd.MM.yyyy hh:mm:ss' }}
+                        </td>
+                        <td ng-if="$first" rowspan="{{value.works.length}}">
+                            {{value.delay}}
+                        </td>
+                        <td ng-if="$first" rowspan="{{value.works.length}}">
+                            <input type="radio" name="emergencyDecision{{$parent.$parent.$index}}" ng-model="value.decision" required value="approve" ng-change="emergencySelect()" />
+                            <label class="error" ng-show="kcell_form['emergencyDecision' + $parent.$parent.$index].$error.required && ( kcell_form['emergencyDecision' + $parent.$parent.$index].$touched || view.submitted)">Required field</label>
+                        </td>
+                        <td ng-if="$first" rowspan="{{value.works.length}}">
+                            <input type="radio" name="emergencyDecision{{$parent.$parent.$index}}" ng-model="value.decision" required value="decline" ng-change="emergencySelect()" />
+                            <label class="error" ng-show="kcell_form['emergencyDecision' + $parent.$parent.$index].$error.required && ( kcell_form['emergencyDecision' + $parent.$parent.$index].$touched || view.submitted)">Required field</label>
+                        </td>
+                        <td ng-if="$first" rowspan="{{value.works.length}}">
+                            <textarea class="form-control" name="emergencyComment{{$parent.$parent.$index}}" ng-model="value.comment" ng-required="value.decision === 'decline'"/>
+                            <label class="error" ng-show="kcell_form['emergencyComment' + $parent.$parent.$index].$error.required && ( kcell_form['emergencyComment' + $parent.$parent.$index].$touched || view.submitted)">Required field</label>
+                        </td>
+                    </tr>
+                    <tr ng-if="processInstanceId === value.processInstanceId && jobModel && selectedView === 'table2'">
+                        <td colspan="13">
+                            <job-request job-model="jobModel"></job-request>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
         </tab>
         <tab style="float: right; width: 50%">
             <tab-heading>Financial information </tab-heading>
 
             <h3 style="text-align: center">Плановые работы</h3>
-            <table class="table table-bordered" class="form-group" name="frworks">
-                <thead>
-                <th>#</th>
-                <th>Заявка на выполнение работ</th>
-                <th>Сайт</th>
-                <th>Регион</th>
-                <th>Наименование Работ</th>
-                <th>Материалы</th>
-                <th>Кол-во работ</th>
-                <th>Стоимость работы</th>
-                <th>Цена</th>
-                <th>
-                    <input type="radio" name="fregularDecision" ng-model="radio.regularDecision" value="approve" ng-change="regularSelectAll()" />
-                    Одобрено
-                </th>
-                <th>
-                    <input type="radio" name="fregularDecision" ng-model="radio.regularDecision" value="decline" ng-change="regularSelectAll()" />
-                    Отклонено
-                </th>
-                <th>Комментарий</th>
-                </thead>
-                <tbody ng-repeat="value in saoRegularWorks | orderBy: [orderReason,orderRegion,orderBusinessKey]">
-                <tr ng-repeat="w in value.workPrices">
-                    <td ng-if="$first" rowspan="{{value.works.length}}">
-                        {{$parent.$parent.$index+1}}
-                    </td>
-                    <td ng-if="$first" rowspan="{{value.works.length}}">
-                        <a ng-click="toggleProcessView(value.processInstanceId, 'table3')">{{value.businessKey}}</a>
-                    </td>
-                    <td ng-if="$first" rowspan="{{value.works.length}}">
-                        {{value.site_name}}
-                    </td>
-                    <td ng-if="$first" rowspan="{{value.works.length}}">
-                        {{regionsMap[value.siteRegion]}}
-                    </td>
-                    <td>{{w.displayServiceName}}</td>
-                    <td>{{w.materialsProvidedBy ? (w.materialsProvidedBy === 'kcell' ? 'Kcell' : 'Subcontractor') : ''}}</td>
-                    <td>{{w.quantity}}</td>
-                    <td>{{w.basePrice}}</td>
-                    <td>{{w.total}}</td>
-                    <td ng-if="$first" rowspan="{{value.works.length}}">
-                        <input type="radio" name="fregularDecision{{$parent.$parent.$index}}" ng-model="value.decision" required value="approve" />
-                        <label class="error" ng-show="kcell_form['fregularDecision' + $parent.$parent.$index].$error.required && ( kcell_form['fregularDecision' + $parent.$parent.$index].$touched || view.submitted)">Required field</label>
-                    </td>
-                    <td ng-if="$first" rowspan="{{value.works.length}}">
-                        <input type="radio" name="fregularDecision{{$parent.$parent.$index}}" ng-model="value.decision" required value="decline" />
-                        <label class="error" ng-show="kcell_form['fregularDecision' + $parent.$parent.$index].$error.required && ( kcell_form['fregularDecision' + $parent.$parent.$index].$touched || view.submitted)">Required field</label>
-                    </td>
-                    <td ng-if="$first" rowspan="{{value.works.length}}">
-                        <textarea class="form-control" name="fregularComment{{$parent.$parent.$index}}" ng-model="value.comment" ng-required="value.decision === 'decline'"/>
-                        <label class="error" ng-show="kcell_form['fregularComment' + $parent.$parent.$index].$error.required && ( kcell_form['fregularComment' + $parent.$parent.$index].$touched || view.submitted)">Required field</label>
-                    </td>
-                </tr>
-                <tr ng-if="processInstanceId === value.processInstanceId && jobModel && selectedView === 'table3'">
-                    <td colspan="12">
-                        <job-request job-model="jobModel"></job-request>
-                    </td>
-                </tr>
-                </tbody>
-                <tbody>
-                    <tr>
-                        <td colspan="8" style="text-align: right">Итог</td>
-                        <td>{{regularWorksTotalPrice}}</td>
-                        <td colspan="3"></td>
+            <div class="table-responsive">
+                <table class="table table-bordered" class="form-group" name="frworks">
+                    <thead>
+                    <th>#</th>
+                    <th>Заявка на выполнение работ</th>
+                    <th>Сайт</th>
+                    <th>Регион</th>
+                    <th>Наименование Работ</th>
+                    <th>Материалы</th>
+                    <th>Кол-во работ</th>
+                    <th>Стоимость работы</th>
+                    <th>Цена</th>
+                    <th>
+                        <input type="radio" name="fregularDecision" ng-model="radio.regularDecision" value="approve" ng-change="regularSelectAll()" />
+                        Одобрено
+                    </th>
+                    <th>
+                        <input type="radio" name="fregularDecision" ng-model="radio.regularDecision" value="decline" ng-change="regularSelectAll()" />
+                        Отклонено
+                    </th>
+                    <th>Комментарий</th>
+                    </thead>
+                    <tbody ng-repeat="value in saoRegularWorks | orderBy: [orderReason,orderRegion,orderBusinessKey]">
+                    <tr ng-repeat="w in value.workPrices">
+                        <td ng-if="$first" rowspan="{{value.works.length}}">
+                            {{$parent.$parent.$index+1}}
+                        </td>
+                        <td ng-if="$first" rowspan="{{value.works.length}}">
+                            <a ng-click="toggleProcessView(value.processInstanceId, 'table3')">{{value.businessKey}}</a>
+                        </td>
+                        <td ng-if="$first" rowspan="{{value.works.length}}">
+                            {{value.site_name}}
+                        </td>
+                        <td ng-if="$first" rowspan="{{value.works.length}}">
+                            {{regionsMap[value.siteRegion]}}
+                        </td>
+                        <td>{{w.displayServiceName}}</td>
+                        <td>{{w.materialsProvidedBy ? (w.materialsProvidedBy === 'kcell' ? 'Kcell' : 'Subcontractor') : ''}}</td>
+                        <td>{{w.quantity}}</td>
+                        <td>{{w.basePrice}}</td>
+                        <td>{{w.total}}</td>
+                        <td ng-if="$first" rowspan="{{value.works.length}}">
+                            <input type="radio" name="fregularDecision{{$parent.$parent.$index}}" ng-model="value.decision" required value="approve" />
+                            <label class="error" ng-show="kcell_form['fregularDecision' + $parent.$parent.$index].$error.required && ( kcell_form['fregularDecision' + $parent.$parent.$index].$touched || view.submitted)">Required field</label>
+                        </td>
+                        <td ng-if="$first" rowspan="{{value.works.length}}">
+                            <input type="radio" name="fregularDecision{{$parent.$parent.$index}}" ng-model="value.decision" required value="decline" />
+                            <label class="error" ng-show="kcell_form['fregularDecision' + $parent.$parent.$index].$error.required && ( kcell_form['fregularDecision' + $parent.$parent.$index].$touched || view.submitted)">Required field</label>
+                        </td>
+                        <td ng-if="$first" rowspan="{{value.works.length}}">
+                            <textarea class="form-control" name="fregularComment{{$parent.$parent.$index}}" ng-model="value.comment" ng-required="value.decision === 'decline'"/>
+                            <label class="error" ng-show="kcell_form['fregularComment' + $parent.$parent.$index].$error.required && ( kcell_form['fregularComment' + $parent.$parent.$index].$touched || view.submitted)">Required field</label>
+                        </td>
                     </tr>
-                </tbody>
-            </table>
+                    <tr ng-if="processInstanceId === value.processInstanceId && jobModel && selectedView === 'table3'">
+                        <td colspan="12">
+                            <job-request job-model="jobModel"></job-request>
+                        </td>
+                    </tr>
+                    </tbody>
+                    <tbody>
+                        <tr>
+                            <td colspan="8" style="text-align: right">Итог</td>
+                            <td>{{regularWorksTotalPrice}}</td>
+                            <td colspan="3"></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
 
             <h3 style="text-align: center">Внеплановые работы</h3>
-            <table class="table table-bordered" class="form-group" name="feworks">
-                <thead>
-                <th>#</th>
-                <th>Заявка на выполнение работ</th>
-                <th>Сайт</th>
-                <th>Регион</th>
-                <th>Наименование Работ</th>
-                <th>Материалы</th>
-                <th>Кол-во работ</th>
-                <th>Стоимость работы</th>
-                <th>Цена</th>
-                <th>
-                    <input type="radio" name="femergencyDecision" ng-model="radio.emergencyDecision" value="approve" ng-change="emergencySelectAll()" />
-                    Одобрено
-                </th>
-                <th>
-                    <input type="radio" name="femergencyDecision" ng-model="radio.emergencyDecision" value="decline" ng-change="emergencySelectAll()" />
-                    Отклонено
-                </th>
-                <th>Комментарий</th>
-                </thead>
-                <tbody ng-repeat="value in saoEmergencyWorks | orderBy: [orderReason,orderRegion,orderBusinessKey]">
-                <tr ng-repeat="w in value.workPrices">
-                    <td ng-if="$first" rowspan="{{value.works.length}}">
-                        {{$parent.$parent.$index+1}}
-                    </td>
-                    <td ng-if="$first" rowspan="{{value.works.length}}">
-                        <a ng-click="toggleProcessView(value.processInstanceId, 'table4')">{{value.businessKey}}</a>
-                    </td>
-                    <td ng-if="$first" rowspan="{{value.works.length}}">
-                        {{value.site_name}}
-                    </td>
-                    <td ng-if="$first" rowspan="{{value.works.length}}">
-                        {{regionsMap[value.siteRegion]}}
-                    </td>
-                    <td>{{w.displayServiceName}}</td>
-                    <td>{{w.materialsProvidedBy ? (w.materialsProvidedBy === 'kcell' ? 'Kcell' : 'Subcontractor') : ''}}</td>
-                    <td>{{w.quantity}}</td>
-                    <td>{{w.basePrice}}</td>
-                    <td>{{w.total}}</td>
-                    <td ng-if="$first" rowspan="{{value.works.length}}">
-                        <input type="radio" name="femergencyDecision{{$parent.$parent.$index}}" ng-model="value.decision" required value="approve" />
-                        <label class="error" ng-show="kcell_form['femergencyDecision' + $parent.$parent.$index].$error.required && ( kcell_form['femergencyDecision' + $parent.$parent.$index].$touched || view.submitted)">Required field</label>
-                    </td>
-                    <td ng-if="$first" rowspan="{{value.works.length}}">
-                        <input type="radio" name="femergencyDecision{{$parent.$parent.$index}}" ng-model="value.decision" required value="decline" />
-                        <label class="error" ng-show="kcell_form['femergencyDecision' + $parent.$parent.$index].$error.required && ( kcell_form['femergencyDecision' + $parent.$parent.$index].$touched || view.submitted)">Required field</label>
-                    </td>
-                    <td ng-if="$first" rowspan="{{value.works.length}}">
-                        <textarea class="form-control" name="femergencyComment{{$parent.$parent.$index}}" ng-model="value.comment" ng-required="value.decision === 'decline'"/>
-                        <label class="error" ng-show="kcell_form['femergencyComment' + $parent.$parent.$index].$error.required && ( kcell_form['femergencyComment' + $parent.$parent.$index].$touched || view.submitted)">Required field</label>
-                    </td>
-                </tr>
-                <tr ng-if="processInstanceId === value.processInstanceId && jobModel && selectedView === 'table4'">
-                    <td colspan="12">
-                        <job-request job-model="jobModel"></job-request>
-                    </td>
-                </tr>
-                </tbody>
-                <tbody>
-                    <tr>
-                        <td colspan="8" style="text-align: right">Итог</td>
-                        <td>{{emergencyWorksTotalPrice}}</td>
-                        <td colspan="3"></td>
+            <div class="table-responsive">
+                <table class="table table-bordered" class="form-group" name="feworks">
+                    <thead>
+                    <th>#</th>
+                    <th>Заявка на выполнение работ</th>
+                    <th>Сайт</th>
+                    <th>Регион</th>
+                    <th>Наименование Работ</th>
+                    <th>Материалы</th>
+                    <th>Кол-во работ</th>
+                    <th>Стоимость работы</th>
+                    <th>Цена</th>
+                    <th>
+                        <input type="radio" name="femergencyDecision" ng-model="radio.emergencyDecision" value="approve" ng-change="emergencySelectAll()" />
+                        Одобрено
+                    </th>
+                    <th>
+                        <input type="radio" name="femergencyDecision" ng-model="radio.emergencyDecision" value="decline" ng-change="emergencySelectAll()" />
+                        Отклонено
+                    </th>
+                    <th>Комментарий</th>
+                    </thead>
+                    <tbody ng-repeat="value in saoEmergencyWorks | orderBy: [orderReason,orderRegion,orderBusinessKey]">
+                    <tr ng-repeat="w in value.workPrices">
+                        <td ng-if="$first" rowspan="{{value.works.length}}">
+                            {{$parent.$parent.$index+1}}
+                        </td>
+                        <td ng-if="$first" rowspan="{{value.works.length}}">
+                            <a ng-click="toggleProcessView(value.processInstanceId, 'table4')">{{value.businessKey}}</a>
+                        </td>
+                        <td ng-if="$first" rowspan="{{value.works.length}}">
+                            {{value.site_name}}
+                        </td>
+                        <td ng-if="$first" rowspan="{{value.works.length}}">
+                            {{regionsMap[value.siteRegion]}}
+                        </td>
+                        <td>{{w.displayServiceName}}</td>
+                        <td>{{w.materialsProvidedBy ? (w.materialsProvidedBy === 'kcell' ? 'Kcell' : 'Subcontractor') : ''}}</td>
+                        <td>{{w.quantity}}</td>
+                        <td>{{w.basePrice}}</td>
+                        <td>{{w.total}}</td>
+                        <td ng-if="$first" rowspan="{{value.works.length}}">
+                            <input type="radio" name="femergencyDecision{{$parent.$parent.$index}}" ng-model="value.decision" required value="approve" />
+                            <label class="error" ng-show="kcell_form['femergencyDecision' + $parent.$parent.$index].$error.required && ( kcell_form['femergencyDecision' + $parent.$parent.$index].$touched || view.submitted)">Required field</label>
+                        </td>
+                        <td ng-if="$first" rowspan="{{value.works.length}}">
+                            <input type="radio" name="femergencyDecision{{$parent.$parent.$index}}" ng-model="value.decision" required value="decline" />
+                            <label class="error" ng-show="kcell_form['femergencyDecision' + $parent.$parent.$index].$error.required && ( kcell_form['femergencyDecision' + $parent.$parent.$index].$touched || view.submitted)">Required field</label>
+                        </td>
+                        <td ng-if="$first" rowspan="{{value.works.length}}">
+                            <textarea class="form-control" name="femergencyComment{{$parent.$parent.$index}}" ng-model="value.comment" ng-required="value.decision === 'decline'"/>
+                            <label class="error" ng-show="kcell_form['femergencyComment' + $parent.$parent.$index].$error.required && ( kcell_form['femergencyComment' + $parent.$parent.$index].$touched || view.submitted)">Required field</label>
+                        </td>
                     </tr>
-                </tbody>
-            </table>
+                    <tr ng-if="processInstanceId === value.processInstanceId && jobModel && selectedView === 'table4'">
+                        <td colspan="12">
+                            <job-request job-model="jobModel"></job-request>
+                        </td>
+                    </tr>
+                    </tbody>
+                    <tbody>
+                        <tr>
+                            <td colspan="8" style="text-align: right">Итог</td>
+                            <td>{{emergencyWorksTotalPrice}}</td>
+                            <td colspan="3"></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
         </tab>
     </tabset>
 
