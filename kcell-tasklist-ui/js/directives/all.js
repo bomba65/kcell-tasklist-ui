@@ -4604,35 +4604,35 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                                     arr.push(j.antennaName)
                                 })
                                 return arr
-                            }).join('/ ')
+                            }).flat(Infinity).join('/ ')
                             scope.leasingInfo.computedDimensions = scope.leasingInfo.cellAntenna.value.sectors.map(i => {
                                 let arr = [];
                                 i.antennas.forEach(j => {
                                     arr.push(j.dimension)
                                 })
                                 return arr
-                            }).join('/ ')
+                            }).flat(Infinity).join('/ ')
                             scope.leasingInfo.computedWeight = scope.leasingInfo.cellAntenna.value.sectors.map(i => {
                                 let arr = [];
                                 i.antennas.forEach(j => {
                                     arr.push(j.weight)
                                 })
                                 return arr
-                            }).join('/ ')
+                            }).flat(Infinity).join('/ ')
                             scope.leasingInfo.computedQuantity = scope.leasingInfo.cellAntenna.value.sectors.map(i => {
                                 let arr = 0;
                                 i.antennas.forEach(j => {
                                     arr += +j.quantity;
                                 })
                                 return arr
-                            })
+                            }).flat(Infinity).join(', ')
                             scope.leasingInfo.computedLocations = scope.leasingInfo.cellAntenna.value.sectors.map(i => {
                                 let arr = [];
                                 i.antennas.forEach(j => {
                                     arr.push(j.cn_antenna_loc)
                                 })
                                 return arr
-                            }).join('/ ')
+                            }).flat(Infinity).join('/ ')
                             scope.leasingInfo.computedAntennaTypes = scope.leasingInfo.cellAntenna.value.sectors.map(i => {
                                 let arr = [];
                                 i.antennas.forEach(j => {
@@ -4643,7 +4643,7 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                                     }
                                 })
                                 return arr
-                            }).flat(Infinity).join('/ ')
+                            }).flat(Infinity).flat(Infinity).join('/ ')
                             scope.leasingInfo.computedAzimuth = scope.leasingInfo.cellAntenna.value.sectors.map(i => {
                                 let arr = [];
                                 if(i.antennas.length > 0) {
@@ -4651,7 +4651,7 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                                 }
 
                                 return arr
-                            }).join('/ ')
+                            }).flat(Infinity).join('/ ')
                             scope.leasingInfo.computedSuspension = scope.leasingInfo.cellAntenna.value.sectors.map(i => {
                                 let arr = [];
                                 if(i.antennas.length > 0) {
@@ -4659,17 +4659,18 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                                 }
 
                                 return arr
-                            }).join('/ ')
+                            }).flat(Infinity).join('/ ')
                             scope.leasingInfo.computedRadioUnits = scope.leasingInfo.cellAntenna.value.sectors.map(i => {
                                 let arr = [];
                                 for(let [key, value] of Object.entries(i.bands)) {
-                                    if (value.active && value.cn_radio_unit) {
+                                    console.log(value.hasOwnProperty('cn_radio_unit'))
+                                    if (value.active && value.hasOwnProperty('cn_radio_unit')) {
                                         arr.push(value.cn_radio_unit.name)
                                     }
                                 }
 
                                 return arr
-                            }).join('/ ')
+                            }).flat(Infinity).join('/ ')
                         }
 
                         if (scope.leasingInfo.cellAntenna.value.cn_du) {
@@ -4677,7 +4678,7 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                                 let arr = [];
                                 arr.push(i.name)
                                 return arr
-                            }).join('/ ')
+                            }).flat(Infinity).join('/ ')
                         }
                     }
 
@@ -4690,7 +4691,7 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                                 }
 
                                 return arr
-                            }).join('/ ')
+                            }).flat(Infinity).join('/ ')
                         }
 
                     }
@@ -4719,13 +4720,6 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                                 }, function(error){
                                     console.log(error);
                                 });
-                            },
-                            changeTab: function(name) {
-                                for (let [key, value] of Object.entries(this.$parent.tabs)) {
-                                    if (key === name && value) {
-                                        value = false
-                                    } else value = key === name && !value;
-                                }
                             },
                             addressToString: function (address) {
                                 let string = [];
