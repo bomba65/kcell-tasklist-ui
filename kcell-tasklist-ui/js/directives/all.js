@@ -1139,7 +1139,7 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                             } else if(block === 'renterCompany') {
                                 fields = ['legalType', 'RClegalName', 'legalAddress', 'telFax', 'firstLeaderName', 'firstLeaderPos', 'email', 'contactName', 'position', 'contractInfo'];
                             } else if(block === 'nearEndInformation') {
-                                fields = ['antennaType', 'antennaQuantity', 'frequencyBand', 'TRSuspensionHeight', 'TRazimuth', 'nei_addr_oblast', 'nei_addr_district', 'nei_addr_city', 'nei_addr_street', 'nei_addr_building', 'nei_addr_cadastral_number', 'nei_addr_note'];
+                                fields = ['antennaType', 'antennaQuantity', 'ne_longitude', 'ne_latitude', 'frequencyBand', 'TRSuspensionHeight', 'TRazimuth', 'nei_addr_oblast', 'nei_addr_district', 'nei_addr_city', 'nei_addr_street', 'nei_addr_building', 'nei_addr_cadastral_number', 'nei_addr_note'];
                             } else if(block === 'powerSource') {
                                 fields = ['agreeToReceiveMonthlyPayment', 'cableLength', 'closestPublic04', 'closestPublic10', 'cn_tps', 'cn_tps_belongs', 'cn_tps_belongs_commentary', 'cn_tps_distance', 'provideUs3Phase'];
                             } else if(block === 'farEndInformation') {
@@ -1148,6 +1148,10 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                                 fields = ['fe_form_contractInformation', 'fe_form_equipmentType', 'fe_form_FarEnd_cn_addr_building', 'fe_form_FarEnd_cn_addr_cadastral_number', 'fe_form_FarEnd_cn_addr_district', 'fe_form_FarEnd_cn_addr_note', 'fe_form_FarEnd_cn_addr_oblast', 'fe_form_FarEnd_cn_addr_street', 'fe_form_FarEnd_n_addr_city', 'fe_form_farEndAddress', 'fe_form_farEndLegalType', 'fe_form_FeAntennasQuantity', 'fe_form_feAntennaType', 'fe_form_FeAzimuth', 'fe_form_FeComments', 'fe_form_FeConstructionType', 'fe_form_FeDiameter', 'fe_form_FeFrequencyBand', 'fe_form_FERC_ContractInformation', 'fe_form_FERC_Name', 'fe_form_FERC_Position', 'fe_form_FERCemail', 'fe_form_FERCFirstLeaderName', 'fe_form_FERCFirstLeaderPosition', 'fe_form_FERCLegalAddress', 'fe_form_FERClegalName', 'fe_form_FERCTelFax', 'fe_form_FeSquare', 'fe_form_FeSuspensionHeight', 'fe_form_FeWeight', 'fe_form_ResultsOfVisit', 'fe_form_surveyDate'];
                             } else if(block === 'farEndAddress') {
                                 fields = ['fe_form_FarEnd_cn_addr_oblast', 'fe_form_FarEnd_cn_addr_district', 'fe_form_FarEnd_n_addr_city', 'fe_form_FarEnd_cn_addr_street', 'fe_form_FarEnd_cn_addr_building', 'fe_form_FarEnd_cn_addr_cadastral_number', 'fe_form_FarEnd_cn_addr_note'];
+                            } else if(block === 'nearEndAddress') {
+                                fields = ['nei_addr_oblast', 'ne_longitude', 'ne_latitude', 'nei_addr_building', 'nei_addr_note', 'nei_addr_street'];
+                            } else if(block === 'cellAntennaAddress') {
+                                fields = ['cai_addr_oblast', 'cai_addr_district', 'cai_addr_building', 'cai_addr_note', 'cai_addr_street', 'cai_addr_street'];
                             }
                             keys.forEach(function (key) {
                                 if (!key.startsWith('$')) {
