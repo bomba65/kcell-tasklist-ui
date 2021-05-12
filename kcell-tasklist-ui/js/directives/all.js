@@ -4369,6 +4369,125 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                             });
                     }
                 };
+                scope.toggleProcessViewTsd = function (index, processInstanceId, businessKey, startDate, processDefinitionKey, userId, processDefinitionId) {
+                    var task = []
+                    $http({
+                        method: 'GET',
+                        headers: {'Accept': 'application/hal+json, application/json; q=0.5'},
+                        url: baseUrl + '/task?processInstanceId=' + processInstanceId,
+                    }).then(
+                        function (tasks) {
+                            var processInstanceTasks = tasks.data._embedded.task;
+                            if (processInstanceTasks && processInstanceTasks.length > 0) {
+                                processInstanceTasks.forEach(function (e) {
+                                    if (e.assignee && tasks.data._embedded.assignee) {
+                                        for (var i = 0; i < tasks.data._embedded.assignee.length; i++) {
+                                            if (tasks.data._embedded.assignee[i].id === e.assignee) {
+                                                e.assigneeObject = tasks.data._embedded.assignee[i];
+                                            }
+                                            $http({
+                                                method: 'GET',
+                                                headers: {'Accept': 'application/hal+json, application/json; q=0.5'},
+                                                url: baseUrl + '/task/' + e.processInstanceId
+                                            }).then(
+                                                function (taskResult) {
+                                                    if (taskResult.data._embedded && taskResult.data._embedded.group) {
+                                                        e.group = taskResult.data._embedded.group[0].id;
+                                                    }
+                                                },
+                                                function (error) {
+                                                    console.log(error.data);
+                                                }
+                                            );
+                                        }
+                                    }
+                                    $http({
+                                        method: 'GET',
+                                        headers: {'Accept': 'application/hal+json, application/json; q=0.5'},
+                                        url: baseUrl + '/task/' + e.id
+                                    }).then(
+                                        function (taskResult) {
+                                            if (taskResult.data._embedded && taskResult.data._embedded.group) {
+                                                e.group = taskResult.data._embedded.group[0].id;
+                                            }
+                                        },
+                                        function (error) {
+                                            console.log(error.data);
+                                        }
+                                    );
+                                    $http({
+                                        method: 'GET',
+                                        headers: {'Accept': 'application/hal+json, application/json; q=0.5'},
+                                        url: baseUrl + '/history/user-operation?operationType=Claim&taskId=' + e.id
+                                    }).then(
+                                        function (taskLog) {
+                                            console.log(taskLog);
+                                            if(taskLog.data.length > 0) {
+                                                e.claimDate = taskLog.data[0].timestamp;
+                                            }
+                                        },
+                                        function (error) {
+                                            console.log(error.data);
+                                        }
+                                    );
+                                    $http({
+                                        method: 'GET',
+                                        headers: {'Accept': 'application/hal+json, application/json; q=0.5'},
+                                        url: baseUrl + '/history/user-operation?operationType=Assign&taskId=' + e.id
+                                    }).then(
+                                        function (taskLog) {
+                                            console.log(taskLog);
+                                            if(taskLog.data.length > 0) {
+                                                e.assigneeDate = taskLog.data[0].timestamp;
+                                            }
+                                        },
+                                        function (error) {
+                                            console.log(error.data);
+                                        }
+                                    );
+                                });
+                                task = processInstanceTasks;
+                            } else {
+                                var activities = [];
+                                $http.get(baseUrl + '/process-instance/' + processInstanceId + '/activity-instances').then(
+                                    function (result) {
+                                        _.forEach(result.data.childActivityInstances, function (firstLevel) {
+                                            if (firstLevel.activityType === 'subProcess') {
+                                                _.forEach(firstLevel.childActivityInstances, function (secondLevel) {
+                                                    if (secondLevel.activityType !== 'userTask' && secondLevel.activityType !== 'multiInstanceBody') {
+                                                        activities.push(secondLevel);
+                                                    }
+                                                });
+                                            } else if (firstLevel.activityType !== 'userTask' && firstLevel.activityType !== 'multiInstanceBody') {
+                                                activities.push(firstLevel);
+                                            }
+                                        });
+                                    },
+                                    function (error) {
+                                        console.log(error.data);
+                                    }
+                                );
+                                task = activities;
+                            }
+                            $http.post(baseUrl + '/history/variable-instance?deserializeValues=false', {
+                                processDefinitionKey: processDefinitionKey,
+                                processInstanceId: processInstanceId,
+                            }).then(function (result) {
+                                let vars = {};
+                                result.data.forEach(function (v) {
+                                    vars[v.name] = v.value;
+                                });
+                                if (processDefinitionKey === 'create-new-tsd') {
+                                    openCreateTsdProcessCardModal(businessKey, startDate, userId, vars, processDefinitionId, task)
+                                } else {
+                                    openTsdProcessCardModal(businessKey, startDate, userId, vars, processDefinitionId, task)
+                                }
+                            },
+                            function (error) {
+                                console.log(error.data);
+                            });
+                    });
+                };
                 function openProcessCardModalReplacement(processDefinitionId, businessKey, index) {
                     exModal.open({
                         scope: {
