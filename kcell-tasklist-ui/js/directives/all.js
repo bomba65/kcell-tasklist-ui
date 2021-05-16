@@ -4675,11 +4675,7 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                         }
 
                         if (scope.leasingInfo.cellAntenna.value.cn_du) {
-                            scope.leasingInfo.computedDuTypes = scope.leasingInfo.cellAntenna.value.cn_du.map(i => {
-                                let arr = [];
-                                arr.push(i.name)
-                                return arr
-                            }).flat(Infinity).join('/ ')
+                            scope.leasingInfo.computedDuTypes = scope.leasingInfo.cellAntenna.value.cn_du.map(i => i.name).join('/ ')
                         }
                     }
 
