@@ -3768,6 +3768,7 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                 };
 
                 function openProcessCardModalRevision(processDefinitionId, businessKey, index) {
+                    let checkStatus = scope.jobModel.tasks.findIndex(i => i.name === 'Attach scan copy of documents')
                     exModal.open({
                         scope: {
                             jobModel: scope.jobModel,
@@ -3780,6 +3781,7 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                             piIndex: scope.piIndex,
                             $index: index,
                             businessKey: businessKey,
+                            blockExportButtons: checkStatus > -1,
                             download: function (file) {
                                 $http({
                                     method: 'GET',
@@ -3798,6 +3800,49 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                                 return _.find(dictionary, function (dict) {
                                     return dict.id === id;
                                 });
+                            },
+                            export: function(source) {
+                                let url;
+                                if (source === 'fin') {
+                                    url = 'generateFin'
+                                } else {
+                                    url = 'generateNotFin'
+                                }
+                                $http({
+                                    method: 'POST',
+                                    url: '/camunda/monthlyactandrevision/' + url,
+                                    headers: {
+                                        'Content-type': 'application/json',
+                                        'Accept': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+                                    },
+                                    responseType: 'arraybuffer',
+                                    data: {
+                                        selectedRevisions: scope.jobModel.selectedRevisions.value,
+                                        subcontractor: scope.jobModel.subcontractor.value,
+                                        businessKey: businessKey,
+                                        monthOfFormalPeriod: scope.jobModel.monthOfFormalPeriod.value,
+                                        yearOfFormalPeriod: scope.jobModel.yearOfFormalPeriod.value
+                                    }
+                                }).then(function(response){
+                                    const url = window.URL.createObjectURL(new Blob([response.data]));
+                                    const link = document.createElement('a');
+                                    link.href = url;
+                                    let arr = businessKey.split('-');
+                                    let fileName = 'file'
+                                    if (arr.length === 3) {
+                                        arr[1] = arr[1].substring(2)
+                                        fileName = arr.join('-')
+                                        if (source === 'fin') {
+                                            fileName += '- Fin'
+                                        } 
+                                    }
+                                    link.setAttribute('download', `${fileName}.docx`); //or any other extension
+                                    document.body.appendChild(link);
+                                    link.click();
+                                    
+                                }).catch((e) => {
+                                    console.log(e)
+                                })
                             },
                             compareDate: new Date('2019-02-05T06:00:00.000'),
                         },

@@ -238,6 +238,51 @@
                 })
             };
 
+            $scope.export = function(source) {
+                let url;
+                if (source === 'fin') {
+                    url = 'generateFin'
+                } else {
+                    url = 'generateNotFin'
+                }
+                $http({
+                    method: 'POST',
+                    url: '/camunda/monthlyactandrevision/' + url,
+                    headers: {
+                        'Content-type': 'application/json',
+                        'Accept': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+                    },
+                    responseType: 'arraybuffer',
+                    data: {
+                        selectedRevisions: $scope.selectedRevisions,
+                        subcontractor: $scope.subcontractor,
+                        businessKey: $scope.maNumber,
+                        monthOfFormalPeriod: $scope.monthOfFormalPeriod,
+                        yearOfFormalPeriod: $scope.yearOfFormalPeriod
+                    }
+                }).then(function(response){
+                    const url = window.URL.createObjectURL(new Blob([response.data]));
+                    const link = document.createElement('a');
+                    link.href = url;
+                    let arr = $scope.maNumber.split('-');
+                    let fileName = 'file'
+                    if (arr.length === 3) {
+                        arr[1] = arr[1].substring(2)
+                        fileName = arr.join('-')
+                        if (source === 'fin') {
+                            fileName += '- Fin'
+                        }
+                    }
+                    link.setAttribute('download', `${fileName}.docx`); //or any other extension
+                    document.body.appendChild(link);
+                    link.click();
+
+                }).catch((e) => {
+                    console.log(e)
+                })
+            }
+
+
             function uploadFileToMinio(file, bindedInput) {
                 var fileIndex = $scope.scanFiles.value.length;
 
@@ -276,6 +321,8 @@
     <div class="form-group">
         <label class="col-sm-3 control-label">Subcontractor:</label>
         <label class="col-sm-3 control-label">{{subcontractor}}</label>
+        <button class="col-sm-3 col-sm-offset-1 btn btn-default" style="width: 200px" ng-click="export('tech')"> Export (Technical)</button>
+        <button class="col-sm-3 btn btn-default" style="width: 200px; margin-left: 20px" ng-click="export('fin')"> Export (Financial)</button>
     </div>
 
     <div class="form-group">

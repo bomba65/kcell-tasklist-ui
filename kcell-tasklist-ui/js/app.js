@@ -24,7 +24,7 @@ define('app',[
 	'bootstrap-select',
 	'angular-toarrayfilter',
 	'ui.mask',
-	'angular-ui-sortable'
+	'angular-ui-sortable',
 ], function(ng){
 	'use strict';
 	var app =  ng.module('app', [
