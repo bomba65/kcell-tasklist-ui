@@ -3456,11 +3456,7 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                                     url: baseUrl + '/task'
                                 }).then(
                                     function (tasks) {
-                                        console.log("1111====")
-                                        console.log(tasks)
                                         angular.forEach(scope[processInstances], function (el) {
-                                            console.log("123====")
-                                            console.log(scope[processInstances])
                                             var f = _.filter(tasks.data, function (t) {
                                                 return t.processInstanceId === el.id;
                                             });
