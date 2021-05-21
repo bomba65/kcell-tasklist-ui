@@ -77,6 +77,16 @@ public class MonthlyActAndRevision {
         mapSubcontractorsToNum.put("LINE", "4");
     }
 
+    private final static Map<String, String> mapSubcontractorsContract;
+    static
+    {
+        mapSubcontractorsContract = new HashMap<String, String>();
+        mapSubcontractorsContract.put("ALTA", "№87649 от 01.10.2020 г");
+        mapSubcontractorsContract.put("ARLAN", "№ 88323 от 27.11.2020 г");
+        mapSubcontractorsContract.put("LOGYCOM", "№ 88327 от 20.11.2020 г");
+        mapSubcontractorsContract.put("LINE", "№87073 от 19.08.2020 г");
+    }
+
     private final static Map<String, String> contractorsTitle;
     static
     {
@@ -208,7 +218,7 @@ public class MonthlyActAndRevision {
         title = document.createParagraph();
         title.setAlignment(ParagraphAlignment.CENTER);
         titleRun = title.createRun();
-        titleRun.setText("Договора Подряда на Выполнение Работ по Внедрению и Модификации №");
+        titleRun.setText("Договора Подряда на Выполнение Работ по Внедрению и Модификации " + mapSubcontractorsContract.get(subcontractor));
         titleRun.setBold(true);
         titleRun.setFontFamily("Calibri");
         titleRun.setFontSize(12);
