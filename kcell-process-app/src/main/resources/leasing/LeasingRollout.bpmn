@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:bioc="http://bpmn.io/schema/bpmn/biocolor/1.0" id="Definitions_1" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="4.3.0">
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:bioc="http://bpmn.io/schema/bpmn/biocolor/1.0" id="Definitions_1" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="4.4.0">
   <bpmn:process id="leasing" name="Rollout site process&#10;" isExecutable="true">
     <bpmn:documentation>Send a message to start a payment</bpmn:documentation>
     <bpmn:startEvent id="StartEvent_first" camunda:formKey="embedded:app:forms/leasing/start.html" camunda:initiator="starter">
@@ -899,6 +899,7 @@
       <bpmn:sequenceFlow id="SequenceFlow_0lt4tq3" sourceRef="ExclusiveGateway_0vtw9g9" targetRef="createNewCandidateSite" />
       <bpmn:exclusiveGateway id="ExclusiveGateway_1yycn70" default="SequenceFlow_0gvd3em">
         <bpmn:incoming>SequenceFlow_03qqpgp</bpmn:incoming>
+        <bpmn:incoming>Flow_01f8ccv</bpmn:incoming>
         <bpmn:outgoing>SequenceFlow_1mknb0l</bpmn:outgoing>
         <bpmn:outgoing>SequenceFlow_0gvd3em</bpmn:outgoing>
       </bpmn:exclusiveGateway>
@@ -910,7 +911,7 @@
         <bpmn:outgoing>SequenceFlow_0nqosi7</bpmn:outgoing>
       </bpmn:userTask>
       <bpmn:sequenceFlow id="SequenceFlow_1mknb0l" name="Request to cancel NCP" sourceRef="ExclusiveGateway_1yycn70" targetRef="ServiceTask_18omi2h">
-        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${modifyCandidateSiteTaskResult == 'requestCancelNCP'}</bpmn:conditionExpression>
+        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${modifyCandidateSiteTaskResult == 'requestCancelNCP' || createNewCandidateSiteTaskResult == 'NCP cancel required'}</bpmn:conditionExpression>
       </bpmn:sequenceFlow>
       <bpmn:sequenceFlow id="SequenceFlow_0gvd3em" name="rejected " sourceRef="ExclusiveGateway_1yycn70" targetRef="createNewCandidateSite" />
       <bpmn:sequenceFlow id="SequenceFlow_0nqosi7" sourceRef="rejectedNCP" targetRef="SendTask_1j6miqc" />
@@ -954,6 +955,7 @@ execution.setVariable('createAssetCandidateTableList', SpinValues.jsonValue(crea
         <bpmn:incoming>SequenceFlow_14h800t</bpmn:incoming>
         <bpmn:outgoing>SequenceFlow_0hly2ew</bpmn:outgoing>
         <bpmn:outgoing>SequenceFlow_1g75d87</bpmn:outgoing>
+        <bpmn:outgoing>Flow_01f8ccv</bpmn:outgoing>
       </bpmn:exclusiveGateway>
       <bpmn:exclusiveGateway id="ExclusiveGateway_0t1rpm6">
         <bpmn:incoming>SequenceFlow_0src7tl</bpmn:incoming>
@@ -989,7 +991,7 @@ execution.setVariable('createAssetCandidateTableList', SpinValues.jsonValue(crea
       <bpmn:sequenceFlow id="SequenceFlow_0itk7wj" sourceRef="ExclusiveGateway_0t1rpm6" targetRef="EndEvent_0v57obw" />
       <bpmn:sequenceFlow id="SequenceFlow_0hly2ew" sourceRef="ExclusiveGateway_1xcv3s1" targetRef="createCandidate" />
       <bpmn:sequenceFlow id="SequenceFlow_1g75d87" sourceRef="ExclusiveGateway_1xcv3s1" targetRef="updateCandidate">
-        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${execution.getVariable("createdArtefactId") != null }</bpmn:conditionExpression>
+        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${execution.getVariable("createdArtefactId") != null &amp;&amp; createNewCandidateSiteTaskResult == 'Confirm candidate'}</bpmn:conditionExpression>
       </bpmn:sequenceFlow>
       <bpmn:sequenceFlow id="SequenceFlow_1lxy7gl" sourceRef="updateCandidate" targetRef="ServiceTask_0gvoxst" />
       <bpmn:serviceTask id="ServiceTask_0gvoxst" name="set Status 05" camunda:class="kz.kcell.flow.leasing.SetStatus">
@@ -1009,6 +1011,9 @@ execution.setVariable('createAssetCandidateTableList', SpinValues.jsonValue(crea
         <bpmn:multiInstanceLoopCharacteristics isSequential="true" camunda:asyncBefore="true" camunda:collection="${createAssetCandidateTableList.elements()}" camunda:elementVariable="createAssetCandidateTable" />
       </bpmn:serviceTask>
       <bpmn:sequenceFlow id="Flow_0jvxjx6" sourceRef="createAssetCandidate" targetRef="ServiceTask_15vtfns" />
+      <bpmn:sequenceFlow id="Flow_01f8ccv" sourceRef="ExclusiveGateway_1xcv3s1" targetRef="ExclusiveGateway_1yycn70">
+        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${createNewCandidateSiteTaskResult == 'NCP cancel required'}</bpmn:conditionExpression>
+      </bpmn:sequenceFlow>
       <bpmn:textAnnotation id="TextAnnotation_1a26i1r">
         <bpmn:text>Regional Planner group</bpmn:text>
       </bpmn:textAnnotation>
@@ -4004,6 +4009,12 @@ InstStatusBeforeLeasingProblem</camunda:script>
         <di:waypoint x="988" y="1112" />
         <di:waypoint x="988" y="1318" />
         <di:waypoint x="1073" y="1318" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_01f8ccv_di" bpmnElement="Flow_01f8ccv">
+        <di:waypoint x="2058" y="1343" />
+        <di:waypoint x="2058" y="1420" />
+        <di:waypoint x="1280" y="1420" />
+        <di:waypoint x="1280" y="1343" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNShape id="StartEvent_0kj1i9w_di" bpmnElement="StartEvent_0kj1i9w">
         <dc:Bounds x="862" y="1069" width="36" height="36" />
