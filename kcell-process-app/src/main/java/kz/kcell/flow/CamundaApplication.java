@@ -155,7 +155,7 @@ public class CamundaApplication extends SpringBootProcessApplication {
         plugin.setGroupMemberAttribute("member");
         plugin.setSortControlSupported(true);
         plugin.setAuthorizationCheckEnabled(false);
-        //plugin.setUseSsl(true);
+        plugin.setUseSsl(true);
 
         return plugin;
     }
