@@ -95,11 +95,11 @@ public class MonthlyActAndRevision {
         contractorsTitle.put("1", "ТОО Аврора Сервис");
         contractorsTitle.put("2", "ТОО AICOM");
         contractorsTitle.put("3", "ТОО Spectr energy group");
-        contractorsTitle.put("4", "TOO Line System Engineering");
+        contractorsTitle.put("4", "ТОО «Line System Engineering»");
         contractorsTitle.put("5", "Kcell_region");
-        contractorsTitle.put("6", "Алта Телеком");
-        contractorsTitle.put("7", "Логиком");
-        contractorsTitle.put("8", "Arlan SI");
+        contractorsTitle.put("6", "ТОО «ALTA Telecom (АЛТА Телеком)»\n");
+        contractorsTitle.put("7", "АО «Логиком»");
+        contractorsTitle.put("8", "ТОО «ARLAN SI»");
     }
 
     private final static Map<String, String> reasonsTitle;
@@ -432,7 +432,7 @@ public class MonthlyActAndRevision {
         run3 = para.createRun();
         run3.setFontFamily("Calibri");
         run3.setFontSize(12);
-        run3.setText(contractorsTitle.get(mapSubcontractorsToNum.get(subcontractor)));
+        run3.setText("Представитель " + contractorsTitle.get(mapSubcontractorsToNum.get(subcontractor)));
 
         cell3 = row.getCell(1);
         para = cell3.getParagraphArray(0);
@@ -487,6 +487,7 @@ public class MonthlyActAndRevision {
         para.setBorderBottom(Borders.SINGLE);
         run3 = para.createRun();
         run3.setFontFamily("Calibri");
+        run3.setText("");
         run3.setFontSize(12);
 
         row = table3.getRow(4);
@@ -622,6 +623,7 @@ public class MonthlyActAndRevision {
     private void setFont(XWPFRun run, Boolean bold) {
         run.setFontSize(12);
         run.setFontFamily("Calibri");
+        run.setText("");
         run.setBold(bold);
     }
     private void computeInformation(JSONArray emergencyWorks, SimpleDateFormat emergencyfd, SimpleDateFormat format) throws ParseException {
@@ -660,7 +662,7 @@ public class MonthlyActAndRevision {
             run.setFontSize(8);
             paragraph = row.getCell(6).getParagraphArray(0);
             run = paragraph.createRun();
-            run.setText(isFin ? work.getString("basePrice") : localeObject.getString("contractorJobAssignedDateString"));
+            run.setText(isFin ? work.getString("unitWorkPrice") : localeObject.getString("contractorJobAssignedDateString"));
             run.setFontSize(8);
             paragraph = row.getCell(7).getParagraphArray(0);
             run = paragraph.createRun();
@@ -680,7 +682,7 @@ public class MonthlyActAndRevision {
             if (isFin) {
                 paragraph = row.getCell(6).getParagraphArray(0);
                 run = paragraph.createRun();
-                run.setText(isFin ? work.getString("basePrice") : localeObject.getString("contractorJobAssignedDateString"));
+                run.setText(isFin ? work.getString("unitWorkPrice") : localeObject.getString("contractorJobAssignedDateString"));
                 run.setFontSize(8);
                 paragraph = row.getCell(7).getParagraphArray(0);
                 run = paragraph.createRun();
