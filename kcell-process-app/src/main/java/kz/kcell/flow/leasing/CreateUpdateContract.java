@@ -83,9 +83,9 @@ public class CreateUpdateContract implements JavaDelegate {
                             String ct_acquisitionType = ci.prop("ct_acquisitionType").stringValue();
                             String assignUser = ci.prop("assignee").value().toString();
                             SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXX"); //2020-01-02T18:00:00.000Z
-                            String ct_acceptance_act_date = ci.prop("ct_acceptance_act_date").stringValue();
-                            String ct_contract_start_date = ci.prop("ct_contract_start_date").stringValue();
-                            String ct_contract_end_date = ci.prop("ct_contract_end_date").stringValue();
+                            String ct_acceptance_act_date = ci.hasProp("ct_acceptance_act_date") ? ci.prop("ct_acceptance_act_date").stringValue() : null;
+                            String ct_contract_start_date = ci.hasProp("ct_contract_start_date") ? ci.prop("ct_contract_start_date").stringValue() : null;
+                            String ct_contract_end_date = ci.hasProp("ct_contract_end_date") ? ci.prop("ct_contract_end_date").stringValue() : null;
 
 
                             if(_CONTRACT_APPROVAL_TYPE.equals("FE")){
@@ -118,9 +118,9 @@ public class CreateUpdateContract implements JavaDelegate {
 
 
 
-                            Date formated_ct_acceptance_act_date = formatter.parse(ct_acceptance_act_date);
-                            Date formated_ct_contract_start_date = formatter.parse(ct_contract_start_date);
-                            Date formated_ct_contract_end_date = formatter.parse(ct_contract_end_date);
+                            Date formated_ct_acceptance_act_date = ct_acceptance_act_date != null ? formatter.parse(ct_acceptance_act_date) : null;
+                            Date formated_ct_contract_start_date = ct_contract_start_date != null ? formatter.parse(ct_contract_start_date) : null;
+                            Date formated_ct_contract_end_date = ct_contract_end_date != null ? formatter.parse(ct_contract_end_date) : null;
                             Calendar cal_ct_acceptance_act_date = Calendar.getInstance();
                             Calendar cal_ct_contract_start_date = Calendar.getInstance();
                             Calendar cal_ct_contract_end_date = Calendar.getInstance();
@@ -138,12 +138,12 @@ public class CreateUpdateContract implements JavaDelegate {
                                 cal_ct_contract_end_date.add(Calendar.HOUR_OF_DAY, 6);
                             }
 
-                            Number ct_rent = ci.prop("ct_rent").numberValue();
-                            Number ct_rent_all = ci.prop("ct_rent_all").numberValue();
-                            Number ct_rent_area = ci.prop("ct_rent_area").numberValue();
-                            String ct_bin = ci.prop("ct_bin").numberValue().toString();
-                            String ct_iban = ci.prop("ct_iban").stringValue();
-                            String ct_legal_name = ci.prop("ct_legal_name").stringValue();
+                            Number ct_rent = ci.hasProp("ct_rent") ? ci.prop("ct_rent").numberValue() : 0;
+                            Number ct_rent_all = ci.hasProp("ct_rent_all") ? ci.prop("ct_rent_all").numberValue() : 0;
+                            Number ct_rent_area = ci.hasProp("ct_rent_area") ? ci.prop("ct_rent_area").numberValue() : 0;
+                            String ct_bin = ci.hasProp("ct_bin") ? ci.prop("ct_bin").numberValue().toString() : "";
+                            String ct_iban = ci.hasProp("ct_iban") ? ci.prop("ct_iban").stringValue() : "";
+                            String ct_legal_name = ci.hasProp("ct_legal_name") ? ci.prop("ct_legal_name").stringValue() : "";
                             Number ct_rent_power = ci.hasProp("ct_rent_power") && !ci.prop("ct_rent_power").isNull() ? ci.prop("ct_rent_power").numberValue() : 0; //notReq
 //                            Number legalType = ci.prop("legalType").numberValue();
                             Number legalType = 0;
@@ -164,11 +164,11 @@ public class CreateUpdateContract implements JavaDelegate {
                                 (ci.prop("address").hasProp("cn_addr_note") ? ", " + ci.prop("address").prop("cn_addr_note").value().toString() : "");
 
                             String ct_contact_person = ci.hasProp("ct_contact_person") ? ci.prop("ct_contact_person").stringValue() : ""; // notReq
-                            String ct_contact_phone = ci.prop("ct_contact_phone").stringValue();
-                            String ct_access_status = ci.prop("ct_access_status").value().toString();
-                            String ct_autoprolongation = ci.prop("ct_autoprolongation").stringValue();
+                            String ct_contact_phone = ci.hasProp("ct_contact_phone") ? ci.prop("ct_contact_phone").stringValue() : "";
+                            String ct_access_status = ci.hasProp("ct_access_status") ? ci.prop("ct_access_status").value().toString() : "0";
+                            String ct_autoprolongation = ci.hasProp("ct_autoprolongation") ? ci.prop("ct_autoprolongation").stringValue() : "";
 //                            String ct_contract_sap = ci.prop("ct_contract_sap").stringValue();
-                            Long ct_contract_sap = ci.prop("ct_contract_sap").numberValue().longValue();
+                            Long ct_contract_sap = ci.hasProp("ct_contract_sap") ? ci.prop("ct_contract_sap").numberValue().longValue() : 0;
 
                             ct_contract_type = Integer.parseInt(ci.hasProp("ct_contract_type") ? ci.prop("ct_contract_type").value().toString() : "0");
                             ct_payment_period = Integer.parseInt(ci.hasProp("ct_payment_period") ? ci.prop("ct_payment_period").value().toString() : "0");
@@ -215,7 +215,7 @@ public class CreateUpdateContract implements JavaDelegate {
 //                            log.info(legalType);
 //                            log.info("end legalType:");
 
-                            String ct_checkvat = ci.prop("ct_checkvat").stringValue() == "No" ? "no" : "yes";
+                            String ct_checkvat = ci.hasProp("ct_checkvat") ? (ci.prop("ct_checkvat").stringValue() == "No" ? "no" : "yes") : "no";
                             Long ct_cid = new Long(1);
                             int i = 1;
 
@@ -224,7 +224,7 @@ public class CreateUpdateContract implements JavaDelegate {
                                 ct_cid = ci.prop("ct_cid").numberValue().longValue();
 
                                 ct_contractid_old = ci.prop("ct_contractid_old").value().toString();
-                                ct_vendor_sap = ci.prop("ct_vendor_sap").numberValue().intValue();
+                                ct_vendor_sap = ci.hasProp("ct_vendor_sap") ? ci.prop("ct_vendor_sap").numberValue().intValue() : 0;
 //                                ct_agreement_type = ci.prop("ct_agreement_type").numberValue().intValue();
 
 
@@ -264,7 +264,7 @@ public class CreateUpdateContract implements JavaDelegate {
                             } else if (ct_acquisitionType.equals("newContract")) {
                                 log.info("NEW CONTRACT....");
 //                                contractid = ci.prop("ct_contractid").stringValue();
-                                ct_vendor_sap = ci.prop("ct_vendor_sap").numberValue().intValue();
+                                ct_vendor_sap = ci.hasProp("ct_vendor_sap") ? ci.prop("ct_vendor_sap").numberValue().intValue() : 0;
 //                                ct_vendor_sap = Integer.parseInt(ci.prop("ct_vendor_sap").stringValue());
                                 ct_agreement_type = 0;
                             }
