@@ -4580,7 +4580,7 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                             });
                     }
                 };
-                function openProcessCardModalLeasing(processDefinitionId, businessKey, index) {
+                async function openProcessCardModalLeasing(processDefinitionId, businessKey, index) {
                     console.log(scope.leasingInfo);
                     scope.leasingInfo.computedAntennaName = ''
                     scope.leasingInfo.computedDimensions = ''
@@ -4592,7 +4592,9 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                     scope.leasingInfo.computedRadioUnits = ''
                     scope.leasingInfo.computedCableLaying = ''
                     scope.leasingInfo.computedDuTypes = ''
-
+                    scope.leasingInfo.computtedLegalType = ''
+                    const response = await $http.post('/camunda/catalogs/api/get/rolloutcatalogids', [22])
+                    scope.leasingInfo.computtedLegalType = response.data.legal_type.find(el => el.catalogsId == scope.leasingInfo.renterCompany.value.legalTypeCatalogId).name
                     if(scope.leasingInfo.cellAntenna && scope.leasingInfo.cellAntenna.type === 'Json') {
                         if(scope.leasingInfo.cellAntenna.value.sectors.length) {
                             scope.leasingInfo.computedAntennaName = scope.leasingInfo.cellAntenna.value.sectors.map(i => {
