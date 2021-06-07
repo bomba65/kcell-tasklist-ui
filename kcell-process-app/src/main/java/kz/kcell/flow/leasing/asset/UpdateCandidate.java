@@ -690,8 +690,8 @@ public class UpdateCandidate implements JavaDelegate {
                 if (candidate.hasProp("rbsLocation") && candidate.prop("rbsLocation").hasProp("id") && candidate.prop("rbsLocation").prop("id").isNumber()) {
                     rbsLocationId = candidate.prop("rbsLocation").prop("id").numberValue().longValue();
                 }
-                if (candidate.hasProp("bsc") && candidate.prop("bsc").hasProp("id") && candidate.prop("bsc").prop("id").isNumber()) {
-                    bscId = candidate.prop("bsc").prop("id").numberValue().longValue();
+                if (candidate.hasProp("bsc") && candidate.prop("bsc").hasProp("assetsid") && candidate.prop("bsc").prop("assetsid").isNumber()) {
+                    bscId = candidate.prop("bsc").prop("assetsid").numberValue().longValue();
                 }
 
                 String site_name = delegateExecution.getVariable("siteName") != null ? delegateExecution.getVariable("siteName").toString() : null;
