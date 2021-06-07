@@ -26,7 +26,7 @@ class GenerateLeasingRSD implements ExecutionListener {
         this.minioClient = minioClient;
     }
 
-    static String render (Map binding ) {
+    static String render(Map binding) {
 //        println(binding)
         def template = '''\
 
@@ -310,11 +310,20 @@ class GenerateLeasingRSD implements ExecutionListener {
         def result = engine.createTemplate(template).make(binding).toString()
         return result
     }
+
     @Override
-    public void notify(DelegateExecution delegateExecution) {
+    void notify(DelegateExecution delegateExecution) {
 
 
         def execution = delegateExecution
+
+        String createNewCandidateSiteTaskResult = execution.hasVariable('createNewCandidateSiteTaskResult') ? execution.getVariable('createNewCandidateSiteTaskResult').toString() : ""
+        if (createNewCandidateSiteTaskResult != null && createNewCandidateSiteTaskResult == "NCP cancel required") {
+            execution.setVariable("modifyCandidateSiteTaskResult", "")
+            return
+        }
+
+
         def pid = delegateExecution.getProcessInstanceId()
 
         def candidateJson = new JsonSlurper().parseText(execution.getVariable('candidate').toString());
@@ -326,11 +335,11 @@ class GenerateLeasingRSD implements ExecutionListener {
         JSONArray sectorsArr = new JSONArray(cellAntennaJson.sectors)
 
         def bandNames = ""
-        for(int i=0;i<bandsArr.length();i++){
+        for (int i = 0; i < bandsArr.length(); i++) {
             JSONObject obj = bandsArr.getJSONObject(i);
             bandNames += obj.get("title")
 
-            if(i < bandsArr.length()-1) {
+            if (i < bandsArr.length() - 1) {
                 bandNames += ", "
             }
         }
@@ -340,13 +349,13 @@ class GenerateLeasingRSD implements ExecutionListener {
             cn_duNames += du.name
             cn_duNames += ", "
         }
-        cn_duNames = cn_duNames.substring(0, cn_duNames.length()-2);
+        cn_duNames = cn_duNames.substring(0, cn_duNames.length() - 2);
 
-        for(int i=0;i<bandsArr.length();i++){
+        for (int i = 0; i < bandsArr.length(); i++) {
             JSONObject obj = bandsArr.getJSONObject(i);
             bandNames += obj.get("title")
 
-            if(i < bandsArr.length()-1) {
+            if (i < bandsArr.length() - 1) {
                 bandNames += ", "
             }
         }
@@ -355,35 +364,35 @@ class GenerateLeasingRSD implements ExecutionListener {
         def formatDate = new SimpleDateFormat("dd.MM.yyyy")
 
         def headerInfo = [
-            cityName: cellAntennaJson.address.cn_addr_city,
-            siteName: execution.getVariable("siteName").toString(),
-            siteType: siteTypeJson.name,
-            bsc: (candidateJson.bsc instanceof String ? candidateJson.bsc : candidateJson.bsc.name),
-            coordinatesN: candidateJson.latitude,
-            coordinatesE: candidateJson.longitude,
-            altitude: candidateJson.cn_altitude,
-            heightOfConstruction: candidateJson.cn_height_constr,
-            rbsType: candidateJson.rbsType,
-            duType: cn_duNames,
-            regionName: execution.getVariable("regionName").toString(),
-            date: formatDate.format(new Date()),
-            visitingDate: candidateJson.dateOfVisit != null ? formatDate.format(globalFormat.parse(candidateJson.dateOfVisit)) : '',
-            planningEngineer: "Regional planning engineer",
-            band: bandNames,
+                cityName            : cellAntennaJson.address.cn_addr_city,
+                siteName            : execution.getVariable("siteName").toString(),
+                siteType            : siteTypeJson.name,
+                bsc                 : (candidateJson.bsc instanceof String ? candidateJson.bsc : candidateJson.bsc.name),
+                coordinatesN        : candidateJson.latitude,
+                coordinatesE        : candidateJson.longitude,
+                altitude            : candidateJson.cn_altitude,
+                heightOfConstruction: candidateJson.cn_height_constr,
+                rbsType             : candidateJson.rbsType,
+                duType              : cn_duNames,
+                regionName          : execution.getVariable("regionName").toString(),
+                date                : formatDate.format(new Date()),
+                visitingDate        : candidateJson.dateOfVisit != null ? formatDate.format(globalFormat.parse(candidateJson.dateOfVisit)) : '',
+                planningEngineer    : "Regional planning engineer",
+                band                : bandNames,
         ]
 
         def mainSectorData = []
         char[] alphabet = "abcdefghijklmnopqrstuvwxyz".toCharArray();
 
-        for(int j=0;j<sectorsArr.length();j++){
+        for (int j = 0; j < sectorsArr.length(); j++) {
             JSONArray obj2 = sectorsArr.getJSONObject(j).getJSONArray("antennas")
             JSONObject bands = sectorsArr.getJSONObject(j).getJSONObject("bands")
             ArrayList<String> antennaKeysList = new ArrayList<>();
             def antennaHeader = []
             def antennaArray = []
 
-            String sectorName = "Sector " + (j+1) + " - Cell " + alphabet[j].toUpperCase();
-            for(int k=0;k<obj2.length();k++){
+            String sectorName = "Sector " + (j + 1) + " - Cell " + alphabet[j].toUpperCase();
+            for (int k = 0; k < obj2.length(); k++) {
                 JSONObject antennaObject = obj2.getJSONObject(k);
                 String antennaName = antennaObject.get("antennaName")
                 String suspensionHeight = antennaObject.get("suspensionHeight")
@@ -396,42 +405,42 @@ class GenerateLeasingRSD implements ExecutionListener {
 
                 StringJoiner antennaTypeString = new StringJoiner(",");
 
-                while(keys.hasNext()) {
+                while (keys.hasNext()) {
                     String key = keys.next();
-                    if(!key.contains("hashKey")){
+                    if (!key.contains("hashKey")) {
                         antennaTypeString.add(key);
-                        if(!antennaKeysList.contains(key)) {
+                        if (!antennaKeysList.contains(key)) {
                             boolean keyIsTrue = antennaTypes.getBoolean(key)
-                            if(keyIsTrue.equals(true)){
+                            if (keyIsTrue.equals(true)) {
                                 def bands2 = bands.getJSONObject(key)
                                 Integer quantitySum = 0;
-                                for(int l=0; l<obj2.length(); l++) {
-                                    if(obj2.getJSONObject(l).getJSONObject("antennaType").has(key)){
+                                for (int l = 0; l < obj2.length(); l++) {
+                                    if (obj2.getJSONObject(l).getJSONObject("antennaType").has(key)) {
                                         quantitySum += obj2.getJSONObject(l).getInt("quantity");
                                     }
                                 }
 
                                 def info = [
-                                        cn_tilt_electr: bands2.has("cn_tilt_electr") ? bands2.get("cn_tilt_electr").toString() : "",
+                                        cn_tilt_electr         : bands2.has("cn_tilt_electr") ? bands2.get("cn_tilt_electr").toString() : "",
                                         cn_gsm_antenna_quantity: bands2.has("cn_gsm_antenna_quantity") ? bands2.get("cn_gsm_antenna_quantity").toString() : "",
-                                        active: bands2.has("active") ? bands2.get("active").toString() : "",
-                                        cn_trx: bands2.has("cn_trx") ? bands2.get("cn_trx").toString() : "",
-                                        cn_tilt_mech: bands2.has("cn_tilt_mech") ? bands2.get("cn_tilt_mech").toString() : "",
-                                        cn_direction: bands2.has("cn_direction") ? bands2.get("cn_direction").toString() : "",
-                                        cn_height: bands2.has("cn_height") ? bands2.get("cn_height").toString() : "",
-                                        cn_hcu: bands2.has("cn_hcu") ? (bands2.getBoolean("cn_hcu") ? "Yes" : "No") : "No",
-                                        cn_radio_unit: bands2.has("cn_radio_unit") && bands2.getJSONObject("cn_radio_unit").has("name") ? bands2.getJSONObject("cn_radio_unit").getString("name") : "",
-                                        cn_tcc: bands2.has("cn_tcc") ? (bands2.getBoolean("cn_tcc") ? "Yes" : "No") : "No",
-                                        cn_gsm_range: bands2.has("cn_gsm_range") ? (bands2.getBoolean("cn_gsm_range") ? "Yes" : "No") : "No",
-                                        cn_tma: bands2.has("cn_tma") ? (bands2.getBoolean("cn_tma") ? "Yes" : "No") : "No",
-                                        cn_ret: bands2.has("cn_ret") ? (bands2.getBoolean("cn_ret") ? "Yes" : "No") : "No",
-                                        cn_asc: bands2.has("cn_asc") ? (bands2.getBoolean("cn_asc") ? "Yes" : "No") : "No",
-                                        cn_power_splitter: bands2.has("cn_power_splitter") ? (bands2.getBoolean("cn_power_splitter") ? "Yes" : "No") : "No",
-                                        cn_duplex: bands2.has("cn_duplex") ? (bands2.getBoolean("cn_duplex") ? "Yes" : "No") : "No",
-                                        cn_diversity: bands2.has("cn_diversity") ? (bands2.getBoolean("cn_diversity") ? "Yes" : "No") : "No",
-                                        cn_wcdma_carrier: bands2.has("cn_wcdma_carrier") ? bands2.get("cn_wcdma_carrier").toString() : "",
-                                        name: key,
-                                        quantitySum: quantitySum
+                                        active                 : bands2.has("active") ? bands2.get("active").toString() : "",
+                                        cn_trx                 : bands2.has("cn_trx") ? bands2.get("cn_trx").toString() : "",
+                                        cn_tilt_mech           : bands2.has("cn_tilt_mech") ? bands2.get("cn_tilt_mech").toString() : "",
+                                        cn_direction           : bands2.has("cn_direction") ? bands2.get("cn_direction").toString() : "",
+                                        cn_height              : bands2.has("cn_height") ? bands2.get("cn_height").toString() : "",
+                                        cn_hcu                 : bands2.has("cn_hcu") ? (bands2.getBoolean("cn_hcu") ? "Yes" : "No") : "No",
+                                        cn_radio_unit          : bands2.has("cn_radio_unit") && bands2.getJSONObject("cn_radio_unit").has("name") ? bands2.getJSONObject("cn_radio_unit").getString("name") : "",
+                                        cn_tcc                 : bands2.has("cn_tcc") ? (bands2.getBoolean("cn_tcc") ? "Yes" : "No") : "No",
+                                        cn_gsm_range           : bands2.has("cn_gsm_range") ? (bands2.getBoolean("cn_gsm_range") ? "Yes" : "No") : "No",
+                                        cn_tma                 : bands2.has("cn_tma") ? (bands2.getBoolean("cn_tma") ? "Yes" : "No") : "No",
+                                        cn_ret                 : bands2.has("cn_ret") ? (bands2.getBoolean("cn_ret") ? "Yes" : "No") : "No",
+                                        cn_asc                 : bands2.has("cn_asc") ? (bands2.getBoolean("cn_asc") ? "Yes" : "No") : "No",
+                                        cn_power_splitter      : bands2.has("cn_power_splitter") ? (bands2.getBoolean("cn_power_splitter") ? "Yes" : "No") : "No",
+                                        cn_duplex              : bands2.has("cn_duplex") ? (bands2.getBoolean("cn_duplex") ? "Yes" : "No") : "No",
+                                        cn_diversity           : bands2.has("cn_diversity") ? (bands2.getBoolean("cn_diversity") ? "Yes" : "No") : "No",
+                                        cn_wcdma_carrier       : bands2.has("cn_wcdma_carrier") ? bands2.get("cn_wcdma_carrier").toString() : "",
+                                        name                   : key,
+                                        quantitySum            : quantitySum
                                 ]
                                 antennaArray.push(info)
                             }
@@ -440,25 +449,24 @@ class GenerateLeasingRSD implements ExecutionListener {
                     antennaKeysList.add(key);
                 }
                 def obj = [
-                        antennaName: antennaName ? antennaName : "",
-                        quantity: quantity ? quantity : "",
+                        antennaName     : antennaName ? antennaName : "",
+                        quantity        : quantity ? quantity : "",
                         suspensionHeight: suspensionHeight ? suspensionHeight : "",
-                        azimuth: azimuth ? azimuth : "",
-                        cn_antenna_loc: cn_antenna_loc ? cn_antenna_loc : "",
-                        antennaType: antennaTypeString.toString()
+                        azimuth         : azimuth ? azimuth : "",
+                        cn_antenna_loc  : cn_antenna_loc ? cn_antenna_loc : "",
+                        antennaType     : antennaTypeString.toString()
                 ]
 
                 antennaHeader.push(obj)
             }
             def temp = [
-                    header: antennaHeader,
-                    body: antennaArray,
-                    width: (100-14.2) / antennaArray.size(),
+                    header    : antennaHeader,
+                    body      : antennaArray,
+                    width     : (100 - 14.2) / antennaArray.size(),
                     sectorName: sectorName
-                ]
+            ]
             mainSectorData.push(temp)
         }
-
 
 
         def mainSectors = [
@@ -466,24 +474,24 @@ class GenerateLeasingRSD implements ExecutionListener {
         ]
 
         def adress = [
-                "cn_name_contact_person": renterCompanyJson.contactName ? renterCompanyJson.contactName : '',
+                "cn_name_contact_person"    : renterCompanyJson.contactName ? renterCompanyJson.contactName : '',
                 "cn_lastname_contact_person": renterCompanyJson.firstLeaderName ? renterCompanyJson.firstLeaderName : '',
                 "cn_position_contact_person": renterCompanyJson.contactPosition ? renterCompanyJson.contactPosition : '',
-                "cn_contact_information": renterCompanyJson.contactInfo ? renterCompanyJson.contactInfo : '',
-                "cn_comments": candidateJson.comments ? candidateJson.comments : '',
-                "cn_addr_district": address.cn_addr_district ? address.cn_addr_district : '',
-                "cn_addr_oblast": address.cn_addr_oblast ? address.cn_addr_oblast : '',
-                "cn_addr_city": address.cn_addr_city ? address.cn_addr_city : '',
-                "cn_addr_street": address.cn_addr_street ? address.cn_addr_street : '',
-                "cn_addr_building": address.cn_addr_building ? address.cn_addr_building : '',
-                "cn_addr_cadastral_number": address.cn_addr_cadastral_number ? address.cn_addr_cadastral_number : '',
-                "cn_addr_note": address.cn_addr_note ? address.cn_addr_note : '',
+                "cn_contact_information"    : renterCompanyJson.contactInfo ? renterCompanyJson.contactInfo : '',
+                "cn_comments"               : candidateJson.comments ? candidateJson.comments : '',
+                "cn_addr_district"          : address.cn_addr_district ? address.cn_addr_district : '',
+                "cn_addr_oblast"            : address.cn_addr_oblast ? address.cn_addr_oblast : '',
+                "cn_addr_city"              : address.cn_addr_city ? address.cn_addr_city : '',
+                "cn_addr_street"            : address.cn_addr_street ? address.cn_addr_street : '',
+                "cn_addr_building"          : address.cn_addr_building ? address.cn_addr_building : '',
+                "cn_addr_cadastral_number"  : address.cn_addr_cadastral_number ? address.cn_addr_cadastral_number : '',
+                "cn_addr_note"              : address.cn_addr_note ? address.cn_addr_note : '',
         ]
 
         def binding = [
                 "header": headerInfo,
-                "data":adress,
-                "main": mainSectors
+                "data"  : adress,
+                "main"  : mainSectors
         ]
 
         def result = render(binding)
