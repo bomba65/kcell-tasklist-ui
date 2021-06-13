@@ -399,7 +399,7 @@ public class MonthlyActAndRevision {
         titleRun.setFontFamily("Calibri");
         titleRun.setFontSize(12);
 
-        XWPFTable table3 = document.createTable(9,2);
+        XWPFTable table3 = document.createTable(16,2);
         int width = table3.getWidth();
         table3.setWidth("100%");
         table3.removeBorders();
@@ -454,6 +454,23 @@ public class MonthlyActAndRevision {
         para.setBorderRight(Borders.NONE);
         para.setBorderTop(Borders.NONE);
         para.setBorderBottom(Borders.NONE);
+        cell3 = row.getCell(1);
+        para = cell3.getParagraphArray(0);
+        para.setBorderBetween(Borders.NONE);
+        para.setBorderLeft(Borders.NONE);
+        para.setBorderRight(Borders.NONE);
+        para.setBorderTop(Borders.NONE);
+        para.setBorderBottom(Borders.NONE);
+
+
+        row = table3.getRow(3);
+        cell3 = row.getCell(0);
+        para = cell3.getParagraphArray(0);
+        para.setBorderBetween(Borders.NONE);
+        para.setBorderLeft(Borders.NONE);
+        para.setBorderRight(Borders.NONE);
+        para.setBorderTop(Borders.NONE);
+        para.setBorderBottom(Borders.NONE);
         para.setAlignment(ParagraphAlignment.CENTER);
         run3 = para.createRun();
         run3.setText("АО «Кселл» ");
@@ -467,7 +484,7 @@ public class MonthlyActAndRevision {
         para.setBorderBottom(Borders.NONE);
 
 
-        row = table3.getRow(3);
+        row = table3.getRow(4);
         cell3 = row.getCell(0);
         para = cell3.getParagraphArray(0);
         para.setBorderBetween(Borders.NONE);
@@ -490,7 +507,7 @@ public class MonthlyActAndRevision {
         run3.setText("");
         run3.setFontSize(12);
 
-        row = table3.getRow(4);
+        row = table3.getRow(5);
         cell3 = row.getCell(0);
         para = cell3.getParagraphArray(0);
         para.setBorderBetween(Borders.NONE);
@@ -513,7 +530,145 @@ public class MonthlyActAndRevision {
         run3.setText("Подпись");
         setFont(run3, false);
 
-        row = table3.getRow(5);
+        row = table3.getRow(6);
+        cell3 = row.getCell(0);
+        para = cell3.getParagraphArray(0);
+        para.setBorderBetween(Borders.NONE);
+        para.setBorderLeft(Borders.NONE);
+        para.setBorderRight(Borders.NONE);
+        para.setBorderTop(Borders.NONE);
+        para.setBorderBottom(Borders.SINGLE);
+        run3 = para.createRun();
+        setFont(run3, false);
+        run3.setText("Парамонова Марина");
+        cell3 = row.getCell(1);
+        para = cell3.getParagraphArray(0);
+        para.setBorderBetween(Borders.NONE);
+        para.setBorderLeft(Borders.NONE);
+        para.setBorderRight(Borders.NONE);
+        para.setBorderTop(Borders.NONE);
+        para.setBorderBottom(Borders.SINGLE);
+        run3 = para.createRun();
+        run3.setFontFamily("Calibri");
+        run3.setText("");
+        run3.setFontSize(12);
+
+        row = table3.getRow(7);
+        cell3 = row.getCell(0);
+        para = cell3.getParagraphArray(0);
+        para.setBorderBetween(Borders.NONE);
+        para.setBorderLeft(Borders.NONE);
+        para.setBorderRight(Borders.NONE);
+        para.setBorderTop(Borders.NONE);
+        para.setBorderBottom(Borders.NONE);
+        run3 = para.createRun();
+        run3.setText("Начальник сектора по планированию и оптимизации радиосети");
+        setFont(run3, false);
+
+        cell3 = row.getCell(1);
+        para = cell3.getParagraphArray(0);
+        para.setBorderBetween(Borders.NONE);
+        para.setBorderLeft(Borders.NONE);
+        para.setBorderRight(Borders.NONE);
+        para.setBorderTop(Borders.NONE);
+        para.setBorderBottom(Borders.NONE);
+        run3 = para.createRun();
+        run3.setText("Подпись");
+        setFont(run3, false);
+
+        row = table3.getRow(8);
+        cell3 = row.getCell(0);
+        para = cell3.getParagraphArray(0);
+        para.setBorderBetween(Borders.NONE);
+        para.setBorderLeft(Borders.NONE);
+        para.setBorderRight(Borders.NONE);
+        para.setBorderTop(Borders.NONE);
+        para.setBorderBottom(Borders.SINGLE);
+        run3 = para.createRun();
+        setFont(run3, false);
+        run3.setText("Александр Галат");
+        cell3 = row.getCell(1);
+        para = cell3.getParagraphArray(0);
+        para.setBorderBetween(Borders.NONE);
+        para.setBorderLeft(Borders.NONE);
+        para.setBorderRight(Borders.NONE);
+        para.setBorderTop(Borders.NONE);
+        para.setBorderBottom(Borders.SINGLE);
+        run3 = para.createRun();
+        run3.setFontFamily("Calibri");
+        run3.setText("");
+        run3.setFontSize(12);
+
+        row = table3.getRow(9);
+        cell3 = row.getCell(0);
+        para = cell3.getParagraphArray(0);
+        para.setBorderBetween(Borders.NONE);
+        para.setBorderLeft(Borders.NONE);
+        para.setBorderRight(Borders.NONE);
+        para.setBorderTop(Borders.NONE);
+        para.setBorderBottom(Borders.NONE);
+        run3 = para.createRun();
+        run3.setText("Начальник сектора планирования и оптимизации транспортной сети");
+        setFont(run3, false);
+
+        cell3 = row.getCell(1);
+        para = cell3.getParagraphArray(0);
+        para.setBorderBetween(Borders.NONE);
+        para.setBorderLeft(Borders.NONE);
+        para.setBorderRight(Borders.NONE);
+        para.setBorderTop(Borders.NONE);
+        para.setBorderBottom(Borders.NONE);
+        run3 = para.createRun();
+        run3.setText("Подпись");
+        setFont(run3, false);
+
+        row = table3.getRow(10);
+        cell3 = row.getCell(0);
+        para = cell3.getParagraphArray(0);
+        para.setBorderBetween(Borders.NONE);
+        para.setBorderLeft(Borders.NONE);
+        para.setBorderRight(Borders.NONE);
+        para.setBorderTop(Borders.NONE);
+        para.setBorderBottom(Borders.SINGLE);
+        run3 = para.createRun();
+        setFont(run3, false);
+        run3.setText("Азамат Галиулла");
+        cell3 = row.getCell(1);
+        para = cell3.getParagraphArray(0);
+        para.setBorderBetween(Borders.NONE);
+        para.setBorderLeft(Borders.NONE);
+        para.setBorderRight(Borders.NONE);
+        para.setBorderTop(Borders.NONE);
+        para.setBorderBottom(Borders.SINGLE);
+        run3 = para.createRun();
+        run3.setFontFamily("Calibri");
+        run3.setText("");
+        run3.setFontSize(12);
+
+        row = table3.getRow(11);
+        cell3 = row.getCell(0);
+        para = cell3.getParagraphArray(0);
+        para.setBorderBetween(Borders.NONE);
+        para.setBorderLeft(Borders.NONE);
+        para.setBorderRight(Borders.NONE);
+        para.setBorderTop(Borders.NONE);
+        para.setBorderBottom(Borders.NONE);
+        run3 = para.createRun();
+        run3.setText("Начальник сектора эксплуатации сети_Центр");
+        setFont(run3, false);
+
+        cell3 = row.getCell(1);
+        para = cell3.getParagraphArray(0);
+        para.setBorderBetween(Borders.NONE);
+        para.setBorderLeft(Borders.NONE);
+        para.setBorderRight(Borders.NONE);
+        para.setBorderTop(Borders.NONE);
+        para.setBorderBottom(Borders.NONE);
+        run3 = para.createRun();
+        run3.setText("Подпись");
+        setFont(run3, false);
+
+        row = table3.getRow(12);
         cell3 = row.getCell(0);
         para = cell3.getParagraphArray(0);
         para.setBorderBetween(Borders.NONE);
@@ -532,7 +687,7 @@ public class MonthlyActAndRevision {
         para.setBorderTop(Borders.NONE);
         para.setBorderBottom(Borders.SINGLE);
 
-        row = table3.getRow(6);
+        row = table3.getRow(13);
         cell3 = row.getCell(0);
         para = cell3.getParagraphArray(0);
         para.setBorderBetween(Borders.NONE);
@@ -557,7 +712,7 @@ public class MonthlyActAndRevision {
 
         //
 
-        row = table3.getRow(7);
+        row = table3.getRow(14);
         cell3 = row.getCell(0);
         cell3.setWidth(String.valueOf(width / 2));
         para = cell3.getParagraphArray(0);
@@ -580,7 +735,7 @@ public class MonthlyActAndRevision {
         run3 = para.createRun();
         setFont(run3, false);
 
-        row = table3.getRow(8);
+        row = table3.getRow(15);
         cell3 = row.getCell(0);
         para = cell3.getParagraphArray(0);
         para.setBorderBetween(Borders.NONE);
