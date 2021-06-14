@@ -2396,6 +2396,32 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                     return legalType.find(i => i.udbid === id).id
                 }
 
+                scope.getLegalTypeDesc = function (id) {
+                    let legalType = [
+                        {"id":"individual", "desc":"Физическое лицо", "udbid":"321"},
+                        {"id":"too", "desc":"ТОО", "udbid":"122"},
+                        {"id":"ao", "desc":"АО", "udbid":"161"},
+                        {"id":"national_kazakhtelecom", "desc":"АО  \"Казахтелеком\"", "udbid":"211"},
+                        {"id":"national_kazpost", "desc":"АО \"Казпочта\"", "udbid":"215"},
+                        {"id":"national_kazteleradio", "desc":"АО \"Казтелерадио\"", "udbid":"214"},
+                        {"id":"gu", "desc":"ГУ", "udbid":"381"},
+                        {"id":"ip", "desc":"ИП", "udbid":"121"},
+                        {"id":"ksk", "desc":"КСК", "udbid":"51"},
+                        {"id":"nao", "desc":"НАО", "udbid":"382"},
+                        {"id":"ooo", "desc":"ООО", "udbid":"383"},
+                        {"id":"own_kcell", "desc":"Собственность Kcell", "udbid":"227"},
+                        {"id":"tercom", "desc":"Терком", "udbid":"221"},
+                        {"id":"esso", "desc":"ЭСО", "udbid":"216"},
+                        {"id":"beeline", "desc":"Beeline", "udbid":"302"},
+                        {"id":"tele2", "desc":"Tele2", "udbid":"341"},
+                        {"id":"beeline", "desc":"Other", "udbid":"384"},
+                        {"id":"kaz_trans_com", "desc":"АО \"KazTransCom\"", "udbid":"361"},
+                        {"id":"lc_commerce", "desc":"ТОО \"LC Commerce\"", "udbid":"362"},
+                        {"id":"vostoktelecom", "desc":"ТОО \"Востоктелеком\"", "udbid":"363"}
+                    ]
+                    return legalType.find(i => i.id === id).desc
+                }
+
                 scope.getKTBranchId = function (name) {
                     let branches = [
                         {"id":"ods", "name":"Объединение Дальняя Связь"},
@@ -4774,10 +4800,15 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                     scope.leasingInfo.computedRadioUnits = ''
                     scope.leasingInfo.computedCableLaying = ''
                     scope.leasingInfo.computedDuTypes = ''
-                    scope.leasingInfo.computtedLegalType = ''
+                    scope.leasingInfo.computedLegalType = ''
                     if (scope.leasingInfo.renterCompany) {
-                        const response = await $http.post('/camunda/catalogs/api/get/rolloutcatalogids', [22])
-                        scope.leasingInfo.computtedLegalType = response.data.legal_type.find(el => el.catalogsId == scope.leasingInfo.renterCompany.value.legalTypeCatalogId).name
+                        if (scope.leasingInfo.renterCompany.value.legalTypeCatalogId) {
+                            const response = await $http.post('/camunda/catalogs/api/get/rolloutcatalogids', [22])
+                            scope.leasingInfo.computedLegalType = response.data.legal_type.find(el => el.catalogsId == scope.leasingInfo.renterCompany.value.legalTypeCatalogId).name
+                        } else {
+                                // to old processes, old dict
+                            scope.leasingInfo.computedLegalType = scope.getLegalTypeDesc(scope.leasingInfo.renterCompany.value.legalType)
+                        }
                     }
 
                     if(scope.leasingInfo.cellAntenna && scope.leasingInfo.cellAntenna.type === 'Json') {
