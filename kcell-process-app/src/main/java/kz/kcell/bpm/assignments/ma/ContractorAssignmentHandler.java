@@ -9,7 +9,7 @@ public class ContractorAssignmentHandler implements TaskListener {
     public void notify(DelegateTask delegateTask) {
         String contractor = delegateTask.getVariable("contractor").toString();
         if (contractor != null) {
-            delegateTask.addCandidateGroup("hq_contractor_" + contractor);
+            delegateTask.addCandidateGroup("ma_contractor_" + contractor);
         }
     }
 }
