@@ -74,7 +74,8 @@ select
     to_timestamp(sapPRApproveDate.long_/1000) + interval '6 hour' as "PR Approval date",
     sapPONo.text_ as "PO#",
     invoiceNumber.text_ as "Invoice #",
-    to_timestamp(invoiceDate.long_/1000) + interval '6 hour' as "Invoice date"
+    to_timestamp(invoiceDate.long_/1000) + interval '6 hour' as "Invoice date",
+    job_list
 from act_hi_procinst pi
          left join act_hi_varinst sitename
                    on pi.id_ = sitename.proc_inst_id_ and sitename.name_ = 'site_name'
@@ -249,6 +250,34 @@ from act_hi_procinst pi
 
          left join act_hi_varinst mainContract
                    on pi.id_ = mainContract.proc_inst_id_ and mainContract.name_ = 'mainContract'
+
+         left join LATERAL (
+           select string_agg(
+                concat(
+                 worksPriceListJson ->> 'title',
+                '; works qty: ',
+                worksJson ->> 'quantity',
+                '; materials qty: ',
+                 worksJson ->> 'materialUnit',
+                '; materials from: ',
+                worksJson ->> 'materialsProvidedBy'
+                )
+                , ', ') as job_list
+            from act_hi_varinst jobWorks
+                     left join act_ge_bytearray jobWorksBytes
+                               on jobWorks.bytearray_id_ = jobWorksBytes.id_
+                     left join json_array_elements(CAST(convert_from(jobWorksBytes.bytes_, 'UTF8') AS json)) as worksJson
+                               on true
+                    left join act_hi_varinst worksPriceList
+                                    on worksPriceList.proc_inst_id_ = pi.id_ and worksPriceList.name_ = 'worksPriceList'
+                      left join act_ge_bytearray worksPriceListBytes
+                                on worksPriceList.bytearray_id_ = worksPriceListBytes.id_
+                    left join json_array_elements(CAST(convert_from(worksPriceListBytes.bytes_, 'UTF8') AS json)) as worksPriceListJson
+                                        on true and worksJson.value->>'sapServiceNumber' = worksPriceListJson.value->>'sapServiceNumber'
+            where jobWorks.proc_inst_id_ = pi.id_
+              and jobWorks.name_ = 'jobWorks'
+
+            ) jobList on true
 
 where pi.proc_def_key_ = 'Revision' and pi.state_ <> 'EXTERNALLY_TERMINATED'
 order by "Requested Date", "Job Description"
