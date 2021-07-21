@@ -82,6 +82,7 @@ public class CamundaMailerDelegate implements JavaDelegate {
         if(!(isFreephone &&  "SendTask_0t8xjuw".equals(delegateExecution.getCurrentActivityId()))  && !(isBulkSms &&  "SendTask_1wvfpnd".equals(delegateExecution.getCurrentActivityId()))  && subject!=null && businessKey!=null && !businessKey.equals("null") && !subject.contains(businessKey)){
             subject = businessKey + ", " + subject;
         }
+        
         String addresses = String.valueOf(delegateExecution.getVariableLocal("to"));
         String ccAddresses = String.valueOf(delegateExecution.getVariableLocal("cc"));
         long isRevisionMonthlyActCount =
@@ -130,6 +131,7 @@ public class CamundaMailerDelegate implements JavaDelegate {
                     is.close();
                 }
             }
+            subject = String.valueOf(delegateExecution.getVariableLocal("subject"));
         }
         String[] emails = separateEmails(addresses);
         if (isFreephone &&  "SendTask_0t8xjuw".equals(delegateExecution.getCurrentActivityId())) {
