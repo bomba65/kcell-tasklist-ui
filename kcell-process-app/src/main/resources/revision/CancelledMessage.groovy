@@ -20,7 +20,8 @@ def binding = [
     "cancelPrComment" : cancelPrComment,
     "initiatorFull" : initiatorObj.firstName + " " + initiatorObj.lastName,
     "requestDate" : requestedDate,
-    "site_name": site_name
+    "site_name": site_name,
+    "priority": priority
     ]
 def template = '''\
 yieldUnescaped '<!DOCTYPE html>'
@@ -58,7 +59,13 @@ html(lang:'en') {
             tr {
                 td (width:"40%",style:"border:1px solid", "Статус")
                 td (width:"60%",style:"font-weight: bold;border:1px solid", "Cancelled")
-            }     
+            }
+            if(priority.equals("emergency")) {
+                tr {
+                    td (width:"40%",style:"border:1px solid", "Приориет")
+                    td (width:"60%",style:"font-weight: bold;border:1px solid", "Emergency")
+                }
+            } 
         }  
         newLine()
         p("Открыть Kcell Workflow Вы можете пройдя по следующей ссылке: https://flow.kcell.kz")

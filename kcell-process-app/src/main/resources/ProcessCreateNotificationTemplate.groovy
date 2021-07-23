@@ -6,6 +6,11 @@ import groovy.text.markup.TemplateConfiguration
 def customVariables  = [:]
 def taskUrl = baseUrl + '/kcell-tasklist-ui/#/tasks/' + delegateExecution.id
 def processName = delegateExecution.getProcessEngineServices().getRepositoryService().getProcessDefinition(delegateExecution.getProcessDefinitionId()).getName()
+
+// subject can contain ampersands ~ problematic
+subject = java.net.URLEncoder.encode(subject, "UTF-8")
+subject = subject.replaceAll('\\+', ' ')
+
 if (processName=="Revision") {
     customVariables."Cайт"=delegateExecution.getVariable('site_name')
     def statusObj = delegateExecution.getVariable('status')
@@ -13,10 +18,13 @@ if (processName=="Revision") {
         statusObj = new JsonSlurper().parseText(statusObj.toString())
         customVariables."Статус" = statusObj.statusName
     }
+    def priority = delegateExecution.getVariable('priority')
+    if(priority!=null && priority == "emergency"){
+        customVariables."Приоритет" = "Emergency";
+        subject = subject + " - Emergency"
+    }
 }
-// subject can contain ampersands ~ problematic
-subject = java.net.URLEncoder.encode(subject, "UTF-8")
-subject = subject.replaceAll('\\+', ' ')
+
 def binding = ["processName": processName,
                 "starter": starter,
                 "taskUrl": taskUrl, "baseUrl": baseUrl,

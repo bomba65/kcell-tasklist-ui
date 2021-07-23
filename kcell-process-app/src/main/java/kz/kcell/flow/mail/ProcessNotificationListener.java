@@ -113,7 +113,9 @@ public class ProcessNotificationListener implements ExecutionListener {
                         }
 
                         SimpleDateFormat format = new SimpleDateFormat("dd.MM.yyyy HH:mm");
-                        HistoricProcessInstance procInst = delegateExecution.getProcessEngineServices().getHistoryService().createHistoricProcessInstanceQuery().processInstanceId(delegateExecution.getProcessInstanceId()).singleResult();
+                        HistoricProcessInstance procInst = delegateExecution.getProcessEngineServices()
+                            .getHistoryService().createHistoricProcessInstanceQuery()
+                            .processInstanceId(delegateExecution.getProcessInstanceId()).singleResult();
 
                         //TODO: Fix time in Java
                         Calendar startTime = Calendar.getInstance();

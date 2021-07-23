@@ -12,7 +12,7 @@ html(lang:'en') {
             b('Kcell Workflow')
             yield ' пользователь '
             b(starter)
-            yield ' создала(а) заявку #'
+            yield ' создал(а) заявку #'
             b(businessKey)
            }
         table {

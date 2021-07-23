@@ -176,7 +176,9 @@ public class TaskNotificationListener implements TaskListener {
                 }
 
                 SimpleDateFormat format = new SimpleDateFormat("dd.MM.yyyy HH:mm");
-                HistoricProcessInstance procInst = delegateTask.getProcessEngineServices().getHistoryService().createHistoricProcessInstanceQuery().processInstanceId(delegateTask.getProcessInstanceId()).singleResult();
+                HistoricProcessInstance procInst = delegateTask.getProcessEngineServices()
+                    .getHistoryService().createHistoricProcessInstanceQuery()
+                    .processInstanceId(delegateTask.getProcessInstanceId()).singleResult();
 
                 //TODO: Fix time in Java
                 Calendar startTime = Calendar.getInstance();

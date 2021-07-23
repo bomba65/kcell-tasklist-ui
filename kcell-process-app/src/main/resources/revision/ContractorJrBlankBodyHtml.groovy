@@ -28,7 +28,8 @@ def binding = ["processName": processName,
                "startTime": format.format(startTime.getTime()),
                "assignTime": format.format(assignTime.getTime()),
                "status": statusObj.statusName,
-               "sitename": sitename
+               "sitename": sitename,
+               "priority": priority
 ]
 
 def template = '''\
@@ -98,7 +99,17 @@ html(lang:'en') {
                    b(status)
                }
             }
-         }
+            if(priority.equals("emergency")) {
+                tr {
+                    td {
+                       yield 'Приориет: '
+                    }
+                    td {
+                        b(Emergency)
+                    }
+                }
+            }
+        }
         newLine()
         hr()
         p {

@@ -88,6 +88,7 @@ public class SendGeneratedJRBlank implements JavaDelegate {
                 bindings.put("status", delegateExecution.getVariable("status"));
                 bindings.put("starter", delegateExecution.getVariable("starter"));
                 bindings.put("sitename", delegateExecution.getVariable("site_name"));
+                bindings.put("priority", delegateExecution.getVariable("priority"));
                 messageHelper.setText(String.valueOf(template.eval(bindings)), true);
             } else {
                 messageHelper.setText("Your JR Approved. JR Blank attached\n" +
