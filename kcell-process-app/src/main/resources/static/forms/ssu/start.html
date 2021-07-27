@@ -59,6 +59,7 @@
 <form role="form" class="form-horizontal" name="kcell_form" novalidate>
     <script cam-script type="text/form-script">
         inject(['$scope', '$http', '$rootScope', '$q', '$timeout', function ($scope, $http, $rootScope, $q, $timeout) {
+            var uuid = new Date().getTime();
             var variablesToCreate = [
                 {
                     name: 'ssu_id',
@@ -107,7 +108,14 @@
                     type: 'String',
                     submit: true,
                     store: true
-                }
+                },
+                {
+                    name: 'resolutions',
+                    type: 'Json',
+                    submit: true,
+                    store: true,
+                    value: []
+                },
             ];
 
             $scope.ssu_id = undefined;
@@ -195,10 +203,10 @@
                         created: new Date(),
                         createdBy: $rootScope.authentication.assigneeName,
                         type: file.type,
-                        path: $scope.processInstanceId + '/' + camForm.taskId + '/' + file.name.replace(/[/\\?%*:|"<>]/g, '-')
+                        path: uuid + '/' + file.name.replace(/[/\\?%#*:|"<>;]/g, '-')
                     }
                 };
-                $http({method: 'GET', url: '/camunda/uploads/put/' + fileToUpload.value.path, transformResponse: [] }).
+                $http({method: 'GET', url: '/camunda/uploads/tmp/put/' + fileToUpload.value.path, transformResponse: [] }).
                 then(function(response) {
                     $http.put(response.data, file, {headers: {'Content-Type': undefined}}).then(
                         function () {
