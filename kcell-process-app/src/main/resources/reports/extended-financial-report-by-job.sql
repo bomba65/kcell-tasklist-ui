@@ -255,14 +255,12 @@ from act_hi_procinst pi
            select string_agg(
                 concat(
                  worksPriceListJson ->> 'title',
-                '; works qty: ',
+                '; qty: ',
                 worksJson ->> 'quantity',
-                '; materials qty: ',
-                 worksJson ->> 'materialUnit',
-                '; materials from: ',
+                '; materials: ',
                 worksJson ->> 'materialsProvidedBy'
                 )
-                , ', ') as job_list
+                , chr(10)) as job_list
             from act_hi_varinst jobWorks
                      left join act_ge_bytearray jobWorksBytes
                                on jobWorks.bytearray_id_ = jobWorksBytes.id_
