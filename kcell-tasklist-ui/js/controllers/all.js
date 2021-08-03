@@ -3112,7 +3112,7 @@ return module.controller('mainCtrl', ['$scope', '$rootScope', 'toasty', 'Authent
 
                     data.splice(0, 0, ["Contract", "Region", "Sitename", "JR No", "JR To", "JR Reason", "Requested Date", "Requested By", "Validity Date", "Material List Signing Date", "Accept by Initiator"
                         , "Accept by Work Maintenance", "Accept by Work Planning", "Acceptance Date", "Job Description", "Quantity", "Comments", "Customer Material"
-                        , "Process State", "JR Status", "Detailed status", "Reason"]);
+                        , "Process State", "JR Status", "Detailed status", "Reason", "Job list"]);
 
                     var ws = XLSX.utils.json_to_sheet(response.data, {skipHeader: true});
 
@@ -3176,7 +3176,7 @@ return module.controller('mainCtrl', ['$scope', '$rootScope', 'toasty', 'Authent
                     data.splice(0, 0, ["Contract", "Year", "Month", "Region", "Sitename", "JR No", "JR To", "JR Reason", "Requested Date", "Requested By", "Validity Date", "Related to the", "Project"
                         , "Material List Signing Date", "Accept by Initiator", "Accept by Work Maintenance", "Accept by Work Planning", "Acceptance Date", "Job Description", "Quantity", "Materials from"
                         , "Job reason", "Type of expenses", "Comments", "Customer Material", "Process State", "JR Status", "Detailed status", "Reason", "Price (without transportation)"
-                        , "Price (with transportation)", "Monthly act #", "JO#", "PR#", "PR Total Value", "PR Status", "PR Approval date", "PO#", "Invoice No", "Invoice date"
+                        , "Price (with transportation)", "Monthly act #", "JO#", "PR#", "PR Total Value", "PR Status", "PR Approval date", "PO#", "Invoice No", "Invoice date", "Job list"
                     ]);
 
                     var ws = XLSX.utils.json_to_sheet(response.data, {skipHeader: true});
@@ -4075,7 +4075,7 @@ return module.controller('mainCtrl', ['$scope', '$rootScope', 'toasty', 'Authent
                         data.splice(0, 0, ["Contract", "Year", "Month", "Region", "Sitename", "JR No", "JR To", "JR Reason", "Requested Date", "Requested By", "Validity Date", "Related to the", "Project"
                             , "Material List Signing Date", "Accept by Initiator", "Accept by Work Maintenance", "Accept by Work Planning", "Acceptance Date", "Job Description", "Quantity"
                             , "Job reason", "Type of expenses", "Comments", "Customer Material", "Process State", "JR Status", "Detailed status", "Reason", "Price (without transportation)"
-                            , "Price (with transportation)", "Monthly act #", "JO#", "PR#", "PR Total Value", "PR Status", "PR Approval date", "PO#", "Invoice No", "Invoice date"
+                            , "Price (with transportation)", "Monthly act #", "JO#", "PR#", "PR Total Value", "PR Status", "PR Approval date", "PO#", "Invoice No", "Invoice date", "Job list"
                         ]);
 
                         var ws = XLSX.utils.json_to_sheet(response.data, {skipHeader: true});
