@@ -154,7 +154,7 @@ public class SetPricesDelegate implements TaskListener {
                     BigDecimal unitWorkPrice = new BigDecimal(priceJson.get(siteRegion).get(work.has("materialsProvidedBy") && "subcontractor".equals(work.get("materialsProvidedBy").textValue()) ? "with_material" : "without_material").textValue());
 
                     if (priority.equals("emergency")) {
-                        unitWorkPrice = unitWorkPrice.multiply(new BigDecimal("1.2"));
+                        unitWorkPrice = unitWorkPrice.multiply(new BigDecimal("1.5"));
                     }
 
                     BigDecimal unitTransportationPrice = unitWorkPrice.multiply(new BigDecimal("0.00"));
