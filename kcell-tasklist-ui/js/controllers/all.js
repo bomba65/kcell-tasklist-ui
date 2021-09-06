@@ -1131,11 +1131,11 @@ return module.controller('mainCtrl', ['$scope', '$rootScope', 'toasty', 'Authent
                                                 } else if (filter.name === 'My Claimed Tasks' || filter.name === 'My Unclaimed Tasks') {
                                                     claimed += results.data.count;
                                                 }
-                                                process.itemCount = allTasks > claimed ? allTasks : claimed;
                                                 if (filter.name === 'My Group Tasks') {
                                                     groupTasks = results.data.count;
                                                 }
                                                 process.itemCount = groupTasks > claimed ? groupTasks : claimed;
+                                                process.itemCount = allTasks > claimed ? allTasks : claimed;
                                                 process.filters.push(tmpfilter);
                                                 if ($rootScope.selectedProcess && process.key === $rootScope.selectedProcess.key) {
                                                     $rootScope.selectedProcess.itemCount = process.itemCount;
