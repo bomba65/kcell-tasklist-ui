@@ -1134,8 +1134,7 @@ return module.controller('mainCtrl', ['$scope', '$rootScope', 'toasty', 'Authent
                                                 if (filter.name === 'My Group Tasks') {
                                                     groupTasks = results.data.count;
                                                 }
-                                                process.itemCount = groupTasks > claimed ? groupTasks : claimed;
-                                                process.itemCount = allTasks > claimed ? allTasks : claimed;
+                                                process.itemCount = Math.max(allTasks, claimed, groupTasks);
                                                 process.filters.push(tmpfilter);
                                                 if ($rootScope.selectedProcess && process.key === $rootScope.selectedProcess.key) {
                                                     $rootScope.selectedProcess.itemCount = process.itemCount;
