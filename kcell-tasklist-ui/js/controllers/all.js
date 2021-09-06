@@ -1109,6 +1109,7 @@ return module.controller('mainCtrl', ['$scope', '$rootScope', 'toasty', 'Authent
                             if ($rootScope.selectedProcess.key && $rootScope.selectedProcess.key === process.key) {
                                 var allTasks = 0;
                                 var claimed = 0;
+                                var groupTasks = 0;
                                 process.filters = [];
                                 var selectedProcessDefinitionKeyMap = [process.key];
                                 if (process.subprocesses && process.subprocesses.length > 0) {
@@ -1131,6 +1132,10 @@ return module.controller('mainCtrl', ['$scope', '$rootScope', 'toasty', 'Authent
                                                     claimed += results.data.count;
                                                 }
                                                 process.itemCount = allTasks > claimed ? allTasks : claimed;
+                                                if (filter.name === 'My Group Tasks') {
+                                                    groupTasks = results.data.count;
+                                                }
+                                                process.itemCount = groupTasks > claimed ? groupTasks : claimed;
                                                 process.filters.push(tmpfilter);
                                                 if ($rootScope.selectedProcess && process.key === $rootScope.selectedProcess.key) {
                                                     $rootScope.selectedProcess.itemCount = process.itemCount;
