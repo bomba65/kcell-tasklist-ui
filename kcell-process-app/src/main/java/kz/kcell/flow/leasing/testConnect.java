@@ -22,7 +22,7 @@ public class testConnect {
         System.out.println("testConnect!");
         try {
             Class.forName ("oracle.jdbc.OracleDriver");
-            Connection udbConnect = DriverManager.getConnection("jdbc:oracle:thin:@//sc2-appcl010406:1521/apexudb", "udbrnd", "udb");
+            Connection udbConnect = DriverManager.getConnection("jdbc:oracle:thin:@//apexudb-pmy:1521/apexudb", "udbrnd", "udb");
             try {
                 if (udbConnect != null) {
                     udbConnect.setAutoCommit(false);

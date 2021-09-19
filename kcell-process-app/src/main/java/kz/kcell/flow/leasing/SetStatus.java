@@ -19,7 +19,7 @@ public class SetStatus implements JavaDelegate {
     @Autowired
     DataSource dataSource;
 
-    @Value("${udb.oracle.url:jdbc:oracle:thin:@//sc2-appcl010406:1521/apexudb}")
+    @Value("${udb.oracle.url:jdbc:oracle:thin:@//apexudb-pmy:1521/apexudb}")
     private String udbOracleUrl;
 
     @Value("${udb.oracle.username:udbrnd}")
