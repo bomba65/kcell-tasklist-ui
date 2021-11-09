@@ -133,6 +133,22 @@ public class CamundaMailerDelegate implements JavaDelegate {
             }
             subject = String.valueOf(delegateExecution.getVariableLocal("subject"));
         }
+        if("ssu_send_application_billing_object".equals(delegateExecution.getCurrentActivityId())) {
+            SpinJsonNode files = delegateExecution.<JsonValue>getVariableTyped("files").getValue();
+            if (files.isArray()) {
+                SpinList<SpinJsonNode> filesList = files.elements();
+                for (SpinJsonNode file : filesList) {
+                    String path = file.prop("path").stringValue();
+                    String name = file.prop("name").stringValue();
+
+                    InputStream is = minio.getObject(path);
+                    DataSource source = new ByteArrayDataSource(is, file.prop("type").stringValue());
+                    helper.addAttachment(name, source);
+                    is.close();
+                }
+            }
+            subject = String.valueOf(delegateExecution.getVariableLocal("subject"));
+        }
         String[] emails = separateEmails(addresses);
         if (isFreephone &&  "SendTask_0t8xjuw".equals(delegateExecution.getCurrentActivityId())) {
             sender = "freephone@kcell.kz";
