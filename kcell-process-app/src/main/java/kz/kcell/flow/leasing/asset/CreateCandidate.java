@@ -273,9 +273,15 @@ public class CreateCandidate implements JavaDelegate {
                 if (assetsCreatedCnAddressId != null) {
                     value.put("address_id", assetsCreatedCnAddressId);
                 }
+                if (latitude.contains(",")) {
+                    latitude = latitude.replace(",", ".");
+                }
+                if (longitude.contains(",")) {
+                    longitude = longitude.replace(",", ".");
+                }
 
-                value.put("latitude", latitude);
-                value.put("longitude", longitude);
+                value.put("latitude", latitude.trim());
+                value.put("longitude", longitude.trim());
                 if (cn_altitude != null) {
                     value.put("altitude", cn_altitude);
                 }
@@ -343,8 +349,15 @@ public class CreateCandidate implements JavaDelegate {
                     value.put("address_id", assetsCreatedNeAddressId);
                 }
 
-                value.put("latitude", ne_latitude);
-                value.put("longitude", ne_longitude);
+                if (ne_latitude.contains(",")) {
+                    ne_latitude = ne_latitude.replace(",", ".");
+                }
+                if (ne_longitude.contains(",")) {
+                    ne_longitude = ne_longitude.replace(",", ".");
+                }
+
+                value.put("latitude", ne_latitude.trim());
+                value.put("longitude", ne_longitude.trim());
                 if (cn_altitude != null) {
                     value.put("altitude", cn_altitude);
                 }
