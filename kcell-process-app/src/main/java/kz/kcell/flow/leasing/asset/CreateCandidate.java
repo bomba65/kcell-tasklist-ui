@@ -670,7 +670,7 @@ public class CreateCandidate implements JavaDelegate {
                 log.info("body value.toString(): ");
                 log.info(value.toString());
 
-                HttpPost httpPost = new HttpPost(new URI(this.assetsUri + "/asset-management/renters"));
+                HttpPost httpPost = new HttpPost(new URI(assetsUri + "/asset-management/renters"));
                 httpPost.addHeader("Content-Type", "application/json;charset=UTF-8");
                 httpPost.addHeader("Referer", baseUri);
                 StringEntity inputData = new StringEntity(value.toString());
