@@ -34,7 +34,7 @@ select
         when '5' then 'Roll-out works'
         else null
         end as "JR Reason",
-    pi.start_time_ + interval '6 hour' as "Requested Date",
+    to_timestamp(requestedDate.long_/1000) + interval '6 hour' as "Requested Date",
     pi.start_user_id_ as "Requested By",
     to_timestamp(validityDate.long_/1000) + interval '6 hour' as "Validity Date",
     mtListSignDate.value_ + interval '6 hour' as "Material List Signing Date",
@@ -66,6 +66,8 @@ from act_hi_procinst pi
                    on pi.id_ = reason.proc_inst_id_ and reason.name_ = 'reason'
          left join act_hi_varinst validityDate
                    on pi.id_ = validityDate.proc_inst_id_ and validityDate.name_ = 'validityDate'
+         left join act_hi_varinst requestedDate
+                   on pi.id_ = requestedDate.proc_inst_id_ and requestedDate.name_ = 'requestedDate'
          left join lateral (select max(ti.start_time_) as value_
                             from act_hi_taskinst ti
                             where pi.id_ = ti.proc_inst_id_

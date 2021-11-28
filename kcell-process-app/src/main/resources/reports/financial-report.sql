@@ -36,7 +36,7 @@ select
         when '5' then 'Roll-out works'
         else null
         end as "JR Reason",
-    pi.start_time_ + interval '6 hour' as "Requested Date",
+    to_timestamp(requestedDate.long_/1000) + interval '6 hour' as "Requested Date",
     pi.start_user_id_ as "Requested By",
     to_timestamp(validityDate.long_/1000) + interval '6 hour' as "Validity Date",
     relatedTo.text_ as "Related to the",
@@ -110,6 +110,8 @@ from act_hi_procinst pi
                    on pi.id_ = invoiceNumber.proc_inst_id_ and invoiceNumber.name_ = 'invoiceNumber'
          left join act_hi_varinst invoiceDate
                    on pi.id_ = invoiceDate.proc_inst_id_ and invoiceDate.name_ = 'invoiceDate'
+         left join act_hi_varinst requestedDate
+                   on pi.id_ = requestedDate.proc_inst_id_ and requestedDate.name_ = 'requestedDate'
 
          left join lateral (select max(ti.start_time_) as value_
                             from act_hi_taskinst ti
