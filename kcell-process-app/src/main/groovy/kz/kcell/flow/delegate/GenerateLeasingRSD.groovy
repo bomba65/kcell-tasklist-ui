@@ -345,11 +345,17 @@ class GenerateLeasingRSD implements ExecutionListener {
         }
 
         def cn_duNames = ""
+
         cellAntennaJson.cn_du.each { du ->
-            cn_duNames += du.name
+            cn_duNames += du
             cn_duNames += ", "
         }
-        cn_duNames = cn_duNames.substring(0, cn_duNames.length() - 2);
+        if (cn_duNames.length() > 2) {
+            cn_duNames = cn_duNames.substring(0, cn_duNames.length() - 2);
+        } else {
+            cn_duNames = ""
+        }
+
 
         for (int i = 0; i < bandsArr.length(); i++) {
             JSONObject obj = bandsArr.getJSONObject(i);
