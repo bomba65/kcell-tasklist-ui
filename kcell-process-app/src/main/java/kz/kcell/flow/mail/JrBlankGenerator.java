@@ -197,7 +197,7 @@ public class JrBlankGenerator {
         if (requestDate.after(compareDate)) {
             cell.setCellValue("Дата заявки :");
             cell.setCellStyle(alignRight);
-            row.createCell(1).setCellValue(contractorJobAssignedDate != null ? sdf.format(contractorJobAssignedDate) : sdf.format(requestDate));
+            row.createCell(1).setCellValue(sdf.format(requestDate));
         } else {
             cell.setCellValue("Дата заявки :");
             cell.setCellStyle(alignRight);
