@@ -70,14 +70,6 @@ html(lang:'en') {
             }
             tr {
                td {
-                   yield 'Дата создания: '
-               }
-               td {
-                   b(startTime)
-               }
-            }
-            tr {
-               td {
                    yield 'Сайт: '
                }
                td {
