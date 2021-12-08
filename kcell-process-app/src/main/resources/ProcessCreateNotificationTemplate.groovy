@@ -32,7 +32,8 @@ def binding = ["processName": processName,
                 "delegateExecution": delegateExecution,
                 "subject": subject,
                 "startTime": startTime,
-                "customVariables": customVariables]
+                "customVariables": customVariables,
+                "processName": processName]
 
 def template = this.getClass().getResource(templateName).text
 
