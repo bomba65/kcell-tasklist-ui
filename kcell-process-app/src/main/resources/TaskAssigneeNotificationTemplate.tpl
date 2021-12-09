@@ -45,13 +45,16 @@ html(lang:'en') {
                    b(delegateTask.getVariable("starter"))
                }
             }
-            tr {
-               td {
-                   yield 'Дата создания: '
-               }
-               td {
-                   b(startTime)
-               }
+
+            if (!processName.equals("Revision")) {
+                tr {
+                   td {
+                       yield 'Дата создания: '
+                   }
+                   td {
+                       b(startTime)
+                   }
+                }
             }
             for ( e in customVariables ) {
                 tr {
