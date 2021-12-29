@@ -1,6 +1,7 @@
 package kz.kcell.flow.aftersales;
 
 import lombok.extern.java.Log;
+import lombok.val;
 import org.camunda.bpm.engine.HistoryService;
 import org.camunda.bpm.engine.IdentityService;
 import org.camunda.bpm.engine.history.HistoricProcessInstance;
@@ -70,6 +71,15 @@ public class PBXBINCheck {
                 return ResponseEntity.ok(response.toString());
         } else {
             processes = historyService.createHistoricProcessInstanceQuery().processDefinitionKey("PBX").variableValueEquals("clientBIN", pbxBIN).finished().orderByProcessInstanceEndTime().desc().list();
+
+            val additionalProcesses = historyService.createHistoricProcessInstanceQuery().processDefinitionKey("PBX")
+                .variableValueEquals("clientBIN", pbxBIN)
+                .unfinished()
+                .variableValueEquals("importDataResolution", "Accepted")
+                .orderByProcessInstanceEndTime().desc().list();
+
+            processes.addAll(additionalProcesses);
+
             process = null;
             if (!processes.isEmpty()) process = processes.get(0);
 
