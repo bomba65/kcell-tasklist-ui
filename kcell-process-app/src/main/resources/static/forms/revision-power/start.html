@@ -1,0 +1,826 @@
+<form role="form" class="form-horizontal" name="kcell_form" novalidate>
+  <script cam-script type="text/form-script">
+    inject(['$scope', '$http', 'Uri', '$rootScope', '$q', '$timeout', function ($scope, $http, Uri, $rootScope, $q, $timeout) {
+      var uuid = new Date().getTime();
+
+      var variablesToCreate = [
+        {
+          name: 'validityDate',
+          type: 'Date',
+          value: new Date(),
+          store: true
+        },{
+          name: 'contractor',
+          type: 'String',
+          submit: true,
+          store: true
+        },{
+          name: 'siteName',
+          type: 'String',
+          submit: true,
+          store: true
+        },{
+          name: 'site_name',
+          type: 'String',
+          submit: true,
+          store: true
+        },{
+          name: 'site',
+          type: 'String',
+          submit: true,
+          store: true
+        },
+        {
+          name: 'siteStatus',
+          type: 'String',
+          submit: true,
+          store: true
+        },
+        {
+          name: 'siteSubStatus',
+          type: 'String',
+          submit: true,
+          store: true
+        },
+        {
+          name: 'jobWorks',
+          type: 'Json',
+          submit: true,
+          store: true
+        },
+        {
+          name: 'siteAddress',
+          type: 'String',
+          submit: true,
+          store: true
+        },
+        {
+          name: 'supplementaryFiles',
+          type: 'Json',
+          submit: true,
+          store: true
+        },
+      ];
+      $scope.jrTypesList = [
+        { id: "emergency_recovery", name: "Аварийно-восстановительные работы", working_days: 3 },
+        { id: "urgent_prevention", name: "Срочные работы (предотвращение аварийных режимов)", working_days: 5 },
+        { id: "urgent_prescripted", name: "Срочные работы (по предписанию энергоснабжающих организаций)", working_days: 10 },
+        { id: "tech_spec_under_200", name: "Получение ТУ (до 200 кВт)", working_days: 5 },
+        { id: "tech_spec_200_to_1000", name: "Получение ТУ (200-1000 кВт)", working_days: 10 },
+        { id: "tech_spec_over_1000", name: "Получение ТУ (свыше 1000 кВт)", working_days: 15 },
+        { id: "development_and_approve", name: "Разработка РП и согласование с заинтересованными организацями согласно ТУ (до 200 кВт)", working_days: 10 },
+        { id: "development_and_approve_under_200", name: "Разработка РП и согласование с заинтересованными организацями согласно ТУ (до 200 кВт)", working_days: 13 },
+        { id: "development_and_approve_to_1000", name: "Разработка РП и согласование с заинтересованными организацями согласно ТУ (200-1000 кВт)", working_days: 17 },
+        { id: "development_and_approve_200_to_1000", name: "Разработка РП и согласование с заинтересованными организацями согласно ТУ (200-1000 кВт)", working_days: 22 },
+        { id: "electric_installation", name: "Электромонтажные работы", working_days: 20 },
+        { id: "connection_docs", name: "Предоставление документов для подключения к сети (согласно ТУ)", working_days: 0},
+        { id: "completed_acceptance", name: "Приемка выполненных работ", working_days: 10 }
+      ],
+      $scope.jrReasonsList = [
+        { id: "250_plus", name: "250+"},
+        { id: "landlord_request", name: "По просьбе арендодателя"},
+        { id: "emergency_recovery", name: "Аварийно-восстановительные работы"},
+        { id: "rollout", name: "Ролл аут"},
+        { id: "RES_connection", name: "Перенос сайта/точки подключения, подключение через РЭС"},
+        { id: "AVR_installation", name: "По письму от Казахтелекома необходимо установить АВР"},
+        { id: "akimat", name: "По письму Акимата"},
+        { id: "transmission_request", name: "По запросу трансмиссии"},
+        { id: "satellite_transition", name: "Перевод спутника на землю"},
+        { id: "service_femoval", name: "Вывод из эксплуатации"},
+        { id: "SAO_projects", name: "для проектов SAO"},
+        { id: "billing_equipment", name: "Подключение оборудования биллинга"},
+        { id: "DC_modernization", name: "Модернизация DC систем"},
+        { id: "Tele2_extention", name: "Расширение под Теле2"},
+        { id: "Core_extention", name: "Расширение Core"},
+        { id: "other_switch_works", name: "Другие работы на свиче"},
+        { id: "preventive_work", name: "Профиллактические работы"},
+        { id: "AD_request", name: "По запросу АД"},
+        { id: "RES_prescription", name: "Предписание от РЭС"},
+        { id: "other", name: "Прочее"},
+      ]
+      $scope.siteStatus = undefined;
+      $scope.siteSubStatus = undefined;
+      $scope.siteSubStatusId = undefined;
+      $scope.siteAddress = undefined;
+
+      $scope.jobWorks = [
+      {
+        "num": "A1",
+        "title": "Получение Технических Условий",
+        "info": "1.1",
+        "unit": " проект",
+        "almaty": 48998,
+        "astana": 142558,
+        "north_and_central": 367498,
+        "east": 367498,
+        "west": 399998,
+        "south": 38460
+       },
+       {
+        "num": "A2",
+        "title": " Разработка Рабочего проекта электроснабжения объекта разрешенной мощностью до 200 кВт",
+        "info": "1.2",
+        "unit": " проект",
+        "almaty": 249998,
+        "astana": 286460,
+        "north_and_central": 286460,
+        "east": 286460,
+        "west": 857998,
+        "south": 200000
+       },
+       {
+        "num": "А3",
+        "title": "Разработка рабочего проекта электроснабжения объекта разрешенной мощностью от 200 до 1000 кВт",
+        "info": "1.2",
+        "unit": " проект",
+        "almaty": 1821598,
+        "astana": 1821598,
+        "north_and_central": 1821598,
+        "east": 1821598,
+        "west": 2573998,
+        "south": 332852
+       },
+       {
+        "num": "А4",
+        "title": "Разработка рабочего проекта электроснабжения объекта разрешенной мощностью выше 1000 кВт",
+        "info": "1.2",
+        "unit": " проект",
+        "almaty": 2529998,
+        "astana": 2529998,
+        "north_and_central": 2529998,
+        "east": 2529998,
+        "west": 3574998,
+        "south": 379441
+       },
+       {
+        "num": "А5",
+        "title": "Разработка рабочего проекта по расчету и установке компенсирующего устройства для объекта с разрешенной мощностью до 200кВт",
+        "info": "1.2",
+        "unit": " проект",
+        "almaty": 151798,
+        "astana": 151798,
+        "north_and_central": 151798,
+        "east": 151798,
+        "west": 214498,
+        "south": 72045
+       }
+      ]
+
+      camForm.on('form-loaded', function () {
+
+        variablesToCreate.forEach(function (el) {
+            camForm.variableManager.fetchVariable(el.name);
+        });
+
+        $scope.conts = [];
+
+      });
+
+      camForm.on('variables-fetched', function () {
+        variablesToCreate.forEach(function (el) {
+          if (camForm.variableManager.variables[el.name].type === undefined) {
+              camForm.variableManager.variables[el.name].type = el.type;
+              if(el.value){
+                  camForm.variableManager.variables[el.name].value = el.value;
+              }
+          }
+          if(el.name === 'resolutions'){
+              if(!$scope.jobModel){
+                  $scope.jobModel = {};
+              }
+              $scope['resolutions'] = camForm.variableManager.variables[el.name].value;
+              $q.all($scope.resolutions.map(function (resolution) {
+                  return $http.get("/camunda/api/engine/engine/default/history/task?processInstanceId="+resolution.processInstanceId+"&taskId=" + resolution.taskId);
+              })).then(function (tasks) {
+                  tasks.forEach(function (e, index) {
+                      $scope.resolutions[index].taskName = e.data[0].name;
+                      try {
+                          $scope.resolutions[index].taskEndDate = new Date(e.data[0].endTime);
+                          $scope.resolutions[index].assignDate = new Date(e.data[0].startTime);
+                      } catch(e){
+                          console.log(e);
+                      }
+                  })
+              });
+              $q.all($scope.resolutions.map(function (resolution) {
+                  return $http.get("/camunda/api/engine/engine/default/history/identity-link-log?type=assignee&taskId=" + resolution.taskId + "&operationType=add&sortBy=time&sortOrder=desc");
+              })).then(function (logs) {
+                  logs.forEach(function (e, index) {
+                      if(e.data.length > 0){
+                          try {
+                              $scope.resolutions[index].claimDate = new Date(e.data[0].time);
+                          } catch(e){
+                              console.log(e);
+                          }
+                      }
+                  });
+              });
+          }
+        });
+        $http.get('/camunda/api/engine/engine/default/user/'+$rootScope.authentication.name+'/profile').then(
+                function(result){
+                    $scope.initiatorFull = result.data;
+                },
+                function(error){}
+        );
+        $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name+ "/profile").then(function(result){
+            $rootScope.authentication.assigneeName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
+        });
+        <!-- $scope.mainContract = "Roll-outRevision2020"; -->
+      });
+
+      camForm.on('submit', function (e) {
+        variablesToCreate.forEach(function (el) {
+            if (el.submit) {
+                camForm.variableManager.variableValue(el.name, $scope[el.name]);
+            }
+        });
+        camForm.variableManager.variableValue('site_name', $scope.site_name);
+        camForm.variableManager.variableValue('site', $scope.site);
+        camForm.variableManager.variableValue('siteName', $scope.siteName);
+        camForm.variableManager.variableValue('siteRegion', $scope.siteRegion);
+        camForm.variableManager.variableValue('contractor', $scope.custom.contractor);
+
+        camForm.variableManager.variableValue('initiatorFull', $scope.initiatorFull);
+        var validityDate = new Date($scope.validityDate);
+        camForm.variableManager.variableValue('validityDate', validityDate);
+        camForm.variableManager.variableValue('contract', parseInt($scope.custom.contract));
+
+        if($scope.supplementaryFiles && $scope.supplementaryFiles.length > 0){
+            camForm.variableManager.variableValue('supplementaryFiles', $scope.supplementaryFiles);
+        } else {
+            camForm.variableManager.destroyVariable('supplementaryFiles');
+        }
+        camForm.variableManager.variableValue('siteAddress', $scope.siteAddress);
+        camForm.variableManager.createVariable({
+          name: 'cityNameShow',
+          type: 'String',
+          value: $scope.siteRegionShow
+        });
+      });
+
+      $scope.open = open;
+      $scope.fileSelected = fileSelected;
+
+      function open($event, flag) {
+        $event.preventDefault();
+        $event.stopPropagation();
+        flag ? $scope.orderDateFieldOpened = true : $scope.validityDateFieldOpened = true;
+      };
+      $scope.getSite = function(val) {
+        return $http.get('/camunda/sites/name/contains/' + val).then(
+          function(response){
+              return response.data.map(el => ({ id: el.id, name: el.siteid, site_name: el.site_name }))
+          }
+        );
+      };
+      $scope.siteSelected = function($item){
+        $scope.siteName = $item.name;
+        $scope.site = $item.id;
+        $scope.site_name = $item.site_name;
+        $http.get('/camunda/sites/id/' + $item.id).then(function(result) {
+          var siteInfo = result.data
+          $scope.siteId = siteInfo.site_id;
+          console.log($scope.siteId);
+          $scope.siteAddress = ''
+          $scope.siteRegion = ''
+          if (siteInfo.facility_main_id){
+              if (siteInfo.facility_main_id.address_id) {
+                  var adress = '';
+                  if (siteInfo.facility_main_id.address_id.region_id) {
+                      if (siteInfo.facility_main_id.address_id.region_id.name) {
+                          adress = siteInfo.facility_main_id.address_id.region_id.name;
+                      }
+                  }
+                  if (siteInfo.facility_main_id.address_id.city_id && siteInfo.facility_main_id.address_id.city_id.id) {
+                      if (siteInfo.facility_main_id.address_id.city_id.district_id && siteInfo.facility_main_id.address_id.city_id.district_id.id) {
+                          if (siteInfo.facility_main_id.address_id.city_id.district_id.oblast_id && siteInfo.facility_main_id.address_id.city_id.district_id.oblast_id.id) {
+                              adress = (adress ? adress + ', ' : '') + siteInfo.facility_main_id.address_id.city_id.district_id.oblast_id.name;
+                          }
+                          adress = (adress ? adress + ', ' : '') + siteInfo.facility_main_id.address_id.city_id.district_id.name;
+                      }
+                      adress = (adress ? adress + ', ' : '') + siteInfo.facility_main_id.address_id.city_id.name;
+                      if (siteInfo.facility_main_id.address_id.city_id.city_type_id && siteInfo.facility_main_id.address_id.city_id.city_type_id.id) {
+                          adress = (adress ? adress + ' (' : '') + siteInfo.facility_main_id.address_id.city_id.city_type_id.name + ')';
+                      }
+                  }
+                  if (siteInfo.facility_main_id.address_id.cadastral_number) {
+                      adress = (adress ? adress + ', ' : '') + siteInfo.facility_main_id.address_id.cadastral_number;
+                  }
+                  if (siteInfo.facility_main_id.address_id.street) {
+                      adress = (adress ? adress + ', ' : '') + siteInfo.facility_main_id.address_id.street;
+                  }
+                  if (siteInfo.facility_main_id.address_id.building) {
+                      adress = (adress ? adress + ', ' : '') + siteInfo.facility_main_id.address_id.building;
+                  }
+                  if (siteInfo.facility_main_id.address_id.note) {
+                      adress = (adress ? adress + ', ' : '') + siteInfo.facility_main_id.address_id.note;
+                  }
+                  $scope.siteAddress = adress;
+                  $scope.siteRegion = siteInfo.facility_main_id.address_id.region_id ? $scope.regionsMapLC[siteInfo.facility_main_id.address_id.region_id.id] : '';
+                  $scope.siteRegionShow = siteInfo.facility_main_id.address_id.region_id ? siteInfo.facility_main_id.address_id.region_id.name : '';
+                  $scope.regionShortName = siteInfo.facility_main_id.address_id.region_id ? $scope.regionsMap[siteInfo.facility_main_id.address_id.region_id.id] : '';
+              }
+          }
+          $scope.siteStatus = siteInfo.site_status_id ? siteInfo.site_status_id.name : '';
+          $scope.siteSubStatus = siteInfo.site_substatus_id ? siteInfo.site_substatus_id.name : '';
+          $scope.siteSubStatusId = siteInfo.site_substatus_id ? siteInfo.site_substatus_id.id : 0;
+          $scope.refreshJobRequests();
+        })
+
+        $(function () {
+            $('[data-toggle="tooltip"]').tooltip('fixTitle');
+        });
+      };
+
+      function setValidityDate() {
+        $scope.validityDate = $scope.jrOrderedDate
+      }
+
+      <!-- Work list logic start -->
+      $scope.getWorks = function(val) {
+        var result = _.filter($scope.works, function(work){
+            return work.num.indexOf(val) !== -1;
+        })
+        if(result.length === 0){
+          result.push({
+              "id":-1,
+              "sapServiceNumber":"",
+              "sapPOServiceName":"Не найдено",
+              "displayServiceName":"Не найдено",
+              "currency":"",
+              "units":""
+          });
+        }
+        return result;
+      };
+
+      $scope.getUnits = function($item, index){
+        if($item.id === -1){
+            $scope.jobWorks[index].num = undefined;
+            $scope.jobWorks[index].title = undefined;
+            $scope.jobWorks[index].materialUnit = undefined;
+            $scope.jobWorks[index].materialPrice = undefined;
+            $scope.jobWorks[index].materialSum = undefined;
+        } else {
+            $scope.jobWorks[index].num = $item.num;
+            $scope.jobWorks[index].title = $item.title;
+            $scope.jobWorks[index].materialUnit = $item.unit;
+            $scope.jobWorks[index].materialSum = 0;
+        }
+      };
+
+      function removeWork(index){
+        $scope.jobWorks.splice(index,1);
+      };
+
+      <!-- Work list logic end -->
+
+      <!-- Upload File logic start -->
+      function fileSelected(el, bindedInput){
+        $timeout(function () {
+            $scope.$apply(function () {
+                uploadFileToMinio(el.files[0], bindedInput);
+
+            });
+
+        })
+      }
+
+      function uploadFileToMinio(file, bindedInput) {
+        var fileValue = {
+            name: file.name.replace(/[/\\?%#*:|"<>]/g, '-'),
+            path: uuid + '/' + file.name.replace(/[/\\?%#*:|"<>;]/g, '-')
+        };
+        $http({method: 'GET', url: '/camunda/uploads/tmp/put/' + fileValue.path, transformResponse: [] }).
+        then(function(response) {
+            $http.put(response.data, file, {headers: {'Content-Type': undefined}}).then(
+                function () {
+                    if(!$scope.supplementaryFiles){
+                        $scope.supplementaryFiles = [];
+                    }
+                    $scope.supplementaryFiles.push(fileValue);
+                    angular.element(document.querySelector('#supplementaryFiles')).val(null);
+                    $(bindedInput).val('');
+                },
+                function (error) {
+                    console.log(error.data);
+                }
+            );
+        }, function(error){
+            console.log(error.data);
+        });
+      };
+      <!-- Upload File logic end -->
+    }]);
+  </script>
+  <div class="form-group">
+    <div class="col-sm-8">
+      <h4>Create job request</h4>
+    </div>
+  </div>
+  <div class="form-group">
+    <label class="col-sm-3 control-label">Job to:</label>
+    <div class="col-sm-8">
+      <label class="radio-inline">
+        <input
+          type="radio"
+          name="jobTo"
+          id="jobToContractor"
+          value="contractor"
+          required
+        />
+        Contractor
+      </label>
+      <label class="radio-inline">
+        <input
+          type="radio"
+          name="jobTo"
+          id="jobToKcell"
+          value="kcell"
+          required
+        />
+        Kcell
+      </label>
+      <label
+        class="error"
+        ng-if="kcell_form.jobTo.$error.required && ( kcell_form.jobTo.$touched || view.submitted)"
+        >Required field</label
+      >
+    </div>
+  </div>
+  <div class="form-group">
+    <label class="col-sm-3 control-label">Contract:</label>
+    Договор No91533 от 09.06.2021
+  </div>
+  <div class="form-group">
+    <label class="col-sm-3 control-label">Contractor:</label>
+    <div class="col-sm-3">
+      <select
+        class="form-control selectpicker"
+        select-picker
+        title=""
+        name="contractor"
+        required
+      >
+        <option value="">Select Contractor</option>
+        <option value="contractor1">contractor1</option>
+        <option value="contractor2">contractor2</option>
+        <option value="contractor3">contractor3</option>
+      </select>
+      <label
+        class="error"
+        ng-if="kcell_form.mainContract.$error.required && ( kcell_form.mainContract.$touched || view.submitted)"
+        >Required field</label
+      >
+    </div>
+  </div>
+  <div class="form-group">
+    <label class="col-sm-3 control-label">Site:</label>
+    <div class="col-sm-6">
+      <div class="input-group">
+        <input
+          type="text"
+          ng-model="site_name"
+          name="site_name"
+          typeahead="site as sites.site_name for sites in getSite($viewValue)"
+          typeahead-on-select="siteSelected($item,$model,$label)"
+          class="form-control"
+          required
+          autocomplete="off"
+          placeholder="Search Site..."
+        />
+        <input type="hidden" ng-model="siteName" name="siteId" required />
+        <span
+          class="input-group-btn"
+          ng-if="siteName"
+          data-toggle="tooltip"
+          data-placement="right"
+          title="Site status"
+        >
+          <button type="button" class="btn btn-default">
+            {{siteStatus ? siteStatus : 'Working site'}}
+          </button>
+        </span>
+        <span
+          class="input-group-btn"
+          ng-if="siteName"
+          data-toggle="tooltip"
+          data-placement="right"
+          title="Site substatus"
+        >
+          <button type="button" class="btn btn-default">
+            {{siteSubStatus ? siteSubStatus : 'Working site'}}
+          </button>
+        </span>
+      </div>
+      <label
+        class="error"
+        ng-if="kcell_form.site_name.$error.required && ( kcell_form.site_name.$touched || view.submitted)"
+        >Required field</label
+      >
+      <label
+        class="error"
+        ng-if="kcell_form.siteId.$error.required && ( kcell_form.siteName.$touched || view.submitted)"
+        >Необходимо выбрать сайт из списка</label
+      >
+    </div>
+  </div>
+  <div class="form-group" ng-if="siteAddress">
+    <label class="col-sm-3 control-label">Region:</label>
+    <div class="col-sm-3">
+      <div class="form-control">{{siteRegionShow}}</div>
+    </div>
+  </div>
+  <div class="form-group" ng-if="siteAddress">
+    <label class="col-sm-3 control-label">Site Address:</label>
+    <div class="col-sm-6">
+      <div class="form-control" style="height: auto">{{siteAddress}}</div>
+    </div>
+  </div>
+  <div class="form-group">
+    <label class="col-sm-3 control-label">JR reason:</label>
+    <div class="col-sm-3">
+      <select
+        class="form-control selectpicker"
+        select-picker
+        title=""
+        select-model="jrReasonsList"
+        ng-model="jrReason"
+        name="jrReason"
+        required
+        cam-variable-type="String"
+      >
+        <option value="">Select reason</option>
+        <option
+          ng-repeat="reason in jrReasonsList"
+          ng-selected="{{reason.id == jrReason}}"
+          value="{{reason.id}}"
+        >
+          {{reason.name}}
+        </option>
+      </select>
+      <label
+        class="error"
+        ng-if="kcell_form.mainContract.$error.required && ( kcell_form.mainContract.$touched || view.submitted)"
+        >Required field</label
+      >
+    </div>
+  </div>
+  <div class="form-group">
+    <label class="col-sm-3 control-label">JR type:</label>
+    <div class="col-sm-3">
+      <select
+        class="form-control selectpicker"
+        select-picker
+        title=""
+        select-model="jrTypesList"
+        name="jrType"
+        required
+        cam-variable-type="String"
+        ng-model="jrType"
+      >
+        <option value="">Select type</option>
+        <option
+          ng-repeat="type in jrTypesList"
+          ng-selected="{{type.id == jrType}}"
+          value="{{type.id}}"
+        >
+          {{type.name}}
+        </option>
+      </select>
+      <label
+        class="error"
+        ng-if="kcell_form.jrType.$error.required && ( kcell_form.jrType.$touched || view.submitted)"
+        >Required field</label
+      >
+    </div>
+  </div>
+  <div class="form-group">
+    <label class="col-sm-3 control-label">JR Ordered date:</label>
+    <div class="col-sm-3">
+      <div class="input-group">
+        <input
+          type="text"
+          ng-model="jrOrderedDate"
+          name="jrOrderedDate"
+          required
+          class="form-control"
+          datepicker-popup="dd.MM.yyyy"
+          is-open="orderDateFieldOpened"
+          id="jrOrderedDate"
+          min-date="datepickerOptions.minDate"
+          placeholder="Select date"
+          ng-change="setValidityDate()"
+        />
+        <span class="input-group-btn">
+          <button
+            type="button"
+            class="btn btn-default"
+            ng-click="open($event, true)"
+          >
+            <i class="glyphicon glyphicon-calendar"></i>
+          </button>
+        </span>
+      </div>
+    </div>
+  </div>
+  <div class="form-group">
+    <label class="col-sm-3 control-label">Validity date:</label>
+    <div class="col-sm-3">
+      <div class="input-group">
+        <input
+          type="text"
+          ng-model="validityDate"
+          name="validityDate"
+          required
+          class="form-control"
+          datepicker-popup="dd.MM.yyyy"
+          is-open="validityDateFieldOpened"
+          id="validityDate"
+          min-date="datepickerOptions.minDate"
+          placeholder="Select date"
+        />
+        <span class="input-group-btn">
+          <button
+            type="button"
+            class="btn btn-default"
+            ng-click="open($event, false)"
+          >
+            <i class="glyphicon glyphicon-calendar"></i>
+          </button>
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <h4>Works</h4>
+  <div class="col-sm-12">
+    <div class="row">
+      <table class="table table-condensed">
+        <thead>
+          <tr>
+            <th width="5%">№</th>
+            <th width="40%">Type</th>
+            <th width="9%">Unit</th>
+            <th width="9%">Quantity</th>
+            <th width="9%">Price value</th>
+            <th width="9%">Sum</th>
+            <th width="9%">Refers to</th>
+            <th width="10%"></th>
+          </tr>
+        </thead>
+        <tbody ng-repeat="jobWork in jobWorks">
+          <tr>
+            <td>
+              <i
+                ng-show="jobWork.num"
+                class="glyphicon glyphicon-info-sign"
+                data-toggle="tooltip"
+                data-placement="right"
+                title="{{jobWork.num}}"
+              ></i>
+            </td>
+            <td>
+              <div>
+                <input
+                  type="text"
+                  ng-model="jobWork.title"
+                  name="title{{$index}}"
+                  typeahead="works as works.title for works in getWorks($viewValue)"
+                  typeahead-on-select="getUnits($item, $index)"
+                  class="form-control works-container"
+                  required
+                  autocomplete="off"
+                  placeholder="Search work"
+                />
+              </div>
+              <label
+                class="error"
+                ng-if="kcell_form['title'+$index].$error.required && ( kcell_form['title'+$index].$touched || view.submitted)"
+                >Required field</label
+              >
+              <label
+                class="error"
+                ng-if="kcell_form['num'+$index].$error.required && ( kcell_form['num'+$index].$touched || view.submitted)"
+                >Please select from list</label
+              >
+            </td>
+            <td>
+              <i
+                ng-show="jobWork.unit"
+                class="glyphicon glyphicon-info-sign"
+                data-toggle="tooltip"
+                data-placement="right"
+                title="{{jobWork.unit}}"
+              ></i>
+            </td>
+            <td>
+              <input
+                type="number"
+                class="form-control"
+                name="quantity{{$index}}"
+                required
+                ng-model="jobWork.quantity"
+                min="1"
+              />
+              <label
+                class="error"
+                ng-if="kcell_form['quantity'+$index].$error.required && ( kcell_form['quantity'+$index].$touched || view.submitted)"
+                >Required field</label
+              >
+            </td>
+            <td>
+              <i
+                ng-show="jobWork.materialPrice"
+                class="glyphicon glyphicon-info-sign"
+                data-toggle="tooltip"
+                data-placement="right"
+                title="{{jobWork.materialPrice}}"
+              ></i>
+            </td>
+            <td>
+              <i
+                ng-show="jobWork.materialSum"
+                class="glyphicon glyphicon-info-sign"
+                data-toggle="tooltip"
+                data-placement="right"
+                title="{{jobWork.materialSum}}"
+              ></i>
+            </td>
+            <td>-</td>
+            <td>
+              <div class="col-md-1">
+                <button
+                  type="button"
+                  class="btn btn-sm btn-default"
+                  ng-if="$index !== 0"
+                  ng-click="removeWork($index)"
+                >
+                  <i class="glyphicon glyphicon-trash"></i> Remove
+                </button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+        <tfoot>
+          <tr>
+            <td colspan="5">
+              <button
+                type="button"
+                class="btn btn-sm btn-default"
+                style="margin-top: 10px"
+                ng-click="addJobWork()"
+              >
+                <i class="glyphicon glyphicon-plus"></i> Add work
+              </button>
+            </td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+  </div>
+  <div class="form-group">
+    <label class="col-sm-3 control-label"> * Attachments:</label>
+    <div class="input-group">
+      <label class="input-group-btn">
+        <span class="btn btn-default">
+          Choose File
+          <input
+            type="file"
+            id="supplementaryFiles"
+            name="supplementaryFiles"
+            style="display: none"
+            onchange="angular.element(this).scope().fileSelected(this, '#supplementaryFilesName');$('#supplementaryFilesName').val(this.files[0].name)"
+          />
+        </span>
+      </label>
+      <input
+        type="text"
+        class="form-control upload-filename"
+        id="supplementaryFilesName"
+        placeholder="No File Chosen"
+        readonly
+      />
+    </div>
+  </div>
+  <div class="form-group">
+    <label class="col-sm-3 control-label"> * Comments:</label>
+    <div class="col-sm-9">
+      <textarea
+        class="form-control"
+        name="explanation"
+        cam-variable-name="explanation"
+        cam-variable-type="String"
+        maxlength="1500"
+        rows="4"
+        required
+      ></textarea>
+      <label
+        class="error"
+        ng-if="kcell_form.explanation.$error.required && ( kcell_form.explanation.$touched || view.submitted)"
+        >Required field</label
+      >
+    </div>
+  </div>
+</form>
