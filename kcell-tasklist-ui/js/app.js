@@ -62,7 +62,7 @@ define('app',[
 						{key:'Revision', name:'Revision', group:'infrastructure_revision_users',
 							subprocesses:[{key:'PreparePermitDocs'}]
 						},
-						{key:'revision-power', name:'Revision Power', group:'infrastructure_revision_users'},
+						{key:'Revision-power', name:'Revision Power', group:'infrastructure_revision_users'},
 						{key:'CreatePR', name:'Create PR', group:'infrastructure_pr_users'},
 						{key:'Invoice', name:'Monthly Act', group:'infrastructure_monthly_act_users'},
 						{key:'monthlyAct', name:'New Monthly Act', group:'infrastructure_monthly_act_users'},
@@ -164,7 +164,7 @@ define('app',[
 					if(hasGroup(process.group) || (
 						(process.key === 'leasing' && (hasGroup('statistics_rollout') || hasGroup('search_rollout'))) ||
 						(process.key === 'Revision' && (hasGroup('statistics_revision') || hasGroup('search_revision'))) ||
-						(process.key === 'revision-power' && (hasGroup('statistics_revision') || hasGroup('search_revision'))) ||
+						(process.key === 'Revision-power' && (hasGroup('statistics_revision') || hasGroup('search_revision'))) ||
 						(process.key === 'Invoice' && (hasGroup('statistics_monthlyact') || hasGroup('search_monthlyact'))) ||
 						(process.key === 'monthlyAct' && (hasGroup('statistics_monthlyact') || hasGroup('search_monthlyact')))
 					  )){

@@ -102,69 +102,18 @@
       $scope.siteSubStatus = undefined;
       $scope.siteSubStatusId = undefined;
       $scope.siteAddress = undefined;
+      $scope.setValidityDate = setValidityDate;
+      $scope.refreshSum = refreshSum;
+      $scope.open = open;
+      $scope.fileSelected = fileSelected;
+      $scope.jobWorks = [{relatedSites:[]}];
 
-      $scope.jobWorks = [
-      {
-        "num": "A1",
-        "title": "Получение Технических Условий",
-        "info": "1.1",
-        "unit": " проект",
-        "almaty": 48998,
-        "astana": 142558,
-        "north_and_central": 367498,
-        "east": 367498,
-        "west": 399998,
-        "south": 38460
-       },
-       {
-        "num": "A2",
-        "title": " Разработка Рабочего проекта электроснабжения объекта разрешенной мощностью до 200 кВт",
-        "info": "1.2",
-        "unit": " проект",
-        "almaty": 249998,
-        "astana": 286460,
-        "north_and_central": 286460,
-        "east": 286460,
-        "west": 857998,
-        "south": 200000
-       },
-       {
-        "num": "А3",
-        "title": "Разработка рабочего проекта электроснабжения объекта разрешенной мощностью от 200 до 1000 кВт",
-        "info": "1.2",
-        "unit": " проект",
-        "almaty": 1821598,
-        "astana": 1821598,
-        "north_and_central": 1821598,
-        "east": 1821598,
-        "west": 2573998,
-        "south": 332852
-       },
-       {
-        "num": "А4",
-        "title": "Разработка рабочего проекта электроснабжения объекта разрешенной мощностью выше 1000 кВт",
-        "info": "1.2",
-        "unit": " проект",
-        "almaty": 2529998,
-        "astana": 2529998,
-        "north_and_central": 2529998,
-        "east": 2529998,
-        "west": 3574998,
-        "south": 379441
-       },
-       {
-        "num": "А5",
-        "title": "Разработка рабочего проекта по расчету и установке компенсирующего устройства для объекта с разрешенной мощностью до 200кВт",
-        "info": "1.2",
-        "unit": " проект",
-        "almaty": 151798,
-        "astana": 151798,
-        "north_and_central": 151798,
-        "east": 151798,
-        "west": 214498,
-        "south": 72045
-       }
-      ]
+
+      $http.get('/api/revisionPowerJobs').then(
+        function(result) {
+          $scope.works = result.data
+        }
+      )
 
       camForm.on('form-loaded', function () {
 
@@ -259,8 +208,6 @@
         });
       });
 
-      $scope.open = open;
-      $scope.fileSelected = fileSelected;
 
       function open($event, flag) {
         $event.preventDefault();
@@ -281,7 +228,6 @@
         $http.get('/camunda/sites/id/' + $item.id).then(function(result) {
           var siteInfo = result.data
           $scope.siteId = siteInfo.site_id;
-          console.log($scope.siteId);
           $scope.siteAddress = ''
           $scope.siteRegion = ''
           if (siteInfo.facility_main_id){
@@ -334,19 +280,18 @@
       };
 
       function setValidityDate() {
-        $scope.validityDate = $scope.jrOrderedDate
+        new Date($scope.validityDate).setDate($scope.jrOrderedDate.getDate() + $scope.jrType.working_days)
       }
 
       <!-- Work list logic start -->
       $scope.getWorks = function(val) {
+        console.log($scope.works)
         var result = _.filter($scope.works, function(work){
-            return work.num.indexOf(val) !== -1;
+            return work.title.indexOf(val) !== -1;
         })
         if(result.length === 0){
           result.push({
               "id":-1,
-              "sapServiceNumber":"",
-              "sapPOServiceName":"Не найдено",
               "displayServiceName":"Не найдено",
               "currency":"",
               "units":""
@@ -356,6 +301,7 @@
       };
 
       $scope.getUnits = function($item, index){
+        console.log("!!!")
         if($item.id === -1){
             $scope.jobWorks[index].num = undefined;
             $scope.jobWorks[index].title = undefined;
@@ -366,6 +312,7 @@
             $scope.jobWorks[index].num = $item.num;
             $scope.jobWorks[index].title = $item.title;
             $scope.jobWorks[index].materialUnit = $item.unit;
+            $scope.jobWorks[index].materialPrice = $item.almaty;
             $scope.jobWorks[index].materialSum = 0;
         }
       };
@@ -373,6 +320,11 @@
       function removeWork(index){
         $scope.jobWorks.splice(index,1);
       };
+
+      function refreshSum(index) {
+        console.log($scope.jobwork.quantity)
+        $scope.jobWorks[index].materialSum = $scope.jobWorks[index].materialPrice*jobWork.quantity
+      }
 
       <!-- Work list logic end -->
 
@@ -575,16 +527,15 @@
         select-picker
         title=""
         select-model="jrTypesList"
-        name="jrType"
         required
-        cam-variable-type="String"
+        cam-variable-type="Json"
         ng-model="jrType"
       >
         <option value="">Select type</option>
         <option
           ng-repeat="type in jrTypesList"
-          ng-selected="{{type.id == jrType}}"
-          value="{{type.id}}"
+          ng-selected="{{type.id == jrType.id}}"
+          value="{{type}}"
         >
           {{type.name}}
         </option>
@@ -663,23 +614,18 @@
             <th width="5%">№</th>
             <th width="40%">Type</th>
             <th width="9%">Unit</th>
-            <th width="9%">Quantity</th>
-            <th width="9%">Price value</th>
-            <th width="9%">Sum</th>
-            <th width="9%">Refers to</th>
-            <th width="10%"></th>
+            <th width="10%">Quantity</th>
+            <th width="10%">Price value</th>
+            <th width="8%">Sum</th>
+            <th width="10%">Refers to</th>
+            <th width="8%"></th>
           </tr>
         </thead>
+        {{$scope.jobWorks}}
         <tbody ng-repeat="jobWork in jobWorks">
           <tr>
             <td>
-              <i
-                ng-show="jobWork.num"
-                class="glyphicon glyphicon-info-sign"
-                data-toggle="tooltip"
-                data-placement="right"
-                title="{{jobWork.num}}"
-              ></i>
+              <span ng-show="jobWork.title">{{jobWork.num}}</span>
             </td>
             <td>
               <div>
@@ -702,18 +648,12 @@
               >
               <label
                 class="error"
-                ng-if="kcell_form['num'+$index].$error.required && ( kcell_form['num'+$index].$touched || view.submitted)"
+                ng-if="kcell_form['title'+$index].$error.required && ( kcell_form['title'+$index].$touched || view.submitted)"
                 >Please select from list</label
               >
             </td>
             <td>
-              <i
-                ng-show="jobWork.unit"
-                class="glyphicon glyphicon-info-sign"
-                data-toggle="tooltip"
-                data-placement="right"
-                title="{{jobWork.unit}}"
-              ></i>
+              <span ng-show="jobWork.title">{{jobWork.unit}}</span>
             </td>
             <td>
               <input
@@ -722,6 +662,7 @@
                 name="quantity{{$index}}"
                 required
                 ng-model="jobWork.quantity"
+                ng-change="refreshSum($index)"
                 min="1"
               />
               <label
@@ -731,22 +672,10 @@
               >
             </td>
             <td>
-              <i
-                ng-show="jobWork.materialPrice"
-                class="glyphicon glyphicon-info-sign"
-                data-toggle="tooltip"
-                data-placement="right"
-                title="{{jobWork.materialPrice}}"
-              ></i>
+              <span ng-show="jobWork.title">{{jobWork.materialPrice}}</span>
             </td>
             <td>
-              <i
-                ng-show="jobWork.materialSum"
-                class="glyphicon glyphicon-info-sign"
-                data-toggle="tooltip"
-                data-placement="right"
-                title="{{jobWork.materialSum}}"
-              ></i>
+              <span ng-show="jobWork.title">{{jobWork.materialSum}}</span>
             </td>
             <td>-</td>
             <td>
