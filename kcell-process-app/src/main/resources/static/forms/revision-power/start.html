@@ -86,19 +86,8 @@
       $scope.addJobWork = addJobWork;
       $scope.removeWork = removeWork;
       $scope.currentDate = new Date();
-      $scope.mock_data = [{
-        "num": "",
-        "title": "",
-        "info": "",
-        "unit": "",
-        "almaty": "",
-        "astana": "",
-        "north_and_central": "",
-        "east": "",
-        "west": "",
-        "south": ""
-      }];
       $scope.jobWorks = [{relatedSites:[]}];
+      $scope.download = download;
 
       camForm.on('form-loaded', function () {
         variablesToCreate.forEach(function (el) {
@@ -368,6 +357,18 @@
         }, function(error){
           console.log(error.data);
         });
+      };
+
+      $scope.clearFile = function(index){
+        $scope.supplementaryFiles.splice(index, 1);
+      }
+      function download(file) {
+          $http({method: 'GET', url: '/camunda/uploads/get/' + file.path, transformResponse: [] }).
+          then(function(response) {
+              document.getElementById('fileDownloadIframe').src = response.data;
+          }, function(error){
+              console.log(error.data);
+          });
       };
       <!-- Upload File logic end -->
     }]);
@@ -732,14 +733,9 @@
             </td>
             <td>
               <div class="col-md-1">
-                <button
-                  type="button"
-                  class="btn btn-sm btn-default"
-                  ng-if="jobWork.title"
-                  ng-click="removeWork($index)"
-                >
-                  <i class="glyphicon glyphicon-trash"></i>
-                </button>
+                <a ng-if="jobWork.title" ng-click="removeWork($index)"
+                  ><i class="glyphicon glyphicon-trash"></i
+                ></a>
               </div>
             </td>
           </tr>
@@ -762,31 +758,48 @@
     </div>
   </div>
   <div class="form-group">
-    <label class="col-sm-3 control-label"> * Attachments:</label>
-    <div class="input-group">
-      <label class="input-group-btn">
-        <span class="btn btn-default">
-          Choose File
-          <input
-            type="file"
-            id="supplementaryFiles"
-            name="supplementaryFiles"
-            style="display: none"
-            onchange="angular.element(this).scope().fileSelected(this, '#supplementaryFilesName');$('#supplementaryFilesName').val(this.files[0].name)"
-          />
-        </span>
-      </label>
-      <input
-        type="text"
-        class="form-control upload-filename"
-        id="supplementaryFilesName"
-        placeholder="No File Chosen"
-        readonly
-      />
+    <label class="col-sm-3 control-label">
+      <label style="color: darkred">*</label>
+      Attachments:</label
+    >
+    <div class="col-sm-6">
+      <div
+        class="input-group"
+        ng-repeat="file in supplementaryFiles track by $index"
+      >
+        <a ng-click="download(file)">{{file.name}}</a> |
+        <a ng-click="clearFile($index);"
+          ><i class="glyphicon glyphicon-trash"></i
+        ></a>
+      </div>
+      <div class="input-group">
+        <label class="input-group-btn">
+          <span class="btn btn-default">
+            Choose File
+            <input
+              type="file"
+              id="supplementaryFiles"
+              name="supplementaryFiles"
+              style="display: none"
+              onchange="angular.element(this).scope().fileSelected(this, '#supplementaryFilesName');$('#supplementaryFilesName').val(this.files[0].name)"
+            />
+          </span>
+        </label>
+        <input
+          type="text"
+          class="form-control upload-filename"
+          id="supplementaryFilesName"
+          placeholder="No File Chosen"
+          readonly
+        />
+      </div>
     </div>
   </div>
   <div class="form-group">
-    <label class="col-sm-3 control-label"> * Comments:</label>
+    <label class="col-sm-3 control-label">
+      <label style="color: darkred">*</label>
+      Comments:</label
+    >
     <div class="col-sm-9">
       <textarea
         class="form-control"
