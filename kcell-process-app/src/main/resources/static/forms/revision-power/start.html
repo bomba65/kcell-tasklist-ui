@@ -43,6 +43,12 @@
           store: true
         },
         {
+          name: 'jrType',
+          type: 'Json',
+          submit: true,
+          store: true
+        },
+        {
           name: 'jobWorks',
           type: 'Json',
           submit: true,
@@ -61,68 +67,44 @@
           store: true
         },
       ];
-      $scope.jrTypesList = [
-        { id: "emergency_recovery", name: "Аварийно-восстановительные работы", working_days: 3 },
-        { id: "urgent_prevention", name: "Срочные работы (предотвращение аварийных режимов)", working_days: 5 },
-        { id: "urgent_prescripted", name: "Срочные работы (по предписанию энергоснабжающих организаций)", working_days: 10 },
-        { id: "tech_spec_under_200", name: "Получение ТУ (до 200 кВт)", working_days: 5 },
-        { id: "tech_spec_200_to_1000", name: "Получение ТУ (200-1000 кВт)", working_days: 10 },
-        { id: "tech_spec_over_1000", name: "Получение ТУ (свыше 1000 кВт)", working_days: 15 },
-        { id: "development_and_approve", name: "Разработка РП и согласование с заинтересованными организацями согласно ТУ (до 200 кВт)", working_days: 10 },
-        { id: "development_and_approve_under_200", name: "Разработка РП и согласование с заинтересованными организацями согласно ТУ (до 200 кВт)", working_days: 13 },
-        { id: "development_and_approve_to_1000", name: "Разработка РП и согласование с заинтересованными организацями согласно ТУ (200-1000 кВт)", working_days: 17 },
-        { id: "development_and_approve_200_to_1000", name: "Разработка РП и согласование с заинтересованными организацями согласно ТУ (200-1000 кВт)", working_days: 22 },
-        { id: "electric_installation", name: "Электромонтажные работы", working_days: 20 },
-        { id: "connection_docs", name: "Предоставление документов для подключения к сети (согласно ТУ)", working_days: 0},
-        { id: "completed_acceptance", name: "Приемка выполненных работ", working_days: 10 }
-      ],
-      $scope.jrReasonsList = [
-        { id: "250_plus", name: "250+"},
-        { id: "landlord_request", name: "По просьбе арендодателя"},
-        { id: "emergency_recovery", name: "Аварийно-восстановительные работы"},
-        { id: "rollout", name: "Ролл аут"},
-        { id: "RES_connection", name: "Перенос сайта/точки подключения, подключение через РЭС"},
-        { id: "AVR_installation", name: "По письму от Казахтелекома необходимо установить АВР"},
-        { id: "akimat", name: "По письму Акимата"},
-        { id: "transmission_request", name: "По запросу трансмиссии"},
-        { id: "satellite_transition", name: "Перевод спутника на землю"},
-        { id: "service_femoval", name: "Вывод из эксплуатации"},
-        { id: "SAO_projects", name: "для проектов SAO"},
-        { id: "billing_equipment", name: "Подключение оборудования биллинга"},
-        { id: "DC_modernization", name: "Модернизация DC систем"},
-        { id: "Tele2_extention", name: "Расширение под Теле2"},
-        { id: "Core_extention", name: "Расширение Core"},
-        { id: "other_switch_works", name: "Другие работы на свиче"},
-        { id: "preventive_work", name: "Профиллактические работы"},
-        { id: "AD_request", name: "По запросу АД"},
-        { id: "RES_prescription", name: "Предписание от РЭС"},
-        { id: "other", name: "Прочее"},
-      ]
+      $http.get('/api/revisionPowerJobs').then(
+        function(result) {
+          $scope.jrTypesList = result.data.jrTypesList;
+          $scope.jrReasonsList = result.data.jrReasonsList;
+          $scope.works = result.data.works;
+        }
+      )
       $scope.siteStatus = undefined;
       $scope.siteSubStatus = undefined;
       $scope.siteSubStatusId = undefined;
       $scope.siteAddress = undefined;
       $scope.setValidityDate = setValidityDate;
-      $scope.refreshSum = refreshSum;
+      $scope.getSum = getSum;
+      $scope.getPrice = getPrice;
       $scope.open = open;
       $scope.fileSelected = fileSelected;
+      $scope.addJobWork = addJobWork;
+      $scope.removeWork = removeWork;
+      $scope.currentDate = new Date();
+      $scope.mock_data = [{
+        "num": "",
+        "title": "",
+        "info": "",
+        "unit": "",
+        "almaty": "",
+        "astana": "",
+        "north_and_central": "",
+        "east": "",
+        "west": "",
+        "south": ""
+      }];
       $scope.jobWorks = [{relatedSites:[]}];
 
-
-      $http.get('/api/revisionPowerJobs').then(
-        function(result) {
-          $scope.works = result.data
-        }
-      )
-
       camForm.on('form-loaded', function () {
-
         variablesToCreate.forEach(function (el) {
             camForm.variableManager.fetchVariable(el.name);
         });
-
         $scope.conts = [];
-
       });
 
       camForm.on('variables-fetched', function () {
@@ -208,19 +190,21 @@
         });
       });
 
-
       function open($event, flag) {
         $event.preventDefault();
         $event.stopPropagation();
         flag ? $scope.orderDateFieldOpened = true : $scope.validityDateFieldOpened = true;
       };
+
       $scope.getSite = function(val) {
+        <!-- посмотреть определение региона по сайту in revision; -->
         return $http.get('/camunda/sites/name/contains/' + val).then(
           function(response){
               return response.data.map(el => ({ id: el.id, name: el.siteid, site_name: el.site_name }))
           }
         );
       };
+
       $scope.siteSelected = function($item){
         $scope.siteName = $item.name;
         $scope.site = $item.id;
@@ -280,29 +264,32 @@
       };
 
       function setValidityDate() {
-        new Date($scope.validityDate).setDate($scope.jrOrderedDate.getDate() + $scope.jrType.working_days)
+        if ($scope.jrOrderedDate) {
+          let type = JSON.parse($scope.jrType)
+          $scope.validityDate = new Date().setDate($scope.jrOrderedDate.getDate() + type.working_days)
+        }
       }
 
       <!-- Work list logic start -->
+
       $scope.getWorks = function(val) {
-        console.log($scope.works)
         var result = _.filter($scope.works, function(work){
             return work.title.indexOf(val) !== -1;
         })
+
         if(result.length === 0){
           result.push({
               "id":-1,
-              "displayServiceName":"Не найдено",
-              "currency":"",
-              "units":""
+              "num": "",
+              "title":"Не найдено",
+              "materialUnit":""
           });
         }
         return result;
       };
 
       $scope.getUnits = function($item, index){
-        console.log("!!!")
-        if($item.id === -1){
+        if(index === -1){
             $scope.jobWorks[index].num = undefined;
             $scope.jobWorks[index].title = undefined;
             $scope.jobWorks[index].materialUnit = undefined;
@@ -310,10 +297,13 @@
             $scope.jobWorks[index].materialSum = undefined;
         } else {
             $scope.jobWorks[index].num = $item.num;
-            $scope.jobWorks[index].title = $item.title;
+            $scope.jobWorks[index].title = $item.title ;
             $scope.jobWorks[index].materialUnit = $item.unit;
             $scope.jobWorks[index].materialPrice = $item.almaty;
             $scope.jobWorks[index].materialSum = 0;
+            $scope.jobWorks[index].transportationFor = {};
+            $scope.jobWorks[index].dismantlingFor = {};
+            $scope.jobWorks[index].referedWorks = $item.num;
         }
       };
 
@@ -321,11 +311,26 @@
         $scope.jobWorks.splice(index,1);
       };
 
-      function refreshSum(index) {
-        console.log($scope.jobwork.quantity)
-        $scope.jobWorks[index].materialSum = $scope.jobWorks[index].materialPrice*jobWork.quantity
-      }
+      function addJobWork() {
+        $scope.jobWorks.push({relatedSites:[]});
+      };
 
+      function getSum(index) {
+        $scope.jobWorks[index].materialSum = ($scope.jobWorks[index].materialPrice*$scope.jobWorks[index].quantity).toFixed(2)
+      }
+      function getPrice(index, transportation_flag, num) {
+          <!-- O21 -->
+        if (transportation_flag) {
+          let transptWork = JSON.parse($scope.jobWorks[index].transportationFor)
+          scope.jobWorks[index].referedWorks = $scope.jobWorks[index].num + "-" + transptWork.num;
+          $scope.jobWorks[index].materialPrice = (transptWork.materialPrice*0.5).toFixed(2);
+        } else {
+          <!-- O20 -->
+          let dismntWork = JSON.parse($scope.jobWorks[index].dismantlingFor)
+          $scope.jobWorks[index].materialPrice = (dismntWork.materialPrice*0.02).toFixed(2);
+        }
+        getSum(index);
+      }
       <!-- Work list logic end -->
 
       <!-- Upload File logic start -->
@@ -340,6 +345,7 @@
       }
 
       function uploadFileToMinio(file, bindedInput) {
+        console.log(file)
         var fileValue = {
             name: file.name.replace(/[/\\?%#*:|"<>]/g, '-'),
             path: uuid + '/' + file.name.replace(/[/\\?%#*:|"<>;]/g, '-')
@@ -349,18 +355,18 @@
             $http.put(response.data, file, {headers: {'Content-Type': undefined}}).then(
                 function () {
                     if(!$scope.supplementaryFiles){
-                        $scope.supplementaryFiles = [];
+                      $scope.supplementaryFiles = [];
                     }
                     $scope.supplementaryFiles.push(fileValue);
                     angular.element(document.querySelector('#supplementaryFiles')).val(null);
                     $(bindedInput).val('');
                 },
                 function (error) {
-                    console.log(error.data);
+                  console.log(error.data);
                 }
             );
         }, function(error){
-            console.log(error.data);
+          console.log(error.data);
         });
       };
       <!-- Upload File logic end -->
@@ -407,7 +413,7 @@
   </div>
   <div class="form-group">
     <label class="col-sm-3 control-label">Contractor:</label>
-    <div class="col-sm-3">
+    <div class="col-sm-5">
       <select
         class="form-control selectpicker"
         select-picker
@@ -429,7 +435,7 @@
   </div>
   <div class="form-group">
     <label class="col-sm-3 control-label">Site:</label>
-    <div class="col-sm-6">
+    <div class="col-sm-5">
       <div class="input-group">
         <input
           type="text"
@@ -480,19 +486,19 @@
   </div>
   <div class="form-group" ng-if="siteAddress">
     <label class="col-sm-3 control-label">Region:</label>
-    <div class="col-sm-3">
+    <div class="col-sm-5">
       <div class="form-control">{{siteRegionShow}}</div>
     </div>
   </div>
   <div class="form-group" ng-if="siteAddress">
     <label class="col-sm-3 control-label">Site Address:</label>
-    <div class="col-sm-6">
+    <div class="col-sm-5">
       <div class="form-control" style="height: auto">{{siteAddress}}</div>
     </div>
   </div>
   <div class="form-group">
     <label class="col-sm-3 control-label">JR reason:</label>
-    <div class="col-sm-3">
+    <div class="col-sm-5">
       <select
         class="form-control selectpicker"
         select-picker
@@ -521,15 +527,15 @@
   </div>
   <div class="form-group">
     <label class="col-sm-3 control-label">JR type:</label>
-    <div class="col-sm-3">
+    <div class="col-sm-5">
       <select
         class="form-control selectpicker"
         select-picker
         title=""
         select-model="jrTypesList"
         required
-        cam-variable-type="Json"
         ng-model="jrType"
+        ng-change="setValidityDate()"
       >
         <option value="">Select type</option>
         <option
@@ -549,7 +555,7 @@
   </div>
   <div class="form-group">
     <label class="col-sm-3 control-label">JR Ordered date:</label>
-    <div class="col-sm-3">
+    <div class="col-sm-5">
       <div class="input-group">
         <input
           type="text"
@@ -559,8 +565,7 @@
           class="form-control"
           datepicker-popup="dd.MM.yyyy"
           is-open="orderDateFieldOpened"
-          id="jrOrderedDate"
-          min-date="datepickerOptions.minDate"
+          min-date="currentDate"
           placeholder="Select date"
           ng-change="setValidityDate()"
         />
@@ -578,7 +583,7 @@
   </div>
   <div class="form-group">
     <label class="col-sm-3 control-label">Validity date:</label>
-    <div class="col-sm-3">
+    <div class="col-sm-5">
       <div class="input-group">
         <input
           type="text"
@@ -589,7 +594,7 @@
           datepicker-popup="dd.MM.yyyy"
           is-open="validityDateFieldOpened"
           id="validityDate"
-          min-date="datepickerOptions.minDate"
+          min-date="currentDate"
           placeholder="Select date"
         />
         <span class="input-group-btn">
@@ -613,19 +618,18 @@
           <tr>
             <th width="5%">№</th>
             <th width="40%">Type</th>
-            <th width="9%">Unit</th>
+            <th width="7%">Unit</th>
             <th width="10%">Quantity</th>
             <th width="10%">Price value</th>
             <th width="8%">Sum</th>
-            <th width="10%">Refers to</th>
-            <th width="8%"></th>
+            <th width="15%">Refers to</th>
+            <th width="5%"></th>
           </tr>
         </thead>
-        {{$scope.jobWorks}}
         <tbody ng-repeat="jobWork in jobWorks">
           <tr>
             <td>
-              <span ng-show="jobWork.title">{{jobWork.num}}</span>
+              <span ng-if="jobWork.title">{{jobWork.num}}</span>
             </td>
             <td>
               <div>
@@ -640,6 +644,12 @@
                   autocomplete="off"
                   placeholder="Search work"
                 />
+                <input
+                  type="hidden"
+                  ng-model="jobWork.title"
+                  name="title{{$index}}"
+                  required
+                />
               </div>
               <label
                 class="error"
@@ -653,7 +663,7 @@
               >
             </td>
             <td>
-              <span ng-show="jobWork.title">{{jobWork.unit}}</span>
+              <span ng-if="jobWork.title">{{jobWork.materialUnit}}</span>
             </td>
             <td>
               <input
@@ -662,8 +672,9 @@
                 name="quantity{{$index}}"
                 required
                 ng-model="jobWork.quantity"
-                ng-change="refreshSum($index)"
                 min="1"
+                ng-if="jobWork.title"
+                ng-change="getSum($index)"
               />
               <label
                 class="error"
@@ -672,21 +683,62 @@
               >
             </td>
             <td>
-              <span ng-show="jobWork.title">{{jobWork.materialPrice}}</span>
+              <span ng-if="jobWork.title">{{jobWork.materialPrice}}</span>
             </td>
             <td>
-              <span ng-show="jobWork.title">{{jobWork.materialSum}}</span>
+              <span ng-if="jobWork.title">{{jobWork.materialSum}}</span>
             </td>
-            <td>-</td>
+            <td>
+              <select
+                class="form-control selectpicker"
+                select-picker
+                title=""
+                select-model="jobWorks"
+                required
+                cam-variable-type="String"
+                ng-model="jobWork.transportationFor"
+                ng-if="jobWork.num == 'O21'"
+                ng-change="getPrice($index, true)"
+              >
+                <option value="">Select work</option>
+                <option
+                  ng-repeat="work in jobWorks"
+                  ng-selected="{{work.num === jobWork.transportationFor}}"
+                  value="{{work}}"
+                >
+                  {{work.num}}
+                </option>
+              </select>
+              <select
+                class="form-control selectpicker"
+                select-picker
+                title=""
+                select-model="jobWorks"
+                required
+                cam-variable-type="String"
+                ng-model="jobWork.dismantlingFor"
+                ng-if="jobWork.num == 'O20'"
+                ng-change="getPrice($index, false)"
+              >
+                <option value="">Select work</option>
+                <option
+                  ng-repeat="work in jobWorks"
+                  ng-selected="{{work.num === jobWork.dismantlingFor}}"
+                  value="{{work}}"
+                >
+                  {{work.referedWorks}}
+                </option>
+              </select>
+            </td>
             <td>
               <div class="col-md-1">
                 <button
                   type="button"
                   class="btn btn-sm btn-default"
-                  ng-if="$index !== 0"
+                  ng-if="jobWork.title"
                   ng-click="removeWork($index)"
                 >
-                  <i class="glyphicon glyphicon-trash"></i> Remove
+                  <i class="glyphicon glyphicon-trash"></i>
                 </button>
               </div>
             </td>
