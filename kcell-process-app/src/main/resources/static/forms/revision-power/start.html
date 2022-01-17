@@ -31,6 +31,12 @@
           store: true
         },
         {
+          name: 'siteRegion',
+          type: 'String',
+          submit: true,
+          store: true
+        },
+        {
           name: 'siteStatus',
           type: 'String',
           submit: true,
@@ -244,13 +250,21 @@
           $scope.siteStatus = siteInfo.site_status_id ? siteInfo.site_status_id.name : '';
           $scope.siteSubStatus = siteInfo.site_substatus_id ? siteInfo.site_substatus_id.name : '';
           $scope.siteSubStatusId = siteInfo.site_substatus_id ? siteInfo.site_substatus_id.id : 0;
-          $scope.refreshJobRequests();
         })
 
         $(function () {
             $('[data-toggle="tooltip"]').tooltip('fixTitle');
         });
       };
+
+      $scope.regionSelected = function(siteRegion){
+        var r = _.find($scope.regions, function (r) {
+            return r.id === siteRegion;
+        });
+        if(r){
+            $scope.regionShortName = r.value;
+        }
+    }
 
       function setValidityDate() {
         if ($scope.jrOrderedDate) {
@@ -285,14 +299,27 @@
             $scope.jobWorks[index].materialPrice = undefined;
             $scope.jobWorks[index].materialSum = undefined;
         } else {
+
             $scope.jobWorks[index].num = $item.num;
             $scope.jobWorks[index].title = $item.title ;
             $scope.jobWorks[index].materialUnit = $item.unit;
-            $scope.jobWorks[index].materialPrice = $item.almaty;
             $scope.jobWorks[index].materialSum = 0;
             $scope.jobWorks[index].transportationFor = {};
             $scope.jobWorks[index].dismantlingFor = {};
             $scope.jobWorks[index].referedWorks = $item.num;
+
+            <!-- TEMPORARY works dividing by regions -->
+            if ($scope.siteRegionShow === 'Astana') {
+              $scope.jobWorks[index].materialPrice = $item.astana;
+            } else if ($scope.siteRegionShow === 'East') {
+              $scope.jobWorks[index].materialPrice = $item.east;
+            } else if ($scope.siteRegionShow === 'West') {
+              $scope.jobWorks[index].materialPrice = $item.west;
+            } else if ($scope.siteRegionShow === 'South') { 
+              $scope.jobWorks[index].materialPrice = $item.south;
+            } else {
+              $scope.jobWorks[index].materialPrice = $item.almaty;
+            }
         }
       };
 
@@ -327,14 +354,12 @@
         $timeout(function () {
             $scope.$apply(function () {
                 uploadFileToMinio(el.files[0], bindedInput);
-
             });
 
         })
       }
 
       function uploadFileToMinio(file, bindedInput) {
-        console.log(file)
         var fileValue = {
             name: file.name.replace(/[/\\?%#*:|"<>]/g, '-'),
             path: uuid + '/' + file.name.replace(/[/\\?%#*:|"<>;]/g, '-')
@@ -450,27 +475,6 @@
           placeholder="Search Site..."
         />
         <input type="hidden" ng-model="siteName" name="siteId" required />
-        <span
-          class="input-group-btn"
-          ng-if="siteName"
-          data-toggle="tooltip"
-          data-placement="right"
-          title="Site status"
-        >
-          <button type="button" class="btn btn-default">
-            {{siteStatus ? siteStatus : 'Working site'}}
-          </button>
-        </span>
-        <span
-          class="input-group-btn"
-          ng-if="siteName"
-          data-toggle="tooltip"
-          data-placement="right"
-          title="Site substatus"
-        >
-          <button type="button" class="btn btn-default">
-            {{siteSubStatus ? siteSubStatus : 'Working site'}}
-          </button>
         </span>
       </div>
       <label
@@ -485,7 +489,7 @@
       >
     </div>
   </div>
-  <div class="form-group" ng-if="siteAddress">
+  <div class="form-group" ng-if="siteRegionShow">
     <label class="col-sm-3 control-label">Region:</label>
     <div class="col-sm-5">
       <div class="form-control">{{siteRegionShow}}</div>
@@ -742,7 +746,7 @@
         </tbody>
         <tfoot>
           <tr>
-            <td colspan="5">
+            <td colspan="8">
               <button
                 type="button"
                 class="btn btn-sm btn-default"
