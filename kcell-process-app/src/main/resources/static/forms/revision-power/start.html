@@ -37,20 +37,8 @@
           store: true
         },
         {
-          name: 'siteStatus',
-          type: 'String',
-          submit: true,
-          store: true
-        },
-        {
-          name: 'siteSubStatus',
-          type: 'String',
-          submit: true,
-          store: true
-        },
-        {
           name: 'jrType',
-          type: 'Json',
+          type: 'String',
           submit: true,
           store: true
         },
@@ -74,7 +62,13 @@
         },
         {
           name: 'worksTotalSum',
-          type: 'Number',
+          type: 'String',
+          submit: true,
+          store: true
+        },
+        {
+          name: 'jrNumber',
+          type: 'String',
           submit: true,
           store: true
         },
@@ -84,13 +78,12 @@
         function(result) {
           $scope.jrTypesList = result.data.jrTypesList;
           $scope.jrReasonsList = result.data.jrReasonsList;
-          $scope.works = result.data.works;
+          
+          $scope.works = _.forEach(result.data.works, function(work) {
+            work.title = work.num.toString()+ " " + work.title
+          })
         }
       )
-
-      $scope.siteStatus = undefined;
-      $scope.siteSubStatus = undefined;
-      $scope.siteSubStatusId = undefined;
       $scope.siteAddress = undefined;
       $scope.setValidityDate = setValidityDate;
       $scope.getSum = getSum;
@@ -161,7 +154,6 @@
         $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name+ "/profile").then(function(result){
             $rootScope.authentication.assigneeName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
         });
-        <!-- $scope.mainContract = "Roll-outRevision2020"; -->
       });
 
       camForm.on('submit', function (e) {
@@ -170,29 +162,53 @@
                 camForm.variableManager.variableValue(el.name, $scope[el.name]);
             }
         });
+
         camForm.variableManager.variableValue('site_name', $scope.site_name);
         camForm.variableManager.variableValue('site', $scope.site);
         camForm.variableManager.variableValue('siteName', $scope.siteName);
-        camForm.variableManager.variableValue('siteRegion', $scope.siteRegion);
-        camForm.variableManager.variableValue('contractor', $scope.custom.contractor);
-
+        camForm.variableManager.variableValue('contractor', $scope.contractor);
         camForm.variableManager.variableValue('initiatorFull', $scope.initiatorFull);
         var validityDate = new Date($scope.validityDate);
         camForm.variableManager.variableValue('validityDate', validityDate);
-        camForm.variableManager.variableValue('contract', parseInt($scope.custom.contract));
+        var jrOrderedDate = new Date($scope.jrOrderedDate)
+        camForm.variableManager.variableValue('jrOrderedDate', jrOrderedDate);
+        camForm.variableManager.variableValue('contract', $scope.contract);
+        camForm.variableManager.variableValue('jobWorks', JSON.parse(angular.toJson($scope.jobWorks)));
+        camForm.variableManager.variableValue('jobToContractor', $scope.jobToContractor);
+        camForm.variableManager.variableValue('jobToKcell', $scope.jobToKcell);
 
         if($scope.supplementaryFiles && $scope.supplementaryFiles.length > 0){
             camForm.variableManager.variableValue('supplementaryFiles', $scope.supplementaryFiles);
         } else {
             camForm.variableManager.destroyVariable('supplementaryFiles');
         }
+        camForm.variableManager.variableValue('explanation', $scope.explanation);
         camForm.variableManager.variableValue('siteAddress', $scope.siteAddress);
         camForm.variableManager.createVariable({
           name: 'cityNameShow',
           type: 'String',
           value: $scope.siteRegionShow
         });
+
+        var jrCounter = 'Power'+ '-'+$scope.regionShortName+'-'+$scope.contractor+'-'+$scope.siteId+'-'+$scope.jrOrderedDate.getFullYear().toString().substr(-2);
+        return $http.post('/asset-management/jobrequestcounter/' + jrCounter).then(
+          function(result){
+            $scope.jrNumber = result.data;
+            camForm.businessKey = result.data;
+          }
+        );
+        camForm.variableManager.variableValue('jrNumber', $scope.jrNumber);
+        
       });
+
+      $scope.regionsMap = {
+        '1': 'Alm',
+        '2': 'Ast',
+        '3': 'N&C',
+        '4': 'East',
+        '5': 'South',
+        '6': 'West'
+      };
 
       function open($event, flag) {
         $event.preventDefault();
@@ -217,63 +233,52 @@
           var siteInfo = result.data
           $scope.siteId = siteInfo.site_id;
           $scope.siteAddress = ''
-          $scope.siteRegion = ''
+          $scope.siteRegionShow = ''
           if (siteInfo.facility_main_id){
               if (siteInfo.facility_main_id.address_id) {
-                  var adress = '';
-                  if (siteInfo.facility_main_id.address_id.region_id) {
-                      if (siteInfo.facility_main_id.address_id.region_id.name) {
-                          adress = siteInfo.facility_main_id.address_id.region_id.name;
-                      }
-                  }
-                  if (siteInfo.facility_main_id.address_id.city_id && siteInfo.facility_main_id.address_id.city_id.id) {
-                      if (siteInfo.facility_main_id.address_id.city_id.district_id && siteInfo.facility_main_id.address_id.city_id.district_id.id) {
-                          if (siteInfo.facility_main_id.address_id.city_id.district_id.oblast_id && siteInfo.facility_main_id.address_id.city_id.district_id.oblast_id.id) {
-                              adress = (adress ? adress + ', ' : '') + siteInfo.facility_main_id.address_id.city_id.district_id.oblast_id.name;
-                          }
-                          adress = (adress ? adress + ', ' : '') + siteInfo.facility_main_id.address_id.city_id.district_id.name;
-                      }
-                      adress = (adress ? adress + ', ' : '') + siteInfo.facility_main_id.address_id.city_id.name;
-                      if (siteInfo.facility_main_id.address_id.city_id.city_type_id && siteInfo.facility_main_id.address_id.city_id.city_type_id.id) {
-                          adress = (adress ? adress + ' (' : '') + siteInfo.facility_main_id.address_id.city_id.city_type_id.name + ')';
-                      }
-                  }
-                  if (siteInfo.facility_main_id.address_id.cadastral_number) {
-                      adress = (adress ? adress + ', ' : '') + siteInfo.facility_main_id.address_id.cadastral_number;
-                  }
-                  if (siteInfo.facility_main_id.address_id.street) {
-                      adress = (adress ? adress + ', ' : '') + siteInfo.facility_main_id.address_id.street;
-                  }
-                  if (siteInfo.facility_main_id.address_id.building) {
-                      adress = (adress ? adress + ', ' : '') + siteInfo.facility_main_id.address_id.building;
-                  }
-                  if (siteInfo.facility_main_id.address_id.note) {
-                      adress = (adress ? adress + ', ' : '') + siteInfo.facility_main_id.address_id.note;
-                  }
-                  $scope.siteAddress = adress;
-                  $scope.siteRegion = siteInfo.facility_main_id.address_id.region_id ? $scope.regionsMapLC[siteInfo.facility_main_id.address_id.region_id.id] : '';
-                  $scope.siteRegionShow = siteInfo.facility_main_id.address_id.region_id ? siteInfo.facility_main_id.address_id.region_id.name : '';
-                  $scope.regionShortName = siteInfo.facility_main_id.address_id.region_id ? $scope.regionsMap[siteInfo.facility_main_id.address_id.region_id.id] : '';
+                var address = '';
+                if (siteInfo.facility_main_id.address_id.region_id) {
+                    if (siteInfo.facility_main_id.address_id.region_id.name) {
+                        address = siteInfo.facility_main_id.address_id.region_id.name;
+                        $scope.siteRegionShow = siteInfo.facility_main_id.address_id.region_id.name
+                        $scope.regionShortName = $scope.regionsMap[siteInfo.facility_main_id.address_id.region_id.id];
+                    }
+                }
+                if (siteInfo.facility_main_id.address_id.city_id && siteInfo.facility_main_id.address_id.city_id.id) {
+                    if (siteInfo.facility_main_id.address_id.city_id.district_id && siteInfo.facility_main_id.address_id.city_id.district_id.id) {
+                        if (siteInfo.facility_main_id.address_id.city_id.district_id.oblast_id && siteInfo.facility_main_id.address_id.city_id.district_id.oblast_id.id) {
+                            address = (address ? address + ', ' : '') + siteInfo.facility_main_id.address_id.city_id.district_id.oblast_id.name;
+                        }
+                        address = (address ? address + ', ' : '') + siteInfo.facility_main_id.address_id.city_id.district_id.name;
+                    }
+                    address = (address ? address + ', ' : '') + siteInfo.facility_main_id.address_id.city_id.name;
+                    if (siteInfo.facility_main_id.address_id.city_id.city_type_id && siteInfo.facility_main_id.address_id.city_id.city_type_id.id) {
+                        address = (address ? address + ' (' : '') + siteInfo.facility_main_id.address_id.city_id.city_type_id.name + ')';
+                    }
+                }
+                if (siteInfo.facility_main_id.address_id.cadastral_number) {
+                    address = (address ? address + ', ' : '') + siteInfo.facility_main_id.address_id.cadastral_number;
+                }
+                if (siteInfo.facility_main_id.address_id.street) {
+                    address = (address ? address + ', ' : '') + siteInfo.facility_main_id.address_id.street;
+                }
+                if (siteInfo.facility_main_id.address_id.building) {
+                    address = (address ? address + ', ' : '') + siteInfo.facility_main_id.address_id.building;
+                }
+                if (siteInfo.facility_main_id.address_id.note) {
+                    address = (address ? address + ', ' : '') + siteInfo.facility_main_id.address_id.note;
+                }
+                $scope.siteAddress = address;
+                $scope.siteRegionShow = siteInfo.facility_main_id.address_id.region_id ? siteInfo.facility_main_id.address_id.region_id.name : '';
+                $scope.regionShortName = siteInfo.facility_main_id.address_id.region_id ? $scope.regionsMap[siteInfo.facility_main_id.address_id.region_id.id] : '';
               }
           }
-          $scope.siteStatus = siteInfo.site_status_id ? siteInfo.site_status_id.name : '';
-          $scope.siteSubStatus = siteInfo.site_substatus_id ? siteInfo.site_substatus_id.name : '';
-          $scope.siteSubStatusId = siteInfo.site_substatus_id ? siteInfo.site_substatus_id.id : 0;
         })
 
         $(function () {
             $('[data-toggle="tooltip"]').tooltip('fixTitle');
         });
       };
-
-      $scope.regionSelected = function(siteRegion){
-        var r = _.find($scope.regions, function (r) {
-            return r.id === siteRegion;
-        });
-        if(r){
-            $scope.regionShortName = r.value;
-        }
-    }
 
       function setValidityDate() {
         if ($scope.jrOrderedDate) {
@@ -285,16 +290,17 @@
       <!-- Work list logic start -->
 
       $scope.getWorks = function(val) {
+
         var result = _.filter($scope.works, function(work){
-            return work.title.indexOf(val) !== -1;
+          return work.num.toString().indexOf(val) !== -1;
         })
 
         if(result.length === 0){
           result.push({
-              "id":-1,
-              "num": "",
-              "title":"Не найдено",
-              "materialUnit":""
+            "id":-1,
+            "num": "",
+            "title":"Не найдено",
+            "materialUnit":""
           });
         }
         return result;
@@ -332,19 +338,10 @@
         }
       };
 
-      function removeWork(index){
-        $scope.jobWorks.splice(index,1);
-      };
-
-      function addJobWork() {
-        $scope.jobWorks.push({relatedSites:[]});
-      };
-
       function getSum(index) {
         $scope.jobWorks[index].materialSum = ($scope.jobWorks[index].materialPrice*$scope.jobWorks[index].quantity).toFixed(2)
         $scope.worksTotalSum = $scope.jobWorks.map(i=>i.materialSum).reduce((a,b)=>(+a)+(+b))
       };
-      
       
       function getPrice(index, transportation_flag, num) {
           <!-- O21 -->
@@ -358,7 +355,15 @@
           $scope.jobWorks[index].materialPrice = (dismntWork.materialPrice*0.02).toFixed(2);
         }
         getSum(index);
-      }
+      };
+
+      function removeWork(index){
+        $scope.jobWorks.splice(index,1);
+      };
+
+      function addJobWork() {
+        $scope.jobWorks.push({relatedSites:[]});
+      };
       <!-- Work list logic end -->
 
       <!-- Upload File logic start -->
@@ -421,9 +426,9 @@
       <label class="radio-inline">
         <input
           type="radio"
-          name="jobTo"
           id="jobToContractor"
           value="contractor"
+          ng-model="jobTo"
           required
         />
         Contractor
@@ -431,18 +436,13 @@
       <label class="radio-inline">
         <input
           type="radio"
-          name="jobTo"
           id="jobToKcell"
           value="kcell"
+          ng-model="jobTo"
           required
         />
         Kcell
       </label>
-      <label
-        class="error"
-        ng-if="kcell_form.jobTo.$error.required && ( kcell_form.jobTo.$touched || view.submitted)"
-        >Required field</label
-      >
     </div>
   </div>
   <div class="form-group">
@@ -451,13 +451,18 @@
       <select
         class="form-control selectpicker"
         select-picker
-        title=""
         name="contract"
         required
+        ng-model="contract"
       >
         <option value="">Select Contract</option>
         <option value="91533">Договор No91533 от 09.06.2021</option>
       </select>
+      <label
+        class="error"
+        ng-if="kcell_form.contract.$error.required && ( kcell_form.contract.$touched || view.submitted)"
+        >Required field</label
+      >
     </div>
   </div>
   <div class="form-group">
@@ -466,18 +471,16 @@
       <select
         class="form-control selectpicker"
         select-picker
-        title=""
         name="contractor"
         required
+        ng-model="contractor"
       >
         <option value="">Select Contractor</option>
-        <option value="contractor1">contractor1</option>
-        <option value="contractor2">contractor2</option>
-        <option value="contractor3">contractor3</option>
+        <option value="Arcommm">ТОО "ARCOMMM"</option>
       </select>
       <label
         class="error"
-        ng-if="kcell_form.mainContract.$error.required && ( kcell_form.mainContract.$touched || view.submitted)"
+        ng-if="kcell_form.contractor.$error.required && ( kcell_form.contractor.$touched || view.submitted)"
         >Required field</label
       >
     </div>
@@ -512,10 +515,10 @@
       >
     </div>
   </div>
-  <div class="form-group" ng-if="siteRegionShow">
+  <div class="form-group" ng-if="siteAddress">
     <label class="col-sm-3 control-label">Region:</label>
-    <div class="col-sm-5">
-      <div class="form-control">{{siteRegionShow}}</div>
+    <div class="col-sm-3">
+        <div class="form-control">{{siteRegionShow}}</div>
     </div>
   </div>
   <div class="form-group" ng-if="siteAddress">
@@ -548,7 +551,7 @@
       </select>
       <label
         class="error"
-        ng-if="kcell_form.mainContract.$error.required && ( kcell_form.mainContract.$touched || view.submitted)"
+        ng-if="kcell_form.jrReason.$error.required && ( kcell_form.jrReason.$touched || view.submitted)"
         >Required field</label
       >
     </div>
@@ -670,7 +673,7 @@
                   class="form-control works-container"
                   required
                   autocomplete="off"
-                  placeholder="Search work"
+                  placeholder="Search work number"
                 />
                 <input
                   type="hidden"
