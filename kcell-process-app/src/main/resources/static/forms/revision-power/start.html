@@ -2,19 +2,10 @@
   <script cam-script type="text/form-script">
     inject(['$scope', '$http', 'Uri', '$rootScope', '$q', '$timeout', function ($scope, $http, Uri, $rootScope, $q, $timeout) {
       var uuid = new Date().getTime();
-
+      
+      
       var variablesToCreate = [
         {
-          name: 'validityDate',
-          type: 'Date',
-          value: new Date(),
-          store: true
-        },{
-          name: 'contractor',
-          type: 'String',
-          submit: true,
-          store: true
-        },{
           name: 'siteName',
           type: 'String',
           submit: true,
@@ -26,18 +17,6 @@
           store: true
         },{
           name: 'site',
-          type: 'String',
-          submit: true,
-          store: true
-        },
-        {
-          name: 'siteRegion',
-          type: 'String',
-          submit: true,
-          store: true
-        },
-        {
-          name: 'jrType',
           type: 'String',
           submit: true,
           store: true
@@ -60,30 +39,9 @@
           submit: true,
           store: true
         },
-        {
-          name: 'worksTotalSum',
-          type: 'String',
-          submit: true,
-          store: true
-        },
-        {
-          name: 'jrNumber',
-          type: 'String',
-          submit: true,
-          store: true
-        },
       ];
 
-      $http.get('/api/revisionPowerJobs').then(
-        function(result) {
-          $scope.jrTypesList = result.data.jrTypesList;
-          $scope.jrReasonsList = result.data.jrReasonsList;
-          
-          $scope.works = _.forEach(result.data.works, function(work) {
-            work.title = work.num.toString()+ " " + work.title
-          })
-        }
-      )
+      
       $scope.siteAddress = undefined;
       $scope.setValidityDate = setValidityDate;
       $scope.getSum = getSum;
@@ -96,55 +54,27 @@
       $scope.jobWorks = [{relatedSites:[]}];
       $scope.download = download;
       $scope.worksTotalSum = 0;
-
+      $scope.minValidityDate = new Date();
+      $scope.orderDateFieldOpened = false;
+      $scope.validityDateFieldOpened = false;
+      $scope.jrNumber = '';
 
       camForm.on('form-loaded', function () {
-        variablesToCreate.forEach(function (el) {
-            camForm.variableManager.fetchVariable(el.name);
-        });
-      });
+        $http.get('/api/revisionPowerJobs').then(
+          function(result) {
+            $scope.jrTypesList = result.data.jrTypesList;
+            $scope.jrReasonsList = result.data.jrReasonsList;
+            $scope.contractsList = result.data.contractsList;
+            $scope.contractorsList = result.data.contractorsList;
+            $scope.works = _.forEach(result.data.works, function(work) {
+              work.title = work.num.toString()+ " " + work.title
+            })
+          }
+        );
+      })
 
       camForm.on('variables-fetched', function () {
-        variablesToCreate.forEach(function (el) {
-          if (camForm.variableManager.variables[el.name].type === undefined) {
-              camForm.variableManager.variables[el.name].type = el.type;
-              if(el.value){
-                  camForm.variableManager.variables[el.name].value = el.value;
-              }
-          }
-          if(el.name === 'resolutions'){
-              if(!$scope.jobModel){
-                  $scope.jobModel = {};
-              }
-              $scope['resolutions'] = camForm.variableManager.variables[el.name].value;
-              $q.all($scope.resolutions.map(function (resolution) {
-                  return $http.get("/camunda/api/engine/engine/default/history/task?processInstanceId="+resolution.processInstanceId+"&taskId=" + resolution.taskId);
-              })).then(function (tasks) {
-                  tasks.forEach(function (e, index) {
-                      $scope.resolutions[index].taskName = e.data[0].name;
-                      try {
-                          $scope.resolutions[index].taskEndDate = new Date(e.data[0].endTime);
-                          $scope.resolutions[index].assignDate = new Date(e.data[0].startTime);
-                      } catch(e){
-                          console.log(e);
-                      }
-                  })
-              });
-              $q.all($scope.resolutions.map(function (resolution) {
-                  return $http.get("/camunda/api/engine/engine/default/history/identity-link-log?type=assignee&taskId=" + resolution.taskId + "&operationType=add&sortBy=time&sortOrder=desc");
-              })).then(function (logs) {
-                  logs.forEach(function (e, index) {
-                      if(e.data.length > 0){
-                          try {
-                              $scope.resolutions[index].claimDate = new Date(e.data[0].time);
-                          } catch(e){
-                              console.log(e);
-                          }
-                      }
-                  });
-              });
-          }
-        });
+
         $http.get('/camunda/api/engine/engine/default/user/'+$rootScope.authentication.name+'/profile').then(
                 function(result){
                     $scope.initiatorFull = result.data;
@@ -155,51 +85,119 @@
             $rootScope.authentication.assigneeName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
         });
       });
-
-      camForm.on('submit', function (e) {
-        variablesToCreate.forEach(function (el) {
-            if (el.submit) {
-                camForm.variableManager.variableValue(el.name, $scope[el.name]);
+      
+      
+        camForm.on('submit', function (e) {
+          try{
+            camForm.variableManager.createVariable({
+              name: 'worksTotalSum',
+              value: $scope.worksTotalSum,
+              type: 'String'
+            });
+            camForm.variableManager.createVariable({
+              name: 'jrType',
+              value: JSON.parse($scope.jrType),
+              type: 'Json'
+            });
+            camForm.variableManager.createVariable({
+              name: 'jrReason',
+              value: JSON.parse($scope.jrReason),
+              type: 'Json'
+            });
+            camForm.variableManager.createVariable({
+              name: 'contract',
+              value: JSON.parse($scope.contract),
+              type: 'Json'
+            });
+            camForm.variableManager.createVariable({
+              name: 'contractor',
+              value: JSON.parse($scope.contractor),
+              type: 'Json'
+            });
+            camForm.variableManager.createVariable({
+              name: 'validityDate',
+              value: new Date($scope.validityDate),
+              type: 'Date'
+            });
+            camForm.variableManager.createVariable({
+              name: 'jrOrderedDate',
+              value: $scope.jrOrderedDate,
+              type: 'Date'
+            });
+            camForm.variableManager.createVariable({
+              name: 'init_comment',
+              value: $scope.explanation,
+              type: 'String'
+            });
+            camForm.variableManager.createVariable({
+              name: 'siteRegionShow',
+              value: $scope.siteRegionShow,
+              type: 'String'
+            });
+            camForm.variableManager.createVariable({
+              name: 'initiatorFull',
+              type: 'Json',
+              value: $scope.initiatorFull
+            });
+            camForm.variableManager.createVariable({
+              name: 'Site_Name',
+              type: 'String',
+              value: $scope.site_name
+            });
+            camForm.variableManager.createVariable({
+              name: 'address',
+              type: 'String',
+              value: $scope.siteAddress
+            });
+            camForm.variableManager.createVariable({
+              name: 'Site',
+              type: 'String',
+              value: $scope.site
+            });
+            camForm.variableManager.createVariable({
+              name: 'job_to',
+              type: 'String',
+              value: $scope.jobTo
+            });
+            camForm.variableManager.createVariable({
+              name: 'jobs',
+              type: 'Json',
+              value: JSON.parse(angular.toJson($scope.jobWorks))
+            });
+    
+            if ($scope.jrNumber) {
+              camForm.variableManager.createVariable({
+                name: 'jrNumber',
+                type: 'String',
+                value: $scope.jrNumber
+              });
             }
+    
+            if($scope.supplementaryFiles && $scope.supplementaryFiles.length > 0){
+              camForm.variableManager.createVariable({
+                name: 'attachedFiles',
+                type: 'Json',
+                value: $scope.supplementaryFiles
+              });
+            }
+          } catch (error) {
+            console.log(error)
+          }
         });
-
-        camForm.variableManager.variableValue('site_name', $scope.site_name);
-        camForm.variableManager.variableValue('site', $scope.site);
-        camForm.variableManager.variableValue('siteName', $scope.siteName);
-        camForm.variableManager.variableValue('contractor', $scope.contractor);
-        camForm.variableManager.variableValue('initiatorFull', $scope.initiatorFull);
-        var validityDate = new Date($scope.validityDate);
-        camForm.variableManager.variableValue('validityDate', validityDate);
-        var jrOrderedDate = new Date($scope.jrOrderedDate)
-        camForm.variableManager.variableValue('jrOrderedDate', jrOrderedDate);
-        camForm.variableManager.variableValue('contract', $scope.contract);
-        camForm.variableManager.variableValue('jobWorks', JSON.parse(angular.toJson($scope.jobWorks)));
-        camForm.variableManager.variableValue('jobToContractor', $scope.jobToContractor);
-        camForm.variableManager.variableValue('jobToKcell', $scope.jobToKcell);
-
-        if($scope.supplementaryFiles && $scope.supplementaryFiles.length > 0){
-            camForm.variableManager.variableValue('supplementaryFiles', $scope.supplementaryFiles);
-        } else {
-            camForm.variableManager.destroyVariable('supplementaryFiles');
-        }
-        camForm.variableManager.variableValue('explanation', $scope.explanation);
-        camForm.variableManager.variableValue('siteAddress', $scope.siteAddress);
-        camForm.variableManager.createVariable({
-          name: 'cityNameShow',
-          type: 'String',
-          value: $scope.siteRegionShow
-        });
-
-        var jrCounter = 'Power'+ '-'+$scope.regionShortName+'-'+$scope.contractor+'-'+$scope.siteId+'-'+$scope.jrOrderedDate.getFullYear().toString().substr(-2);
+      
+      $scope.preSubmit = function () {
+        var deferred = $q.defer();
+        let contractorJson = JSON.parse($scope.contractor)
+        let jrCounter = 'Power'+ '-'+$scope.regionShortName+'-'+contractorJson.id+'-'+$scope.siteId+'-'+$scope.jrOrderedDate.getFullYear().toString().substr(-2);
         return $http.post('/asset-management/jobrequestcounter/' + jrCounter).then(
           function(result){
             $scope.jrNumber = result.data;
             camForm.businessKey = result.data;
           }
         );
-        camForm.variableManager.variableValue('jrNumber', $scope.jrNumber);
-        
-      });
+        deferred.resolve();
+        return deferred.promise;
+      }
 
       $scope.regionsMap = {
         '1': 'Alm',
@@ -213,11 +211,10 @@
       function open($event, flag) {
         $event.preventDefault();
         $event.stopPropagation();
-        flag ? $scope.orderDateFieldOpened = true : $scope.validityDateFieldOpened = true;
+        flag === 'jrDate' ? $scope.orderDateFieldOpened = true : $scope.validityDateFieldOpened = true;
       };
 
       $scope.getSite = function(val) {
-        <!-- посмотреть определение региона по сайту in revision; -->
         return $http.get('/camunda/sites/name/contains/' + val).then(
           function(response){
               return response.data.map(el => ({ id: el.id, name: el.siteid, site_name: el.site_name }))
@@ -283,7 +280,9 @@
       function setValidityDate() {
         if ($scope.jrOrderedDate) {
           let type = JSON.parse($scope.jrType)
-          $scope.validityDate = new Date().setDate($scope.jrOrderedDate.getDate() + type.working_days)
+          let date = new Date($scope.jrOrderedDate)
+          $scope.validityDate = date.setDate($scope.jrOrderedDate.getDate() + type.working_days)
+          $scope.minValidityDate = $scope.validityDate
         }
       }
 
@@ -314,13 +313,10 @@
             $scope.jobWorks[index].materialPrice = undefined;
             $scope.jobWorks[index].materialSum = undefined;
         } else {
-
             $scope.jobWorks[index].num = $item.num;
             $scope.jobWorks[index].title = $item.title ;
             $scope.jobWorks[index].materialUnit = $item.unit;
             $scope.jobWorks[index].materialSum = 0;
-            $scope.jobWorks[index].transportationFor = {};
-            $scope.jobWorks[index].dismantlingFor = {};
             $scope.jobWorks[index].referedWorks = $item.num;
 
             <!-- TEMPORARY works dividing by regions -->
@@ -340,18 +336,21 @@
 
       function getSum(index) {
         $scope.jobWorks[index].materialSum = ($scope.jobWorks[index].materialPrice*$scope.jobWorks[index].quantity).toFixed(2)
-        $scope.worksTotalSum = $scope.jobWorks.map(i=>i.materialSum).reduce((a,b)=>(+a)+(+b))
+        $scope.worksTotalSum = $scope.jobWorks.map(i=>i.materialSum).reduce((a,b)=>((+a)+(+b)).toFixed(3))
       };
       
-      function getPrice(index, transportation_flag, num) {
-          <!-- O21 -->
+      function getPrice(index, transportation_flag) {
+        <!-- O21 -->
         if (transportation_flag) {
           let transptWork = JSON.parse($scope.jobWorks[index].transportationFor)
-          scope.jobWorks[index].referedWorks = $scope.jobWorks[index].num + "-" + transptWork.num;
+
+          $scope.jobWorks[index].referedWorks = $scope.jobWorks[index].num + "-" + transptWork.num;
+          $scope.jobWorks[index].refersTo = transptWork.num;
           $scope.jobWorks[index].materialPrice = (transptWork.materialPrice*0.5).toFixed(2);
         } else {
           <!-- O20 -->
           let dismntWork = JSON.parse($scope.jobWorks[index].dismantlingFor)
+          $scope.jobWorks[index].refersTo = dismntWork.referedWorks;
           $scope.jobWorks[index].materialPrice = (dismntWork.materialPrice*0.02).toFixed(2);
         }
         getSum(index);
@@ -436,7 +435,7 @@
       <label class="radio-inline">
         <input
           type="radio"
-          id="jobToKcell"
+          id="kcell"
           value="kcell"
           ng-model="jobTo"
           required
@@ -451,12 +450,19 @@
       <select
         class="form-control selectpicker"
         select-picker
-        name="contract"
+        select-model="contractsList"
         required
         ng-model="contract"
+        cam-variable-type="String"
       >
         <option value="">Select Contract</option>
-        <option value="91533">Договор No91533 от 09.06.2021</option>
+        <option
+          ng-repeat="cnt in contractsList"
+          ng-selected="{{cnt.id == contract}}"
+          value="{{cnt}}"
+        >
+          {{cnt.name}}
+        </option>
       </select>
       <label
         class="error"
@@ -471,12 +477,19 @@
       <select
         class="form-control selectpicker"
         select-picker
-        name="contractor"
+        select-model="contractorsList"
         required
         ng-model="contractor"
+        cam-variable-type="String"
       >
         <option value="">Select Contractor</option>
-        <option value="Arcommm">ТОО "ARCOMMM"</option>
+        <option
+          ng-repeat="cntr in contractorsList"
+          ng-selected="{{cntr.id == contractor}}"
+          value="{{cntr}}"
+        >
+          {{cntr.name}}
+        </option>
       </select>
       <label
         class="error"
@@ -496,11 +509,11 @@
           typeahead="site as sites.site_name for sites in getSite($viewValue)"
           typeahead-on-select="siteSelected($item,$model,$label)"
           class="form-control"
-          required
+          
           autocomplete="off"
           placeholder="Search Site..."
         />
-        <input type="hidden" ng-model="siteName" name="siteId" required />
+        <input type="hidden" ng-model="siteName" name="siteId"  />
         </span>
       </div>
       <label
@@ -544,7 +557,7 @@
         <option
           ng-repeat="reason in jrReasonsList"
           ng-selected="{{reason.id == jrReason}}"
-          value="{{reason.id}}"
+          value="{{reason}}"
         >
           {{reason.name}}
         </option>
@@ -567,6 +580,7 @@
         required
         ng-model="jrType"
         ng-change="setValidityDate()"
+        cam-variable-type="String"  
       >
         <option value="">Select type</option>
         <option
@@ -604,7 +618,7 @@
           <button
             type="button"
             class="btn btn-default"
-            ng-click="open($event, true)"
+            ng-click="open($event, 'jrDate')"
           >
             <i class="glyphicon glyphicon-calendar"></i>
           </button>
@@ -625,14 +639,14 @@
           datepicker-popup="dd.MM.yyyy"
           is-open="validityDateFieldOpened"
           id="validityDate"
-          min-date="currentDate"
+          min-date="minValidityDate"
           placeholder="Select date"
         />
         <span class="input-group-btn">
           <button
             type="button"
             class="btn btn-default"
-            ng-click="open($event, false)"
+            ng-click="open($event, 'valDate')"
           >
             <i class="glyphicon glyphicon-calendar"></i>
           </button>
