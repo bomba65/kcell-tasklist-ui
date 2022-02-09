@@ -87,9 +87,19 @@
         if ($scope.jrOrderedDate) {
           let type = JSON.parse($scope.jrType)
           let date = new Date($scope.jrOrderedDate)
-          $scope.validityDate = date.setDate($scope.jrOrderedDate.getDate() + type.working_days)
+          $scope.validityDate = getDateExclWknds(date, type.working_days)
           $scope.minValidityDate = $scope.validityDate
         }
+      };
+
+      function getDateExclWknds(fromDate, days) {
+        var count = 0;
+        while (count < days) {
+            fromDate.setDate(fromDate.getDate() + 1);
+            if (fromDate.getDay() != 0 && fromDate.getDay() != 6) // Skip weekends
+                count++;
+        }
+        return fromDate;
       };
 
       <!-- Work list logic start -->
@@ -492,7 +502,7 @@
                   <option value="">Select work</option>
                   <option
                     ng-repeat="work in jobs"
-                    ng-selected="{{work.num === job.transportationFor}}"
+                    ng-selected="{{work === job.transportationFor}}"
                     value="{{work}}"
                   >
                     {{work.num}}
@@ -512,10 +522,10 @@
                   <option value="">Select work</option>
                   <option
                     ng-repeat="work in jobs"
-                    ng-selected="{{work.num === job.dismantlingFor}}"
+                    ng-selected="{{work === job.dismantlingFor}}"
                     value="{{work}}"
                   >
-                    {{work.refersTo}}
+                    {{work.referedWorks}}
                   </option>
                 </select>
               </td>

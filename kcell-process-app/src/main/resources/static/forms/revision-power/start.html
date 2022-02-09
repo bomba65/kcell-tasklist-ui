@@ -172,7 +172,7 @@
                 value: $scope.jrNumber
               });
             }
-    
+            camForm.businessKey = $scope.jrNumber
             if($scope.supplementaryFiles && $scope.supplementaryFiles.length > 0){
               camForm.variableManager.createVariable({
                 name: 'attachedFiles',
@@ -181,18 +181,19 @@
               });
             }
           } catch (error) {
-            console.log(error)
+            console.log("error in submit: ", error)
           }
         });
       
       $scope.preSubmit = function () {
         var deferred = $q.defer();
         let contractorJson = JSON.parse($scope.contractor)
-        let jrCounter = 'Power'+ '-'+$scope.regionShortName+'-'+contractorJson.id+'-'+$scope.siteId+'-'+$scope.jrOrderedDate.getFullYear().toString().substr(-2);
+        <!-- let jrCounter = 'Power'+ '-'+$scope.regionShortName+'-'+contractorJson.id+'-'+$scope.siteId+'-'+$scope.jrOrderedDate.getFullYear().toString().substr(-2); -->
+        let jrCounter = 'Power'
         return $http.post('/asset-management/jobrequestcounter/' + jrCounter).then(
           function(result){
-            $scope.jrNumber = result.data;
-            camForm.businessKey = result.data;
+            $scope.jrNumber = result.data.replace('-','-'+$scope.regionShortName+'-'+contractorJson.id+'-'+$scope.siteId+'-'+$scope.jrOrderedDate.getFullYear().toString().substr(-2)+'-');
+            console.log($scope.jrNumber)
           }
         );
         deferred.resolve();
@@ -758,7 +759,7 @@
                 <option value="">Select work</option>
                 <option
                   ng-repeat="work in jobWorks"
-                  ng-selected="{{work.num === jobWork.transportationFor}}"
+                  ng-selected="{{work === jobWork.transportationFor}}"
                   value="{{work}}"
                 >
                   {{work.num}}
@@ -778,7 +779,7 @@
                 <option value="">Select work</option>
                 <option
                   ng-repeat="work in jobWorks"
-                  ng-selected="{{work.num === jobWork.dismantlingFor}}"
+                  ng-selected="{{work === jobWork.dismantlingFor}}"
                   value="{{work}}"
                 >
                   {{work.referedWorks}}
