@@ -44,7 +44,6 @@
       $scope.removeWork = removeWork;
       $scope.currentDate = new Date();
       $scope.download = download;
-      $scope.worksTotalSum = 0;
       $scope.minValidityDate = new Date();
 
       camForm.on('form-loaded', function () {
@@ -70,6 +69,12 @@
               $scope[el] = camForm.variableManager.variables[el].value;
           }
         });
+        if ($scope.jrType) {
+          $scope.jrType = JSON.stringify($scope.jrType)
+        }
+        if ($scope.jrReason) {
+          $scope.jrReason = JSON.stringify($scope.jrReason)
+        }
       });
 
       function open($event, flag) {
@@ -92,7 +97,7 @@
       $scope.getWorks = function(val) {
 
         var result = _.filter($scope.works, function(work){
-          return work.num.toString().indexOf(val) !== -1;
+          return work.title.toLowerCase().toString().indexOf(val.toLowerCase()) !== -1;
         })
 
         if(result.length === 0){
@@ -139,8 +144,11 @@
       };
 
       function getSum(index) {
-        $scope.jobs[index].materialSum = ($scope.jobs[index].materialPrice*$scope.jobs[index].quantity).toFixed(2)
-        $scope.worksTotalSum = $scope.jobs.map(i=>i.materialSum).reduce((a,b)=>(+a)+(+b).toFixed(3))
+        $scope.jobs[index].materialSum = ((+$scope.jobs[index].materialPrice)*$scope.jobs[index].quantity).toFixed(2)
+        console.log($scope.jobs)
+        $scope.worksTotalSum = $scope.jobs.map(i=>i.materialSum).reduce((a,b)=> {
+          return (parseFloat(a)+parseFloat(b)).toFixed(3)
+        })
       };
 
       function getPrice(index, transportation_flag, num) {
@@ -221,7 +229,7 @@
   </script>
   <div class="row">
     <div class="col-sm-8">
-      <h4>Acceptance by Power Specialist</h4>
+      <h4>Modify Job Request</h4>
     </div>
   </div>
   <div class="row">
@@ -293,8 +301,8 @@
           <option value="">Select reason</option>
           <option
             ng-repeat="reason in jrReasonsList"
-            ng-selected="{{reason.id == jrReason}}"
-            value="{{reason.id}}"
+            ng-selected="{{reason.id == jrReason.id}}"
+            value="{{reason}}"
           >
             {{reason.name}}
           </option>
@@ -398,8 +406,8 @@
           <thead>
             <tr>
               <th width="5%">№</th>
-              <th width="42%">Type</th>
-              <th width="10%">Unit</th>
+              <th width="40%">Type</th>
+              <th width="7%">Unit</th>
               <th width="10%">Quantity</th>
               <th width="10%">Price value</th>
               <th width="8%">Sum</th>
@@ -413,7 +421,35 @@
                 <span ng-if="job.title">{{job.num}}</span>
               </td>
               <td>
-                <span ng-if="job.title">{{job.title}}</span>
+                <div>
+                  <input
+                    type="text"
+                    ng-model="job.title"
+                    name="title{{$index}}"
+                    typeahead="works as works.title for works in getWorks($viewValue)"
+                    typeahead-on-select="getUnits($item, $index)"
+                    class="form-control works-container"
+                    required
+                    autocomplete="off"
+                    placeholder="Search work number"
+                  />
+                  <input
+                    type="hidden"
+                    ng-model="job.title"
+                    name="title{{$index}}"
+                    required
+                  />
+                </div>
+                <label
+                  class="error"
+                  ng-if="kcell_form['title'+$index].$error.required && ( kcell_form['title'+$index].$touched || view.submitted)"
+                  >Required field</label
+                >
+                <label
+                  class="error"
+                  ng-if="kcell_form['title'+$index].$error.required && ( kcell_form['title'+$index].$touched || view.submitted)"
+                  >Please select from list</label
+                >
               </td>
               <td>
                 <span ng-if="job.title">{{job.materialUnit}}</span>
@@ -483,11 +519,27 @@
                   </option>
                 </select>
               </td>
+              <td>
+                <div class="col-md-1">
+                  <a ng-if="jobWork.title" ng-click="removeWork($index)"
+                    ><i class="glyphicon glyphicon-trash"></i
+                  ></a>
+                </div>
+              </td>
             </tr>
           </tbody>
           <tfoot>
             <tr>
-              <td colspan="5"></td>
+              <td colspan="5">
+                <button
+                  type="button"
+                  class="btn btn-sm btn-default"
+                  style="margin-top: 10px"
+                  ng-click="addJobWork()"
+                >
+                  <i class="glyphicon glyphicon-plus"></i> Add work
+                </button>
+              </td>
               <td colspan="3">
                 <label style="color: rebeccapurple"> Total: </label>
                 <span><b>{{worksTotalSum}}</b></span>

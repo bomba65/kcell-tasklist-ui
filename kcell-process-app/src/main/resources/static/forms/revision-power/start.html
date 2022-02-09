@@ -281,9 +281,19 @@
         if ($scope.jrOrderedDate) {
           let type = JSON.parse($scope.jrType)
           let date = new Date($scope.jrOrderedDate)
-          $scope.validityDate = date.setDate($scope.jrOrderedDate.getDate() + type.working_days)
+          $scope.validityDate = getDateExclWknds(date, type.working_days)
           $scope.minValidityDate = $scope.validityDate
         }
+      }
+
+      function getDateExclWknds(fromDate, days) {
+        var count = 0;
+        while (count < days) {
+            fromDate.setDate(fromDate.getDate() + 1);
+            if (fromDate.getDay() != 0 && fromDate.getDay() != 6) // Skip weekends
+                count++;
+        }
+        return fromDate;
       }
 
       <!-- Work list logic start -->
@@ -291,7 +301,7 @@
       $scope.getWorks = function(val) {
 
         var result = _.filter($scope.works, function(work){
-          return work.num.toString().indexOf(val) !== -1;
+          return work.title.toLowerCase().toString().indexOf(val.toLowerCase()) !== -1;
         })
 
         if(result.length === 0){
