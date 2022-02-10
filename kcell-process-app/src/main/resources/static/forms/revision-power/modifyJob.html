@@ -22,20 +22,20 @@
         'jrReason',
         'contract',
         'contractor',
-        'supplementaryFiles',
+        'attachedFiles',
         'explanation',
         'jobs',
         'jrType',
         'worksTotalSum',
         'resolution',
-        'specialistComment',
+        'comment',
+        'rejectedBy'
       ];
 
       $scope.download = download;
       $scope.open = open;
       $scope.orderDateFieldOpened = false;
       $scope.validityDateFieldOpened = false;
-      $scope.siteAddress = undefined;
       $scope.setValidityDate = setValidityDate;
       $scope.getSum = getSum;
       $scope.getPrice = getPrice;
@@ -45,6 +45,7 @@
       $scope.currentDate = new Date();
       $scope.download = download;
       $scope.minValidityDate = new Date();
+      $scope.initiator_comment = "";
 
       camForm.on('form-loaded', function () {
         variables.forEach(function (el) {
@@ -69,11 +70,49 @@
               $scope[el] = camForm.variableManager.variables[el].value;
           }
         });
+        if ($scope.initiator_comment) {
+          camForm.variableManager.destroyVariable('initiator_comment');
+        }
         if ($scope.jrType) {
           $scope.jrType = JSON.stringify($scope.jrType)
         }
         if ($scope.jrReason) {
           $scope.jrReason = JSON.stringify($scope.jrReason)
+        }
+        if ($scope.validityDate) {
+          $scope.validityDate = new Date($scope.validityDate)
+        }
+        if ($scope.jrOrderedDate) {
+          $scope.jrOrderedDate = new Date($scope.jrOrderedDate)
+        }
+      });
+
+      camForm.on('submit', function (e) {
+        try{
+          camForm.variableManager.variableValue('worksTotalSum', $scope.worksTotalSum)
+          camForm.variableManager.variableValue('jrType', JSON.parse($scope.jrType))
+          camForm.variableManager.variableValue('jrReason', JSON.parse($scope.jrReason))
+          var validity_date = new Date($scope.validityDate)
+          camForm.variableManager.variableValue('validityDate', validity_date)
+          var jr_ordered_date = new Date($scope.jrOrderedDate)
+          camForm.variableManager.variableValue('jrOrderedDate', jr_ordered_date)
+          camForm.variableManager.variableValue('explanation', $scope.explanation)
+          camForm.variableManager.variableValue('jobs', JSON.parse(angular.toJson($scope.jobs)))
+          camForm.variableManager.createVariable({
+            name: 'attachedFiles',
+            type: 'Json',
+            value: $scope.attachedFiles
+          });
+          camForm.variableManager.createVariable({
+            name: 'initiator_comment',
+            type: 'String',
+            value: $scope.initiator_comment
+          });
+          if($scope.attachedFiles && $scope.attachedFiles.length > 0){
+            camForm.variableManager.variableValue('attachedFiles', JSON.parse(angular.toJson($attachedFiles.jobs)))
+          }
+        } catch (error) {
+          console.log("error in submit: ", error)
         }
       });
 
@@ -205,11 +244,11 @@
         then(function(response) {
             $http.put(response.data, file, {headers: {'Content-Type': undefined}}).then(
                 function () {
-                    if(!$scope.supplementaryFiles){
-                      $scope.supplementaryFiles = [];
+                    if(!$scope.attachedFiles){
+                      $scope.attachedFiles = [];
                     }
-                    $scope.supplementaryFiles.push(fileValue);
-                    angular.element(document.querySelector('#supplementaryFiles')).val(null);
+                    $scope.attachedFiles.push(fileValue);
+                    angular.element(document.querySelector('#attachedFiles')).val(null);
                     $(bindedInput).val('');
                 },
                 function (error) {
@@ -222,7 +261,7 @@
       };
 
       $scope.clearFile = function(index){
-        $scope.supplementaryFiles.splice(index, 1);
+        $scope.attachedFiles.splice(index, 1);
       }
       function download(file) {
           $http({method: 'GET', url: '/camunda/uploads/get/' + file.path, transformResponse: [] }).
@@ -253,7 +292,7 @@
       >Was rejected by:</label
     >
     <div class="col-sm-5" style="color: rebeccapurple">
-      <div>hq_power(Acceptance by Power Specialist)</div>
+      <div>( {{rejectedBy}} )</div>
     </div>
   </div>
   <div class="row">
@@ -261,7 +300,7 @@
       Rejection reason:</label
     >
     <div class="col-sm-5">
-      <div>{{specialistComment}}</div>
+      <div>{{comment}}</div>
     </div>
   </div>
   <div class="jobs-info">
@@ -596,6 +635,11 @@
         />
         Cancel JR
       </label>
+      <label
+        class="error"
+        ng-if="kcell_form.resolution.$error.required && ( kcell_form.resolution.$touched || view.submitted)"
+        >Required field</label
+      >
     </div>
   </div>
   <div class="form-group">
@@ -604,13 +648,9 @@
       Attachments:</label
     >
     <div class="col-sm-6">
-      <iframe id="fileDownloadIframe" style="display: none"></iframe>
-      <div class="col-md-12" ng-repeat="file in attachedFiles">
-        <a ng-click="download(file)">{{file.name}}</a>
-      </div>
       <div
         class="input-group"
-        ng-repeat="file in supplementaryFiles track by $index"
+        ng-repeat="file in attachedFiles track by $index"
       >
         <a ng-click="download(file)">{{file.name}}</a> |
         <a ng-click="clearFile($index);"
@@ -623,17 +663,17 @@
             Choose File
             <input
               type="file"
-              id="supplementaryFiles"
-              name="supplementaryFiles"
+              id="attachedFiles"
+              name="attachedFiles"
               style="display: none"
-              onchange="angular.element(this).scope().fileSelected(this, '#supplementaryFilesName');$('#supplementaryFilesName').val(this.files[0].name)"
+              onchange="angular.element(this).scope().fileSelected(this, '#attachedFilesName');$('#attachedFilesName').val(this.files[0].name)"
             />
           </span>
         </label>
         <input
           type="text"
           class="form-control upload-filename"
-          id="supplementaryFilesName"
+          id="attachedFilesName"
           placeholder="No File Chosen"
           readonly
         />
@@ -648,16 +688,14 @@
     <div class="col-sm-9">
       <textarea
         class="form-control"
-        name="comment"
-        cam-variable-name="comment"
-        cam-variable-type="String"
+        name="initiator_comment"
         maxlength="1500"
         rows="4"
         required
       ></textarea>
       <label
         class="error"
-        ng-if="kcell_form.comment.$error.required && ( kcell_form.comment.$touched || view.submitted)"
+        ng-if="kcell_form.initiator_comment.$error.required && ( kcell_form.initiator_comment.$touched || view.submitted)"
         >Required field</label
       >
     </div>
