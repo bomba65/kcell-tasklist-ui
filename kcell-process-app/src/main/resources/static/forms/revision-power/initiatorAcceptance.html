@@ -4,6 +4,7 @@
     border-width: medium;
     border-color: navy;
     padding: 25px;
+    margin: 0 0 10px 0;
   }
 </style>
 <form role="form" class="form-horizontal" name="kcell_form" novalidate>
@@ -30,6 +31,9 @@
       ];
 
       $scope.download = download;
+      $scope.dateFieldOpened = false;
+      $scope.currentDate = new Date();
+      $scope.open = open;
 
       camForm.on('form-loaded', function () {
         variables.forEach(function (el) {
@@ -46,9 +50,13 @@
         if($scope.rejectedBy) {
             camForm.variableManager.destroyVariable('rejectedBy');
         }
+        if ($scope.resolution) {
+            camForm.variableManager.destroyVariable('resolution');
+        }
+        if ($scope.comment) {
+            camForm.variableManager.destroyVariable('comment');
+        }
         var jrOrderedDate = new Date($scope.jrOrderedDate)
-        camForm.variableManager.destroyVariable('resolution');
-        camForm.variableManager.destroyVariable('comment');
       });
 
       camForm.on('submit', function (e) {
@@ -71,7 +79,19 @@
             type: 'String'
             });
         }
+        camForm.variableManager.createVariable({
+            name: 'jrAcceptanceDate',
+            value: new Date($scope.jrAcceptanceDate),
+            type: 'Date'
+        });
+
       });
+
+      function open($event) {
+        $event.preventDefault();
+        $event.stopPropagation();
+        $scope.dateFieldOpened = true;
+      };
 
       function download(file) {
         console.log(file)
@@ -227,6 +247,30 @@
     <div class="row">
       <div class="col-sm-5">
         <div>{{explanation}}</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="form-group">
+    <label class="col-sm-3 control-label">JR Acceptance date:</label>
+    <div class="col-sm-5">
+      <div class="input-group">
+        <input
+          type="text"
+          ng-model="jrAcceptanceDate"
+          name="jrAcceptanceDate"
+          required
+          class="form-control"
+          datepicker-popup="dd.MM.yyyy"
+          is-open="dateFieldOpened"
+          min-date="currentDate"
+          placeholder="Select date"
+        />
+        <span class="input-group-btn">
+          <button type="button" class="btn btn-default" ng-click="open($event)">
+            <i class="glyphicon glyphicon-calendar"></i>
+          </button>
+        </span>
       </div>
     </div>
   </div>
