@@ -3725,6 +3725,11 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                                             url: baseUrl + '/task/' + e.id
                                         }).then(
                                             function (taskResult) {
+                                                // TEMPORARY Revision card OPENER  ---- MUST BE RESOLVED ---- start
+                                                if(processDefinitionKey === 'Revision-power') {
+                                                    openProcessCardModalRevisionPower(processDefinitionId, businessKey, index);
+                                                }
+                                                // ---- end
                                                 if (taskResult.data._embedded && taskResult.data._embedded.group) {
                                                     e.group = taskResult.data._embedded.group[0].id;
                                                     groupasynCalls += 1;
