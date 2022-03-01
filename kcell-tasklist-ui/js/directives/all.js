@@ -2501,6 +2501,9 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                     allKWMSProcesses.Revision = {
                         title: "Revision", value: false
                     }
+                    allKWMSProcesses['Revision-power'] = {
+                        title: "Revision Power", value: false
+                    }
                 }
                 if($rootScope.hasGroup('search_monthlyact') || $rootScope.hasGroup('infrastructure_monthly_act_users')){
                     allKWMSProcesses.Invoice = {
@@ -2608,7 +2611,7 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                             scope.selectedProcessInstances.push(key);
                         });
                     }
-                    if (scope.onlyProcessActive!=='Revision' && scope.onlyProcessActive!=='CreatePR' && scope.onlyProcessActive!=='create-new-tsd' && scope.onlyProcessActive!=='change-tsd' && scope.onlyProcessActive!=='tsd-processing' && scope.onlyProcessActive!=='cancel-tsd') {
+                    if (scope.onlyProcessActive!=='Revision' && scope.onlyProcessActive!=='CreatePR' && scope.onlyProcessActive!=='create-new-tsd' && scope.onlyProcessActive!=='change-tsd' && scope.onlyProcessActive!=='tsd-processing' && scope.onlyProcessActive!=='cancel-tsd' && scope.onlyProcessActive!=='Revision-power') {
                         //clear Revision-only filters
                         scope.filter.validityDateRange = undefined;
                         $(".calendar-range-readonly").each(function () {
@@ -2638,7 +2641,7 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                         scope.filter.businessKeyFilterType = 'all';
                         scope.filter.businessKey = undefined;
                     }
-                    if (scope.onlyProcessActive!=='Revision' && scope.onlyProcessActive!=='Dismantle' && scope.onlyProcessActive!=='Replacement' && scope.onlyProcessActive!=='CreatePR' && scope.onlyProcessActive!=='create-new-tsd' && scope.onlyProcessActive!=='change-tsd' && scope.onlyProcessActive!=='tsd-processing' && scope.onlyProcessActive!=='cancel-tsd') {
+                    if (scope.onlyProcessActive!=='Revision' && scope.onlyProcessActive!=='Revision-power' && scope.onlyProcessActive!=='Dismantle' && scope.onlyProcessActive!=='Replacement' && scope.onlyProcessActive!=='CreatePR' && scope.onlyProcessActive!=='create-new-tsd' && scope.onlyProcessActive!=='change-tsd' && scope.onlyProcessActive!=='tsd-processing' && scope.onlyProcessActive!=='cancel-tsd') {
                         scope.filter.requestedDateRange = undefined;
                         scope.filter.requestor = undefined;
                     }
@@ -2805,6 +2808,8 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                                 scope.leasingUserTasks = getUserTasks(xml);
                             } else if (process === 'create-new-tsd' || process === 'change-tsd' || process === 'tsd-processing' || process === 'cancel-tsd') {
                                 scope.tsdTasks = getUserTasks(xml);
+                            } else if (process === 'Revision-power') {
+                                scope.revisionPowerUserTasks = getUserTasks(xml);
                             }
                         });
                 }
@@ -2845,6 +2850,14 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
 
                 scope.siteIdSelected = function ($item) {
                     scope.filter.siteId = $item.name;
+                };
+
+                scope.powerSiteSelected = function ($item) {
+                    scope.filter.powerSitename = $item.site_name;
+                };
+
+                scope.powerSiteIdSelected = function ($item) {
+                    scope.filter.powerSiteId = $item.name;
                 };
 
                 scope.getSite = function (val) {
@@ -2888,7 +2901,7 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                     var fileName = scope.onlyProcessActive.toLowerCase() + '-search-result.xlsx';
                     if (scope.xlsxPreparedRevision || scope.xlsxPreparedTnu) {
                         var tbl = document.getElementById('xlsxRevisionsTable');
-                        if (scope.onlyProcessActive === 'Revision' && scope.selectedCustomFields.length > 0) {
+                        if ((scope.onlyProcessActive === 'Revision' && scope.selectedCustomFields.length > 0)|| (scope.onlyProcessActive === 'Revision-power' && scope.selectedCustomFields.length > 0)) {
                             tbl = document.getElementById('customXlsxRevisionsTable');
                         }
                         var ws = XLSX.utils.table_to_sheet(tbl, {dateNF: 'DD.MM.YYYY'});
@@ -2991,14 +3004,23 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                     if (scope.filter.region && scope.filter.region !== 'all') {
                         filter.variables.push({"name": "siteRegion", "operator": "eq", "value": scope.filter.region});
                     }
+                    if (scope.filter.powerRegion && scope.filter.region !== 'all') {
+                        filter.variables.push({"name": "siteRegionShow", "operator": "eq", "value": scope.filter.powerRegion});
+                    }
                     if (scope.filter.tnuRegion && scope.filter.tnuRegion !== 'all') {
                         filter.variables.push({"name": "region", "operator": "eq", "value": scope.filter.tnuRegion});
                     }
                     if (scope.filter.siteId) {
                         filter.variables.push({"name": "siteName", "operator": "eq", "value": scope.filter.siteId});
                     }
+                    if (scope.filter.powerSiteId) {
+                        filter.variables.push({"name": "Site", "operator": "eq", "value": scope.filter.powerSiteId});
+                    }
                     if (scope.filter.sitename) {
                         filter.variables.push({"name": "site_name", "operator": "eq", "value": scope.filter.sitename});
+                    }
+                    if (scope.filter.powerSitename) {
+                        filter.variables.push({"name": "Site_Name", "operator": "eq", "value": scope.filter.powerSitename});
                     }
                     if(scope.filter.nearend) {
                         filter.variables.push({"name": "site_name", "operator": "eq", "value": scope.filter.nearend});
@@ -3006,6 +3028,13 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                     if(scope.contractor) {
                         filter.variables.push({"name": "contractor", "operator": "eq", "value": scope.filter.contractor});
                     }
+                    if(scope.filter.jrType) {
+                        filter.variables.push({"name": "jrType", "operator": "eq", "value": scope.filter.jrType});
+                    }
+                    if(scope.filter.jrReason) {
+                        filter.variables.push({"name": "jrReason", "operator": "eq", "value": scope.filter.jrReason});
+                    }
+
                     if (scope.filter.businessKey) {
                         if (scope.filter.businessKeyFilterType === 'eq') {
                             filter.processInstanceBusinessKey = scope.filter.businessKey;
@@ -3016,7 +3045,7 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                     if (scope.filter.workType) {
                         if (scope.onlyProcessActive==='Invoice')
                             filter.variables.push({"name": "workType", "operator": "eq", "value": scope.filter.workType});
-                        else if (scope.onlyProcessActive==='Revision' || scope.onlyProcessActive==='CreatePR')
+                        else if (scope.onlyProcessActive==='Revision' || scope.onlyProcessActive==='CreatePR' || scope.onlyProcessActive==='Revision-power')
                             filter.variables.push({"name": "reason", "operator": "eq", "value": scope.filter.workType});
                     }
                     if (scope.filter.unfinished) {
@@ -3158,7 +3187,7 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                             "value": scope.filter.replacementInitiator
                         });
                     }
-                    if (scope.filter.participation && (scope.onlyProcessActive==='Revision' || scope.onlyProcessActive==='CreatePR' || scope.onlyProcessActive==='create-new-tsd' || scope.onlyProcessActive==='change-tsd' || scope.onlyProcessActive==='tsd-processing' || scope.onlyProcessActive==='cancel-tsd')) {
+                    if (scope.filter.participation && (scope.onlyProcessActive==='Revision' || scope.onlyProcessActive==='Revision-power' || scope.onlyProcessActive==='CreatePR' || scope.onlyProcessActive==='create-new-tsd' || scope.onlyProcessActive==='change-tsd' || scope.onlyProcessActive==='tsd-processing' || scope.onlyProcessActive==='cancel-tsd')) {
                         if(!scope.filter.requestor){
                             toasty.error({title: "Error", msg: 'Please fill field Requestor!'});
                             return;
@@ -3212,7 +3241,7 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                     }
 
 
-                    if (scope.filter.activityId && (scope.onlyProcessActive==='Revision' || scope.onlyProcessActive==='CreatePR' || scope.onlyProcessActive==='create-new-tsd' || scope.onlyProcessActive==='change-tsd' || scope.onlyProcessActive==='tsd-processing' || scope.onlyProcessActive==='cancel-tsd')) {
+                    if (scope.filter.activityId && (scope.onlyProcessActive==='Revision' || scope.onlyProcessActive==='Revision-power' || scope.onlyProcessActive==='CreatePR' || scope.onlyProcessActive==='create-new-tsd' || scope.onlyProcessActive==='change-tsd' || scope.onlyProcessActive==='tsd-processing' || scope.onlyProcessActive==='cancel-tsd')) {
                         filter.activeActivityIdIn.push(scope.filter.activityId);
                     }
                     if (scope.filter.dismantleActivityId && (scope.onlyProcessActive==='Dismantle' || scope.onlyProcessActive==='Replacement')) {
@@ -3231,6 +3260,23 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                             "operator": "eq",
                             "value": Number(scope.filter.contractor)
                         });
+                    }
+                    if (scope.filter.powerContractor && scope.filter.contractor !== 'All') {
+                        filter.variables.push({
+                            "name": "contractor",
+                            "operator": "eq",
+                            "value": scope.filter.contractor
+                        });
+                    }
+                    if (scope.filter.powerContract && scope.filter.contractor !== 'All') {
+                        filter.variables.push({
+                            "name": "contract",
+                            "operator": "eq",
+                            "value": scope.filter.contract
+                        });
+                    }
+                    if(scope.onlyProcessActive==='Revision-power') {
+                        
                     }
                     if(scope.onlyProcessActive==='leasing'){
                         if(scope.filter.leasingCandidateLegalType){
@@ -3350,9 +3396,18 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                     scope.filter.leasingReason = undefined;
                     scope.filter.leasingInstallationStatus = undefined;
                     scope.filter.leasingGeneralStatus = undefined;
+
+                    scope.filter.powerContract = undefined;
+                    scope.filter.powerContractor = undefined;
+                    scope.filter.jrType = undefined;
+                    scope.filter.jrReason = undefined;
+                    scope.filter.jrOrderedDate = undefined;
+                    scope.filter.powerActivityId = undefined;
+
                 }
 
                 function getProcessInstances(filter, processInstances) {
+                    console.log("filter: ", filter)
                     $http({
                         method: 'POST',
                         headers: {'Accept': 'application/hal+json, application/json; q=0.5'},
@@ -3377,7 +3432,7 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                         function (result) {
                             console.log(result)
                             scope[processInstances] = result.data;
-                            var variables = ['siteRegion', 'site_name', 'contractor', 'reason', 'requestedDate', 'validityDate', 'jobWorks', 'explanation', 'workType'];
+                            var variables = ['siteRegion', 'siteRegionShow', 'site_name', 'Site_Name', 'contractor', 'jrType', 'reason', 'requestedDate', 'jrOrderedDate','validityDate', 'jobWorks', 'explanation', 'workType'];
 
                             if(scope.selectedProcessInstances.indexOf('Dismantle')!==-1 || scope.selectedProcessInstances.indexOf('Replacement')!==-1){
                                 variables.push('requestType');
@@ -3607,9 +3662,19 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                         scope.KWMSProcesses[process].value = false;
                     } else {
                         scope.KWMSProcesses[process].value = true;
-                        if ((process === 'Revision' || process === 'CreatePR') && !scope.KWMSProcesses[process].downloaded){
+                        if ((process === 'Revision' || process === 'Revision-power' || process === 'CreatePR') && !scope.KWMSProcesses[process].downloaded){
                             downloadXML(process);
                             scope.KWMSProcesses[process].downloaded = true;
+                            if (process === 'Revision-power') {
+                                $http.get('/api/revisionPowerJobs').then(
+                                    function(result) {
+                                      scope.jrTypesList = result.data.jrTypesList;
+                                      scope.jrReasonsList = result.data.jrReasonsList;
+                                      scope.contractsList = result.data.contractsList;
+                                      scope.contractorsList = result.data.contractorsList;
+                                    }
+                                  );
+                            }
                         } else if((process === 'Dismantle' || process === 'Replacement') && !scope.KWMSProcesses[process].downloaded){
                             downloadXML('sdr_srr_request');
                             scope.KWMSProcesses[process].downloaded = true;
@@ -3668,6 +3733,8 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                                                         if (asynCall1 && asynCall2) {
                                                             if (processDefinitionKey === 'CreatePR'){
                                                                 openProcessCardModalCreatePR(processDefinitionId, businessKey, index);
+                                                            } else if (processDefinitionKey === 'Revision-power') {
+                                                                openProcessCardModalRevisionPower(processDefinitionId, businessKey, index);
                                                             } else {
                                                                 openProcessCardModalRevision(processDefinitionId, businessKey, index);
                                                             }
@@ -3680,12 +3747,15 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                                                     }
                                                 } else {
                                                     console.log('vtoroi', groupasynCalls, maxGroupAsynCalls);
+                                                    console.log(processDefinitionKey)
                                                     groupasynCalls += 1;
                                                     if (groupasynCalls === maxGroupAsynCalls) {
                                                         asynCall1 = true;
                                                         if (asynCall1 && asynCall2) {
                                                             if (processDefinitionKey === 'CreatePR'){
                                                                 openProcessCardModalCreatePR(processDefinitionId, businessKey, index);
+                                                            } else if (processDefinitionKey === 'Revision-power'){
+                                                                openProcessCardModalRevisionPower(processDefinitionId, businessKey, index);
                                                             } else {
                                                                 openProcessCardModalRevision(processDefinitionId, businessKey, index);
                                                             }
@@ -3876,6 +3946,39 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                         size: ((scope.jobModel.processDefinitionKey === 'Invoice' || scope.jobModel.processDefinitionKey === 'monthlyAct') ? 'hg' : 'lg')
                     }).then(function (results) {
                     });
+                }
+
+                function openProcessCardModalRevisionPower(processDefinitionId, businessKey, index) {
+                    exModal.open({
+                        scope: {
+                            jobModel: scope.jobModel,
+                            getStatus: scope.getStatus,
+                            showDiagram: scope.showDiagram,
+                            showHistory: scope.showHistory,
+                            hasGroup: scope.hasGroup,
+                            showGroupDetails: scope.showGroupDetails,
+                            processDefinitionId: processDefinitionId,
+                            piIndex: scope.piIndex,
+                            $index: index,
+                            businessKey: businessKey,
+                            download: function (file) {
+                                $http({
+                                    method: 'GET',
+                                    url: '/camunda/uploads/get/' + file.path,
+                                    transformResponse: []
+                                }).then(function (response) {
+                                    document.getElementById('fileDownloadIframe').src = response.data;
+                                }, function (error) {
+                                    console.log(error);
+                                });
+                            },
+                            isFileVisible: function (file) {
+                                return !file.visibility || file.visibility == 'all' || (file.visibility == 'kcell' && $rootScope.hasGroup('kcellUsers'));
+                            },
+                        },
+                        templateUrl: './js/partials/revisionPowerCardModal.html',
+                        size: 'lg'
+                    })
                 }
 
                 function openProcessCardModalCreatePR(processDefinitionId, businessKey, index) {

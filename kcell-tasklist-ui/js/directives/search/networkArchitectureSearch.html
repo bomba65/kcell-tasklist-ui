@@ -19,8 +19,8 @@
             <div style="display: inline-block;width: 25px;"></div>
             <input type="checkbox" value="true"  ng-model="filter.finished" ng-disabled="filter.unfinished" name="show_closed">show only Closed
         </div>
-
-    </div></div>
+    </div>
+</div>
 <div class="row">
     <div class="form-group col-sm-4">
         <label class="col-sm-4 control-label">Year:</label>
@@ -31,10 +31,23 @@
             <select ng-model="filter.endYear" class="form-control selectpicker" select-picker title="" ng-options="y as y for y in years"></select>
         </div>
     </div>
-    <div class="form-group col-sm-4" ng-hide="onlyProcessActive==='Invoice' || onlyProcessActive==='monthlyAct'">
+    <div class="form-group col-sm-4" ng-hide="onlyProcessActive==='Invoice' || onlyProcessActive==='monthlyAct' || onlyProcessActive==='Revision-power'">
         <label class="col-sm-4 control-label">Sitename:</label>
         <div class="col-sm-8">
-            <input type="text" ng-model="filter.sitename" name="site_name" typeahead="site as sites.site_name for sites in getSite($viewValue)" typeahead-on-select="siteSelected($item,$model,$label)" class="form-control" autocomplete="off" placeholder="Site Name">
+            <input type="text" ng-model="filter.powerSitename" name="site_name" typeahead="site as sites.site_name for sites in getSites($viewValue)" typeahead-on-select="siteSelected($item,$model,$label)" class="form-control" autocomplete="off" placeholder="Site Name">
+        </div>
+    </div>
+    <div class="form-group col-sm-4" ng-show="onlyProcessActive==='Revision-power'">
+        <label class="col-sm-4 control-label">JR Created Date:</label>
+        <div class="col-sm-8">
+            <div class="input-group">
+                <input type="text" ng-model="filter.jrOrderedDate" name="jrOrderedDate" class="form-control calendar-range-readonly" readonly/>
+                <span class="input-group-btn">
+                    <button type="button" calendar-range class="btn btn-default" id="calendarRangeButton" name="jrOrderedDate">
+                        <i class="glyphicon glyphicon-calendar"></i>
+                    </button>
+                </span>
+            </div>
         </div>
     </div>
     <div class="form-group col-sm-4" ng-show="onlyProcessActive==='Invoice' || onlyProcessActive==='monthlyAct'">
@@ -77,7 +90,7 @@
     </div>
 </div>
 <div class="row">
-    <div class="form-group col-sm-4" ng-if="(hasGroup('head_kcell_users') || hasGroup('revision_managers') || hasGroup('revision_audit') || (onlyProcessActive==='leasing' && hasGroup('kcellUsers'))) && !(onlyProcessActive==='create-new-tsd' || onlyProcessActive==='change-tsd' || onlyProcessActive==='tsd-processing' || onlyProcessActive==='cancel-tsd')">
+    <div class="form-group col-sm-4" ng-if="(hasGroup('head_kcell_users') || hasGroup('revision_managers') || hasGroup('revision_audit') || (onlyProcessActive==='leasing' && hasGroup('kcellUsers'))) && !(onlyProcessActive==='create-new-tsd' || onlyProcessActive==='change-tsd' || onlyProcessActive==='tsd-processing' || onlyProcessActive==='cancel-tsd' || onlyProcessActive==='Revision-power')">
         <label class="col-sm-4 control-label">Region:</label>
         <div class="col-sm-8">
             <select ng-model="filter.region" class="form-control selectpicker" select-picker title="" select-model="regionsMap" ng-init="filter.region = 'all'">
@@ -97,6 +110,17 @@
             </select>
         </div>
     </div>
+    <div class="form-group col-sm-4"
+         ng-if="onlyProcessActive==='Revision-power' && hasGroup('kcellUsers')">
+        <label class="col-sm-4 control-label">Region:</label>
+        <div class="col-sm-8">
+            <select ng-model="filter.powerRegion" class="form-control selectpicker" select-picker
+                    select-model="regionsMap" ng-init="filter.powerRegion = 'all'">
+                <option value="all">All</option>
+                <option ng-repeat="r in regionList" ng-value="r.value">{{r.value}}</option>
+            </select>
+        </div>
+    </div>
     <div class="form-group col-sm-4" ng-show="onlyProcessActive==='Invoice' || onlyProcessActive==='monthlyAct'">
         <label class="col-sm-4 control-label">Initiator:</label>
         <div class="col-sm-8">
@@ -106,7 +130,7 @@
                    required autocomplete="off">       
         </div>
     </div>
-    <div class="form-group col-sm-4" ng-show="onlyProcessActive==='Revision' || onlyProcessActive==='Dismantle' || onlyProcessActive==='Replacement' || onlyProcessActive==='CreatePR'">
+    <div class="form-group col-sm-4" ng-show="onlyProcessActive==='Revision' || onlyProcessActive==='Dismantle' || onlyProcessActive==='Replacement' || onlyProcessActive==='CreatePR' || onlyProcessActive==='Revision-power'">
         <label class="col-sm-4 control-label">Site Id:</label>
         <div class="col-sm-8">
             <input type="text" ng-model="filter.siteId" name="site_id" typeahead="site as sites.name for sites in getSiteId($viewValue)" typeahead-on-select="siteIdSelected($item,$model,$label)" class="form-control" autocomplete="off" placeholder="Site Id">
@@ -134,7 +158,7 @@
             </select>
         </div>
     </div>    
-    <div class="form-group col-sm-4" ng-show="onlyProcessActive==='Revision' || onlyProcessActive==='CreatePR'">
+    <div class="form-group col-sm-4" ng-show="onlyProcessActive==='Revision' || onlyProcessActive==='CreatePR' || onlyProcessActive==='Revision-power'">
         <label class="col-sm-4 control-label">Validity Date:</label>
         <div class="col-sm-8">
             <div class="input-group">
@@ -192,8 +216,8 @@
     </div>
 </div>
 <div class="row">
-    <div class="form-group col-sm-4"  ng-show="onlyProcessActive==='Revision' || onlyProcessActive==='Dismantle' || onlyProcessActive==='Replacement' || onlyProcessActive==='CreatePR' || onlyProcessActive==='create-new-tsd' || onlyProcessActive==='change-tsd' || onlyProcessActive==='tsd-processing' || onlyProcessActive==='cancel-tsd'">
-        <label class="col-sm-4 control-label">{{(onlyProcessActive==='Revision' || onlyProcessActive==='CreatePR') ? 'JR' : (onlyProcessActive==='Dismantle' ? 'SDR' : (onlyProcessActive==='Replacement' ? 'SRR' : 'Process'))}} Number:</label>
+    <div class="form-group col-sm-4"  ng-show="onlyProcessActive==='Revision' || onlyProcessActive==='Dismantle' || onlyProcessActive==='Replacement' || onlyProcessActive==='CreatePR' || onlyProcessActive==='create-new-tsd' || onlyProcessActive==='change-tsd' || onlyProcessActive==='tsd-processing' || onlyProcessActive==='cancel-tsd' || onlyProcessActive==='Revision-power'">
+        <label class="col-sm-4 control-label">{{(onlyProcessActive==='Revision' || onlyProcessActive==='CreatePR' || onlyProcessActive==='Revision-power') ? 'JR' : (onlyProcessActive==='Dismantle' ? 'SDR' : (onlyProcessActive==='Replacement' ? 'SRR' : 'Process'))}} Number:</label>
         <div class="col-sm-3">
             <select ng-model="filter.businessKeyFilterType" class="form-control selectpicker" select-picker title="" ng-init="filter.businessKeyFilterType = 'eq'">
                 <option value="eq">=</option>
@@ -217,6 +241,30 @@
                 <option></option>
                 <option value="regular">Regular</option>
                 <option value="emergency">Emergency</option>
+            </select>
+        </div>
+    </div>
+    <div class="form-group col-sm-4" ng-show="onlyProcessActive==='Revision-power'">
+        <label class="col-sm-4 control-label">Initiator:</label>
+        <div class="col-sm-8">
+            <input type="text" ng-model="filter.initiator" name="initiator"
+                   typeahead="users as users.name for users in getUsers($viewValue)"
+                   typeahead-on-select="userSelected($item,$model,$label)" typeahead-min-length="2" class="form-control"
+                   required autocomplete="off">
+        </div>
+    </div>
+    <div class="form-group col-sm-4" ng-show="onlyProcessActive==='Revision-power'">
+        <label class="col-sm-4 control-label">JR Reason:</label>
+        <div class="col-sm-8" >
+            <select ng-model="filter.jrReason" class="form-control selectpicker" select-model="jrReasonsList" select-picker>
+                <option value="">Select reason</option>
+                <option
+                    ng-repeat="reason in jrReasonsList"
+                    ng-selected="{{reason.id == filter.jrReason.id}}"
+                    value="{{reason}}"
+                    >
+                    {{reason.name}}
+                </option>
             </select>
         </div>
     </div>
@@ -337,7 +385,23 @@
             </select>
         </div>
     </div>
-    <div class="form-group col-sm-4" ng-show="onlyProcessActive==='Revision' || onlyProcessActive==='CreatePR' || onlyProcessActive==='create-new-tsd' || onlyProcessActive==='change-tsd' || onlyProcessActive==='tsd-processing' || onlyProcessActive==='cancel-tsd'">
+
+    <div class="form-group col-sm-4" ng-show="onlyProcessActive==='Revision-power'">
+        <label class="col-sm-4 control-label">Contract:</label>
+        <div class="col-sm-8" >
+            <select ng-model="filter.powerContract" class="form-control selectpicker" select-model="contractsList" select-picker>
+                <option value="">Select contract</option>
+                <option
+                    ng-repeat="c in contractsList"
+                    ng-selected="{{c.id == filter.powerContract.id}}"
+                    value="{{c}}"
+                    >
+                    {{c.name}}
+                </option>
+            </select>
+        </div>
+    </div>
+    <div class="form-group col-sm-4" ng-show="onlyProcessActive==='Revision' || onlyProcessActive==='CreatePR' || onlyProcessActive==='create-new-tsd' || onlyProcessActive==='change-tsd' || onlyProcessActive==='tsd-processing' || onlyProcessActive==='cancel-tsd' || onlyProcessActive==='Revision-power'">
         <label class="col-sm-4 control-label">Participation:</label>
         <div class="col-sm-8">
             <select ng-model="filter.participation" class="form-control selectpicker" select-picker title="" ng-change="putCurrentUserAsRequestor()">
@@ -346,6 +410,22 @@
                 <option value="participant">Participant</option>
                 <option value="iaminitiator">I am Initiator</option>
                 <option value="iamparticipant">I am Participant</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="form-group col-sm-4" ng-show="onlyProcessActive==='Revision-power'">
+        <label class="col-sm-4 control-label">JR Type:</label>
+        <div class="col-sm-8" >
+            <select ng-model="filter.jrType" class="form-control selectpicker" select-model="jrTypesList" select-picker>
+                <option value="">Select type</option>
+                <option
+                    ng-repeat="type in jrTypesList"
+                    ng-selected="{{type.id == filter.jrType.id}}"
+                    value="{{type}}"
+                    >
+                    {{type.name}}
+                </option>
             </select>
         </div>
     </div>
@@ -392,8 +472,8 @@
         </div>
     </div>
 </div>
-<div class="row" ng-show="onlyProcessActive==='Revision'">
-    <div class="form-group col-sm-4">
+<div class="row">
+    <div class="form-group col-sm-4" ng-show="onlyProcessActive==='Revision'">
         <label class="col-sm-4 control-label">Contractor:</label>
         <div class="col-sm-8">
             <select ng-model="filter.contractor" class="form-control selectpicker" select-picker title="" ng-init="filter.contractor = 'All'">
@@ -404,6 +484,30 @@
                 <option value="7">Логиком</option>
                 <option value="8">Arlan SI</option>
             </select>
+        </div>
+    </div>
+    <div class="form-group col-sm-4" ng-show="onlyProcessActive==='Revision-power'">
+        <label class="col-sm-4 control-label">Contractor:</label>
+        <div class="col-sm-8">
+            <select ng-model="filter.powerContractor" class="form-control selectpicker" select-model="contractorsList" select-picker>
+                <option value="">Select contractor</option>
+                <option
+                    ng-repeat="c in contractorsList"
+                    ng-selected="{{c.id == filter.powerContractor.id}}"
+                    value="{{c}}"
+                    >
+                    {{c.name}}
+                </option>
+            </select>
+        </div>
+    </div>
+    <div class="form-group col-sm-4" ng-if="onlyProcessActive==='Revision-power' ">
+        <label class="col-sm-4 control-label">Current Assignee:</label>
+        <div class="col-sm-8">
+            <input type="text" ng-model="filter.currentAssignee" name="currentAssignee"
+                   typeahead="users as users.name for users in getUsers($viewValue)"
+                   typeahead-on-select="taskUserSelected($item,$model,$label)" typeahead-min-length="2" class="form-control"
+                   required autocomplete="off">
         </div>
     </div>
 </div>
@@ -455,6 +559,15 @@
             <select ng-model="filter.leasingActivityId" class="form-control selectpicker" select-picker title="" select-model="leasingUserTasks">
                 <option></option>
                 <option value="{{task.id}}" ng-repeat="task in leasingUserTasks | orderBy: 'name'" ng-selected="{{task.id == filter.leasingActivityId}}">{{task.name}}</option>
+            </select>
+        </div>
+    </div>
+    <div class="form-group col-sm-4"  ng-show="onlyProcessActive==='Revision-power'">
+        <label class="col-sm-4 control-label">Current activity:</label>
+        <div class="col-sm-8">
+            <select ng-model="filter.powerActivityId" class="form-control selectpicker" select-picker title="" select-model="revisionPowerUserTasks">
+                <option></option>
+                <option value="{{task.id}}" ng-repeat="task in revisionPowerUserTasks | orderBy: 'name'" ng-selected="{{task.id == filter.powerActivityId}}">{{task.name}}</option>
             </select>
         </div>
     </div>
@@ -545,14 +658,15 @@
         <thead class="fixed-header">
         <tr>
             <th>#</th>
-            <th ng-if="RevisionOrMonthlyAct || onlyProcessActive==='Dismantle' || onlyProcessActive==='Replacement' || onlyProcessActive==='leasing' || onlyProcessActive==='create-new-tsd' || onlyProcessActive==='change-tsd' || onlyProcessActive==='tsd-processing' || onlyProcessActive==='cancel-tsd'">Region</th>
+            <th ng-if="RevisionOrMonthlyAct || onlyProcessActive==='Dismantle' || onlyProcessActive==='Replacement' || onlyProcessActive==='leasing' || onlyProcessActive==='create-new-tsd' || onlyProcessActive==='change-tsd' || onlyProcessActive==='tsd-processing' || onlyProcessActive==='cancel-tsd' || onlyProcessActive==='Revision-power'">Region</th>
             <th ng-if="onlyProcessActive==='create-new-tsd' || onlyProcessActive==='change-tsd' || onlyProcessActive==='tsd-processing' || onlyProcessActive==='cancel-tsd'">
                 Near-end/ Far-end
             </th>
-            <th ng-if="onlyProcessActive==='Revision' || onlyProcessActive==='Dismantle' || onlyProcessActive==='Replacement' || onlyProcessActive==='leasing' || onlyProcessActive==='CreatePR'">Sitename</th>
-            <th>{{(onlyProcessActive==='Revision' || onlyProcessActive==='CreatePR') ? 'JR Number' : ((onlyProcessActive==='Invoice' || onlyProcessActive==='monthlyAct')? 'MA Number' : (onlyProcessActive==='create-new-tsd' || onlyProcessActive==='change-tsd' || onlyProcessActive==='tsd-processing' || onlyProcessActive==='cancel-tsd' ? 'Process Number' : 'Business Key')) }}</th>
+            <th ng-if="onlyProcessActive==='Revision' || onlyProcessActive==='Dismantle' || onlyProcessActive==='Replacement' || onlyProcessActive==='leasing' || onlyProcessActive==='CreatePR' || onlyProcessActive==='Revision-power'">Sitename</th>
+            <th>{{(onlyProcessActive==='Revision' || onlyProcessActive==='CreatePR' || onlyProcessActive==='Revision-power') ? 'JR Number' : ((onlyProcessActive==='Invoice' || onlyProcessActive==='monthlyAct')? 'MA Number' : (onlyProcessActive==='create-new-tsd' || onlyProcessActive==='change-tsd' || onlyProcessActive==='tsd-processing' || onlyProcessActive==='cancel-tsd' ? 'Process Number' : 'Business Key')) }}</th>
             <th ng-if="onlyProcessActive===''">Process Name</th>
-            <th ng-if="RevisionOrMonthlyAct || onlyProcessActive==='Dismantle' || onlyProcessActive==='Replacement'">Execution Time</th>
+            <th ng-if="RevisionOrMonthlyAct || onlyProcessActive==='Dismantle' || onlyProcessActive==='Replacement' || onlyProcessActive==='Revision-power'">Execution Time</th>
+            <th ng-if="onlyProcessActive==='Revision-power'">JR Type</th>
             <th ng-if="onlyProcessActive==='leasing' && filter.leasingInitiator">Initiator</th>
             <th ng-if="onlyProcessActive==='leasing' && filter.leasingProject">Project</th>
             <th ng-if="onlyProcessActive==='leasing' && filter.leasingReason">Reason</th>
@@ -574,27 +688,30 @@
             <th>Current Activity</th>
             <th ng-if="onlyProcessActive==='Revision' || onlyProcessActive==='CreatePR'">Contractor</th>
             <th ng-if="RevisionOrMonthlyAct">Reason</th>
-            <th ng-if="onlyProcessActive!=='leasing'">Requested By</th>
-            <th ng-if="onlyProcessActive==='Revision' || onlyProcessActive==='Dismantle' || onlyProcessActive==='Replacement' || onlyProcessActive==='leasing' || onlyProcessActive==='CreatePR' || onlyProcessActive ==='create-new-tsd' || onlyProcessActive==='create-new-tsd' || onlyProcessActive==='change-tsd' || onlyProcessActive==='tsd-processing' || onlyProcessActive==='cancel-tsd'">Current Assignee</th>
-            <th ng-if="onlyProcessActive!=='leasing'">Requested Date</th>
-            <th ng-if="onlyProcessActive==='Revision' || onlyProcessActive==='CreatePR'">Validity Date</th>
+            <th ng-if="onlyProcessActive!=='leasing' || onlyProcessActive!=='Revision-power'">Requested By</th>
+            <th ng-if="onlyProcessActive==='Revision' || onlyProcessActive==='Dismantle' || onlyProcessActive==='Replacement' || onlyProcessActive==='leasing' || onlyProcessActive==='CreatePR' || onlyProcessActive ==='create-new-tsd' || onlyProcessActive==='create-new-tsd' || onlyProcessActive==='change-tsd' || onlyProcessActive==='tsd-processing' || onlyProcessActive==='cancel-tsd' || onlyProcessActive==='Revision-power'">Current Assignee</th>
+            <th ng-if="onlyProcessActive==='Revision-power'">Created Date</th>
+            <th ng-if="onlyProcessActive!=='leasing' || onlyProcessActive!=='Revision-power'">Requested Date</th>
+            <th ng-if="onlyProcessActive==='Revision' || onlyProcessActive==='CreatePR' || onlyProcessActive==='Revision-power'">Validity Date</th>
             <th ng-if="onlyProcessActive==='Revision' || onlyProcessActive==='CreatePR'">Jobs List</th>
             <th ng-if="onlyProcessActive==='leasing'">General status</th>
             <th ng-if="onlyProcessActive==='leasing'">General status date</th>
-            <th ng-if="onlyProcessActive==='Revision' || onlyProcessActive==='CreatePR'">Monthly act #</th>
+            <th ng-if="onlyProcessActive==='Revision' || onlyProcessActive==='CreatePR' || onlyProcessActive==='Revision-power'">Monthly act #</th>
         </tr>
         </thead>
         <tbody>
         <tr ng-repeat="pi in processInstances" class="pi-{{pi.state == 'EXTERNALLY_TERMINATED'?'COMPLETED':pi.state}}">
             <td>{{(filter.page-1)*20 + $index + 1}}</td>
             <td ng-if="RevisionOrMonthlyAct || onlyProcessActive==='Dismantle' || onlyProcessActive==='Replacement' || onlyProcessActive==='leasing'">{{regionsMap[pi.siteRegion]}}</td>
+            <td ng-if="onlyProcessActive==='Revision-power'">{{pi.siteRegionShow}}</td>
             <td ng-if="onlyProcessActive==='create-new-tsd' || onlyProcessActive==='change-tsd' || onlyProcessActive==='tsd-processing' || onlyProcessActive==='cancel-tsd'">
                 {{titles.regionList[pi.region]}}
             </td>
             <td ng-if="onlyProcessActive==='Revision' || onlyProcessActive==='Dismantle' || onlyProcessActive==='Replacement' || onlyProcessActive==='leasing' || onlyProcessActive==='CreatePR'">{{pi.site_name}}</td>
+            <td ng-if="onlyProcessActive==='Revision-power'">{{pi.Site_Name}}</td>
             <td ng-if="onlyProcessActive==='create-new-tsd' || onlyProcessActive==='change-tsd' || onlyProcessActive==='tsd-processing' || onlyProcessActive==='cancel-tsd'"><a ng-click="toggleProcessViewTsd($index, pi.id, pi.businessKey, pi.startTime, pi.processDefinitionKey, pi.startUserId, pi.processDefinitionId)">{{pi.businessKey.split("(")[0]}}</a></td>
             <td>
-                <a ng-if="pi.processDefinitionKey=='Revision' || pi.processDefinitionKey=='Invoice' || pi.processDefinitionKey=='monthlyAct' || pi.processDefinitionKey=='CreatePR'" ng-click="toggleProcessViewRevision($index, pi.processDefinitionKey, pi.processDefinitionId, pi.businessKey)">
+                <a ng-if="pi.processDefinitionKey=='Revision' || pi.processDefinitionKey=='Invoice' || pi.processDefinitionKey=='monthlyAct' || pi.processDefinitionKey=='CreatePR' || pi.processDefinitionKey=='Revision-power' " ng-click="toggleProcessViewRevision($index, pi.processDefinitionKey, pi.processDefinitionId, pi.businessKey)">
                     {{pi.businessKey}}
                 </a>
                 <a ng-if="pi.processDefinitionKey==='sdr_srr_request' && pi.requestType === 'dismantle'" ng-click="toggleProcessViewDismantle($index, pi.processDefinitionKey, pi.processDefinitionId, pi.businessKey)">
@@ -609,7 +726,8 @@
                 {{pi.processDefinitionKey==='create-new-tsd' || pi.processDefinitionKey==='change-tsd' || pi.processDefinitionKey==='tsd-processing' || pi.processDefinitionKey==='cancel-tsd' ? pi.businessKey.split("(").pop().replace(")","") : ''}}
             </td>
             <td ng-if="onlyProcessActive===''">{{pi.processDefinitionKey == 'sdr_srr_request'? (pi.requestType === 'dismantle' ? 'Dismantle' : 'Replacement') : pi.processDefinitionName}}</td>
-            <td ng-if="RevisionOrMonthlyAct || onlyProcessActive==='Dismantle' || onlyProcessActive==='Replacement'">{{pi.executionTime}} days</td>
+            <td ng-if="RevisionOrMonthlyAct || onlyProcessActive==='Dismantle' || onlyProcessActive==='Replacement' || onlyProcessActive==='Revision-power'">{{pi.executionTime}} days</td>
+            <td ng-if="onlyProcessActive==='Revision-power'">{{pi.jrType.name}}</td>
             <td ng-if="onlyProcessActive==='leasing' && filter.leasingInitiator">{{pi.initiator.name}}</td>
             <td ng-if="onlyProcessActive==='leasing' && filter.leasingProject">{{pi.project.name}}</td>
             <td ng-if="onlyProcessActive==='leasing' && filter.leasingReason">{{pi.reason.reason}}</td>
@@ -652,11 +770,12 @@
                 {{pi.processDefinitionKey==='Invoice' ? reasonShortName[pi.workType]
                     : reasonShortName[pi.reason] }}</td>
             <td ng-if="onlyProcessActive!=='leasing'">{{profiles[pi.startUserId] ? profiles[pi.startUserId].firstName : pi.startUserId}} {{profiles[pi.startUserId] ? profiles[pi.startUserId].lastName : ''}}</td>
-            <td ng-if="onlyProcessActive==='Revision' || onlyProcessActive==='Dismantle' || onlyProcessActive==='Replacement' || onlyProcessActive==='leasing' || onlyProcessActive==='CreatePR' || onlyProcessActive ==='create-new-tsd' || onlyProcessActive==='create-new-tsd' || onlyProcessActive==='change-tsd' || onlyProcessActive==='tsd-processing' || onlyProcessActive==='cancel-tsd'">
+            <td ng-if="onlyProcessActive==='Revision' || onlyProcessActive==='Dismantle' || onlyProcessActive==='Replacement' || onlyProcessActive==='leasing' || onlyProcessActive==='CreatePR' || onlyProcessActive ==='create-new-tsd' || onlyProcessActive==='create-new-tsd' || onlyProcessActive==='change-tsd' || onlyProcessActive==='tsd-processing' || onlyProcessActive==='cancel-tsd' || onlyProcessActive==='Revision-power'">
                 <a ng-click="showTaskDetail(task)" ng-repeat="task in pi.tasks">{{$index+1}}. {{task.assignee ? (profiles[task.assignee] ? (profiles[task.assignee].firstName + ' ' + profiles[task.assignee].lastName) : task.assignee) : 'Not claimed'}}<br/></a>
             </td>
-            <td ng-if="onlyProcessActive!=='leasing'">{{(pi.processDefinitionKey==='Revision' || pi.processDefinitionKey==='CreatePR') ? (pi.requestedDate | date:'dd MMM yyyy') : pi.startTime | date:'dd MMM yyyy' }}</td>
-            <td ng-if="onlyProcessActive==='Revision' || onlyProcessActive==='CreatePR'">{{pi.validityDate | date:'dd MMM yyyy'}}</td>
+            <td ng-if="onlyProcessActive!=='leasing' || onlyProcessActive!=='Revision-power'">{{(pi.processDefinitionKey==='Revision' || pi.processDefinitionKey==='CreatePR') ? (pi.requestedDate | date:'dd MMM yyyy') : pi.startTime | date:'dd MMM yyyy' }}</td>
+            <td ng-if="onlyProcessActive === 'Revision-power'"> {{pi.jrOrderedDate | date:'dd MMM yyyy'}}</td>
+            <td ng-if="onlyProcessActive==='Revision' || onlyProcessActive==='CreatePR' || onlyProcessActive==='Revision-power'">{{pi.validityDate | date:'dd MMM yyyy'}}</td>
             <td ng-if="onlyProcessActive==='Revision' || onlyProcessActive==='CreatePR'" style="max-width: 190px;">
                 <a ng-click="showWorkDetail(pi.jobWorks)">
                     <span ng-repeat="work in pi.jobWorks" class="nowrapDots">
@@ -739,7 +858,7 @@
             <td ng-if="onlyProcessActive==='create-new-tsd' || onlyProcessActive==='change-tsd' || onlyProcessActive==='tsd-processing' || onlyProcessActive==='cancel-tsd'">{{pi.businessKey.split("(")[0]}}</td>
             <td>{{pi.businessKey}}</td>
             <td ng-if="onlyProcessActive===''">{{pi.processDefinitionKey == 'sdr_srr_request'? (pi.requestType === 'dismantle' ? 'Dismantle' : 'Replacement') : pi.processDefinitionName}}</td>
-            <td ng-if="RevisionOrMonthlyAct || onlyProcessActive==='Dismantle' || onlyProcessActive==='Replacement'">{{pi.executionTime}} days</td>
+            <td ng-if="RevisionOrMonthlyAct || onlyProcessActive==='Dismantle' || onlyProcessActive==='Replacement' || onlyProcessActive==='Revision-power'">{{pi.executionTime}} days</td>
             <td ng-if="onlyProcessActive==='leasing' && filter.leasingInitiator">{{pi.initiator.name}}</td>
             <td ng-if="onlyProcessActive==='leasing' && filter.leasingProject">{{pi.project.name}}</td>
             <td ng-if="onlyProcessActive==='leasing' && filter.leasingReason">{{pi.reason.reason}}</td>
