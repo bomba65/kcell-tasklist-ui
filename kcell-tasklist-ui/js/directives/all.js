@@ -2641,7 +2641,7 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                         scope.filter.businessKeyFilterType = 'all';
                         scope.filter.businessKey = undefined;
                     }
-                    if (scope.onlyProcessActive!=='Revision' && scope.onlyProcessActive!=='Revision-power' && scope.onlyProcessActive!=='Dismantle' && scope.onlyProcessActive!=='Replacement' && scope.onlyProcessActive!=='CreatePR' && scope.onlyProcessActive!=='create-new-tsd' && scope.onlyProcessActive!=='change-tsd' && scope.onlyProcessActive!=='tsd-processing' && scope.onlyProcessActive!=='cancel-tsd') {
+                    if (scope.onlyProcessActive!=='Revision' && scope.onlyProcessActive!=='Dismantle' && scope.onlyProcessActive!=='Replacement' && scope.onlyProcessActive!=='CreatePR' && scope.onlyProcessActive!=='create-new-tsd' && scope.onlyProcessActive!=='change-tsd' && scope.onlyProcessActive!=='tsd-processing' && scope.onlyProcessActive!=='cancel-tsd') {
                         scope.filter.requestedDateRange = undefined;
                         scope.filter.requestor = undefined;
                     }
@@ -3004,35 +3004,20 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                     if (scope.filter.region && scope.filter.region !== 'all') {
                         filter.variables.push({"name": "siteRegion", "operator": "eq", "value": scope.filter.region});
                     }
-                    if (scope.filter.powerRegion && scope.filter.region !== 'all') {
-                        filter.variables.push({"name": "siteRegionShow", "operator": "eq", "value": scope.filter.powerRegion});
-                    }
                     if (scope.filter.tnuRegion && scope.filter.tnuRegion !== 'all') {
                         filter.variables.push({"name": "region", "operator": "eq", "value": scope.filter.tnuRegion});
                     }
                     if (scope.filter.siteId) {
                         filter.variables.push({"name": "siteName", "operator": "eq", "value": scope.filter.siteId});
                     }
-                    if (scope.filter.powerSiteId) {
-                        filter.variables.push({"name": "Site", "operator": "eq", "value": scope.filter.powerSiteId});
-                    }
                     if (scope.filter.sitename) {
                         filter.variables.push({"name": "site_name", "operator": "eq", "value": scope.filter.sitename});
-                    }
-                    if (scope.filter.powerSitename) {
-                        filter.variables.push({"name": "Site_Name", "operator": "eq", "value": scope.filter.powerSitename});
                     }
                     if(scope.filter.nearend) {
                         filter.variables.push({"name": "site_name", "operator": "eq", "value": scope.filter.nearend});
                     }
                     if(scope.contractor) {
                         filter.variables.push({"name": "contractor", "operator": "eq", "value": scope.filter.contractor});
-                    }
-                    if(scope.filter.jrType) {
-                        filter.variables.push({"name": "jrType", "operator": "eq", "value": scope.filter.jrType});
-                    }
-                    if(scope.filter.jrReason) {
-                        filter.variables.push({"name": "jrReason", "operator": "eq", "value": scope.filter.jrReason});
                     }
 
                     if (scope.filter.businessKey) {
@@ -3261,22 +3246,34 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                             "value": Number(scope.filter.contractor)
                         });
                     }
-                    if (scope.filter.powerContractor && scope.filter.contractor !== 'All') {
-                        filter.variables.push({
-                            "name": "contractor",
-                            "operator": "eq",
-                            "value": scope.filter.contractor
-                        });
-                    }
-                    if (scope.filter.powerContract && scope.filter.contractor !== 'All') {
-                        filter.variables.push({
-                            "name": "contract",
-                            "operator": "eq",
-                            "value": scope.filter.contract
-                        });
-                    }
                     if(scope.onlyProcessActive==='Revision-power') {
-                        
+                        if(scope.filter.powerActivityId){
+                            filter.activeActivityIdIn.push(scope.filter.powerActivityId);
+                        }
+                        if (scope.filter.powerRegion && scope.filter.region !== 'all') {
+                            filter.variables.push({"name": "siteRegionShow", "operator": "eq", "value": scope.filter.powerRegion});
+                        }
+                        if (scope.filter.powerSiteId) {
+                            filter.variables.push({"name": "Site", "operator": "eq", "value": scope.filter.powerSiteId});
+                        }
+                        if (scope.filter.powerSitename) {
+                            filter.variables.push({"name": "Site_Name", "operator": "eq", "value": scope.filter.powerSitename});
+                        }
+                        if(scope.filter.jrType) {
+                            filter.variables.push({"name": "jrType", "operator": "like", "value": '%' + scope.filter.jrType + '%'});
+                        }
+                        if(scope.filter.jrReason) {
+                            filter.variables.push({"name": "jrReason", "operator": "like", "value": '%' + scope.filter.jrReason + '%'});
+                        }
+                        if(scope.filter.powerContractor) {
+                            filter.variables.push({"name": "contractor", "operator": "like", "value": '%' + scope.filter.powerContractor + '%'});
+                        }
+                        if(scope.filter.powerContract) {
+                            filter.variables.push({"name": "contract", "operator": "like", "value": '%' + scope.filter.powerContract + '%'});
+                        }
+                        if(scope.filter.jrOrderedDate) {
+                            filter.variables.push({"name": "jrOrderedDate", "operator": "eq", "value": scope.filter.jrOrderedDate});
+                        }
                     }
                     if(scope.onlyProcessActive==='leasing'){
                         if(scope.filter.leasingCandidateLegalType){
@@ -3403,6 +3400,7 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                     scope.filter.jrReason = undefined;
                     scope.filter.jrOrderedDate = undefined;
                     scope.filter.powerActivityId = undefined;
+                    scope.filter.powerRegion = 'all';
 
                 }
 
@@ -3533,6 +3531,7 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                                                     } else {
                                                         el[variable] = f[0].value;
                                                     }
+                                                    console.log(el[variable])
                                                 }
                                             });
                                         },
