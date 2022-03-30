@@ -14,7 +14,6 @@ def getUserEmail(DelegateExecution execution) {
                     .collect(Collectors.toSet())
     assignees.add("Begaly.Kokin@kcell.kz");
     assignees.add("Zhanar.Zhubantayeva@kcell.kz");
-    assignees.add("Dinara.Bolganbayeva@kcell.kz");
     assignees.add("Aidana.Abdrakhman@kcell.kz");
     assignees.add("Lyudmila.Vilkova@kcell.kz");
     def result = assignees.stream()
