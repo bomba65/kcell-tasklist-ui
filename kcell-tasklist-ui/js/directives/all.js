@@ -2904,10 +2904,39 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                         if ((scope.onlyProcessActive === 'Revision' && scope.selectedCustomFields.length > 0)|| (scope.onlyProcessActive === 'Revision-power' && scope.selectedCustomFields.length > 0)) {
                             tbl = document.getElementById('customXlsxRevisionsTable');
                         }
-                        var ws = XLSX.utils.table_to_sheet(tbl, {dateNF: 'DD.MM.YYYY'});
+
+                        var ws;
+
+                        if (scope.onlyProcessActive === 'Revision-power') {
+                            var arrId = {
+                                'headers': ["Acceptance Date", "Delay", "Job Description", "Quantity", "Comments", "Process State", "Sum", "Monthly act #"],
+                                'data': []
+                            }
+    
+                            scope['xlsxProcessInstances'].forEach(function (el, i) {
+                                arrId['data'].push({"Acceptance Date": el['jrAcceptanceDate'] !== undefined ? el['jrAcceptanceDate'] : ""})
+                                arrId['data'][i]["Delay"] = el['executionTime']
+                                arrId['data'][i]["Job Description"] = ""
+                                arrId['data'][i]["Quantity"] = ""
+                                el["jobs"].forEach(function (v, n) {
+                                    arrId['data'][i]["Job Description"] += n + 1 + "." + v.num + "," + v.title + "," + v.materialUnit + "\n"
+                                    if (el["jobs"].length !== n + 1) arrId['data'][i]["Quantity"] += v.quantity + ",\n"
+                                    else arrId['data'][i]["Quantity"] += v.quantity
+                                })
+                                arrId['data'][i]["Comments"] = el['init_comment']
+                                arrId['data'][i]["Process State"] = el['state']
+                                arrId['data'][i]["Sum"] = el['worksTotalSum']
+                            })
+
+                            ws = XLSX.utils.json_to_sheet(arrId['data'], {header: arrId['headers']})
+                        } else {
+                            ws = XLSX.utils.table_to_sheet(tbl, {dateNF: 'DD.MM.YYYY'});
+                        }
+
                         var wb = XLSX.utils.book_new();
                         XLSX.utils.book_append_sheet(wb, ws, 'New Sheet Name 1');
                         return XLSX.writeFile(wb, fileName);
+                        // return XLSX.writeFile(wb, fileName, {});
                     } else {
                         getProcessInstances(scope.lastSearchParamsRevision, 'xlsxProcessInstances');
                         scope.xlsxPreparedRevision = true;
@@ -3487,6 +3516,13 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                                 variables.push('invoiceRO1Number');
                                 variables.push('invoiceRO2Number');
                                 variables.push('invoiceRO3Number');
+                            }
+                                
+                            if(scope.selectedProcessInstances.indexOf('Revision-power')!==-1) {
+                                variables.push('jrAcceptanceDate');
+                                variables.push('jobs');
+                                variables.push('init_comment');
+                                variables.push('worksTotalSum');
                             }
 
                             if (scope[processInstances].length > 0) {
