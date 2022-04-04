@@ -3024,6 +3024,9 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                     if(scope.selectedProcessInstances.indexOf('Replacement')!==-1 && scope.selectedProcessInstances.indexOf('Dismantle')===-1){
                         filter.variables.push({"name": "requestType", "operator": "eq", "value": "replacement"});
                     }
+                    if(scope.selectedProcessInstances.indexOf('Revision-power')!==-1){
+
+                    }
                     if (scope.filter.unfinished) {
                         filter.unfinished = true;
                     }
@@ -3434,7 +3437,6 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                 }
 
                 function getProcessInstances(filter, processInstances) {
-                    console.log("filter: ", filter)
                     $http({
                         method: 'POST',
                         headers: {'Accept': 'application/hal+json, application/json; q=0.5'},
@@ -3459,7 +3461,7 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                         function (result) {
                             console.log(result)
                             scope[processInstances] = result.data;
-                            var variables = ['siteRegion', 'siteRegionShow', 'site_name', 'Site_Name', 'contractor', 'jrType', 'reason', 'requestedDate', 'jrOrderedDate','validityDate', 'jobWorks', 'explanation', 'workType'];
+                            var variables = ['siteRegion', 'siteRegionShow', 'delay', 'site_name', 'Site_Name', 'contractor', 'jrType', 'reason', 'requestedDate', 'jrOrderedDate','validityDate', 'jobWorks', 'explanation', 'workType'];
 
                             if(scope.selectedProcessInstances.indexOf('Dismantle')!==-1 || scope.selectedProcessInstances.indexOf('Replacement')!==-1){
                                 variables.push('requestType');

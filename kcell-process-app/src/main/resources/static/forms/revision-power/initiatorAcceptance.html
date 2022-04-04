@@ -85,7 +85,36 @@
             type: 'Date'
         });
 
+        camForm.variableManager.createVariable({
+          name: 'delay',
+          type: 'String',
+          value: $scope.delay
+        });
+
       });
+
+      $scope.preSubmit = function () {
+        var deferred = $q.defer();
+        if ($scope.delay) {
+          camForm.variableManager.destroyVariable('delay');
+        }
+        deferred.resolve();
+        return deferred.promise;
+      }
+
+      function getDelay(){
+        let startDate = new Date($scope.validityDate);
+        let endDate = new Date($scope.jrAcceptanceDate);
+        let count = 0;
+        const curDate = new Date(startDate.getTime());
+        while (curDate <= endDate) {
+            const dayOfWeek = curDate.getDay();
+            if(dayOfWeek !== 0 && dayOfWeek !== 6) count++;
+            curDate.setDate(curDate.getDate() + 1);
+        }
+        $scope.delay = count;
+        console.log(delay)
+      }
 
       function open($event) {
         $event.preventDefault();
@@ -265,6 +294,7 @@
           is-open="dateFieldOpened"
           min-date="currentDate"
           placeholder="Select date"
+          ng-change="getDelay()"
         />
         <span class="input-group-btn">
           <button type="button" class="btn btn-default" ng-click="open($event)">
