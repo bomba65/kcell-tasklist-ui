@@ -59,6 +59,7 @@
       $scope.validityDateFieldOpened = false;
       $scope.jrNumber = '';
       $scope.delay = '';
+      $scope.o20JobWorks = [];
 
       camForm.on('form-loaded', function () {
         try{
@@ -365,6 +366,20 @@
             } else {
               $scope.jobWorks[index].materialPrice = $item.almaty;
             }
+            
+            console.log($scope.jobWorks)
+            for(let i=0; i<$scope.works.length; i++){
+              let work={} 
+              if($scope.works[i].num == $scope.jobWorks[index].num){
+                console.log("match")
+                work = $scope.jobWorks[index]
+                if(work.O20){
+                  $scope.o20JobWorks.push(work)
+                  console.log("!!!!!!!")
+                }
+              }
+            }
+            console.log("o20JobWorks: ", $scope.o20JobWorks)
         }
       };
 
@@ -374,6 +389,7 @@
       };
       
       function getPrice(index, transportation_flag) {
+        console.log(index)
         <!-- O21 -->
         if (transportation_flag) {
           let transptWork = JSON.parse($scope.jobWorks[index].transportationFor)
@@ -381,6 +397,7 @@
           $scope.jobWorks[index].referedWorks = $scope.jobWorks[index].num + "-" + transptWork.num;
           $scope.jobWorks[index].refersTo = transptWork.num;
           $scope.jobWorks[index].materialPrice = (transptWork.materialPrice*0.5).toFixed(2);
+          
         } else {
           <!-- O20 -->
           let dismntWork = JSON.parse($scope.jobWorks[index].dismantlingFor)
@@ -396,6 +413,7 @@
 
       function addJobWork() {
         $scope.jobWorks.push({relatedSites:[]});
+
       };
       <!-- Work list logic end -->
 
@@ -793,7 +811,7 @@
                 class="form-control selectpicker"
                 select-picker
                 title=""
-                select-model="jobWorks"
+                select-model="o20JobWorks"
                 required
                 cam-variable-type="String"
                 ng-model="jobWork.dismantlingFor"
@@ -802,11 +820,11 @@
               >
                 <option value="">Select work</option>
                 <option
-                  ng-repeat="work in jobWorks"
-                  ng-selected="{{work === jobWork.dismantlingFor}}"
+                  ng-repeat="work in o20JobWorks"
+                  ng-selected="{{work.num === jobWork.dismantlingFor}}"
                   value="{{work}}"
                 >
-                  {{work.referedWorks}}
+                  {{work.num}}
                 </option>
               </select>
             </td>
