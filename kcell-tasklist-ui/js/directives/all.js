@@ -2714,6 +2714,15 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                         scope.filter.leasingInstallationStatus = undefined;
                         scope.filter.leasingGeneralStatus = undefined;
                     }
+                    if(scope.onlyProcessActive!=='Revision-power'){
+                        scope.filter.validityDateRange = undefined;
+                        $(".calendar-range-readonly").each(function () {
+                            if ($(this).data('daterangepicker')) {
+                                $(this).data('daterangepicker').setStartDate(moment());
+                                $(this).data('daterangepicker').setEndDate(moment());
+                            }
+                        });
+                    }
                 }, true);
 
                 var regionGroupsMap = {
@@ -3062,7 +3071,7 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                     if (scope.filter.workType) {
                         if (scope.onlyProcessActive==='Invoice')
                             filter.variables.push({"name": "workType", "operator": "eq", "value": scope.filter.workType});
-                        else if (scope.onlyProcessActive==='Revision' || scope.onlyProcessActive==='CreatePR' || scope.onlyProcessActive==='Revision-power')
+                        else if (scope.onlyProcessActive==='Revision' || scope.onlyProcessActive==='CreatePR')
                             filter.variables.push({"name": "reason", "operator": "eq", "value": scope.filter.workType});
                     }
                     if (scope.filter.unfinished) {
@@ -3175,6 +3184,22 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
 
                             filter.variables.push({
                                 "name": "validityDate",
+                                "operator": "lteq",
+                                "value": results[1]
+                            });
+                        }
+                    }
+                    if (scope.filter.jrOrderedDate) {
+                        var results = scope.convertStringToDate(scope.filter.jrOrderedDate);
+                        if (results.length === 2) {
+                            filter.variables.push({
+                                "name": "jrOrderedDate",
+                                "operator": "gteq",
+                                "value": results[0]
+                            });
+
+                            filter.variables.push({
+                                "name": "jrOrderedDate",
                                 "operator": "lteq",
                                 "value": results[1]
                             });
@@ -3302,9 +3327,6 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                         }
                         if(scope.filter.powerContract) {
                             filter.variables.push({"name": "contract", "operator": "like", "value": '%' + scope.filter.powerContract + '%'});
-                        }
-                        if(scope.filter.jrOrderedDate) {
-                            filter.variables.push({"name": "jrOrderedDate", "operator": "eq", "value": scope.filter.jrOrderedDate});
                         }
                     }
                     if(scope.onlyProcessActive==='leasing'){
