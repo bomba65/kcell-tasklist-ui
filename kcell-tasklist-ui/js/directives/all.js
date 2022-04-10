@@ -2918,7 +2918,28 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
 
                         if (scope.onlyProcessActive === 'Revision-power') {
                             var arrId = {
-                                'headers': ["Acceptance Date", "Delay", "Job Description", "Quantity", "Comments", "Process State", "Sum", "Monthly act #"],
+                                'headers': [
+                                    "Contract",
+                                    "JR To",
+                                    "Year",
+                                    "Month",
+                                    "Region",
+                                    "Sitename",
+                                    "JR No",
+                                    "JR Type",
+                                    "JR Reason",
+                                    "Requested Date",
+                                    "Initiator",
+                                    "Validity Date",
+                                    "Acceptance Date",
+                                    "Delay",
+                                    "Job Description",
+                                    "Quantity",
+                                    "Comments",
+                                    "Process State",
+                                    "Sum",
+                                    "Monthly act #"
+                                ],
                                 'data': []
                             }
     
@@ -2935,9 +2956,28 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                                 arrId['data'][i]["Comments"] = el['init_comment']
                                 arrId['data'][i]["Process State"] = el['state']
                                 arrId['data'][i]["Sum"] = el['worksTotalSum']
+
+                                arrId['data'][i]["Contract"] = el['contract']['name']
+                                arrId['data'][i]["JR To"] = el["job_to"]
+
+                                var monthNames = ["January", "February", "March", "April", "May", "June",
+                                    "July", "August", "September", "October", "November", "December"
+                                ];
+                                var d = new Date(el["startTime"])
+                                arrId['data'][i]["Year"] = d.getFullYear()
+                                arrId['data'][i]["Month"] = monthNames[d.getMonth()]
+
+                                arrId['data'][i]["Region"] = el['siteRegionShow'] !== undefined ? el['siteRegionShow'] : ""
+                                arrId['data'][i]["Sitename"] = el['Site_Name']
+                                arrId['data'][i]["JR No"] = el["businessKey"]
+                                arrId['data'][i]["JR Type"] = el["jrType"]["name"]
+                                arrId['data'][i]["JR Reason"] = el["jrReason"]["name"]
+                                arrId['data'][i]["Requested Date"] = el["jrOrderedDate"]
+                                arrId['data'][i]["Initiator"] = el["initiatorFull"]["firstName"] + " " + el["initiatorFull"]["lastName"]
+                                arrId['data'][i]["Validity Date"] = el["validityDate"]
                             })
 
-                            ws = XLSX.utils.json_to_sheet(arrId['data'], {header: arrId['headers']})
+                            ws = XLSX.utils.json_to_sheet(arrId['data'], {header: arrId['headers'], dateNF: 'DD.MM.YYYY'})
                         } else {
                             ws = XLSX.utils.table_to_sheet(tbl, {dateNF: 'DD.MM.YYYY'});
                         }
@@ -3543,6 +3583,10 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                             }
                                 
                             if(scope.selectedProcessInstances.indexOf('Revision-power')!==-1) {
+                                variables.push('contract');
+                                variables.push('jrReason');
+                                variables.push('initiatorFull');
+                                variables.push('job_to');
                                 variables.push('jrAcceptanceDate');
                                 variables.push('jobs');
                                 variables.push('init_comment');
