@@ -3073,9 +3073,6 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                     if(scope.selectedProcessInstances.indexOf('Replacement')!==-1 && scope.selectedProcessInstances.indexOf('Dismantle')===-1){
                         filter.variables.push({"name": "requestType", "operator": "eq", "value": "replacement"});
                     }
-                    if(scope.selectedProcessInstances.indexOf('Revision-power')!==-1){
-
-                    }
                     if (scope.filter.unfinished) {
                         filter.unfinished = true;
                     }
@@ -3357,16 +3354,16 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                             filter.variables.push({"name": "Site_Name", "operator": "eq", "value": scope.filter.powerSitename});
                         }
                         if(scope.filter.jrType) {
-                            filter.variables.push({"name": "jrType", "operator": "like", "value": '%' + scope.filter.jrType + '%'});
+                            filter.variables.push({"name": "jrTypeName", "operator": "eq", "value": scope.filter.jrType});
                         }
                         if(scope.filter.jrReason) {
-                            filter.variables.push({"name": "jrReason", "operator": "like", "value": '%' + scope.filter.jrReason + '%'});
+                            filter.variables.push({"name": "jrReasonName", "operator": "eq", "value": scope.filter.jrReason});
                         }
                         if(scope.filter.powerContractor) {
-                            filter.variables.push({"name": "contractor", "operator": "like", "value": '%' + scope.filter.powerContractor + '%'});
+                            filter.variables.push({"name": "contractorName", "operator": "eq", "value": scope.filter.powerContractor});
                         }
                         if(scope.filter.powerContract) {
-                            filter.variables.push({"name": "contract", "operator": "like", "value": '%' + scope.filter.powerContract + '%'});
+                            filter.variables.push({"name": "contractName", "operator": "eq", "value": scope.filter.powerContract});
                         }
                     }
                     if(scope.onlyProcessActive==='leasing'){
@@ -3521,7 +3518,7 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                         url: baseUrl + '/history/process-instance?firstResult=' + (processInstances === 'processInstances' ? (scope.filter.page - 1) * scope.filter.maxResults + '&maxResults=' + scope.filter.maxResults : '')
                     }).then(
                         function (result) {
-                            console.log(result)
+                            // console.log(result)
                             scope[processInstances] = result.data;
                             var variables = ['siteRegion', 'siteRegionShow', 'delay', 'site_name', 'Site_Name', 'contractor', 'jrType', 'reason', 'requestedDate', 'jrOrderedDate','validityDate', 'jobWorks', 'explanation', 'workType'];
 
@@ -3595,11 +3592,24 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
 
                             if (scope[processInstances].length > 0) {
                                 angular.forEach(scope[processInstances], function (el) {
+                                    console.log(el)
                                     if (el.durationInMillis) {
                                         el['executionTime'] = Math.floor(el.durationInMillis / (1000 * 60 * 60 * 24));
                                     } else {
                                         var startTime = new Date(el.startTime);
                                         el['executionTime'] = Math.floor(((new Date().getTime()) - startTime.getTime()) / (1000 * 60 * 60 * 24));
+                                    }
+                                    if (el.jrAcceptanceDate) {
+                                        var acceptDate = new Date(el.jrAcceptanceDate);
+                                        var validDate = new Date(el.validityDate);
+                                        el['jrDelay'] = Math.floor((acceptDate.getTime() - validDate.getTime()) / (1000 * 60 * 60 * 24));
+                                        console.log("validity date: ", el['validityDate'])
+                                    } else {
+                                        var validDate = new Date(el.validityDate);
+                                        el['jrDelay'] = Math.floor(((new Date().getTime()) - validDate.getTime()) / (1000 * 60 * 60 * 24));
+                                        console.log("delay: ", el['jrDelay'])
+                                        console.log("delay: ", el.jrDelay)
+                                        console.log(el['validityDate'])
                                     }
                                     if (!scope.profiles[el.startUserId]) {
                                         $http.get(baseUrl + '/user/' + el.startUserId + '/profile').then(
@@ -3658,7 +3668,11 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                                     url: baseUrl + '/task'
                                 }).then(
                                     function (tasks) {
+                                        // console.log("1111====")
+                                        // console.log(tasks)
                                         angular.forEach(scope[processInstances], function (el) {
+                                            // console.log("123====")
+                                            // console.log(scope[processInstances])
                                             var f = _.filter(tasks.data, function (t) {
                                                 return t.processInstanceId === el.id;
                                             });
@@ -4136,7 +4150,7 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                         scope.workDefinitionMap = scope.jobModel.hasOwnProperty("workDefinitionMap") ? scope.jobModel.workDefinitionMap.value : {};
                         scope.tnuSiteLocations = scope.jobModel.hasOwnProperty("tnuSiteLocations") ? scope.jobModel.tnuSiteLocations.value : {};
                         scope.workPrices = scope.jobModel.hasOwnProperty("workPrices") ? scope.jobModel.workPrices.value : {};
-                        console.log(scope.jobModel)
+                        // console.log(scope.jobModel)
                         scope.jobWorksTotal = scope.jobModel.hasOwnProperty("jobWorksTotal") && scope.jobModel.jobWorksTotal.hasOwnProperty("value") ? scope.jobModel.workPrices.value : '';
                         scope.jobWorksValue.forEach(function(work){
                             if(scope.capexWorks.indexOf(work.sapServiceNumber)!==-1){
@@ -4225,9 +4239,9 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                                 });
                             }
                         });
-                        console.log('scope->>>>')
-                        console.log(scope)
-                        console.log('<<<<-scope')
+                        // console.log('scope->>>>')
+                        // console.log(scope)
+                        // console.log('<<<<-scope')
                     } catch(E) {
                         console.log(E);
                     }
@@ -4405,7 +4419,7 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                         templateUrl: './js/partials/createPrProcessCardModal.html',
                         size: ('hg')
                     }).then(function (results) {
-                        console.log(scope)
+                        // console.log(scope)
                     });
                 }
 
@@ -4492,7 +4506,7 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                                     function (result) {
                                         var workFiles = [];
                                         result.data.forEach(function (el) {
-                                            console.log('!!!!!');
+                                            // console.log('!!!!!');
 
                                             scope.dismantleInfo[el.name] = el;
                                             if (el.type === 'File' || el.type === 'Bytes') {
@@ -4937,7 +4951,6 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                                 }
                                 $http.get(baseUrl + '/history/variable-instance?deserializeValues=false&processInstanceId=' + scope.processInstances[index].id).then(
                                     function (result) {
-                                        console.log(result.data)
                                         var files = [];
                                         var uploadRSDandVSDfilesFiles = [];
                                         var uploadTSDfileFiles = [];
