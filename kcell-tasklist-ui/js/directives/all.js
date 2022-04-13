@@ -3603,13 +3603,13 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                                         var acceptDate = new Date(el.jrAcceptanceDate);
                                         var validDate = new Date(el.validityDate);
                                         el['jrDelay'] = Math.floor((acceptDate.getTime() - validDate.getTime()) / (1000 * 60 * 60 * 24));
-                                        console.log("validity date: ", el['validityDate'])
+                                        console.log("validity date: ", el.validityDate)
                                     } else {
                                         var validDate = new Date(el.validityDate);
                                         el['jrDelay'] = Math.floor(((new Date().getTime()) - validDate.getTime()) / (1000 * 60 * 60 * 24));
                                         console.log("delay: ", el['jrDelay'])
                                         console.log("delay: ", el.jrDelay)
-                                        console.log(el['validityDate'])
+                                        console.log(el.validityDate)
                                     }
                                     if (!scope.profiles[el.startUserId]) {
                                         $http.get(baseUrl + '/user/' + el.startUserId + '/profile').then(
@@ -3645,7 +3645,6 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                                                     } else {
                                                         el[variable] = f[0].value;
                                                     }
-                                                    console.log(el[variable])
                                                 }
                                             });
                                         },
@@ -3804,6 +3803,7 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                     }
                 };
                 scope.toggleProcessViewRevision = function (index, processDefinitionKey, processDefinitionId, businessKey) {
+                    console.log()
                     scope.showDiagramView = false;
                     scope.diagram = {};
                     if (scope.piIndex === index) {
@@ -3865,7 +3865,6 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                                                         } else console.log('asynCall 2 problem');
                                                     } else {
                                                         console.log(groupasynCalls, maxGroupAsynCalls);
-
                                                     }
                                                 } else {
                                                     console.log('vtoroi', groupasynCalls, maxGroupAsynCalls);
@@ -3898,9 +3897,16 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
 
                                 } else {
                                     asynCall1 = true;
+                                    // TEMPORARY Revision card OPENER  ---- MUST BE RESOLVED ---- start
+                                    if(processDefinitionKey === 'Revision-power') {
+                                        openProcessCardModalRevisionPower(processDefinitionId, businessKey, index);
+                                    }
+                                    // ---- end
                                     if (asynCall1 && asynCall2) {
                                         if (processDefinitionKey === 'CreatePR'){
                                             openProcessCardModalCreatePR(processDefinitionId, businessKey, index);
+                                        } else if (processDefinitionKey === 'Revision-power'){
+                                            openProcessCardModalRevisionPower(processDefinitionId, businessKey, index);
                                         } else {
                                             openProcessCardModalRevision(processDefinitionId, businessKey, index);
                                         }
@@ -3955,9 +3961,16 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                                                 return $http.get("/camunda/api/engine/engine/default/history/task?processInstanceId=" + resolution.processInstanceId + "&taskId=" + resolution.taskId);
                                             })).then(function (tasks) {
                                                 asynCall2 = true;
+                                                if (processDefinitionKey === 'Revision-power'){
+                                                    openProcessCardModalRevisionPower(processDefinitionId, businessKey, index);
+                                                    console.log("closed 1")
+                                                }
                                                 if (asynCall1 && asynCall2) {
                                                     if (processDefinitionKey === 'CreatePR'){
                                                         openProcessCardModalCreatePR(processDefinitionId, businessKey, index);
+                                                    } else if (processDefinitionKey === 'Revision-power'){
+                                                        openProcessCardModalRevisionPower(processDefinitionId, businessKey, index);
+                                                        console.log("closed 2")
                                                     } else {
                                                         openProcessCardModalRevision(processDefinitionId, businessKey, index);
                                                     }
