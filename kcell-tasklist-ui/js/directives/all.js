@@ -3344,11 +3344,11 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                         if(scope.filter.powerActivityId){
                             filter.activeActivityIdIn.push(scope.filter.powerActivityId);
                         }
-                        if (scope.filter.powerRegion && scope.filter.region !== 'all') {
+                        if (scope.filter.powerRegion) {
                             filter.variables.push({"name": "siteRegionShow", "operator": "eq", "value": scope.filter.powerRegion});
                         }
                         if (scope.filter.powerSiteId) {
-                            filter.variables.push({"name": "Site", "operator": "eq", "value": scope.filter.powerSiteId});
+                            filter.variables.push({"name": "Site", "operator": "eq", "value": scope.filter.siteId});
                         }
                         if (scope.filter.powerSitename) {
                             filter.variables.push({"name": "Site_Name", "operator": "eq", "value": scope.filter.powerSitename});
