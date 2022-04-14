@@ -2945,7 +2945,7 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
     
                             scope['xlsxProcessInstances'].forEach(function (el, i) {
                                 arrId['data'].push({"Acceptance Date": el['jrAcceptanceDate'] !== undefined ? el['jrAcceptanceDate'] : ""})
-                                arrId['data'][i]["Delay"] = el['executionTime']
+                                arrId['data'][i]["Delay"] = el['delay']
                                 arrId['data'][i]["Job Description"] = ""
                                 arrId['data'][i]["Quantity"] = ""
                                 el["jobs"].forEach(function (v, n) {
@@ -3596,23 +3596,12 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
 
                             if (scope[processInstances].length > 0) {
                                 angular.forEach(scope[processInstances], function (el) {
-                                    console.log(el)
+                                    // console.log(el)
                                     if (el.durationInMillis) {
                                         el['executionTime'] = Math.floor(el.durationInMillis / (1000 * 60 * 60 * 24));
                                     } else {
                                         var startTime = new Date(el.startTime);
                                         el['executionTime'] = Math.floor(((new Date().getTime()) - startTime.getTime()) / (1000 * 60 * 60 * 24));
-                                    }
-                                    if (el.processDefinitionKey==='Revision-power' && el.jrAcceptanceDate) {
-                                        var acceptDate = new Date(el.jrAcceptanceDate);
-                                        var validDate = new Date(el.validityDate);
-                                        el['jrDelay'] = Math.floor((acceptDate.getTime() - validDate.getTime()) / (1000 * 60 * 60 * 24));
-                                    } else if (el.processDefinitionKey==='Revision-power' && !el.jrAcceptanceDate) {
-                                        console.log("el in acceptance date: ", el)
-                                        console.log(el.validityDate)
-                                        console.log(el['validityDate'])
-                                        var validDate = new Date(el.validityDate);
-                                        el.jrDelay = Math.floor(((new Date().getTime()) - validDate.getTime()) / (1000 * 60 * 60 * 24));
                                     }
                                     if (!scope.profiles[el.startUserId]) {
                                         $http.get(baseUrl + '/user/' + el.startUserId + '/profile').then(
@@ -3639,6 +3628,18 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                                     }).then(
                                         function (vars) {
                                             scope[processInstances].forEach(function (el) {
+                                                if (el.processDefinitionKey === 'Revision-power') {
+                                                    let delay = 0;
+                                                    if (el.jrAcceptanceDate) {
+                                                        var acceptDate = new Date(el.jrAcceptanceDate);
+                                                        var validDate = new Date(el.validityDate);
+                                                        delay = Math.floor((acceptDate.getTime() - validDate.getTime()) / (1000 * 60 * 60 * 24));
+                                                    } else {
+                                                        var validDate = new Date(el.validityDate);
+                                                        delay = Math.floor(((new Date().getTime()) - validDate.getTime()) / (1000 * 60 * 60 * 24));
+                                                    }
+                                                    el.delay = delay > 0 ? delay : 0;
+                                                }
                                                 var f = _.filter(vars.data, function (v) {
                                                     return v.processInstanceId === el.id;
                                                 });
@@ -3845,51 +3846,58 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                                             url: baseUrl + '/task/' + e.id
                                         }).then(
                                             function (taskResult) {
-                                                // TEMPORARY Revision card OPENER  ---- MUST BE RESOLVED ---- start
-                                                if(processDefinitionKey === 'Revision-power') {
-                                                    openProcessCardModalRevisionPower(processDefinitionId, businessKey, index);
-                                                }
-                                                // ---- end
-                                                if (taskResult.data._embedded && taskResult.data._embedded.group) {
-                                                    e.group = taskResult.data._embedded.group[0].id;
-                                                    groupasynCalls += 1;
-                                                    if (groupasynCalls === maxGroupAsynCalls) {
-                                                        asynCall1 = true;
-                                                        if (asynCall1 && asynCall2) {
-                                                            if (processDefinitionKey === 'CreatePR'){
-                                                                openProcessCardModalCreatePR(processDefinitionId, businessKey, index);
-                                                            } else if (processDefinitionKey === 'Revision-power') {
-                                                                openProcessCardModalRevisionPower(processDefinitionId, businessKey, index);
-                                                            } else {
-                                                                openProcessCardModalRevision(processDefinitionId, businessKey, index);
-                                                            }
-
-                                                            asynCall1 = false;
-                                                        } else console.log('asynCall 2 problem');
-                                                    } else {
-                                                        console.log(groupasynCalls, maxGroupAsynCalls);
+                                                try {
+                                                    // TEMPORARY Revision card OPENER  ---- MUST BE RESOLVED ---- start
+                                                    if(processDefinitionKey === 'Revision-power') {
+                                                        console.log("opened process")
+                                                        openProcessCardModalRevisionPower(processDefinitionId, businessKey, index);
                                                     }
-                                                } else {
-                                                    console.log('vtoroi', groupasynCalls, maxGroupAsynCalls);
-                                                    console.log(processDefinitionKey)
-                                                    groupasynCalls += 1;
-                                                    if (groupasynCalls === maxGroupAsynCalls) {
-                                                        asynCall1 = true;
-                                                        if (asynCall1 && asynCall2) {
-                                                            if (processDefinitionKey === 'CreatePR'){
-                                                                openProcessCardModalCreatePR(processDefinitionId, businessKey, index);
-                                                            } else if (processDefinitionKey === 'Revision-power'){
-                                                                openProcessCardModalRevisionPower(processDefinitionId, businessKey, index);
-                                                            } else {
-                                                                openProcessCardModalRevision(processDefinitionId, businessKey, index);
-                                                            }
-                                                            asynCall1 = false;
-                                                        } else console.log('asynCall 2 problem');
-                                                    } else {
-                                                        console.log(groupasynCalls, maxGroupAsynCalls);
+                                                    // ---- end
+                                                    if (taskResult.data._embedded && taskResult.data._embedded.group) {
+                                                        e.group = taskResult.data._embedded.group[0].id;
+                                                        groupasynCalls += 1;
+                                                        if (groupasynCalls === maxGroupAsynCalls) {
+                                                            asynCall1 = true;
+                                                            if (asynCall1 && asynCall2) {
+                                                                if (processDefinitionKey === 'CreatePR'){
+                                                                    openProcessCardModalCreatePR(processDefinitionId, businessKey, index);
+                                                                } else if (processDefinitionKey === 'Revision-power') {
+                                                                    openProcessCardModalRevisionPower(processDefinitionId, businessKey, index);
+                                                                } else {
+                                                                    openProcessCardModalRevision(processDefinitionId, businessKey, index);
+                                                                }
 
+                                                                asynCall1 = false;
+                                                            } else console.log('asynCall 2 problem');
+                                                        } else {
+                                                            console.log(groupasynCalls, maxGroupAsynCalls);
+                                                        }
+                                                    } else {
+                                                        console.log('vtoroi', groupasynCalls, maxGroupAsynCalls);
+                                                        console.log(processDefinitionKey)
+                                                        groupasynCalls += 1;
+                                                        if (groupasynCalls === maxGroupAsynCalls) {
+                                                            asynCall1 = true;
+                                                            if (asynCall1 && asynCall2) {
+                                                                if (processDefinitionKey === 'CreatePR'){
+                                                                    openProcessCardModalCreatePR(processDefinitionId, businessKey, index);
+                                                                } else if (processDefinitionKey === 'Revision-power'){
+                                                                    openProcessCardModalRevisionPower(processDefinitionId, businessKey, index);
+                                                                } else {
+                                                                    openProcessCardModalRevision(processDefinitionId, businessKey, index);
+                                                                }
+                                                                asynCall1 = false;
+                                                            } else console.log('asynCall 2 problem');
+                                                        } else {
+                                                            console.log(groupasynCalls, maxGroupAsynCalls);
+
+                                                        }
                                                     }
+                                                    asynCall1 = false;
+                                                } catch (err) {
+                                                    console.log(err)
                                                 }
+                                                
                                             },
                                             function (error) {
                                                 console.log(error.data);
@@ -3899,22 +3907,29 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                                     });
 
                                 } else {
-                                    asynCall1 = true;
-                                    // TEMPORARY Revision card OPENER  ---- MUST BE RESOLVED ---- start
-                                    if(processDefinitionKey === 'Revision-power') {
-                                        openProcessCardModalRevisionPower(processDefinitionId, businessKey, index);
-                                    }
-                                    // ---- end
-                                    if (asynCall1 && asynCall2) {
-                                        if (processDefinitionKey === 'CreatePR'){
-                                            openProcessCardModalCreatePR(processDefinitionId, businessKey, index);
-                                        } else if (processDefinitionKey === 'Revision-power'){
+                                    try {
+                                        asynCall1 = true;
+                                        // TEMPORARY Revision card OPENER  ---- MUST BE RESOLVED ---- start
+                                        if(processDefinitionKey === 'Revision-power') {
+                                            console.log("closed process")
                                             openProcessCardModalRevisionPower(processDefinitionId, businessKey, index);
-                                        } else {
-                                            openProcessCardModalRevision(processDefinitionId, businessKey, index);
+                                        }
+                                        // ---- end
+                                        if (asynCall1 && asynCall2) {
+                                            if (processDefinitionKey === 'CreatePR'){
+                                                openProcessCardModalCreatePR(processDefinitionId, businessKey, index);
+                                            } else if (processDefinitionKey === 'Revision-power'){
+                                                openProcessCardModalRevisionPower(processDefinitionId, businessKey, index);
+                                            } else {
+                                                openProcessCardModalRevision(processDefinitionId, businessKey, index);
+                                            }
+                                            asynCall1 = false;
                                         }
                                         asynCall1 = false;
+                                    } catch (err) {
+                                        console.log(err)
                                     }
+                                    
                                 }
                                 $http.get(baseUrl + '/history/variable-instance?deserializeValues=false&processInstanceId=' + scope.processInstances[index].id).then(
                                     function (result) {
@@ -3964,21 +3979,21 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                                                 return $http.get("/camunda/api/engine/engine/default/history/task?processInstanceId=" + resolution.processInstanceId + "&taskId=" + resolution.taskId);
                                             })).then(function (tasks) {
                                                 asynCall2 = true;
-                                                if (processDefinitionKey === 'Revision-power'){
-                                                    openProcessCardModalRevisionPower(processDefinitionId, businessKey, index);
-                                                    console.log("closed 1")
+                                                try {
+                                                    if (asynCall1 && asynCall2) {
+                                                        if (processDefinitionKey === 'CreatePR'){
+                                                            openProcessCardModalCreatePR(processDefinitionId, businessKey, index);
+                                                        } else if (processDefinitionKey === 'Revision-power'){
+                                                            openProcessCardModalRevisionPower(processDefinitionId, businessKey, index);
+                                                        } else {
+                                                            openProcessCardModalRevision(processDefinitionId, businessKey, index);
+                                                        }
+                                                        asynCall2 = false;
+                                                    } else console.log('aynCall 1 problem');
+                                                } catch(err) {
+                                                    console.log(err)
                                                 }
-                                                if (asynCall1 && asynCall2) {
-                                                    if (processDefinitionKey === 'CreatePR'){
-                                                        openProcessCardModalCreatePR(processDefinitionId, businessKey, index);
-                                                    } else if (processDefinitionKey === 'Revision-power'){
-                                                        openProcessCardModalRevisionPower(processDefinitionId, businessKey, index);
-                                                        console.log("closed 2")
-                                                    } else {
-                                                        openProcessCardModalRevision(processDefinitionId, businessKey, index);
-                                                    }
-                                                    asynCall2 = false;
-                                                } else console.log('aynCall 1 problem');
+                                                
                                             });
                                         }
 
