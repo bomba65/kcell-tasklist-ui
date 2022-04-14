@@ -3520,7 +3520,7 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                         function (result) {
                             // console.log(result)
                             scope[processInstances] = result.data;
-                            var variables = ['siteRegion', 'siteRegionShow', 'delay', 'site_name', 'Site_Name', 'contractor', 'jrType', 'reason', 'requestedDate', 'jrOrderedDate','validityDate', 'jobWorks', 'explanation', 'workType'];
+                            var variables = ['siteRegion', 'site_name', 'contractor', 'reason', 'requestedDate','validityDate', 'jobWorks', 'explanation', 'workType'];
 
                             if(scope.selectedProcessInstances.indexOf('Dismantle')!==-1 || scope.selectedProcessInstances.indexOf('Replacement')!==-1){
                                 variables.push('requestType');
@@ -3587,7 +3587,11 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                                 variables.push('jrAcceptanceDate');
                                 variables.push('jobs');
                                 variables.push('init_comment');
+                                variables.push('Site_Name');
+                                variables.push('jrType');
                                 variables.push('worksTotalSum');
+                                variables.push('siteRegionShow');
+                                variables.push('jrOrderedDate');
                             }
 
                             if (scope[processInstances].length > 0) {
@@ -3599,17 +3603,16 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                                         var startTime = new Date(el.startTime);
                                         el['executionTime'] = Math.floor(((new Date().getTime()) - startTime.getTime()) / (1000 * 60 * 60 * 24));
                                     }
-                                    if (el.jrAcceptanceDate) {
+                                    if (el.processDefinitionKey==='Revision-power' && el.jrAcceptanceDate) {
                                         var acceptDate = new Date(el.jrAcceptanceDate);
                                         var validDate = new Date(el.validityDate);
                                         el['jrDelay'] = Math.floor((acceptDate.getTime() - validDate.getTime()) / (1000 * 60 * 60 * 24));
-                                        console.log("validity date: ", el.validityDate)
-                                    } else {
-                                        var validDate = new Date(el.validityDate);
-                                        el['jrDelay'] = Math.floor(((new Date().getTime()) - validDate.getTime()) / (1000 * 60 * 60 * 24));
-                                        console.log("delay: ", el['jrDelay'])
-                                        console.log("delay: ", el.jrDelay)
+                                    } else if (el.processDefinitionKey==='Revision-power' && !el.jrAcceptanceDate) {
+                                        console.log("el in acceptance date: ", el)
                                         console.log(el.validityDate)
+                                        console.log(el['validityDate'])
+                                        var validDate = new Date(el.validityDate);
+                                        el.jrDelay = Math.floor(((new Date().getTime()) - validDate.getTime()) / (1000 * 60 * 60 * 24));
                                     }
                                     if (!scope.profiles[el.startUserId]) {
                                         $http.get(baseUrl + '/user/' + el.startUserId + '/profile').then(
