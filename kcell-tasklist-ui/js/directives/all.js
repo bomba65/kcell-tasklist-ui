@@ -3862,7 +3862,7 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                                         scope.jobModel.jobWorks.value[workIndex].files.push(file);
                                     }
                                 });
-                                console.log("job model: ", scope.jobModel)
+                                console.log("11111 job model: ", scope.jobModel)
                                 if (scope.jobModel.resolutions && scope.jobModel.resolutions.value) {
                                     $q.all(scope.jobModel.resolutions.value.map(function (resolution) {
                                         return $http.get("/camunda/api/engine/engine/default/history/task?processInstanceId=" + resolution.processInstanceId + "&taskId=" + resolution.taskId);
@@ -3989,7 +3989,7 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                                         console.log("asynCall1 = true 3333")
                                         if(processDefinitionKey === 'Revision-power') {
                                             console.log("closed process")
-                                            console.log("job model: ", scope.jobModel)
+                                            console.log(" 222222 job model: ", scope.jobModel)
                                             openProcessCardModalRevisionPower(processDefinitionId, businessKey, index);
                                         }
                                         if (asynCall1 && asynCall2) {
@@ -4007,6 +4007,83 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                                     
                                 }
                                 
+                            },
+                            function (error) {
+                                console.log(error.data);
+                            }
+                        );
+                        $http.get(baseUrl + '/history/variable-instance?deserializeValues=false&processInstanceId=' + scope.processInstances[index].id).then(
+                            function (result) {
+                                var workFiles = [];
+                                result.data.forEach(function (el) {
+                                    scope.jobModel[el.name] = el;
+
+                                    // console.log(el.name + ' - ' + el.value)
+                                    if (el.type === 'File' || el.type === 'Bytes') {
+                                        scope.jobModel[el.name].contentUrl = baseUrl + '/history/variable-instance/' + el.id + '/data';
+                                    }
+                                    if (el.type === 'Json') {
+                                        scope.jobModel[el.name].value = JSON.parse(el.value);
+                                    }
+                                    if (el.name.startsWith('works_') && el.name.includes('_file_')) {
+                                        workFiles.push(el);
+                                    }
+                                    // if (processDefinitionKey == 'createPR') {
+
+                                    // }
+                                });
+                                if (scope.jobModel['siteWorksFiles']) {
+                                    _.forEach(scope.jobModel['siteWorksFiles'].value, function (file) {
+                                        var workIndex = file.name.split('_')[1];
+                                        if (!scope.jobModel.jobWorks.value[workIndex].files) {
+                                            scope.jobModel.jobWorks.value[workIndex].files = [];
+                                        }
+                                        if (_.findIndex(scope.jobModel.jobWorks.value[workIndex].files, function (f) {
+                                            return f.name == file.name;
+                                        }) < 0) {
+                                            scope.jobModel.jobWorks.value[workIndex].files.push(file);
+                                        }
+                                    });
+                                }
+                                _.forEach(workFiles, function (file) {
+                                    var workIndex = file.name.split('_')[1];
+                                    if (!scope.jobModel.jobWorks.value[workIndex].files) {
+                                        scope.jobModel.jobWorks.value[workIndex].files = [];
+                                    }
+                                    if (_.findIndex(scope.jobModel.jobWorks.value[workIndex].files, function (f) {
+                                        return f.name == file.name;
+                                    }) < 0) {
+                                        scope.jobModel.jobWorks.value[workIndex].files.push(file);
+                                    }
+                                });
+                                console.log("3333 job model: ", scope.jobModel)
+                                if (scope.jobModel.resolutions && scope.jobModel.resolutions.value) {
+                                    $q.all(scope.jobModel.resolutions.value.map(function (resolution) {
+                                        return $http.get("/camunda/api/engine/engine/default/history/task?processInstanceId=" + resolution.processInstanceId + "&taskId=" + resolution.taskId);
+                                    })).then(function (tasks) {
+                                        asynCall2 = true;
+                                        console.log("asynCall2 = true")
+                                        try {
+                                            if (asynCall1 && asynCall2) {
+                                                if (processDefinitionKey === 'CreatePR'){
+                                                    openProcessCardModalCreatePR(processDefinitionId, businessKey, index);
+                                                } else {
+                                                    openProcessCardModalRevision(processDefinitionId, businessKey, index);
+                                                }
+                                                asynCall2 = false;
+                                            } else console.log('aynCall 1 problem');
+                                        } catch(err) {
+                                            console.log(err)
+                                        }
+                                        
+                                    });
+                                }
+
+                                //scope.jobModel.tasks = processInstanceTasks;
+                                angular.extend(scope.jobModel, catalogs);
+                                scope.jobModel.tasks = processInstanceTasks;
+
+
                             },
                             function (error) {
                                 console.log(error.data);
