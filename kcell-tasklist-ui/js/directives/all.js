@@ -3862,6 +3862,7 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                                         scope.jobModel.jobWorks.value[workIndex].files.push(file);
                                     }
                                 });
+                                console.log("job model: ", scope.jobModel)
                                 if (scope.jobModel.resolutions && scope.jobModel.resolutions.value) {
                                     $q.all(scope.jobModel.resolutions.value.map(function (resolution) {
                                         return $http.get("/camunda/api/engine/engine/default/history/task?processInstanceId=" + resolution.processInstanceId + "&taskId=" + resolution.taskId);
@@ -3872,8 +3873,6 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                                             if (asynCall1 && asynCall2) {
                                                 if (processDefinitionKey === 'CreatePR'){
                                                     openProcessCardModalCreatePR(processDefinitionId, businessKey, index);
-                                                } else if (processDefinitionKey === 'Revision-power'){
-                                                    openProcessCardModalRevisionPower(processDefinitionId, businessKey, index);
                                                 } else {
                                                     openProcessCardModalRevision(processDefinitionId, businessKey, index);
                                                 }
@@ -3990,8 +3989,8 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                                         console.log("asynCall1 = true 3333")
                                         if(processDefinitionKey === 'Revision-power') {
                                             console.log("closed process")
+                                            console.log("job model: ", scope.jobModel)
                                             openProcessCardModalRevisionPower(processDefinitionId, businessKey, index);
-
                                         }
                                         if (asynCall1 && asynCall2) {
                                             if (processDefinitionKey === 'CreatePR'){
@@ -4008,7 +4007,6 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                                     
                                 }
                                 
-
                             },
                             function (error) {
                                 console.log(error.data);
