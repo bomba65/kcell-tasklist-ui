@@ -3809,6 +3809,7 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                 scope.toggleProcessViewRevision = function (index, processDefinitionKey, processDefinitionId, businessKey) {
                     scope.showDiagramView = false;
                     scope.diagram = {};
+                    var asynCall3 = false;
                     if (scope.piIndex === index) {
                         scope.piIndex = undefined;
                     } else {
@@ -3821,6 +3822,7 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                         $http.get(baseUrl + '/history/variable-instance?deserializeValues=false&processInstanceId=' + scope.processInstances[index].id).then(
                             function (result) {
                                 var workFiles = [];
+                                asynCall3 = true;
                                 result.data.forEach(function (el) {
                                     scope.jobModel[el.name] = el;
 
@@ -3863,11 +3865,14 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                                     }
                                 });
                                 console.log("11111 job model: ", scope.jobModel)
+                                console.log(asynCall3)
+                                
                                 if (scope.jobModel.resolutions && scope.jobModel.resolutions.value) {
                                     $q.all(scope.jobModel.resolutions.value.map(function (resolution) {
                                         return $http.get("/camunda/api/engine/engine/default/history/task?processInstanceId=" + resolution.processInstanceId + "&taskId=" + resolution.taskId);
                                     })).then(function (tasks) {
                                         asynCall2 = true;
+                                        asynCall3 = true;
                                         console.log("asynCall2 = true")
                                         try {
                                             if (asynCall1 && asynCall2) {
@@ -3884,11 +3889,9 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                                         
                                     });
                                 }
-
                                 //scope.jobModel.tasks = processInstanceTasks;
                                 angular.extend(scope.jobModel, catalogs);
                                 scope.jobModel.tasks = processInstanceTasks;
-
 
                             },
                             function (error) {
@@ -3903,7 +3906,7 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                             function (tasks) {
                                 var asynCall1 = false;
                                 var asynCall2 = false;
-                                var asynCall3 = false;
+                                
                                 var processInstanceTasks = tasks.data._embedded.task;
                                 if (processInstanceTasks && processInstanceTasks.length > 0) {
                                     var groupasynCalls = 0;
@@ -3923,23 +3926,21 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                                         }).then(
                                             function (taskResult) {
                                                 try {
-                                                    // TEMPORARY Revision card OPENER  ---- MUST BE RESOLVED ---- start
-                                                    if(processDefinitionKey === 'Revision-power') {
+                                                    asynCall3 = true
+                                                    if(processDefinitionKey === 'Revision-power' && asynCall3) {
                                                         console.log("opened process")
                                                         openProcessCardModalRevisionPower(processDefinitionId, businessKey, index);
+                                                        asynCall3 = false;
                                                     }
-                                                    // ---- end
                                                     if (taskResult.data._embedded && taskResult.data._embedded.group) {
                                                         e.group = taskResult.data._embedded.group[0].id;
                                                         groupasynCalls += 1;
                                                         if (groupasynCalls === maxGroupAsynCalls) {
                                                             asynCall1 = true;
-                                                            console.log("asynCall1 = true 111111")
+                                                            console.log("asynCall1 = true 11111")
                                                             if (asynCall1 && asynCall2) {
                                                                 if (processDefinitionKey === 'CreatePR'){
                                                                     openProcessCardModalCreatePR(processDefinitionId, businessKey, index);
-                                                                } else if (processDefinitionKey === 'Revision-power') {
-                                                                    openProcessCardModalRevisionPower(processDefinitionId, businessKey, index);
                                                                 } else {
                                                                     openProcessCardModalRevision(processDefinitionId, businessKey, index);
                                                                 }
@@ -3958,8 +3959,6 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                                                             if (asynCall1 && asynCall2) {
                                                                 if (processDefinitionKey === 'CreatePR'){
                                                                     openProcessCardModalCreatePR(processDefinitionId, businessKey, index);
-                                                                } else if (processDefinitionKey === 'Revision-power'){
-                                                                    openProcessCardModalRevisionPower(processDefinitionId, businessKey, index);
                                                                 } else {
                                                                     openProcessCardModalRevision(processDefinitionId, businessKey, index);
                                                                 }
@@ -3967,10 +3966,10 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                                                             } else console.log('asynCall 2 problem');
                                                         } else {
                                                             console.log(groupasynCalls, maxGroupAsynCalls);
-
                                                         }
                                                     }
                                                     asynCall1 = false;
+                                                    asynCall3 = false;
                                                 } catch (err) {
                                                     console.log(err)
                                                 }
@@ -3986,11 +3985,12 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                                 } else {
                                     try {
                                         asynCall1 = true;
-                                        console.log("asynCall1 = true 3333")
-                                        if(processDefinitionKey === 'Revision-power') {
+                                        asynCall3 = true
+                                        if(processDefinitionKey === 'Revision-power' && asynCall3) {
                                             console.log("closed process")
                                             console.log(" 222222 job model: ", scope.jobModel)
                                             openProcessCardModalRevisionPower(processDefinitionId, businessKey, index);
+                                            asynCall3 = false;
                                         }
                                         if (asynCall1 && asynCall2) {
                                             if (processDefinitionKey === 'CreatePR'){
