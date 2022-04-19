@@ -3347,7 +3347,7 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                         if (scope.filter.powerRegion && scope.filter.powerRegion !== 'all') {
                             filter.variables.push({"name": "siteRegionShow", "operator": "eq", "value": scope.filter.powerRegion});
                         }
-                        if (scope.filter.powerSiteId) {
+                        if (scope.filter.siteId) {
                             filter.variables.push({"name": "Site", "operator": "eq", "value": scope.filter.siteId});
                         }
                         if (scope.filter.powerSitename) {
