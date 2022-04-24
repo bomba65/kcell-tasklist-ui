@@ -55,6 +55,7 @@ public class TaskHistoryListener implements TaskListener {
       "PBX",
       "sdr_srr_request",
       "Revision",
+      "Revision-power",
       "PreparePermitDocs",
       "Invoice",
       "create-new-tsd",

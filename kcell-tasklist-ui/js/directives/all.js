@@ -3865,17 +3865,18 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                                         scope.jobModel.jobWorks.value[workIndex].files.push(file);
                                     }
                                 });
-                                console.log("11111 job model: ", scope.jobModel)
-                                console.log(asynCall3)
                                 
                                 if (scope.jobModel.resolutions && scope.jobModel.resolutions.value) {
                                     $q.all(scope.jobModel.resolutions.value.map(function (resolution) {
                                         return $http.get("/camunda/api/engine/engine/default/history/task?processInstanceId=" + resolution.processInstanceId + "&taskId=" + resolution.taskId);
                                     })).then(function (tasks) {
                                         asynCall2 = true;
-                                        asynCall3 = true;
-                                        console.log("asynCall2 = true")
                                         try {
+                                            if(asynCall3) {
+                                                asynCall3 = false;
+                                                openProcessCardModalRevisionPower(processDefinitionId, businessKey, index);
+                                            }
+                                            asynCall3 = false;
                                             if (asynCall1 && asynCall2) {
                                                 if (processDefinitionKey === 'CreatePR'){
                                                     openProcessCardModalCreatePR(processDefinitionId, businessKey, index);
@@ -3883,7 +3884,9 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                                                     openProcessCardModalRevision(processDefinitionId, businessKey, index);
                                                 }
                                                 asynCall2 = false;
-                                            } else console.log('aynCall 1 problem');
+                                            } else {
+                                                console.log('aynCall 1 problem');
+                                            }
                                         } catch(err) {
                                             console.log(err)
                                         }
@@ -3929,7 +3932,6 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                                                 try {
                                                     asynCall3 = true
                                                     if(processDefinitionKey === 'Revision-power' && asynCall3) {
-                                                        console.log("opened process");
                                                         openProcessCardModalRevisionPower(processDefinitionId, businessKey, index);
                                                         
                                                     }
@@ -3951,6 +3953,7 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                                                             console.log(groupasynCalls, maxGroupAsynCalls);
                                                         }
                                                     } else {
+                                                        console.log("asynCall3", asynCall3)
                                                         console.log('vtoroi', groupasynCalls, maxGroupAsynCalls);
                                                         console.log(processDefinitionKey)
                                                         groupasynCalls += 1;
@@ -3987,12 +3990,10 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                                     try {
                                         asynCall1 = true;
                                         asynCall3 = true;
-                                        if(processDefinitionKey === 'Revision-power' && asynCall3) {
-                                            console.log("closed process")
-                                            console.log(" 222222 job model: ", scope.jobModel)
+                                        if(asynCall3) {
                                             openProcessCardModalRevisionPower(processDefinitionId, businessKey, index);
-                                            
                                         }
+                                        asynCall3 = false
                                         if (asynCall1 && asynCall2) {
                                             if (processDefinitionKey === 'CreatePR'){
                                                 openProcessCardModalCreatePR(processDefinitionId, businessKey, index);
@@ -4001,7 +4002,6 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                                             }
                                             asynCall1 = false;
                                         }
-                                        asynCall3 = false;
                                         asynCall1 = false;
                                     } catch (err) {
                                         console.log(err)
