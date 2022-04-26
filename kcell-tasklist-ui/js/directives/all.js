@@ -3811,8 +3811,10 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                     scope.showDiagramView = false;
                     scope.diagram = {};
                     var asynCall3 = false;
+                    console.log("1")
                     if (scope.piIndex === index) {
                         scope.piIndex = undefined;
+                        console.log("1.1")
                     } else {
                         scope.piIndex = index;
                         scope.jobModel = {
@@ -3820,14 +3822,17 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                             processDefinitionKey: processDefinitionKey,
                             startTime: {value: scope.processInstances[index].startTime}
                         };
+                        console.log("2")
                         $http.get(baseUrl + '/history/variable-instance?deserializeValues=false&processInstanceId=' + scope.processInstances[index].id).then(
                             function (result) {
+                                console.log("3")
                                 var workFiles = [];
                                 asynCall3 = true;
                                 result.data.forEach(function (el) {
                                     scope.jobModel[el.name] = el;
 
-                                    // console.log(el.name + ' - ' + el.value)
+                                    console.log("ATT")
+                                    console.log(el.name + ' - ' + el.value)
                                     if (el.type === 'File' || el.type === 'Bytes') {
                                         scope.jobModel[el.name].contentUrl = baseUrl + '/history/variable-instance/' + el.id + '/data';
                                     }
@@ -3865,15 +3870,19 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                                         scope.jobModel.jobWorks.value[workIndex].files.push(file);
                                     }
                                 });
-                                
+                                console.log("4")
                                 if (scope.jobModel.resolutions && scope.jobModel.resolutions.value) {
                                     $q.all(scope.jobModel.resolutions.value.map(function (resolution) {
                                         return $http.get("/camunda/api/engine/engine/default/history/task?processInstanceId=" + resolution.processInstanceId + "&taskId=" + resolution.taskId);
                                     })).then(function (tasks) {
+                                        
+                                        console.log("5")
+                                        scope.jobModel.tasks = tasks.data._embedded.task;;
                                         asynCall2 = true;
                                         try {
                                             if(asynCall3) {
                                                 asynCall3 = false;
+                                                console.log("OK")
                                                 openProcessCardModalRevisionPower(processDefinitionId, businessKey, index);
                                             }
                                             asynCall3 = false;
@@ -3913,7 +3922,11 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                                 
                                 var processInstanceTasks = tasks.data._embedded.task;
                                 if (processInstanceTasks && processInstanceTasks.length > 0) {
+                                    console.log("IFFF");
                                     var groupasynCalls = 0;
+                                    
+                                    scope.jobModel.tasks = processInstanceTasks;
+
                                     var maxGroupAsynCalls = processInstanceTasks.length;
                                     processInstanceTasks.forEach(function (e) {
                                         if (e.assignee && tasks.data._embedded.assignee) {
@@ -3932,6 +3945,8 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                                                 try {
                                                     asynCall3 = true
                                                     if(processDefinitionKey === 'Revision-power' && asynCall3) {
+
+                                                        console.log("OKKK")
                                                         openProcessCardModalRevisionPower(processDefinitionId, businessKey, index);
                                                         
                                                     }
@@ -3991,6 +4006,7 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                                         asynCall1 = true;
                                         asynCall3 = true;
                                         if(asynCall3) {
+                                            console.log("OKKK3");
                                             openProcessCardModalRevisionPower(processDefinitionId, businessKey, index);
                                         }
                                         asynCall3 = false
@@ -4116,15 +4132,12 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                             $index: index,
                             businessKey: businessKey,
                             download: function (file) {
-                                $http({
-                                    method: 'GET',
-                                    url: '/camunda/uploads/get/' + file.path,
-                                    transformResponse: []
-                                }).then(function (response) {
-                                    document.getElementById('fileDownloadIframe').src = response.data;
-                                }, function (error) {
-                                    console.log(error);
-                                });
+                                $http({method: 'GET', url: '/camunda/uploads/' + (file.path.split('/').length === 2 ? 'tmp/' : '') + 'get/' + file.path, transformResponse: [] }).then(
+                                    function(response) {
+                                        document.getElementById('fileDownloadIframe').src = response.data;
+                                    },
+                                    function(response) {console.log(response.data);}
+                                );
                             },
                             isFileVisible: function (file) {
                                 return !file.visibility || file.visibility == 'all' || (file.visibility == 'kcell' && $rootScope.hasGroup('kcellUsers'));
