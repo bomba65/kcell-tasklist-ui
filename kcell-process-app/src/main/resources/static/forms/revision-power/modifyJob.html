@@ -80,9 +80,6 @@
         if ($scope.jrReason) {
           $scope.jrReason = JSON.stringify($scope.jrReason)
         }
-        if ($scope.resolutions) {
-          console.log($scope.resolutions)
-        }
         if ($scope.jrReasonName || $scope.jrTypeName) {
           camForm.variableManager.destroyVariable('jrTypeName');
           camForm.variableManager.destroyVariable('jrReasonName');
@@ -96,7 +93,8 @@
         }
       });
 
-      camForm.on('submit', function (e) {
+      camForm.on('submit', function (evt) {
+        // evt.submitPrevented = true;
         try{
           camForm.variableManager.variableValue('worksTotalSum', $scope.worksTotalSum)
           camForm.variableManager.variableValue('jrType', JSON.parse($scope.jrType))
@@ -121,13 +119,28 @@
             type: 'String',
             value: $scope.initiator_comment
           });
+          console.log($scope.resolution)
+          if($scope.resolution == 'cancelled') {
+            camForm.variableManager.createVariable({
+              name: 'decision',
+              type: 'String',
+              value: 'cancelled'
+            });
+          } else {
+            camForm.variableManager.createVariable({
+              name: 'decision',
+              type: 'String',
+              value: 'modified'
+            });
+          }
           if($scope.attachments && $scope.attachments.length > 0){
             camForm.variableManager.variableValue('attachments', JSON.parse(angular.toJson($attachments.jobs)))
           }
+          camForm.variableManager.destroyVariable('resolutions');
         } catch (error) {
           console.log("error in submit: ", error)
         }
-        camForm.variableManager.destroyVariable('resolutions');
+
       });
 
       function open($event, flag) {
