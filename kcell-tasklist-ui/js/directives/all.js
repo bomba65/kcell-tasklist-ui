@@ -3807,7 +3807,180 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                         }
                     }
                 };
+
                 scope.toggleProcessViewRevision = function (index, processDefinitionKey, processDefinitionId, businessKey) {
+                    scope.showDiagramView = false;
+                    scope.diagram = {};
+                    if (scope.piIndex === index) {
+                        scope.piIndex = undefined;
+                    } else {
+                        scope.piIndex = index;
+                        scope.jobModel = {
+                            state: scope.processInstances[index].state,
+                            processDefinitionKey: processDefinitionKey,
+                            startTime: {value: scope.processInstances[index].startTime}
+                        };
+                        $http({
+                            method: 'GET',
+                            headers: {'Accept': 'application/hal+json, application/json; q=0.5'},
+                            url: baseUrl + '/task?processInstanceId=' + scope.processInstances[index].id,
+                        }).then(
+                            function (tasks) {
+                                var asynCall1 = false;
+                                var asynCall2 = false;
+                                var asynCall3 = false;
+                                var processInstanceTasks = tasks.data._embedded.task;
+                                if (processInstanceTasks && processInstanceTasks.length > 0) {
+                                    var groupasynCalls = 0;
+                                    var maxGroupAsynCalls = processInstanceTasks.length;
+                                    processInstanceTasks.forEach(function (e) {
+                                        if (e.assignee && tasks.data._embedded.assignee) {
+                                            for (var i = 0; i < tasks.data._embedded.assignee.length; i++) {
+                                                if (tasks.data._embedded.assignee[i].id === e.assignee) {
+                                                    e.assigneeObject = tasks.data._embedded.assignee[i];
+                                                }
+                                            }
+                                        }
+                                        $http({
+                                            method: 'GET',
+                                            headers: {'Accept': 'application/hal+json, application/json; q=0.5'},
+                                            url: baseUrl + '/task/' + e.id
+                                        }).then(
+                                            function (taskResult) {
+                                                if (taskResult.data._embedded && taskResult.data._embedded.group) {
+                                                    e.group = taskResult.data._embedded.group[0].id;
+                                                    groupasynCalls += 1;
+                                                    if (groupasynCalls === maxGroupAsynCalls) {
+                                                        asynCall1 = true;
+                                                        if (asynCall1 && asynCall2) {
+                                                            if (processDefinitionKey === 'CreatePR'){
+                                                                openProcessCardModalCreatePR(processDefinitionId, businessKey, index);
+                                                            } else {
+                                                                openProcessCardModalRevision(processDefinitionId, businessKey, index);
+                                                            }
+
+                                                            asynCall1 = false;
+                                                        } else console.log('asynCall 2 problem');
+                                                    } else {
+                                                        console.log(groupasynCalls, maxGroupAsynCalls);
+
+                                                    }
+                                                } else {
+                                                    console.log('vtoroi', groupasynCalls, maxGroupAsynCalls);
+                                                    groupasynCalls += 1;
+                                                    if (groupasynCalls === maxGroupAsynCalls) {
+                                                        asynCall1 = true;
+                                                        if (asynCall1 && asynCall2) {
+                                                            if (processDefinitionKey === 'CreatePR'){
+                                                                openProcessCardModalCreatePR(processDefinitionId, businessKey, index);
+                                                            } else {
+                                                                openProcessCardModalRevision(processDefinitionId, businessKey, index);
+                                                            }
+                                                            asynCall1 = false;
+                                                        } else console.log('asynCall 2 problem');
+                                                    } else {
+                                                        console.log(groupasynCalls, maxGroupAsynCalls);
+
+                                                    }
+                                                }
+                                            },
+                                            function (error) {
+                                                console.log(error.data);
+                                            }
+                                        );
+
+                                    });
+
+                                } else {
+                                    asynCall1 = true;
+                                    if (asynCall1 && asynCall2) {
+                                        if (processDefinitionKey === 'CreatePR'){
+                                            openProcessCardModalCreatePR(processDefinitionId, businessKey, index);
+                                        } else {
+                                            openProcessCardModalRevision(processDefinitionId, businessKey, index);
+                                        }
+                                        asynCall1 = false;
+                                    }
+                                }
+                                $http.get(baseUrl + '/history/variable-instance?deserializeValues=false&processInstanceId=' + scope.processInstances[index].id).then(
+                                    function (result) {
+                                        var workFiles = [];
+                                        result.data.forEach(function (el) {
+                                            scope.jobModel[el.name] = el;
+                                            // console.log(el.name + ' - ' + el.value)
+                                            if (el.type === 'File' || el.type === 'Bytes') {
+                                                scope.jobModel[el.name].contentUrl = baseUrl + '/history/variable-instance/' + el.id + '/data';
+                                            }
+                                            if (el.type === 'Json') {
+                                                scope.jobModel[el.name].value = JSON.parse(el.value);
+                                            }
+                                            if (el.name.startsWith('works_') && el.name.includes('_file_')) {
+                                                workFiles.push(el);
+                                            }
+                                            // if (processDefinitionKey == 'createPR') {
+
+                                            // }
+                                        });
+                                        if (scope.jobModel['siteWorksFiles']) {
+                                            _.forEach(scope.jobModel['siteWorksFiles'].value, function (file) {
+                                                var workIndex = file.name.split('_')[1];
+                                                if (!scope.jobModel.jobWorks.value[workIndex].files) {
+                                                    scope.jobModel.jobWorks.value[workIndex].files = [];
+                                                }
+                                                if (_.findIndex(scope.jobModel.jobWorks.value[workIndex].files, function (f) {
+                                                    return f.name == file.name;
+                                                }) < 0) {
+                                                    scope.jobModel.jobWorks.value[workIndex].files.push(file);
+                                                }
+                                            });
+                                        }
+                                        _.forEach(workFiles, function (file) {
+                                            var workIndex = file.name.split('_')[1];
+                                            if (!scope.jobModel.jobWorks.value[workIndex].files) {
+                                                scope.jobModel.jobWorks.value[workIndex].files = [];
+                                            }
+                                            if (_.findIndex(scope.jobModel.jobWorks.value[workIndex].files, function (f) {
+                                                return f.name == file.name;
+                                            }) < 0) {
+                                                scope.jobModel.jobWorks.value[workIndex].files.push(file);
+                                            }
+                                        });
+                                        if (scope.jobModel.resolutions && scope.jobModel.resolutions.value) {
+                                            $q.all(scope.jobModel.resolutions.value.map(function (resolution) {
+                                                return $http.get("/camunda/api/engine/engine/default/history/task?processInstanceId=" + resolution.processInstanceId + "&taskId=" + resolution.taskId);
+                                            })).then(function (tasks) {
+                                                asynCall2 = true;
+                                                if (asynCall1 && asynCall2) {
+                                                    if (processDefinitionKey === 'CreatePR'){
+                                                        openProcessCardModalCreatePR(processDefinitionId, businessKey, index);
+                                                    } else {
+                                                        openProcessCardModalRevision(processDefinitionId, businessKey, index);
+                                                    }
+                                                    asynCall2 = false;
+                                                } else console.log('aynCall 1 problem');
+                                            });
+                                        }
+
+                                        //scope.jobModel.tasks = processInstanceTasks;
+                                        angular.extend(scope.jobModel, catalogs);
+                                        scope.jobModel.tasks = processInstanceTasks;
+
+
+                                    },
+                                    function (error) {
+                                        console.log(error.data);
+                                    }
+                                );
+
+                            },
+                            function (error) {
+                                console.log(error.data);
+                            }
+                        );
+                    }
+                };
+
+                scope.toggleProcessViewRevisionPower = function (index, processDefinitionKey, processDefinitionId, businessKey) {
                     scope.showDiagramView = false;
                     scope.diagram = {};
                     var asynCall3 = false;
