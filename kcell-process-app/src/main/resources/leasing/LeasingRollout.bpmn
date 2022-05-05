@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:bioc="http://bpmn.io/schema/bpmn/biocolor/1.0" id="Definitions_1" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="4.4.0">
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:bioc="http://bpmn.io/schema/bpmn/biocolor/1.0" id="Definitions_1" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="4.9.0">
   <bpmn:process id="leasing" name="Rollout site process&#10;" isExecutable="true">
     <bpmn:documentation>Send a message to start a payment</bpmn:documentation>
     <bpmn:startEvent id="StartEvent_first" camunda:formKey="embedded:app:forms/leasing/start.html" camunda:initiator="starter">
@@ -2140,7 +2140,7 @@ InstStatusBeforeLeasingProblem</camunda:script>
       <bpmn:outgoing>SequenceFlow_116lgvb</bpmn:outgoing>
     </bpmn:inclusiveGateway>
     <bpmn:sequenceFlow id="Flow_038uwze" sourceRef="Gateway_182zavf" targetRef="ServiceTask_12hvgex" />
-    <bpmn:serviceTask id="Activity_0im2zzv" name="Notification to Regional Transmission" camunda:delegateExpression="${camundaMailer}">
+    <bpmn:serviceTask id="notificationToRegionalTransmission" name="Notification to Regional Transmission (v 1.0)" camunda:delegateExpression="${camundaMailer}">
       <bpmn:extensionElements>
         <camunda:inputOutput>
           <camunda:inputParameter name="html">Для планируемого сайта ${S(siteType).prop('name').stringValue()} одобрена организация арендованного канала.
@@ -2154,10 +2154,10 @@ InstStatusBeforeLeasingProblem</camunda:script>
       <bpmn:incoming>Flow_0az8e65</bpmn:incoming>
       <bpmn:outgoing>Flow_1akznaa</bpmn:outgoing>
     </bpmn:serviceTask>
-    <bpmn:sequenceFlow id="Flow_0az8e65" name="Agree / Approved / Received / TR type = Microwave / Microwave or Satellite or Provider" sourceRef="Gateway_0lnfh5j" targetRef="Activity_0im2zzv">
+    <bpmn:sequenceFlow id="Flow_0az8e65" name="Agree / Approved / Received / TR type = Microwave / Microwave or Satellite or Provider" sourceRef="Gateway_0lnfh5j" targetRef="notificationToRegionalTransmission">
       <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${S(candidate).prop('transmissionType').stringValue().equals("Satellite") || S(candidate).prop('transmissionType').stringValue().equals("Provider") || S(candidate).prop('transmissionType').stringValue().equals("Microwave + Satellite or Provider")}</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
-    <bpmn:sequenceFlow id="Flow_1akznaa" sourceRef="Activity_0im2zzv" targetRef="Gateway_182zavf" />
+    <bpmn:sequenceFlow id="Flow_1akznaa" sourceRef="notificationToRegionalTransmission" targetRef="Gateway_182zavf" />
     <bpmn:inclusiveGateway id="ParallelGateway_1dasjf2">
       <bpmn:extensionElements>
         <camunda:executionListener class="kz.kcell.bpm.leasing.VariableSetStatus" event="start">
@@ -2274,6 +2274,10 @@ InstStatusBeforeLeasingProblem</camunda:script>
   <bpmn:message id="Message_15wikbm" name="Message_16tuqrh" />
   <bpmndi:BPMNDiagram id="BPMNDiagram_1">
     <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="leasing">
+      <bpmndi:BPMNEdge id="Flow_1do9x0k_di" bpmnElement="Flow_1do9x0k">
+        <di:waypoint x="4575" y="1194" />
+        <di:waypoint x="4635" y="1194" />
+      </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_0tsz7gg_di" bpmnElement="Flow_0tsz7gg">
         <di:waypoint x="2623" y="1195" />
         <di:waypoint x="2738" y="1195" />
@@ -2804,10 +2808,6 @@ InstStatusBeforeLeasingProblem</camunda:script>
           <dc:Bounds x="4411" y="1035" width="76" height="40" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Flow_1do9x0k_di" bpmnElement="Flow_1do9x0k">
-        <di:waypoint x="4575" y="1194" />
-        <di:waypoint x="4635" y="1194" />
-      </bpmndi:BPMNEdge>
       <bpmndi:BPMNShape id="StartEvent_01acrrc_di" bpmnElement="StartEvent_first" bioc:stroke="#43A047" bioc:fill="#C8E6C9">
         <dc:Bounds x="322" y="1175" width="36" height="36" />
         <bpmndi:BPMNLabel>
@@ -2819,24 +2819,6 @@ InstStatusBeforeLeasingProblem</camunda:script>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="UserTask_0lq9qua_di" bpmnElement="checkAndApproveFE" bioc:stroke="#E53935" bioc:fill="#FFCDD2">
         <dc:Bounds x="3488" y="1249" width="100" height="80" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="UserTask_02uaa0e_di" bpmnElement="confirmStartLeasing">
-        <dc:Bounds x="4140" y="1092" width="100" height="80" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="UserTask_1ywmudj_di" bpmnElement="confirmStartLeasingNO">
-        <dc:Bounds x="4140" y="1216" width="100" height="80" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="ExclusiveGateway_1ngjnn5_di" bpmnElement="ExclusiveGateway_1ngjnn5" isMarkerVisible="true">
-        <dc:Bounds x="4265" y="1172" width="50" height="50" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Gateway_0lnfh5j_di" bpmnElement="Gateway_0lnfh5j" isMarkerVisible="true">
-        <dc:Bounds x="4525" y="1169" width="50" height="50" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Gateway_1cp4954_di" bpmnElement="ExclusiveGateway_0wi0wbj" isMarkerVisible="true">
-        <dc:Bounds x="4375" y="1171" width="50" height="50" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Gateway_13vjg7f_di" bpmnElement="Gateway_182zavf" isMarkerVisible="true">
-        <dc:Bounds x="4635" y="1169" width="50" height="50" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="SubProcess_0iqjr7a_di" bpmnElement="SubProcess_0iqjr7a" isExpanded="true" bioc:stroke="#43A047" bioc:fill="#C8E6C9">
         <dc:Bounds x="4890" y="419" width="2721" height="2234" />
@@ -3909,6 +3891,12 @@ InstStatusBeforeLeasingProblem</camunda:script>
       <bpmndi:BPMNShape id="SubProcess_0oq53qg_di" bpmnElement="SubProcess_0oq53qg" isExpanded="true" bioc:stroke="#FB8C00" bioc:fill="#FFE0B2">
         <dc:Bounds x="830" y="919" width="1793" height="552" />
       </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_01f8ccv_di" bpmnElement="Flow_01f8ccv">
+        <di:waypoint x="2058" y="1343" />
+        <di:waypoint x="2058" y="1420" />
+        <di:waypoint x="1280" y="1420" />
+        <di:waypoint x="1280" y="1343" />
+      </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_0jvxjx6_di" bpmnElement="Flow_0jvxjx6">
         <di:waypoint x="2390" y="1058" />
         <di:waypoint x="2460" y="1058" />
@@ -4009,12 +3997,6 @@ InstStatusBeforeLeasingProblem</camunda:script>
         <di:waypoint x="988" y="1112" />
         <di:waypoint x="988" y="1318" />
         <di:waypoint x="1073" y="1318" />
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Flow_01f8ccv_di" bpmnElement="Flow_01f8ccv">
-        <di:waypoint x="2058" y="1343" />
-        <di:waypoint x="2058" y="1420" />
-        <di:waypoint x="1280" y="1420" />
-        <di:waypoint x="1280" y="1343" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNShape id="StartEvent_0kj1i9w_di" bpmnElement="StartEvent_0kj1i9w">
         <dc:Bounds x="862" y="1069" width="36" height="36" />
@@ -4344,6 +4326,15 @@ InstStatusBeforeLeasingProblem</camunda:script>
         <bpmndi:BPMNLabel>
           <dc:Bounds x="3986" y="1147" width="87" height="27" />
         </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="ExclusiveGateway_1ngjnn5_di" bpmnElement="ExclusiveGateway_1ngjnn5" isMarkerVisible="true">
+        <dc:Bounds x="4265" y="1172" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="UserTask_02uaa0e_di" bpmnElement="confirmStartLeasing">
+        <dc:Bounds x="4140" y="1092" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="UserTask_1ywmudj_di" bpmnElement="confirmStartLeasingNO">
+        <dc:Bounds x="4140" y="1216" width="100" height="80" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="ExclusiveGateway_0w92bfy_di" bpmnElement="ExclusiveGateway_0w92bfy" isMarkerVisible="true">
         <dc:Bounds x="13524" y="1046" width="50" height="50" />
@@ -4721,7 +4712,7 @@ InstStatusBeforeLeasingProblem</camunda:script>
       <bpmndi:BPMNShape id="InclusiveGateway_1n4u2cn_di" bpmnElement="ParallelGateway_0201vgh">
         <dc:Bounds x="3765" y="1170" width="50" height="50" />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Activity_0im2zzv_di" bpmnElement="Activity_0im2zzv">
+      <bpmndi:BPMNShape id="Activity_0im2zzv_di" bpmnElement="notificationToRegionalTransmission">
         <dc:Bounds x="4610" y="1264" width="100" height="80" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Gateway_122im4f_di" bpmnElement="ParallelGateway_1dasjf2">
@@ -4735,6 +4726,15 @@ InstStatusBeforeLeasingProblem</camunda:script>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Activity_1iiak0y_di" bpmnElement="Activity_1iiak0y" bioc:stroke="#1E88E5" bioc:fill="#BBDEFB">
         <dc:Bounds x="11570" y="1012" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_0lnfh5j_di" bpmnElement="Gateway_0lnfh5j" isMarkerVisible="true">
+        <dc:Bounds x="4525" y="1169" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_1cp4954_di" bpmnElement="ExclusiveGateway_0wi0wbj" isMarkerVisible="true">
+        <dc:Bounds x="4375" y="1171" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_13vjg7f_di" bpmnElement="Gateway_182zavf" isMarkerVisible="true">
+        <dc:Bounds x="4635" y="1169" width="50" height="50" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="TextAnnotation_1afyvrl_di" bpmnElement="TextAnnotation_1afyvrl">
         <dc:Bounds x="168" y="1392" width="100" height="42" />
@@ -4820,6 +4820,14 @@ InstStatusBeforeLeasingProblem</camunda:script>
         <di:waypoint x="11136" y="1111" />
         <di:waypoint x="11148" y="1089" />
       </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Association_07y2f99_di" bpmnElement="Association_07y2f99">
+        <di:waypoint x="4206" y="1092" />
+        <di:waypoint x="4222" y="1051" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Association_0pwl1oj_di" bpmnElement="Association_0pwl1oj">
+        <di:waypoint x="4206" y="1296" />
+        <di:waypoint x="4221" y="1334" />
+      </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Association_09e499y_di" bpmnElement="Association_09e499y">
         <di:waypoint x="13885" y="900" />
         <di:waypoint x="13885" y="868" />
@@ -4844,14 +4852,6 @@ InstStatusBeforeLeasingProblem</camunda:script>
       <bpmndi:BPMNEdge id="Association_1nxpafa_di" bpmnElement="Association_1nxpafa">
         <di:waypoint x="3538" y="1479" />
         <di:waypoint x="3538" y="1519" />
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Association_07y2f99_di" bpmnElement="Association_07y2f99">
-        <di:waypoint x="4206" y="1092" />
-        <di:waypoint x="4222" y="1051" />
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Association_0pwl1oj_di" bpmnElement="Association_0pwl1oj">
-        <di:waypoint x="4206" y="1296" />
-        <di:waypoint x="4221" y="1334" />
       </bpmndi:BPMNEdge>
     </bpmndi:BPMNPlane>
   </bpmndi:BPMNDiagram>
