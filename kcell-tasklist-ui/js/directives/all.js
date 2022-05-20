@@ -20,6 +20,8 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                         console.log(error);
                     });
                 };
+                console.log(scope.jobModel);
+
                 scope.isFileVisible = function (file) {
                     return !file.visibility || file.visibility == 'all' || (file.visibility == 'kcell' && $rootScope.hasGroup('kcellUsers'));
                 }
@@ -2539,7 +2541,8 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                     '5': 'Kcell_region',
                     '6': 'Алта Телеком',
                     '7': 'Логиком',
-                    '8': 'Arlan SI '
+                    '8': 'Arlan SI ',
+                    '9': 'IS '
                 };
                 scope.reasonShortName = {
                     '1': 'P&O',

@@ -760,6 +760,11 @@
             }
 
             function refreshJobRequests(){
+                if($scope.mainContract === 'emergencyRevision2022' || $scope.mainContract === 'Roll-outRevision2020'){
+                    $scope.rolloutOrEmergency = true;
+                }else{
+                    $scope.rolloutOrEmergency = false;
+                }
                 $scope.page = 0;
                 $scope.jobRequestsCount = 0;
                 $scope.jrIndex = undefined;
@@ -963,7 +968,7 @@
                     if(!$scope.mainContract || !$scope.custom.contractor){
                         return false;
                     } else {
-                        if($scope.mainContract === 'Roll-outRevision2020' || $scope.mainContract === '2022Work-agreement'){
+                        if($scope.mainContract === 'Roll-outRevision2020' || $scope.mainContract === '2022Work-agreement' || $scope.mainContract === 'emergencyRevision2022'){
                             return element.id >= 3000;
                         } else if($scope.mainContract === 'Roll-out'){
                             return (element.id > 1000 && element.id < 2000);
@@ -994,7 +999,7 @@
                         } else {
                             return true;
                         }
-                    } else if($scope.mainContract === 'Roll-outRevision2020') {
+                    } else if($scope.mainContract === 'Roll-outRevision2020' || $scope.mainContract === 'emergencyRevision2022') {
                             // siteSubStatus == Will be rqeplacement or Will be dismantled
                         if ($scope.siteSubStatusId !== 6 && $scope.siteSubStatusId !== 7) {
                             return element.id !== 3007
@@ -1007,7 +1012,7 @@
                 result = _.filter(result, function(element){
                     if($scope.mainContract === 'Roll-out' || $scope.mainContract === 'Revision'){
                         return true;
-                    } else if($scope.mainContract === 'Roll-outRevision2020') {
+                    } else if($scope.mainContract === 'Roll-outRevision2020' || $scope.mainContract === 'emergencyRevision2022') {
                        if($scope.custom.contractor === '5') {
                             // if($scope.reason === '1') {
                             //    return $scope.notAllowedANRUjobs.indexOf(element.sapServiceNumber) === -1;
@@ -1211,6 +1216,7 @@
                 <option ng-if="$root.authentication.name === 'demo'" value="Revision">Revision</option>
                 <option ng-if="$root.authentication.name === 'demo'" value="Roll-out">Roll-out</option>
                 <option value="2022Work-agreement">Договор Подряда на Выполнение Работ 2022</option>
+                <option value="emergencyRevision2022">Emergency Revision 2022</option>
             </select>
             <label class="error" ng-if="kcell_form.mainContract.$error.required && ( kcell_form.mainContract.$touched || view.submitted)">Required field</label>
         </div>
@@ -1219,13 +1225,13 @@
         <label class="col-sm-3 control-label">Job to:</label>
         <div class="col-sm-8">
             <label class="radio-inline" ng-if="$root.authentication.name === 'demo'">
-                <input type="radio" name="contractor" ng-model="custom.contractor" id="lse" value="4" required> TOO Line System Engineering
+                <input type="radio" name="contractor" ng-disabled="mainContract == 'emergencyRevision2022'" ng-model="custom.contractor" id="lse" value="4" required> TOO Line System Engineering
             </label>
             <label class="radio-inline">
                 <input type="radio" name="contractor" ng-model="custom.contractor" id="subcontractor" value="-1" required> Subcontractor
             </label>
             <label class="radio-inline">
-                <input type="radio" name="contractor" ng-model="custom.contractor" id="kcell_region" value="5" required> Kcell_region
+                <input type="radio" name="contractor" ng-disabled="mainContract == 'emergencyRevision2022'" ng-model="custom.contractor" id="kcell_region" value="5" required> Kcell_region
             </label>
             <label class="error" ng-if="kcell_form.contractor.$error.required && ( kcell_form.contractor.$touched || view.submitted)">Required field</label>
         </div>
@@ -1883,8 +1889,8 @@
                 <tr>
                     <th width="40%">Works</th>
                     <th width="7%">Works Qty</th>
-                    <th width="13%" ng-if="mainContract !== 'Roll-outRevision2020'">Materials Qty</th>
-                    <th width="13%" ng-if="mainContract === 'Roll-outRevision2020'">Materials By</th>
+                    <th width="13%" ng-if="!rolloutOrEmergency">Materials Qty</th>
+                    <th width="13%" ng-if="rolloutOrEmergency">Materials By</th>
                     <th width="30%">Sites involved</th>
                     <th width="10%"></th>
                 </tr>
@@ -1907,14 +1913,14 @@
                             <input type="number" class="form-control" name="quantity{{$index}}" required ng-model="jobWork.quantity" min="1"/>
                             <label class="error" ng-if="kcell_form['quantity'+$index].$error.required && ( kcell_form['quantity'+$index].$touched || view.submitted)">Required field</label>
                         </td>
-                        <td ng-if="mainContract !== 'Roll-outRevision2020'">
+                        <td ng-if="!rolloutOrEmergency">
                             <div class="input-group">
                                 <input type="number" class="form-control" name="materialQuantity{{$index}}" required ng-model="jobWork.materialQuantity" min="0" style="min-width: 55px;" />
                                 <span class="input-group-addon">{{jobWork.materialUnit}}</span>
                             </div>
                             <label class="error" ng-if="kcell_form['materialQuantity'+$index].$error.required && ( kcell_form['materialQuantity'+$index].$touched || view.submitted)">Required field</label>
                         </td>
-                        <td style="padding-left: 40px" ng-if="mainContract === 'Roll-outRevision2020'">
+                        <td style="padding-left: 40px" ng-if="rolloutOrEmergency">
                             <input id="subContractorMaterial{{$index}}" type="radio" ng-model="jobWork.materialsProvidedBy" name="materialsProvidedBy{{$index}}" value="subcontractor" required ng-disabled="jobWork.materialsProvidedByDisabled">
                             <label class="bolder" for="subContractorMaterial{{$index}}">Subcontractor</label>
                             <br/>
