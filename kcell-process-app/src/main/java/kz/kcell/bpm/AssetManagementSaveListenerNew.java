@@ -3,8 +3,8 @@ package kz.kcell.bpm;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import lombok.extern.java.Log;
 import org.apache.http.HttpResponse;
+import lombok.extern.java.Log;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpDelete;
@@ -34,6 +34,7 @@ public class AssetManagementSaveListenerNew implements TaskListener {
 
     public AssetManagementSaveListenerNew() {}
 
+
     @Override
     public void notify(DelegateTask delegateTask) {
         try {
@@ -50,6 +51,7 @@ public class AssetManagementSaveListenerNew implements TaskListener {
 
         Calendar calendar = Calendar.getInstance();
         calendar.setTime(new Date());
+        calendar.add(Calendar.HOUR, 6);
         delegateTask.setVariable("performDate", calendar.getTime());
     }
 
