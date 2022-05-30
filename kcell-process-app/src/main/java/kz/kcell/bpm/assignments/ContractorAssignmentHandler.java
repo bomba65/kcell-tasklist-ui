@@ -21,6 +21,7 @@ public class ContractorAssignmentHandler implements TaskListener {
                 map.put("6", "alta");
                 map.put("7", "logycom");
                 map.put("8", "arlan");
+                map.put("9", "inter");
                 return Collections.unmodifiableMap(map);
             })).get();
 
