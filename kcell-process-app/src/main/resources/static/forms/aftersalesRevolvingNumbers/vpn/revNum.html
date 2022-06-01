@@ -1,0 +1,253 @@
+<form role="form" class="form-horizontal" name="kcell_form" novalidate>
+    <script cam-script type="text/form-script">
+        inject(['$scope', '$http', 'Uri', '$rootScope', '$q', 'toasty', '$timeout', function ($scope, $http, Uri, $rootScope, $q, toasty, $timeout) {
+            $scope.techSpecs = {};
+            $scope.legalInfo = {};
+            $scope.resolutions = [];
+            var assigneeName = $rootScope.authentication.name;
+            var processInstanceId = null;
+            var taskKey = camForm.taskId;
+            var createdDate = new Date();
+
+            $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name + "/profile").then(function(result){
+                    assigneeName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
+                });
+
+
+            $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
+                function(result){
+                    var processInstanceId = result.data.processInstanceId;
+                    $http.get('/camunda/api/engine/engine/default/process-instance/' + processInstanceId).then(
+                        function(result){
+                            $scope.businessKey = result.data.businessKey;
+                        },
+                        function (error) {console.log(error.data);}
+                    );
+                },
+                function (error) { console.log(error.data);}
+            );
+
+            $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
+                    function (result) {
+                        console.log(result.data);
+                        processInstanceId = result.data.processInstanceId;
+                        taskKey = result.data.taskDefinitionKey;
+                        history = historyVariablesManager(camForm, taskKey);
+                        history.createVariables(true);
+                        configureViews();
+                    },
+                    function (error) {
+                        console.log(error.data);
+                    }
+                );
+
+            $scope.downloadFile = function (file) {
+              $http({method: 'GET', url: '/camunda/uploads/' + (file.path.split('/').length === 2 ? 'tmp/' : '') + 'get/' + file.path, transformResponse: [] }).then(
+                function(response) {
+                  document.getElementById('fileDownloadIframe').src = response.data;
+                },
+                function(response) { console.log(response.data); }
+              );
+            };
+
+            camForm.on('form-loaded', function () {
+                camForm.variableManager.fetchVariable('techSpecs');
+                camForm.variableManager.fetchVariable('numberRequest');
+                camForm.variableManager.fetchVariable('clientPriority');
+                camForm.variableManager.fetchVariable('legalInfo');
+                camForm.variableManager.fetchVariable('workType');
+                camForm.variableManager.fetchVariable('attachments');
+                camForm.variableManager.fetchVariable('resolutions');
+                camForm.variableManager.fetchVariable('resolution');
+                camForm.variableManager.fetchVariable('numbersAmount');
+                camForm.variableManager.fetchVariable('vpnName');
+                camForm.variableManager.fetchVariable('vpnAccessRules');
+
+
+            });
+
+            camForm.on('variables-fetched', function () {
+                $scope.techSpecs = camForm.variableManager.variableValue('techSpecs');
+                $scope.li = camForm.variableManager.variableValue('legalInfo');
+                $scope.numberRequest = camForm.variableManager.variableValue('numberRequest');
+                $scope.numbersAmount = camForm.variableManager.variableValue('numbersAmount');
+                $scope.clientPriority = camForm.variableManager.variableValue('clientPriority');
+                $scope.resolutions = camForm.variableManager.variableValue('resolutions');
+                $scope.workType = camForm.variableManager.variableValue('workType');
+                $scope.vpnName = camForm.variableManager.variableValue('vpnName');
+                $scope.vpnAccessRules = camForm.variableManager.variableValue('vpnAccessRules');
+                if (!$scope.vpnName) $scope.vpnName = 'vpn';
+
+                camForm.variableManager.createVariable({
+                    name: $scope.vpnName+'RevNumTaskResult',
+                    type: 'String',
+                    value: ''
+                });
+
+                $scope.attachments = camForm.variableManager.variableValue('attachments');
+                if (!$scope.attachments) $scope.attachments = [];
+                $scope.lastAttachments = JSON.parse(JSON.stringify($scope.attachments));
+                camForm.variableManager.createVariable({
+                    name: 'confirmService',
+                    type: 'String',
+                    value: ''
+                });
+            });
+
+            camForm.on('submit', function(e) {
+              camForm.variableManager.variableValue($scope.vpnName+'RevNumTaskResult', $scope.resolution);
+              camForm.variableManager.destroyVariable('attachments');
+              camForm.variableManager.createVariable({
+                name: 'attachments',
+                type: 'json',
+                value: $scope.attachments,
+                store: true
+              });
+
+              $scope.resolutions.push({
+                    assignee: assigneeName,
+                    resolution: $scope.resolution,
+                    comment: $scope.comment,
+                    taskEndDate: new Date(),
+                    taskName: 'Confirm success Revolving Numbers settings testing ('+ $scope.techSpecs.connectionPoint +')',
+                    assignDate: createdDate,
+                    claimDate: createdDate,
+              });
+              camForm.variableManager.variableValue('resolutions', $scope.resolutions);
+            });
+        }]);
+
+    </script>
+    <header-info number-request="numberRequest" legal-info="li" client-priority="clientPriority" work-type="workType"></header-info>
+
+    <div class="col-sm-12">
+        <accordion>
+            <accordion-group is-open="true">
+                <accordion-heading>
+                    Technical specification <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
+                </accordion-heading>
+                <aftersales-revolving-numbers-technical-specifications data="techSpecs" pbx-data="pbxData.techSpecs" form="kcell_form" view="view" disabled="true" show-cp-new="action.changeConnection" edit-conn-point="true" remove-numbers="action.changeConnection" change-rev-numbers="action.changeRevolving" new-caller="action.newCallerID"></aftersales-revolving-numbers-technical-specifications>
+            </accordion-group>
+        </accordion>
+                <accordion ng-if="techSpecs.connectionType == 'SIP over internet'" class="background-yellow-accordion">
+                    <accordion-group is-open="true">
+                        <accordion-heading>
+                            {{techSpecs.connectionType == 'SIP over internet' ? 'Connection via Internet channel by SIP protocol' : (techSpecs.connectionType == 'E1' ? 'Direct connection by E1 (30 channels)' : 'Direct connection by SIP Direct Protocols')}} <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
+                        </accordion-heading>
+                        <aftersales-revolving-numbers-sip-protocol ng-if="techSpecs.connectionType == 'SIP over internet'" data="techSpecs.sip" pbx-data="pbxData.sip" form="kcell_form" view="view" disabled="true" show-new-fields="action.changeConnection || action.changeIP"></aftersales-revolving-numbers-sip-protocol>
+                    </accordion-group>
+                </accordion>
+                <accordion ng-if="techSpecs.connectionType == 'SIP cable direct'" class="background-yellow-accordion">
+                    <accordion-group is-open="true">
+                        <accordion-heading>
+                            Direct connection by SIP Direct Protocols <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
+                        </accordion-heading>
+                        <aftersales-revolving-numbers-sip-direct-protocol ng-if="techSpecs.connectionType == 'SIP cable direct'" data="techSpecs.sip" pbx-data="pbxData.sip" form="kcell_form" view="view" disabled="true"></aftersales-revolving-numbers-sip-direct-protocol>
+                    </accordion-group>
+                </accordion>
+    </div>
+    <div class="form-group">
+        <div class="col-sm-12 control-label">New VPN access rules:</div>
+        <div class="col-sm-12">
+            <table class="table table-bordered" style="background: #ffffcc; color: #333; border: 1px solid #b3b3b3">
+                <thead>
+                <tr>
+                    <th>Source (IP address or Network)</th>
+                    <th>Destination (IP address or Network)</th>
+                    <th>Service and ports</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr ng-repeat="r in vpnAccessRules track by $index">
+                    <td>
+                        <textarea elastic-textarea class="form-control" ng-model="r.source" name="vpn_source_{{$index}}" required placeholder="10.0.0.0 - 10.255.255.255" ng-disabled="true"></textarea>
+                        <span class="error" ng-show="kcell_form['vpn_source_' + $index].$error.required && ( kcell_form['vpn_source_' + $index].$touched || view.submitted)">Required field</span>
+                    </td>
+                    <td>
+                        <textarea elastic-textarea class="form-control" ng-model="r.destination" name="vpn_destination_{{$index}}" required placeholder="10.0.0.0 - 10.255.255.255" ng-disabled="true"></textarea>
+                        <span class="error" ng-show="kcell_form['vpn_destination_' + $index].$error.required && ( kcell_form['vpn_destination_' + $index].$touched || view.submitted)" >Required field</span>
+                    </td>
+                    <td>
+                        <textarea elastic-textarea class="form-control" ng-model="r.service" name="vpn_service_{{$index}}" required placeholder="TCP (5060, 5061) RTP (10000-50000)" ng-disabled="true"></textarea>
+                        <span class="error" ng-show="kcell_form['vpn_service_' + $index].$error.required && ( kcell_form['vpn_service_' + $index].$touched || view.submitted)">Required field</span>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="col-sm-12">
+        <iframe id="fileDownloadIframe" style="display:none;"></iframe>
+        <div class="form-group">
+            <label class="col-sm-4 control-label">Attachments</label>
+            <div class="col-sm-8">
+                <div class="col-sm-12">
+                    <table class="table ">
+                        <thead>
+                        <tr>
+                            <th>File Name</th>
+                            <th>Created</th>
+                            <th>Created By</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr ng-repeat="file in attachments track by $index">
+                            <td><a ng-click="downloadFile(file)">{{file.name}}</a></td>
+                            <td>{{file.created | date: 'dd.MM.yyyy HH:mm'}}</td>
+                            <td>{{file.createdBy}}</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-12"><hr /></div>
+    </div>
+
+    <div class="col-sm-12">
+        <accordion>
+            <accordion-group is-open="isHistoryOpen">
+                <accordion-heading>
+                    History <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
+                </accordion-heading>
+                <table class="table">
+                    <thead>
+                    <tr>
+                        <th>Activity</th>
+                        <th>Assignee</th>
+                        <th>Date</th>
+                        <th>Resolution</th>
+                        <th>Comment</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr ng-repeat="resolution in resolutions | orderBy:'-' track by $index">
+                        <td>{{resolution.taskName}}</td>
+                        <td>{{resolution.assignee}}</td>
+                        <td>{{resolution.assignDate | date: 'dd.MM.yyyy HH:mm'}}</td>
+                        <td>{{resolution.resolution}}</td>
+                        <td>{{resolution.comment}}</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </accordion-group>
+        </accordion>
+
+    </div>
+    <div class="form-group">
+        <label class="col-sm-4 control-label">Resolution:</label>
+        <div class="col-sm-8">
+            <label class="radio-inline"><input type="radio" value="Approve" ng-model="resolution" required> Approve</label>
+            <label class="radio-inline"><input type="radio" value="Cancel task" ng-model="resolution" required> Cancel task</label>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-12 control-label">Comments:<span class="text-danger glyphicon-asterisk" ng-show="resolution == 'Cancel task'"></span></label>
+        <div class="col-sm-12">
+            <textarea class="form-control" name="comment" ng-model="comment" ng-required="resolution == 'Cancel task'"></textarea>
+            <span class="has-error" ng-if="kcell_form.comment.$error.required && (kcell_form.comment.$touched || view.submitted)">Required field</span>
+        </div>
+    </div>
+
+</form>

@@ -1,0 +1,247 @@
+<form role="form" class="form-horizontal" name="kcell_form" novalidate>
+  <style>
+    .background-yellow-accordion .panel-body {
+      background-color: #ffffcc;
+      border: 1px solid #b3b3b3;
+      color: #333;
+    }
+  </style>
+  <script cam-script type="text/form-script">
+        inject(['$scope', '$http', 'Uri', '$rootScope', '$q', 'toasty', '$timeout', function ($scope, $http, Uri, $rootScope, $q, toasty, $timeout) {
+            $scope.legalInfo = {};
+            $scope.techSpecs = {connectionType:'SIP over internet', sip: {}};
+            $scope.resolutions = [];
+            $scope.action = {};
+            $scope.pbxData = {};
+            $scope.numbersAmount = 60;
+            var assigneeName = $rootScope.authentication.name;
+            var createdDate = new Date();
+            var processInstanceId = null;
+
+            $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name + "/profile").then(function(result){
+              assigneeName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
+            });
+
+            $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
+                function(result){
+                    processInstanceId = result.data.processInstanceId;
+                    $http.get('/camunda/api/engine/engine/default/process-instance/' + processInstanceId).then(
+                        function(result){
+                            $scope.businessKey = result.data.businessKey;
+                        },
+                        function (error) {console.log(error.data);}
+                    );
+                },
+                function (error) { console.log(error.data);}
+            );
+
+            $scope.downloadFile = function (file) {
+              $http({method: 'GET', url: '/camunda/uploads/' + (file.path.split('/').length === 2 ? 'tmp/' : '') + 'get/' + file.path, transformResponse: [] }).then(
+                function(response) {
+                  document.getElementById('fileDownloadIframe').src = response.data;
+                },
+                function(response) { console.log(response.data); }
+              );
+            };
+
+            $scope.clearFile = function(fileIndex) {
+              $scope.attachments.splice(fileIndex, 1);
+            };
+
+            $scope.fileSelected = function(el ){
+              $timeout(function () {
+                $scope.$apply(function () {
+                  uploadFileToMinio(el.files[0]);
+                });
+              })
+            };
+
+            function uploadFileToMinio(file) {
+              var fileToUpload = {
+                name: file.name.replace(/[/\\?%*:|"<>]/g, '-'),
+                path: processInstanceId + '/' + camForm.taskId + '/' + file.name.replace(/[/\\?%*:|"<>]/g, '-'),
+                created: new Date(),
+                createdBy: assigneeName
+              };
+              $http({method: 'GET', url: '/camunda/uploads/put/' + fileToUpload.path, transformResponse: [] }).then(
+                function(response) {
+                  $http.put(response.data, file, {headers: {'Content-Type': undefined}}).then(
+                    function () {
+                      $scope.attachments.push(fileToUpload);
+                      angular.element(document.querySelector('#attachments')).val(null);
+                    },
+                    function (error) {
+                      console.log(error.data);
+                    }
+                  );
+                },
+                function(response) { console.log(response.data); }
+              );
+            }
+
+            camForm.on('form-loaded', function () {
+                camForm.variableManager.fetchVariable('legalInfo');
+                camForm.variableManager.fetchVariable('techSpecs');
+                camForm.variableManager.fetchVariable('resolutions');
+                camForm.variableManager.fetchVariable('action');
+                camForm.variableManager.fetchVariable('pbxData');
+                camForm.variableManager.fetchVariable('workType');
+                camForm.variableManager.fetchVariable('numberRequest');
+                camForm.variableManager.fetchVariable('clientPriority');
+                camForm.variableManager.fetchVariable('numbersAmount');
+                camForm.variableManager.fetchVariable('attachments');
+            });
+
+            camForm.on('variables-fetched', function () {
+                $scope.legalInfo = camForm.variableManager.variableValue('legalInfo');
+                $scope.techSpecs = camForm.variableManager.variableValue('techSpecs');
+                $scope.resolutions = camForm.variableManager.variableValue('resolutions');
+                $scope.action = camForm.variableManager.variableValue('action');
+                $scope.pbxData = camForm.variableManager.variableValue('pbxData');
+                $scope.workType = camForm.variableManager.variableValue('workType');
+                $scope.numberRequest = camForm.variableManager.variableValue('numberRequest');
+                $scope.clientPriority = camForm.variableManager.variableValue('clientPriority');
+                $scope.numbersAmount = camForm.variableManager.variableValue('numbersAmount');
+                $scope.attachments = camForm.variableManager.variableValue('attachments');
+                if (!$scope.legalInfo){
+                    $scope.legalInfo = {};
+                } else if($scope.legalInfo.companyDate){
+                    $scope.legalInfo.companyDate = new Date($scope.legalInfo.companyDate);
+                }
+                if (!$scope.techSpecs) $scope.techSpecs = {connectionType:'SIP over internet', sip: {}};
+
+                camForm.variableManager.createVariable({
+                    name: 'modifyTSResult',
+                    type: 'String',
+                    value: ''
+                });
+
+                camForm.variableManager.createVariable({
+                    name: 'modifyTSComment',
+                    type: 'String',
+                    value: ''
+                });
+            });
+
+            camForm.on('submit', function (event) {
+                camForm.variableManager.variableValue('numbersAmount', $scope.numbersAmount);
+                camForm.variableManager.variableValue('modifyTSResult', $scope.resolution);
+                camForm.variableManager.variableValue('modifyTSComment', $scope.comment);
+                $scope.resolutions.push({
+                        assignee: assigneeName,
+                        resolution: $scope.resolution,
+                        comment: $scope.comment,
+                        taskEndDate: new Date(),
+                        taskName: 'Modify questionnaire',
+                        assignDate: createdDate,
+                        claimDate: createdDate,
+                });
+                camForm.variableManager.variableValue('resolutions', $scope.resolutions);
+            });
+        }]);
+    </script>
+
+  <header-info number-request="numberRequest" legal-info="legalInfo" client-priority="clientPriority" work-type="workType"></header-info>
+
+  <div class="form-group">
+    <label class="col-sm-4 control-label">Amount of numbers:</label>
+    <div class="col-sm-8">
+      <label class="radio-inline"><input type="radio" ng-value="60" ng-model="numbersAmount" ng-disabled="true"> 60</label>
+      <label class="radio-inline"><input type="radio" ng-value="100" ng-model="numbersAmount" ng-disabled="true"> 100</label>
+      <label class="radio-inline"><input type="radio" ng-value="250" ng-model="numbersAmount" ng-disabled="true"> 250</label>
+      <label class="radio-inline"><input type="radio" ng-value="500" ng-model="numbersAmount" ng-disabled="true"> 500</label>
+    </div>
+  </div>
+
+  <div class="col-sm-12"><hr /></div>
+
+  <div class="col-sm-12" style="background-color: #ffffcc; padding: 16px;border: 1px solid;">
+    <h4 style="text-align: center;margin: 0 0 10px 0;">Technical specification</h4>
+    <aftersales-revolving-numbers-trunk data="techSpecs" form="kcell_form" view="view" disabled="true"></aftersales-revolving-numbers-trunk>
+  </div>
+
+  <div class="col-sm-12">
+    <iframe id="fileDownloadIframe" style="display:none;"></iframe>
+    <div class="form-group">
+      <label class="col-sm-4 control-label">Attachments</label>
+      <div class="col-sm-8">
+        <input type="file" class="form-control" id="attachments" name="attachments" onchange="angular.element(this).scope().fileSelected(this)"/>
+        <div class="col-sm-12">
+          <table class="table ">
+            <thead>
+            <tr>
+              <th>File Name</th>
+              <th>Created</th>
+              <th>Created By</th>
+              <th>Delete</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr ng-repeat="file in attachments track by $index">
+              <td><a ng-click="downloadFile(file)">{{file.name}}</a></td>
+              <td>{{file.created | date: 'dd.MM.yyyy HH:mm'}}</td>
+              <td>{{file.createdBy}}</td>
+              <td><a ng-click="clearFile($index)"><i class="glyphicon glyphicon-trash"></i></a></td>
+            </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <div class="col-sm-12"><hr /></div>
+  </div>
+
+  <div class="col-sm-12"><hr /></div>
+
+  <div class="form-group">
+    <label class="col-sm-2 control-label">Resolution</label>
+    <div class="col-sm-10">
+      <label class="radio-inline">
+        <input type="radio" ng-model="resolution" name="resolution" value="Modified" required> Modified
+      </label>
+      <label class="radio-inline">
+        <input type="radio" ng-model="resolution" name="resolution" value="Cancel" required> Cancel
+      </label>
+      <label class="error" ng-show="kcell_form.resolution.$error.required && ( kcell_form.resolution.$touched || view.submitted)">Required field</label>
+    </div>
+  </div>
+
+  <div class="col-sm-12">
+    <accordion>
+      <accordion-group is-open="isHistoryOpen">
+        <accordion-heading>
+          History <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
+        </accordion-heading>
+        <table class="table">
+          <thead>
+          <tr>
+            <th>Activity</th>
+            <th>Assignee</th>
+            <th>Date</th>
+            <th>Resolution</th>
+            <th>Comment</th>
+          </tr>
+          </thead>
+          <tbody>
+          <tr ng-repeat="resolution in resolutions | orderBy:'-' track by $index">
+            <td>{{resolution.taskName}}</td>
+            <td>{{resolution.assignee}}</td>
+            <td>{{resolution.assignDate | date: 'dd.MM.yyyy HH:mm'}}</td>
+            <td>{{resolution.resolution}}</td>
+            <td>{{resolution.comment}}</td>
+          </tr>
+          </tbody>
+        </table>
+      </accordion-group>
+    </accordion>
+
+  </div>
+
+  <div class="form-group">
+    <label class="col-sm-2 control-label">Comment <span class="text-danger glyphicon-asterisk" ng-if="resolution == 'Need modify'"></span></label>
+    <div class="col-sm-10">
+      <textarea elastic-textarea class="form-control" rows="4" name="comment" ng-model="comment" ng-required="resolution == 'Need modify'"></textarea>
+      <label class="error" ng-show="kcell_form.comment.$error.required && ( kcell_form.comment.$touched || view.submitted)">Required field</label>
+    </div>
+  </div>
+</form>

@@ -92,7 +92,8 @@ define('app',[
 							subprocesses:[{key:'ivr_disconnection'},{key:'BulkSMS_disconnection'},{key:'changeConnectionType'}]
 						},
             			{key:'AftersalesPBX', name:'Aftersales PBX', group:'delivery_pbx_users'},
-            			{key:'revolvingNumbers', name:'PBX Revolving Numbers', group:'delivery_pbx_users'}
+            			{key:'revolvingNumbers', name:'PBX Revolving Numbers', group:'delivery_pbx_users'},
+            			{key:'ASRev', name:'Aftersales Revolving Numbers', group:'delivery_pbx_b2b_delivery'}
 					]
 				},
 				{
@@ -161,7 +162,7 @@ define('app',[
 				var p = angular.copy(project);
 				p.processes = [];
 				angular.forEach(project.processes, function(process){
-					if(hasGroup(process.group) || (
+					if(hasGroup(process.group) || hasGroup('camunda-admin') || (
 						(process.key === 'leasing' && (hasGroup('statistics_rollout') || hasGroup('search_rollout'))) ||
 						(process.key === 'Revision' && (hasGroup('statistics_revision') || hasGroup('search_revision'))) ||
 						(process.key === 'Revision-power' && (hasGroup('statistics_revision') || hasGroup('search_revision'))) ||

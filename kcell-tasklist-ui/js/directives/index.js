@@ -19,5 +19,6 @@ define([
 	'./aftersales/infoAftersalesSearch',
 	'./search/deliveryPortalSearch',
 	'./search/rpaSearch'
+	'./aftersalesRevolvingNumbers/index',
 //	'./search/demandSearch',
 	], function(){});
