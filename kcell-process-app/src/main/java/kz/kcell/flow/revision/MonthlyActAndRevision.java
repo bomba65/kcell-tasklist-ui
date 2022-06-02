@@ -75,6 +75,7 @@ public class MonthlyActAndRevision {
         mapSubcontractorsToNum.put("ARLAN", "8");
         mapSubcontractorsToNum.put("LOGYCOM", "7");
         mapSubcontractorsToNum.put("LINE", "4");
+        mapSubcontractorsToNum.put("Inter", "9");
     }
 
     private final static Map<String, String> mapSubcontractorsContract;
@@ -100,6 +101,7 @@ public class MonthlyActAndRevision {
         contractorsTitle.put("6", "ТОО «ALTA Telecom (АЛТА Телеком)»\n");
         contractorsTitle.put("7", "АО «Логиком»");
         contractorsTitle.put("8", "ТОО «ARLAN SI»");
+        contractorsTitle.put("9", "ТОО «Inter Service»");
     }
 
     private final static Map<String, String> reasonsTitle;

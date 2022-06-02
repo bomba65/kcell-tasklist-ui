@@ -11,7 +11,7 @@ def getUserEmail(DelegateExecution execution) {
     String siteRegion = execution.getVariable("siteRegion").toString()
     String contractor = execution.getVariable("contractor").toString()
 
-    def contractorsTitle = ["1": "avrora","2": "aicom", "3": "spectr", "4": "lse", "5": "kcell", "6": "alta", "7":"logycom", "8": "arlan"]
+    def contractorsTitle = ["1": "avrora","2": "aicom", "3": "spectr", "4": "lse", "5": "kcell", "6": "alta", "7":"logycom", "8": "arlan","9": "inter"]
 
     if("4".equals(contractor) && "nc".equals(siteRegion)){
         siteRegion = "astana";

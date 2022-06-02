@@ -75,6 +75,7 @@ public class JrBlankFixService {
             map.put("6", "Алта Телеком");
             map.put("7", "Логиком");
             map.put("8", "Arlan SI");
+            map.put("9", "TOO Inter Service");
             return Collections.unmodifiableMap(map);
         })).get();
 
@@ -89,6 +90,7 @@ public class JrBlankFixService {
             map.put("6", "alta");
             map.put("7", "logycom");
             map.put("8", "arlan");
+            map.put("9", "inter");
             return Collections.unmodifiableMap(map);
         })).get();
 

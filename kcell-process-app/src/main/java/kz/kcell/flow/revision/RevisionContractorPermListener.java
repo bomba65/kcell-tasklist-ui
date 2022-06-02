@@ -36,6 +36,7 @@ public class RevisionContractorPermListener implements ExecutionListener {
         contractors.put("6", "alta");
         contractors.put("7", "logycom");
         contractors.put("8", "arlan");
+        contractors.put("9", "inter");
     }
 
     @Override
