@@ -4211,9 +4211,12 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
 
                 function openProcessCardModalRevision(processDefinitionId, businessKey, index) {
                     let checkStatus = scope.jobModel.tasks.findIndex(i => i.name === 'Attach scan copy of documents')
+                    console.log(scope.jobModel)
+
                     exModal.open({
                         scope: {
                             jobModel: scope.jobModel,
+                            worksTitle: scope.worksTitle,
                             getStatus: scope.getStatus,
                             showDiagram: scope.showDiagram,
                             showHistory: scope.showHistory,
