@@ -4211,21 +4211,23 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
 
                 function openProcessCardModalRevision(processDefinitionId, businessKey, index) {
                     let checkStatus = scope.jobModel.tasks.findIndex(i => i.name === 'Attach scan copy of documents')
-                    console.log(scope.jobModel)
-
+                    scope.contractorsTitle[9] = "ТОО «Inter Service»"
                     exModal.open({
                         scope: {
                             jobModel: scope.jobModel,
-                            worksTitle: scope.worksTitle,
                             getStatus: scope.getStatus,
                             showDiagram: scope.showDiagram,
                             showHistory: scope.showHistory,
+                            contractorsTitle: scope.contractorsTitle,
                             hasGroup: scope.hasGroup,
+                            reasonsTitle: scope.reasonsTitle,
                             showGroupDetails: scope.showGroupDetails,
                             processDefinitionId: processDefinitionId,
                             piIndex: scope.piIndex,
                             $index: index,
                             businessKey: businessKey,
+                            worksTitle: scope.worksTitle,
+
                             blockExportButtons: checkStatus > -1,
                             download: function (file) {
                                 $http({

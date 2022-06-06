@@ -44,6 +44,7 @@ public class JrBlankGenerator {
             map.put("6", "Алта Телеком");
             map.put("7", "Логиком");
             map.put("8", "Arlan SI");
+            map.put("9", "ТОО Inter Service");
             return Collections.unmodifiableMap(map);
         })).get();
 

@@ -44,7 +44,8 @@ def contractorsTitle = [
         "5": "Kcell_region",
         "6": "Алта Телеком",
         "7": "Логиком",
-        "8": "Arlan SI"
+        "8": "Arlan SI",
+        "9": "ТОО Inter Service"
 ]
 
 def reasonsTitle = [
