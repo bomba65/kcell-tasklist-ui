@@ -18,7 +18,7 @@ define([
 	'./bulksmsRichText',
 	'./aftersales/infoAftersalesSearch',
 	'./search/deliveryPortalSearch',
-	'./search/rpaSearch'
+	'./search/rpaSearch',
 	'./aftersalesRevolvingNumbers/index',
 //	'./search/demandSearch',
 	], function(){});
