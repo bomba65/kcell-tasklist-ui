@@ -52,7 +52,8 @@ define(['../module', 'moment'], function (module, moment) {
                             'Task_0d7igwz'
                         ],
                         'AftersalesPBX': [],
-                        'revolvingNumbers': []
+                        'revolvingNumbers': [],
+                        'FixedInternet': []
                     };
 
                     function getUserTasks(xml) {
@@ -109,13 +110,26 @@ define(['../module', 'moment'], function (module, moment) {
 
                     scope.filterDP = {
                         processDefinitionKey: '',
-                        processDefinitions: [{name: 'PBX', value: 'PBX'}, {
+                        processDefinitions: [{
+                            name: 'PBX',
+                            value: 'PBX'
+                        }, {
                             name: 'Подключение IVR',
                             value: 'freephone'
-                        }, {name: 'BulkSMS', value: 'bulksmsConnectionKAE'}, {
+                        }, {
+                            name: 'BulkSMS',
+                            value: 'bulksmsConnectionKAE'
+                        }, {
                             name: 'Aftersales PBX',
                             value: 'AftersalesPBX'
-                        }, {name: 'PBX Revolving Numbers', value: 'revolvingNumbers'}],
+                        }, {
+                            name: 'PBX Revolving Numbers',
+                            value: 'revolvingNumbers'
+                        }, {
+                            name: 'fixed internet/vpn',
+                            value: 'FixedInternet'
+                        }],
+
                         processDefinitionActivities: {},
                         activityId: '',
                         businessKey: '',
@@ -171,6 +185,9 @@ define(['../module', 'moment'], function (module, moment) {
                         },
                         AftersalesPBX: {
                             title: "aftersales pbx", value: false
+                        },
+                        FixedInternet: {
+                            title: "fixed internet/vpn", value:false
                         }
                     };
                     scope.DPProcesses = {};
@@ -196,6 +213,10 @@ define(['../module', 'moment'], function (module, moment) {
                         if (scope.DPProcesses.PBX || scope.DPProcesses.freephone || scope.DPProcesses.bulksmsConnectionKAE)
                             scope.aftersalesPBXorRevolving = false;
                         else scope.aftersalesPBXorRevolving = true;
+
+                        if (scope.DPProcesses.FixedInternet || scope.DPProcesses.ASRev)
+                            scope.asRevOrFI = false;
+                        else scope.asRevOrFI = true;
 
                         if (scope.freephoneOrBulkSms || scope.aftersalesPBXorRevolving) scope.pbx = false;
                         else scope.pbx = true;
@@ -244,6 +265,7 @@ define(['../module', 'moment'], function (module, moment) {
                         scope.filterDP.initiator = undefined;
                         scope.filterDP.initiatorId = undefined;
                         scope.filterDP.activityId = undefined;
+                        scope.filterDP.service = undefined;
                         //scope.filterDP.businessKeyFilterType = 'eq';
                         if (scope.onlyOneProcessActiveName===''){
                             scope.filterDP.processDefinitionKey = undefined;
@@ -321,6 +343,10 @@ define(['../module', 'moment'], function (module, moment) {
                             if (!filtered.PBX && (filtered.AftersalesPBX ||
                                 filtered.revolvingNumbers)) aftersalesPBXorRevolving = true;
                             scope.aftersalesPBXorRevolving = aftersalesPBXorRevolving;
+
+                            var asRevOrFI = false;
+                            if (filtered.FixedInternet || filtered.ASRev) asRevOrFI = true;
+                            scope.asRevOrFI = asRevOrFI;
 
                             if (filtered.PBX)  scope.pbx = filtered.PBX;
                             else scope.pbx = false;
@@ -591,6 +617,39 @@ define(['../module', 'moment'], function (module, moment) {
                                         );
                                     }
 
+                                    if (scope.selectedProcessInstancesDP.some(e => e.value == 'FixedInternet')) {
+                                        $q.all(scope[processInstancesDP].map(instance => {
+                                            return $http.get(baseUrl + '/history/variable-instance?deserializeValues=false&processInstanceId=' + instance.id);
+                                        })).then(allResponses => {
+                                            var responses = [];
+                                            allResponses.forEach(r => responses.push(...r.data));
+                                            responses = _.groupBy(responses, r => r.processInstanceId);
+                                            for (let r in responses) {
+                                                let instance = scope[processInstancesDP].find(e => e.id === r);
+                                                if (instance) {
+                                                    responses[r].forEach(v => {
+                                                        if (v.name === 'legalInfo') {
+                                                            instance.legalInfo = JSON.parse(v.value);
+                                                            instance.bin = JSON.parse(v.value).BIN;
+                                                            instance.service = JSON.parse(v.value).type;
+                                                        }
+                                                    });
+                                                    var ok = true;
+                                                    if (scope.filterDP.kae && (!instance.legalInfo.KAE || !instance.legalInfo.KAE.includes(scope.filterDP.kae))) ok = false;
+                                                    console.log()
+                                                    instance.isOk = ok;
+                                                }
+                                            }
+
+                                            scope[processInstancesDP] = scope[processInstancesDP].filter(e => e.isOk);
+
+                                            instanceCount = scope[processInstancesDP].length;
+                                            //console.log('instanceCount', instanceCount);
+                                            scope[processInstancesDP + 'Total'] = instanceCount;
+                                            scope[processInstancesDP + 'Pages'] = Math.floor(instanceCount / scope.filterDP.maxResults) + ((instanceCount % scope.filterDP.maxResults) > 0 ? 1 : 0);
+                                        });
+                                    }
+
                                     if (scope.selectedProcessInstancesDP.some(e => e.value == 'AftersalesPBX')) {
                                         $q.all(scope[processInstancesDP].map(instance => {
                                             return $http.get(baseUrl + '/history/variable-instance?deserializeValues=false&processInstanceId=' + instance.id);
@@ -786,6 +845,15 @@ define(['../module', 'moment'], function (module, moment) {
                         }
                         if (scope.filterDP.activityId) {
                             filter.activeActivityIdIn.push(scope.filterDP.activityId);
+                        }
+
+                        if (scope.filterDP.service) {
+                            filter.variables.push({
+                                "name": "type",
+                                "operator": "eq",
+                                "value": scope.filterDP.service.toString()
+                            });
+                            console.log(scope.filterDP.service)
                         }
 
                         if (scope.filterDP.shortNumber) {
@@ -1211,6 +1279,8 @@ define(['../module', 'moment'], function (module, moment) {
                             template += 'infoAftersalesPBXSearch.html';
                         } else if (scope.jobModel.processDefinitionKey === 'revolvingNumbers') {
                             template += 'infoRevolvingNumbersSearch.html';
+                        } else if (scope.jobModel.processDefinitionKey === 'FixedInternet') {
+                            template += 'infoFixedInternetSearch.html';
                         }
                         exModal.open({
                             scope: {

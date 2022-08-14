@@ -93,7 +93,8 @@ define('app',[
 						},
             			{key:'AftersalesPBX', name:'Aftersales PBX', group:'delivery_pbx_users'},
             			{key:'revolvingNumbers', name:'PBX Revolving Numbers', group:'delivery_pbx_users'},
-            			{key:'ASRev', name:'Aftersales Revolving Numbers', group:'delivery_pbx_b2b_delivery'}
+            			{key:'ASRev', name:'Aftersales Revolving Numbers', group:'delivery_pbx_b2b_delivery'},
+            			{key:'FixedInternet', name:'Fixed Internet', group:'delivery_pbx_b2b_delivery'}
 					]
 				},
 				{
@@ -237,7 +238,13 @@ define('app',[
 	    	controller: "leasingStatisticsCtrl",
 	    	authenticate: true,
 	    	resolve: resolve
-	    }).state("search", {
+	    }).state("filesAndDictionaries", {
+			url: "/filesAndDictionaries",
+			templateUrl: "js/partials/files.html",
+			controller: "filesCtrl",
+			authenticate: true,
+			resolve: resolve
+		}).state("search", {
 	    	url: "/search",
 	    	templateUrl: "js/partials/search_new.html",
 	    	controller: "searchCtrl",

@@ -20,5 +20,6 @@ define([
 	'./search/deliveryPortalSearch',
 	'./search/rpaSearch',
 	'./aftersalesRevolvingNumbers/index',
+  	'./fixedInternet/index',
 //	'./search/demandSearch',
 	], function(){});

@@ -1346,6 +1346,15 @@ return module.controller('mainCtrl', ['$scope', '$rootScope', 'toasty', 'Authent
                 });
             });
         };
+}]).controller('filesCtrl', ['$scope', '$rootScope', '$http', '$routeParams', '$q', '$location', '$timeout', 'AuthenticationService', 'exModal', function ($scope, $rootScope, $http, $routeParams, $q, $location, $timeout, AuthenticationService, exModal) {
+        var camClient = new CamSDK.Client({
+                mock: false,
+                apiUri: '/camunda/api/engine/'
+            });
+
+            $rootScope.currentPage = {
+                name: 'processes'
+            };
 }]).controller('statisticsCtrl', ['$scope', '$rootScope', '$filter', '$http', '$state', '$stateParams', '$q', '$location', 'AuthenticationService',
     function ($scope, $rootScope, $filter, $http, $state, $stateParams, $q, $location, AuthenticationService) {
 

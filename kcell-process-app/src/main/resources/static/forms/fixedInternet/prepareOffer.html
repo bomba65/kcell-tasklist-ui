@@ -1,0 +1,1278 @@
+<form role="form" class="form-horizontal" name="kcell_form" novalidate>
+    <style>
+        .background-yellow-accordion .panel-body {
+            background-color: #ffffcc;
+            border: 1px solid #b3b3b3;
+            color: #333;
+        }
+
+        .content-visible-accordion .panel {
+            overflow: visible;
+        }
+    </style>
+    <script cam-script type="text/form-script">
+        inject(['$scope', '$http', 'Uri', '$rootScope', '$q', 'toasty', '$timeout', '$filter', function ($scope, $http, Uri, $rootScope, $q, toasty, $timeout, $filter) {
+            var createDate = new Date();
+            var processInstanceId = null;
+            var assigneeName = $rootScope.authentication.name;
+            var history = null;
+            var taskKey = camForm.taskId;
+
+            $scope.legalInfo = {date: new Date()};
+            $scope.resolutions = [];
+            $scope.isActiveConnectionPoint = false;
+            $scope.payback = 0;
+            $scope.payment = 0;
+            $scope.term_without = "";
+            $scope.isShowLastMile = false;
+
+            $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name+ "/profile").then(function(result){
+                assigneeName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
+            });
+
+            $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
+                function(result){
+                    var processInstanceId = result.data.processInstanceId;
+                    $http.get('/camunda/api/engine/engine/default/process-instance/' + processInstanceId).then(
+                        function(result){
+                            $scope.businessKey = result.data.businessKey;
+                        },
+                        function (error) {console.log(error.data);}
+                    );
+                },
+                function (error) { console.log(error.data);}
+            );
+
+            $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
+                function (result) {
+                    processInstanceId = result.data.processInstanceId;
+                    taskKey = result.data.taskDefinitionKey;
+                    history = historyVariablesManager(camForm, taskKey);
+                    history.createVariables(true);
+                    configureViews();
+                },
+                function (error) {
+                    console.log(error.data);
+                }
+            );
+
+            $scope.downloadFile = function (file) {
+              $http({method: 'GET', url: '/camunda/uploads/' + (file.path.split('/').length === 2 ? 'tmp/' : '') + 'get/' + file.path, transformResponse: [] }).then(
+                function(response) {
+                  document.getElementById('fileDownloadIframe').src = response.data;
+                },
+                function(response) { console.log(response.data); }
+              );
+            };
+            $scope.clearFile = function(fileIndex) {
+              $scope.attachments.splice(fileIndex, 1);
+            };
+
+            $scope.fileSelected = function(el ){
+              $timeout(function () {
+                $scope.$apply(function () {
+                  uploadFileToMinio(el.files[0]);
+                });
+              })
+            };
+
+            function uploadFileToMinio(file) {
+              var fileToUpload = {
+                name: file.name.replace(/[/\\?%*:|"<>]/g, '-'),
+                path: processInstanceId + '/' + camForm.taskId + '/' + file.name.replace(/[/\\?%*:|"<>]/g, '-'),
+                created: new Date(),
+                createdBy: assigneeName
+              };
+              $http({method: 'GET', url: '/camunda/uploads/put/' + fileToUpload.path, transformResponse: [] }).then(
+                function(response) {
+                  $http.put(response.data, file, {headers: {'Content-Type': undefined}}).then(
+                    function () {
+                      $scope.attachments.push(fileToUpload);
+                      angular.element(document.querySelector('#attachments')).val(null);
+                    },
+                    function (error) {
+                      console.log(error.data);
+                    }
+                  );
+                },
+                function(response) { console.log(response.data); }
+              );
+            }
+
+            camForm.on('form-loaded', function () {
+                camForm.variableManager.fetchVariable('capexMaterial');
+                camForm.variableManager.fetchVariable('lastMileWeeks');
+                camForm.variableManager.fetchVariable('channelUtil');
+                camForm.variableManager.fetchVariable('rentAmount');
+                camForm.variableManager.fetchVariable('capexEquipment');
+                camForm.variableManager.fetchVariable('opex');
+                camForm.variableManager.fetchVariable('legalInfo');
+                camForm.variableManager.fetchVariable('attachments');
+                camForm.variableManager.fetchVariable('connectionInfo');
+                camForm.variableManager.fetchVariable('extraConnectionInfo');
+                camForm.variableManager.fetchVariable('landlordInfo');
+                camForm.variableManager.fetchVariable('extraLandlordInfo');
+                camForm.variableManager.fetchVariable('kaseInfo');
+                camForm.variableManager.fetchVariable('officeInfo');
+                camForm.variableManager.fetchVariable('officeLandlordInfo');
+                camForm.variableManager.fetchVariable('responsiblePersonsInfo');
+                camForm.variableManager.fetchVariable('action');
+                camForm.variableManager.fetchVariable('isActiveConnectionPoint');
+                camForm.variableManager.fetchVariable('monthPayments');
+                camForm.variableManager.fetchVariable('timePayments');
+                camForm.variableManager.fetchVariable('total_nds');
+                camForm.variableManager.fetchVariable('total_amount');
+                camForm.variableManager.fetchVariable('total_nds_month');
+                camForm.variableManager.fetchVariable('total_amount_month');
+
+                camForm.variableManager.fetchVariable('numberRequest');
+                camForm.variableManager.fetchVariable('resolutions');
+
+                camForm.variableManager.fetchVariable('stan_pay1');
+                camForm.variableManager.fetchVariable('stan_pay2');
+                camForm.variableManager.fetchVariable('term_without');
+                camForm.variableManager.fetchVariable('term_with');
+                camForm.variableManager.fetchVariable('discount_pay1');
+                camForm.variableManager.fetchVariable('discount_pay2');
+                camForm.variableManager.fetchVariable('equipment_coef');
+                camForm.variableManager.fetchVariable('internet_coef');
+                camForm.variableManager.fetchVariable('standart_dis');
+                camForm.variableManager.fetchVariable('lm_option');
+                camForm.variableManager.fetchVariable('intercity');
+                camForm.variableManager.fetchVariable('intercity_coef');
+                camForm.variableManager.fetchVariable('payment');
+                camForm.variableManager.fetchVariable('term');
+                camForm.variableManager.fetchVariable('final_discount');
+                camForm.variableManager.fetchVariable('dis_dis');
+            });
+
+            camForm.on('variables-fetched', function () {
+                $scope.stan_pay1 = camForm.variableManager.variableValue('stan_pay1');
+                $scope.stan_pay2 = camForm.variableManager.variableValue('stan_pay2');
+                $scope.term_without = camForm.variableManager.variableValue('term_without');
+                $scope.term_with = camForm.variableManager.variableValue('term_with');
+                $scope.discount_pay1 = camForm.variableManager.variableValue('discount_pay1');
+                $scope.discount_pay2 = camForm.variableManager.variableValue('discount_pay2');
+                $scope.equipment_coef = camForm.variableManager.variableValue('equipment_coef')?.toString();
+                $scope.internet_coef = camForm.variableManager.variableValue('internet_coef')?.toString();
+                $scope.standart_dis = camForm.variableManager.variableValue('standart_dis');
+                $scope.lm_option = camForm.variableManager.variableValue('lm_option')?.toString();
+                $scope.intercity = camForm.variableManager.variableValue('intercity');
+                $scope.intercity_coef = camForm.variableManager.variableValue('intercity_coef')?.toString();
+                $scope.payment = camForm.variableManager.variableValue('payment');
+                $scope.term = camForm.variableManager.variableValue('term')?.toString();
+                $scope.final_discount = camForm.variableManager.variableValue('final_discount');
+                $scope.dis_dis = camForm.variableManager.variableValue('dis_dis')?.toString();
+                $scope.timePayments = camForm.variableManager.variableValue('timePayments');
+                $scope.monthPayments = camForm.variableManager.variableValue('monthPayments');
+                $scope.total_nds = camForm.variableManager.variableValue('total_nds');
+                $scope.total_nds_month = camForm.variableManager.variableValue('total_nds_month');
+                $scope.total_amount_month = camForm.variableManager.variableValue('total_amount_month');
+                $scope.total_amount = camForm.variableManager.variableValue('total_amount');
+
+
+                $scope.capexMaterial = camForm.variableManager.variableValue('capexMaterial');
+                $scope.lastMileWeeks = camForm.variableManager.variableValue('lastMileWeeks');
+                $scope.channelUtil = camForm.variableManager.variableValue('channelUtil');
+                $scope.rentAmount = camForm.variableManager.variableValue('rentAmount');
+                $scope.capexEquipment = camForm.variableManager.variableValue('capexEquipment');
+                $scope.opex = camForm.variableManager.variableValue('opex');
+                $scope.legalInfo = camForm.variableManager.variableValue('legalInfo');
+
+                $scope.legalInfo.date = new Date($scope.legalInfo.date);
+
+                $scope.attachments = camForm.variableManager.variableValue('attachments');
+                $scope.connectionInfo = camForm.variableManager.variableValue('connectionInfo');
+                $scope.extraConnectionInfo = camForm.variableManager.variableValue('extraConnectionInfo');
+                $scope.landlordInfo = camForm.variableManager.variableValue('landlordInfo');
+                $scope.extraLandlordInfo = camForm.variableManager.variableValue('extraLandlordInfo');
+                $scope.kaseInfo = camForm.variableManager.variableValue('kaseInfo');
+                $scope.officeInfo = camForm.variableManager.variableValue('officeInfo');
+                $scope.officeLandlordInfo = camForm.variableManager.variableValue('officeLandlordInfo');
+                $scope.responsiblePersonsInfo = camForm.variableManager.variableValue('responsiblePersonsInfo');
+                $scope.action = camForm.variableManager.variableValue('action');
+                $scope.isActiveConnectionPoint = camForm.variableManager.variableValue('isActiveConnectionPoint');
+
+<!--                $scope.total_amount_month = 0;-->
+<!--                $scope.timePayments = [];-->
+<!--                $scope.monthPayments = [];-->
+<!--                $scope.total_nds = 0;-->
+<!--                $scope.total_amount = 0;-->
+<!--                $scope.total_nds_month = 0;-->
+
+                $scope.numberRequest = camForm.variableManager.variableValue('numberRequest');
+                $scope.resolutions = camForm.variableManager.variableValue('resolutions');
+
+                camForm.variableManager.createVariable({
+                    name: 'prepareOfferTaskResult',
+                    type: 'String',
+                    value: ''
+                });
+
+                camForm.variableManager.createVariable({
+                    name: 'prepareOfferTaskComment',
+                    type: 'String',
+                    value: ''
+                });
+
+                $scope.dis_dis = '0';
+
+                switch($scope.kaseInfo.service){
+                    case '0':
+                        $scope.pod_tochki = 0;
+                        break;
+                    case '1':
+                        $scope.pod_tochki = 0;
+                        break;
+                    case '2':
+                        $scope.pod_tochki = 5;
+                        break;
+                    case '3':
+                        $scope.pod_tochki = 7;
+                        break;
+                    case '4':
+                        $scope.pod_tochki = 10;
+                        break;
+                    case '5':
+                        $scope.pod_tochki = 15;
+                        break;
+                    default:
+                        $scope.pod_tochki = 20;
+                        break;
+                }
+
+                switch($scope.kaseInfo.servnow){
+                    case '0':
+                        $scope.podkl_tochki = 0;
+                        break;
+                    case '1':
+                        $scope.podkl_tochki = 0;
+                        break;
+                    case '2':
+                        $scope.podkl_tochki = 5;
+                        break;
+                    case '3':
+                        $scope.podkl_tochki = 10;
+                        break;
+                    case '4':
+                        $scope.podkl_tochki = 15;
+                        break;
+                    default:
+                        $scope.podkl_tochki = 15;
+                        break;
+                }
+
+                if($scope.kaseInfo.term_con <= 36 && $scope.kaseInfo.term_con > 4){
+                    $scope.srok = 5;
+                }
+                if($scope.kaseInfo.term_con <= 4){
+                    $scope.srok = 10;
+                }
+                if($scope.kaseInfo.term_con > 36){
+                    $scope.srok = 20;
+                }
+
+                if($scope.legalInfo.capacity >= 20 && $scope.legalInfo.capacity < 50) $scope.skorost = 5;
+                if($scope.legalInfo.capacity >= 50 && $scope.legalInfo.capacity < 100) $scope.skorost = 10;
+                if($scope.legalInfo.capacity >= 100 && $scope.legalInfo.capacity < 200) $scope.skorost = 15;
+                if($scope.legalInfo.capacity >= 200 && $scope.legalInfo.capacity < 300) $scope.skorost = 20;
+                if($scope.legalInfo.capacity >= 300 && $scope.legalInfo.capacity < 500) $scope.skorost = 25;
+                if($scope.legalInfo.capacity >= 500) $scope.skorost = 30;
+                if($scope.legalInfo.capacity < 20) $scope.skorost = 0;
+
+                $scope.total_discount = $scope.pod_tochki + $scope.podkl_tochki + $scope.srok + $scope.skorost;
+                $scope.final_discount =  $scope.total_discount <= 40 ? $scope.total_discount : 40;
+
+                if($scope.legalInfo.ip_add == "Блок из 4-х IP адресов (/30)"){
+                    $scope.ip_add = 'блока из 4-х IP адресов (/30)';
+                }else if($scope.legalInfo.ip_add == "Блок из 8 IP адресов (/29)"){
+                    $scope.ip_add = 'блока из 8 IP адресов (/29)';
+                }else if($scope.legalInfo.ip_add == "Блок из 16 IP адресов (/28)"){
+                    $scope.ip_add = 'блока из 16 IP адресов (/28)';
+                }
+
+                if($scope.timePayments.length == 0){
+                    $scope.timePayments = [
+                        {
+                            tech_name: 'pay_reg',
+                            spec_ont: 'Единовременный платеж за регистрацию '+ $scope.ip_add,
+                            qpay: 0,
+                            price: $scope.legalInfo.ip_add == 'Блок из 4-х IP адресов (/30)' ? 4085 : $scope.legalInfo.ip_add == 'Блок из 8 IP адресов (/29)' ? 7017 : $scope.legalInfo.ip_add == 'Блок из 16 IP адресов (/28)' ? 7536 : 0,
+                            amount: 0,
+                            nds: 0,
+                            addres: $scope.connectionInfo?.oblast +', '+ $scope.connectionInfo?.city +', '+ $scope.connectionInfo?.add_tech,
+                            disabled: true
+                        },
+                        {
+                            tech_name: 'pay_org',
+                            spec_ont: 'Единовременный платеж за организацию последней мили',
+                            qpay: 0,
+                            price: $scope.payment,
+                            amount: 0,
+                            nds: 0,
+                            addres: $scope.connectionInfo?.oblast +', '+ $scope.connectionInfo?.city +', '+ $scope.connectionInfo?.add_tech,
+                            disabled: true
+                        },
+                    ];
+                }
+                console.log(camForm.variableManager.variableValue('stan_pay1'))
+                if($scope.monthPayments.length == 0 ){
+
+                    $scope.monthPayments = [
+                        {
+                            tech_name: 'pay_int',
+                            spec_month: 'Абонентская плата за услугу Фиксированный интернет на скорости ' + $scope.legalInfo.capacity + ' Мбит/с',
+                            qpay_month: 0,
+                            price_month: 0,
+                            amount_month: 0,
+                            nds_month: 0,
+                            addres_month: $scope.connectionInfo?.oblast +', '+ $scope.connectionInfo?.city +', '+ $scope.connectionInfo?.add_tech,
+                            disabled: true
+                        },
+                        {
+                            tech_name: 'par_int',
+                            spec_month: 'Ежемесячная платеж за организацию последней мили',
+                            qpay_month: 0,
+                            price_month: 0,
+                            amount_month: 0,
+                            nds_month: 0,
+                            addres_month: $scope.connectionInfo?.oblast +', '+ $scope.connectionInfo?.city +', '+ $scope.connectionInfo?.add_tech,
+                            disabled: true
+                        },
+                        {
+                            tech_name: 'pay_ip',
+                            spec_month: 'Ежемесячный платеж за поддержание ' + $scope.ip_add,
+                            qpay_month: 0,
+                            price_month: $scope.legalInfo.ip_add == 'Блок из 4-х IP адресов (/30)' ? 4284 : $scope.legalInfo.ip_add == 'Блок из 8 IP адресов (/29)' ? 7140 : $scope.legalInfo.ip_add == 'Блок из 16 IP адресов (/28)' ? 14280 : 0,
+                            amount_month: 0,
+                            nds_month: 0,
+                            addres_month: $scope.connectionInfo?.oblast +', '+ $scope.connectionInfo?.city +', '+ $scope.connectionInfo?.add_tech,
+                            disabled: true
+                        },
+                    ];
+
+                }
+
+            });
+
+
+            $scope.$watch('legalInfo.capacity', function(data){
+                if(data){
+                    $http.get('js/directives/fixedInternet/data.json').then(
+                        function (result) {
+                            $scope.speedCost = parseFloat(result.data['speedCost']);
+                            $scope.stan_pay1 = ($scope.speedCost * parseFloat($scope.legalInfo.capacity)).toFixed(2);
+                            $scope.monthPaymentsChange();
+                        }
+                    );
+                }
+            }, true);
+
+            $scope.stanPay2 = function(){
+                var term = parseFloat($scope.term);
+                var equipment_coef = parseFloat($scope.equipment_coef);
+                var payment = parseFloat($scope.payment);
+                var lm_option = parseFloat($scope.lm_option);
+                var capacity = parseFloat($scope.legalInfo.capacity);
+                var total = parseFloat($scope.capexEquipment.total);
+                var total1 = parseFloat($scope.capexMaterial.total);
+                var opex = parseFloat($scope.opex.total);
+
+                $scope.stan_pay2 = (total * equipment_coef/term + parseFloat($scope.opex.total) + total1/term).toFixed(2);
+                $scope.payback = (((total*equipment_coef + total1)- payment)/($scope.stan_pay1 - opex)).toFixed(2);
+
+                console.log(12);
+                console.log($scope.payback);
+
+                if(!$scope.payback) $scope.payback = 0;
+
+                if(term - $scope.payback >= term/2 && $scope.payback >= 0) {
+                    $scope.discount_pay2 = 0;
+                } else if(lm_option == 1){
+                    $scope.discount_pay2 = $scope.stan_pay2 - payment/term
+                } else{
+                    $scope.discount_pay2 = ($scope.stan_pay2 - ($scope.discount_pay1 - capacity * $scope.opex.items[0].price)/2).toFixed(2);
+                }
+
+                $scope.timePayments.find(x => x.tech_name == 'pay_org').price = payment
+                $scope.timePaymentsChange();
+                $scope.monthPaymentsChange();
+                termWithoutChange();
+                termWithChange();
+            };
+
+            var termWithoutChange = function(){
+                if($scope.opex.total > $scope.stan_pay1 * 0.7){
+                    $scope.term_without = "не окупается";
+                }else if(
+                (parseFloat($scope.capexEquipment.total) * parseFloat($scope.equipment_coef) + parseFloat($scope.capexMaterial.total))/(parseFloat($scope.stan_pay1) - parseFloat($scope.opex.total)) >= 0
+                    && (parseFloat($scope.capexEquipment.total) * parseFloat($scope.equipment_coef) + parseFloat($scope.capexMaterial.total))/(parseFloat($scope.stan_pay1) - parseFloat($scope.opex.total)) < $scope.term){
+                    $scope.term_without = Math.round((parseFloat($scope.capexEquipment.total) * parseFloat($scope.equipment_coef) + parseFloat($scope.capexMaterial.total))/(parseFloat($scope.stan_pay1) - parseFloat($scope.opex.total)));
+                }else{
+                    $scope.term_without = "не окупается";
+                }
+            };
+
+            var termWithChange = function(){
+                $scope.term_with = ((parseFloat($scope.capexEquipment.total) * parseFloat($scope.equipment_coef) + parseFloat($scope.capexMaterial.total))/(parseFloat($scope.discount_pay1) + parseFloat($scope.discount_pay2) - parseFloat($scope.opex.total))).toFixed(2);
+                console.log($scope.term_with);
+            };
+
+            $scope.discountPay = function(){
+                if($scope.standart_dis == 'Нет'){
+                    $scope.discount_pay1 = ($scope.stan_pay1 * (1 - parseInt($scope.dis_dis)/100)).toFixed(2);
+                }else{
+                    $scope.discount_pay1 = ($scope.stan_pay1 * (1 - $scope.final_discount/100)).toFixed(2);
+                }
+                $scope.stanPay2();
+                $scope.monthPaymentsChange();
+            }
+
+            $scope.monthPaymentsChange = function(){
+                $scope.total_amount_month = 0;
+                $scope.total_nds_month = 0;
+                $scope.monthPayments?.forEach(x => {
+                   if(x.tech_name == 'pay_int'){
+                        if($scope.standart_dis == 'Да'){
+                            x.price_month = ($scope.stan_pay1 * (1 - $scope.final_discount/100)).toFixed(2);
+                        }else if($scope.standart_dis == 'Нет'){
+                            x.price_month = ($scope.stan_pay1 * (1 - $scope.dis_dis/100)).toFixed(2);
+                        }
+                        else{
+                            x.price_month = 0;
+                        }
+                   }
+                   if(x.tech_name == 'par_int'){
+                        x.price_month = $scope.discount_pay2 ? $scope.discount_pay2 : 0;
+                   }
+                   x.amount_month = x.qpay_month * x.price_month;
+                   x.nds_month = (x.amount_month * 12/112).toFixed(2);
+                   $scope.total_amount_month += parseFloat(x.amount_month);
+                   $scope.total_nds_month += parseFloat(x.amount_month * 12/112);
+                });
+                $scope.total_nds_month = $scope.total_nds_month.toFixed(2);
+                $scope.total_amount_month = $scope.total_amount_month.toFixed(2);
+            }
+
+            $scope.timePaymentsChange = function(){
+                $scope.total_nds = 0;
+                $scope.total_amount = 0;
+
+                $scope.timePayments?.forEach(x => {
+                    x.amount = x.price * x.qpay;
+                    x.nds = parseFloat(x.amount * 12/112).toFixed(2);
+                    $scope.total_amount += x.amount;
+                    $scope.total_nds += parseFloat(x.amount * 12/112);
+                });
+                $scope.total_nds = $scope.total_nds.toFixed(2);
+                $scope.total_amount = $scope.total_amount.toFixed(2);
+            }
+
+            $scope.addTimePayments = function(){
+                $scope.timePayments?.push({
+                    spec_ont: '',
+                    qpay: 0,
+                    price: 0,
+                    amount: 0,
+                    nds: 0,
+                    addres: $scope.connectionInfo?.oblast +', '+ $scope.connectionInfo?.city +', '+ $scope.connectionInfo?.add_tech,
+                    disabled: false
+                })
+            };
+
+            $scope.removeTimePayments = function(){
+                if($scope.timePayments?.findLast(x => !x.disabled)){
+                    $scope.timePayments?.pop();
+                }
+                $scope.timePaymentsChange();
+            };
+
+            $scope.addMonthPayments = function(){
+                $scope.monthPayments?.push({
+                    spec_month: '',
+                    qpay_month: 0,
+                    price_month: 0,
+                    amount_month: 0,
+                    nds_month: 0,
+                    addres_month: $scope.connectionInfo?.oblast +', '+ $scope.connectionInfo?.city +', '+ $scope.connectionInfo?.add_tech,
+                    disabled: false
+                })
+            };
+
+            $scope.removeMonthPayments = function(){
+                if($scope.monthPayments?.findLast(x => !x.disabled)){
+                    $scope.monthPayments?.pop();
+                }
+                $scope.monthPaymentsChange();
+            };
+
+            $scope.showLastMile = function(){
+                $scope.isShowLastMile = !$scope.isShowLastMile;
+            };
+            $scope.downloadCalculateKP = function(){
+                $http.put('/camunda/api/engine/engine/default/process-instance/'+processInstanceId+'/variables/timePayments',{type:"Json",value:JSON.stringify($scope.timePayments)}).then(function (result) {
+                    $http.put('/camunda/api/engine/engine/default/process-instance/'+processInstanceId+'/variables/monthPayments',{type:"Json",value:JSON.stringify($scope.monthPayments)}).then(function (result) {
+                        $http.put('/camunda/api/engine/engine/default/process-instance/'+processInstanceId+'/variables/total_nds',{type:"Double",value:$scope.total_nds}).then(function (result) {
+                            $http.put('/camunda/api/engine/engine/default/process-instance/'+processInstanceId+'/variables/total_nds_month',{type:"Double",value:$scope.total_nds_month}).then(function (result) {
+                                $http.put('/camunda/api/engine/engine/default/process-instance/'+processInstanceId+'/variables/total_amount_month',{type:"Double",value:$scope.total_amount_month}).then(function (result) {
+                                    $http.put('/camunda/api/engine/engine/default/process-instance/'+processInstanceId+'/variables/total_amount',{type:"Double",value:$scope.total_amount}).then(function (result) {
+                                        window.open('/camunda/fixed-internet/' + camForm.taskId + '/' + $scope.kaseInfo.term_con + '/calculate-kp', '_blank');
+                                    });
+                                });
+                            });
+                        });
+                    });
+                });
+            };
+
+            camForm.on('submit', function (event) {
+                camForm.variableManager.destroyVariable('stan_pay1');
+                camForm.variableManager.createVariable({
+                    name: 'stan_pay1',
+                    type: 'Double',
+                    value: $scope.stan_pay1
+                });
+
+                camForm.variableManager.destroyVariable('stan_pay2');
+                camForm.variableManager.createVariable({
+                    name: 'stan_pay2',
+                    type: 'Double',
+                    value: $scope.stan_pay2
+                });
+
+                camForm.variableManager.destroyVariable('term_without');
+                camForm.variableManager.createVariable({
+                    name: 'term_without',
+                    type: 'String',
+                    value: $scope.term_without
+                });
+
+                camForm.variableManager.destroyVariable('term_with');
+                camForm.variableManager.createVariable({
+                    name: 'term_with',
+                    type: 'Double',
+                    value: $scope.term_with
+                });
+
+                camForm.variableManager.destroyVariable('discount_pay1');
+                camForm.variableManager.createVariable({
+                    name: 'discount_pay1',
+                    type: 'Double',
+                    value: $scope.discount_pay1
+                });
+
+                camForm.variableManager.destroyVariable('discount_pay2');
+                camForm.variableManager.createVariable({
+                    name: 'discount_pay2',
+                    type: 'Double',
+                    value: $scope.discount_pay2
+                });
+
+                camForm.variableManager.destroyVariable('equipment_coef');
+                camForm.variableManager.createVariable({
+                    name: 'equipment_coef',
+                    type: 'Double',
+                    value: $scope.equipment_coef
+                });
+
+                camForm.variableManager.destroyVariable('internet_coef');
+                camForm.variableManager.createVariable({
+                    name: 'internet_coef',
+                    type: 'Double',
+                    value: $scope.internet_coef
+                });
+
+                camForm.variableManager.destroyVariable('standart_dis');
+                camForm.variableManager.createVariable({
+                    name: 'standart_dis',
+                    type: 'String',
+                    value: $scope.standart_dis
+                });
+
+                camForm.variableManager.destroyVariable('lm_option');
+                camForm.variableManager.createVariable({
+                    name: 'lm_option',
+                    type: 'Integer',
+                    value: $scope.lm_option
+                });
+
+                camForm.variableManager.destroyVariable('intercity');
+                camForm.variableManager.createVariable({
+                    name: 'intercity',
+                    type: 'String',
+                    value: $scope.intercity
+                });
+
+                camForm.variableManager.destroyVariable('intercity_coef');
+                camForm.variableManager.createVariable({
+                    name: 'intercity_coef',
+                    type: 'Double',
+                    value: $scope.intercity_coef
+                });
+
+                camForm.variableManager.destroyVariable('payment');
+                camForm.variableManager.createVariable({
+                    name: 'payment',
+                    type: 'Double',
+                    value: $scope.payment
+                });
+
+                camForm.variableManager.destroyVariable('term');
+                camForm.variableManager.createVariable({
+                    name: 'term',
+                    type: 'Integer',
+                    value: $scope.term
+                });
+
+                camForm.variableManager.destroyVariable('final_discount');
+                camForm.variableManager.createVariable({
+                    name: 'final_discount',
+                    type: 'Integer',
+                    value: $scope.final_discount
+                });
+
+                camForm.variableManager.destroyVariable('dis_dis');
+                camForm.variableManager.createVariable({
+                    name: 'dis_dis',
+                    type: 'Integer',
+                    value: $scope.dis_dis
+                });
+
+                camForm.variableManager.variableValue('monthPayments',$scope.monthPayments);
+                camForm.variableManager.variableValue('timePayments',$scope.timePayments);
+                camForm.variableManager.variableValue('total_nds',$scope.total_nds);
+                camForm.variableManager.variableValue('total_amount',$scope.total_amount);
+                camForm.variableManager.variableValue('total_nds_month',$scope.total_nds_month);
+                camForm.variableManager.variableValue('total_amount_month',$scope.total_amount_month);
+
+                camForm.variableManager.variableValue('prepareOfferTaskResult', $scope.resolution);
+                camForm.variableManager.variableValue('prepareOfferTaskComment', $scope.comment);
+            });
+
+        }]);
+    </script>
+
+    <div class="form-group">
+        <label class="col-sm-3 control-label" style="padding-top: 0">Номер заявки: </label>
+        <div class="col-sm-9 text-primary">{{numberRequest}}</div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-3 control-label" style="padding-top: 0">Клиент: </label>
+        <div class="col-sm-9">{{legalInfo.comp_name}} {{legalInfo.BIN}}</div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-3 control-label" style="padding-top: 0">Тип услуги:</label>
+        <div class="col-sm-9">{{legalInfo.type}}</div>
+    </div>
+
+    <accordion>
+        <accordion-group>
+            <accordion-heading>
+                Данные клиента <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
+            </accordion-heading>
+            <table class="table">
+                <fixed-internet-legal-info form="kcell_form" view="view" data="legalInfo" disabled="true"></fixed-internet-legal-info>
+            </table>
+        </accordion-group>
+    </accordion>
+
+    <accordion>
+        <accordion-group>
+            <accordion-heading>
+                Адрес точки подключения <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
+            </accordion-heading>
+            <table class="table">
+                <fixed-internet-connection-info form="kcell_form" extra="false" view="view" data="connectionInfo" disabled="true"></fixed-internet-connection-info>
+            </table>
+        </accordion-group>
+    </accordion>
+
+    <accordion>
+        <accordion-group>
+            <accordion-heading>
+                Заполняется, если клиент не является собственником здания <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
+            </accordion-heading>
+            <fixed-internet-landlord-info form="kcell_form" view="view" data="landlordInfo" disabled="true" connection="connectionInfo"></fixed-internet-landlord-info>
+        </accordion-group>
+    </accordion>
+
+    <accordion>
+        <accordion-group>
+            <accordion-heading>
+                Ответственные лица со стороны клиента, с контактами <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
+            </accordion-heading>
+            <table class="table">
+                <fixed-internet-responsible-persons-info form="kcell_form" view="view" data="responsiblePersonsInfo" disabled="true"></fixed-internet-responsible-persons-info>
+            </table>
+        </accordion-group>
+    </accordion>
+
+    <accordion>
+        <accordion-group>
+            <accordion-heading>
+                Заполняется KASE <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
+            </accordion-heading>
+            <table class="table">
+                <fixed-internet-kase-info form="kcell_form" view="view" data="kaseInfo" disabled="true"></fixed-internet-kase-info>
+            </table>
+        </accordion-group>
+    </accordion>
+
+    <accordion ng-if="legalInfo.type == 'VPN'">
+        <accordion-group>
+            <accordion-heading>
+                Адрес головного офиса <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
+            </accordion-heading>
+            <table class="table">
+                <fixed-internet-office-info form="kcell_form" view="view" data="officeInfo" disabled="true"></fixed-internet-office-info>
+            </table>
+        </accordion-group>
+    </accordion>
+
+    <accordion ng-if="legalInfo.type == 'VPN'">
+        <accordion-group>
+            <accordion-heading>
+                Заполняется, если клиент не является собственником здания <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
+            </accordion-heading>
+            <fixed-internet-landlord-info form="kcell_form" view="view" data="officeLandlordInfo" disabled="true" connection="officeInfo"></fixed-internet-landlord-info>
+        </accordion-group>
+    </accordion>
+
+    <accordion ng-if="isActiveConnectionPoint">
+        <accordion-group>
+            <accordion-heading>
+                Адрес точки подключения <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
+            </accordion-heading>
+            <table class="table">
+                <fixed-internet-connection-info form="kcell_form" extra="true" view="view" data="extraConnectionInfo" disabled="true"></fixed-internet-connection-info>
+            </table>
+        </accordion-group>
+    </accordion>
+
+    <accordion ng-if="isActiveConnectionPoint">
+        <accordion-group>
+            <accordion-heading>
+                Заполняется, если клиент не является собственником здания <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
+            </accordion-heading>
+            <fixed-internet-landlord-info form="kcell_form" view="view" data="extraLandlordInfo" disabled="true" connection="extraConnectionInfo"></fixed-internet-landlord-info>
+        </accordion-group>
+    </accordion>
+    <div class="col-sm-12">
+        <div class="col-sm-8">
+            <table class="table table-bordered">
+                <thead>
+                <td></td>
+                <td>Стандарт</td>
+                <td>С учётом скидок и доп. политик</td>
+                </thead>
+                <tbody>
+                <tr>
+                    <td>Абонентская плата, тг</td>
+                    <td>{{stan_pay1}}</td>
+                    <td>{{discount_pay1 ? discount_pay1 : ""}}</td>
+                </tr>
+                <tr>
+                    <td>Ежемесячные затраты на LM, тг</td>
+                    <td>{{stan_pay2 ? stan_pay2: ""}}</td>
+                    <td>{{discount_pay2 ? discount_pay2 : ""}}</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="col-sm-12">
+    <div class="col-sm-6">
+        <table class="table table-bordered">
+            <tbody>
+            <tr>
+                <td>Скорость, Мбит/с</td>
+                <td>{{legalInfo.capacity}} Мбит/с</td>
+            </tr>
+            <tr>
+                <td>Количество IP</td>
+                <td>{{legalInfo.ip_add}}</td>
+            </tr>
+            <tr>
+                <td>Стоимость оборудования</td>
+                <td>{{capexEquipment.total}}</td>
+            </tr>
+            <tr>
+                <td>Стоимость материалов и монтажных работ</td>
+                <td>{{capexMaterial.total}}</td>
+            </tr>
+            <tr>
+                <td>OPEX</td>
+                <td>{{opex.total}}</td>
+            </tr>
+            <tr>
+                <td>Internet coef. (usage)</td>
+                <td>
+                    <select class="form-control selectpicker" select-picker title="" name="internet_coef" ng-model="internet_coef" required>
+                        <option value="0.1">0.1</option>
+                        <option value="0.2">0.2</option>
+                        <option value="0.3">0.3</option>
+                        <option value="0.4">0.4</option>
+                        <option value="0.5">0.5</option>
+                        <option value="0.6">0.6</option>
+                        <option value="0.7">0.7</option>
+                        <option value="0.8">0.8</option>
+                        <option value="0.9">0.9</option>
+                        <option value="1">1</option>
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <td>Intercity coef. (usage)</td>
+                <td><select class="form-control selectpicker" select-picker title="" name="intercity_coef" ng-model="intercity_coef" required>
+                    <option value="0.1">0.1</option>
+                    <option value="0.2">0.2</option>
+                    <option value="0.3">0.3</option>
+                    <option value="0.4">0.4</option>
+                    <option value="0.5">0.5</option>
+                    <option value="0.6">0.6</option>
+                    <option value="0.7">0.7</option>
+                    <option value="0.8">0.8</option>
+                    <option value="0.9">0.9</option>
+                    <option value="1">1</option>
+                </select></td>
+            </tr>
+            <tr>
+                <td>Equipment coef. (usage)</td>
+                <td>
+                    <select class="form-control selectpicker" select-picker title="" name="equipment_coef" ng-model="equipment_coef" ng-change="stanPay2()" required>
+                        <option value="0.1">0.1</option>
+                        <option value="0.2">0.2</option>
+                        <option value="0.3">0.3</option>
+                        <option value="0.4">0.4</option>
+                        <option value="0.5">0.5</option>
+                        <option value="0.6">0.6</option>
+                        <option value="0.7">0.7</option>
+                        <option value="0.8">0.8</option>
+                        <option value="0.9">0.9</option>
+                        <option value="1">1</option>
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <td>Срок контракта, мес</td>
+                <td>
+                    <select class="form-control selectpicker" select-picker title="" name="term" ng-change="stanPay2()" ng-model="term" required>
+                        <option value="3">3</option>
+                        <option value="6">6</option>
+                        <option value="9">9</option>
+                        <option value="12">12</option>
+                        <option value="15">15</option>
+                        <option value="18">18</option>
+                        <option value="24">24</option>
+                        <option value="36">36</option>
+                        <option value="48">48</option>
+                        <option value="60">60</option>
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <td>Единовременный платёж</td>
+                <td>
+                    <input type="text" class="form-control" name="payment" ng-model="payment" ng-change="stanPay2()" required>
+                    <span class="has-error" ng-if="kcell_form.payment.$error.required && (kcell_form.payment.$touched || view.submitted)">Required field</span>
+                </td>
+            </tr>
+            <tr>
+                <td>Принять стандартную политику скидок</td>
+                <td>
+                    <select class="form-control selectpicker" select-picker title="" name="standart_dis" ng-change="discountPay()" ng-model="standart_dis" required>
+                        <option value="Да">Да</option>
+                        <option value="Нет">Нет</option>
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <td>Скидка, согласно стандартной политики,%</td>
+                <td>{{final_discount}}</td>
+            </tr>
+            <tr>
+                <td>Скидка, выбранная вручную %</td>
+                <td>
+                    <select class="form-control selectpicker" select-picker title="" ng-change="discountPay()" name="dis_dis" ng-model="dis_dis" required>
+                        <option value="0">0</option>
+                        <option value="5">5</option>
+                        <option value="10">10</option>
+                        <option value="15">15</option>
+                        <option value="20">20</option>
+                        <option value="25">25</option>
+                        <option value="30">30</option>
+                        <option value="35">35</option>
+                        <option value="40">40</option>
+                        <option value="45">45</option>
+                        <option value="50">50</option>
+                        <option value="55">55</option>
+                        <option value="60">60</option>
+                        <option value="65">65</option>
+                        <option value="70">70</option>
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <td>Вариант рассчёта LM</td>
+                <td>
+                    <select class="form-control selectpicker" select-picker title="" ng-change="stanPay2()" name="lm_option" ng-model="lm_option" required>
+                        <option ng-selected="true" value="1">1</option>
+                        <option value="2">2</option>
+                    </select>
+                    <span class="has-error" ng-if="kcell_form.lm_option.$error.required && (kcell_form.lm_option.$touched || view.submitted)">Required field</span>
+                </td>
+            </tr>
+            <tr>
+                <td>Срок окупаемости без оплаты LM, мес</td>
+                <td>{{term_without}}</td>
+            </tr>
+            <tr>
+                <td>Срок окупаеости с оплатой LM</td>
+                <td>{{term_with}}</td>
+            </tr>
+            <tr>
+                <td>Арендная плата за размещения обор</td>
+                <td>{{rentAmount}}</td>
+            </tr>
+            <tr>
+                <td>Intercity</td>
+                <td>
+                    <input type="text" class="form-control" name="intercity" ng-model="intercity" required>
+                    <span class="has-error" ng-if="kcell_form.intercity.$error.required && (kcell_form.intercity.$touched || view.submitted)">Required field</span>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+    <div class="col-sm-12">
+        <div class="col-sm-12">
+            <h4>Единовременные платежи:</h4>
+            <table class="table table-bordered">
+                <thead>
+                <td>№</td>
+                <td>Описание</td>
+                <td>Кол-во</td>
+                <td>Цена за ед., тенге с НДС</td>
+                <td>Сумма, в тенге с НДС</td>
+                <td>В том числе НДС 12%, тенге</td>
+                <td>Адрес точки подключения</td>
+                </thead>
+                <tbody>
+                <tr ng-repeat="item in timePayments track by $index">
+                    <td>{{$index + 1}}</td>
+                    <td ng-if="item.disabled">{{item.spec_ont}}</td>
+                    <td ng-if="!item.disabled"><input type="text" class="form-control" ng-change="timePaymentsChange()" ng-model="item.spec_ont"></td>
+                    <td>
+                        <input type="number" class="form-control" name="qpay" min="0" ng-change="timePaymentsChange()" ng-model="item.qpay">
+                    </td>
+                    <td ng-if="item.disabled">{{item.price}}</td>
+                    <td ng-if="!item.disabled"><input type="number" class="form-control" ng-change="timePaymentsChange()" ng-model="item.price"></td>
+                    <td>{{item.amount}}</td>
+                    <td>{{item.nds}}</td>
+                    <td>{{item.addres}}</td>
+                </tr>
+                <tr>
+                    <td></td>
+                    <td>Итого</td>
+                    <td></td>
+                    <td></td>
+                    <td>{{total_amount}}</td>
+                    <td>{{total_nds}}</td>
+                    <td></td>
+                </tr>
+                </tbody>
+            </table>
+            <div>
+                <button ng-click="addTimePayments()">Добавить дополнительную строку</button>
+                <button ng-click="removeTimePayments()">Удалить дополнительную строку</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-sm-12">
+        <div class="col-sm-12">
+            <h4>Ежемесячные платежи:</h4>
+            <table class="table table-bordered">
+                <thead>
+                <td>№</td>
+                <td>Описание</td>
+                <td>Кол-во</td>
+                <td>Цена за ед., тенге с НДС</td>
+                <td>Сумма, в тенге с НДС</td>
+                <td>В том числе НДС 12%, тенге</td>
+                <td>Адрес точки подключения</td>
+                </thead>
+                <tbody>
+                <tr ng-repeat="item in monthPayments track by $index">
+                    <td>{{$index + 1}}</td>
+                    <td ng-if="item.disabled">{{item.spec_month}}</td>
+                    <td ng-if="!item.disabled"><input type="text" class="form-control" ng-change="monthPaymentsChange()" ng-model="item.spec_month"></td>
+                    <td>
+                        <input type="number" class="form-control" name="qpay" min="0" ng-change="monthPaymentsChange()" ng-model="item.qpay_month">
+                    </td>
+                    <td ng-if="item.disabled">{{item.price_month ? item.price_month : 0}}</td>
+                    <td ng-if="!item.disabled"><input type="number" class="form-control" ng-change="monthPaymentsChange()" ng-model="item.price_month"></td>
+                    <td>{{item.amount_month ? item.amount_month : 0}}</td>
+                    <td>{{item.nds_month ? item.nds_month : 0}}</td>
+                    <td>{{item.addres_month}}</td>
+                </tr>
+                <tr>
+                    <td></td>
+                    <td>Итого</td>
+                    <td></td>
+                    <td></td>
+                    <td>{{total_amount_month ? total_amount_month : 0}}</td>
+                    <td>{{total_nds_month ? total_nds_month : 0}}</td>
+                    <td></td>
+                </tr>
+                </tbody>
+            </table>
+            <div>
+                <button ng-click="addMonthPayments()">Добавить дополнительную строку</button>
+                <button ng-click="removeMonthPayments()">Удалить дополнительную строку</button>
+            </div>
+        </div>
+    </div>
+
+    <div ng-if="isShowLastMile">
+        <h3>Затраты на последнюю милю</h3>
+
+        <div class="form-group col-sm-12">
+            <div class="col-sm-5">
+                <table class="table table-bordered">
+                    <tbody>
+                    <tr>
+                        <td class="col-sm-6" >
+                            <label>Срок имплементации услуг</label>
+                        </td>
+                        <td class="col-sm-3">
+                            {{lastMileWeeks}}
+                        </td>
+                        <td class="col-sm-2">
+                            <label>нед.</label>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+
+        </div>
+
+        <div class="form-group col-sm-12">
+            <table class="table table-bordered">
+                <thead>
+                <tr style="background: #f0ad4e">
+                    <th colspan="6"><b>CAPEX (восполняемый) - Оборудование</b></th>
+                </tr>
+                <tr>
+                    <th>№</th>
+                    <th>Наименование</th>
+                    <th>Кол-во</th>
+                    <th>Цена</th>
+                    <th>Валюта</th>
+                    <th>Итого, тг</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr ng-repeat="item in capexEquipment.items">
+                    <td>{{item.n}}</td>
+                    <td>{{item.name}}</td>
+                    <td>{{item.quantity}}</td>
+                    <td>{{item.price}}</td>
+                    <td>{{item.currency}}</td>
+                    <td>{{item.subtotal}}</td>
+                </tr>
+
+                <tr>
+                    <td></td>
+                    <td></td>
+                    <th colspan="3">Total</th>
+                    <td>{{capexEquipment.total}}</td>
+                </tr>
+
+                </tbody>
+            </table>
+        </div>
+
+        <div class="form-group col-sm-12">
+            <table class="table table-bordered">
+                <thead>
+                <tr style="background: #f0ad4e">
+                    <th colspan="6"><b>CAPEX (не восполняемый) - Материал + монтажные работы</b></th>
+                </tr>
+                <tr>
+                    <th>№</th>
+                    <th>Наименование</th>
+                    <th>Кол-во</th>
+                    <th>Цена</th>
+                    <th>Валюта</th>
+                    <th>Итого, тг</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr ng-repeat="item in capexMaterial.items">
+                    <td>{{item.n}}</td>
+                    <td>{{item.name}}</td>
+                    <td>{{item.quantity}}</td>
+                    <td>{{item.price}}</td>
+                    <td>{{item.currency}}</td>
+                    <td>{{item.subtotal}}</td>
+                </tr>
+
+                <tr>
+                    <td></td>
+                    <td></td>
+                    <th colspan="3">Total</th>
+                    <td>{{capexMaterial.total}}</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="form-group col-sm-12">
+            <div class="col-sm-4">
+                <table class="table table-bordered">
+                    <tbody>
+                    <tr>
+                        <td>
+                            <label>Intercity channel utilization</label>
+                        </td>
+                        <td>{{channelUtil}}</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="form-group col-sm-12">
+            <table class="table table-bordered">
+                <thead>
+                <tr style="background: #f0ad4e">
+                    <th colspan="6"><b>OPEX</b></th>
+                </tr>
+                <tr>
+                    <th>№</th>
+                    <th>Наименование</th>
+                    <th>Кол-во</th>
+                    <th>Цена</th>
+                    <th>Валюта</th>
+                    <th>Итого, тг</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr ng-repeat="item in opex.items">
+                    <td>{{item.n}}</td>
+                    <td>{{item.name}}</td>
+                    <td>{{item.quantity}}</td>
+                    <td>{{item.price}}</td>
+                    <td>{{item.currency}}</td>
+                    <td>{{item.subtotal}}</td>
+                </tr>
+
+                <tr>
+                    <td></td>
+                    <td></td>
+                    <th colspan="3">Total</th>
+                    <td>{{opex.total}}</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+    </div>
+
+    <iframe id="fileDownloadIframe" style="display:none;"></iframe>
+    <div class="form-group">
+        <label class="col-sm-2 control-label">Attachments</label>
+        <div class="col-sm-10">
+            <input type="file" class="form-control" id="attachments" name="attachments" onchange="angular.element(this).scope().fileSelected(this)"/>
+            <div class="col-sm-12" style="padding: 0;">
+                <table class="table table-bordered">
+                    <thead>
+                    <tr>
+                        <th>File Name</th>
+                        <th>Created</th>
+                        <th>Created By</th>
+                        <th>Delete</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr ng-repeat="file in attachments track by $index">
+                        <td><a ng-click="downloadFile(file)">{{file.name}}</a></td>
+                        <td>{{file.created | date: 'dd.MM.yyyy HH:mm'}}</td>
+                        <td>{{file.createdBy}}</td>
+                        <td><a ng-click="clearFile($index)"><i class="glyphicon glyphicon-trash"></i></a></td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-4 control-label">Tariff: <span class="text-danger glyphicon-asterisk"></span></label>
+        <div class="col-sm-8">
+            <select class="form-control selectpicker" select-picker title="" name="tariffPlan" ng-model="action.tariffPlan" disabled ng-style="{'background-color': ((pbxData.fetched && pbxData.tariffPlan !== action.tariffPlan) ? 'orange' : null)}">
+                <option value="Стандартный" selected>Стандартный</option>
+            </select>
+            <input type="text" ng-show="action.tariffPlan == 'Нестандартный пакет'" class="form-control" style="margin-top: 3px;" name="tariffExtra" ng-model="action.tariffExtra" placeholder="Укажите тариф" ng-required="action.tariffPlan == 'Нестандартный тариф'" ng-style="{'background-color': ((pbxData.fetched && pbxData.tariffExtra !== action.tariffExtra) ? 'orange' : null)}">
+            <span class="has-error" ng-if="kcell_form.tariffExtra.$error.required && (kcell_form.tariffExtra.$touched || view.submitted)">Required field</span>
+        </div>
+    </div>
+    <div class="col-sm-12"><hr /></div>
+    <div class="form-group">
+        <label class="col-sm-4 control-label">Resolution:</label>
+        <div class="col-sm-8">
+            <label class="radio-inline"><input type="radio" value="Approve" ng-model="resolution" required> Approve</label>
+            <label class="radio-inline"><input type="radio" value="Cancel task" ng-model="resolution" required> Cancel task</label>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-2 control-label">Comment: <span class="text-danger glyphicon-asterisk" ng-if="resolution == 'Cancel task'"></span></label>
+        <div class="col-sm-10">
+            <textarea elastic-textarea class="form-control" rows="4" ng-model="comment" name="comment" ng-required="resolution == 'Cancel task'"></textarea>
+            <label class="error" ng-show="kcell_form.comment.$error.required && ( kcell_form.comment.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+    <accordion>
+        <accordion-group is-open="isHistoryOpen">
+            <accordion-heading>
+                History <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
+            </accordion-heading>
+            <table class="table">
+                <thead>
+                <tr>
+                    <th>Activity</th>
+                    <th>Assignee</th>
+                    <th>Assigned date</th>
+                    <th>Claimed date</th>
+                    <th>Resolution date</th>
+                    <th>Resolution</th>
+                    <th>Comment</th>
+                    <th>Attachments</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr ng-repeat="resolution in resolutions | orderBy:'-' track by $index">
+                    <td>{{resolution.taskName}}</td>
+                    <td>{{resolution.assigneeName}}</td>
+                    <td>{{resolution.assignDate | date: 'dd.MM.yyyy HH:mm'}}</td>
+                    <td>{{resolution.claimDate | date: 'dd.MM.yyyy HH:mm'}}</td>
+                    <td>{{resolution.taskEndDate | date: 'dd.MM.yyyy HH:mm'}}</td>
+                    <td>{{resolution.resolution}}</td>
+                    <td>{{resolution.comment}}</td>
+                    <td>
+                        <p ng-repeat="file in resolution.attachments.added">{{file}}</p>
+                        <p ng-repeat="file in resolution.attachments.removed" class="text-danger">{{file}}</p>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </accordion-group>
+    </accordion>
+    <button class="btn btn-primary" ng-click="showLastMile()">Затраты на последнюю милю</button>
+    <button class="btn btn-primary" ng-click="downloadCalculateKP()" target="_blank">Расчитать КП</button>
+
+</form>

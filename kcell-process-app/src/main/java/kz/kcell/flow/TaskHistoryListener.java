@@ -62,6 +62,7 @@ public class TaskHistoryListener implements TaskListener {
       "change-tsd",
       "tsd-processing",
       "cancel-tsd",
+      "FixedInternet",
       "monthlyAct"
     );
 
