@@ -53,6 +53,7 @@ define(['../module', 'moment'], function (module, moment) {
                         ],
                         'AftersalesPBX': [],
                         'revolvingNumbers': [],
+                        'ASRev': [],
                         'FixedInternet': []
                     };
 
@@ -104,7 +105,7 @@ define(['../module', 'moment'], function (module, moment) {
                     scope.clientBINMap = {};
                     scope.binPattern = /^(?:\d{12}|\w+@\w+\.\w{2,3})$/;
                     scope.getBIN = function (val) {
-                        if (scope.onlyOneProcessActiveName !== 'AftersalesPBX') return scope.clientBINs;
+                        if (scope.onlyOneProcessActiveName !== 'AftersalesPBX'|| scope.onlyOneProcessActiveName !== 'ASRev') return scope.clientBINs;
                         else return scope.aftersalesClientBINs;
                     };
 
@@ -122,6 +123,9 @@ define(['../module', 'moment'], function (module, moment) {
                         }, {
                             name: 'Aftersales PBX',
                             value: 'AftersalesPBX'
+                        }, {
+                            name: 'Aftersales Revolving Numbers',
+                            value: 'ASRev'
                         }, {
                             name: 'PBX Revolving Numbers',
                             value: 'revolvingNumbers'
@@ -186,6 +190,9 @@ define(['../module', 'moment'], function (module, moment) {
                         AftersalesPBX: {
                             title: "aftersales pbx", value: false
                         },
+                        ASRev:{
+                            title: "aftersales revolving numbers", value:false
+                        },
                         FixedInternet: {
                             title: "fixed internet/vpn", value:false
                         }
@@ -220,6 +227,10 @@ define(['../module', 'moment'], function (module, moment) {
 
                         if (scope.freephoneOrBulkSms || scope.aftersalesPBXorRevolving) scope.pbx = false;
                         else scope.pbx = true;
+
+                        if(scope.DPProcesses.bulksmsConnectionKAE || scope.DPProcesses.freephone ||scope.DPProcesses.ASRev || scope.DPProcesses.revolvingNumbers )
+                            scope.aftersalesPBXOrPbx = false;
+                        else scope.aftersalesPBXOrPbx = true;
                     }
                     scope.onlyOneProcessActive = false;
                     scope.onlyOneProcessActiveName = '';
@@ -246,7 +257,7 @@ define(['../module', 'moment'], function (module, moment) {
                                 //scope.clientBINMap[r.value] = true;
                                 let bin = Number(r.value);
                                 if (scope.clientBINs.indexOf(bin) === -1) scope.clientBINs.push(bin);
-                                if (r.processDefinitionKey === 'AftersalesPBX' && scope.aftersalesClientBINs.indexOf(bin) === -1) {
+                                if ((r.processDefinitionKey === 'AftersalesPBX' || r.processDefinitionKey === 'ASRev') && scope.aftersalesClientBINs.indexOf(bin) === -1) {
                                     scope.aftersalesClientBINs.push(bin);
                                 }
                             });
@@ -256,6 +267,7 @@ define(['../module', 'moment'], function (module, moment) {
                     }
                     scope.clearFiltersDP = function () {
                         scope.filterDP.bin = undefined;
+                        scope.filterDP.kae = undefined;
                         scope.filterDP.processesDP = [];
                         scope.filterDP.shortNumber = undefined;
                         scope.filterDP.participation = undefined;
@@ -344,13 +356,22 @@ define(['../module', 'moment'], function (module, moment) {
                                 filtered.revolvingNumbers)) aftersalesPBXorRevolving = true;
                             scope.aftersalesPBXorRevolving = aftersalesPBXorRevolving;
 
-                            var asRevOrFI = false;
-                            if (filtered.FixedInternet || filtered.ASRev) asRevOrFI = true;
-                            scope.asRevOrFI = asRevOrFI;
-
                             if (filtered.PBX)  scope.pbx = filtered.PBX;
                             else scope.pbx = false;
 
+                            var aftersalesPBXOrPbx = false;
+                            if(filtered.bulksmsConnectionKAE || filtered.freephone || filtered.ASRev || filtered.revolvingNumbers) aftersalesPBXOrPbx = false;
+                            else aftersalesPBXOrPbx = true;
+                            scope.aftersalesPBXOrPbx = aftersalesPBXOrPbx;
+
+                            var aftersalesRevNumOrRevNum = false;
+                            if(filtered.bulksmsConnectionKAE || filtered.freephone || filtered.PBX || filtered.AftersalesPBX) aftersalesRevNumOrRevNum = false;
+                            else aftersalesRevNumOrRevNum = true;
+                            scope.aftersalesRevNumOrRevNum = aftersalesRevNumOrRevNum;
+
+                            var asRevOrFI = false;
+                            if (filtered.FixedInternet || filtered.ASRev) asRevOrFI = true;
+                            scope.asRevOrFI = asRevOrFI;
 
                         }
 
@@ -650,7 +671,7 @@ define(['../module', 'moment'], function (module, moment) {
                                         });
                                     }
 
-                                    if (scope.selectedProcessInstancesDP.some(e => e.value == 'AftersalesPBX')) {
+                                    if (scope.selectedProcessInstancesDP.some(e => e.value == 'AftersalesPBX' || e.value == 'ASRev' || e.value == 'PBX' || e.value == 'revolvingNumbers')) {
                                         $q.all(scope[processInstancesDP].map(instance => {
                                             return $http.get(baseUrl + '/history/variable-instance?deserializeValues=false&processInstanceId=' + instance.id);
                                         })).then(allResponses => {
@@ -663,12 +684,23 @@ define(['../module', 'moment'], function (module, moment) {
                                                     responses[r].forEach(v => {
                                                         if (v.name === 'legalInfo') instance.legalInfo = JSON.parse(v.value);
                                                         else if (v.name === 'techSpecs') instance.techSpecs = JSON.parse(v.value);
+                                                        else if (v.name === 'technicalSpecifications') instance.technicalSpecifications = JSON.parse(v.value);
+                                                        else if (v.name === 'customerInformation') instance.customerInformation = JSON.parse(v.value);
+                                                        else if (v.name === 'sipDirectProtocol') instance.sipDirectProtocol = JSON.parse(v.value);
+                                                        else if (v.name === 'sipProtocol') instance.sipProtocol = JSON.parse(v.value);
+                                                        else if (v.name === 'action') instance.action = JSON.parse(v.value);
+                                                        else if (v.name === 'tariff') instance.pbxTariff = v.value;
+                                                        else if (v.name === 'tariffExtra') instance.pbxTariffExtra = v.value;
                                                         else if (v.name === 'clientBIN') instance.bin = v.value;
+                                                        else if (v.name === 'callbackNumber') instance.callbackNumber = v.value;
                                                     });
                                                     if (!instance.techSpecs) instance.techSpecs = {};
                                                     if (!instance.techSpecs.sip) instance.techSpecs.sip = {};
                                                     var ok = true;
                                                     if (scope.filterDP.ticName && (!instance.legalInfo.ticName || !instance.legalInfo.ticName.includes(scope.filterDP.ticName))) ok = false;
+                                                    if (scope.filterDP.callbackNumber && (!instance.callbackNumber || !instance.callbackNumber.includes(scope.filterDP.callbackNumber))) ok = false;
+                                                    if (scope.filterDP.kae && (!instance.legalInfo.KAE || !instance.legalInfo.KAE.includes(scope.filterDP.kae))) ok = false;
+                                                    if (scope.filterDP.callerID && (!instance.legalInfo.callerID || !instance.legalInfo.callerID.includes(scope.filterDP.callerID))) ok = false;
                                                     if (scope.filterDP.pbxNumbers && (!instance.techSpecs.pbxNumbers || !instance.techSpecs.pbxNumbers.includes(scope.filterDP.pbxNumbers))) ok = false;
                                                     if (scope.filterDP.salesReprId && scope.filterDP.salesReprId !== instance.legalInfo.salesReprId) ok = false;
                                                     if (scope.filterDP.connectionPoint
@@ -1279,6 +1311,8 @@ define(['../module', 'moment'], function (module, moment) {
                             template += 'infoAftersalesPBXSearch.html';
                         } else if (scope.jobModel.processDefinitionKey === 'revolvingNumbers') {
                             template += 'infoRevolvingNumbersSearch.html';
+                        }else if (scope.jobModel.processDefinitionKey === 'ASRev') {
+                            template += 'infoASRevSearch.html';
                         } else if (scope.jobModel.processDefinitionKey === 'FixedInternet') {
                             template += 'infoFixedInternetSearch.html';
                         }
