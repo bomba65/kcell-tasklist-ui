@@ -239,7 +239,7 @@ public class FirewallCreate implements JavaDelegate {
         ObjectMapper objectMapper = new ObjectMapper();
         ObjectNode objectNode = objectMapper.createObjectNode();
         objectNode.put("user","APIuser");
-        objectNode.put("password","API789!");
+        objectNode.put("password","rFDY8!#25zk6");
 
         String jsonInputString = objectNode.toString();
         URL urlRequest = new URL("https://"+firewallUrl+":443/web_api/login");
