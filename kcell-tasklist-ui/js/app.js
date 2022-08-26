@@ -83,7 +83,7 @@ define('app',[
 					"name" : "Delivery Portal",
 					"processes" : [
 						{key:'freephone', name:'Подключение IVR', group:'delivery_freephone_users'},
-						{key:'PBX', name:'PBX', group:'deliveyr_pbx_users'},
+						{key:'PBX', name:'PBX', group:'delivery_pbx_users'},
 						{key:'PBXdropConnection', name:'PBXdropConnection', group:'delivery_pbx_users'},
 						{key:'bulksmsConnectionKAE', name:'Bulk SMS through KAE', group:'delivery_sms_users'},
 						{key:'ConnectSMSPartners', name:'Подключение клиента', group:'delivery_sms_partner_users'},
