@@ -151,7 +151,97 @@ define(['../module', 'moment'], function (module, moment) {
                         //return $scope.ExcellentExport.convert({anchor: 'xlsxClick',format: 'xlsx',filename: 'delivery-portal'}, [{name: 'Process Instances',from: {table: 'xlsxDeliveryPortalTable'}}]);
 
                         var tbl = document.getElementById('xlsxDeliveryPortalTable');
-                        var ws = XLSX.utils.table_to_sheet(tbl, {dateNF: 'DD.MM.YYYY'});
+                        var ws;
+
+                        if (scope.onlyOneProcessActiveName === 'FixedInternet') {
+                            var arrId = {
+                                'headers': [
+                                    "ID абонента",
+                                    "ФИО/Наименование организации",
+                                    "Номер телефона абонента",
+                                    "IMSI",
+                                    "IMEI",
+                                    "Адрес проживания/Адрес регистрации юридического лица",
+                                    "Документ удостоверяющий личность",
+                                    "Дата рождения",
+                                    "ИНН/БИН",
+                                    "Адрес с которого оплачивают",
+                                    "Контактное лицо",
+                                    "Контактный телефон",
+                                    "Дата активации абонента",
+                                    "Номер SIM",
+                                    "Дата введения в статус SIM",
+                                    "Статус SIM",
+                                    "Дата блокировки SIM",
+                                    "Тип сети",
+                                    "Сокращенное обозначение региона",
+                                    "Дата и время актуализации",
+                                    "e-mail",
+                                    "Свидетельство о постановке на учет по НДС",
+                                    "Номера устройств абонентского оборудования",
+                                    "Статические IP-адреса для выделенных линий",
+                                    "Подсеть",
+                                    "Адреса установки абонентского оборудования",
+                                    "Адрес регистрации абонентского оборудования",
+                                    "Дата установки абонентского оборудования",
+                                    "Дата заключения договора",
+                                    "Status"
+                                ],
+                                'data': [{}]
+                            };
+
+                            let i = 0;
+                            for (let r in scope.fixedSearchResult) {
+                                scope.fixedSearchResult[r].forEach(v => {
+                                    arrId['data'].push({});
+                                    if (v.name === 'legalInfo') {
+                                        let leg = JSON.parse(v.value);
+                                        arrId['data'][i]["ФИО/Наименование организации"] = leg['comp_name'];
+                                        arrId['data'][i]["ИНН/БИН"] = leg['BIN'];
+                                        arrId['data'][i]["Тип сети"] = leg['type'];
+                                        arrId['data'][i]["Подсеть"] = leg['ip_add'] === 'Блок из 4-х IP адресов (/30)' ? '/30' : leg['ip_add'] === 'Блок из 8 IP адресов (/29)' ? '/29' : leg['ip_add'] === 'Блок из 16 IP адресов (/28)' ? '/28' : '';
+                                        
+
+                                        arrId['data'][i]["Статические IP-адреса для выделенных линий"] = leg['type'] === 'Fixed Internet' ? leg['ip_add']: "";
+                                    }
+
+                                    if (v.name === 'connectionInfo') {
+                                        let leg = JSON.parse(v.value);
+                                        arrId['data'][i]["Адреса установки абонентского оборудования"] = `${leg['oblast']}, ${leg['city']}, ${leg['add_tech']}` ;
+                                        arrId['data'][i]["Адрес регистрации абонентского оборудования"] = `${leg['oblast']}, ${leg['city']}, ${leg['add_tech']}`;
+                                    }
+
+                                    if (v.name === 'billing') {
+                                        let leg = JSON.parse(v.value);
+                                        arrId['data'][i]["Дата активации абонента"] = leg['serviceDate'] ;
+                                        arrId['data'][i]["Дата установки абонентского оборудования"] = leg['serviceDate'];
+                                    }
+
+                                    if (v.name === 'contractInfo') {
+                                        let leg = JSON.parse(v.value);
+                                        arrId['data'][i]["Адрес проживания/Адрес регистрации юридического лица"] = leg['yur_add'];
+                                        arrId['data'][i]["Адрес с которого оплачивают"] = leg['yur_add'];
+                                        arrId['data'][i]["e-mail"] = leg['email'];
+                                        arrId['data'][i]["Дата заключения договора"] = leg['contract_date'];
+                                    }
+
+                                    if (v.name === 'responsiblePersonsInfo') {
+                                        let leg = JSON.parse(v.value);
+                                        arrId['data'][i]["Номер телефона абонента"] = leg['tel_spec'];
+                                        arrId['data'][i]["Контактный телефон"] = leg['tel_spec'];
+                                        arrId['data'][i]["Контактное лицо"] = leg['fio_spec'];
+
+                                    }
+
+                                    arrId['data'][i]["Status"] = "A";
+                                });
+                                i++;
+                            }
+
+                            ws = XLSX.utils.json_to_sheet(arrId['data'], {header: arrId['headers'], dateNF: 'DD.MM.YYYY'})
+                        } else {
+                            ws = XLSX.utils.table_to_sheet(tbl, {dateNF: 'DD.MM.YYYY'});
+                        }
 
                         var wb = XLSX.utils.book_new();
                         XLSX.utils.book_append_sheet(wb, ws, 'New Sheet Name 1');
@@ -661,6 +751,8 @@ define(['../module', 'moment'], function (module, moment) {
                                                     instance.isOk = ok;
                                                 }
                                             }
+
+                                            scope.fixedSearchResult = responses;
 
                                             scope[processInstancesDP] = scope[processInstancesDP].filter(e => e.isOk);
 
