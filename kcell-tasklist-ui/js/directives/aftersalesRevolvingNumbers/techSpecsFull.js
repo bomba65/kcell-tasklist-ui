@@ -19,6 +19,7 @@ define(['./../module'], function(module){
                 hiddenFields: '=',
                 showNewFields: '=',
                 modifyConnection: '=',
+                legalInfo: '=',
             },
             link: function(scope, element, attrs) {
                 scope.$watch('datatech', function (value) {

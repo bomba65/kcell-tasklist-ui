@@ -11,7 +11,8 @@ define(['./../module'], function(module){
                 showNewFields: '=',
                 modifyConnection: '=',
                 pbxData: "=",
-                hiddenFields: "="
+                hiddenFields: "=",
+                legalInfo: '='
             },
             link: function(scope, element, attrs) {
                 scope.$watch('pbxData', function (value) {

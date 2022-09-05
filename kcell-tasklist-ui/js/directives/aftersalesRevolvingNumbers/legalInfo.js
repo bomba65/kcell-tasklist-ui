@@ -127,6 +127,7 @@ define(['./../module'], function(module){
 
               scope.userSelected = function($item){
                 scope.data.salesReprId = $item.id;
+                scope.data.salesRepr = $item.id;
                 scope.data.KAE = $item.name;
                 scope.form.liKAE.$setValidity('not_selected', true);
               };

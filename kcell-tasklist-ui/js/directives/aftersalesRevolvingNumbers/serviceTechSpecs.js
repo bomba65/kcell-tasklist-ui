@@ -8,6 +8,7 @@ define(['./../module'], function(module){
                 form: '=',
                 view: '=',
                 disabled: '=',
+                legalInfo: '='
             },
             link: function(scope, element, attrs) {
                 scope.$watch('data', function (value) {

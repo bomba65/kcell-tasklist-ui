@@ -315,6 +315,7 @@
 
             $scope.$on("aftersalesPBXBINCheck", function(e, result) {
                 if (!result) return;
+                    console.log(result)
                 $scope.pbxData.fetched = true;
                 if (result.tariff) {
                     $scope.action.tariffPlan = result.tariff;
@@ -341,14 +342,20 @@
                 }
                 if (result.aftersales) {
                     if (result.legalInfo) {
+                        var resultInfo = JSON.parse(result.legalInfo);
                         $scope.legalInfo = JSON.parse(result.legalInfo);
+                        $scope.legalInfo.KAE = resultInfo.salesRepr;
                         if ($scope.legalInfo.companyDate) $scope.legalInfo.companyDate = new Date($scope.legalInfo.companyDate);
                         if ($scope.legalInfo.termContract) $scope.legalInfo.termContract = new Date($scope.legalInfo.termContract);
                         $scope.pbxData.legalInfo = JSON.parse(JSON.stringify($scope.legalInfo));
                         $scope.pbxData.legalInfo.fetched = true;
                     }
                     if (result.techSpecs) {
+                        var techInfo = JSON.parse(result.techSpecs);
                         $scope.techSpecs = JSON.parse(result.techSpecs);
+                        $scope.techSpecs.sip.curPublicVoiceIP = techInfo.sip.voiceIP;
+                        $scope.techSpecs.sip.curSignalingIP = techInfo.sip.signalingIP;
+                        $scope.techSpecs.connectionPoint = techInfo.sip.connectionPoint;
                         scope.pbxData.techSpecs = JSON.parse(JSON.stringify($scope.techSpecs));
                         scope.pbxData.techSpecs.fetched = true;
 
@@ -534,7 +541,7 @@
           <accordion-heading>
             {{techSpecs.connectionType == 'SIP over internet' ? 'Connection via Internet channel by SIP protocol' : (techSpecs.connectionType == 'E1' ? 'Direct connection by E1 (30 channels)' : 'Direct connection by SIP Direct Protocols')}} <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
           </accordion-heading>
-          <aftersales-revolving-numbers-sip-protocol ng-if="techSpecs.connectionType == 'SIP over internet'" data="techSpecs.sip" pbx-data="pbxData.sip" form="kcell_form" view="view" disabled="!techSpecs.connectionType == 'SIP over internet'" show-new-fields="action.changeConnection || action.changeIP"></aftersales-revolving-numbers-sip-protocol>
+          <aftersales-revolving-numbers-sip-protocol ng-if="techSpecs.connectionType == 'SIP over internet'" data="techSpecs.sip" pbx-data="pbxData.sip" form="kcell_form" view="view" disabled="!techSpecs.connectionType == 'SIP over internet'" legal-info="legalInfo" show-new-fields="action.changeConnection || action.changeIP"></aftersales-revolving-numbers-sip-protocol>
         </accordion-group>
       </accordion>
       <accordion ng-if="techSpecs.connectionType == 'SIP cable direct'" class="background-yellow-accordion">

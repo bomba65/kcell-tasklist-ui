@@ -51,7 +51,7 @@ public class AftersalesBINCheck {
         }
 
         List<HistoricProcessInstance> processes = historyService.createHistoricProcessInstanceQuery()
-            .processDefinitionKey("aftersalesRevolvingNumbers")
+            .processDefinitionKey("ASRev")
             .variableValueEquals("clientBIN", pbxBIN)
             .finished()
             .orderByProcessInstanceEndTime().desc().list();
@@ -83,13 +83,13 @@ public class AftersalesBINCheck {
                 return ResponseEntity.ok(response.toString());
         } else {
             processes = historyService.createHistoricProcessInstanceQuery()
-                .processDefinitionKey("aftersalesRevolvingNumbers")
+                .processDefinitionKey("ASRev")
                 .variableValueEquals("clientBIN", pbxBIN)
                 .finished()
                 .orderByProcessInstanceEndTime().desc().list();
 
             val additionalProcesses = historyService.createHistoricProcessInstanceQuery()
-                .processDefinitionKey("aftersalesRevolvingNumbers")
+                .processDefinitionKey("ASRev")
                 .variableValueEquals("clientBIN", pbxBIN)
                 .unfinished()
                 .orderByProcessInstanceEndTime().desc().list();
