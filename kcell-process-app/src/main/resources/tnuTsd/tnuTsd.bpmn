@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:bioc="http://bpmn.io/schema/bpmn/biocolor/1.0" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" id="Definitions_0ux2it4" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="4.9.0">
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:bioc="http://bpmn.io/schema/bpmn/biocolor/1.0" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" id="Definitions_0ux2it4" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="4.11.1">
   <bpmn:collaboration id="Collaboration_10pqjqw">
     <bpmn:participant id="create-new-tds-process" name="Create new TSD" processRef="create-new-tsd" />
   </bpmn:collaboration>
@@ -7,13 +7,12 @@
     <bpmn:dataStoreReference id="tnutsd_nimdb" name="NIM (SAO)" />
     <bpmn:userTask id="tnutsd_fill_tsd_by_center" name="process file in Mentum, and fill table" camunda:formKey="embedded:app:forms/tnuTsd/processFileInMentum.html" camunda:candidateGroups="hq_tnu_tsd">
       <bpmn:incoming>SequenceFlow_00e3mgn</bpmn:incoming>
-      <bpmn:incoming>SequenceFlow_0tlotos</bpmn:incoming>
       <bpmn:outgoing>Flow_1citg4j</bpmn:outgoing>
       <bpmn:dataOutputAssociation id="DataOutputAssociation_1iyolna">
         <bpmn:targetRef>tnutsd_ftp</bpmn:targetRef>
       </bpmn:dataOutputAssociation>
     </bpmn:userTask>
-    <bpmn:serviceTask id="tnutsd_servicetask_create_csv" name="create csv file,  save to ftp" camunda:delegateExpression="${tnuTsdCsvToFtp}">
+    <bpmn:serviceTask id="tnutsd_servicetask_create_csv" name="create csv file,  save to ftp" camunda:delegateExpression="${tnuTsdCsvToSftp}">
       <bpmn:extensionElements>
         <camunda:inputOutput>
           <camunda:inputParameter name="content">
@@ -21,6 +20,7 @@
           </camunda:inputParameter>
         </camunda:inputOutput>
       </bpmn:extensionElements>
+      <bpmn:incoming>SequenceFlow_0tlotos</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_00e3mgn</bpmn:outgoing>
       <bpmn:dataOutputAssociation id="DataOutputAssociation_0nf6qu4">
         <bpmn:targetRef>tnutsd_ftp</bpmn:targetRef>
@@ -28,7 +28,6 @@
     </bpmn:serviceTask>
     <bpmn:parallelGateway id="tnutsd_parallelgw_sendtodb_start">
       <bpmn:incoming>SequenceFlow_0w1mgp5</bpmn:incoming>
-      <bpmn:incoming>Flow_0fw1w0z</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_1ruro3h</bpmn:outgoing>
       <bpmn:outgoing>SequenceFlow_0lixrt6</bpmn:outgoing>
     </bpmn:parallelGateway>
@@ -174,7 +173,7 @@
       <bpmn:incoming>SequenceFlow_00nakkc</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_0tlotos</bpmn:outgoing>
     </bpmn:exclusiveGateway>
-    <bpmn:sequenceFlow id="SequenceFlow_0tlotos" sourceRef="ExclusiveGateway_08wvk1d" targetRef="tnutsd_fill_tsd_by_center" />
+    <bpmn:sequenceFlow id="SequenceFlow_0tlotos" sourceRef="ExclusiveGateway_08wvk1d" targetRef="tnutsd_servicetask_create_csv" />
     <bpmn:startEvent id="tnutsd_startevent_manual" name="start manualy" camunda:formKey="embedded:app:forms/tnuTsd/start.html" camunda:initiator="starter">
       <bpmn:extensionElements>
         <camunda:executionListener delegateExpression="${tnuTsdSetBusinessKey}" event="end" />
@@ -198,7 +197,8 @@
       <bpmn:incoming>SequenceFlow_1jwesmo</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_0cc50ho</bpmn:outgoing>
     </bpmn:sendTask>
-    <bpmn:serviceTask id="tnutsd_servicetask_delete_csv" name="Delete related csv file from ftp" camunda:delegateExpression="${tnuTsdDeleteCsvFromFtp}">
+    <bpmn:serviceTask id="tnutsd_servicetask_delete_csv" name="Delete related csv file from ftp" camunda:delegateExpression="${tnuTsdDeleteCsvFromSftp}">
+      <bpmn:incoming>Flow_0fw1w0z</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_0w1mgp5</bpmn:outgoing>
     </bpmn:serviceTask>
     <bpmn:exclusiveGateway id="Gateway_1th8rtp" default="Flow_0fw1w0z">
@@ -213,7 +213,7 @@
       <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${tnutsd_fill_tsd_by_centerTaskResult == 'cancelled'}</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
     <bpmn:sequenceFlow id="Flow_1citg4j" sourceRef="tnutsd_fill_tsd_by_center" targetRef="Gateway_1th8rtp" />
-    <bpmn:sequenceFlow id="Flow_0fw1w0z" sourceRef="Gateway_1th8rtp" targetRef="tnutsd_parallelgw_sendtodb_start" />
+    <bpmn:sequenceFlow id="Flow_0fw1w0z" sourceRef="Gateway_1th8rtp" targetRef="tnutsd_servicetask_delete_csv" />
     <bpmn:sequenceFlow id="Flow_0z70axv" sourceRef="Activity_0ch3ipq" targetRef="tnutsd_endprocess" />
     <bpmn:endEvent id="tnutsd_endprocess" name="end TNU">
       <bpmn:incoming>Flow_0z70axv</bpmn:incoming>
@@ -344,11 +344,7 @@
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_0fw1w0z_di" bpmnElement="Flow_0fw1w0z">
         <di:waypoint x="1765" y="780" />
-        <di:waypoint x="1810" y="780" />
-        <di:waypoint x="1810" y="845" />
-        <di:waypoint x="1960" y="845" />
-        <di:waypoint x="1960" y="800" />
-        <di:waypoint x="2140" y="800" />
+        <di:waypoint x="1835" y="780" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_1citg4j_di" bpmnElement="Flow_1citg4j">
         <di:waypoint x="1650" y="780" />
@@ -360,11 +356,7 @@
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_0tlotos_di" bpmnElement="SequenceFlow_0tlotos">
         <di:waypoint x="1254" y="780" />
-        <di:waypoint x="1300" y="780" />
-        <di:waypoint x="1300" y="845" />
-        <di:waypoint x="1480" y="845" />
-        <di:waypoint x="1480" y="800" />
-        <di:waypoint x="1550" y="800" />
+        <di:waypoint x="1360" y="780" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_1gcqszq_di" bpmnElement="SequenceFlow_1gcqszq">
         <di:waypoint x="689" y="658" />
