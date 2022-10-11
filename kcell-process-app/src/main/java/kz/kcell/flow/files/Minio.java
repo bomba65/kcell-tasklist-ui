@@ -24,7 +24,7 @@ public class Minio {
     private final String tempBucketName = "tempuploads";
 
     @Autowired
-    public Minio(@Value("${minio.url:http://localhost:9000}") String minioUrl,
+    public Minio(@Value("${minio.url:http://localhost:9002}") String minioUrl,
                  @Value("${minio.access.key:AKIAIOSFODNN7EXAMPLE}") String minioAccessKey,
                  @Value("${minio.secret.key:wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY}") String minioSecretKey)
         throws InvalidPortException, InvalidEndpointException {
