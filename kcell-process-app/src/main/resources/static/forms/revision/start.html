@@ -1063,6 +1063,35 @@
                         }
                 );
             };
+
+            function setOblastName(val) {
+                $http.get('/camunda/catalogs/api/get/leasing/30').then(
+                    function(response) {
+                        const arr = response.data.data.$list;
+                        for (const item of arr) {
+                            if (item.siteId.value.split(',').map(Number).includes(val)) {
+                              $scope.oblastName = item.value;
+                              break;
+                            }
+                        }
+                    }
+                );
+            };
+
+            function setSubcontractorName(val) {
+                $http.get('/camunda/catalogs/api/get/leasing/131').then(
+                    function(response) {
+                        const arr = response.data.data.$list;
+                        for (const item of arr) {
+                            if (item.siteId.value.split(',').map(Number).includes(val)) {
+                              $scope.subcontractorName = item.value;
+                              break;
+                            }
+                        }
+                    }
+                );
+            };
+
             $scope.siteSelected = function($item){
                 $scope.jobWorks = [{relatedSites:[]}];
                 $scope.siteName = $item.name;
@@ -1109,6 +1138,9 @@
                             $scope.siteAddress = adress;
                             $scope.siteRegion = siteInfo.facility_main_id.address_id.region_id ? $scope.regionsMapLC[siteInfo.facility_main_id.address_id.region_id.id] : '';
                             $scope.siteRegionShow = siteInfo.facility_main_id.address_id.region_id ? siteInfo.facility_main_id.address_id.region_id.name : '';
+                            var siteIdAsInt = Number(siteInfo.site_id);
+                            setOblastName(siteIdAsInt);
+                            setSubcontractorName(siteIdAsInt);
                             $scope.regionShortName = siteInfo.facility_main_id.address_id.region_id ? $scope.regionsMap[siteInfo.facility_main_id.address_id.region_id.id] : '';
                         }
                     }
@@ -1285,6 +1317,20 @@
         </div>
 
     </div>
+    <div class="form-group" ng-if="mainContract === '2022Work-agreement'">
+        <label class="col-sm-3 control-label">Oblast:</label>
+        <input type="hidden" ng-model="oblastName" name="oblastName"/>
+        <div class="col-sm-3">
+            <div class="form-control">{{oblastName}}</div>
+        </div>
+    </div>
+    <div class="form-group" ng-if="mainContract === '2022Work-agreement'">
+        <label class="col-sm-3 control-label">Subcontractor:</label>
+        <input type="hidden" ng-model="subcontractorName" name="subcontractorName"/>
+        <div class="col-sm-3">
+            <div class="form-control">{{subcontractorName}}</div>
+        </div>
+    </div>
     <div class="form-group" ng-if="siteAddress">
         <label class="col-sm-3 control-label">Site Address:</label>
         <div class="col-sm-6">
@@ -1302,7 +1348,7 @@
             <label class="error" ng-if="kcell_form.reason.$error.required && ( kcell_form.reason.$touched || view.submitted)">Required field</label>
         </div>
     </div>
-    <div class="form-group">
+    <div class="form-group" ng-if="mainContract !== '2022Work-agreement'">
         <label class="col-sm-3 control-label">Related to the:</label>
         <div class="col-sm-8">
             <label class="radio-inline">
@@ -1891,7 +1937,7 @@
                     <th width="40%">Works</th>
                     <th width="7%">Works Qty</th>
                     <th width="13%" ng-if="!rolloutOrEmergency">Materials Qty</th>
-                    <th width="13%" ng-if="rolloutOrEmergency">Materials By</th>
+                    <th width="13%" ng-if="rolloutOrEmergency && mainContract !== '2022Work-agreement'">Materials By</th>
                     <th width="30%">Sites involved</th>
                     <th width="10%"></th>
                 </tr>
@@ -1921,7 +1967,7 @@
                             </div>
                             <label class="error" ng-if="kcell_form['materialQuantity'+$index].$error.required && ( kcell_form['materialQuantity'+$index].$touched || view.submitted)">Required field</label>
                         </td>
-                        <td style="padding-left: 40px" ng-if="rolloutOrEmergency">
+                        <td style="padding-left: 40px" ng-if="rolloutOrEmergency && mainContract !== '2022Work-agreement'">
                             <input id="subContractorMaterial{{$index}}" type="radio" ng-model="jobWork.materialsProvidedBy" name="materialsProvidedBy{{$index}}" value="subcontractor" required ng-disabled="jobWork.materialsProvidedByDisabled">
                             <label class="bolder" for="subContractorMaterial{{$index}}">Subcontractor</label>
                             <br/>
@@ -1938,7 +1984,7 @@
                             <div class="col-md-1"><button type="button" class="btn btn-sm btn-default" ng-if="$index !== 0" ng-click="removeWork($index)"><i class="glyphicon glyphicon-trash"></i> Remove</button></div>
                         </td>
                     </tr>
-                    <tr>
+                    <tr ng-if="mainContract !== '2022Work-agreement'">
                         <td>
                             <div class="input-group">
                                 <span class="input-group-addon">
