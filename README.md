@@ -24,6 +24,10 @@ minimum
 ```
 docker-compose -f docker-compose-ps.yml up -d
 ```
+all services
+```
+docker-compose -f docker-compose-ps-test.yml up -d
+```
 
 #### Camunda website
 http://localhost/camunda/app/welcome/default/#/login
