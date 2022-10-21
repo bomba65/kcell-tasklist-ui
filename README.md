@@ -12,19 +12,28 @@ docker run --restart always --name portainer -d -p 9000:9000 -v /var/run/docker.
 ---
 
 #### Create docker images
+local-dev
+```
 docker build -t kcell/headless_chrome ./headless-chrome/
+```
+test-environment
+```
+docker build -t kcell/process-app ./kcell-process-app
+docker build -t kcell/asset-management ./asset-management
+docker build -t kcell/directory-management ./directory-management
+```
 
 #### Install frontend npm packages
-cd kcell-tasklist-ui
-cd js
+```
+cd ./kcell-tasklist-ui/js
 npm install
-
+```
 #### docker-compose commands
-minimum
+local-dev
 ```
 docker-compose -f docker-compose-ps.yml up -d
 ```
-all services
+test-environment
 ```
 docker-compose -f docker-compose-ps-test.yml up -d
 ```
