@@ -43,7 +43,8 @@
                 'worksPriceList',
                 'siteRegion',
                 'workPrices',
-
+                'oblastName',
+                'subcontractorName',
             ];
 
             $scope.contractorCodes = {
@@ -471,6 +472,34 @@
                 getJobsAll();
             }
 
+            function setOblastName(val) {
+                $http.get('/camunda/catalogs/api/get/id/30').then(
+                    function(response) {
+                        const arr = response.data.data.$list;
+                        for (const item of arr) {
+                            if (item.siteId.value.split(',').map(Number).includes(val)) {
+                              $scope.oblastName = item.value;
+                              break;
+                            }
+                        }
+                    }
+                );
+            };
+
+            function setSubcontractorName(val) {
+                $http.get('/camunda/catalogs/api/get/id/131').then(
+                    function(response) {
+                        const arr = response.data.data.$list;
+                        for (const item of arr) {
+                            if (item.siteId.value.split(',').map(Number).includes(val)) {
+                              $scope.subcontractorName = item.value;
+                              break;
+                            }
+                        }
+                    }
+                );
+            };
+
             function refreshJobRequests(){
                 $scope.page = 0;
                 $scope.jobRequestsCount = 0;
@@ -561,7 +590,71 @@
                 var result = unitWorkPrice.div(1.2)
                 return result.toFixed(2).replace('.',',');
             }
-            
+
+            $scope.siteSelected = function($item){
+                $scope.jobWorks = [{relatedSites:[]}];
+                $scope.siteName = $item.name;
+                var site = $item.id;
+                $scope.site_name = $item.site_name;
+
+                $http.get('/camunda/sites/id/' + $item.id).then(function(result) {
+                    var siteInfo = result.data
+                    $scope.siteId = siteInfo.site_id;
+                    console.log($scope.siteId);
+                    $scope.siteAddress = ''
+                    $scope.siteRegion = ''
+                    if (siteInfo.facility_main_id){
+                        if (siteInfo.facility_main_id.address_id) {
+                            var adress = '';
+                            if (siteInfo.facility_main_id.address_id.region_id) {
+                                if (siteInfo.facility_main_id.address_id.region_id.name) {
+                                    adress = siteInfo.facility_main_id.address_id.region_id.name;
+                                }
+                            }
+                            if (siteInfo.facility_main_id.address_id.city_id && siteInfo.facility_main_id.address_id.city_id.id) {
+                                if (siteInfo.facility_main_id.address_id.city_id.district_id && siteInfo.facility_main_id.address_id.city_id.district_id.id) {
+                                    if (siteInfo.facility_main_id.address_id.city_id.district_id.oblast_id && siteInfo.facility_main_id.address_id.city_id.district_id.oblast_id.id) {
+                                        adress = (adress ? adress + ', ' : '') + siteInfo.facility_main_id.address_id.city_id.district_id.oblast_id.name;
+                                    }
+                                    adress = (adress ? adress + ', ' : '') + siteInfo.facility_main_id.address_id.city_id.district_id.name;
+                                }
+                                adress = (adress ? adress + ', ' : '') + siteInfo.facility_main_id.address_id.city_id.name;
+                                if (siteInfo.facility_main_id.address_id.city_id.city_type_id && siteInfo.facility_main_id.address_id.city_id.city_type_id.id) {
+                                    adress = (adress ? adress + ' (' : '') + siteInfo.facility_main_id.address_id.city_id.city_type_id.name + ')';
+                                }
+                            }
+                            if (siteInfo.facility_main_id.address_id.cadastral_number) {
+                                adress = (adress ? adress + ', ' : '') + siteInfo.facility_main_id.address_id.cadastral_number;
+                            }
+                            if (siteInfo.facility_main_id.address_id.street) {
+                                adress = (adress ? adress + ', ' : '') + siteInfo.facility_main_id.address_id.street;
+                            }
+                            if (siteInfo.facility_main_id.address_id.building) {
+                                adress = (adress ? adress + ', ' : '') + siteInfo.facility_main_id.address_id.building;
+                            }
+                            if (siteInfo.facility_main_id.address_id.note) {
+                                adress = (adress ? adress + ', ' : '') + siteInfo.facility_main_id.address_id.note;
+                            }
+                            $scope.siteAddress = adress;
+                            $scope.siteRegion = siteInfo.facility_main_id.address_id.region_id ? $scope.regionsMapLC[siteInfo.facility_main_id.address_id.region_id.id] : '';
+                            $scope.siteRegionShow = siteInfo.facility_main_id.address_id.region_id ? siteInfo.facility_main_id.address_id.region_id.name : '';
+                            var siteIdAsInt = Number(siteInfo.site_id);
+                            setOblastName(siteIdAsInt);
+                            setSubcontractorName(siteIdAsInt);
+                            $scope.regionShortName = siteInfo.facility_main_id.address_id.region_id ? $scope.regionsMap[siteInfo.facility_main_id.address_id.region_id.id] : '';
+                            $scope.regionNewShortName = siteInfo.facility_main_id.address_id.region_id ? $scope.regionsNewMap[siteInfo.facility_main_id.address_id.region_id.id] : '';
+                        }
+                    }
+                    $scope.siteStatus = siteInfo.site_status_id ? siteInfo.site_status_id.name : '';
+                    $scope.siteSubStatus = siteInfo.site_substatus_id ? siteInfo.site_substatus_id.name : '';
+                    $scope.siteSubStatusId = siteInfo.site_substatus_id ? siteInfo.site_substatus_id.id : 0;
+                     $scope.refreshJobRequests();
+                })
+                  $(function () {
+                    $('[data-toggle="tooltip"]').tooltip('fixTitle');
+                });
+            };
+
 
             $scope.calculateBasePriceTotal = function(){
                 var total = Big(0.0);
@@ -719,6 +812,20 @@
                 <option ng-if="jobModel.reason.value === '3'" value="Revision works по причинам необходимой модернизации инфраструктуры"> Revision works по причинам необходимой модернизации инфраструктуры</option>
             </select>
             <label class="error" ng-if="kcell_form.project.$error.required && ( kcell_form.project.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-3 control-label">Oblast:</label>
+        <input type="hidden" ng-model="oblastName" name="oblastName"/>
+        <div class="col-sm-3">
+            <div class="form-control">{{oblastName}}</div>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-3 control-label">Subcontractor:</label>
+        <input type="hidden" ng-model="subcontractorName" name="subcontractorName"/>
+        <div class="col-sm-3">
+            <div class="form-control">{{subcontractorName}}</div>
         </div>
     </div>
 
@@ -1212,7 +1319,7 @@
         </div>
     </div>
     <br>
-    <div class="form-group" ng-if="contractor === -1">
+    <div class="form-group" >
         <label class="col-sm-4 control-label">Please choose Subcontractor:</label>
         <div class="col-sm-8">
             <label class="radio-inline">
@@ -1228,7 +1335,7 @@
                 <input type="radio" name="newContractor" ng-model="$parent.newContractor" value="8" ng-required="centralGroupHeadApprovalTaskResult === 'approved'" ng-disabled="jobModel.mainContract.value == 'emergencyRevision2022'"> Arlan SI
             </label>
             <label class="radio-inline">
-                <input type="radio" name="newContractor" ng-model="$parent.newContractor" value="9" ng-required="centralGroupHeadApprovalTaskResult === 'approved'" ng-disabled="jobModel.mainContract.value != 'emergencyRevision2022'"> Inter Service
+                <input type="radio" name="newContractor" ng-model="$parent.newContractor" value="9" ng-required="centralGroupHeadApprovalTaskResult === 'approved'" ng-disabled="jobModel.mainContract.value == 'emergencyRevision2022'"> Inter Service
             </label>
             <label class="error" ng-show="kcell_form.newContractor.$error.required && ( kcell_form.newContractor.$touched || view.submitted)">Required field</label>
         </div>
