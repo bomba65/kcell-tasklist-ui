@@ -5,36 +5,38 @@ import org.camunda.bpm.engine.delegate.TaskListener;
 
 import java.util.Arrays;
 
-public class ApproveMaterialsListByCenterAssignmentHandler implements TaskListener {
+@lombok.extern.java.Log
+public class ValidateTrByCenterByGroupHandler implements TaskListener {
 
     @Override
     public void notify(DelegateTask delegateTask) {
 
+        String group = String.valueOf(delegateTask.getVariable("group"));
         String reason = delegateTask.getVariable("reason").toString();
         String mainContract = delegateTask.getVariable("mainContract").toString();
 
         if("2022Work-agreement".equals(mainContract)){
             if (reason.equals("4")) {
-                delegateTask.addCandidateGroup("operation_mlapprove");
+                delegateTask.addCandidateGroup("hq_operation_approve");
             } else if (Arrays.asList("1", "2", "3", "5").contains(reason)){
-                delegateTask.addCandidateGroup("development_mlapprove");
+                delegateTask.addCandidateGroup("hq_development_approve");
             }
         }else {
-            if (reason != null) {
-                switch (reason) {
-                    case "1":
+            if (group != null) {
+                switch (group) {
+                    case "\"P&O\"":
                         delegateTask.addCandidateGroup("hq_optimization");
                         break;
-                    case "2":
+                    case "\"Transmission\"":
                         delegateTask.addCandidateGroup("hq_transmission_engineer");
                         break;
-                    case "3":
+                    case "\"S&FM\"":
                         delegateTask.addCandidateGroup("hq_infrastructure");
                         break;
-                    case "4":
+                    case "\"Operation\"":
                         delegateTask.addCandidateGroup("hq_operation");
                         break;
-                    case "5":
+                    case "\"Roll-out\"":
                         delegateTask.addCandidateGroup("hq_rollout");
                         break;
                 }
@@ -42,3 +44,4 @@ public class ApproveMaterialsListByCenterAssignmentHandler implements TaskListen
         }
     }
 }
+

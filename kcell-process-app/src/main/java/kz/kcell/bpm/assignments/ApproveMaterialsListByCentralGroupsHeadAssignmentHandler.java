@@ -3,6 +3,8 @@ package kz.kcell.bpm.assignments;
 import org.camunda.bpm.engine.delegate.DelegateTask;
 import org.camunda.bpm.engine.delegate.TaskListener;
 
+import java.util.Arrays;
+
 @lombok.extern.java.Log
 public class ApproveMaterialsListByCentralGroupsHeadAssignmentHandler implements TaskListener {
 
@@ -11,18 +13,33 @@ public class ApproveMaterialsListByCentralGroupsHeadAssignmentHandler implements
 
 
         String group = String.valueOf(delegateTask.getVariable("group"));
-
-        if (group != null) {
-            if (group.equals("\"P&O\"")) {
-                delegateTask.addCandidateGroup("hq_optimization");
-            } else if (group.equals("\"Transmission\"")) {
-                delegateTask.addCandidateGroup("hq_transmission_engineer");
-            } else if (group.equals("\"S&FM\"")) {
-                delegateTask.addCandidateGroup("hq_infrastructure");
-            } else if (group.equals("\"Operation\"")) {
-                delegateTask.addCandidateGroup("hq_operation");
-            } else if (group.equals("\"Roll-out\"")) {
-                delegateTask.addCandidateGroup("hq_rollout");
+        String reason = delegateTask.getVariable("reason").toString();
+        String mainContract = delegateTask.getVariable("mainContract").toString();
+        if("2022Work-agreement".equals(mainContract)){
+            if (reason.equals("4")) {
+                delegateTask.addCandidateGroup("operation_mlapprove");
+            } else if (Arrays.asList("1", "2", "3", "5").contains(reason)){
+                delegateTask.addCandidateGroup("development_mlapprove");
+            }
+        }else {
+            if (group != null) {
+                switch (group) {
+                    case "\"P&O\"":
+                        delegateTask.addCandidateGroup("hq_optimization");
+                        break;
+                    case "\"Transmission\"":
+                        delegateTask.addCandidateGroup("hq_transmission_engineer");
+                        break;
+                    case "\"S&FM\"":
+                        delegateTask.addCandidateGroup("hq_infrastructure");
+                        break;
+                    case "\"Operation\"":
+                        delegateTask.addCandidateGroup("hq_operation");
+                        break;
+                    case "\"Roll-out\"":
+                        delegateTask.addCandidateGroup("hq_rollout");
+                        break;
+                }
             }
         }
     }

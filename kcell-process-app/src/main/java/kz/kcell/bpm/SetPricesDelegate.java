@@ -15,6 +15,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -26,12 +27,21 @@ public class SetPricesDelegate implements TaskListener {
         try {
             String mainContract = delegateTask.getVariable("mainContract").toString();
             String priority = delegateTask.getVariable("priority").toString();
+            String reason = delegateTask.getVariable("reason").toString();
 
             ObjectMapper mapper = new ObjectMapper();
 
             ArrayNode worksPriceList = mapper.createArrayNode();
             Map<String, String> uniqueWorks = new HashMap<>();
             Map<String, String> worksTitleMap = new HashMap<>();
+
+            if("2022Work-agreement".equals(mainContract)){
+                if (reason.equals("4")) {
+                    delegateTask.addCandidateGroup("hq_operation_approve");
+                } else if (Arrays.asList("1", "2", "3", "5").contains(reason)){
+                    delegateTask.addCandidateGroup("hq_development_approve");
+                }
+            }
 
             if ("Revision".equals(mainContract) || "Roll-out".equals(mainContract)) {
 
