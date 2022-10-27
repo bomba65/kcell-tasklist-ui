@@ -81,6 +81,9 @@ public class SetWorkVariables implements ExecutionListener {
 
             ArrayNode jobWorks = (ArrayNode) mapper.readTree(execution.getVariable("jobWorks").toString());
             for (JsonNode work : jobWorks) {
+                if(work.has("id") && work.get("id").intValue() >= 4000) {
+                    continue;
+                }
                 if(!uniqueWorks.containsKey(work.get("sapServiceNumber").textValue())){
                     JsonNode priceJson = worksPriceMap.get(work.get("sapServiceNumber").textValue());
                     String title = worksTitleMap.get(work.get("sapServiceNumber").textValue());

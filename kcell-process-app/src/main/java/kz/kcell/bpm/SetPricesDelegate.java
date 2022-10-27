@@ -141,6 +141,9 @@ public class SetPricesDelegate implements TaskListener {
                 ArrayNode jobWorks = (ArrayNode) mapper.readTree(delegateTask.getVariable("jobWorks").toString());
                 BigDecimal jobWorksTotal = BigDecimal.ZERO;
                 for (JsonNode work : jobWorks) {
+                    if(work.has("id") && work.get("id").intValue() >= 4000) {
+                        continue;
+                    }
                     ObjectNode workPrice = work.deepCopy();
                     if (workPrice.get("relatedSites") == null) {
                         workPrice.set("relatedSites", mapper.createArrayNode());
