@@ -10,17 +10,33 @@ public class CentralGroupAssignmentHandler implements TaskListener {
     @Override
     public void notify(DelegateTask delegateTask) {
         String reason = delegateTask.getVariable("reason").toString();
+        String mainContract = delegateTask.getVariable("mainContract").toString();
+
         if (reason != null) {
-            if (reason.equals("1")) {
-                delegateTask.addCandidateGroup("hq_optimization");
-            } else if (reason.equals("2")) {
-                //Данные работы идут по другой ветке
-            } else if (reason.equals("3")) {
-                delegateTask.addCandidateGroup("hq_infrastructure");
-            } else if (reason.equals("4")) {
-                delegateTask.addCandidateGroup("hq_operation");
-            } else if (reason.equals("5")) {
-                delegateTask.addCandidateGroup("hq_rollout");
+            if("2022Work-agreement".equals(mainContract)){
+                if (reason.equals("4")) {
+                    delegateTask.addCandidateGroup("hq_operation_approve");
+                } else if (Arrays.asList("1", "2", "3", "5").contains(reason)){
+                    delegateTask.addCandidateGroup("hq_development_approve");
+                }
+            }else {
+                switch (reason) {
+                    case "1":
+                        delegateTask.addCandidateGroup("hq_optimization");
+                        break;
+                    case "2":
+                        //Данные работы идут по другой ветке
+                        break;
+                    case "3":
+                        delegateTask.addCandidateGroup("hq_infrastructure");
+                        break;
+                    case "4":
+                        delegateTask.addCandidateGroup("hq_operation");
+                        break;
+                    case "5":
+                        delegateTask.addCandidateGroup("hq_rollout");
+                        break;
+                }
             }
         }
     }
