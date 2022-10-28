@@ -46,6 +46,9 @@ public class SendGeneratedJRBlank implements JavaDelegate {
     @Autowired
     ScriptEngineManager manager;
 
+    @Autowired
+    private boolean isEmailDoSend;
+
     private static final Map<String, String> contractorsCode =
         ((Supplier<Map<String, String>>) (() -> {
             Map<String, String> map = new HashMap<>();
@@ -122,7 +125,9 @@ public class SendGeneratedJRBlank implements JavaDelegate {
 
             messageHelper.addAttachment(fileName, source);
 
-            mailSender.send(message);
+            if (isEmailDoSend) {
+                mailSender.send(message);
+            }
 
             log.info("Task Assignment Email successfully sent to user '" + assignee + "' with address '" + recipient + "'.");
 
