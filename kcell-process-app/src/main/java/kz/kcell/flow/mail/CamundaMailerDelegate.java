@@ -37,6 +37,9 @@ public class CamundaMailerDelegate implements JavaDelegate {
     @Autowired
     private Minio minio;
 
+    @Autowired
+    private boolean isEmailDoSend;
+
     private final List<String> disabledProcesses = Arrays.asList("AftersalesPBX");
 
     @Override
@@ -203,7 +206,9 @@ public class CamundaMailerDelegate implements JavaDelegate {
             helper.setText(String.valueOf(delegateExecution.getVariableLocal("html")), true);
             helper.setFrom(sender);
 
-            mailSender.send(message);
+            if (isEmailDoSend) {
+                mailSender.send(message);
+            }
         }
     }
 
