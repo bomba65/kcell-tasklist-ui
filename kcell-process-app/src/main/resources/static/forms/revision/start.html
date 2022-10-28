@@ -60,7 +60,7 @@
     }
 </style>
 <form role="form" class="form-horizontal" name="kcell_form" novalidate>
-    <script cam-script type="text/form-script">
+    <script cam-script type="text/form-script" type="text/javascript">
 <!--<script>-->
         inject([ '$scope', '$http', '$rootScope', '$q', '$timeout', 'exModal', function($scope, $http, $rootScope, $q, $timeout, exModal) {
             var uuid = new Date().getTime();
@@ -278,6 +278,24 @@
                             console.log(error.data);
                         }
                 );
+
+                $http.get('/camunda/catalogs/api/get/id/5').then(
+                    function(response) {
+                        $scope.regionCatalog = response.data.data.$list;
+                    }
+                );
+
+                $http.get('/camunda/catalogs/api/get/id/30').then(
+                    function(response) {
+                        $scope.oblastCatalog = response.data.data.$list;
+                    }
+                );
+
+                $http.get('/camunda/catalogs/api/get/id/131').then(
+                    function(response) {
+                        $scope.subcontractorCatalog = response.data.data.$list;
+                    }
+                );
             });
 
             camForm.on('variables-fetched', function () {
@@ -453,6 +471,10 @@
                 {id: 'east', name: 'East', value: 'E'},
                 {id: 'south', name: 'South', value: 'S'},
                 {id: 'west', name: 'West', value: 'W'}
+            ]
+            $scope.regionsToSelect = [
+                {id: '1', name: 'Almaty'},
+                {id: '5', name: 'South'}
             ]
             $scope.regionsMap = {
                 '1': 'Alm',
@@ -1003,7 +1025,7 @@
                 })
 
                 result = _.filter(result, function(element){
-                    if(!$scope.mainContract || !$scope.custom.contractor){
+                    if(!$scope.mainContract || (!$scope.custom.contractor && $scope.mainContract !== '2022Work-agreement')){
                         return false;
                     } else {
                         if($scope.mainContract === '2022Work-agreement') {
@@ -1105,33 +1127,30 @@
             };
 
             function setOblastName(val) {
-                $http.get('/camunda/catalogs/api/get/id/30').then(
-                    function(response) {
-                        const arr = response.data.data.$list;
-                        for (const item of arr) {
-                            if (item.siteId.value.split(',').map(Number).includes(val)) {
+                        for (const item of $scope.oblastCatalog) {
+                            if (item.siteId.value.split(',').map(Number).includes(Number(val.substring(0,2)))) {
                               $scope.oblastName = item.value;
                               break;
                             }
                         }
-                    }
-                );
             };
 
             function setSubcontractorName(val) {
-                $http.get('/camunda/catalogs/api/get/id/131').then(
-                    function(response) {
-                        const arr = response.data.data.$list;
-                        for (const item of arr) {
-                            if (item.siteId.value.split(',').map(Number).includes(val)) {
+                        for (const item of $scope.subcontractorCatalog) {
+                            if (item.siteId.value.split(',').map(Number).includes(Number(val.substring(0,2)))) {
                               $scope.subcontractorName = item.value;
                               $scope.subcontractorId = item.id;
                               break;
                             }
                         }
-                    }
-                );
             };
+
+            function setRegion(regionId, regionName) {
+                $scope.siteRegion = regionId ? $scope.regionsMapLC[regionId] : '';
+                $scope.siteRegionShow = regionName ? regionName : '';
+                $scope.regionShortName = regionId ? $scope.regionsMap[regionId] : '';
+                $scope.regionNewShortName = regionId ? $scope.regionsNewMap[regionId] : '';
+            }
 
             $scope.siteSelected = function($item){
                 $scope.jobWorks = [{relatedSites:[]}];
@@ -1177,13 +1196,20 @@
                                 adress = (adress ? adress + ', ' : '') + siteInfo.facility_main_id.address_id.note;
                             }
                             $scope.siteAddress = adress;
-                            $scope.siteRegion = siteInfo.facility_main_id.address_id.region_id ? $scope.regionsMapLC[siteInfo.facility_main_id.address_id.region_id.id] : '';
-                            $scope.siteRegionShow = siteInfo.facility_main_id.address_id.region_id ? siteInfo.facility_main_id.address_id.region_id.name : '';
-                            var siteIdAsInt = Number(siteInfo.site_id);
-                            setOblastName(siteIdAsInt);
-                            setSubcontractorName(siteIdAsInt);
-                            $scope.regionShortName = siteInfo.facility_main_id.address_id.region_id ? $scope.regionsMap[siteInfo.facility_main_id.address_id.region_id.id] : '';
-                            $scope.regionNewShortName = siteInfo.facility_main_id.address_id.region_id ? $scope.regionsNewMap[siteInfo.facility_main_id.address_id.region_id.id] : '';
+                            if ($scope.mainContract === '2022Work-agreement') {
+                                const regionId = $scope.oblastCatalog.find( item =>
+                                    item.siteId.value.split(',').map(Number).includes(Number(siteInfo.site_id.substring(0,2)))
+                                ).parent;
+                                const regionName = $scope.regionCatalog.find(item => item.id === regionId).value;
+                                setRegion(regionId, regionName);
+                            } else {
+                                const regionId = siteInfo.facility_main_id.address_id.region_id?.id;
+                                const regionName = siteInfo.facility_main_id.address_id.region_id?.name;
+                                setRegion(regionId, regionName);
+                            }
+                            setOblastName(siteInfo.site_id);
+                            setSubcontractorName(siteInfo.site_id);
+                            checkIfNeedToSelectRegion();
                         }
                     }
                     $scope.siteStatus = siteInfo.site_status_id ? siteInfo.site_status_id.name : '';
@@ -1203,6 +1229,23 @@
                 });
                 if(r){
                     $scope.regionShortName = r.value;
+                    refreshJobRequests();
+                }
+            }
+
+            $scope.needToSelectRegion = false;
+            function checkIfNeedToSelectRegion() {
+                const siteId = $scope.siteId ? $scope.siteId.substring(0,2) : '';
+                $scope.needToSelectRegion = $scope.mainContract === '2022Work-agreement'
+                    && ['03','05','07'].includes(siteId);
+            }
+
+            $scope.selectedRegion = undefined;
+            $scope.work2022AgreementRegionSelected = function(selectedRegion) {
+                if (selectedRegion) {
+                    const regionId = selectedRegion.id;
+                    const regionName = selectedRegion.name;
+                    setRegion(regionId, regionName);
                     refreshJobRequests();
                 }
             }
@@ -1301,7 +1344,7 @@
             <label class="error" ng-if="kcell_form.mainContract.$error.required && ( kcell_form.mainContract.$touched || view.submitted)">Required field</label>
         </div>
     </div>
-    <div class="form-group">
+    <div class="form-group" ng-if="mainContract !== '2022Work-agreement'">
         <label class="col-sm-3 control-label">Job to:</label>
         <div class="col-sm-8">
             <label class="radio-inline" ng-if="$root.authentication.name === 'demo'">
@@ -1359,11 +1402,17 @@
     <div class="form-group">
         <label class="col-sm-3 control-label">Region:</label>
         <input type="hidden" ng-model="siteRegionShow" name="siteRegionShow" required/>
-        <div class="col-sm-3">
+        <div class="col-sm-3" ng-if="!needToSelectRegion">
             <div class="form-control">{{siteRegionShow}}</div>
             <label class="error" ng-if="kcell_form.siteRegionShow.$error.required && ( kcell_form.siteRegionShow.$touched || view.submitted)">Required field</label>
         </div>
-
+        <div class="col-sm-3" ng-if="needToSelectRegion">
+            <select ng-model="selectedRegion" ng-options="r as r.name for r in regionsToSelect"
+                    class="form-control" title="" name="selectedRegion" ng-required="true" ng-change="work2022AgreementRegionSelected(selectedRegion)">
+                <option value="">select region</option>
+            </select>
+            <label class="error" ng-if="kcell_form.selectedRegion.$error.required && ( kcell_form.selectedRegion.$touched || view.submitted)">Required field</label>
+        </div>
     </div>
     <div class="form-group" ng-if="mainContract === '2022Work-agreement'">
         <label class="col-sm-3 control-label">Oblast:</label>
@@ -1984,7 +2033,7 @@
                 <tr>
                     <th width="40%">Works</th>
                     <th width="7%">Works Qty</th>
-                    <th width="13%" ng-if="!rolloutOrEmergency">Materials Qty</th>
+                    <th width="13%" ng-if="!rolloutOrEmergency && mainContract !== '2022Work-agreement'">Materials Qty</th>
                     <th width="13%" ng-if="rolloutOrEmergency && mainContract !== '2022Work-agreement'">Materials By</th>
                     <th width="30%">Sites involved</th>
                     <th width="10%"></th>
@@ -1995,7 +2044,7 @@
                         <td>
                                 <div>
                                     <input type="text" ng-model="jobWork.displayServiceName" name="displayServiceName{{$index}}"
-                                           ng-disabled="!mainContract || !siteName || !custom.contractor"
+                                           ng-disabled="!mainContract || !siteName || (!custom.contractor && mainContract !== '2022Work-agreement')"
                                            typeahead="works as works.displayServiceName for works in getWorks($viewValue)"
                                            typeahead-on-select="getUnits($item, $index)"
                                            class="form-control works-container"  required autocomplete="off" placeholder="Search works">
@@ -2008,7 +2057,7 @@
                             <input type="number" class="form-control" name="quantity{{$index}}" required ng-model="jobWork.quantity" min="1"/>
                             <label class="error" ng-if="kcell_form['quantity'+$index].$error.required && ( kcell_form['quantity'+$index].$touched || view.submitted)">Required field</label>
                         </td>
-                        <td ng-if="!rolloutOrEmergency">
+                        <td ng-if="!rolloutOrEmergency && mainContract !== '2022Work-agreement'">
                             <div class="input-group">
                                 <input type="number" class="form-control" name="materialQuantity{{$index}}" required ng-model="jobWork.materialQuantity" min="0" style="min-width: 55px;" />
                                 <span class="input-group-addon">{{jobWork.materialUnit}}</span>
