@@ -45,7 +45,9 @@ def contractorsTitle = [
         "6": "Алта Телеком",
         "7": "Логиком",
         "8": "Arlan SI",
-        "9": "ТОО Inter Service"
+        "9": "ТОО Inter Service",
+        "10": "Forester-Hes Group",
+        "11": "Транстелеком"
 ]
 
 def reasonsTitle = [

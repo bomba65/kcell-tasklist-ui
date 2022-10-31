@@ -102,6 +102,8 @@ public class MonthlyActAndRevision {
         contractorsTitle.put("7", "АО «Логиком»");
         contractorsTitle.put("8", "ТОО «ARLAN SI»");
         contractorsTitle.put("9", "ТОО «Inter Service»");
+        contractorsTitle.put("10", "Forester-Hes Group");
+        contractorsTitle.put("11", "Транстелеком");
     }
 
     private final static Map<String, String> reasonsTitle;
