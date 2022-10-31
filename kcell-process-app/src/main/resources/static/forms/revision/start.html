@@ -531,6 +531,14 @@
                         '6': 'КСЛ'
             };
 
+            $scope.newSubcontractorId = {
+                1: 6,
+                2: 7,
+                3: 10,
+                4: 8,
+                5: 11
+            }
+
             $scope.notAllowedANRUjobs = ['4.14','4.15'];
             $scope.notAllowedSFMjobs = ['4.16','4.17','4.18','5.5','6.1','6.2','6.3','6.4','6.5','6.6','6.7','6.8','6.1','6.11','6.12','6.13','6.16','6.17','6.18',
             '6.19','6.2','6.21','6.22','6.23','6.24','6.25','6.26','6.27','6.28','6.29','7.1','7.2','7.3','7.4','7.5','7.6','7.7','7.8','7.9','7.1','7.11','8.3','8.4','10.1','10.2'];
@@ -1143,6 +1151,9 @@
                             if (item.siteId.value.split(',').map(Number).includes(Number(val.substring(0,2)))) {
                               $scope.subcontractorName = item.value;
                               $scope.subcontractorId = item.id;
+                              if($scope.mainContract === '2022Work-agreement') {
+                                  $scope.custom.contractor = $scope.newSubcontractorId[item.id];
+                              }
                               break;
                             }
                         }
@@ -1297,14 +1308,19 @@
                     return deferred.promise;
                 } else {
                     if($scope.custom.contractor === '-1'){
-                        $scope.jrNumber = $scope.regionShortName+'-##-'+$scope.reasonShortName[$scope.reason]+'-'+$scope.requestedDate.getFullYear().toString().substr(-2)+'-####';
+                        if($scope.mainContract === '2022Work-agreement') {
+                            $scope.jrNumber = $scope.regionNewShortName+'-'+$scope.contractorNewShortName[$scope.subcontractorId]+'-'+$scope.reasonNewShortName[$scope.reason]+'-'+$scope.requestedDate.getFullYear().toString().substr(-2)+($scope.mainContract==='Roll-out'?'-Ro':'');
+                        }else{
+                            $scope.jrNumber = $scope.regionShortName + '-##-' + $scope.reasonShortName[$scope.reason] + '-' + $scope.requestedDate.getFullYear().toString().substr(-2) + '-####';
+                        }
+
                         camForm.businessKey = $scope.jrNumber;
                         deferred.resolve();
                         return deferred.promise;
                     } else {
                         var jrCounter;
                         if($scope.mainContract === '2022Work-agreement') {
-                            jrCounter = $scope.regionNewShortName+'-'+$scope.contractorNewShortName[$scope.custom.contractor]+'-'+$scope.reasonNewShortName[$scope.reason]+'-'+$scope.requestedDate.getFullYear().toString().substr(-2)+($scope.mainContract==='Roll-out'?'-Ro':'');
+                            jrCounter = $scope.regionNewShortName+'-'+$scope.contractorNewShortName[$scope.subcontractorId]+'-'+$scope.reasonNewShortName[$scope.reason]+'-'+$scope.requestedDate.getFullYear().toString().substr(-2)+($scope.mainContract==='Roll-out'?'-Ro':'');
                         } else {
                             jrCounter = $scope.regionShortName+'-'+$scope.contractorShortName[$scope.custom.contractor]+'-'+$scope.reasonShortName[$scope.reason]+'-'+$scope.requestedDate.getFullYear().toString().substr(-2)+($scope.mainContract==='Roll-out'?'-Ro':'');
                         }
@@ -1351,13 +1367,13 @@
         <label class="col-sm-3 control-label">Job to:</label>
         <div class="col-sm-8">
             <label class="radio-inline" ng-if="$root.authentication.name === 'demo'">
-                <input type="radio" name="contractor" ng-disabled="['emergencyRevision2022','2022Work-agreement'].includes(mainContract)" ng-model="custom.contractor" id="lse" value="4" required> TOO Line System Engineering
+                <input type="radio" name="contractor" ng-disabled="['emergencyRevision2022','2022Work-agreement'].includes(mainContract)" ng-model="custom.contractor" id="lse" value="4" ng-required="mainContract !== '2022Work-agreement'"> TOO Line System Engineering
             </label>
             <label class="radio-inline">
-                <input type="radio" name="contractor" ng-model="custom.contractor" id="subcontractor" value="-1" required> Subcontractor
+                <input type="radio" name="contractor" ng-model="custom.contractor" id="subcontractor" value="-1" ng-checked="mainContract === '2022Work-agreement'" ng-required="mainContract !== '2022Work-agreement'"> Subcontractor
             </label>
             <label class="radio-inline">
-                <input type="radio" name="contractor" ng-disabled="['emergencyRevision2022','2022Work-agreement'].includes(mainContract)" ng-model="custom.contractor" id="kcell_region" value="5" required> Kcell_region
+                <input type="radio" name="contractor" ng-disabled="['emergencyRevision2022','2022Work-agreement'].includes(mainContract)" ng-model="custom.contractor" id="kcell_region" value="5" ng-required="mainContract !== '2022Work-agreement'"> Kcell_region
             </label>
             <label class="error" ng-if="kcell_form.contractor.$error.required && ( kcell_form.contractor.$touched || view.submitted)">Required field</label>
         </div>
