@@ -64,6 +64,7 @@ define('app',[
 						},
 						{key:'Revision-power', name:'Revision Power', group:'infrastructure_revision_users'},
 						{key:'CreatePR', name:'Create PR', group:'infrastructure_pr_users'},
+						{key:'PrNumbersAssignment', name:'PR Numbers Assignment', group:'pr_users'},
 						{key:'Invoice', name:'Monthly Act', group:'infrastructure_monthly_act_users'},
 						{key:'monthlyAct', name:'New Monthly Act', group:'infrastructure_monthly_act_users'},
 						{key:'change-tsd', name:'Change TSD', group:'infrastructure_change_tsd_users'},
