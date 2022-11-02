@@ -183,11 +183,6 @@
                     submit: true
                 },
                 {
-                    name: 'subcontractorId',
-                    type: 'Integer',
-                    submit: true
-                },
-                {
                     name: 'isPermitDocsNeeded',
                     type: 'String',
                     submit: true,
@@ -525,21 +520,14 @@
             };
 
             $scope.contractorNewShortName = {
-                        '1': 'АЛТ',
-                        '2': 'ЛОГ',
-                        '3': 'ФОР',
-                        '4': 'АРЛ',
-                        '5': 'ТРК',
-                        '6': 'КСЛ'
-            };
+                        '5': 'КСЛ',
+                        '6': 'АЛТ',
+                        '7': 'ЛОГ',
+                        '8': 'АРЛ',
+                        '10': 'ФОР',
+                        '11': 'ТРК',
 
-            $scope.newSubcontractorId = {
-                1: 6,
-                2: 7,
-                3: 10,
-                4: 8,
-                5: 11
-            }
+            };
 
             $scope.notAllowedANRUjobs = ['4.14','4.15'];
             $scope.notAllowedSFMjobs = ['4.16','4.17','4.18','5.5','6.1','6.2','6.3','6.4','6.5','6.6','6.7','6.8','6.1','6.11','6.12','6.13','6.16','6.17','6.18',
@@ -832,9 +820,6 @@
                     $scope.rolloutOrEmergency = true;
                 }else{
                     $scope.rolloutOrEmergency = false;
-                }
-                if ($scope.mainContract === '2022Work-agreement') {
-                    $scope.custom.contractor = '-1';
                 }
                 $scope.page = 0;
                 $scope.jobRequestsCount = 0;
@@ -1141,7 +1126,7 @@
 
             function setOblastName(val) {
                         for (const item of $scope.oblastCatalog) {
-                            if (item.siteId.value.split(',').map(Number).includes(Number(val.substring(0,2)))) {
+                            if (item.siteId.value.split(',').map(parseInt).includes(parseInt(val.substring(0,2)))) {
                               $scope.oblastName = item.value;
                               break;
                             }
@@ -1150,11 +1135,10 @@
 
             function setSubcontractorName(val) {
                         for (const item of $scope.subcontractorCatalog) {
-                            if (item.siteId.value.split(',').map(Number).includes(Number(val.substring(0,2)))) {
+                            if (item.siteId.value.split(',').map(parseInt).includes(parseInt(val.substring(0,2)))) {
                               $scope.subcontractorName = item.value;
-                              $scope.subcontractorId = item.id;
                               if($scope.mainContract === '2022Work-agreement') {
-                                  $scope.custom.contractor = $scope.newSubcontractorId[item.id];
+                                  $scope.custom.contractor = item.id;
                               }
                               break;
                             }
@@ -1214,7 +1198,7 @@
                             $scope.siteAddress = adress;
                             if ($scope.mainContract === '2022Work-agreement') {
                                 const regionId = $scope.oblastCatalog.find( item =>
-                                    item.siteId.value.split(',').map(Number).includes(Number(siteInfo.site_id.substring(0,2)))
+                                    item.siteId.value.split(',').map(parseInt).includes(parseInt(siteInfo.site_id.substring(0,2)))
                                 ).parent;
                                 const regionName = $scope.regionCatalog.find(item => item.id === regionId).value;
                                 setRegion(regionId, regionName);
@@ -1310,19 +1294,14 @@
                     return deferred.promise;
                 } else {
                     if($scope.custom.contractor === '-1'){
-                        if($scope.mainContract === '2022Work-agreement') {
-                            $scope.jrNumber = $scope.regionNewShortName+'-'+$scope.contractorNewShortName[$scope.subcontractorId]+'-'+$scope.reasonNewShortName[$scope.reason]+'-'+$scope.requestedDate.getFullYear().toString().substr(-2)+($scope.mainContract==='Roll-out'?'-Ro':'');
-                        }else{
-                            $scope.jrNumber = $scope.regionShortName + '-##-' + $scope.reasonShortName[$scope.reason] + '-' + $scope.requestedDate.getFullYear().toString().substr(-2) + '-####';
-                        }
-
+                        $scope.jrNumber = $scope.regionShortName + '-##-' + $scope.reasonShortName[$scope.reason] + '-' + $scope.requestedDate.getFullYear().toString().substr(-2) + '-####';
                         camForm.businessKey = $scope.jrNumber;
                         deferred.resolve();
                         return deferred.promise;
                     } else {
                         var jrCounter;
                         if($scope.mainContract === '2022Work-agreement') {
-                            jrCounter = $scope.regionNewShortName+'-'+$scope.contractorNewShortName[$scope.subcontractorId]+'-'+$scope.reasonNewShortName[$scope.reason]+'-'+$scope.requestedDate.getFullYear().toString().substr(-2)+($scope.mainContract==='Roll-out'?'-Ro':'');
+                            jrCounter = $scope.regionNewShortName+'-'+$scope.contractorNewShortName[$scope.custom.contractor]+'-'+$scope.reasonNewShortName[$scope.reason]+'-'+$scope.requestedDate.getFullYear().toString().substr(-2);
                         } else {
                             jrCounter = $scope.regionShortName+'-'+$scope.contractorShortName[$scope.custom.contractor]+'-'+$scope.reasonShortName[$scope.reason]+'-'+$scope.requestedDate.getFullYear().toString().substr(-2)+($scope.mainContract==='Roll-out'?'-Ro':'');
                         }
@@ -1348,7 +1327,7 @@
         </div>
         <div class="col-sm-3">
             <span ng-if="mainContract !== '2022Work-agreement'">{{regionShortName?regionShortName:'###'}}-{{contractorShortName[custom.contractor]?contractorShortName[custom.contractor]:'##'}}-{{reasonShortName[reason]?reasonShortName[reason]:'###'}}-{{requestedDate.getFullYear().toString().substr(-2)}}-{{siteCounter?siteCounter:'####'}}{{mainContract == 'Roll-out'?'-Ro':''}}</span>
-            <span ng-if="mainContract === '2022Work-agreement'">{{regionNewShortName?regionNewShortName:'###'}}-{{contractorNewShortName[subcontractorId]?contractorNewShortName[subcontractorId]:'##'}}-{{reasonNewShortName[reason]?reasonNewShortName[reason]:'###'}}-{{requestedDate.getFullYear().toString().substr(-2)}}-{{siteCounter?siteCounter:'####'}}{{mainContract == 'Roll-out'?'-Ro':''}}</span>
+            <span ng-if="mainContract === '2022Work-agreement'">{{regionNewShortName?regionNewShortName:'###'}}-{{contractorNewShortName[custom.contractor]?contractorNewShortName[custom.contractor]:'##'}}-{{reasonNewShortName[reason]?reasonNewShortName[reason]:'###'}}-{{requestedDate.getFullYear().toString().substr(-2)}}-{{siteCounter?siteCounter:'####'}}{{mainContract == 'Roll-out'?'-Ro':''}}</span>
         </div>
     </div>
 
@@ -1367,17 +1346,22 @@
     </div>
     <div class="form-group">
         <label class="col-sm-3 control-label">Job to:</label>
-        <div class="col-sm-8">
+        <div class="col-sm-8" ng-if="mainContract !== '2022Work-agreement'">
             <label class="radio-inline" ng-if="$root.authentication.name === 'demo'">
-                <input type="radio" name="contractor" ng-disabled="['emergencyRevision2022','2022Work-agreement'].includes(mainContract)" ng-model="custom.contractor" id="lse" value="4" ng-required="mainContract !== '2022Work-agreement'"> TOO Line System Engineering
+                <input type="radio" name="contractor" ng-disabled="['emergencyRevision2022'].includes(mainContract)" ng-model="custom.contractor" id="lse" value="4"> TOO Line System Engineering
             </label>
             <label class="radio-inline">
-                <input type="radio" name="contractor" ng-model="custom.contractor" id="subcontractor" value="-1" ng-checked="mainContract === '2022Work-agreement'" ng-required="mainContract !== '2022Work-agreement'"> Subcontractor
+                <input type="radio" name="contractor" ng-model="custom.contractor" id="subcontractor" value="-1"> Subcontractor
             </label>
             <label class="radio-inline">
-                <input type="radio" name="contractor" ng-disabled="['emergencyRevision2022','2022Work-agreement'].includes(mainContract)" ng-model="custom.contractor" id="kcell_region" value="5" ng-required="mainContract !== '2022Work-agreement'"> Kcell_region
+                <input type="radio" name="contractor" ng-disabled="['emergencyRevision2022'].includes(mainContract)" ng-model="custom.contractor" id="kcell_region" value="5"> Kcell_region
             </label>
             <label class="error" ng-if="kcell_form.contractor.$error.required && ( kcell_form.contractor.$touched || view.submitted)">Required field</label>
+        </div>
+        <div class="col-sm-8" ng-if="mainContract === '2022Work-agreement'">
+            <label class="radio-inline">
+                <input type="radio" ng-checked="true"> Subcontractor
+            </label>
         </div>
     </div>
     <div class="form-group">
