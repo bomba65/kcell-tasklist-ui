@@ -14,6 +14,7 @@ def getUserEmail(DelegateExecution execution) {
             .collect(Collectors.toSet())
     def result = userList.stream().collect(Collectors.joining(","))
     result
+
 }
 
 getUserEmail(execution)
