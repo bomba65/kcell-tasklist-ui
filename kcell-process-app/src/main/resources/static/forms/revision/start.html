@@ -477,10 +477,7 @@
                 {id: 'south', name: 'South', value: 'S'},
                 {id: 'west', name: 'West', value: 'W'}
             ]
-            $scope.regionsToSelect = [
-                {id: '1', name: 'Almaty'},
-                {id: '5', name: 'South'}
-            ]
+            $scope.oblastToSelect = ['Алматинская область','Жамбылская область'];
             $scope.regionsMap = {
                 '1': 'Alm',
                 '2': 'Ast',
@@ -1228,7 +1225,7 @@
                             }
                             setOblastName(siteInfo.site_id);
                             setSubcontractorName(siteInfo.site_id);
-                            checkIfNeedToSelectRegion();
+                            checkIfNeedToSelectOblast();
                         }
                     }
                     $scope.siteStatus = siteInfo.site_status_id ? siteInfo.site_status_id.name : '';
@@ -1252,20 +1249,20 @@
                 }
             }
 
-            $scope.needToSelectRegion = false;
-            function checkIfNeedToSelectRegion() {
+            $scope.needToSelectOblast = false;
+            function checkIfNeedToSelectOblast() {
                 const siteId = $scope.siteId ? $scope.siteId.substring(0,2) : '';
-                $scope.needToSelectRegion = $scope.mainContract === '2022Work-agreement'
+                $scope.needToSelectOblast = $scope.mainContract === '2022Work-agreement'
                     && ['03','05','07'].includes(siteId);
+                if ($scope.needToSelectOblast) {
+                    $scope.oblastName = null;
+                }
             }
 
-            $scope.selectedRegion = undefined;
-            $scope.work2022AgreementRegionSelected = function(selectedRegion) {
-                if (selectedRegion) {
-                    const regionId = selectedRegion.id;
-                    const regionName = selectedRegion.name;
-                    setRegion(regionId, regionName);
-                    refreshJobRequests();
+            $scope.selectedOblast = undefined;
+            $scope.oblastSelected = function(selectedOblast) {
+                if (selectedOblast) {
+                    $scope.oblastName = selectedOblast;
                 }
             }
 
@@ -1391,7 +1388,7 @@
     </div>
     <div class="form-group">
         <label class="col-sm-3 control-label">Validity date:</label>
-        <div class="col-sm-3">
+        <div class="col-sm-3" ng-if="mainContract !== '2022Work-agreement'">
             <div class="input-group">
                 <input type="text" ng-model="validityDate" name="validityDate" required class="form-control" datepicker-popup="dd.MM.yyyy" is-open="dateFieldOpened" id="validityDate" min-date="datepickerOptions.minDate" />
                 <span class="input-group-btn">
@@ -1400,6 +1397,9 @@
                     </button>
                 </span>
             </div>
+        </div>
+        <div class="col-sm-3" ng-if="mainContract === '2022Work-agreement'">
+            <div class="form-control">{{requestedDate | date: 'dd.MM.yyyy HH:mm'}}</div>
         </div>
     </div>
     <div class="form-group">
@@ -1426,23 +1426,22 @@
     <div class="form-group">
         <label class="col-sm-3 control-label">Region:</label>
         <input type="hidden" ng-model="siteRegionShow" name="siteRegionShow" required/>
-        <div class="col-sm-3" ng-if="!needToSelectRegion">
+        <div class="col-sm-3">
             <div class="form-control">{{siteRegionShow}}</div>
             <label class="error" ng-if="kcell_form.siteRegionShow.$error.required && ( kcell_form.siteRegionShow.$touched || view.submitted)">Required field</label>
-        </div>
-        <div class="col-sm-3" ng-if="needToSelectRegion">
-            <select ng-model="selectedRegion" ng-options="r as r.name for r in regionsToSelect"
-                    class="form-control" title="" name="selectedRegion" ng-required="true" ng-change="work2022AgreementRegionSelected(selectedRegion)">
-                <option value="">select region</option>
-            </select>
-            <label class="error" ng-if="kcell_form.selectedRegion.$error.required && ( kcell_form.selectedRegion.$touched || view.submitted)">Required field</label>
         </div>
     </div>
     <div class="form-group" ng-if="mainContract === '2022Work-agreement'">
         <label class="col-sm-3 control-label">Oblast:</label>
-        <input type="hidden" ng-model="oblastName" name="oblastName"/>
-        <div class="col-sm-3">
+        <div class="col-sm-3" ng-if="!needToSelectOblast">
             <div class="form-control">{{oblastName}}</div>
+        </div>
+        <div class="col-sm-3" ng-if="needToSelectOblast">
+            <select ng-model="selectedOblast" ng-options="o as o for o in oblastToSelect"
+                    class="form-control" title="" name="selectedOblast" ng-required="true" ng-change="oblastSelected(selectedOblast)">
+                <option value="">select region</option>
+            </select>
+            <label class="error" ng-if="kcell_form.selectedOblast.$error.required && ( kcell_form.selectedOblast.$touched || view.submitted)">Required field</label>
         </div>
     </div>
     <div class="form-group" ng-if="mainContract === '2022Work-agreement'">
