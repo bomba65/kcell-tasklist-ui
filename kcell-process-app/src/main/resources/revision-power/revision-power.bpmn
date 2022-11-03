@@ -15,7 +15,7 @@
       <bpmn:outgoing>Flow_0eof7pp</bpmn:outgoing>
     </bpmn:userTask>
     <bpmn:endEvent id="Event_13tl6oy" name="End process">
-      <bpmn:incoming>Flow_1ia13cs</bpmn:incoming>
+      <bpmn:incoming>Flow_0s8z71t</bpmn:incoming>
     </bpmn:endEvent>
     <bpmn:userTask id="Activity_1n6ht0u" name="Acceptance by Initiator" camunda:formKey="embedded:app:forms/revision-power/initiatorAcceptance.html" camunda:candidateUsers="${starter}">
       <bpmn:documentation>Acceptance by Initiator</bpmn:documentation>
@@ -89,7 +89,7 @@
       <bpmn:outgoing>Flow_1ia13cs</bpmn:outgoing>
       <bpmn:outgoing>Flow_1fe0wai</bpmn:outgoing>
     </bpmn:exclusiveGateway>
-    <bpmn:sequenceFlow id="Flow_1ia13cs" sourceRef="Gateway_1uso43k" targetRef="Event_13tl6oy" />
+    <bpmn:sequenceFlow id="Flow_1ia13cs" sourceRef="Gateway_1uso43k" targetRef="Activity_01sbudk" />
     <bpmn:sequenceFlow id="Flow_1fe0wai" sourceRef="Gateway_1uso43k" targetRef="Gateway_11adi9i">
       <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${resolution == 'modify'}</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
@@ -114,7 +114,7 @@
     </bpmn:sequenceFlow>
     <bpmn:sequenceFlow id="Flow_1pbhouk" sourceRef="Activity_1hwd5ay" targetRef="Activity_0pa44u4" />
     <bpmn:sequenceFlow id="Flow_0rh3yk7" sourceRef="Activity_0q7n8cy" targetRef="Activity_0wcv24v" />
-    <bpmn:sendTask id="Activity_0q7n8cy" name="Notification to Budget Unit"  camunda:delegateExpression="${camundaMailer}">
+    <bpmn:sendTask id="Activity_0q7n8cy" name="Notification to Budget Unit" camunda:delegateExpression="${camundaMailer}">
       <bpmn:extensionElements>
         <camunda:inputOutput>
           <camunda:inputParameter name="to">
@@ -129,6 +129,24 @@
       </bpmn:extensionElements>
       <bpmn:incoming>Flow_1hrwvzq</bpmn:incoming>
       <bpmn:outgoing>Flow_0rh3yk7</bpmn:outgoing>
+    </bpmn:sendTask>
+    <bpmn:sequenceFlow id="Flow_0s8z71t" sourceRef="Activity_01sbudk" targetRef="Event_13tl6oy" />
+    <bpmn:sendTask id="Activity_01sbudk" name="Process notification complete" camunda:delegateExpression="${camundaMailer}">
+      <bpmn:extensionElements>
+        <camunda:inputOutput>
+          <camunda:inputParameter name="to">
+            <camunda:script scriptFormat="groovy" resource="revision-power/GetStarterEmail.groovy" />
+          </camunda:inputParameter>
+          <camunda:inputParameter name="subject">Завершение заявки ${jrNumber} на электромонтажные работы для сайта ${Site_Name}</camunda:inputParameter>
+          <camunda:inputParameter name="html">Заявка ${jrNumber} выполнена и закрыта.
+            Site:  ${Site_Name}
+            JR ordered date: ${jrOrderedDate}
+            Acceptance date: ${jrAcceptanceDate}
+          </camunda:inputParameter>
+        </camunda:inputOutput>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_1ia13cs</bpmn:incoming>
+      <bpmn:outgoing>Flow_0s8z71t</bpmn:outgoing>
     </bpmn:sendTask>
     <bpmn:textAnnotation id="TextAnnotation_1pnhmq8">
       <bpmn:text>HQ Power approver</bpmn:text>
@@ -197,6 +215,10 @@
       <bpmndi:BPMNShape id="Activity_0xbdvwz_di" bpmnElement="Activity_1hwd5ay">
         <dc:Bounds x="520" y="440" width="100" height="80" />
       </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_009ktsn_di" bpmnElement="Activity_0q7n8cy" bioc:stroke="black" bioc:fill="white">
+        <dc:Bounds x="910" y="260" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="TextAnnotation_1pnhmq8_di" bpmnElement="TextAnnotation_1pnhmq8">
         <dc:Bounds x="537" y="182" width="83" height="35" />
       </bpmndi:BPMNShape>
@@ -209,8 +231,8 @@
       <bpmndi:BPMNShape id="TextAnnotation_1ulgaty_di" bpmnElement="TextAnnotation_1ulgaty">
         <dc:Bounds x="1730" y="185" width="100" height="30" />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Activity_009ktsn_di" bpmnElement="Activity_0q7n8cy" bioc:stroke="black" bioc:fill="white">
-        <dc:Bounds x="910" y="260" width="100" height="80" />
+      <bpmndi:BPMNShape id="Activity_1sy0eam_di" bpmnElement="Activity_01sbudk">
+        <dc:Bounds x="2070" y="260" width="100" height="80" />
         <bpmndi:BPMNLabel />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="Flow_0xcevbz_di" bpmnElement="Flow_0xcevbz">
@@ -275,7 +297,7 @@
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_1ia13cs_di" bpmnElement="Flow_1ia13cs">
         <di:waypoint x="1875" y="300" />
-        <di:waypoint x="2382" y="300" />
+        <di:waypoint x="2070" y="300" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_1fe0wai_di" bpmnElement="Flow_1fe0wai">
         <di:waypoint x="1850" y="325" />
@@ -295,6 +317,10 @@
         <di:waypoint x="520" y="480" />
         <di:waypoint x="390" y="480" />
       </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0rh3yk7_di" bpmnElement="Flow_0rh3yk7">
+        <di:waypoint x="1010" y="300" />
+        <di:waypoint x="1260" y="300" />
+      </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Association_0kq2cj0_di" bpmnElement="Association_0kq2cj0">
         <di:waypoint x="191" y="286" />
         <di:waypoint x="246" y="215" />
@@ -311,9 +337,9 @@
         <di:waypoint x="1720" y="260" />
         <di:waypoint x="1765" y="215" />
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Flow_0rh3yk7_di" bpmnElement="Flow_0rh3yk7">
-        <di:waypoint x="1010" y="300" />
-        <di:waypoint x="1260" y="300" />
+      <bpmndi:BPMNEdge id="Flow_0s8z71t_di" bpmnElement="Flow_0s8z71t">
+        <di:waypoint x="2170" y="300" />
+        <di:waypoint x="2382" y="300" />
       </bpmndi:BPMNEdge>
     </bpmndi:BPMNPlane>
   </bpmndi:BPMNDiagram>
