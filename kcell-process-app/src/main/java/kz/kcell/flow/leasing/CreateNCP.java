@@ -52,7 +52,7 @@ public class CreateNCP implements JavaDelegate {
 
     @Override
     public void execute(DelegateExecution delegateExecution) throws Exception {
-        try {
+        /*try {
             TimeZone timeZone = TimeZone.getTimeZone("Asia/Almaty");
             TimeZone.setDefault(timeZone);
             Class.forName("oracle.jdbc.OracleDriver");
@@ -261,6 +261,6 @@ public class CreateNCP implements JavaDelegate {
             log.info("testConnect Exception!");
             e.printStackTrace();
             throw e;
-        }
+        }*/
     }
 }
