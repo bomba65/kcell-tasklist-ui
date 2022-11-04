@@ -133,15 +133,15 @@ public class SetPricesDelegate implements TaskListener {
 
                 for (JsonNode workPrice : json) {
                     workPrice.get("price").toString();
-                    worksPriceMap.put(workPrice.get("id").textValue(), workPrice.get("price"));
-                    worksTitleMap.put(workPrice.get("id").textValue(), workPrice.get("title").textValue());
+                    worksPriceMap.put("prices", workPrice.get("price"));
+                    worksTitleMap.put("title", workPrice.get("title").textValue());
                 }
 
                 ArrayNode workPrices = mapper.createArrayNode();
                 ArrayNode jobWorks = (ArrayNode) mapper.readTree(delegateTask.getVariable("jobWorks").toString());
                 BigDecimal jobWorksTotal = BigDecimal.ZERO;
                 for (JsonNode work : jobWorks) {
-                    if(work.has("id") && work.get("id").intValue() >= 4000) {
+                    if(work.has("id") && work.get("id").intValue() >= 5000) {
                         continue;
                     }
                     ObjectNode workPrice = work.deepCopy();
@@ -150,8 +150,8 @@ public class SetPricesDelegate implements TaskListener {
                     }
 
                     if (!uniqueWorks.containsKey(work.get("sapServiceNumber").textValue())) {
-                        JsonNode priceJson = worksPriceMap.get(work.get("sapServiceNumber").textValue());
-                        String title = worksTitleMap.get(work.get("sapServiceNumber").textValue());
+                        JsonNode priceJson = worksPriceMap.get("prices");
+                        String title = worksTitleMap.get("title");
 
                         ObjectNode workPriceJson = mapper.createObjectNode();
                         workPriceJson.put("sapServiceNumber", work.get("sapServiceNumber").textValue());
@@ -163,7 +163,7 @@ public class SetPricesDelegate implements TaskListener {
                         uniqueWorks.put(work.get("sapServiceNumber").textValue(), "");
                     }
 
-                    JsonNode priceJson = worksPriceMap.get(work.get("sapServiceNumber").textValue());
+                    JsonNode priceJson = worksPriceMap.get("prices");
                     BigDecimal unitWorkPrice = new BigDecimal(priceJson.get(siteRegion).get(work.has("materialsProvidedBy") && "subcontractor".equals(work.get("materialsProvidedBy").textValue()) ? "with_material" : "without_material").textValue());
 
                     if (priority.equals("emergency")) {
@@ -197,7 +197,7 @@ public class SetPricesDelegate implements TaskListener {
 
                     jobWorksTotal = jobWorksTotal.add(total);
 
-                    workPrice.put("basePrice", worksPriceMap.get(work.get("sapServiceNumber").asText()).get(siteRegion).get("without_material").textValue());
+                    workPrice.put("basePrice", worksPriceMap.get("prices").get(siteRegion).get("without_material").textValue());
                     workPrices.add(workPrice);
                 }
                 JsonValue jsonValue = SpinValues.jsonValue(workPrices.toString()).create();
