@@ -97,7 +97,7 @@ public class JrBlankGenerator {
             ArrayNode json = (ArrayNode) mapper.readTree(reader);
 
             for (JsonNode workPrice : json) {
-                worksPrice.put(workPrice.get("id").textValue(), workPrice.get("price"));
+                worksPrice.put("prices", workPrice.get("price"));
                 worksTitle.put(workPrice.get("id").textValue(), workPrice.get("title").textValue());
             }
         }
@@ -301,7 +301,7 @@ public class JrBlankGenerator {
             CellUtil.setFont(row.getCell(11), arialB10);
 
             for (int i = 0; i < jobWorks.size(); i++) {
-                JsonNode priceJson = worksPrice.get(jobWorks.get(i).get("sapServiceNumber").textValue());
+                JsonNode priceJson = worksPrice.get("prices");
                 BigDecimal jobPrice = new BigDecimal(priceJson.get(siteRegion).get(jobWorks.get(i).has("materialsProvidedBy") && "subcontractor".equals(jobWorks.get(i).get("materialsProvidedBy").textValue()) ? "with_material" : "without_material").textValue()).setScale(2, RoundingMode.DOWN);
 
                 if (priority.equals("emergency")) {
