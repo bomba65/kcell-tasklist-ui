@@ -7,8 +7,9 @@
   }
 </style>
 <form role="form" class="form-horizontal" name="kcell_form" novalidate>
-  <script cam-script type="text/form-script">
+  <script cam-script type="text/form-script" type="text/javascript">
     inject(['$scope', '$http', 'Uri', '$rootScope', '$q', '$timeout', function ($scope, $http, Uri, $rootScope, $q, $timeout) {
+      var uuid = new Date().getTime();
       var variables = [
         'jrOrderedDate',
         'jrNumber',
@@ -29,7 +30,7 @@
         'job_to',
         'resolutions',
       ];
-
+      $scope.fileSelected = fileSelected;
       camForm.on('form-loaded', function () {
         variables.forEach(function (el) {
             camForm.variableManager.fetchVariable(el);
@@ -51,6 +52,7 @@
       });
 
       camForm.on('submit', function (e) {
+        camForm.variableManager.variableValue('jobs', JSON.parse(angular.toJson($scope.jobs)))
         camForm.variableManager.createVariable({
             name: 'resolution',
             type: 'String',
@@ -69,16 +71,61 @@
             type: 'String'
             });
         }
+        camForm.variableManager.createVariable({
+          name: 'attachments',
+          type: 'Json',
+          value: $scope.attachments
+        });
+        if($scope.attachments && $scope.attachments.length > 0){
+          camForm.variableManager.variableValue('attachments', JSON.parse(angular.toJson($attachments.jobs)))
+        }
         camForm.variableManager.destroyVariable('resolutions');
       });
 
-      $scope.download = function download (file) {
-          $http({method: 'GET', url: '/camunda/uploads/' + (file.path.split('/').length === 2 ? 'tmp/' : '') + 'get/' + file.path, transformResponse: [] }).then(
-              function(response) {
-                  document.getElementById('fileDownloadIframe').src = response.data;
-              },
-              function(response) {console.log(response.data);}
+      function fileSelected(el, bindedInput){
+        $timeout(function () {
+          $scope.$apply(function () {
+            uploadFileToMinio(el.files[0], bindedInput);
+          });
+
+        })
+      }
+
+      function uploadFileToMinio(file, bindedInput) {
+        var fileValue = {
+          name: file.name.replace(/[/\\?%#*:|"<>]/g, '-'),
+          path: uuid + '/' + file.name.replace(/[/\\?%#*:|"<>;]/g, '-')
+        };
+        $http({method: 'GET', url: '/camunda/uploads/tmp/put/' + fileValue.path, transformResponse: [] }).
+        then(function(response) {
+          $http.put(response.data, file, {headers: {'Content-Type': undefined}}).then(
+                  function () {
+                    if(!$scope.attachments){
+                      $scope.attachments = [];
+                    }
+                    $scope.attachments.push(fileValue);
+                    angular.element(document.querySelector('#attachments')).val(null);
+                    $(bindedInput).val('');
+                  },
+                  function (error) {
+                    console.log(error.data);
+                  }
           );
+        }, function(error){
+          console.log(error.data);
+        });
+      };
+
+      $scope.clearFile = function(index){
+        $scope.attachments.splice(index, 1);
+      }
+      $scope.download = function download (file) {
+        $http({method: 'GET', url: '/camunda/uploads/' + (file.path.split('/').length === 2 ? 'tmp/' : '') + 'get/' + file.path, transformResponse: [] }).then(
+                function(response) {
+                  document.getElementById('fileDownloadIframe').src = response.data;
+                },
+                function(response) {console.log(response.data);}
+        );
       }
     }]);
   </script>
@@ -209,6 +256,9 @@
         <iframe id="fileDownloadIframe" style="display: none"></iframe>
         <div class="col-md-12" ng-repeat="file in attachments">
           <a ng-click="download(file)">{{file.name}}</a>
+          <a ng-click="clearFile($index);"
+          ><i class="glyphicon glyphicon-trash"></i
+          ></a>
         </div>
       </div>
     </div>
@@ -225,7 +275,33 @@
       </div>
     </div>
   </div>
-
+  <br>
+  <div class="form-group">
+    <label class="col-sm-3 control-label"> Attachments:</label>
+    <div class="col-sm-6">
+      <div class="input-group">
+        <label class="input-group-btn">
+          <span class="btn btn-default">
+            Choose File
+            <input
+                    type="file"
+                    id="attachments"
+                    name="attachments"
+                    style="display: none"
+                    onchange="angular.element(this).scope().fileSelected(this, '#attachedFilesName');$('#attachedFilesName').val(this.files[0].name)"
+            />
+          </span>
+        </label>
+        <input
+                type="text"
+                class="form-control upload-filename"
+                id="attachedFilesName"
+                placeholder="No File Chosen"
+                readonly
+        />
+      </div>
+    </div>
+  </div>
   <div class="form-group">
     <label class="col-sm-3 control-label">Resolution:</label>
     <div class="col-sm-8">
