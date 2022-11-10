@@ -44,3 +44,12 @@ http://localhost/camunda/app/welcome/default/#/login
 login - demo 
 <br>
 pass - demo
+
+#### deploy to core.test-flow.kcell.kz
+```
+sudo su
+cd /home/user/KWMS-BPM
+git pull
+docker build -t kcell/process-app ./kcell-process-app
+docker-compose -f docker-compose-ps-test.yml up -d
+```
