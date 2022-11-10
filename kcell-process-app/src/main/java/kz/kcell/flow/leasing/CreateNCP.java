@@ -76,7 +76,7 @@ public class CreateNCP implements JavaDelegate {
                     String targetCoverage = delegateExecution.getVariable("targetCoverage") != null ? delegateExecution.getVariable("targetCoverage").toString() : null;
                     String regionCode = delegateExecution.getVariable("regionCode") != null ? delegateExecution.getVariable("regionCode").toString() : null;
                     String rbsType = delegateExecution.getVariable("rbsTypeId") != null ? delegateExecution.getVariable("rbsTypeId").toString() : null;
-                    Integer rbsTypeInt = Integer.parseInt(rbsType);
+                    Integer rbsTypeInt = rbsType != null ? Integer.parseInt(rbsType) : null;
                     String createNCPTaskComment = delegateExecution.getVariable("createNCPTaskComment") != null ? delegateExecution.getVariable("createNCPTaskComment").toString() : null;
                     String bandsIdForUDB = delegateExecution.getVariable("bandsIdForUDB") != null ? delegateExecution.getVariable("bandsIdForUDB").toString() : null;
                     String plannedCabinetTypeIdForUDB = delegateExecution.getVariable("plannedCabinetTypeIdForUDB") != null ? delegateExecution.getVariable("plannedCabinetTypeIdForUDB").toString() : null;

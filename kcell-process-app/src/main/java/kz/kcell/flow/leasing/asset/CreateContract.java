@@ -1,5 +1,6 @@
 package kz.kcell.flow.leasing.asset;
 
+import kz.kcell.Utils;
 import kz.kcell.flow.files.Minio;
 import lombok.extern.java.Log;
 import org.apache.http.HttpEntity;
@@ -9,7 +10,6 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.conn.ssl.TrustSelfSignedStrategy;
-import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.ssl.SSLContextBuilder;
@@ -124,12 +124,8 @@ public class CreateContract implements JavaDelegate {
                         statusJson.put("id", 2);
 
                         putValue.put("contract_status_id", statusJson);
-                        HttpPut httpPut = new HttpPut(new URI(this.assetsUri + "/asset-management/contracts/id/" + old_contract_asset_id));
-                        //            HttpPost httpPost = new HttpPost(new URI(this.assetsUri + "/asset-management/ncp/"));
-                        httpPut.addHeader("Content-Type", "application/json;charset=UTF-8");
-                        httpPut.addHeader("Referer", baseUri);
-                        StringEntity inputData = new StringEntity(putValue.toString());
-                        httpPut.setEntity(inputData);
+                        HttpPut httpPut = Utils.createHttpPut(this.assetsUri + "/asset-management/contracts/id/" + old_contract_asset_id, baseUri, putValue);
+
                         CloseableHttpResponse putResponse = httpclient.execute(httpPut);
 
                         if (putResponse.getStatusLine().getStatusCode() < 200 || putResponse.getStatusLine().getStatusCode() >= 300) {
@@ -229,12 +225,7 @@ public class CreateContract implements JavaDelegate {
                     jsonBody.put("old_contract_id", old_contract_asset_id);
                 }
 
-                HttpPost httpPost = new HttpPost(new URI(this.assetsUri + "/asset-management/contracts/"));
-//            HttpPost httpPost = new HttpPost(new URI(this.assetsUri + "/asset-management/ncp/"));
-                httpPost.addHeader("Content-Type", "application/json;charset=UTF-8");
-                httpPost.addHeader("Referer", baseUri);
-                StringEntity inputData = new StringEntity(jsonBody.toString());
-                httpPost.setEntity(inputData);
+                HttpPost httpPost = Utils.createHttpPost(this.assetsUri + "/asset-management/contracts/", baseUri, jsonBody);
 
                 CloseableHttpResponse postResponse = httpclient.execute(httpPost);
 
@@ -270,11 +261,7 @@ public class CreateContract implements JavaDelegate {
                         log.info("SiteContract: ");
                         log.info(siteContractBody.toString());
 
-                        HttpPost httpPostSC = new HttpPost(new URI(this.assetsUri + "/asset-management/sitesContracts/"));
-                        httpPostSC.addHeader("Content-Type", "application/json;charset=UTF-8");
-                        httpPostSC.addHeader("Referer", baseUri);
-                        StringEntity inputDataSC = new StringEntity(siteContractBody.toString());
-                        httpPostSC.setEntity(inputDataSC);
+                        HttpPost httpPostSC = Utils.createHttpPost(this.assetsUri + "/asset-management/sitesContracts/", baseUri, siteContractBody);
 
                         CloseableHttpResponse postResponseSC = httpclient.execute(httpPostSC);
 
@@ -412,12 +399,7 @@ public class CreateContract implements JavaDelegate {
                 jsonBody.put("ifrs16", ct_ifrs16);
 
 
-                HttpPost httpPost = new HttpPost(new URI(this.assetsUri + "/asset-management/contract_aa/"));
-
-                httpPost.addHeader("Content-Type", "application/json;charset=UTF-8");
-                httpPost.addHeader("Referer", baseUri);
-                StringEntity inputData = new StringEntity(jsonBody.toString());
-                httpPost.setEntity(inputData);
+                HttpPost httpPost = Utils.createHttpPost(this.assetsUri + "/asset-management/contract_aa/", baseUri, jsonBody);
 
                 CloseableHttpResponse postResponse = httpclient.execute(httpPost);
 

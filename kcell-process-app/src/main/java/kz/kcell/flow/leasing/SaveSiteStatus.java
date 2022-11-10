@@ -1,5 +1,6 @@
 package kz.kcell.flow.leasing;
 
+import kz.kcell.Utils;
 import kz.kcell.flow.files.Minio;
 import lombok.extern.java.Log;
 import org.apache.http.HttpEntity;
@@ -66,11 +67,7 @@ public class SaveSiteStatus implements JavaDelegate {
         log.info("body value.toString(): ");
         log.info(value.toString());
 
-        HttpPut httpPut = new HttpPut(new URI(this.assetsUri + "/asset-management/sites/id/" + assetsCreatedSiteId));
-        httpPut.addHeader("Content-Type", "application/json;charset=UTF-8");
-        httpPut.addHeader("Referer", baseUri);
-        StringEntity inputData = new StringEntity(value.toString());
-        httpPut.setEntity(inputData);
+        HttpPut httpPut = Utils.createHttpPut(this.assetsUri + "/asset-management/sites/id/" + assetsCreatedSiteId, baseUri, value);
 
         CloseableHttpResponse postResponse = httpclient.execute(httpPut);
         HttpEntity entity = postResponse.getEntity();

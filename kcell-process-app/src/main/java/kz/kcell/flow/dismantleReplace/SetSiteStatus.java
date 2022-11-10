@@ -1,6 +1,7 @@
 package kz.kcell.flow.dismantleReplace;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import kz.kcell.Utils;
 import lombok.extern.java.Log;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -63,12 +64,8 @@ public class SetSiteStatus implements JavaDelegate {
         value.put("id", Long.parseLong(status));
         newStatus.put("site_substatus_id", value);
 
-        HttpPut httpPut = new HttpPut(new URI(this.assetsUri + "/asset-management/sites/id/" + siteId));
-        httpPut.addHeader("Content-Type", "application/json;charset=UTF-8");
-        httpPut.addHeader("Referer", baseUri);
-        StringEntity inputData = new StringEntity(newStatus.toString());
+        HttpPut httpPut = Utils.createHttpPut(this.assetsUri + "/asset-management/sites/id/" + siteId, baseUri, newStatus);
         System.out.println(newStatus.toString());
-        httpPut.setEntity(inputData);
 
         CloseableHttpResponse putResponse = httpclient.execute(httpPut);
         log.info("put response code: " + putResponse.getStatusLine().getStatusCode());
