@@ -76,7 +76,7 @@ public class SetWorkVariables implements ExecutionListener {
 
             for (JsonNode workPrice : json) {
                 worksPriceMap.put("prices", workPrice.get("price"));
-                worksTitleMap.put("title", workPrice.get("title").textValue());
+                worksTitleMap.put(workPrice.get("id").textValue(), workPrice.get("title").textValue());
             }
 
             ArrayNode jobWorks = (ArrayNode) mapper.readTree(execution.getVariable("jobWorks").toString());
@@ -86,7 +86,7 @@ public class SetWorkVariables implements ExecutionListener {
                 }
                 if(!uniqueWorks.containsKey(work.get("sapServiceNumber").textValue())){
                     JsonNode priceJson = worksPriceMap.get("prices");
-                    String title = worksTitleMap.get("title");
+                    String title = worksTitleMap.get(work.get("sapServiceNumber").textValue());
 
                     ObjectNode workPriceJson = mapper.createObjectNode();
                     workPriceJson.put("sapServiceNumber", work.get("sapServiceNumber").textValue());

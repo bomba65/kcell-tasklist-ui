@@ -145,7 +145,7 @@ html(lang:'en') {
                         tbody {
                             jobWorks.each { work ->
                                 tr {
-                                    td(worksTitle[work.sapServiceNumber])
+                                    td(work.displayServiceName)
                                     td(work.quantity!=null?work.quantity:'')
                                     td(work.materialQuantity!=null?work.materialQuantity:'')
                                     td {

@@ -130,11 +130,10 @@ public class SetPricesDelegate implements TaskListener {
                 InputStream fis = SetWorkVariables.class.getResourceAsStream("/revision/newWorkPrice.json");
                 InputStreamReader reader = new InputStreamReader(fis, "utf-8");
                 ArrayNode json = (ArrayNode) mapper.readTree(reader);
-
                 for (JsonNode workPrice : json) {
                     workPrice.get("price").toString();
                     worksPriceMap.put("prices", workPrice.get("price"));
-                    worksTitleMap.put("title", workPrice.get("title").textValue());
+                    worksTitleMap.put(workPrice.get("id").textValue(), workPrice.get("title").textValue());
                 }
 
                 ArrayNode workPrices = mapper.createArrayNode();
@@ -151,7 +150,7 @@ public class SetPricesDelegate implements TaskListener {
 
                     if (!uniqueWorks.containsKey(work.get("sapServiceNumber").textValue())) {
                         JsonNode priceJson = worksPriceMap.get("prices");
-                        String title = worksTitleMap.get("title");
+                        String title = worksTitleMap.get(work.get("sapServiceNumber").textValue());
 
                         ObjectNode workPriceJson = mapper.createObjectNode();
                         workPriceJson.put("sapServiceNumber", work.get("sapServiceNumber").textValue());
