@@ -33,8 +33,12 @@ public class GetValueFromUDB implements JavaDelegate {
     @Value("${udb.oracle.password:udb}")
     private String udbOraclePassword;
 
+    @Value("${udb.oracle.enabled}")
+    private Boolean udbOracleEnabled;
+
     @Override
     public void execute(DelegateExecution delegateExecution) {
+        if (!udbOracleEnabled) return;
         log.info("try to connect....");
         try {
             TimeZone timeZone = TimeZone.getTimeZone("Asia/Almaty");

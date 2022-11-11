@@ -37,6 +37,9 @@ public class SaveRsdTsdVsdFiles implements JavaDelegate {
     @Value("${udb.oracle.password:udb}")
     private String udbOraclePassword;
 
+    @Value("${udb.oracle.enabled}")
+    private Boolean udbOracleEnabled;
+
     @Autowired
     public SaveRsdTsdVsdFiles(Minio minioClient) {
         this.minioClient = minioClient;
@@ -44,6 +47,7 @@ public class SaveRsdTsdVsdFiles implements JavaDelegate {
 
     @Override
     public void execute(DelegateExecution delegateExecution) throws Exception {
+        if (!udbOracleEnabled) return;
         log.info("try to connect....");
         try {
             TimeZone timeZone = TimeZone.getTimeZone("Asia/Almaty");

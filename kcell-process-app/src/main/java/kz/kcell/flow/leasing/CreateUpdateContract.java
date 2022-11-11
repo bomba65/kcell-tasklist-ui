@@ -38,8 +38,12 @@ public class CreateUpdateContract implements JavaDelegate {
     @Value("${udb.oracle.password:udb}")
     private String udbOraclePassword;
 
+    @Value("${udb.oracle.enabled}")
+    private Boolean udbOracleEnabled;
+
     @Override
     public void execute(DelegateExecution delegateExecution) throws Exception {
+        if (!udbOracleEnabled) return;
         try {
             TimeZone timeZone = TimeZone.getTimeZone("Asia/Almaty");
             TimeZone.setDefault(timeZone);

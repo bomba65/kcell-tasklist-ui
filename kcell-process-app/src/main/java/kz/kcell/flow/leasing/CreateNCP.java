@@ -50,9 +50,13 @@ public class CreateNCP implements JavaDelegate {
     @Value("${udb.oracle.password:udb}")
     private String udbOraclePassword;
 
+    @Value("${udb.oracle.enabled}")
+    private Boolean udbOracleEnabled;
+
     @Override
     public void execute(DelegateExecution delegateExecution) throws Exception {
-        /*try {
+        if (!udbOracleEnabled) return;
+        try {
             TimeZone timeZone = TimeZone.getTimeZone("Asia/Almaty");
             TimeZone.setDefault(timeZone);
             Class.forName("oracle.jdbc.OracleDriver");
@@ -261,6 +265,6 @@ public class CreateNCP implements JavaDelegate {
             log.info("testConnect Exception!");
             e.printStackTrace();
             throw e;
-        }*/
+        }
     }
 }
