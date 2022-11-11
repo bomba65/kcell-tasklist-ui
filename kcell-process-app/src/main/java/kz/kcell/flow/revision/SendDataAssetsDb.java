@@ -1,6 +1,7 @@
 package kz.kcell.flow.revision;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import kz.kcell.Utils;
 import lombok.extern.java.Log;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -73,11 +74,7 @@ public class SendDataAssetsDb implements JavaDelegate {
                 jsonObject.put("site_status_id", status);
                 jsonObject.put("site_substatus_id", subStatus);
 
-                HttpPut httpPut = new HttpPut(new URI(assetsUri + "/asset-management/sites/id/" + siteId));
-                httpPut.addHeader("Content-Type", "application/json;charset=UTF-8");
-                httpPut.addHeader("Referer", assetsUri);
-                StringEntity inputData = new StringEntity(jsonObject.toString());
-                httpPut.setEntity(inputData);
+                HttpPut httpPut = Utils.createHttpPut(assetsUri + "/asset-management/sites/id/" + siteId, assetsUri, jsonObject);
 
                 CloseableHttpResponse putResponse = httpClient.execute(httpPut);
                 if (putResponse.getStatusLine().getStatusCode() < 200 || putResponse.getStatusLine().getStatusCode() >= 300) {

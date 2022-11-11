@@ -1,6 +1,6 @@
 package kz.kcell.flow.leasing.asset;
 
-import com.google.api.client.json.Json;
+import kz.kcell.Utils;
 import kz.kcell.flow.files.Minio;
 import lombok.extern.java.Log;
 import org.apache.http.HttpEntity;
@@ -8,8 +8,6 @@ import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.conn.ssl.TrustSelfSignedStrategy;
-import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.BasicResponseHandler;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.ssl.SSLContextBuilder;
@@ -20,13 +18,11 @@ import org.camunda.spin.SpinList;
 import org.camunda.spin.json.SpinJsonNode;
 import org.json.JSONArray;
 import org.json.JSONObject;
-import org.msgpack.util.json.JSON;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import javax.sql.DataSource;
-import java.net.URI;
 
 import static org.camunda.spin.Spin.JSON;
 
@@ -153,12 +149,7 @@ public class CreateCandidate implements JavaDelegate {
 
                 log.info(value.toString());
 
-                HttpPost httpPost = new HttpPost(new URI(assetsUri + "/asset-management/adresses/"));
-                //            HttpPost httpPost = new HttpPost(new URI(this.assetsUri + "/asset-management/ncp/"));
-                httpPost.addHeader("Content-Type", "application/json;charset=UTF-8");
-                httpPost.addHeader("Referer", baseUri);
-                StringEntity inputData = new StringEntity(value.toString());
-                httpPost.setEntity(inputData);
+                HttpPost httpPost = Utils.createHttpPost(assetsUri + "/asset-management/adresses/", baseUri, value);
 
                 CloseableHttpResponse postResponse = httpclient.execute(httpPost);
 
@@ -225,12 +216,7 @@ public class CreateCandidate implements JavaDelegate {
 
                 log.info(value.toString());
 
-                HttpPost httpPost = new HttpPost(new URI(assetsUri + "/asset-management/adresses/"));
-                //            HttpPost httpPost = new HttpPost(new URI(this.assetsUri + "/asset-management/ncp/"));
-                httpPost.addHeader("Content-Type", "application/json;charset=UTF-8");
-                httpPost.addHeader("Referer", baseUri);
-                StringEntity inputData = new StringEntity(value.toString());
-                httpPost.setEntity(inputData);
+                HttpPost httpPost = Utils.createHttpPost(assetsUri + "/asset-management/adresses/", baseUri, value);
 
                 CloseableHttpResponse postResponse = httpclient.execute(httpPost);
 
@@ -301,13 +287,7 @@ public class CreateCandidate implements JavaDelegate {
                 if (square != null) {
                     value.put("square", square);
                 }
-                HttpPost httpPost = new HttpPost(new URI(assetsUri + "/asset-management/facilities/"));
-                //            HttpPost httpPost = new HttpPost(new URI(this.assetsUri + "/asset-management/ncp/"));
-                httpPost.addHeader("Content-Type", "application/json;charset=UTF-8");
-                httpPost.addHeader("Referer", baseUri);
-
-                StringEntity inputData = new StringEntity(value.toString());
-                httpPost.setEntity(inputData);
+                HttpPost httpPost = Utils.createHttpPost(assetsUri + "/asset-management/facilities/", baseUri, value);
 
                 CloseableHttpResponse postResponse = httpclient.execute(httpPost);
 
@@ -378,12 +358,7 @@ public class CreateCandidate implements JavaDelegate {
                     value.put("square", square);
                 }
 
-                HttpPost httpPost = new HttpPost(new URI(assetsUri + "/asset-management/facilities/"));
-                //            HttpPost httpPost = new HttpPost(new URI(this.assetsUri + "/asset-management/ncp/"));
-                httpPost.addHeader("Content-Type", "application/json;charset=UTF-8");
-                httpPost.addHeader("Referer", baseUri);
-                StringEntity inputData = new StringEntity(value.toString());
-                httpPost.setEntity(inputData);
+                HttpPost httpPost = Utils.createHttpPost(assetsUri + "/asset-management/facilities/", baseUri, value);
 
                 CloseableHttpResponse postResponse = httpclient.execute(httpPost);
 
@@ -467,12 +442,7 @@ public class CreateCandidate implements JavaDelegate {
                 log.info("body value.toString(): ");
                 log.info(value.toString());
 
-                HttpPost httpPost = new HttpPost(new URI(assetsUri + "/asset-management/powerSources/"));
-                //            HttpPost httpPost = new HttpPost(new URI(this.assetsUri + "/asset-management/ncp/"));
-                httpPost.addHeader("Content-Type", "application/json;charset=UTF-8");
-                httpPost.addHeader("Referer", baseUri);
-                StringEntity inputData = new StringEntity(value.toString());
-                httpPost.setEntity(inputData);
+                HttpPost httpPost = Utils.createHttpPost(assetsUri + "/asset-management/powerSources/", baseUri, value);
 
                 CloseableHttpResponse postResponse = httpclient.execute(httpPost);
 
@@ -533,12 +503,7 @@ public class CreateCandidate implements JavaDelegate {
                 log.info("body value.toString(): ");
                 log.info(value.toString());
 
-                HttpPost httpPost = new HttpPost(new URI(assetsUri + "/asset-management/cellAntennaInfo/"));
-                //            HttpPost httpPost = new HttpPost(new URI(this.assetsUri + "/asset-management/ncp/"));
-                httpPost.addHeader("Content-Type", "application/json;charset=UTF-8");
-                httpPost.addHeader("Referer", baseUri);
-                StringEntity inputData = new StringEntity(value.toString());
-                httpPost.setEntity(inputData);
+                HttpPost httpPost = Utils.createHttpPost(assetsUri + "/asset-management/cellAntennaInfo/", baseUri, value);
 
                 CloseableHttpResponse postResponse = httpclient.execute(httpPost);
 
@@ -616,15 +581,10 @@ public class CreateCandidate implements JavaDelegate {
                 log.info("body value.toString(): ");
                 log.info(value.toString());
 
-                HttpPost httpPost = new HttpPost(new URI(assetsUri + "/asset-management/sites/"));
-                //            HttpPost httpPost = new HttpPost(new URI(this.assetsUri + "/asset-management/ncp/"));
-                httpPost.addHeader("Content-Type", "application/json;charset=UTF-8");
-                httpPost.addHeader("Referer", baseUri);
-                StringEntity inputData = new StringEntity(value.toString());
-                httpPost.setEntity(inputData);
-//
+                HttpPost httpPost = Utils.createHttpPost(assetsUri + "/asset-management/sites/", baseUri, value);
+
                 CloseableHttpResponse postResponse = httpclient.execute(httpPost);
-//
+
                 HttpEntity entity = postResponse.getEntity();
                 String responseString = EntityUtils.toString(entity, "UTF-8");
                 JSONObject jsonResponse = new JSONObject(responseString);
@@ -683,11 +643,7 @@ public class CreateCandidate implements JavaDelegate {
                 log.info("body value.toString(): ");
                 log.info(value.toString());
 
-                HttpPost httpPost = new HttpPost(new URI(assetsUri + "/asset-management/renters"));
-                httpPost.addHeader("Content-Type", "application/json;charset=UTF-8");
-                httpPost.addHeader("Referer", baseUri);
-                StringEntity inputData = new StringEntity(value.toString());
-                httpPost.setEntity(inputData);
+                HttpPost httpPost = Utils.createHttpPost(assetsUri + "/asset-management/renters", baseUri, value);
 
                 CloseableHttpResponse postResponse = httpclient.execute(httpPost);
 

@@ -1,5 +1,6 @@
 package kz.kcell.flow.revision;
 
+import kz.kcell.Utils;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -110,11 +111,7 @@ public class RevisionSetSiteStatus implements ExecutionListener {
             }
             site.put("params", params);
 
-            HttpPut httpPut = new HttpPut(new URI(baseUri + "/asset-management/api/sites/" + siteId));
-            httpPut.addHeader("Content-Type", "application/json;charset=UTF-8");
-            httpPut.addHeader("Referer", baseUri);
-            StringEntity inputData = new StringEntity(site.toString());
-            httpPut.setEntity(inputData);
+            HttpPut httpPut = Utils.createHttpPut(baseUri + "/asset-management/api/sites/" + siteId, baseUri, site);
 
             CloseableHttpResponse putResponse = httpclient.execute(httpPut);
             if(putResponse.getStatusLine().getStatusCode() < 200 || putResponse.getStatusLine().getStatusCode() >= 300){

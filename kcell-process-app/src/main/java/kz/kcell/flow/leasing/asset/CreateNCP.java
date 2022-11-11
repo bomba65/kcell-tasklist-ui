@@ -1,5 +1,6 @@
 package kz.kcell.flow.leasing.asset;
 
+import kz.kcell.Utils;
 import kz.kcell.flow.files.Minio;
 import lombok.extern.java.Log;
 import org.apache.http.HttpEntity;
@@ -7,8 +8,6 @@ import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.conn.ssl.TrustSelfSignedStrategy;
-import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.BasicResponseHandler;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.ssl.SSLContextBuilder;
@@ -22,7 +21,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import javax.sql.DataSource;
-import java.net.URI;
 
 import static org.camunda.spin.Spin.JSON;
 
@@ -113,12 +111,7 @@ public class CreateNCP implements JavaDelegate {
             value.put("site_type_id", site_type_id_json);
 
 
-            HttpPost httpPost = new HttpPost(new URI(assetsUri + "/asset-management/ncp/"));
-//            HttpPost httpPost = new HttpPost(new URI(this.assetsUri + "/asset-management/ncp/"));
-            httpPost.addHeader("Content-Type", "application/json;charset=UTF-8");
-            httpPost.addHeader("Referer", baseUri);
-            StringEntity inputData = new StringEntity(value.toString());
-            httpPost.setEntity(inputData);
+            HttpPost httpPost = Utils.createHttpPost(assetsUri + "/asset-management/ncp/", baseUri, value);
 
             CloseableHttpResponse postResponse = httpclient.execute(httpPost);
 
