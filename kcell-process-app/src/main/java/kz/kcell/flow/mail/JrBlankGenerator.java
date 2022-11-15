@@ -104,7 +104,9 @@ public class JrBlankGenerator {
 
 
         if (mainContract.equalsIgnoreCase("2022Work-agreement")){
-
+            if ("nc".equals(siteRegion) || "east".equals(siteRegion)) {
+                siteRegion = "astana";
+            }
             CellRangeAddress cellRangeAddress;
             Map<String, Object> properties = new HashMap<>();
 
