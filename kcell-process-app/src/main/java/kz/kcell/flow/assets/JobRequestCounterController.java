@@ -16,7 +16,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/jobrequestcounter")
+@RequestMapping
 @Log
 public class JobRequestCounterController {
 
@@ -26,7 +26,7 @@ public class JobRequestCounterController {
         this.assetsUrl = assetsUrl;
     }
 
-    @RequestMapping(value = "/{counterId}", method = RequestMethod.POST)
+    @RequestMapping(value = "/jobrequestcounter/{counterId}", method = RequestMethod.POST)
     @ResponseBody
     public ResponseEntity<String> getNextCounter(@RequestHeader(value = HttpHeaders.REFERER, required = false) String referer,
                                                  @PathVariable("counterId") String counterId) throws Exception {
@@ -38,6 +38,30 @@ public class JobRequestCounterController {
 
         HttpPost httpPost = new HttpPost(baseUrl + "/asset-management/jobrequestcounter/" + counterId);
         // To bypass nginx http_referer rule for /asset-management/jobrequestcounter/
+        httpPost.addHeader(HttpHeaders.REFERER, referer);
+        HttpResponse httpResponse = httpclient.execute(httpPost);
+
+        HttpEntity entity = httpResponse.getEntity();
+        String content = EntityUtils.toString(entity);
+
+        if (httpResponse.getStatusLine().getStatusCode() < 200 || httpResponse.getStatusLine().getStatusCode() >= 300) {
+            throw new RuntimeException(baseUrl + " next counter with id = " + counterId + " returns code " + httpResponse.getStatusLine().getStatusCode());
+        }
+
+        return ResponseEntity.ok(content);
+    }
+
+    @RequestMapping(value = "/rolloutcounter/{counterId}", method = RequestMethod.POST)
+    @ResponseBody
+    public ResponseEntity<String> getNextRollourCounter(@RequestHeader(value = HttpHeaders.REFERER, required = false) String referer,
+                                                 @PathVariable("counterId") String counterId) throws Exception {
+        SSLContextBuilder builder = new SSLContextBuilder();
+        builder.loadTrustMaterial(null, new TrustSelfSignedStrategy());
+        SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(builder.build());
+        CloseableHttpClient httpclient = HttpClients.custom().setSSLSocketFactory(sslsf).build();
+        String baseUrl = assetsUrl;
+
+        HttpPost httpPost = new HttpPost(baseUrl + "/asset-management/rolloutcounter/" + counterId);
         httpPost.addHeader(HttpHeaders.REFERER, referer);
         HttpResponse httpResponse = httpclient.execute(httpPost);
 
