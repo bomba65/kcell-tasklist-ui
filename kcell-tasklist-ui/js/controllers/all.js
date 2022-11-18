@@ -3631,12 +3631,12 @@ return module.controller('mainCtrl', ['$scope', '$rootScope', 'toasty', 'Authent
                                 });
                                 $scope.fullPIDsByRegions = _.groupBy(fullPIDs, 'region')
                                 var fullPIDsFilteredEricsson = _.filter(fullPIDs, p => {
-                                    if (p.rbsType.startsWith(2) || p.rbsType.startsWith(3) || p.rbsType.startsWith(6)) {
+                                    if (p.rbsType?.startsWith(2) || p.rbsType?.startsWith(3) || p.rbsType?.startsWith(6)) {
                                         return true
                                     } return false
                                 })
                                 var fullPIDsFilteredZTE = _.filter(fullPIDs, p => {
-                                    if (p.rbsType.startsWith(8)) {
+                                    if (p.rbsType?.startsWith(8)) {
                                         return true
                                     } return false
                                 })
