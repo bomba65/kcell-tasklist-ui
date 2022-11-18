@@ -2582,6 +2582,32 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                     });
                 }
 
+                scope.getWorks = function(val) {
+                    var result = _.filter(scope.works, function (work) {
+                        return work.displayServiceName.toLowerCase().indexOf(val.toLowerCase()) !== -1;
+                    });
+
+                    result = _.filter(result, function(element){
+                        if(scope.filter.mainContract === '2022Work-agreement') {
+                            return element.id >= 4000;
+                        } else if(scope.filter.mainContract === 'Roll-outRevision2020' || scope.filter.mainContract === 'emergencyRevision2022'){
+                            return (element.id >= 3000 && element.id < 4000);
+                        } else if(scope.filter.mainContract === 'Roll-out'){
+                            return (element.id > 1000 && element.id < 2000);
+                        } else if(scope.filter.mainContract === 'Revision'){
+                            if(scope.contractorShortName[scope.filter.contractor] === 'Kcell_region'){
+                                return (element.id < 1000 || (element.id > 2000 && element.id < 3000));
+                            } else {
+                                return element.id < 1000;
+                            }
+                        } else {
+                            return true;
+                        }
+                    });
+
+                    return result;
+                }
+
                 function noProcessSelection(newVal) {
                     var filtered = Object.fromEntries(Object.entries(newVal).filter(([k, v]) => v.value === false));
                     if ((filtered.Revision || filtered.Invoice || filtered.CreatePR) && !filtered.leasing && !filtered.Dismantle && !filtered.Replacement  && !filtered['create-new-tsd'] && !filtered['change-tsd'] && !filtered['tsd-processing'] && !filtered['cancel-tsd']) {
