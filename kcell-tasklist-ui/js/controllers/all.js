@@ -3596,6 +3596,27 @@ return module.controller('mainCtrl', ['$scope', '$rootScope', 'toasty', 'Authent
                             }).then(function (response) {
                                 return _.mapValues(_.keyBy(response.data, 'processInstanceId'), 'value');
                             });
+
+                            var generalSubStatus1VarsPromise = $http.post($scope.baseUrl + '/variable-instance', {
+                                processInstanceIdIn: PIDsArray,
+                                variableName: 'generalSubStatus1'
+                            }).then(function (response) {
+                                return _.mapValues(_.keyBy(response.data, 'processInstanceId'), 'value');
+                            });
+
+                            var generalSubStatus2VarsPromise = $http.post($scope.baseUrl + '/variable-instance', {
+                                processInstanceIdIn: PIDsArray,
+                                variableName: 'generalSubStatus2'
+                            }).then(function (response) {
+                                return _.mapValues(_.keyBy(response.data, 'processInstanceId'), 'value');
+                            });
+
+                            var setInstStatusFromUDBVarsPromise = $http.post($scope.baseUrl + '/variable-instance', {
+                                processInstanceIdIn: PIDsArray,
+                                variableName: 'setInstStatusFromUDB'
+                            }).then(function (response) {
+                                return _.mapValues(_.keyBy(response.data, 'processInstanceId'), 'value');
+                            });
     /*
                             var installationStatusesVarsPromise = $http.post($scope.baseUrl + '/variable-instance', {
                                 processInstanceIdIn: PIDsArray,
@@ -3618,7 +3639,7 @@ return module.controller('mainCtrl', ['$scope', '$rootScope', 'toasty', 'Authent
                                 return _.mapValues(_.keyBy(response.data, 'processInstanceId'), 'value');
                             });                        
 
-                            $q.all([generalStatusesVarsPromise, /*installationStatusesVarsPromise,*/ rbsTypesVarsPromise, regionsVarsPromise]).then(function (results) {
+                            $q.all([generalStatusesVarsPromise, /*installationStatusesVarsPromise,*/ rbsTypesVarsPromise, regionsVarsPromise, generalSubStatus1VarsPromise, generalSubStatus2VarsPromise, setInstStatusFromUDBVarsPromise]).then(function (results) {
                                 var fullPIDs = PIDsArray.map( p => {
                                     return { 
                                         pid : p,
@@ -3626,7 +3647,10 @@ return module.controller('mainCtrl', ['$scope', '$rootScope', 'toasty', 'Authent
                                         generalStatus: results[0][p],
                                         //installationStatus: results[1][p],
                                         rbsType: results[1][p],
-                                        region: results[2][p]
+                                        region: results[2][p],
+                                        generalSubStatus1: results[3][p],
+                                        generalSubStatus2: results[4][p],
+                                        instStatusFromUDB: results[5][p]
                                     }
                                 });
                                 $scope.fullPIDsByRegions = _.groupBy(fullPIDs, 'region')
@@ -3650,124 +3674,67 @@ return module.controller('mainCtrl', ['$scope', '$rootScope', 'toasty', 'Authent
 
                                         if($scope.fullPIDsByRegions[r.id].generalStatuses && $scope.fullPIDsByRegions[r.id].generalStatuses['Leasing in progress']){
                                             var pIds = [];
+                                            $scope.fullPIDsByRegions[r.id].generalStatuses['Leasing in progress'].substatuses = {};
                                             $scope.fullPIDsByRegions[r.id].generalStatuses['Leasing in progress'].forEach(p => {
-                                                pIds.push(p.pid);
+                                                pIds.push(p);
                                             });
-                                            var generalSubStatus1VarsPromise = $http.post($scope.baseUrl + '/variable-instance', {
-                                                processInstanceIdIn: PIDsArray,
-                                                variableName: 'generalSubStatus1'
-                                            }).then(function (response) {
-                                                return _.mapValues(_.keyBy(response.data, 'processInstanceId'), 'value');
-                                            });                                            
-                                            var generalSubStatus2VarsPromise = $http.post($scope.baseUrl + '/variable-instance', {
-                                                processInstanceIdIn: PIDsArray,
-                                                variableName: 'generalSubStatus2'
-                                            }).then(function (response) {
-                                                return _.mapValues(_.keyBy(response.data, 'processInstanceId'), 'value');
-                                            });
-                                            $q.all([generalSubStatus1VarsPromise, generalSubStatus2VarsPromise]).then(function (results) {
-                                                $scope.fullPIDsByRegions[r.id].generalStatuses['Leasing in progress'].substatuses = {};
-                                                var pIdsMap = pIds.map( p => {
-                                                    return { 
-                                                        pid : p,
-                                                        generalSubStatus1: results[0][p],
-                                                        generalSubStatus2: results[1][p]
+                                            pIds.forEach(p => {
+                                                if(p.generalSubStatus1 === 'Leasing for Candidate'){
+                                                    if(!$scope.fullPIDsByRegions[r.id].generalStatuses['Leasing in progress'].substatuses['Leasing for Candidate']){
+                                                        $scope.fullPIDsByRegions[r.id].generalStatuses['Leasing in progress'].substatuses['Leasing for Candidate'] = [];
                                                     }
-                                                });
-                                                pIdsMap.forEach(p => {                                                    
-                                                    if(p.generalSubStatus1 === 'Leasing for Candidate'){
-                                                        if(!$scope.fullPIDsByRegions[r.id].generalStatuses['Leasing in progress'].substatuses['Leasing for Candidate']){
-                                                            $scope.fullPIDsByRegions[r.id].generalStatuses['Leasing in progress'].substatuses['Leasing for Candidate'] = [];
-                                                        }
-                                                        $scope.fullPIDsByRegions[r.id].generalStatuses['Leasing in progress'].substatuses['Leasing for Candidate'].push(p);
+                                                    $scope.fullPIDsByRegions[r.id].generalStatuses['Leasing in progress'].substatuses['Leasing for Candidate'].push(p);
+                                                }
+                                                if(p.generalSubStatus2 === 'Leasing for Far End'){
+                                                    if(!$scope.fullPIDsByRegions[r.id].generalStatuses['Leasing in progress'].substatuses['Leasing for Far End']){
+                                                        $scope.fullPIDsByRegions[r.id].generalStatuses['Leasing in progress'].substatuses['Leasing for Far End'] = [];
                                                     }
-                                                    if(p.generalSubStatus2 === 'Leasing for Far End'){
-                                                        if(!$scope.fullPIDsByRegions[r.id].generalStatuses['Leasing in progress'].substatuses['Leasing for Far End']){
-                                                            $scope.fullPIDsByRegions[r.id].generalStatuses['Leasing in progress'].substatuses['Leasing for Far End'] = [];
-                                                        }
-                                                        $scope.fullPIDsByRegions[r.id].generalStatuses['Leasing in progress'].substatuses['Leasing for Far End'].push(p);
-                                                    }
-                                                });
+                                                    $scope.fullPIDsByRegions[r.id].generalStatuses['Leasing in progress'].substatuses['Leasing for Far End'].push(p);
+                                                }
                                             });
                                         }
                                         if($scope.fullPIDsByRegions[r.id].generalStatuses && $scope.fullPIDsByRegions[r.id].generalStatuses['Installation in progress']){
                                             var instIds = [];
+                                            $scope.fullPIDsByRegions[r.id].generalStatuses['Installation in progress'].substatuses = {};
                                             $scope.fullPIDsByRegions[r.id].generalStatuses['Installation in progress'].forEach(p => {
-                                                instIds.push(p.pid);
+                                                instIds.push(p);
                                             });
-                                            var setInstStatusFromUDBVarsPromise = $http.post($scope.baseUrl + '/variable-instance', {
-                                                processInstanceIdIn: PIDsArray,
-                                                variableName: 'setInstStatusFromUDB'
-                                            }).then(function (response) {
-                                                return _.mapValues(_.keyBy(response.data, 'processInstanceId'), 'value');
+                                            instIds.forEach(p => {
+                                                if(p.instStatusFromUDB){
+                                                    if(!$scope.fullPIDsByRegions[r.id].generalStatuses['Installation in progress'].substatuses[p.instStatusFromUDB]){
+                                                        $scope.fullPIDsByRegions[r.id].generalStatuses['Installation in progress'].substatuses[p.instStatusFromUDB] = [];
+                                                    }
+                                                    $scope.fullPIDsByRegions[r.id].generalStatuses['Installation in progress'].substatuses[p.instStatusFromUDB].push(p);
+                                                }
                                             });
-                                            $q.all([setInstStatusFromUDBVarsPromise]).then(function (results) {
-                                                $scope.fullPIDsByRegions[r.id].generalStatuses['Installation in progress'].substatuses = {};
-                                                var instIdsMap = instIds.map( p => {
-                                                    return { 
-                                                        pid : p,
-                                                        instStatusFromUDB: results[0][p]
-                                                    }
-                                                });
-                                                instIdsMap.forEach(p => {                                                    
-                                                    if(p.instStatusFromUDB){
-                                                        if(!$scope.fullPIDsByRegions[r.id].generalStatuses['Installation in progress'].substatuses[p.instStatusFromUDB]){
-                                                            $scope.fullPIDsByRegions[r.id].generalStatuses['Installation in progress'].substatuses[p.instStatusFromUDB] = [];
-                                                        }
-                                                        $scope.fullPIDsByRegions[r.id].generalStatuses['Installation in progress'].substatuses[p.instStatusFromUDB].push(p);
-                                                    }
-                                                });
-                                            });                                            
                                         }
                                         if($scope.fullPIDsByRegions[r.id].generalStatuses && $scope.fullPIDsByRegions[r.id].generalStatuses['Provisional approval by Power, Transmission & Leasing']){
                                             var pIds = [];
+                                            $scope.fullPIDsByRegions[r.id].generalStatuses['Provisional approval by Power, Transmission & Leasing'].substatuses = {};
                                             $scope.fullPIDsByRegions[r.id].generalStatuses['Provisional approval by Power, Transmission & Leasing'].forEach(p => {
-                                                pIds.push(p.pid);
+                                                pIds.push(p);
                                             });
-                                            var generalSubStatus1VarsPromise = $http.post($scope.baseUrl + '/variable-instance', {
-                                                processInstanceIdIn: PIDsArray,
-                                                variableName: 'generalSubStatus1'
-                                            }).then(function (response) {
-                                                return _.mapValues(_.keyBy(response.data, 'processInstanceId'), 'value');
-                                            });                                            
-                                            var generalSubStatus2VarsPromise = $http.post($scope.baseUrl + '/variable-instance', {
-                                                processInstanceIdIn: PIDsArray,
-                                                variableName: 'generalSubStatus2'
-                                            }).then(function (response) {
-                                                return _.mapValues(_.keyBy(response.data, 'processInstanceId'), 'value');
+                                            pIds.forEach(p => {
+                                                if(p.generalSubStatus1 === 'Waiting regional Power approval'){
+                                                    if(!$scope.fullPIDsByRegions[r.id].generalStatuses['Provisional approval by Power, Transmission & Leasing'].substatuses['Waiting regional Power approval']){
+                                                        $scope.fullPIDsByRegions[r.id].generalStatuses['Provisional approval by Power, Transmission & Leasing'].substatuses['Waiting regional Power approval'] = [];
+                                                    }
+                                                    $scope.fullPIDsByRegions[r.id].generalStatuses['Provisional approval by Power, Transmission & Leasing'].substatuses['Waiting regional Power approval'].push(p);
+                                                }
+                                                if(p.generalSubStatus1 === 'Waiting Leasing approval'){
+                                                    if(!$scope.fullPIDsByRegions[r.id].generalStatuses['Provisional approval by Power, Transmission & Leasing'].substatuses['Waiting Leasing approval']){
+                                                        $scope.fullPIDsByRegions[r.id].generalStatuses['Provisional approval by Power, Transmission & Leasing'].substatuses['Waiting Leasing approval'] = [];
+                                                    }
+                                                    $scope.fullPIDsByRegions[r.id].generalStatuses['Provisional approval by Power, Transmission & Leasing'].substatuses['Waiting Leasing approval'].push(p);
+                                                }
+                                                if(p.generalSubStatus2 === 'Waiting regional Transmission approval'){
+                                                    if(!$scope.fullPIDsByRegions[r.id].generalStatuses['Provisional approval by Power, Transmission & Leasing'].substatuses['Waiting regional Transmission approval']){
+                                                        $scope.fullPIDsByRegions[r.id].generalStatuses['Provisional approval by Power, Transmission & Leasing'].substatuses['Waiting regional Transmission approval'] = [];
+                                                    }
+                                                    $scope.fullPIDsByRegions[r.id].generalStatuses['Provisional approval by Power, Transmission & Leasing'].substatuses['Waiting regional Transmission approval'].push(p);
+                                                }
                                             });
-                                            $q.all([generalSubStatus1VarsPromise, generalSubStatus2VarsPromise]).then(function (results) {
-                                                $scope.fullPIDsByRegions[r.id].generalStatuses['Provisional approval by Power, Transmission & Leasing'].substatuses = {};
-                                                var pIdsMap = pIds.map( p => {
-                                                    return { 
-                                                        pid : p,
-                                                        generalSubStatus1: results[0][p],
-                                                        generalSubStatus2: results[1][p]
-                                                    }
-                                                });
-                                                pIdsMap.forEach(p => {                                                    
-                                                    if(p.generalSubStatus1 === 'Waiting regional Power approval'){
-                                                        if(!$scope.fullPIDsByRegions[r.id].generalStatuses['Provisional approval by Power, Transmission & Leasing'].substatuses['Waiting regional Power approval']){
-                                                            $scope.fullPIDsByRegions[r.id].generalStatuses['Provisional approval by Power, Transmission & Leasing'].substatuses['Waiting regional Power approval'] = [];
-                                                        }
-                                                        $scope.fullPIDsByRegions[r.id].generalStatuses['Provisional approval by Power, Transmission & Leasing'].substatuses['Waiting regional Power approval'].push(p);
-                                                    }
-                                                    if(p.generalSubStatus1 === 'Waiting Leasing approval'){
-                                                        if(!$scope.fullPIDsByRegions[r.id].generalStatuses['Provisional approval by Power, Transmission & Leasing'].substatuses['Waiting Leasing approval']){
-                                                            $scope.fullPIDsByRegions[r.id].generalStatuses['Provisional approval by Power, Transmission & Leasing'].substatuses['Waiting Leasing approval'] = [];
-                                                        }
-                                                        $scope.fullPIDsByRegions[r.id].generalStatuses['Provisional approval by Power, Transmission & Leasing'].substatuses['Waiting Leasing approval'].push(p);
-                                                    }                                                    
-                                                    if(p.generalSubStatus2 === 'Waiting regional Transmission approval'){
-                                                        if(!$scope.fullPIDsByRegions[r.id].generalStatuses['Provisional approval by Power, Transmission & Leasing'].substatuses['Waiting regional Transmission approval']){
-                                                            $scope.fullPIDsByRegions[r.id].generalStatuses['Provisional approval by Power, Transmission & Leasing'].substatuses['Waiting regional Transmission approval'] = [];
-                                                        }
-                                                        $scope.fullPIDsByRegions[r.id].generalStatuses['Provisional approval by Power, Transmission & Leasing'].substatuses['Waiting regional Transmission approval'].push(p);
-                                                    }
-                                                });
-
-                                            });
-                                        }                                       
+                                        }
                                     }
                                 });
                             });
@@ -3891,12 +3858,28 @@ return module.controller('mainCtrl', ['$scope', '$rootScope', 'toasty', 'Authent
 
                         if(list && list.length > 0){
                             list.forEach(l => {
-                                $scope.processIntancesList.push({id: l.pid, region: l.region, rbsType: l.rbsType, status: l.status});
+                                $scope.processIntancesList.push({
+                                    id: l.pid,
+                                    region: l.region,
+                                    rbsType: l.rbsType,
+                                    status: l.status,
+                                    generalSubStatus1: l.generalSubStatus1,
+                                    generalSubStatus2: l.generalSubStatus2,
+                                    instStatusFromUDB: l.instStatusFromUDB
+                                });
                             });
                         }
                         if(list2 && list2.length > 0){
                             list2.forEach(l => {
-                                $scope.processIntancesList.push({id: l.pid, region: l.region, rbsType: l.rbsType, status: l.status});
+                                $scope.processIntancesList.push({
+                                    id: l.pid,
+                                    region: l.region,
+                                    rbsType: l.rbsType,
+                                    status: l.status,
+                                    generalSubStatus1: l.generalSubStatus1,
+                                    generalSubStatus2: l.generalSubStatus2,
+                                    instStatusFromUDB: l.instStatusFromUDB
+                                });
                             });
                         }
                         var procInstIdArray = [];
