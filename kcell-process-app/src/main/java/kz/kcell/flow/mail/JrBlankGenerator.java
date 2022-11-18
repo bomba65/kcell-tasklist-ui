@@ -97,7 +97,7 @@ public class JrBlankGenerator {
             ArrayNode json = (ArrayNode) mapper.readTree(reader);
 
             for (JsonNode workPrice : json) {
-                worksPrice.put("prices", workPrice.get("price"));
+                worksPrice.put(workPrice.get("id").textValue(), workPrice.get("price"));
                 worksTitle.put(workPrice.get("id").textValue(), workPrice.get("title").textValue());
             }
         }
@@ -107,6 +107,8 @@ public class JrBlankGenerator {
             if ("nc".equals(siteRegion) || "east".equals(siteRegion)) {
                 siteRegion = "astana";
             }
+            String oblastName = (String) delegateExecution.getVariable("oblastName");
+
             CellRangeAddress cellRangeAddress;
             Map<String, Object> properties = new HashMap<>();
 
@@ -303,8 +305,8 @@ public class JrBlankGenerator {
             CellUtil.setFont(row.getCell(11), arialB10);
 
             for (int i = 0; i < jobWorks.size(); i++) {
-                JsonNode priceJson = worksPrice.get("prices");
-                BigDecimal jobPrice = new BigDecimal(priceJson.get(siteRegion).get(jobWorks.get(i).has("materialsProvidedBy") && "subcontractor".equals(jobWorks.get(i).get("materialsProvidedBy").textValue()) ? "with_material" : "without_material").textValue()).setScale(2, RoundingMode.DOWN);
+                JsonNode priceJson = worksPrice.get(Integer.toString(jobWorks.get(i).get("id").intValue()));
+                BigDecimal jobPrice = new BigDecimal(priceJson.get(oblastName).textValue()).setScale(2, RoundingMode.DOWN);
 
                 if (priority.equals("emergency")) {
                     jobPrice = jobPrice.multiply(new BigDecimal("1.2"));
@@ -353,17 +355,17 @@ public class JrBlankGenerator {
 
             }
 
-            row = (19+jobWorks.size() < 36)?sheet.getRow(19+jobWorks.size()):sheet.createRow(19 + jobWorks.size());
+            row = sheet.getRow(19+jobWorks.size())!=null?sheet.getRow(19+jobWorks.size()):sheet.createRow(19 + jobWorks.size());
             row.createCell(7).setCellValue("Всего работ на сумму:");
             row.createCell(8).setCellValue(jobWorksTotal.doubleValue());
             CellUtil.setFont(row.getCell(7), arialB10);
 
-            row = (20+jobWorks.size() < 36)?sheet.getRow(20+jobWorks.size()):sheet.createRow(20 + jobWorks.size());
+            row = sheet.getRow(20+jobWorks.size())!=null?sheet.getRow(20+jobWorks.size()):sheet.createRow(20 + jobWorks.size());
             row.createCell(7).setCellValue("в т.ч. НДС:");
             row.createCell(8).setCellValue(jobWorksTotal.subtract(jobWorksTotal.divide(new BigDecimal("1.12"), 2, RoundingMode.HALF_UP)).toString());
             CellUtil.setFont(row.getCell(7), arialB10);
 
-            row = (22+jobWorks.size() < 36)?sheet.getRow(22+jobWorks.size()):sheet.createRow(22 + jobWorks.size());
+            row = sheet.getRow(22+jobWorks.size())!=null?sheet.getRow(22+jobWorks.size()):sheet.createRow(22 + jobWorks.size());
             row.createCell(3).setCellValue("Итого сумма включая НДС, 12%:");
             row.createCell(5).setCellValue(jobWorksTotal.doubleValue());
             CellUtil.setFont(row.getCell(3), arialB10);
@@ -374,7 +376,7 @@ public class JrBlankGenerator {
             properties.remove(CellUtil.BORDER_RIGHT);
             CellUtil.setCellStyleProperties(row.getCell(3), properties);
 
-            row = (25+jobWorks.size() < 36)?sheet.getRow(25+jobWorks.size()):sheet.createRow(25 + jobWorks.size());
+            row = sheet.getRow(25+jobWorks.size())!=null?sheet.getRow(25+jobWorks.size()):sheet.createRow(25 + jobWorks.size());
             row.setHeight((short)500);
             row.createCell(2).setCellValue("Подрядчик: _________");
             row.createCell(6).setCellValue("Заказчик: АО \"Кселл\"");
@@ -382,7 +384,7 @@ public class JrBlankGenerator {
             CellUtil.setFont(row.getCell(6), arialB10);
 
             properties.replace(CellUtil.VERTICAL_ALIGNMENT, VerticalAlignment.TOP);
-            row = (29+jobWorks.size() < 36)?sheet.getRow(29+jobWorks.size()):sheet.createRow(29 + jobWorks.size());
+            row = sheet.getRow(29+jobWorks.size())!=null?sheet.getRow(29+jobWorks.size()):sheet.createRow(29 + jobWorks.size());
             row.createCell(2).setCellValue("(должность)");
             row.createCell(6).setCellValue("(должность)");
             CellUtil.setCellStyleProperties(row.getCell(2), properties);
@@ -390,7 +392,7 @@ public class JrBlankGenerator {
             CellUtil.setFont(row.getCell(2), arialI6);
             CellUtil.setFont(row.getCell(6), arialI6);
 
-            row = (32+jobWorks.size() < 36)?sheet.getRow(32+jobWorks.size()):sheet.createRow(32 + jobWorks.size());
+            row = sheet.getRow(32+jobWorks.size())!=null?sheet.getRow(32+jobWorks.size()):sheet.createRow(32 + jobWorks.size());
             row.createCell(2).setCellValue("(Ф.И.О., подпись)");
             row.createCell(6).setCellValue("(Ф.И.О., подпись)");
             CellUtil.setCellStyleProperties(sheet.getRow(row.getRowNum()).getCell(2), properties);

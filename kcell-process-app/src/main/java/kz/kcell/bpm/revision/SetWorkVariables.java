@@ -65,33 +65,34 @@ public class SetWorkVariables implements ExecutionListener {
             Map<String, JsonNode> worksPriceMap = new HashMap<>();
             Map<String, String> worksTitleMap = new HashMap<>();
 
-            String siteRegion = (String) execution.getVariable("siteRegion");
-            if("nc".equals(siteRegion) || "east".equals(siteRegion)){
-                siteRegion = "astana";
-            }
-
             InputStream fis = SetWorkVariables.class.getResourceAsStream("/revision/newWorkPrice.json");
             InputStreamReader reader = new InputStreamReader(fis, "utf-8");
             ArrayNode json = (ArrayNode) mapper.readTree(reader);
 
             for (JsonNode workPrice : json) {
-                worksPriceMap.put("prices", workPrice.get("price"));
+                worksPriceMap.put(workPrice.get("id").textValue(), workPrice.get("price"));
                 worksTitleMap.put(workPrice.get("id").textValue(), workPrice.get("title").textValue());
             }
 
             ArrayNode jobWorks = (ArrayNode) mapper.readTree(execution.getVariable("jobWorks").toString());
             for (JsonNode work : jobWorks) {
-                if(work.has("id") && work.get("id").intValue() >= 5000) {
-                    continue;
-                }
                 if(!uniqueWorks.containsKey(work.get("sapServiceNumber").textValue())){
-                    JsonNode priceJson = worksPriceMap.get("prices");
+                    JsonNode priceJson = worksPriceMap.get(work.get("sapServiceNumber").textValue());
                     String title = worksTitleMap.get(work.get("sapServiceNumber").textValue());
 
                     ObjectNode workPriceJson = mapper.createObjectNode();
                     workPriceJson.put("sapServiceNumber", work.get("sapServiceNumber").textValue());
 
-                    workPriceJson.put("price", priceJson.get(siteRegion).get(work.has("materialsProvidedBy") && "subcontractor".equals(work.get("materialsProvidedBy").textValue())?"with_material":"without_material").textValue());
+                    if ("2022Work-agreement".equals(mainContract)) {
+                        String oblast = execution.hasVariable("oblastName") ? execution.getVariable("oblastName").toString() : null;
+                        workPriceJson.put("price", priceJson.get(oblast).textValue());
+                    } else {
+                        String siteRegion = (String) execution.getVariable("siteRegion");
+                        if("nc".equals(siteRegion) || "east".equals(siteRegion)){
+                            siteRegion = "astana";
+                        }
+                        workPriceJson.put("price", priceJson.get(siteRegion).get(work.has("materialsProvidedBy") && "subcontractor".equals(work.get("materialsProvidedBy").textValue())?"with_material":"without_material").textValue());
+                    }
                     workPriceJson.put("title", title);
                     worksPriceList.add(workPriceJson);
                     uniqueWorks.put(work.get("sapServiceNumber").textValue(), "");
@@ -102,9 +103,8 @@ public class SetWorkVariables implements ExecutionListener {
                     workTitlesForSearch.append(title);
                 }
             }
+            execution.setVariable("worksPriceList", SpinValues.jsonValue(worksPriceList.toString()).create());
+            execution.setVariable("workTitlesForSearch", workTitlesForSearch.toString());
         }
-
-
-
     }
 }
