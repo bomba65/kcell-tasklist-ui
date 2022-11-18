@@ -3483,6 +3483,7 @@ return module.controller('mainCtrl', ['$scope', '$rootScope', 'toasty', 'Authent
                 $scope.siteTypeMap = {};
                 $scope.projectMap = {};
                 $scope.reasonMap = {};
+                $scope.addressMap = {};
                 $scope.generalStatusUpdatedDateMap = {};
 
                 $scope.generalStatuses = [
@@ -3933,7 +3934,21 @@ return module.controller('mainCtrl', ['$scope', '$rootScope', 'toasty', 'Authent
                                 return p.value ? JSON.parse(p.value).reason : '';
                             });
                         });
-                        
+
+                        $http.post($scope.baseUrl + '/history/variable-instance?deserializeValues=false', {
+                            processInstanceIdIn: procInstIdArray,
+                            variableName: 'address'
+                        }).then(function (response) {
+                            $scope.addressMap = _.mapValues(_.keyBy(response.data, 'processInstanceId'), function(p){
+                                if (p.value) {
+                                    const obj = JSON.parse(p.value);
+                                    return obj.cn_addr_oblast + ', ' + obj.cn_addr_city + ', '
+                                        + obj.cn_addr_street + ', ' + obj.cn_addr_building;
+                                } else {
+                                 return '';
+                                }
+                            });
+                        });
 
                         var activeProcInstIdArray = [];
                         $scope.processIntancesList.forEach(p => {
