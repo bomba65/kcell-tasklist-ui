@@ -37,6 +37,10 @@ test-environment
 ```
 docker-compose -f docker-compose-ps-test.yml up -d
 ```
+prod-environment
+```
+docker-compose -f docker-compose-ps-release.yml up -d
+```
 
 #### Camunda website
 http://localhost/camunda/app/welcome/default/#/login
