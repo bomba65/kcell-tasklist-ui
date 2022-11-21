@@ -126,13 +126,13 @@ public class SetPricesDelegate implements TaskListener {
                 if("nc".equals(siteRegion) || "east".equals(siteRegion)){
                     siteRegion = "astana";
                 }
+                String oblastName = (String) delegateTask.getVariable("oblastName");
 
                 InputStream fis = SetWorkVariables.class.getResourceAsStream("/revision/newWorkPrice.json");
                 InputStreamReader reader = new InputStreamReader(fis, "utf-8");
                 ArrayNode json = (ArrayNode) mapper.readTree(reader);
                 for (JsonNode workPrice : json) {
-                    workPrice.get("price").toString();
-                    worksPriceMap.put("prices", workPrice.get("price"));
+                    worksPriceMap.put(workPrice.get("id").textValue(), workPrice.get("price"));
                     worksTitleMap.put(workPrice.get("id").textValue(), workPrice.get("title").textValue());
                 }
 
@@ -148,22 +148,39 @@ public class SetPricesDelegate implements TaskListener {
                         workPrice.set("relatedSites", mapper.createArrayNode());
                     }
 
+                    JsonNode priceJson = worksPriceMap.get(work.get("sapServiceNumber").textValue());
                     if (!uniqueWorks.containsKey(work.get("sapServiceNumber").textValue())) {
-                        JsonNode priceJson = worksPriceMap.get("prices");
                         String title = worksTitleMap.get(work.get("sapServiceNumber").textValue());
 
                         ObjectNode workPriceJson = mapper.createObjectNode();
                         workPriceJson.put("sapServiceNumber", work.get("sapServiceNumber").textValue());
-                        workPriceJson.put("priceWithMaterial", priceJson.get(siteRegion).get("with_material").textValue());
-                        workPriceJson.put("priceWithoutMaterial", priceJson.get(siteRegion).get("without_material").textValue());
-                        workPriceJson.put("price", priceJson.get(siteRegion).get(work.has("materialsProvidedBy") && "subcontractor".equals(work.get("materialsProvidedBy").textValue()) ? "with_material" : "without_material").textValue());
+                        if ("2022Work-agreement".equals(mainContract)) {
+                            workPriceJson.put("priceWithMaterial", priceJson.get(oblastName).textValue());
+                            workPriceJson.put("priceWithoutMaterial", priceJson.get(oblastName).textValue());
+                            workPriceJson.put("price", priceJson.get(oblastName).textValue());
+                        } else {
+                            workPriceJson.put("priceWithMaterial", priceJson.get(siteRegion).get("with_material").textValue());
+                            workPriceJson.put("priceWithoutMaterial", priceJson.get(siteRegion).get("without_material").textValue());
+                            workPriceJson.put("price", priceJson.get(siteRegion).get(work.has("materialsProvidedBy") && "subcontractor".equals(work.get("materialsProvidedBy").textValue()) ? "with_material" : "without_material").textValue());
+                        }
+
                         workPriceJson.put("title", title);
                         worksPriceList.add(workPriceJson);
                         uniqueWorks.put(work.get("sapServiceNumber").textValue(), "");
                     }
 
-                    JsonNode priceJson = worksPriceMap.get("prices");
-                    BigDecimal unitWorkPrice = new BigDecimal(priceJson.get(siteRegion).get(work.has("materialsProvidedBy") && "subcontractor".equals(work.get("materialsProvidedBy").textValue()) ? "with_material" : "without_material").textValue());
+                    BigDecimal unitWorkPrice;
+                    if ("2022Work-agreement".equals(mainContract)) {
+                        unitWorkPrice = new BigDecimal(priceJson.get(oblastName).textValue());
+
+                        workPrice.put("basePrice", priceJson.get(oblastName).textValue());
+                        workPrices.add(workPrice);
+                    } else {
+                        unitWorkPrice = new BigDecimal(priceJson.get(siteRegion).get(work.has("materialsProvidedBy") && "subcontractor".equals(work.get("materialsProvidedBy").textValue()) ? "with_material" : "without_material").textValue());
+
+                        workPrice.put("basePrice", priceJson.get(siteRegion).get("without_material").textValue());
+                        workPrices.add(workPrice);
+                    }
 
                     if (priority.equals("emergency")) {
                         unitWorkPrice = unitWorkPrice.multiply(new BigDecimal("1.5"));
@@ -195,9 +212,6 @@ public class SetPricesDelegate implements TaskListener {
                     workPrice.put("total", total.setScale(2, RoundingMode.DOWN).toString());
 
                     jobWorksTotal = jobWorksTotal.add(total);
-
-                    workPrice.put("basePrice", worksPriceMap.get("prices").get(siteRegion).get("without_material").textValue());
-                    workPrices.add(workPrice);
                 }
                 JsonValue jsonValue = SpinValues.jsonValue(workPrices.toString()).create();
 
@@ -207,7 +221,7 @@ public class SetPricesDelegate implements TaskListener {
             }
         } catch(Exception e){
             e.printStackTrace();
-            throw new RuntimeException("Price calculate error on businessKey: " + delegateTask.getExecution().getBusinessKey());
+            throw new RuntimeException("Price calculate error on businessKey: " + delegateTask.getExecution().getBusinessKey(), e);
         }
     }
 }
