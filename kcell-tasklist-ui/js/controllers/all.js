@@ -3942,8 +3942,10 @@ return module.controller('mainCtrl', ['$scope', '$rootScope', 'toasty', 'Authent
                             $scope.addressMap = _.mapValues(_.keyBy(response.data, 'processInstanceId'), function(p){
                                 if (p.value) {
                                     const obj = JSON.parse(p.value);
-                                    return obj.cn_addr_oblast + ', ' + obj.cn_addr_city + ', '
-                                        + obj.cn_addr_street + ', ' + obj.cn_addr_building;
+                                    return (obj.cn_addr_oblast ? obj.cn_addr_oblast + ', ' : '')
+                                        + (obj.cn_addr_city ? obj.cn_addr_city + ', ' : '')
+                                        + (obj.cn_addr_street ? obj.cn_addr_street + ', ' : '')
+                                        + (obj.cn_addr_building ? obj.cn_addr_building : '');
                                 } else {
                                  return '';
                                 }
