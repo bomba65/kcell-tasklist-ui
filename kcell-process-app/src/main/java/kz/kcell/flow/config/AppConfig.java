@@ -10,8 +10,14 @@ public class AppConfig {
     @Value("${app.mail.emailDoSend}")
     private boolean emailDoSend;
 
+    @Value("${app.baseurl}")
+    private String appBaseUrl;
+
     @Bean boolean isEmailDoSend() {
         return emailDoSend;
     }
 
+    @Bean String appBaseUrl() {
+        return appBaseUrl;
+    }
 }
