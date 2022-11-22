@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.java.Log;
 import org.apache.commons.lang.StringUtils;
 import org.apache.http.HttpEntity;
@@ -26,8 +27,6 @@ import org.camunda.spin.plugin.variable.SpinValues;
 import org.camunda.spin.plugin.variable.value.JsonValue;
 import org.json.JSONArray;
 import org.json.JSONObject;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.net.URI;
@@ -35,15 +34,11 @@ import java.util.Arrays;
 import java.util.List;
 
 @Service("checkSlocExistance")
+@RequiredArgsConstructor
 @Log
 public class CheckSlocExistance implements JavaDelegate {
 
-    private final String baseUri;
-
-    @Autowired
-    public CheckSlocExistance(@Value("${mail.message.baseurl:http://localhost}") String baseUri) {
-        this.baseUri = baseUri;
-    }
+    private final String appBaseUrl;
 
     @Override
     public void execute(DelegateExecution delegateExecution) throws Exception {
@@ -208,8 +203,8 @@ public class CheckSlocExistance implements JavaDelegate {
         CloseableHttpClient httpclient = HttpClients.custom().setSSLSocketFactory(
             sslsf).build();
 
-        HttpGet httpGet = new HttpGet(baseUri + "/asset-management/api/locations/search/findBySiteName?sitename=" + site_name);
-        httpGet.addHeader("Referer", baseUri);
+        HttpGet httpGet = new HttpGet(appBaseUrl + "/asset-management/api/locations/search/findBySiteName?sitename=" + site_name);
+        httpGet.addHeader("Referer", appBaseUrl);
         HttpResponse httpResponse = httpclient.execute(httpGet);
 
         HttpEntity entity = httpResponse.getEntity();
@@ -247,7 +242,7 @@ public class CheckSlocExistance implements JavaDelegate {
         CloseableHttpClient httpclient = HttpClients.custom().setSSLSocketFactory(
             sslsf).build();
 
-        String locationUrl = baseUri + "/asset-management/api/locations";
+        String locationUrl = appBaseUrl + "/asset-management/api/locations";
 
         log.info("{\"params\":{}, \"name\":\"" + siteLocationName + "\",\"sitename\": \"" + site_name + "\",\"siteId\": \"" + siteId + "\"}");
 
@@ -255,7 +250,7 @@ public class CheckSlocExistance implements JavaDelegate {
 
         HttpPost locationHttpPost = new HttpPost(new URI(locationUrl));
         locationHttpPost.addHeader("Content-Type", "application/json;charset=UTF-8");
-        locationHttpPost.addHeader("Referer", baseUri);
+        locationHttpPost.addHeader("Referer", appBaseUrl);
         locationHttpPost.setEntity(locationInputData);
 
         CloseableHttpResponse locationResponse = httpclient.execute(locationHttpPost);
@@ -288,7 +283,7 @@ public class CheckSlocExistance implements JavaDelegate {
         CloseableHttpClient httpclient = HttpClients.custom().setSSLSocketFactory(
             sslsf).build();
 
-        HttpGet httpGet = new HttpGet(baseUri + "/api/catalogs?v=10");
+        HttpGet httpGet = new HttpGet(appBaseUrl + "/api/catalogs?v=10");
         httpGet.addHeader("Content-Type", "application/json;charset=UTF-8");
         HttpResponse httpResponse = httpclient.execute(httpGet);
 
