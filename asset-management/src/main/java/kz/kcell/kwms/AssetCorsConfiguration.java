@@ -18,6 +18,8 @@ public class AssetCorsConfiguration {
         config.addAllowedOrigin("http://localhost");
         config.addAllowedOrigin("https://leasing.test-flow.kcell.kz");
         config.addAllowedOrigin("https://revision.test-flow.kcell.kz");
+        config.addAllowedOrigin("https://core.test-flow.kcell.kz");
+        config.addAllowedOrigin("https://flow.kcell.kz");
         config.addAllowedHeader("*");
         config.addAllowedMethod("*");
         source.registerCorsConfiguration("/**", config);
