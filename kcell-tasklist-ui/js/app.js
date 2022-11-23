@@ -168,6 +168,7 @@ define('app',[
 						(process.key === 'leasing' && (hasGroup('statistics_rollout') || hasGroup('search_rollout'))) ||
 						(process.key === 'Revision' && (hasGroup('statistics_revision') || hasGroup('search_revision'))) ||
 						(process.key === 'Revision-power' && (hasGroup('statistics_revision') || hasGroup('search_revision'))) ||
+						(process.key === 'Revision-power' && (hasGroup('power_admin') || hasGroup('power_search'))) ||
 						(process.key === 'Invoice' && (hasGroup('statistics_monthlyact') || hasGroup('search_monthlyact'))) ||
 						(process.key === 'monthlyAct' && (hasGroup('statistics_monthlyact') || hasGroup('search_monthlyact')))
 					  )){
