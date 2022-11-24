@@ -2507,6 +2507,11 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                         title: "Revision Power", value: false
                     }
                 }
+                if($rootScope.hasGroup('power_admin') || $rootScope.hasGroup('power_search')){
+                    allKWMSProcesses['Revision-power'] = {
+                        title: "Revision Power", value: false
+                    }
+                }
                 if($rootScope.hasGroup('search_monthlyact') || $rootScope.hasGroup('infrastructure_monthly_act_users')){
                     allKWMSProcesses.Invoice = {
                         title: "Monthly Act", value: false
