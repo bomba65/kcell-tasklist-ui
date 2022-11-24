@@ -36,19 +36,30 @@ public class JrBlankGenerator {
     private static final Map<String, String> contractorsTitle =
         ((Supplier<Map<String, String>>) (() -> {
             Map<String, String> map = new HashMap<>();
-            map.put("1", "ТОО Аврора Сервис");
-            map.put("2", "ТОО AICOM");
-            map.put("3", "ТОО Spectr energy group");
-            map.put("4", "TOO Line System Engineering");
+            map.put("1", "ТОО \"Аврора Сервис\"");
+            map.put("2", "ТОО \"AICOM\"");
+            map.put("3", "ТОО \"Spectr energy group\"");
+            map.put("4", "TOO \"Line System Engineering\"");
             map.put("5", "Kcell_region");
-            map.put("6", "Алта Телеком");
-            map.put("7", "Логиком");
-            map.put("8", "Arlan SI");
-            map.put("9", "ТОО Inter Service");
-            map.put("10", "Forester-Hes Group");
-            map.put("11", "Транстелеком");
+            map.put("6", "TOO \"Алта Телеком\"");
+            map.put("7", "TOO \"Логиком\"");
+            map.put("8", "TOO \"Arlan SI\"");
+            map.put("9", "ТОО \"Inter Service\"");
+            map.put("10", "TOO \"Forester-Hes Group\"");
+            map.put("11", "TOO \"Транстелеком\"");
             return Collections.unmodifiableMap(map);
         })).get();
+
+    private final static Map<String, String> contractorNumber;
+    static
+    {
+        contractorNumber = new HashMap<String, String>();
+        contractorNumber.put("6", "98137");
+        contractorNumber.put("7", "98110");
+        contractorNumber.put("8", "98132");
+        contractorNumber.put("10", "98136");
+        contractorNumber.put("11", "98235");
+    };
 
     private final static Map<String, String> reasonsTitle;
     static
@@ -64,7 +75,6 @@ public class JrBlankGenerator {
     public byte[] generate(DelegateExecution delegateExecution) throws Exception {
 
         String mainContract = (String) delegateExecution.getVariable("mainContract");
-        String subContractor = (String) delegateExecution.getVariable("subcontractorName");
         String reason = reasonsTitle.get(delegateExecution.getVariable("reason"));
         String project = (String) delegateExecution.getVariable("project");
         String siteAddress = (String) delegateExecution.getVariable("siteAddress");
@@ -166,8 +176,12 @@ public class JrBlankGenerator {
             row = sheet.createRow(1);
             row.setHeight((short)500);
             cell = row.createCell(6);
-            cell.setCellValue("\"К Договору подряда №___________\n" +
-                "от _____ ___________202_г");
+            StringBuilder stringBuilder = new StringBuilder();
+            stringBuilder.append("К Договору подряда №")
+                .append(contractorNumber.get(contractor) != null ? contractorNumber.get(contractor) : "________")
+                .append(System.lineSeparator())
+                .append("от _____ ___________202_г");
+            cell.setCellValue(stringBuilder.toString());
             CellUtil.setFont(cell, arialBI9);
             CellUtil.setCellStyleProperties(cell, properties);
 
@@ -178,7 +192,7 @@ public class JrBlankGenerator {
             row.createCell(3).setCellValue("Заказ  №");
             row.createCell(4).setCellValue(jrNumber);
             row.createCell(5).setCellValue("от");
-            row.createCell(6).setCellValue(DateFormatUtils.format(requestDate, "dd-MM-yyyy"));
+            row.createCell(6).setCellValue(DateFormatUtils.format(requestDate, "dd.MM.yyyy"));
 
             CellUtil.setFont(row.getCell(3), arial12);
             CellUtil.setFont(row.getCell(4), arial12);
@@ -196,13 +210,13 @@ public class JrBlankGenerator {
 
             row = sheet.createRow(9);
             row.createCell(1).setCellValue("Подрядчик:");
-            row.createCell(4).setCellValue(subContractor);
+            row.createCell(4).setCellValue(contractorsTitle.get(contractor) != null ? contractorsTitle.get(contractor) : "");
 
             row = sheet.createRow(10);
             row.createCell(1).setCellValue("Тип Работ:");
             row.createCell(4).setCellValue(reason);
-            row.createCell(7).setCellValue("Проект:");
-            row.createCell(8).setCellValue(project);
+            row.createCell(6).setCellValue("Проект:");
+            row.createCell(7).setCellValue(project);
 
             CellUtil.setFont(row.getCell(7), arialB10);
 
@@ -412,9 +426,19 @@ public class JrBlankGenerator {
             sheet.addMergedRegion(new CellRangeAddress(13, 13, 1, 3));
             sheet.addMergedRegion(new CellRangeAddress(14, 14, 1, 3));
 
+            sheet.addMergedRegion(new CellRangeAddress(7, 7, 4, 8));
+
             sheet.addMergedRegion(new CellRangeAddress(jobWorks.size() + 25, jobWorks.size() + 25, 2, 3));
             sheet.addMergedRegion(new CellRangeAddress(jobWorks.size() + 25, jobWorks.size() + 25, 6, 7));
 
+            cellRangeAddress = new CellRangeAddress(11, 11, 4, 4);
+            RegionUtil.setBorderBottom(BorderStyle.THIN, cellRangeAddress, sheet);
+            cellRangeAddress = new CellRangeAddress(12, 12, 4, 4);
+            RegionUtil.setBorderBottom(BorderStyle.THIN, cellRangeAddress, sheet);
+            cellRangeAddress = new CellRangeAddress(13, 13, 4, 4);
+            RegionUtil.setBorderBottom(BorderStyle.THIN, cellRangeAddress, sheet);
+            cellRangeAddress = new CellRangeAddress(14, 14, 4, 4);
+            RegionUtil.setBorderBottom(BorderStyle.THIN, cellRangeAddress, sheet);
 
             cellRangeAddress = new CellRangeAddress(jobWorks.size() + 28, jobWorks.size() + 28, 2, 3);
             sheet.addMergedRegion(cellRangeAddress);
