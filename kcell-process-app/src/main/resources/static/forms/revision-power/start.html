@@ -65,6 +65,7 @@
       $scope.validityDateFieldOpened = false;
       $scope.jrNumber = '';
       $scope.o20JobWorks = [];
+      $scope.newWorks = [];
 
       camForm.on('form-loaded', function () {
         variablesToCreate.forEach(function (el) {
@@ -80,6 +81,20 @@
               $scope.works = _.forEach(result.data.works, function(work) {
                 work.title = work.num.toString()+ " " + work.title;
               })
+            }
+          );
+
+          $http.get('/api/revisionPowerJobsNewWorks').then(
+            function(result) {
+              $scope.newWorks = _.forEach(result.data.works, function(work) {
+                work.title = work.num.toString()+ " " + work.title;
+              })
+            }
+          );
+
+          $http.get('/camunda/catalogs/api/get/id/30').then(
+            function(response) {
+              $scope.oblastCatalog = response.data.data.$list;
             }
           );
         } catch(err){
@@ -369,6 +384,7 @@
                 $scope.regionShortName = siteInfo.facility_main_id.address_id.region_id ? $scope.regionsMap[siteInfo.facility_main_id.address_id.region_id.id] : '';
               }
           }
+          setOblastNameBySiteId(siteInfo.site_id)
         })
 
         $(function () {
@@ -398,7 +414,9 @@
       <!-- Work list logic start -->
 
       $scope.getWorks = function(val) {
-        var result = _.filter($scope.works, function(work){
+        let result = $scope.contract && JSON.parse($scope.contract).id === '98267' ? $scope.newWorks : $scope.works;
+
+        result = result.filter(function(work){
           return work.title.toLowerCase().toString().indexOf(val.toLowerCase()) !== -1;
         })
 
@@ -426,27 +444,31 @@
             $scope.jobWorks[index].materialUnit = $item.unit;
             $scope.jobWorks[index].materialSum = 0;
             $scope.jobWorks[index].referedWorks = $item.num;
-            $scope.jobWorks[index].O20 = $item.O20;
-
-            <!-- TEMPORARY works dividing by regions -->
-            if ($scope.siteRegionShow === 'Astana') {
-              $scope.jobWorks[index].materialPrice = $item.astana;
-            } else if ($scope.siteRegionShow === 'East') {
-              $scope.jobWorks[index].materialPrice = $item.east;
-            } else if ($scope.siteRegionShow === 'West') {
-              $scope.jobWorks[index].materialPrice = $item.west;
-            } else if ($scope.siteRegionShow === 'South') { 
-              $scope.jobWorks[index].materialPrice = $item.south;
+            if (JSON.parse($scope.contract).id === '98267') {
+              $scope.jobWorks[index].materialPrice = $item.price[$scope.oblastName];
             } else {
-              $scope.jobWorks[index].materialPrice = $item.almaty;
-            }
-            
-            for(let i=0; i<$scope.works.length; i++){
-              let work={} 
-              if($scope.works[i].num == $scope.jobWorks[index].num){
-                work = $scope.jobWorks[index]
-                if(work.O20){
-                  $scope.o20JobWorks.push(work)
+              $scope.jobWorks[index].O20 = $item.O20;
+
+              <!-- TEMPORARY works dividing by regions -->
+              if ($scope.siteRegionShow === 'Astana') {
+                $scope.jobWorks[index].materialPrice = $item.astana;
+              } else if ($scope.siteRegionShow === 'East') {
+                $scope.jobWorks[index].materialPrice = $item.east;
+              } else if ($scope.siteRegionShow === 'West') {
+                $scope.jobWorks[index].materialPrice = $item.west;
+              } else if ($scope.siteRegionShow === 'South') {
+                $scope.jobWorks[index].materialPrice = $item.south;
+              } else {
+                $scope.jobWorks[index].materialPrice = $item.almaty;
+              }
+
+              for (let i = 0; i < $scope.works.length; i++) {
+                let work = {}
+                if ($scope.works[i].num == $scope.jobWorks[index].num) {
+                  work = $scope.jobWorks[index]
+                  if (work.O20) {
+                    $scope.o20JobWorks.push(work)
+                  }
                 }
               }
             }
@@ -471,7 +493,8 @@
           <!-- O20 -->
           let dismntWork = JSON.parse($scope.jobWorks[index].dismantlingFor)
           $scope.jobWorks[index].refersTo = dismntWork.referedWorks;
-          $scope.jobWorks[index].materialPrice = (dismntWork.materialPrice*0.02).toFixed(2);
+          let multiplier = JSON.parse($scope.contract).id === '98267' ? 0.2 : 0.02;
+          $scope.jobWorks[index].materialPrice = (dismntWork.materialPrice*multiplier).toFixed(2);
         }
         getSum(index);
       };
@@ -559,6 +582,22 @@
         $scope.onContractorSelected(contractor);
       }, true);
       <!-- Upload File logic end -->
+
+      function setOblastNameBySiteId(siteId) {
+        for (const item of $scope.oblastCatalog) {
+          if (item['siteId'] === undefined) {
+            continue;
+          }
+          if (item.siteId.value.split(',').map((item) => parseInt(item, 10)).includes(parseInt(siteId.substring(0,2), 10))) {
+            $scope.oblastName = item.value;
+            break;
+          }
+        }
+      };
+
+      $scope.parJson = function (json) {
+        return JSON.parse(json);
+      }
     }]);
   </script>
   <div class="form-group">
@@ -666,13 +705,11 @@
       <label
         class="error"
         ng-if="kcell_form.site_name.$error.required && ( kcell_form.site_name.$touched || view.submitted)"
-        >Required field</label
-      >
+        >Required field</label>
       <label
         class="error"
         ng-if="kcell_form.siteId.$error.required && ( kcell_form.siteName.$touched || view.submitted)"
-        >Необходимо выбрать сайт из списка</label
-      >
+        >Необходимо выбрать сайт из списка</label>
     </div>
   </div>
   <div class="form-group" ng-if="siteAddress">
@@ -888,7 +925,7 @@
                 required
                 cam-variable-type="String"
                 ng-model="jobWork.transportationFor"
-                ng-if="jobWork.num == 'O21'"
+                ng-if="(jobWork.num == 'O21' && parJson(contract).id !== '98267') || (jobWork.num == 'O25' && parJson(contract).id === '98267')"
                 ng-change="getPrice($index, true)"
               >
                 <option value="">Select work</option>
@@ -908,12 +945,12 @@
                 required
                 cam-variable-type="String"
                 ng-model="jobWork.dismantlingFor"
-                ng-if="jobWork.num == 'O20'"
+                ng-if="(jobWork.num == 'O20' && parJson(contract).id !== '98267') || (jobWork.num == 'O24' && parJson(contract).id === '98267')"
                 ng-change="getPrice($index, false)"
               >
                 <option value="">Select work</option>
                 <option
-                  ng-repeat="work in o20JobWorks"
+                  ng-repeat="work in (parJson(contract).id === '98267' ? jobWorks : o20JobWorks)"
                   ng-selected="{{work.num === jobWork.dismantlingFor}}"
                   value="{{work}}"
                 >
