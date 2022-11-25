@@ -334,7 +334,7 @@ public class JrBlankGenerator {
                 row = (17+i < 36)?sheet.getRow(17+i):sheet.createRow(17 + i);
                 row.createCell(0).setCellValue(i+1);
 
-                row.createCell(1).setCellValue(jobWorks.get(i).get("sapServiceNumber").textValue());;
+                row.createCell(1).setCellValue(jobWorks.get(i).get("displayServiceName").textValue().split(" ")[0]);
                 cell = row.createCell(2);
                 StringBuilder siteNames = new StringBuilder();
                 ArrayNode sites = (ArrayNode) jobWorks.get(i).get("relatedSites");
