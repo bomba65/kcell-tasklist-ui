@@ -344,7 +344,7 @@ public class JrBlankGenerator {
                 }
 
                 BigDecimal priceWithMaterial = jobPrice.multiply(new BigDecimal(jobWorks.get(i).get("quantity").asText())).setScale(2, RoundingMode.DOWN);
-                BigDecimal jobPriceWithVAT = jobPrice.add(jobPrice.multiply(new BigDecimal(0.12))).setScale(2, RoundingMode.DOWN);
+                BigDecimal jobPriceWithVAT = jobPrice.add(jobPrice.multiply(new BigDecimal("0.12"))).setScale(2, RoundingMode.DOWN);
 
                 jobWorksTotal = jobWorksTotal.add(jobPriceWithVAT).setScale(2, RoundingMode.DOWN);
 
