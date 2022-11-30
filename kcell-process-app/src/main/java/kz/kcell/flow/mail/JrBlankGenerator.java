@@ -50,6 +50,23 @@ public class JrBlankGenerator {
             return Collections.unmodifiableMap(map);
         })).get();
 
+    private static final Map<String, Double> DISCOUNT_MAP = new HashMap<String,Double>() {{
+        put("Акмолинская область", 0.20);
+        put("Алматинская область", 0.20);
+        put("Восточно-Казахстанская область", 0.20);
+        put("Жамбылская область", 0.20);
+        put("Атырауская область", 0.17);
+        put("Мангыстауская область", 0.20);
+        put("Западно-Казахстанская область", 0.17);
+        put("Туркестанская область", 0.17);
+        put("Кызылординская область", 0.04);
+        put("Актюбинская область", 0.03);
+        put("Карагандинская область", 0.03);
+        put("Костанайская область", 0.03);
+        put("Северо-Казахстанская область", 0.03);
+        put("Павлодарская область", 0.03);
+    }};
+
     private final static Map<String, String> contractorNumber;
     static
     {
@@ -180,7 +197,7 @@ public class JrBlankGenerator {
             stringBuilder.append("К Договору подряда №")
                 .append(contractorNumber.get(contractor) != null ? contractorNumber.get(contractor) : "________")
                 .append(System.lineSeparator())
-                .append("от _____ ___________202_г");
+                .append("от 16.09.2022 г");
             cell.setCellValue(stringBuilder.toString());
             CellUtil.setFont(cell, arialBI9);
             CellUtil.setCellStyleProperties(cell, properties);
@@ -369,19 +386,25 @@ public class JrBlankGenerator {
 
             }
 
+            row = sheet.getRow(18+jobWorks.size())!=null?sheet.getRow(18+jobWorks.size()):sheet.createRow(18 + jobWorks.size());
+            row.createCell(7).setCellValue("Размер скидки, %:");
+            row.createCell(8).setCellValue(Math.round(DISCOUNT_MAP.get(oblastName)*100));
+            CellUtil.setFont(row.getCell(7), arialB10);
+
+            BigDecimal jobWorksTotalDiscounted = jobWorksTotal.multiply(BigDecimal.valueOf(1-DISCOUNT_MAP.get(oblastName))).setScale(2, RoundingMode.HALF_UP);
             row = sheet.getRow(19+jobWorks.size())!=null?sheet.getRow(19+jobWorks.size()):sheet.createRow(19 + jobWorks.size());
             row.createCell(7).setCellValue("Всего работ на сумму:");
-            row.createCell(8).setCellValue(jobWorksTotal.doubleValue());
+            row.createCell(8).setCellValue(jobWorksTotalDiscounted.doubleValue());
             CellUtil.setFont(row.getCell(7), arialB10);
 
             row = sheet.getRow(20+jobWorks.size())!=null?sheet.getRow(20+jobWorks.size()):sheet.createRow(20 + jobWorks.size());
             row.createCell(7).setCellValue("в т.ч. НДС:");
-            row.createCell(8).setCellValue(jobWorksTotal.subtract(jobWorksTotal.divide(new BigDecimal("1.12"), 2, RoundingMode.HALF_UP)).toString());
+            row.createCell(8).setCellValue(jobWorksTotalDiscounted.subtract(jobWorksTotalDiscounted.divide(new BigDecimal("1.12"), 2, RoundingMode.HALF_UP)).toString());
             CellUtil.setFont(row.getCell(7), arialB10);
 
             row = sheet.getRow(22+jobWorks.size())!=null?sheet.getRow(22+jobWorks.size()):sheet.createRow(22 + jobWorks.size());
             row.createCell(3).setCellValue("Итого сумма включая НДС, 12%:");
-            row.createCell(5).setCellValue(jobWorksTotal.doubleValue());
+            row.createCell(5).setCellValue(jobWorksTotalDiscounted.doubleValue());
             CellUtil.setFont(row.getCell(3), arialB10);
 
             properties.remove(CellUtil.BORDER_TOP);
