@@ -519,6 +519,12 @@ public class JrBlankGenerator {
             sheet.setColumnWidth(15, 4000);
             sheet.setColumnWidth(16, 4000);
 
+            // explanation of works
+            row = sheet.getRow(3) != null ? sheet.getRow(3) : sheet.createRow(3);
+            cell = row.getCell(11) != null ? row.getCell(11) : row.createCell(11);
+            cell.setCellValue(explanation != null ? explanation : "");
+            CellUtil.setAlignment(cell, HorizontalAlignment.LEFT);
+            CellUtil.setVerticalAlignment(cell, VerticalAlignment.CENTER);
         } else{
             XSSFFont arial9 = workbook.createFont();
             arial9.setFontName(HSSFFont.FONT_ARIAL);
