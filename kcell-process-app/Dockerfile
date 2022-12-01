@@ -1,5 +1,5 @@
 # builder
-FROM gradle:4.2.1-jdk8-alpine as builder
+FROM gradle:4.5.1-jdk8-alpine as builder
 COPY --chown=gradle:gradle . /home/gradle/src
 WORKDIR /home/gradle/src
 RUN gradle clean build -x test --no-daemon
