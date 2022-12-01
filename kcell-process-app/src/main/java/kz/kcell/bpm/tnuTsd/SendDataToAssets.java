@@ -2,9 +2,10 @@ package kz.kcell.bpm.tnuTsd;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.java.Log;
-import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
+import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
@@ -15,20 +16,23 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.ssl.SSLContextBuilder;
 import org.apache.http.util.EntityUtils;
+import org.camunda.bpm.engine.delegate.BpmnError;
 import org.camunda.bpm.engine.delegate.DelegateExecution;
 import org.camunda.bpm.engine.delegate.JavaDelegate;
-import org.camunda.bpm.engine.delegate.BpmnError;
-import org.apache.http.client.HttpClient;
 import org.json.JSONObject;
+import org.springframework.stereotype.Service;
 
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.Random;
 
 @Log
+@Service
+@RequiredArgsConstructor
 public class SendDataToAssets implements JavaDelegate {
+
+    private final String assetUrl;
 
     @Override
     public void execute(DelegateExecution execution) {
@@ -49,8 +53,8 @@ public class SendDataToAssets implements JavaDelegate {
         Integer fe_power_level_tx = execution.getVariable("fe_power_level_tx") == null ? null : Integer.parseInt(String.valueOf(execution.getVariable("fe_power_level_tx")));
         Integer fe_protection_power_level_tx = execution.getVariable("fe_protection_power_level_tx") == null || String.valueOf(execution.getVariable("fe_protection_power_level_tx")).equals("") ? null : Integer.parseInt(String.valueOf(execution.getVariable("fe_protection_power_level_tx")));
         String fe_terminal_id = execution.getVariable("fe_terminal_id") == null ? null : String.valueOf(execution.getVariable("fe_terminal_id")).equals("") ? null : String.valueOf(execution.getVariable("fe_terminal_id"));
-        Integer fe_txrx_frequincies = execution.getVariable("fe_txrx_frequincies") == null ? null : Integer.parseInt(String.valueOf(execution.getVariable("fe_txrx_frequincies")));
-        Integer fe_protection_txrx_frequincies = execution.getVariable("fe_protection_txrx_frequincies") == null || String.valueOf(execution.getVariable("fe_protection_txrx_frequincies")).equals("") ? null : Integer.parseInt(String.valueOf(execution.getVariable("fe_protection_txrx_frequincies")));
+        Double fe_txrx_frequincies = execution.getVariable("fe_txrx_frequincies") == null ? null : Double.parseDouble(String.valueOf(execution.getVariable("fe_txrx_frequincies")));
+        Double fe_protection_txrx_frequincies = execution.getVariable("fe_protection_txrx_frequincies") == null || String.valueOf(execution.getVariable("fe_protection_txrx_frequincies")).equals("") ? null : Double.parseDouble(String.valueOf(execution.getVariable("fe_protection_txrx_frequincies")));
         String business_key = execution.getBusinessKey();
         Date date = (Date) execution.getVariable("date_of_visit");
         Double ne_altitude = execution.getVariable("ne_altitude") == null ? null : Double.parseDouble(String.valueOf(execution.getVariable("ne_altitude")));
@@ -140,8 +144,8 @@ public class SendDataToAssets implements JavaDelegate {
         Integer ne_protection_power_level_tx = execution.getVariable("ne_protection_power_level_tx") == null || String.valueOf(execution.getVariable("ne_protection_power_level_tx")).equals("") ? null : Integer.parseInt(String.valueOf(execution.getVariable("ne_protection_power_level_tx")));
         String ne_terminal_id = execution.getVariable("ne_terminal_id") == null ? null : String.valueOf(execution.getVariable("ne_terminal_id")).equals("") ? null : String.valueOf(execution.getVariable("ne_terminal_id"));
         String hop_link_nxe1 = execution.getVariable("hop_link_nxe1") == null ? null : String.valueOf(execution.getVariable("hop_link_nxe1")).equals("") ? null : String.valueOf(execution.getVariable("hop_link_nxe1"));
-        Integer ne_txrx_frequincies = execution.getVariable("ne_txrx_frequincies") == null || String.valueOf(execution.getVariable("ne_txrx_frequincies")).equals("") ? null : Integer.parseInt(String.valueOf(execution.getVariable("ne_txrx_frequincies")));
-        Integer ne_protection_txrx_frequincies = execution.getVariable("ne_protection_txrx_frequincies") == null || String.valueOf(execution.getVariable("ne_protection_txrx_frequincies")).equals("") ? null : Integer.parseInt(String.valueOf(execution.getVariable("ne_protection_txrx_frequincies")));
+        Double ne_txrx_frequincies = execution.getVariable("ne_txrx_frequincies") == null || String.valueOf(execution.getVariable("ne_txrx_frequincies")).equals("") ? null : Double.parseDouble(String.valueOf(execution.getVariable("ne_txrx_frequincies")));
+        Double ne_protection_txrx_frequincies = execution.getVariable("ne_protection_txrx_frequincies") == null || String.valueOf(execution.getVariable("ne_protection_txrx_frequincies")).equals("") ? null : Double.parseDouble(String.valueOf(execution.getVariable("ne_protection_txrx_frequincies")));
         Integer hop_polarization = execution.getVariable("hop_polarization") == null ? null : Integer.parseInt(String.valueOf(execution.getVariable("hop_polarization")));
         Integer protection_mode = execution.getVariable("protection_mode") == null ? null : Integer.parseInt(String.valueOf(execution.getVariable("protection_mode")));
 
@@ -230,7 +234,8 @@ public class SendDataToAssets implements JavaDelegate {
             CloseableHttpClient httpclient = HttpClients.custom().setSSLSocketFactory(
                 sslsf).build();
             //String path = "https://asset.test-flow.kcell.kz/asset-management/tsd_mw";
-            String baseUrl = "https://asset.test-flow.kcell.kz/asset-management";
+            String baseUrl = assetUrl + "/asset-management";
+            log.info(baseUrl);
             String path = baseUrl + "/tsd_mw";
 
             String neFacilityPutPath = baseUrl + "/facilities/id/" + neFacilityId;

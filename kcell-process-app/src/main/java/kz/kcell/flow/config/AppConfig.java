@@ -13,11 +13,18 @@ public class AppConfig {
     @Value("${app.baseurl}")
     private String appBaseUrl;
 
+    @Value("${asset.url}")
+    private String assetUrl;
+
     @Bean boolean isEmailDoSend() {
         return emailDoSend;
     }
 
     @Bean String appBaseUrl() {
         return appBaseUrl;
+    }
+
+    @Bean String assetUrl() {
+        return assetUrl;
     }
 }
