@@ -2,6 +2,7 @@ package kz.kcell.flow.changeTsd;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.java.Log;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
@@ -29,16 +30,16 @@ import java.util.Date;
 
 @Log
 @Service("CreateNewTsd")
+@RequiredArgsConstructor
 public class CreateNewTsd implements JavaDelegate {
 
-    @Value("${asset.url:https://asset.test-flow.kcell.kz}")
-    private String assetsUri;
+    private final String assetUrl;
 
     @Override
     public void execute(DelegateExecution execution) throws Exception {
 
         log.info("Add new data into DB");
-        log.info(assetsUri);
+        log.info(assetUrl);
         ObjectMapper objectMapper = new ObjectMapper();
         ObjectNode objectNode = objectMapper.createObjectNode();
 
@@ -326,7 +327,7 @@ public class CreateNewTsd implements JavaDelegate {
         SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(builder.build());
         CloseableHttpClient httpclient = HttpClients.custom().setSSLSocketFactory(sslsf).build();
 
-        String pathFacilities = assetsUri + "/asset-management/facilities";
+        String pathFacilities = assetUrl + "/asset-management/facilities";
         HttpResponse httpResponseFarEndFacilities = executePut(pathFacilities + "/id/" + String.valueOf(farEndFacilityId), httpclient, farEndFacility.toString());
         String responseFarEndFacilities = EntityUtils.toString(httpResponseFarEndFacilities.getEntity());
         log.info("responsePutFarEndFacilities :  ----   " + responseFarEndFacilities);
@@ -341,7 +342,7 @@ public class CreateNewTsd implements JavaDelegate {
             throw new RuntimeException("asset.flow.kcell.kz returns code(put near_end facilities) " + httpResponseNearEndFacilities.getStatusLine().getStatusCode());
         }
 
-        String path = assetsUri + "/asset-management/tsd_mw/id/" + tsdId + "/nearend_id/%7Bnearend_id%7D/farend_id/%7Bfarend_id%7D";
+        String path = assetUrl + "/asset-management/tsd_mw/id/" + tsdId + "/nearend_id/%7Bnearend_id%7D/farend_id/%7Bfarend_id%7D";
         HttpResponse httpResponse = executePut(path, httpclient, objectNode.toString());
         String response = EntityUtils.toString(httpResponse.getEntity());
         log.info("json:  ----   " + objectNode.toString());
