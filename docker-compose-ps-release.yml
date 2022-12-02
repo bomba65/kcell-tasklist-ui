@@ -9,9 +9,9 @@ services:
     environment:
       - POSTGRES_DB=process-engine
       - POSTGRES_USER=camunda
-      - POSTGRES_PASSWORD=camunda
+      - POSTGRES_PASSWORD=meta4camunda
     volumes:
-      - /flow-storage/delivery-volumes/camundadb:/var/lib/postgresql/data:rw
+      - /flow-storage/flow-volumes/camundadb:/var/lib/postgresql/data:rw
 
   assetsdb:
     image: mdillon/postgis:9.6
@@ -22,7 +22,7 @@ services:
       - POSTGRES_USER=assets
       - POSTGRES_PASSWORD=assets
     volumes:
-      - /flow-storage/delivery-volumes/assetsdb:/var/lib/postgresql/data:rw
+      - /flow-storage/flow-volumes/assetsdb:/var/lib/postgresql/data:rw
 
   minio:
     image: minio/minio:RELEASE.2018-09-01T00-38-25Z
@@ -32,8 +32,8 @@ services:
       - MINIO_ACCESS_KEY=AKIAIOSFODNN7EXAMPLE
       - MINIO_SECRET_KEY=wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
     volumes:
-      - /flow-storage/delivery-volumes/minio/data:/export:rw
-      - /flow-storage/delivery-volumes/minio/config:/root/.minio:rw
+      - /flow-storage/flow-volumes/minio/data:/export:rw
+      - /flow-storage/flow-volumes/minio/config:/root/.minio:rw
     command: server /export --address ":9002"
     dns:
       - "127.0.0.11"
@@ -56,8 +56,6 @@ services:
 
   mail:
     image: tozd/postfix:ubuntu-trusty
-    ports:
-      - "25:25"
     volumes:
       - ./mail/run.initialization:/etc/service/postfix/run.initialization:ro
     environment:
@@ -92,12 +90,16 @@ services:
       - APP_BASE_URL=https://flow.kcell.kz
       - EMAIL_DO_SEND=false
       - EMAIL_BASE_URL=https://delivery.kcell.kz
+      - LDAP_ENABLED=true
+      - LDAP_PASSWORD=a%3Wxp79G*J?HB8-
+      - LDAP_EXT_ENABLED=true
+      - LDAP_EXT_PASSWORD=H243c2A9dy2
     extra_hosts:
       - "dbm1-scan1:192.168.116.6"
       - "dbm1dbadm02:192.168.117.3"
 
   asset-management:
-    image: flowkcellkz_assets
+    image: kcell/asset-management
     ports:
       - "8081:8081"
     environment:
