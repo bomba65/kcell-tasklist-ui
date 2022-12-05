@@ -228,6 +228,11 @@
             type: 'String'
           });
           camForm.variableManager.createVariable({
+            name: 'oblastName',
+            value: $scope.oblastName,
+            type: 'String'
+          });
+          camForm.variableManager.createVariable({
             name: 'initiatorFull',
             type: 'Json',
             value: $scope.initiatorFull
@@ -446,6 +451,7 @@
             $scope.jobWorks[index].referedWorks = $item.num;
             if (JSON.parse($scope.contract).id === '98267') {
               $scope.jobWorks[index].materialPrice = $item.price[$scope.oblastName];
+              $scope.jobWorks[index].O25 = $item.O25;
             } else {
               $scope.jobWorks[index].O20 = $item.O20;
 
@@ -638,7 +644,7 @@
         select-picker
         select-model="contractsList"
         ng-required="jobTo === 'contractor'"
-        ng-model="contract"
+        ng-model="$parent.contract"
         cam-variable-type="String"
       >
         <option value="">Select Contract</option>
@@ -665,7 +671,7 @@
         select-picker
         select-model="contractorsList"
         ng-required="jobTo === 'contractor'"
-        ng-model="contractor"
+        ng-model="$parent.contractor"
         cam-variable-type="String"
       >
         <option value="">Select Contractor</option>
@@ -930,7 +936,7 @@
               >
                 <option value="">Select work</option>
                 <option
-                  ng-repeat="work in jobWorks"
+                  ng-repeat="work in (parJson(contract).id === '98267' ? (jobWorks | filter:{O25:true}) : jobWorks)"
                   ng-selected="{{work === jobWork.transportationFor}}"
                   value="{{work}}"
                 >
@@ -950,11 +956,11 @@
               >
                 <option value="">Select work</option>
                 <option
-                  ng-repeat="work in (parJson(contract).id === '98267' ? jobWorks : o20JobWorks)"
+                  ng-repeat="work in (parJson(contract).id === '98267' ? (jobWorks | filter:{num:'O25'}): o20JobWorks)"
                   ng-selected="{{work.num === jobWork.dismantlingFor}}"
                   value="{{work}}"
                 >
-                  {{work.num}}
+                  {{parJson(contract).id === '98267' ? work.referedWorks : work.num}}
                 </option>
               </select>
             </td>
