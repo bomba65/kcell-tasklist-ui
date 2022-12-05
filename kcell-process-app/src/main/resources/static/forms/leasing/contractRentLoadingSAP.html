@@ -1,0 +1,306 @@
+<form role="form" class="form-horizontal" name="kcell_form" novalidate>
+    <script cam-script type="text/form-script" type="text/javascript">
+        inject(['$scope', '$http', 'Uri', '$rootScope', '$q', '$timeout', function ($scope, $http, Uri, $rootScope, $q, $timeout) {
+            var variables = [
+                'resolutions',
+                'ncpID',
+                'siteType',
+                'regionName',
+                'latitude',
+                'longitude',
+                'initiator',
+                'project',
+                'reason',
+                'part',
+                'plannedCabinetType',
+                'targetCoverage',
+                'rbsType',
+                'bands',
+                'rrFile',
+                'newCandidateRRFiles',
+                'candidate',
+                'cellAntenna',
+                'renterCompany',
+                'transmissionAntenna',
+                'powerSource',
+                'farEndInformation',
+                'receivingTSForCandiateSiteFiles',
+                'modifyCandidateRRFiles',
+                'address',
+                'ne_tr_parameters',
+                'ne_tr_rate',
+            ];
+
+            var files = ['actOfPerformanceTechnicalConditionsFiles',
+            'uploadCopyOfOwnerSignedLeaseContractFiles',
+            'confirmApprovalLeaseContractInSAPCMFiles',
+            'confirmLoadingLeaseContractInSAPCMFiles',
+            'confirmSendMessageToStartPaymentKPFEFiles',
+            'approvalContractRentInSAPFiles',
+            'approvalPowerContractInSAPFiles',
+            'checkAndApproveFEFiles',
+            'commercialOnAirFiles',
+            'confirmActOfPerformanceTechnicalConditionsFiles',
+            'confirmPaymentDevelopmentOfTCKTFiles',
+            'confirmPaymentDevelopmentOfTCKTForFEFiles',
+            'confirmReceiptEstimateFiles',
+            'confirmReceiptEstimateForFEFiles',
+            'ConfirmReceiptOfTSfromRESforCandidateFiles',
+            'confirmReceiptResponseKPFiles',
+            'confirmReceiptResponseKPFEFiles',
+            'confirmSigningLeaseContractFiles',
+            'confirmStartLeasingFiles',
+            'confirmStartLeasingNOFiles',
+            'confirmTFOfConnectingToLandlordPowerGridForFEFiles',
+            'confirmTFOfConnectingToPowerGridForCandidateFiles',
+            'connectionFromOwnerNetworksFiles',
+            'contractRentLoadingSAPFiles',
+            'createNewCandidateSiteFiles',
+            'defineInstallationProblemFiles',
+            'estimateTechnicalCapabilityResFiles',
+            'installationWorksDoneFiles',
+            'modifyCandidateSiteFiles',
+            'powerContractLoadingInSAPFiles',
+            'powerProblemSolutionFiles',
+            'preparationSSIDandTSSRFiles',
+            'preperationSSIDorTSSRProjectFiles',
+            'receivingApprovalFromTheLandlordFiles',
+            'receivingContractDevDesignEstimateFiles',
+            'receivingContractDevDesignEstimateForFEFiles',
+            'receivingContractInstallationWorksFiles',
+            'receivingContractInstallationWorksForFEFiles',
+            'receivingContractPSDFiles',
+            'receivingTSFiles',
+            'receivingTSForFEFiles',
+            'registrationCommercialOfferFiles',
+            'registrationCommercialOfferForFEFiles',
+            'reqKZTRwithTechEquipmentParamsFiles',
+            'reqKZTRwithTechEquipmentParamsForFEFiles',
+            'requestForAdmissionForWorkOnTUFiles',
+            'requestTechnicalParametersKPFiles',
+            'requestTechnicalParametersKPFEFiles',
+            'requestTechnicalParametersKTFiles',
+            'requestTechnicalParametersKTForFEFiles',
+            'sendMessageToStartPaymentKPFiles',
+            'sendMessageToStartPaymentKPForFEFiles',
+            'sendMessageToStartPaymentKTFiles',
+            'sendMessageToStartPaymentKTForFEFiles',
+            'sendMessageToStartPaymentNationalFiles',
+            'sendMessageToStartPaymentSimpleFiles',
+            'signingLeaseContractAddAgreementFiles',
+            'signingLeaseContractAddAgreementForFEFiles',
+            'signingLeaseContractAddAgreementKPFiles',
+            'signingLeaseContractAddAgreementKPFEFiles',
+            'signingLeaseContractAddAgreementKTFiles',
+            'startingInstallationWorksFiles',
+            'transmissionProblemSolutionFiles',
+            'uploadSignedOwnerLeaseContractFiles'];
+
+            $scope.leasingFiles = [];
+            $scope.deletedFiles = [];
+
+            $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
+                function(result){
+                    $scope.taskAssignee = result.data.assignee;
+                },
+                function (error) {
+                    console.log(error.data);
+                }
+            );
+
+
+            camForm.on('form-loaded', function () {
+                variables.forEach(function (el) {
+                    camForm.variableManager.fetchVariable(el);
+                });
+                files.forEach(function (f) {
+                    camForm.variableManager.fetchVariable(f);
+                });
+                $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
+                        function(result){
+                            $scope.processInstanceId = result.data.processInstanceId;
+                            $scope.taskKey = result.data.taskDefinitionKey;
+                            $http.get('/camunda/api/engine/engine/default/process-instance/' + $scope.processInstanceId).then(
+                                function(result){
+                                    console.log('process-instance/')
+                                    console.log(result.data)
+                                    $scope.businessKey = result.data.businessKey;
+                                },
+                                function (error) {console.log(error.data);}
+                            );
+                        },
+                        function (error) {
+                            console.log(error.data);
+                        }
+                );
+                $scope.leasingCandidate = {};
+            });
+
+            camForm.on('variables-fetched', function () {
+                $scope.contractRentLoadingSAPFiles = [];
+                variables.forEach(function (el) {
+                    if(camForm.variableManager.variables[el].value){
+                        $scope[el] = camForm.variableManager.variables[el].value;
+                        $scope.leasingCandidate[el] = camForm.variableManager.variables[el].value;
+                    }
+                });
+                files.forEach(function (f) {
+                    if(camForm.variableManager.variables[f] && camForm.variableManager.variables[f].value){
+                        if ( f.toLowerCase().includes('file') ) {
+                            $scope.leasingFiles = $scope.leasingFiles.concat(camForm.variableManager.variables[f].value)
+                        }
+                    }
+                });
+                camForm.variableManager.createVariable({
+                    name: 'contractRentLoadingSAPTaskResult',
+                    type: 'String',
+                    value: ''
+                });
+                camForm.variableManager.createVariable({
+                    name: 'contractRentLoadingSAPTaskComment',
+                    type: 'String',
+                    value: ''
+                });
+                camForm.variableManager.createVariable({
+                    name: 'contractRentLoadingSAPDeletedFiles',
+                    type: 'Json',
+                    value: ''
+                });
+
+                $scope.contractRentLoadingSAPTaskResult = '';
+                $scope.view.variablesFetched = true;
+            });
+
+            camForm.on('submit', function () {
+                camForm.variableManager.variableValue('contractRentLoadingSAPTaskResult', $scope.contractRentLoadingSAPTaskResult);
+                camForm.variableManager.variableValue('contractRentLoadingSAPTaskComment', $scope.contractRentLoadingSAPTaskComment);
+
+                var thisTaskFiles = $scope.leasingFiles.filter(f => {return f.varName === 'contractRentLoadingSAPFiles'});
+                console.log('--thisTaskFiles--')
+                console.log(thisTaskFiles)
+                console.log('-----------------')
+                if(!camForm.variableManager.variables['contractRentLoadingSAPFiles'].type){
+                    camForm.variableManager.destroyVariable('contractRentLoadingSAPFiles');
+                    camForm.variableManager.createVariable({
+                        name: 'contractRentLoadingSAPFiles',
+                        type: 'Json',
+                        value: thisTaskFiles
+                    });
+                } else {
+                    camForm.variableManager.variableValue('contractRentLoadingSAPFiles', thisTaskFiles);
+                }
+                if(camForm.variableManager.variables.hasOwnProperty($scope.taskKey + "DeletedFiles")){
+                    camForm.variableManager.destroyVariable($scope.taskKey + "DeletedFiles");
+                    camForm.variableManager.createVariable({
+                        name: $scope.taskKey + "DeletedFiles",
+                        type: 'Json',
+                        value: $scope.deletedFiles
+                    });
+                } else {
+                    camForm.variableManager.variableValue($scope.taskKey + "DeletedFiles", $scope.deletedFiles);
+                }
+                camForm.variableManager.destroyVariable('resolutions');
+            });
+
+            $scope.fileSelected = function (el, fileName) {
+                $timeout(function () {
+                    $scope.$apply(function () {
+                        uploadFileToMinio(el.files[0], fileName);
+                    });
+                })
+            };
+
+            function uploadFileToMinio(file, fileName) {
+                var fileIndex = $scope[fileName].length;
+
+                var fileToUpload = {
+                    date: new Date(),
+                    author:  $scope.taskAssignee,
+                    name: file.name.replace(/[/\\?%*:|"<>]/g, '-'),
+                    path: $scope.processInstanceId + '/' + camForm.taskId + '/' + file.name.replace(/[/\\?%*:|"<>]/g, '-')
+                };
+                $http({
+                    method: 'GET',
+                    url: '/camunda/uploads/put/' + fileToUpload.path,
+                    transformResponse: []
+                }).then(function (response) {
+                    $http.put(response.data, file, {headers: {'Content-Type': undefined}}).then(
+                            function () {
+                                fileToUpload.varName = 'contractRentLoadingSAPFiles';
+                                $scope.leasingFiles.push(fileToUpload);
+                                //$scope[fileName].push(fileToUpload);
+                                angular.element(document.querySelector('#' + fileName)).val(null);
+                                console.log($scope.leasingFiles)
+                            },
+                            function (error) {
+                                console.log(error.data);
+                            }
+                    );
+                }, function(error){
+                    console.log(error.data);
+                });
+            };
+
+            $scope.clearFile = function (list, fileIndex) {
+                $scope[list].splice(fileIndex, 1);
+            }
+
+            $scope.fileDownload = function (file) {
+                $http({
+                    method: 'GET',
+                    url: '/camunda/uploads/get/' + file.path,
+                    transformResponse: []
+                }).then(function (response) {
+                    document.getElementById('fileDownloadIframe').src = response.data;
+                }, function(error){
+                    console.log(error.data);
+                });
+            }
+        }]);
+
+    </script>
+    <div class="form-group">
+        <label class="col-sm-12 control-label">
+            <p/> <b>Business key: </b>{{businessKey}}
+        </label>
+    </div>
+     <leasing-candidate ng-if="view.variablesFetched" leasing-candidate="leasingCandidate"></leasing-candidate>
+
+    <!-- <div class="form-group">
+        <label class="col-md-4 control-label">Download RR:</label>
+        <div class="col-sm-8">
+            <a ng-click="fileDownload(rrFile)">{{rrFile.name}}</a>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-md-4 control-label">RR files:</label>
+        <div class="col-sm-8">
+            <div ng-show="newCandidateRRFiles.length > 0" class="input-group" ng-repeat="file in newCandidateRRFiles">
+                {{$index + 1}}.
+                <a ng-click="fileDownload(file)">{{file.name}}</a>
+            </div>
+        </div>
+    </div>
+
+    <leasing-files leasing-files="leasingCandidate"></leasing-files> -->
+
+    <leasing-attachments leasing-files="leasingFiles" deleted-files="deletedFiles" task-key="taskKey" modify="'true'"></leasing-attachments>
+    <iframe id="fileDownloadIframe" style="display:none;"></iframe>
+    <div class="form-group">
+        <label class="col-sm-3 control-label"></label>
+        <div class="col-sm-9">
+            <ng-form name="kcell_material_file_form">
+                <input type="file" class="form-control" id="contractRentLoadingSAPFiles"
+                       name="contractRentLoadingSAPFiles" ng-model="file.file"
+                       onchange="angular.element(this).scope().fileSelected(this, 'contractRentLoadingSAPFiles')"/>
+            </ng-form>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label class="col-sm-3 control-label">Comments</label>
+        <div class="col-sm-9">
+            <textarea class="form-control" ng-model="contractRentLoadingSAPTaskComment" name="contractRentLoadingSAPTaskComment" placeholder="Comments..." maxlength="500" rows="4" style="resize:none"></textarea>
+        </div>
+    </div>
+</form>

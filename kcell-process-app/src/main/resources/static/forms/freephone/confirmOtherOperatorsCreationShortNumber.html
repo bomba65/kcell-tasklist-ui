@@ -1,0 +1,143 @@
+<form role="form" class="form-horizontal" name="kcell_form" novalidate>
+    <script cam-script type="text/form-script">
+        inject(['$scope', '$http', 'Uri', '$rootScope', '$q', '$timeout', function ($scope, $http, Uri, $rootScope, $q, $timeout) {
+            var variables = [
+                'resolutions',
+                'identifiers',
+                'abonentTarif',
+                'description',
+                'officialClientCompanyName',
+                'finalIDs',
+                'startDate',
+                'contractNumber',
+                'connectionType',
+                'previouslyBought',
+                'clientBIN',
+                'responsibleB2BDelivery',
+                'responsibleB2BSales'
+            ];
+
+            camForm.on('form-loaded', function () {
+                variables.forEach(function (el) {
+                    camForm.variableManager.fetchVariable(el);
+                });
+                $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
+                        function(result){
+                            $scope.processInstanceId = result.data.processInstanceId;
+                        },
+                        function (error) {
+                            console.log(error.data);
+                        }
+                );
+                $scope.freephoneInfo = {};
+                $scope.freephoneInfo.files = {};
+            });
+
+            camForm.on('variables-fetched', function () {
+                variables.forEach(function (el) {
+                    if (el === 'resolutions') {
+                        if (camForm.variableManager.variables[el].value) {
+                            $scope.resolutions = angular.copy(camForm.variableManager.variables[el].value);
+                            camForm.variableManager.destroyVariable(el);
+                        }
+                    } else if (el === 'applicationScanCopyFileName' || el === 'contractScanCopyFileName') {
+                        $scope[el] = camForm.variableManager.variables[el].value;
+                        $scope.freephoneInfo.files.push(camForm.variableManager.variables[el].value);
+                    } else {
+                        $scope[el] = camForm.variableManager.variables[el].value;
+                        $scope.freephoneInfo[el] = camForm.variableManager.variables[el].value;
+                    }
+                });
+                $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name+ "/profile").then(function(result){
+                    $rootScope.authentication.assigneeName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
+                });
+                $scope.freephoneInfo.showTarif = true;
+                console.log($scope.freephoneInfo);
+                console.log($scope.freephoneInfo.files);
+
+                camForm.variableManager.createVariable({
+                    name: 'confirmOtherOperatorsCreationShortNumberTaskResult',
+                    type: 'String',
+                    value: ''
+                });
+
+                camForm.variableManager.createVariable({
+                    name: 'confirmOtherOperatorsCreationShortNumberTaskComment',
+                    type: 'String',
+                    value: ''
+                });
+
+                $scope.confirmOtherOperatorsCreationShortNumberTaskResult = '';
+            });
+
+            camForm.on('submit', function () {
+                $scope.confirmOtherOperatorsCreationShortNumberTaskResult = 'Completed';
+                camForm.variableManager.variableValue('confirmOtherOperatorsCreationShortNumberTaskResult', $scope.confirmOtherOperatorsCreationShortNumberTaskResult);
+                camForm.variableManager.variableValue('confirmOtherOperatorsCreationShortNumberTaskComment', $scope.confirmOtherOperatorsCreationShortNumberTaskComment);
+                camForm.variableManager.variableValue('identifiers', $scope.identifiers);
+            });
+
+            $scope.dateFieldOpened = [];
+
+            $scope.open = function open($event, index, id, o) {
+                $event.preventDefault();
+                $event.stopPropagation();
+                $scope.identifiers.forEach(function (identifier) {
+                    if(identifier.title === id ){
+                        identifier.operators[index].dateFieldOpened = true;
+                    }
+                });
+                //$scope.identifier[id][o].dateFieldOpened = true;
+            };
+            $scope.check = function check() {
+                if ($scope.previouslyBought) {
+                    return 'o.id !== \'kcell\' && o.isAvailable';
+                } else return 'o.id !== \'kcell\' && o.isAvailable && o.checked';
+            };
+            console.log($scope.check())
+
+        }]);
+
+    </script>
+    <info-freephone freephone-info="freephoneInfo"></info-freephone>
+    <div class="form-group" ng-repeat="id in identifiers">
+        <label class="col-sm-12 control-label"/>Идентификатор - {{id.title}}
+        <div class="col-sm-12" style="border-left: solid; border-left-width: 1px; margin-left: 2vh">
+            <table class="table">
+                <thead>
+                <tr>
+                    <th scope="col">Оператор</th>
+                    <th scope="col">Дата заведения короткого номера</th>
+                    <th scope="col">Добавить</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr ng-repeat="o in id.operators" ng-if="previouslyBought ? o.id !== 'kcell' && o.isAvailable : o.id !== 'kcell' && o.isAvailable && o.checked">
+                    <th scope="row" style="width: 40%">{{o.name}}</th>
+                    <td style="width: 40%">
+                        <div class="input-group">
+                            <input type="text" ng-model="o.addedToNetworkDate" name="{{'addedToNetworkDate' + id.title + o.id}}" ng-disabled="!o.addedToNetwork" ng-required="o.addedToNetwork" class="form-control" datepicker-popup="dd.MM.yyyy" is-open="o.dateFieldOpened" id="{{'addedToNetworkDate' + id.title + o.id}}" min-date="datepickerOptions.minDate" />
+                            <span class="input-group-btn">
+                                <button type="button" class="btn btn-default" ng-disabled="!o.addedToNetwork" ng-click="open($event, $index, id.title, o.id)">
+                                    <i class="glyphicon glyphicon-calendar"></i>
+                                </button>
+                            </span>
+                        </div>
+                        <label class="error" ng-show="kcell_form.{{'addedToNetworkDate' + id.title + o.id}}.$error.required && ( kcell_form.{{'addedToNetworkDate' + id.title + o.id}}.$touched || view.submitted)">Required field</label>
+                    </td>
+                    <td style="width: 20%">
+                        <input type="checkbox" ng-model="o.addedToNetwork">
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-3 control-label">Комментарии</label>
+        <div class="col-sm-9">
+            <textarea class="form-control" ng-model="confirmOtherOperatorsCreationShortNumberTaskComment" name="confirmOtherOperatorsCreationShortNumberTaskComment" placeholder="Comments..." maxlength="500" rows="4" style="resize:none"></textarea>
+            <label class="error" ng-show="kcell_form.confirmOtherOperatorsCreationShortNumberTaskComment.$error.required && ( kcell_form.confirmOtherOperatorsCreationShortNumberTaskComment.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+</form>

@@ -1,0 +1,135 @@
+<form role="form" class="form-horizontal" name="kcell_form" novalidate>
+    <script cam-script type="text/form-script">
+        inject(['$scope', '$http', 'Uri', '$rootScope', '$q', '$timeout', function ($scope, $http, Uri, $rootScope, $q, $timeout) {
+            var variables = [
+                'clientBIN',
+                'officialClientCompanyName',
+                'clientCompanyLatName',
+                'description',
+                'connectionType',
+                'smsServiceType',
+                'MSGGWaccount',
+
+                'startDate',
+                'ipNumber',
+                'applicationScanCopyFileName',
+                'contractScanCopyFileName',
+                'abonentTarif',
+                'techSpecNumber',
+                'techSpecFIO',
+                'techSpecEmail',
+                'tarifPlane',
+                'provider',
+                'contractNumber',
+
+                'shortNumberId',
+                'productCatalogShortNumber',
+                'productCatalogResponse',
+                'identifiers',
+                'identifierType',
+                'operatorType',
+                //'operators',
+                'resolutions',
+                'previouslyBought',
+                'finalIDs',
+                'offnetProviderName',
+                'offnetProviderBin',
+                'isGMSFW',
+                'isNewIP',
+                'isNewMSGGWaccount',
+                'isPartner',
+                'partner',
+                'partnerEmail'
+            ];
+
+            camForm.on('form-loaded', function () {
+                variables.forEach(function (el) {
+                    camForm.variableManager.fetchVariable(el);
+                });
+                $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
+                        function(result){
+                            $scope.processInstanceId = result.data.processInstanceId;
+                        },
+                        function (error) {
+                            console.log(error.data);
+                        }
+                );
+                $scope.bulksmsInfo = {};
+                $scope.bulksmsInfo.files = [];
+            });
+
+            camForm.on('variables-fetched', function () {
+                variables.forEach(function (el) {
+                    if (el === 'resolutions') {
+                        if (camForm.variableManager.variables[el].value) {
+                            $scope.resolutions = angular.copy(camForm.variableManager.variables[el].value);
+                            camForm.variableManager.destroyVariable(el);
+                        }
+                    } else if (el === 'applicationScanCopyFileName' || el === 'contractScanCopyFileName') {
+                        $scope[el] = camForm.variableManager.variables[el].value;
+                        $scope.bulksmsInfo.files.push(camForm.variableManager.variables[el].value);
+                    } else {
+                        $scope[el] = camForm.variableManager.variables[el].value;
+                        $scope.bulksmsInfo[el] = camForm.variableManager.variables[el].value;
+                    }
+                });
+                $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name+ "/profile").then(function(result){
+                    $rootScope.authentication.assigneeName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
+                });
+                $scope.bulksmsInfo.toIP = '195.47.255.119';
+                $scope.bulksmsInfo.toPort = '5060';
+                $scope.bulksmsInfo.showTarif = true;
+
+                camForm.variableManager.createVariable({
+                    name: 'correctAccessToFirewallPartnerTaskResult',
+                    type: 'String',
+                    value: ''
+                });
+
+                camForm.variableManager.createVariable({
+                    name: 'correctAccessToFirewallPartnerTaskComment',
+                    type: 'String',
+                    value: ''
+                });
+
+                $scope.correctAccessToFirewallPartnerTaskResult = '';
+            });
+
+            camForm.on('submit', function () {
+                $scope.correctAccessToFirewallPartnerTaskResult = 'Completed';
+                camForm.variableManager.variableValue('correctAccessToFirewallPartnerTaskResult', $scope.correctAccessToFirewallPartnerTaskResult);
+                camForm.variableManager.variableValue('correctAccessToFirewallPartnerTaskComment', $scope.correctAccessToFirewallPartnerTaskComment);
+            });
+        }]);
+
+    </script>
+    <info-bulksms bulksms-info="bulksmsInfo"></info-bulksms>
+    <div class="form-group">
+        <label class="col-sm-4 control-label">Откуда:</label>
+        <div class="col-sm-8">
+            <input type="text" name="buildingOwner" id='ipNumber' ng-model="ipNumber" class="form-control" required>
+            <label class="error" ng-show="kcell_form.capex.$error.required && ( kcell_form.capex.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-4 control-label">Куда:</label>
+        <div class="col-sm-8">
+            <input type="text" name="channelKLM" id='toIP' cam-variable-name="toIP" cam-variable-type="String" class="form-control" required placeholder="195.47.255.119">
+            <label class="error" ng-show="kcell_form.toIP.$error.required && ( kcell_form.toIP.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-4 control-label">Порт:</label>
+        <div class="col-sm-8">
+            <input type="text" name="channelKLM" id='toPort' cam-variable-name="toPort" cam-variable-type="String" class="form-control" required placeholder="5060 (SIP)">
+            <label class="error" ng-show="kcell_form.toPort.$error.required && ( kcell_form.toPort.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-3 control-label">Комментарии</label>
+        <div class="col-sm-9">
+            <textarea class="form-control" ng-model="correctAccessToFirewallPartnerTaskComment" name="correctAccessToFirewallPartnerTaskComment" placeholder="Comments..." maxlength="500" rows="4" style="resize:none"></textarea>
+            <label class="error" ng-show="kcell_form.correctAccessToFirewallPartnerTaskComment.$error.required && ( kcell_form.correctAccessToFirewallPartnerTaskComment.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+</form>

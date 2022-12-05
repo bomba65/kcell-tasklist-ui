@@ -1,0 +1,240 @@
+<form role="form" class="form-horizontal" name="kcell_form" novalidate>
+  <style>
+    .well {
+      color: #333;
+    }
+  </style>
+  <script cam-script type="text/form-script">
+    inject(['$scope', '$http', 'Uri', '$rootScope', '$q', 'toasty', '$timeout', 'historyVariablesManager', function ($scope, $http, Uri, $rootScope, $q, toasty, $timeout, historyVariablesManager) {
+      $scope.generalData = {
+        general: {},
+        targetAudience: {},
+        demandDetails: {}
+      };
+
+      var processInstanceId = null;
+      var taskName = null;
+      var assigneeName = $rootScope.authentication.name;
+      var history = historyVariablesManager(camForm, 'CVPReview');
+
+      $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name + "/profile").then(function (result) {
+        assigneeName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
+      });
+
+      $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
+        function (result) {
+          processInstanceId = result.data.processInstanceId;
+          taskName = result.data.name;
+        },
+        function (error) {
+          console.log(error.data);
+        }
+      );
+
+      camForm.on('form-loaded', function () {
+        camForm.variableManager.fetchVariable('resolutions');
+        camForm.variableManager.fetchVariable('generalData');
+        camForm.variableManager.fetchVariable('status');
+        camForm.variableManager.fetchVariable('state');
+        camForm.variableManager.fetchVariable('oldStatus');
+      });
+
+      camForm.on('variables-fetched', function () {
+        $scope.resolutions = camForm.variableManager.variableValue('resolutions');
+        camForm.variableManager.destroyVariable('resolutions');
+        $scope.generalData = camForm.variableManager.variableValue('generalData');
+        $scope.status = camForm.variableManager.variableValue('status');
+        $scope.state = camForm.variableManager.variableValue('state');
+
+        history.createVariables();
+      });
+
+      camForm.on('submit', function (event) {
+        history.setVariables($scope.resolution, $scope.comment);
+
+        var oldStatus = $scope.status;
+        var status = 'CVP approved';
+        var state = 'Active';
+        if ($scope.resolution === 'Cancel') {
+          status = 'Canceled on CVP review';
+          state = 'Closed';
+        } else if ($scope.resolution === 'Send to modify') status = 'Modifying of General info';
+
+        camForm.variableManager.destroyVariable('status');
+        camForm.variableManager.createVariable({
+          name: 'status',
+          type: 'String',
+          value: status,
+          store: true
+        });
+
+        camForm.variableManager.destroyVariable('state');
+        camForm.variableManager.createVariable({
+          name: 'state',
+          type: 'String',
+          value: state,
+          store: true
+        });
+
+        camForm.variableManager.destroyVariable('oldStatus');
+        camForm.variableManager.createVariable({
+          name: 'oldStatus',
+          type: 'String',
+          value: oldStatus,
+          store: true
+        });
+      });
+    }]);
+  </script>
+  <div class="form-group">
+    <label style="width: 11%; float: left; padding: 7px 5px 0 15px; font-weight: 500;"> Business Key:</label>
+    <div style="width: 10%; float: left; padding: 0 5px;">
+      <input class="form-control" cam-variable-name="businessKey" cam-variable-type="String" disabled>
+    </div>
+    <label style="width: 6%; float: left; padding: 7px 0px 0 10px; font-weight: 500;"> Status:</label>
+    <div style="width: 22%; float: left; padding: 0 5px;">
+      <div class="disabled-element">{{status}}</div>
+    </div>
+    <label style="width: 6%; float: left; padding: 7px 0px 0 10px; font-weight: 500;"> State:</label>
+    <div style="width: 10%; float: left; padding: 0 5px;">
+      <div class="disabled-element">{{state}}</div>
+    </div>
+    <label style="width: 6%; float: left; padding: 7px 0px 0 5px; font-weight: 500;"> Activity:</label>
+    <div style="width: 29%; float: left; padding: 0 5px;">
+      <div class="disabled-element"> CVP review</div>
+    </div>
+  </div>
+  <div class="form-group">
+    <label style="width: 11%; float: left; padding: 7px 5px 0 15px; font-weight: 500;"> Demand Name:</label>
+    <div style="width: 89%; float: left; padding: 0 5px;">
+      <input class="form-control" cam-variable-name="demandName" cam-variable-type="String" disabled/>
+    </div>
+  </div>
+  <hr>
+  <tabset class="my-tab-head my-tab" justified="true" id="jobRequestId">
+    <tab>
+      <tab-heading> General</tab-heading>
+      <div style="margin-bottom: 20px;">
+        <div class="col-sm-{{generalData.general.technicalAnalysis?'6':'12'}}" style="padding: 0;">
+          <div class="panel-group custom-panel">
+            <div class="panel panel-default">
+              <div class="panel-heading">
+                <h4 class="panel-title">General</h4>
+              </div>
+              <div class="panel-body">
+                <demand-general data="generalData.general" form="kcell_form" view="view" disabled="true"
+                                technical="generalData.general.technicalAnalysis"></demand-general>
+                <div class="form-group" ng-if="!generalData.general.technicalAnalysis">
+                  <label class="col-sm-12 control-label">Demand description</label>
+                  <div class="col-sm-12">
+                    <div class="col-sm-12 disabled-element">{{generalData.general.description}}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="col-sm-6" ng-if="generalData.general.technicalAnalysis" style="padding: 0; padding-left: 10px;">
+          <div class="panel-group custom-panel">
+            <div class="panel panel-default">
+              <div class="panel-heading">
+                <h4 class="panel-title">Target Audience</h4>
+              </div>
+              <div class="panel-body">
+                <demand-target-audience data="generalData.targetAudience" form="kcell_form" view="view"
+                                        disabled="true"></demand-target-audience>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="col-sm-12" ng-if="generalData.general.technicalAnalysis" style="padding: 0;">
+          <div class="panel-group custom-panel">
+            <div class="panel panel-default">
+              <div class="panel-heading">
+                <h4 class="panel-title">Demand details</h4>
+              </div>
+              <div class="panel-body">
+                <div class="form-group">
+                  <label class="col-sm-12 control-label">Demand description</label>
+                  <div class="col-sm-12">
+                    <div class="col-sm-12 disabled-element">{{generalData.general.description}}</div>
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label class="col-sm-12 control-label">Customer benefits:</label>
+                  <div class="col-sm-12">
+                    <div class="col-sm-12 disabled-element">{{generalData.general.customerBenefits}}</div>
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label class="col-sm-12 control-label">Financial benefits:</label>
+                  <div class="col-sm-12">
+                    <div class="col-sm-12 disabled-element">{{generalData.general.financialBenefits}}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="col-sm-12" ng-if="generalData.general.technicalAnalysis" style="padding: 0;">
+          <div class="panel-group custom-panel">
+            <div class="panel panel-default">
+              <div class="panel-heading">
+                <h4 class="panel-title">Product Details</h4>
+              </div>
+              <div class="panel-body">
+                <demand-details data="generalData.demandDetails" catalog="detailsCatalogs" form="kcell_form" view="view"
+                                disabled="true"></demand-details>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </tab>
+    <tab disabled="true">
+      <tab-heading> BRD</tab-heading>
+    </tab>
+    <tab disabled="true">
+      <tab-heading> Costs</tab-heading>
+    </tab>
+    <tab disabled="true">
+      <tab-heading> Business Case</tab-heading>
+    </tab>
+    <tab disabled="true">
+      <tab-heading> SDD</tab-heading>
+    </tab>
+  </tabset>
+
+  <div class="col-sm-12" style="margin: 20px 0;">
+    <hr style="border-top: 2px solid #aaa;"/>
+  </div>
+
+  <div class="form-group">
+    <label class="col-sm-2 control-label">Resolution</label>
+    <div class="col-sm-10">
+      <label class="radio-inline" title="Утвердить запрос \ Approve request">
+        <input type="radio" ng-model="resolution" name="resolution" value="Approve" required> Approve
+      </label>
+      <label class="radio-inline" title="Вернуть запрос на доработку \ Send request to edit">
+        <input type="radio" ng-model="resolution" name="resolution" value="Send to modify" required> Send to modify
+      </label>
+      <label class="radio-inline" title="Отменить запрос \ Cancel request">
+        <input type="radio" ng-model="resolution" name="resolution" value="Cancel" required> Cancel the order
+      </label>
+      <label class="error"
+             ng-show="kcell_form.resolution.$error.required && ( kcell_form.resolution.$touched || view.submitted)">Required
+        field</label>
+    </div>
+  </div>
+  <div class="form-group">
+    <label class="col-sm-2 control-label">Comment<span ng-if="resolution != 'Approve'"
+                                                       class="text-danger glyphicon-asterisk"></span></label>
+    <div class="col-sm-10">
+      <textarea class="form-control" rows="4" maxlength="500" ng-model="comment" name="comment"
+                ng-required="resolution != 'Approve'"></textarea>
+      <label class="error"
+             ng-show="kcell_form.comment.$error.required && ( kcell_form.comment.$touched || view.submitted)">Required
+        field</label>
+    </div>
+  </div>
+</form>

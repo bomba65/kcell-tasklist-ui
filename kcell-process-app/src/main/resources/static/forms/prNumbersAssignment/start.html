@@ -1,0 +1,164 @@
+<form role="form" class="form-horizontal" name="kcell_form" novalidate>
+    <script cam-script type="text/form-script" type="text/javascript">
+        inject(['$scope', '$http', '$rootScope', '$q', '$timeout', 'exModal', function ($scope, $http) {
+            console.log($scope)
+
+            $scope.prNumberPattern = /^([0-9]{8})$/;
+
+            $scope.isPrNew = true;
+
+            $scope.jrNumber = undefined;
+            $scope.jr = undefined;
+            $scope.jrPr = undefined;
+            $scope.pr = undefined;
+            $scope.prNumber = undefined;
+
+            $scope.reason = undefined;
+
+            $scope.getPrByJrNumber = function (val) {
+                if (val) {
+                    $http.get('/camunda/job_request/jr_number/' + val).then(
+                        (response) => {
+                            const data = response.data
+                            $scope.jr = {id: data.id, jrNumber: data.jr_number};
+
+                            $http.get('/camunda/jr_pr/jr_id/' + $scope.jr.id).then(
+                                (response) => {
+                                    const data = response.data
+                                    $scope.jrPr = {id: data.id, jrId: data.jr_id, prId: data.pr_id};
+
+                                    $http.get('/camunda/purchase_request/id/' + $scope.jrPr.prId).then(
+                                        (response) => {
+                                            const data = response.data
+                                            $scope.pr = {id: data.id, prNumber: data.pr_number};
+                                        }
+                                    );
+                                }
+                            );
+                        }
+                    );
+                }
+            };
+
+            camForm.on('submit', function (e) {
+                camForm.variableManager.createVariable({
+                    name: 'jrNumber',
+                    type: 'String',
+                    value: $scope.jrNumber
+                });
+                camForm.variableManager.createVariable({
+                    name: 'prNumber',
+                    type: 'String',
+                    value: $scope.prNumber
+                });
+                camForm.variableManager.createVariable({
+                    name: 'isPrNew',
+                    type: 'Boolean',
+                    value: $scope.isPrNew
+                });
+                camForm.variableManager.createVariable({
+                    name: 'reason',
+                    type: 'String',
+                    value: $scope.reason
+                });
+            });
+        }]);
+
+    </script>
+    <div class="form-group">
+        <div class="col-sm-8">
+            <h3>PR Numbers Assignment process</h3>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="col-sm-8">
+            <label class="radio-inline">
+                <input type="radio" ng-model="isPrNew" ng-value="true" required> New PR
+            </label>
+            <label class="radio-inline">
+                <input type="radio" ng-model="isPrNew" ng-value="false" required> Existing PR
+            </label>
+        </div>
+    </div>
+
+    <div ng-if="isPrNew">
+        <div class="form-group">
+            <label class="col-sm-3 control-label">JR number:</label>
+            <div class="col-sm-6">
+                <div class="input-group">
+                    <input type="text" ng-model="$parent.jrNumber" name="jrNumber"
+                           ng-change="getPrByJrNumber(jrNumber)" required
+                           autocomplete="off" placeholder="Fill the JR number">
+                    <input type="hidden" ng-required="pr" name="isPrExists" ng-model="isPrExists">
+                </div>
+                <label class="error" ng-if="kcell_form.isPrExists.$error.required">The PR number for the current JR
+                    already exists</label>
+                <label class="error"
+                       ng-if="kcell_form.jrNumber.$error.required && ( kcell_form.jrNumber.$touched || view.submitted)">Field
+                    required</label>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-3 control-label">PR number:</label>
+            <div class="col-sm-6">
+                <div class="input-group">
+                    <input type="text" ng-model="$parent.prNumber" name="prNumber"
+                           ng-pattern="prNumberPattern" required
+                           autocomplete="off" placeholder="Fill the PR number">
+                </div>
+                <label class="error" ng-if="kcell_form.prNumber.$error.pattern">The PR number should be ХХХХХХХХ where X
+                    is
+                    integer</label>
+                <label class="error"
+                       ng-if="kcell_form.prNumber.$error.required && ( kcell_form.prNumber.$touched || view.submitted)">Field
+                    required</label>
+            </div>
+        </div>
+    </div>
+    <div ng-if="!isPrNew">
+        <div class="form-group">
+            <label class="col-sm-3 control-label">JR number:</label>
+            <div class="col-sm-6">
+                <div class="input-group">
+                    <input type="text" ng-model="$parent.jrNumber" name="jrNumber"
+                           ng-change="getPrByJrNumber(jrNumber)" class="form-control" required
+                           autocomplete="off" placeholder="Fill the JR number">
+                    <input type="hidden" ng-required="!pr" name="isPrExists" ng-model="isPrExists">
+                </div>
+                <label class="error" ng-if="kcell_form.isPrExists.$error.required && ( kcell_form.jrNumber.$touched || view.submitted)">No PR number has been assigned for the current JR</label>
+                <label class="error"
+                       ng-if="kcell_form.jrNumber.$error.required && ( kcell_form.jrNumber.$touched || view.submitted)">Field
+                    required</label>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-3 control-label">Current PR number:</label>
+            <div class="col-sm-6">{{$parent.pr.prNumber}}</div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-3 control-label">New PR number:</label>
+            <div class="col-sm-6">
+                <div class="input-group">
+                    <input type="text" ng-model="$parent.prNumber" name="prNumber"
+                           ng-pattern="prNumberPattern" class="form-control" required
+                           autocomplete="off" placeholder="Fill the PR number">
+                </div>
+                <label class="error" ng-if="kcell_form.prNumber.$error.pattern">The PR number should be ХХХХХХХХ where X
+                    is
+                    integer</label>
+                <label class="error"
+                       ng-if="kcell_form.prNumber.$error.required && ( kcell_form.prNumber.$touched || view.prNumber)">Field
+                    required</label>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-3 control-label">Reason:</label>
+            <div class="col-sm-6">
+                <textarea class="form-control"  style="resize: none" ng-model="$parent.reason" required> </textarea>
+            </div>
+        </div>
+    </div>
+
+
+</form>

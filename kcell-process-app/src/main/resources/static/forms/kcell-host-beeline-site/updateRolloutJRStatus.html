@@ -1,0 +1,353 @@
+<form role="form" class="form-horizontal" name="kcell_form" novalidate>
+    <script cam-script type="text/form-script">
+        inject(['$scope', '$q', '$http', '$rootScope', function ($scope, $q, $http, $rootScope) {
+            var variables = [
+                'sharingPlan',
+                'resolutions',
+                'ssidtssrFiles',
+                'rolloutJrStatus',
+                'sharingPlanStatus'
+            ];
+
+            camForm.on('form-loaded', function () {
+                variables.forEach(function (el) {
+                    camForm.variableManager.fetchVariable(el);
+                });
+                $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
+                    function(result){
+                        $scope.processInstanceId = result.data.processInstanceId;
+                    },
+                    function (error) {
+                        console.log(error.data);
+                    }
+                );
+            });
+
+            camForm.on('variables-fetched', function () {
+                variables.forEach(function (el) {
+                    if (el === 'resolutions') {
+                        if (camForm.variableManager.variables[el].value) {
+                            $scope.resolutions = angular.copy(camForm.variableManager.variables[el].value);
+                            $q.all($scope.resolutions.map(function (resolution) {
+                                return $http.get("/camunda/api/engine/engine/default/user/" + resolution.assignee + "/profile");
+                            })).then(function (profiles) {
+                                profiles.forEach(function (e, index) {
+                                    $scope.resolutions[index].assigneeName = (e.data.firstName ? e.data.firstName : "") + " " + (e.data.lastName ? e.data.lastName : "");
+                                });
+                            });
+                            $q.all($scope.resolutions.map(function (resolution) {
+                                return $http.get("/camunda/api/engine/engine/default/history/task?processInstanceId=" + resolution.processInstanceId + "&taskId=" + resolution.taskId);
+                            })).then(function (tasks) {
+                                tasks.forEach(function (e, index) {
+                                    if (e.data.length > 0) {
+                                        $scope.resolutions[index].taskName = e.data[0].name;
+                                        try {
+                                            $scope.resolutions[index].taskEndDate = new Date(e.data[0].endTime);
+                                            $scope.resolutions[index].assignDate = new Date(e.data[0].startTime);
+                                        } catch (e) {
+                                            console.log(e);
+                                        }
+                                    }
+                                });
+                            });
+                            $q.all($scope.resolutions.map(function (resolution) {
+                                return $http.get("/camunda/api/engine/engine/default/history/identity-link-log?type=assignee&taskId=" + resolution.taskId + "&operationType=add&sortBy=time&sortOrder=desc");
+                            })).then(function (logs) {
+                                logs.forEach(function (e, index) {
+                                    if(e.data.length > 0){
+                                        try {
+                                            $scope.resolutions[index].claimDate = new Date(e.data[0].time);
+                                        } catch(e){
+                                            console.log(e);
+                                        }
+                                    }
+                                });
+                            });
+                        }
+                    } else if (el === 'sharingPlanStatus') {
+                        $scope[el] = camForm.variableManager.variables[el].value;
+                        $scope.sharingPlan.status = camForm.variableManager.variables[el].value;
+                    } else {
+                        $scope[el] = camForm.variableManager.variables[el].value;
+                    }
+                });
+                if(!$scope.ssidtssrFiles){
+                    $scope.ssidtssrFiles = [{file:undefined,id:undefined}];
+                } else {
+                    var files = "";
+                    $scope.ssidtssrFiles.forEach(function(file){
+                        files+="ssidtssrFile"+file.id+",";
+                    });
+                    $scope.ssidtssrFilesPrev = [];
+                    $http.get('/camunda/api/engine/engine/default/task/'+camForm.taskId+'/form-variables?deserializeValues=false&variableNames='+files).then(
+                        function(result){
+                            $scope.ssidtssrFiles.forEach(function(file, index){
+                                if(result.data['ssidtssrFile'+file.id] && result.data['ssidtssrFile'+file.id].valueInfo){
+                                    $scope['ssidtssrFile'+file.id] = {
+                                        prev: result.data['ssidtssrFile'+file.id]
+                                    };
+                                    $scope.ssidtssrFiles[index] = $scope['ssidtssrFile'+file.id];
+                                }
+                            });
+                        },
+                        function (error) {
+                            console.log(error.data);
+                        }
+                    );
+                }
+
+                if(!$scope.rolloutJrStatus){
+                    $scope.rolloutJrStatus = [];
+                    camForm.variableManager.destroyVariable('rolloutJrStatus');
+                    camForm.variableManager.createVariable({
+                        name: "rolloutJrStatus",
+                        type: "Json"
+                    });
+                }
+
+                if($scope.sharingPlan){
+                    $scope.sharingPlan.ssidtssrFiles = angular.copy($scope.ssidtssrFiles);
+                    $scope.sharingPlan.currentTask = {id:camForm.taskId};
+                }
+
+                camForm.variableManager.createVariable({
+                    name: 'updateRolloutJRStatusResult',
+                    type: 'String',
+                    value: ''
+                });
+
+                camForm.variableManager.createVariable({
+                    name: 'updateRolloutJRStatusComment',
+                    type: 'String',
+                    value: ''
+                });
+
+                camForm.variableManager.createVariable({
+                    name: 'replanStatus',
+                    type: 'String',
+                    value: ''
+                });
+            });
+
+            camForm.on('submit', function () {
+                camForm.variableManager.variableValue('updateRolloutJRStatusResult', $scope.updateRolloutJRStatusResult);
+                camForm.variableManager.variableValue('updateRolloutJRStatusComment', $scope.updateRolloutJRStatusComment);
+                if ($scope.updateRolloutJRStatusResult !== 'replan') {
+                    camForm.variableManager.variableValue('replanStatus', 'notreplan');
+                } else {
+                    camForm.variableManager.variableValue('replanStatus', 'replan');
+                }
+                camForm.variableManager.destroyVariable('resolutions');
+                camForm.variableManager.variableValue('sharingPlan', $scope.sharingPlan);
+            });
+
+            $scope.preSubmit = function(){
+                var deferred = $q.defer();
+                if($scope.rolloutJrStatus){
+                    var json = JSON.stringify( $scope.rolloutJrStatus, function( key, value ) {
+                        if( key === "$$hashKey" ) {
+                            return undefined;
+                        }
+                        return value;
+                    });
+                    return $http.put('/camunda/api/engine/engine/default/process-instance/'+$scope.processInstanceId+'/variables/rolloutJrStatus',{"type":"Json","value": json}).then(
+                        function(){
+                        },
+                        function(error){
+                            console.log(error.data);
+                        }
+                    );
+                } else{
+                    return deferred.promise;
+                }
+            };
+
+            $scope.addJrStatus = function(){
+                $scope.rolloutJrStatus.push({});
+            };
+
+            $scope.removeJrStatus = function(index){
+                $scope.rolloutJrStatus.splice(index,1);
+            };
+            $scope.saveJrStatus = function () {
+                var json = JSON.stringify( $scope.rolloutJrStatus, function( key, value ) {
+                    if( key === "$$hashKey" ) {
+                        return undefined;
+                    }
+                    return value;
+                });
+                $http.put('/camunda/api/engine/engine/default/process-instance/'+$scope.processInstanceId+'/variables/rolloutJrStatus',{"type":"Json","value": json}).then(
+                    function(){
+                    },
+                    function(error){
+                        console.log(error.data);
+                    }
+                );
+            };
+            $scope.isEditSharingPlan = false;
+
+            $scope.editSharingPlan = function(){
+                $scope.isEditSharingPlan = true;
+            };
+        }]);
+
+    </script>
+    <style>
+        .sectors-table td{
+            padding: 3px;
+            vertical-align: top;
+        }
+        .sectors-table {
+            border: 1px solid #000;
+        }
+    </style>
+    <shared-site-plan plan-model="sharingPlan"></shared-site-plan>
+    <div ng-repeat="ssidtssrFile in ssidtssrFiles">
+        <div class="form-group">
+            <label class="col-sm-12 control-label">Upload SSID/TSSR files # {{$index+1}}:</label>
+            <div class="col-sm-8">
+                <ng-form name="ssidtssrFilesform">
+                    <a href="{{ssidtssrFile.prev.contentUrl}}">{{ssidtssrFile.prev.valueInfo.filename}}</a>
+                </ng-form>
+            </div>
+        </div>
+    </div>
+    <div class="form-group">
+        <div class="col-sm-12">
+            <a ng-click="editSharingPlan()">Edit Address Plan Parameters</a>
+        </div>
+        <div class="col-sm-12">
+            <table class="sectors-table">
+                <tbody ng-repeat="s in sharingPlan.shared_sectors">
+                <tr>
+                    <td width="15%" style="border-right: 1px solid #000;">Sector&nbsp;Name</td>
+                    <td>Rollout</td>
+                    <td>LAC</td>
+                    <td>eNodeBId</td>
+                    <td>Position&nbsp;Type</td>
+                    <td>Location&nbsp;Type</td>
+                    <td>Placement&nbsp;Type</td>
+                    <td>Longitude/Latitude</td>
+                    <td>Antenna</td>
+                    <td>Status</td>
+                </tr>
+                <tr>
+                    <td rowspan="3" style="border-right: 1px solid #000;border-bottom: 1px solid #000;"><div class="form-control disabled">{{s.sector_name}}</div></td>
+                    <td style="padding-bottom: 10px;"><div class="form-control disabled">{{s.rollout}}</div></td>
+                    <td style="padding-bottom: 10px;"><div class="form-control disabled">{{s.lac}}</div></td>
+                    <td style="padding-bottom: 10px;"><div class="form-control disabled">{{s.enodeb_id}}</div></td>
+                    <td style="padding-bottom: 10px;"><div class="form-control disabled">{{s.position_type}}</div></td>
+                    <td style="padding-bottom: 10px;"><div class="form-control disabled">{{s.location_type}}</div></td>
+                    <td style="padding-bottom: 10px;"><div class="form-control disabled">{{s.placement_type}}</div></td>
+                    <td style="padding-bottom: 10px;"><div class="form-control disabled">{{s.longitude}}/{{s.latitude}}</div></td>
+                    <td style="padding-bottom: 10px;"><div class="form-control disabled">{{s.antenna_type}}</div></td>
+                    <td style="padding-bottom: 10px;"><div class="form-control disabled">{{s.status}}</div></td>
+                </tr>
+                <tr>
+                    <td>Site Usage Type</td>
+                    <td>Height</td>
+                    <td>Azimuth</td>
+                    <td>Tilt&nbsp;(m/e)</td>
+                    <td>Power</td>
+                    <td>EMS&nbsp;Limits</td>
+                    <td>eNodeB&nbsp;Range</td>
+                    <td>Beeline&nbsp;Band</td>
+                    <td>Kcell&nbsp;Band</td>
+                </tr>
+                <tr style="border-bottom: 1px solid #000;">
+                    <td style="padding-bottom: 10px;">
+                        <div class="input-group">
+                            <input type="text" class="form-control" ng-model="s.site_usage_type" ng-disabled="!isEditSharingPlan"/>
+                        </div>
+                    </td>
+                    <td style="padding-bottom: 10px;">
+                        <div class="input-group">
+                            <input type="text" numbers-only class="form-control" ng-model="s.height" placeholder="12m" ng-disabled="!isEditSharingPlan"/>
+                            <span class="input-group-addon">m</span>
+                        </div>
+                    </td>
+                    <td style="padding-bottom: 10px;">
+                        <div class="input-group">
+                            <input type="text" numbers-only class="form-control" ng-model="s.azimuth" placeholder="12 deg" ng-disabled="!isEditSharingPlan"/>
+                            <span class="input-group-addon">deg</span>
+                        </div>
+                    </td>
+                    <td style="padding-bottom: 10px;"><input type="text" ng-model="s.tilt" class="form-control" ng-disabled="!isEditSharingPlan"/></td>
+                    <td style="padding-bottom: 10px;">
+                        <div class="input-group">
+                            <input type="text" numbers-only class="form-control" ng-model="s.power_watt" placeholder="12 Watt" ng-disabled="!isEditSharingPlan"/>
+                            <span class="input-group-addon">Watt</span>
+                        </div>
+                    </td>
+                    <td style="padding-bottom: 10px;">
+                        <select class="form-control" ng-model="s.ems_limitations_info" ng-disabled="!isEditSharingPlan">
+                            <option value="да">да</option>
+                            <option value="нет">нет</option>
+                        </select>
+                    </td>
+                    <td style="padding-bottom: 10px;"><input type="text" numbers-only class="form-control" ng-model="s.enodeb_range" placeholder="20" ng-disabled="!isEditSharingPlan"/></td>
+                    <td style="padding-bottom: 10px;"><input type="text" numbers-only class="form-control" ng-model="s.beeline_band" placeholder="10" ng-disabled="!isEditSharingPlan"/></td>
+                    <td style="padding-bottom: 10px;"><input type="text" numbers-only class="form-control" ng-model="s.kcell_band" placeholder="10" ng-disabled="!isEditSharingPlan"/></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-4 control-label">Rollout JR:</label>
+        <div class="col-sm-8">
+            <div class="row">
+                <div class="col-md-2"><a ng-click="addJrStatus()" class="btn btn-primary">Add</a></div>
+            </div>
+            <hr/>
+            <div class="row" ng-if="rolloutJrStatus.length > 0">
+                <div class="col-md-4">JR Number:</div>
+                <div class="col-md-3">JR Created In</div>
+                <div class="col-md-3">JR Status</div>
+                <div class="col-md-2"></div>
+            </div>
+            <div class="row" ng-repeat="status in rolloutJrStatus track by $index">
+                <div class="col-md-4"><input type="text" class="form-control" ng-model="status.jrNumber"/></div>
+                <div class="col-md-3">
+                    <select class="form-control" ng-model="status.createdIn">
+                        <option value="Rn-Rs.Kcell.Kz">Rn-Rs.Kcell.Kz</option>
+                        <option value="Flow.Kcell.Kz">Flow.Kcell.Kz</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <select class="form-control" ng-model="status.jrStatus">
+                        <option value="In Progress">In Progress</option>
+                        <option value="Completed">Completed</option>
+                    </select>
+                </div>
+                <div class="col-md-2"><a ng-click="removeJrStatus($index)" class="btn btn-warning">Remove</a></div>
+            </div>
+            <hr/>
+            <div class="row" ng-if="rolloutJrStatus.length > 0">
+                <div class="col-md-2"><a ng-click="saveJrStatus()" class="btn btn-success">Save</a></div>
+            </div>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-4 control-label">Rollout JR Status:</label>
+        <div class="col-sm-8">
+            <label class="radio-inline">
+                <input type="radio" ng-model="updateRolloutJRStatusResult" name="updateRolloutJRStatusResult" value="completed" required> Completed
+            </label>
+            <label class="radio-inline">
+                <input type="radio" ng-model="updateRolloutJRStatusResult" name="updateRolloutJRStatusResult" value="rejected" required> Reject
+            </label>
+            <label class="radio-inline">
+                <input type="radio" ng-model="updateRolloutJRStatusResult" name="updateRolloutJRStatusResult" value="notneeded" required> Not Needed
+            </label>
+            <label class="error" ng-show="kcell_form.updateRolloutJRStatusResult.$error.required && ( kcell_form.updateRolloutJRStatusResult.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-4 control-label">Comments</label>
+        <div class="col-sm-8">
+            <textarea class="form-control" ng-model="updateRolloutJRStatusComment" name="updateRolloutJRStatusComment" placeholder="Comments..." maxlength="500" rows="4" ng-required="updateRolloutJRStatusResult !== 'completed'"></textarea>
+            <label class="error" ng-show="kcell_form.updateRolloutJRStatusComment.$error.required && ( kcell_form.updateRolloutJRStatusComment.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+</form>

@@ -1,0 +1,131 @@
+<form role="form" class="form-horizontal" name="kcell_form" novalidate>
+    <script cam-script type="text/form-script">
+        inject(['$scope', '$http', 'Uri', '$rootScope', '$q', 'toasty', '$timeout', function ($scope, $http, Uri, $rootScope, $q, toasty, $timeout) {
+            $scope.legalInfo = {};
+            $scope.techSpecs = {connectionType:'SIP over internet', sip: {}};
+            $scope.resolutions = [];
+            $scope.action = {};
+
+            $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
+                function(result){
+                    var processInstanceId = result.data.processInstanceId;
+                    $http.get('/camunda/api/engine/engine/default/process-instance/' + processInstanceId).then(
+                        function(result){
+                            $scope.businessKey = result.data.businessKey;
+                        },
+                        function (error) {console.log(error.data);}
+                    );
+                },
+                function (error) { console.log(error.data);}
+            );
+
+            camForm.on('form-loaded', function () {
+                camForm.variableManager.fetchVariable('legalInfo');
+                camForm.variableManager.fetchVariable('techSpecs');
+                camForm.variableManager.fetchVariable('resolutions');
+                camForm.variableManager.fetchVariable('action');
+                camForm.variableManager.fetchVariable('workType');
+            });
+
+            camForm.on('variables-fetched', function () {
+                $scope.legalInfo = camForm.variableManager.variableValue('legalInfo');
+                $scope.techSpecs = camForm.variableManager.variableValue('techSpecs');
+                $scope.resolutions = camForm.variableManager.variableValue('resolutions');
+                $scope.action = camForm.variableManager.variableValue('action');
+                $scope.workType = camForm.variableManager.variableValue('workType');
+                if (!$scope.legalInfo){
+                    $scope.legalInfo = {};
+                } else if($scope.legalInfo.companyDate){
+                    $scope.legalInfo.companyDate = new Date($scope.legalInfo.companyDate);
+                }
+                if (!$scope.techSpecs) $scope.techSpecs = {connectionType:'SIP over internet', sip: {}};
+
+                camForm.variableManager.createVariable({
+                    name: 'trunkConfirmFirewallIPTaskResult',
+                    type: 'String',
+                    value: ''
+                });
+
+                camForm.variableManager.createVariable({
+                    name: 'trunkConfirmFirewallIPTaskComment',
+                    type: 'String',
+                    value: ''
+                });
+            });
+
+            camForm.on('submit', function (event) {
+                camForm.variableManager.variableValue('trunkConfirmFirewallIPTaskResult', 'Complete');
+                camForm.variableManager.variableValue('trunkConfirmFirewallIPTaskComment', $scope.comment);
+            });
+        }]);
+    </script>
+
+    <div class="form-group">
+        <label class="col-sm-3 control-label" style="padding-top: 0">Number request:</label>
+        <div class="col-sm-9">{{businessKey}}</div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-3 control-label" style="padding-top: 0">Client:</label>
+        <div class="col-sm-9">{{legalInfo.legalName}} {{legalInfo.BIN}}</div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-3 control-label" style="padding-top: 0">Priority:</label>
+        <div class="col-sm-9">{{legalInfo.clientPriority}}</div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-3 control-label" style="padding-top: 0">Service:</label>
+        <div class="col-sm-9">PBX</div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-3 control-label" style="padding-top: 0">Type of work:</label>
+        <div class="col-sm-9"><div ng-repeat="wt in workType track by $index">{{wt}}</div></div>
+    </div>
+
+    <div class="col-sm-12"><hr /></div>
+
+    <div class="form-group">
+        <div class="col-sm-12 control-label">Requested Firewall access rules:</div>
+        <div class="col-sm-12">
+            <table class="table " style="background: #ffffcc; color: #333; border: 1px solid #b3b3b3">
+                <thead>
+                <tr>
+                    <th>Source (IP address or Network)</th>
+                    <th>Destination (IP address or Network)</th>
+                    <th>Service and ports</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr>
+                    <td>{{techSpecs.sip.newPublicVoiceIP}}</td>
+                    <td>
+                        <span ng-if="techSpecs.connectionPointNew == 'SIP Proxy' && techSpecs.sip.authorizationType == 'SIP-транк(доступ по стат. IP)'">2.78.58.154</span>
+                        <span ng-if="techSpecs.connectionPointNew == 'SIP Proxy' && techSpecs.sip.authorizationType == 'SIP-авторизация(доступ по стат. IP c лог/пар)'">2.78.58.167</span>
+                        <span ng-if="techSpecs.connectionPointNew == 'Asterisk'">195.47.255.212</span>
+                        <span ng-if="techSpecs.connectionPointNew == 'SBC' && techSpecs.sip.sessionsCount <= 29">195.47.255.119</span>
+                        <span ng-if="techSpecs.connectionPointNew == 'SBC' && techSpecs.sip.sessionsCount > 30">195.47.255.84</span>
+                        <span ng-if="techSpecs.connectionPointNew == 'SBC' && techSpecs.sip.sessionsCount == 30">195.47.255.84, 195.47.255.119</span>
+                    </td>
+                    <td>
+                        {{techSpecs.sip.transProtocol}} ({{techSpecs.sip.signalingPort}}) <br />
+                        RTP ({{techSpecs.sip.voicePortStart}} - {{techSpecs.sip.voicePortEnd}})
+                    </td>
+                </tr>
+                <tr>
+                    <td>{{techSpecs.sip.newSignalingIP}}</td>
+                    <td></td>
+                    <td></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="col-sm-12"><hr /></div>
+
+    <div class="form-group">
+        <label class="col-sm-2 control-label">Comment</label>
+        <div class="col-sm-10">
+            <textarea elastic-textarea class="form-control" rows="4" ng-model="comment"></textarea>
+        </div>
+    </div>
+</form>

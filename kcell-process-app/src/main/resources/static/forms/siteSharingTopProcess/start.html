@@ -1,0 +1,150 @@
+<form role="form" class="form-horizontal" name="kcell_form" novalidate>
+    <script cam-script type="text/form-script">
+        inject(['$scope', '$http', '$rootScope', '$q', '$timeout', function ($scope, $http, $rootScope, $q, $timeout) {
+            camForm.on('form-loaded', function () {
+                camForm.variableManager.createVariable({
+                    name: 'sharingType',
+                    value: 'sharing',
+                    type: 'String'
+                });
+                camForm.variableManager.createVariable({
+                    name: 'host',
+                    value: '',
+                    type: 'String'
+                });
+                camForm.variableManager.createVariable({
+                    name: 'site',
+                    value: '',
+                    type: 'String'
+                });
+                camForm.variableManager.createVariable({
+                    name: 'siteId',
+                    value: undefined,
+                    type: 'String'
+                });
+                camForm.variableManager.createVariable({
+                    name: 'positionNumber',
+                    value: undefined,
+                    type: 'String'
+                });
+                camForm.variableManager.createVariable({
+                    name: 'siteRegion',
+                    value: '',
+                    type: 'String'
+                });
+                camForm.variableManager.createVariable({
+                    name: 'siteType',
+                    value: 'regular',
+                    type: 'String'
+                });
+                camForm.variableManager.createVariable({
+                    name: 'sharingPlan',
+                    value: undefined,
+                    type: 'Json'
+                });
+                camForm.variableManager.createVariable({
+                    name: 'sharingPlanVersion',
+                    value: undefined,
+                    type: 'String'
+                });
+                camForm.variableManager.createVariable({
+                    name: 'sharingPlanStatus',
+                    value: undefined,
+                    type: 'String'
+                });
+                camForm.variableManager.createVariable({
+                    name: 'isSpecialSite',
+                    value: undefined,
+                    type: 'String'
+                });
+
+                console.log('hasGroup kcellUsers')
+                console.log($rootScope.hasGroup('kcellUsers'))
+                console.log($rootScope.hasGroup('provider_users'))
+
+            });
+
+            $http.get('/directory-management/networkinfrastructure/plan/findCurrentToStartPlanSites').then(
+                    function (result) {
+                        let sharingSites = result.data;
+                        console.log('sharingSites', sharingSites, $rootScope.hasGroup('kcellUsers'));
+                        if ($rootScope.hasGroup('kcellUsers')) {
+                            $scope.sharingSites = _.filter(sharingSites, function (p) {
+                                console.log('p.params.host', p.params.host)
+                                return p.params.host === 'Kcell';
+                            })
+                        } else if ($rootScope.hasGroup('provider_users')) {
+                            console.log('hasGroup kcellUsers', $rootScope.hasGroup('provider_users'))
+                            $scope.sharingSites = _.filter(sharingSites, function (p) {
+                                return p.params.host === 'Beeline';
+                            })
+                        }
+                    },
+                    function (error) {
+                    }
+            );
+            $scope.requestedDate = new Date();
+
+            $scope.planSelected = function(){
+                $scope.sharingSites.forEach(function(e){
+                    if(parseInt(e.position_number) === parseInt($scope.sharingPlanId)){
+                        $timeout(function(){
+                            $scope.$apply(function () {
+                                console.log(e);
+                                $scope.sharingPlan = e.params;
+                                $scope.sharingPlanStatus = e.status;
+                                $scope.sharingPlan.status = e.status;
+                                $scope.sharingPlanVersion = e.version;
+                            });
+                        });
+                    }
+                });
+            };
+
+            camForm.on('submit', function (event) {
+                //event.submitPrevented = true;
+
+                // Определение региона по site_id:
+                if ( $scope.sharingPlan.site_id.toString().startsWith('0')) {
+                    camForm.variableManager.variableValue('siteRegion', 'Almaty');
+                } else if ( $scope.sharingPlan.site_id.toString().startsWith('1') || $scope.sharingPlan.site_id.toString().startsWith('2') ) {
+                    if ($scope.sharingPlan.site_id.toString().startsWith('11')) {
+                        camForm.variableManager.variableValue('siteRegion', 'Astana');
+                    } else {
+                        camForm.variableManager.variableValue('siteRegion', 'North');
+                    }
+                }   else if ( $scope.sharingPlan.site_id.toString().startsWith('3')) {
+                    camForm.variableManager.variableValue('siteRegion', 'East');
+                }   else if ( $scope.sharingPlan.site_id.toString().startsWith('4')) {
+                    camForm.variableManager.variableValue('siteRegion', 'South');
+                }   else { camForm.variableManager.variableValue('siteRegion', 'West'); }
+                // -------------
+                camForm.businessKey = $scope.sharingPlan.site_id + '_' + $scope.sharingPlan.site_name; // BusinessKey
+                camForm.variableManager.variableValue('sharingPlan', JSON.parse(angular.toJson($scope.sharingPlan)));
+                camForm.variableManager.variableValue('isSpecialSite', $scope.sharingPlan.isSpecialSite);
+                camForm.variableManager.variableValue('host', $scope.sharingPlan.host);
+                camForm.variableManager.variableValue('site', $scope.sharingPlan.infrastructure_owner);
+                camForm.variableManager.variableValue('positionNumber', $scope.sharingPlanId);
+                console.log(camForm.variableManager.variableValue('positionNumber'));
+                camForm.variableManager.variableValue('sharingPlanStatus', $scope.sharingPlanStatus);
+            });
+        }]);
+
+    </script>
+    <div class="form-group">
+        <label class="col-sm-3 control-label">Requested date</label>
+        <div class="col-sm-3">
+            <div class="form-control">{{requestedDate | date: 'dd.MM.yyyy HH:mm'}}</div>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-3 control-label">Shared Site in Address Plan</label>
+        <div class="col-sm-3">
+            <select ng-model="sharingPlanId" name="sharingPlanId" class="form-control" ng-change="planSelected()" required="true">
+                <option value="{{plan.position_number}}" ng-repeat="plan in sharingSites">{{plan.params.site_name}}</option>
+            </select>
+            <label class="error" ng-show="kcell_form.sharingPlanId.$error.required && ( kcell_form.sharingPlanId.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+    <shared-site-plan plan-model="sharingPlan"></shared-site-plan>
+</form>

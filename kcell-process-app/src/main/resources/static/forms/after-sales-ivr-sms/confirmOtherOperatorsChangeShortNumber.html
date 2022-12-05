@@ -1,0 +1,276 @@
+<form role="form" class="form-horizontal" name="kcell_form" novalidate>
+    <script cam-script type="text/form-script">
+        inject(['$scope', '$http', 'Uri', '$rootScope', '$q', '$timeout', function ($scope, $http, Uri, $rootScope, $q, $timeout) {
+            var variables = [
+                'resolutions',
+                'changeOfficialClientCompanyName',
+                'changeContractNumber',
+                'disconnectOperator',
+                'connectOperator',
+                'changeConnectionType',
+                'changeIpNumber',
+                'changeIdentifier',
+                'changeSmsServiceType',
+                'changeProvider',
+                'changeTransmitNumber',
+                'relatedProcessDefinitionKey',
+                'relatedProcessInstanceId',
+                'identifiers',
+                'previouslyBought',
+                'operatorType',
+                'connectionType',
+                'clientBIN',
+                'contractNumber',
+                'clientCompanyLatName',
+                'officialClientCompanyName',
+                'description',
+                //'ipNumber',
+                'startDate',
+                //'abonentTarif',
+                //'amdocsBilling',
+                //'orgaBilling',
+                //'techSpecFIO',
+                //'techSpecNumber',
+                //'techSpecEmail',
+                'contractScanCopyFileName',
+                'applicationScanCopyFileName',
+                'responsibleB2BDelivery',
+                'responsibleB2BSales',
+                //'channel',
+                //'region',
+                //'transmitNumber',
+                //'coordinates',
+                //'addressATS',
+                //'VPNchannel',
+                //'identifierType',
+                //'deliveryReport',
+                //'smsServiceType',
+                //'MSGGWaccount',
+                //'testNumber',
+                //'receivingServerAddress',
+                //'receivingServerLogin',
+                //'receivingServerPass',
+                //'addressServerMO',
+                //'tarifPlane',
+                //'provider',
+                //'oldTransmitNumber',
+                //'oldProvider',
+                //'oldConnectionType',
+                //'oldIpNumber'
+                'changeIdentifierType',
+                'operatorWasChanged'
+            ];
+
+            camForm.on('form-loaded', function () {
+                variables.forEach(function (el) {
+                    camForm.variableManager.fetchVariable(el);
+                });
+                $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
+                        function(result){
+                            $scope.processInstanceId = result.data.processInstanceId;
+                        },
+                        function (error) {
+                            console.log(error.data);
+                        }
+                );
+                $scope.aftersalesInfo = {
+                    hideOperatorType: true
+                };
+                $scope.aftersalesInfo.files = [];
+            });
+
+            camForm.on('variables-fetched', function () {
+                variables.forEach(function (el) {
+                    if (el === 'resolutions') {
+                        if (camForm.variableManager.variables[el].value) {
+                            $scope.resolutions = angular.copy(camForm.variableManager.variables[el].value);
+                            $q.all($scope.resolutions.map(function (resolution) {
+                                if (resolution.assigneeName === undefined) {
+                                    return $http.get("/camunda/api/engine/engine/default/user/" + resolution.assignee + "/profile");
+                                } else {
+                                    return {data:{}};
+                                }
+                            })).then(function (profiles) {
+                                profiles.forEach(function (e, index) {
+                                    if ( $scope.resolutions[index].assigneeName === undefined) {
+                                        $scope.resolutions[index].assigneeName = (e.data.firstName ? e.data.firstName : "") + " " + (e.data.lastName ? e.data.lastName : "");
+                                    }
+                                });
+                            });
+                            $q.all($scope.resolutions.map(function (resolution) {
+                                return $http.get("/camunda/api/engine/engine/default/history/task?processInstanceId=" + resolution.processInstanceId + "&taskId=" + resolution.taskId);
+                            })).then(function (tasks) {
+                                tasks.forEach(function (e, index) {
+                                    if (e.data.length > 0) {
+                                        $scope.resolutions[index].taskName = e.data[0].name;
+                                        try {
+                                            $scope.resolutions[index].taskEndDate = new Date(e.data[0].endTime);
+                                            $scope.resolutions[index].assignDate = new Date(e.data[0].startTime);
+                                        } catch (e) {
+                                            console.log(e);
+                                        }
+                                    }
+                                });
+                            });
+                            $q.all($scope.resolutions.map(function (resolution) {
+                                return $http.get("/camunda/api/engine/engine/default/history/identity-link-log?type=assignee&taskId=" + resolution.taskId + "&operationType=add&sortBy=time&sortOrder=desc");
+                            })).then(function (logs) {
+                                logs.forEach(function (e, index) {
+                                    if(e.data.length > 0){
+                                        try {
+                                            $scope.resolutions[index].claimDate = new Date(e.data[0].time);
+                                        } catch(e){
+                                            console.log(e);
+                                        }
+                                    }
+                                });
+                            });
+                        }
+                    } else if (el === 'applicationScanCopyFileName' || el === 'contractScanCopyFileName') {
+                        $scope[el] = camForm.variableManager.variables[el].value;
+                        $scope.aftersalesInfo.files.push(camForm.variableManager.variables[el].value);
+                    } else {
+                        $scope[el] = camForm.variableManager.variables[el].value;
+                        $scope.aftersalesInfo[el] = camForm.variableManager.variables[el].value;
+                    }
+                });
+                $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name+ "/profile").then(function(result){
+                    $rootScope.authentication.assigneeName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
+                });
+
+                $scope.aftersalesInfo.showTarif = true;
+
+                camForm.variableManager.createVariable({
+                    name: 'confirmOtherOperatorsChangeShortNumberTaskResult',
+                    type: 'String',
+                    value: ''
+                });
+
+                camForm.variableManager.createVariable({
+                    name: 'confirmOtherOperatorsChangeShortNumberTaskComment',
+                    type: 'String',
+                    value: ''
+                });
+                //$scope.confirmOtherOperatorsChangeShortNumberTaskResult = '';
+            });
+
+            camForm.on('submit', function (evt) {
+                //evt.submitPrevented = true;
+                _.forEach($scope.identifiers, function(id) {
+                    _.forEach(id.operators, function(o) {
+                    /*
+                        if(!o.addedToNetwork || !o.addedToNetworkDate){
+                            if(o.changed || o.disconnected){
+
+                                if(o.disconnected){
+                                    o.isAvailable = true;
+                                }
+
+                                o.priceAP = o.oldPriceAP;
+                                o.priceEP = o.oldPriceEP;
+                                o.title = o.oldTitle;
+
+                                delete o.wasAvailable;
+                                delete o.oldPriceAP;
+                                delete o.oldPriceEP;
+                                delete o.oldTitle;
+
+                                delete o.changed;
+                                delete o.disconnected;
+                            }
+                            if(o.connected){
+                                delete o.isAvailable;
+                                delete o.priceAP;
+                                delete o.priceEP;
+                                delete o.title;
+                                delete o.connected;
+                            }
+                            delete o.addedToNetwork;
+                            delete o.addedToNetworkDate;
+                            delete o.dateFieldOpened;
+                        }*/
+                    });
+                });
+
+                camForm.variableManager.variableValue('identifiers', $scope.identifiers);
+
+                $scope.confirmOtherOperatorsChangeShortNumberTaskResult = 'Completed';
+
+                camForm.variableManager.variableValue('confirmOtherOperatorsChangeShortNumberTaskResult', $scope.confirmOtherOperatorsChangeShortNumberTaskResult);
+                camForm.variableManager.variableValue('confirmOtherOperatorsChangeShortNumberTaskComment', $scope.confirmOtherOperatorsChangeShortNumberTaskComment);
+                camForm.variableManager.destroyVariable('resolutions');
+            });
+
+            $scope.dateFieldOpened = [];
+            $scope.open = function open(identifier, operator) {
+                console.log('open', identifier.title, operator.title, operator.dateFieldOpened);
+                operator.dateFieldOpened = true;
+            };
+            $scope.addToNetwork = function(identifier, operator) {
+                console.log('check', identifier.title, operator.title, operator.addedToNetwork);
+
+                /*if(!operator.oldTitle){
+                    operator.oldTitle = operator.title;
+                }*/
+
+                if(!operator.addedToNetwork){
+                    delete operator.addedToNetworkDate;
+                    //operator.title = operator.oldTitle;
+                }
+
+            };
+            $scope.setNetworkDate = function(identifier, operator){
+                console.log('select', identifier.title, operator.title, operator.addedToNetworkDate);
+                /*if(operator.addedToNetworkDate){
+                    operator.title = identifier.title;
+                } else {
+                    operator.title = operator.oldTitle;
+                }*/
+            };
+        }]);
+
+    </script>
+    <info-aftersales aftersales-info="aftersalesInfo"></info-aftersales>
+    <div class="form-group" ng-repeat="id in identifiers">
+        <label class="col-sm-12 control-label"/>Идентификатор - {{id.title}}
+        <div class="col-sm-12" style="border-left: solid; border-left-width: 1px; margin-left: 2vh">
+            <table class="table">
+                <thead>
+                <tr>
+                    <th scope="col">Оператор</th>
+                    <th scope="col">Дата изменения короткого номера</th>
+                    <th scope="col">Добавить/Отключить</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr ng-repeat="o in id.operators" ng-if="(o.changed && o.isAvailable && o.id !== 'kcell' && o.changeIdentifierType)">
+                <!--tr ng-repeat="o in id.operators" ng-if="o.changed && o.isAvailable"-->
+                    <th scope="row" style="width: 40%">{{o.name}}</th>
+                    <td style="width: 40%">
+                        <div class="input-group">
+                            <input type="text" ng-change="setNetworkDate(id, o)" ng-model="o.addedToNetworkDate" name="{{'addedToNetworkDate' + id.title + o.id}}" ng-disabled="!o.addedToNetwork" ng-required="o.addedToNetwork" class="form-control" datepicker-popup="dd.MM.yyyy" is-open="o.dateFieldOpened" id="{{'addedToNetworkDate' + id.title + o.id}}" min-date="datepickerOptions.minDate" />
+                            <span class="input-group-btn">
+                                <button type="button" class="btn btn-default" ng-disabled="!o.addedToNetwork" ng-click="open(id, o)">
+                                    <i class="glyphicon glyphicon-calendar"></i>
+                                </button>
+                            </span>
+                        </div>
+                        <label class="error" ng-show="(kcell_form['addedToNetworkDate' + id.title + o.id].$error.required || !o.addedToNetwork) && view.submitted">Required field</label>
+                    </td>
+                    <td style="width: 20%">
+                        <input type="checkbox" ng-model="o.addedToNetwork"  name="{{'addedToNetwork' + id.title + o.id}}" ng-change="addToNetwork(id, o)" ng-required="true">
+                        <label class="error" ng-show="(kcell_form['addedToNetwork' + id.title + o.id].$error.required || !o.addedToNetwork) && view.submitted">Required field</label>
+
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-3 control-label">Комментарии</label>
+        <div class="col-sm-9">
+            <textarea class="form-control" ng-model="confirmOtherOperatorsChangeShortNumberTaskComment" name="confirmOtherOperatorsChangeShortNumberTaskComment" placeholder="Comments..." maxlength="500" rows="4" style="resize:none"></textarea>
+        </div>
+    </div>
+</form>

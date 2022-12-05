@@ -1,0 +1,70 @@
+version: '2.2'
+services:
+  camunda:
+    extends:
+      file: common-services.yml
+      service: camunda
+    links:
+      - mail
+    depends_on:
+      camundadb:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+    command:
+      - "--mail.message.baseurl=https://delivery.kcell.kz"
+  camundadb:
+    extends:
+      file: common-services.yml
+      service: camundadb
+    volumes:
+      - /flow-storage/delivery-volumes/camundadb:/var/lib/postgresql/data:rw
+  assets:
+    extends:
+      file: common-services.yml
+      service: assets
+    depends_on:
+      assetsdb:
+        condition: service_healthy
+  assetsdb:
+    extends:
+      file: common-services.yml
+      service: assetsdb
+    volumes:
+      - /flow-storage/delivery-volumes/assetsdb:/var/lib/postgresql/data:rw
+  nginx:
+    extends:
+      file: common-services.yml
+      service: nginx
+    depends_on:
+      minio:
+        condition: service_healthy
+    links:
+      - camunda
+      - assets
+      - maildev
+      - headless_chrome
+  mail:
+    extends:
+      file: common-services.yml
+      service: mail
+    environment:
+      - RELAY_HOST=smtp1.kcell.kz
+      - RELAY_PORT=25
+  maildev:
+    extends:
+      file: common-services.yml
+      service: maildev
+  minio:
+    extends:
+      file: common-services.yml
+      service: minio
+    ports:
+      - "127.0.0.1:${MINIO_PORT:-9000}:9000"
+    volumes:
+      - /flow-storage/delivery-volumes/minio/data:/export:rw
+      - /flow-storage/delivery-volumes/minio/config:/root/.minio:rw
+  headless_chrome:
+    extends:
+      file: common-services.yml
+      service: headless_chrome

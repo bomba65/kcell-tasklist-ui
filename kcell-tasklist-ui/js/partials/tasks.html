@@ -1,0 +1,585 @@
+<style type="text/css" xmlns="http://www.w3.org/1999/html">
+th.sortable {
+	cursor: pointer;
+}
+th.sortable:hover {
+	background: #EEE;
+}
+.three-cols-layout-cell.top {
+	border: none;
+	background-color: #fafafa;
+	box-shadow: 0 2px 6px -4px #555;
+	padding-bottom: 10px;
+	margin-bottom: 10px;
+	padding-right: 3px;
+}
+.side-blocks {
+	padding-left:0 !important;
+	overflow: hidden;
+	border: none;
+	box-shadow: 0 2px 10px -4px #555;
+}
+left li:hover,  .left.side-blocks li.active{
+	border-left-color: transparent !important;
+}
+.glyphicon.chevron-color {
+	color: #8a848e;
+}
+.glyphicon.glyphicon-chevron-right:before {
+	padding-right: 3px;
+}
+#taskDefinitions .taskname:hover {
+	text-decoration: underline;
+}
+#taskDefinitions .active .taskname {
+	font-weight:bold;
+}
+.trans {
+  -webkit-transition:all .4s ease-in-out;
+  transition:all .4s ease-in-out;
+}
+.trans.ng-hide {
+  width: 0%;
+  min-width: 0px;
+}
+.trans.ng-hide-remove {
+  opacity: 0;
+ }
+ .custom-checkbox {
+    padding-left: 36px !important;
+    margin-top:0px !important;
+}
+</style>
+<div class="row layout-row">
+	<div class="trans col-md-2 no-float left side-blocks" style="padding-right: 0px; background-color: #fff">
+		<div class="left-wrapper">
+			<header class="three-cols-layout-cell top">
+			<a style="visibility: hidden;"><i class="glyphicon glyphicon-chevron-left chevron-color" style="padding-top: 6px; float: right;"></i></a>
+			</header>
+				<ul id="projects" style="margin-top:3px;">
+				<li ng-repeat="project in projects" style="margin-bottom: 10px;">
+					<a ng-click="collapseProject(project)" ng-style="($root.selectedProject.key == project.key && !$root.selectedProcess && !$root.selectedTask)? {'font-weight' : 'bold'}: {'font-weight' : 'normal'}">{{$root.selectedProject.key == project.key?'-':'+'}} {{project.name}}</a>
+					<ul id="processes_{{$root.selectedProject.key}}" ng-if="$root.selectedProject.key == project.key" style="margin-top: 10px;">
+						<li ng-repeat="process in project.processes" class="active" style="padding-top: 3px; padding-bottom: 3px;">
+							<a ng-click="collapseProcess(process)" ng-style="($root.selectedProcess.key == process.key && (!$root.selectedTask || $root.selectedTask.key!==process.key))? {'font-weight' : 'bold'}: {'font-weight' : 'normal'}">{{$root.selectedProcess.key == process.key?'-':'+'}} {{process.name}}</a>
+							<ul id="process_menus" ng-show="$root.selectedProcess.key == process.key">
+								<li ng-if="$root.selectedProject.key !== 'NetworkInfrastructure'"><a href="#/processes"><i class="glyphicon glyphicon-menu-right"></i> Processes</a></li>
+								<li>
+									<a ng-click="collapseTask(process)" ng-style="$root.selectedTask.key == process.key? {'font-weight' : 'bold'}: {'font-weight' : 'normal'}">
+										<i class="glyphicon glyphicon-menu-right"></i> Tasks ({{process.itemCount}})
+									</a>
+								</li>
+								<li ng-if="$root.selectedProcess.key == 'FixedInternet'">
+									<a href="#/filesAndDictionaries"><i class="glyphicon glyphicon-menu-right"></i> Files and Dictionaries</a>
+								</li>
+								<li ng-if="hasGroup('kcellUsers') && $root.selectedProject.key == 'NetworkInfrastructure' 
+&& (
+	($root.selectedProcess.key === 'leasing' && (hasGroup($root.selectedProcess.group) || hasGroup('statistics_rollout'))) || 
+	($root.selectedProcess.key === 'Revision' && (hasGroup($root.selectedProcess.group) || hasGroup('statistics_revision'))) || ($root.selectedProcess.key === 'Invoice' && (hasGroup($root.selectedProcess.group) || hasGroup('statistics_monthlyact'))))">
+									<a ng-href="#/{{$root.selectedProcess.key === 'leasing' ? 'leasingStatistics' : 'statistics' }}">
+										<i class="glyphicon glyphicon-menu-right"></i> Statistics
+									</a>
+								</li>
+								<li ng-if="hasGroup('contractor_users') && ['Revision','Invoice'].indexOf(process.key)!==-1">
+									<a ng-click="selectFilter('search')">
+										<i class="glyphicon glyphicon-menu-right"></i> Search tasks
+									</a>
+								</li>
+							</ul>
+						</li>
+					</ul>
+				</li>
+			</ul>
+		</div>
+	</div>
+	<div class="trans col-md-2 no-float left side-blocks" ng-show="secondLevel == 'open'" style="padding-right: 0px; background-color: #fff">
+		<div class="left-wrapper" ng-show="secondLevel == 'open'">
+			<header class="three-cols-layout-cell top">
+			<a ng-click="collapseLevels('secondLevel')"><i class="glyphicon glyphicon-chevron-left text-right chevron-color" style="padding-top: 6px; float: right;"></i></a>
+			</header>
+				<ul id="filters" ng-show="$root.selectedProcess" >
+				<li ng-repeat="filter in $root.selectedProcess.filters" ng-class="{active: filter.id == currentFilter.id}" style="padding-top: 3px; padding-bottom: 3px;">
+					<a ng-click="selectFilter(filter)">{{filter.name}} ({{filter.itemCount}})</a>
+				</li>
+			</ul>
+			<div class="scrollcontainer" style="margin-top: 10px;">
+				<div class="scrollable">
+					<ul id="taskDefinitions">
+						<li ng-repeat="taskGroup in taskGroups" ng-class="{active: taskGroup.name == currentTaskGroup.name && selectedView == 'tasks'}">
+							<h5 class="taskname" ng-click="setSelectedTaskGroupName(taskGroup)">
+								{{taskGroup.name}} ({{taskGroup.tasks.length}})
+							</h5>
+						</li>
+					</ul>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="no-float left side-blocks" ng-show="secondLevel == 'closed'" ng-style="(!$root.selectedProcess && !$root.selectedTask)? {'pointer-events' : 'none'}: {'pointer-events' : 'auto'}" ng-style="$root.selectedProject? '': {'background-color' : 'gainsboro'}">
+		<div class="left-wrapper" style="margin-left: 5px; !important">
+			<header>
+			<span ng-hide="$root.selectedProject"><i class="glyphicon glyphicon-chevron-right chevron-color" style="padding-top: 6px; float: right;"></i></span>
+			<a ng-show="$root.selectedProject" ng-click="collapseLevels('secondLevel')"><i class="glyphicon glyphicon-chevron-right chevron-color" style="padding-top: 6px; float: right;"></i></a>
+		</div>
+	</div>
+	<div class="col-md-10 no-float right" id="rightPanel">
+		<div class="currentTask" style="padding-top: 31px;">
+			<div ui-view ng-if="selectedView == 'task'" style="height: 100%"></div>
+			<div class="scrollcontainer" ng-show="selectedView == 'search' || selectedView == 'massapprove' || (selectedView == 'tasks' && $root.selectedProcess.key && currentTaskGroup)">
+				<div class="scrollable">
+					<div ui-view ng-if="selectedView == 'massapprove'"></div>
+					<div ng-show="selectedView == 'search' && $root.selectedProcess.key === 'Revision'">
+					    <h4>Task Search</h4>
+					    <div class="col-sm-12">
+					        <div class="row">
+					            <table class="table">
+					                <thead>
+					                <tr>
+					                    <th width="20%">
+					                    	<i ng-click="orderByFieldName('site_name')" class="glyphicon" ng-class="fieldName != 'site_name' ? 'glyphicon-sort' : reverseOrder?'glyphicon-chevron-down':'glyphicon-chevron-up'"></i>
+					                    	Site Name
+					                    </th>
+					                    <th width="{{(!hasGroup('astana_contractor_lse') || !hasGroup('nc_contractor_lse'))?'25%': '15%'}}">
+					                    	Task Type
+					                    </th>
+					                    <th width="10%" ng-if="hasGroup('astana_contractor_lse') && hasGroup('nc_contractor_lse')">
+					                    	Region
+					                	</th>
+					                    <th width="15%">
+					                    	Priority
+					                    </th>
+					                    <th width="20%">
+											JR Number
+					                    </th>
+					                    <th width="10%">Accepted</th>
+					                    <th width="10%"></th>
+					                </tr>
+					                </thead>
+					                <tbody>
+					                <tr>
+					                    <ng-form name="workForm">
+					                        <td>
+									            <input type="text" ng-model="site_name" name="site_name" typeahead="site as sites.site_name for sites in getSite($viewValue)" typeahead-on-select="siteSelected($item,$model,$label)" class="form-control" autocomplete="off" placeholder="Site Name">
+									            <input type="hidden" ng-model="site" name="siteId"/>
+					                        </td>
+					                        <td ng-init="$parent.taskId = taskId || 'all'">
+									            <select class="form-control" name="taskId" ng-model="$parent.taskId" ng-options="task.id as task.name + (task.description ? ' (' + task.description +')' : '') for task in taskIds" ng-disabled="accepted" />
+					                        </td>
+					                        <td ng-if="hasGroup('astana_contractor_lse') && hasGroup('nc_contractor_lse')">
+									            <select class="form-control" name="region" ng-model="$parent.region">
+									                <option value="astana">Astana</option>
+									                <option value="nc">North & Center</option>
+									            </select>
+					                        </td>
+					                        <td>
+									            <select class="form-control" name="priority" ng-model="priority" ng-init="priority = priority || 'all'">
+									                <option value="all">All</option>
+									                <option value="emergency">Emergency</option>
+									            </select>
+					                        </td>
+					                        <td>
+				                                <input type="text" class="form-control" name="bussinessKey" ng-model="bussinessKey" />
+					                        </td>
+					                        <td>
+				                                <input type="checkbox" value="true" class="form-control" name="accepted" ng-model="accepted" />
+					                        </td>
+						                    <td><button type="button" class="btn btn-sm btn-primary" ng-click="searchForContractors(true)"><i class="glyphicon glyphicon-search"></i> Search ({{processInstancesTotal}})</button></td>
+											<td>
+												<button type="button" class="btn btn-sm btn-primary" ng-click="getExcelFile()">{{xlsxPreparedRevision ? 'Export to Excel' : 'Prepare Excel'}}</button>
+											</td>
+					                    </ng-form>
+					                </tr>
+					                </tbody>
+					            </table>
+					        </div>
+					        <div class="row">
+<!--					            <table class="table" ng-if="!accepted && searchResults.length>0">-->
+<!--					                <thead>-->
+<!--					                <tr>-->
+<!--					                    <th></th>-->
+<!--					                    <th>-->
+<!--					                    	Priority-->
+<!--					                    	<i ng-click="orderByFieldName('priority')" class="glyphicon" ng-class="fieldName != 'priority' ? 'glyphicon-sort' : reverseOrder?'glyphicon-chevron-down':'glyphicon-chevron-up'"></i>-->
+<!--					                    </th>-->
+<!--					                    <th>JR Number-->
+<!--					                    	<i ng-click="orderByFieldName('jrNumber')" class="glyphicon" ng-class="fieldName != 'jrNumber' ? 'glyphicon-sort' : reverseOrder?'glyphicon-chevron-down':'glyphicon-chevron-up'"></i>-->
+<!--					                    </th>-->
+<!--					                    <th>Site name-->
+<!--					                    	<i ng-click="orderByFieldName('site_name')" class="glyphicon" ng-class="fieldName != 'site_name' ? 'glyphicon-sort' : reverseOrder?'glyphicon-chevron-down':'glyphicon-chevron-up'"></i>-->
+<!--					                    </th>-->
+<!--					                    <th>Name-->
+<!--					                    	<i ng-click="orderByFieldName('name')" class="glyphicon" ng-class="fieldName != 'name' ? 'glyphicon-sort' : reverseOrder?'glyphicon-chevron-down':'glyphicon-chevron-up'"></i>-->
+<!--					                    </th>-->
+<!--					                    <th>Description-->
+<!--					                    	<i ng-click="orderByFieldName('description')" class="glyphicon" ng-class="fieldName != 'description' ? 'glyphicon-sort' : reverseOrder?'glyphicon-chevron-down':'glyphicon-chevron-up'"></i>-->
+<!--					                    </th>-->
+<!--					                    <th>Create Date-->
+<!--					                    	<i ng-click="orderByFieldName('created')" class="glyphicon" ng-class="fieldName != 'created' ? 'glyphicon-sort' : reverseOrder?'glyphicon-chevron-down':'glyphicon-chevron-up'"></i>-->
+<!--					                    </th>-->
+<!--					                    <th>Validity Date-->
+<!--					                    	<i ng-click="orderByFieldName('validityDate')" class="glyphicon" ng-class="fieldName != 'validityDate' ? 'glyphicon-sort' : reverseOrder?'glyphicon-chevron-down':'glyphicon-chevron-up'"></i>-->
+<!--					                    </th>-->
+<!--					                </tr>-->
+<!--					                </thead>-->
+<!--					                <tbody>-->
+<!--						                <tr ng-repeat="task in searchResults | orderBy : fieldName : reverseOrder">-->
+<!--											<td><span>{{$index+1}}.</span></td>-->
+<!--											<td><span>{{task.priority == 100 ? 'Emergency' : 'Regular'}}</span></td>-->
+<!--					                        <td><a ng-click="openTaskCardModalRevision(task)">{{task.jrNumber}}</a></td>-->
+<!--											<td><span>{{task.site_name}}</span></td>-->
+<!--											<td ng-if="['Attach material list', 'Upload TR, Fill Applied Changes Info', 'Attach additional material list', 'Upload additional TR'].indexOf(task.name) > -1"><a ui-sref="tasks.task({id:task.id})" target="_blank">{{task.name}}</a></td>-->
+<!--&lt;!&ndash;					                        <td ng-if="task.name == 'Attach material list' || task.name == 'Upload TR, Fill Applied Changes Info' || task.name == 'Attach additional material list' || task.name=='Upload additional TR'"><a ui-sref="tasks.task({id:task.id})" target="_blank">{{task.name}}</a></td>&ndash;&gt;-->
+<!--											<td ng-else><span>{{task.name}}</span></td>-->
+<!--											<td><span>{{task.description}}</span></td>-->
+<!--					                        <td>{{task.created | date:'dd.MM.yyyy HH:mm'}}</td>-->
+<!--					                        <td>{{task.validityDate | date:'dd.MM.yyyy HH:mm'}}</td>-->
+<!--						                </tr>-->
+<!--					                </tbody>-->
+<!--					            </table>-->
+								<table class="table" ng-if="!accepted" >
+									<thead>
+									<tr>
+										<th></th>
+										<th>Priority</th>
+										<th>JR Number</th>
+										<th>Site name</th>
+										<th>Current Acitivity</th>
+										<th>Request Date</th>
+										<th>Acceptance Date</th>
+										<th>Initiator</th>
+									</tr>
+									</thead>
+									<tbody ng-repeat="p in processSearchResults | orderBy : fieldName : reverseOrder">
+										<tr>
+											<td>{{(searchFilter.page - 1) * 20 + $index + 1}}</td>
+											<td>{{p.priority == 'emergency' ? 'Emergency' : 'Regular'}}</td>
+											<td>
+												<a ng-click="toggleProcessViewRevision(p)">{{p.businessKey}}</a>
+											</td>
+											<td>{{p.site_name}}</td>
+											<td>
+												<div ng-repeat="task in p.tasks" style="white-space: nowrap; overflow: hidden !important; text-overflow: ellipsis;">
+													<a  ng-if="contractorTasksNames.indexOf(task.name) > -1" ui-sref="tasks.task({id:task.id})" target="_blank">{{task.name}}</a>
+													<span ng-if="contractorTasksNames.indexOf(task.name) === -1">{{task.name}}</span>
+												</div>
+											</td>
+											<td>{{p.contractorJobAssignedDate | date:'dd.MM.yyyy HH:mm'}}</td>
+											<td>{{p.acceptanceDate | date:'dd.MM.yyyy HH:mm'}}</td>
+											<td>{{p.starter}}</td>
+										</tr>
+									</tbody>
+									<tbody>
+									<tr>
+										<td colspan="9" style="text-align: center">
+											<a ng-disabled="searchFilter.page <= 1" ng-click="searchFilter.page <= 1 || selectPage(1)" class="btn btn-pagination"> << </a>
+											<a ng-disabled="searchFilter.page <= 1" ng-click="searchFilter.page <= 1 || prevPage()" class="btn btn-pagination"> < </a>
+											<a ng-repeat="page in getPages()" ng-disabled="searchFilter.page == page" ng-click="searchFilter.page == page || selectPage(page)" ng-class="searchFilter.page == page? 'btn-pagination-active':''" class="btn btn-pagination">{{page}}</a>
+											<a ng-disabled="searchFilter.page >= processInstancesPages" ng-click="searchFilter.page >= processInstancesPages || nextPage()" class="btn btn-pagination"> > </a>
+											<a ng-disabled="searchFilter.page >= processInstancesPages" ng-click="searchFilter.page >= processInstancesPages || selectPage(processInstancesPages)" class="btn btn-pagination"> >> </a>
+										</td>
+									</tr>
+									</tbody>
+								</table>
+								<table class="table" ng-show="" ng-if="!accepted" id="revisionsSearchTask">
+									<thead>
+									<tr>
+										<th></th>
+										<th>Priority</th>
+										<th>JR Number</th>
+										<th>Site name</th>
+										<th>Current Acitivity</th>
+										<th>Request Date</th>
+										<th>Acceptance Date</th>
+										<th>Initiator</th>
+									</tr>
+									</thead>
+									<tbody ng-repeat="p in processSearchResultsXls | orderBy : fieldName : reverseOrder">
+									<tr>
+										<td>{{$index +1}}.</td>
+										<td>{{p.priority == 'emergency' ? 'Emergency' : 'Regular'}}</td>
+										<td>{{p.businessKey}}</td>
+										<td>{{p.site_name}}</td>
+										<td>
+											<span ng-repeat="task in p.tasks">{{task.name}}</span>
+										</td>
+										<td>{{p.contractorJobAssignedDate | date:'dd MMM yyyy'}}</td>
+										<td>{{p.acceptanceDate | date:'dd MMM yyyy'}}</td>
+										<td>{{p.starter}}</td>
+									</tr>
+									</tbody>
+								</table>
+
+					            <table class="table" ng-if="accepted" >
+					                <thead>
+					                <tr>
+					                    <th></th>
+					                    <th>Priority</th>
+					                    <th>JR Number</th>
+					                    <th>Site name</th>
+					                    <th>Name</th>
+					                    <th>Request Date</th>
+					                    <th>Acceptance Date</th>
+										<th>Initiator</th>
+					                </tr>
+					                </thead>
+					                <tbody>
+						                <tr ng-repeat="p in processSearchResults | orderBy : fieldName : reverseOrder">
+											<td>{{(searchFilter.page - 1) * 20 + $index + 1}}</td>
+					                        <td>{{p.priority == 'emergency' ? 'Emergency' : 'Regular'}}</td>
+					                        <td>
+						                    	<a ng-click="toggleProcessViewRevision(p)">{{p.businessKey}}</a>
+        									</td>
+					                        <td>{{p.site_name}}</td>
+					                        <td>{{p.activityName}}</td>
+					                        <td>{{p.contractorJobAssignedDate | date:'dd.MM.yyyy HH:mm'}}</td>
+					                        <td>{{p.acceptanceDate | date:'dd.MM.yyyy HH:mm'}}</td>
+											<td>{{p.starter}}</td>
+						                </tr>
+					                </tbody>
+									<tbody>
+									<tr>
+										<td colspan="9" style="text-align: center">
+											<a ng-disabled="searchFilter.page <= 1" ng-click="searchFilter.page <= 1 || selectPage(1)" class="btn btn-pagination"> << </a>
+											<a ng-disabled="searchFilter.page <= 1" ng-click="searchFilter.page <= 1 || prevPage()" class="btn btn-pagination"> < </a>
+											<a ng-repeat="page in getPages()" ng-disabled="searchFilter.page == page" ng-click="searchFilter.page == page || selectPage(page)" ng-class="searchFilter.page == page? 'btn-pagination-active':''" class="btn btn-pagination">{{page}}</a>
+											<a ng-disabled="searchFilter.page >= processInstancesPages" ng-click="searchFilter.page >= processInstancesPages || nextPage()" class="btn btn-pagination"> > </a>
+											<a ng-disabled="searchFilter.page >= processInstancesPages" ng-click="searchFilter.page >= processInstancesPages || selectPage(processInstancesPages)" class="btn btn-pagination"> >> </a>
+										</td>
+									</tr>
+									</tbody>
+
+					            </table>
+								<table class="table" ng-show="" ng-if="accepted" id="revisionsSearchTask">
+									<thead>
+									<tr>
+										<th></th>
+										<th>Priority</th>
+										<th>JR Number</th>
+										<th>Site name</th>
+										<th>Name</th>
+										<th>Request Date</th>
+										<th>Acceptance Date</th>
+										<th>Initiator</th>
+									</tr>
+									</thead>
+									<tbody>
+									<tr ng-repeat="p in processSearchResultsXls | orderBy : fieldName : reverseOrder">
+										<td>{{$index+1}}.</td>
+										<td>{{p.priority == 'emergency' ? 'Emergency' : 'Regular'}}</td>
+										<td>{{p.businessKey}}</td>
+										<td>{{p.site_name}}</td>
+										<td>{{p.activityName}}</td>
+										<td>{{p.contractorJobAssignedDate | date:'dd MMM yyyy HH:mm'}}</td>
+										<td>{{p.acceptanceDate | date:'dd MMM yyyy HH:mm'}}</td>
+										<td>{{p.starter}}</td>
+									</tr>
+									</tbody>
+
+								</table>
+					        </div>
+					    </div>
+					</div>
+					<div ng-show="selectedView == 'search' && $root.selectedProcess.key === 'Invoice'">
+						<h4></h4>
+						<div class="row">
+						    <div class="form-group col-sm-12">
+								<b>Filters:</b>
+								<a class="btn btn-default" ng-click="clearContractorFilters()" style="float: right;">Clear filters</a>
+						    </div>
+						</div>
+						<div class="row">
+						    <div class="form-group col-sm-6">
+						        <label class="col-sm-4 control-label">Year:</label>
+						        <div class="col-sm-4">
+						            <select ng-model="invoiceContractorFilter.beginYear" class="form-control selectpicker" select-picker title="" ng-options="y as y for y in years"></select>
+						        </div>
+						        <div class="col-sm-4">
+						            <select ng-model="invoiceContractorFilter.endYear" class="form-control selectpicker" select-picker title="" ng-options="y as y for y in years"></select>
+						        </div>
+						    </div>
+						    <div class="form-group col-sm-6">
+						        <label class="col-sm-4 control-label">MA Number:</label>
+						        <div class="col-sm-3">
+						            <select ng-model="invoiceContractorFilter.businessKeyFilterType" class="form-control selectpicker" select-picker title="" ng-init="invoiceContractorFilter.businessKeyFilterType = 'eq'">
+						                <option value="eq">=</option>
+						                <option value="like">like</option>
+						            </select>
+						        </div>
+						        <div class="col-sm-5">
+						            <input type="text" ng-model="invoiceContractorFilter.businessKey" class="form-control" placeholder="XXX-2020-10-KWMS-SAO-Alm" />
+						        </div>
+						    </div>
+						</div>
+						<div class="row">
+						    <div class="form-group col-sm-6" ng-if="hasGroup('hq_contractor_lse') || hasGroup('hq_contractor_arlan') || hasGroup('hq_contractor_logycom') || hasGroup('hq_contractor_alta')">
+						        <label class="col-sm-4 control-label">Region:</label>
+						        <div class="col-sm-8">
+						            <select ng-model="$parent.invoiceContractorFilter.region" class="form-control selectpicker" select-picker title="" select-model="regionsMap" ng-init="$parent.invoiceContractorFilter.region = 'all'">
+						                <option value="all">All</option>
+						                <option value="{{key}}" ng-repeat="(key, value) in regionsMap" ng-selected="{{key == $parent.invoiceContractorFilter.region}}">{{value}}</option>
+						            </select>
+						        </div>
+						    </div>
+						    <div class="form-group col-sm-6" ng-if="hasGroup('astana_contractor_lse') && hasGroup('nc_contractor_lse')">
+						    	<label class="col-sm-4 control-label">Region:</label>
+						        <div class="col-sm-8" >
+						            <select ng-model="$parent.invoiceContractorFilter.region" class="form-control selectpicker" select-picker title="" select-model="regionsMap" ng-init="$parent.invoiceContractorFilter.region = 'astana'">
+						                <option value="astana">Astana</option>
+						                <option value="nc">North & Center</option>
+						            </select>
+						        </div>
+						    </div>
+							<div class="form-group col-sm-6">
+							    <label class="col-sm-4 control-label">Work Type:</label>
+							    <div class="col-sm-8">
+							        <select ng-model="invoiceContractorFilter.workType" class="form-control selectpicker" select-picker title="" select-model="catalogs.reasons" ng-options="r.id as r.name for r in catalogs.reasons">
+							        </select>
+							    </div>
+							</div>
+						</div>
+						<div class="row">
+						    <div class="form-group col-sm-4">
+						        <div class="col-sm-12 checkbox-inline custom-checkbox">
+						            <input type="checkbox" value="true" ng-model="invoiceContractorFilter.unfinished" name="show_active">show only Active
+						        </div>
+						    </div>
+						</div>
+						<div class="row">
+						    <div class="form-group col-sm-4">
+								<a class="btn btn-default" ng-click="searchContractorInvoices()">Filter({{contractorsSearchResults.length}})</a>
+						    </div>
+						</div>
+
+			            <table class="table" ng-if="contractorsSearchResults.length>0">
+			                <thead>
+			                <tr class="pi-{{pi.state == 'EXTERNALLY_TERMINATED'?'COMPLETED':pi.state}}">
+			                    <th>#</th>
+			                    <th>
+			                    	Year
+			                    	<i ng-click="orderByFieldName('yearOfFormalPeriod')" class="glyphicon" ng-class="fieldName != 'yearOfFormalPeriod' ? 'glyphicon-sort' : reverseOrder?'glyphicon-chevron-down':'glyphicon-chevron-up'"></i>
+			                    </th>
+			                    <th>Work Type
+			                    </th>
+			                    <th>MA Number
+			                    	<i ng-click="orderByFieldName('monthActNumber')" class="glyphicon" ng-class="fieldName != 'monthActNumber' ? 'glyphicon-sort' : reverseOrder?'glyphicon-chevron-down':'glyphicon-chevron-up'"></i>
+			                    </th>
+			                </tr>
+			                </thead>
+			                <tbody ng-repeat="process in contractorsSearchResults | orderBy : fieldName : reverseOrder">
+				                <tr class="pi-{{process.state == 'EXTERNALLY_TERMINATED'?'COMPLETED':process.state}}">
+			                        <td>{{$index+1}}</td>
+			                        <td>
+			                        	<a ng-click="toggleProcessView($index, process.id, 'Invoice')">
+			                        		{{process.yearOfFormalPeriod}}
+			                        	</a>
+			                        </td>
+			                        <td>
+			                        	<a ng-click="toggleProcessView($index, process.id, 'Invoice')">
+					                        {{catalogs.reasonsTitle[process.workType]}}</td>
+			                        	</a>
+			                        <td>
+			                        	<a ng-click="toggleProcessView($index, process.id, 'Invoice')">
+					                        {{process.monthActNumber ? process.monthActNumber : process.businessKey}}
+			                        	</a>
+			                    	</td>
+				                </tr>
+								<tr ng-if="piIndex === $index && jobModel">
+									<div></div>
+									<td colspan="3" style="max-width: 900px">
+										<invoice-detail invoice="jobModel"></invoice-detail>
+									</td>
+									<td style="height: 1px;">
+										<div class="left-wrapper" style="padding: 0">
+											<div class="scrollcontainer">
+												<div class="scrollable left" style="padding: 10px 0px; background: transparent;">
+													<ul id="tasks">
+														<li ng-repeat="task in jobModel.tasks">
+														  <div class="task">
+															<h5>
+																<span>{{ (task.name || task.id) }}</span>
+															</h5>
+															<div ng-if="task.description"> {{ task.description }} </div>
+															<small ng-if="task.group" ng-click="showGroupDetails(task.group)">Group: <a> {{ task.group }}</a> </small>
+														  </div>
+														</li>
+													</ul>
+												</div>
+											</div>
+										</div>
+									</td>
+								</tr>
+			                </tbody>
+			            </table>
+					</div>
+					<div ng-show="selectedView == 'tasks' && $root.selectedProcess.key && currentTaskGroup">
+						<h4>Project: {{$root.selectedProject.name}}</h4>
+						<h4>Process: {{$root.selectedProcess.name}}</h4>
+						<h4>Task: {{currentTaskGroup.name}}</h4>
+			            <table class="table ">
+			                <thead>
+			                	<tr>
+			                    	<th>#</th>
+									<th ng-if="$root.selectedProcess.key !== 'leasing'" class="sortable">Business key
+										<i ng-click="orderByFieldName('processBusinessKey')" class="glyphicon" ng-class="fieldName != 'processBusinessKey' ? 'glyphicon-sort' : reverseOrder?'glyphicon-chevron-down':'glyphicon-chevron-up'"></i>
+										<span class="pull-right">
+											<input type="text" ng-model="fieldFilter['processBusinessKey']" ng-show="visibilityFilter['processBusinessKey']">
+											<i ng-click="setVisibilityFilter('processBusinessKey')" class="glyphicon" ng-class="visibilityFilter['processBusinessKey']?'glyphicon-remove':'glyphicon-filter'"></i>
+										</span>
+									</th>
+									<th ng-if="$root.selectedProcess.key === 'leasing'" class="sortable">NCP ID
+										<i ng-click="orderByFieldName('ncpID')" class="glyphicon" ng-class="fieldName != 'ncpID' ? 'glyphicon-sort' : reverseOrder?'glyphicon-chevron-down':'glyphicon-chevron-up'"></i>
+										<span class="pull-right">
+											<input type="text" ng-model="fieldFilter['ncpID']" ng-show="visibilityFilter['ncpID']">
+											<i ng-click="setVisibilityFilter('ncpID')" class="glyphicon" ng-class="visibilityFilter['ncpID']?'glyphicon-remove':'glyphicon-filter'"></i>
+										</span>
+									</th>
+									<th ng-if="$root.selectedProcess.key === 'leasing'" class="sortable">Sitename
+										<i ng-click="orderByFieldName('siteName')" class="glyphicon" ng-class="fieldName != 'siteName' ? 'glyphicon-sort' : reverseOrder?'glyphicon-chevron-down':'glyphicon-chevron-up'"></i>
+										<span class="pull-right">
+											<input type="text" ng-model="fieldFilter['siteName']" ng-show="visibilityFilter['siteName']">
+											<i ng-click="setVisibilityFilter('siteName')" class="glyphicon" ng-class="visibilityFilter['siteName']?'glyphicon-remove':'glyphicon-filter'"></i>
+										</span>
+									</th>
+									<th ng-if="$root.selectedProcess.key === 'Revision'" class="sortable">Site name
+										<i ng-click="orderByFieldName('site_name')" class="glyphicon" ng-class="fieldName != 'site_name' ? 'glyphicon-sort' : reverseOrder?'glyphicon-chevron-down':'glyphicon-chevron-up'"></i>
+										<span class="pull-right">
+											<input type="text" ng-model="fieldFilter['site_name']" ng-show="visibilityFilter['site_name']">
+											<i ng-click="setVisibilityFilter('site_name')" class="glyphicon" ng-class="visibilityFilter['site_name']?'glyphicon-remove':'glyphicon-filter'"></i>
+										</span>
+									</th>
+									<th class="sortable">Initiator
+										<i ng-click="orderByFieldName('processStartUserId')" class="glyphicon" ng-class="fieldName != 'processStartUserId' ? 'glyphicon-sort' : reverseOrder?'glyphicon-chevron-down':'glyphicon-chevron-up'"></i>
+										<span class="pull-right">
+											<input type="text" ng-model="fieldFilter['processStartUserId']" ng-show="visibilityFilter['processStartUserId']">
+											<i ng-click="setVisibilityFilter('processStartUserId')" class="glyphicon" ng-class="visibilityFilter['processStartUserId']?'glyphicon-remove':'glyphicon-filter'"></i>
+										</span>
+									</th>
+									<th class="sortable">Date
+										<i ng-click="orderByFieldName('processStartTime')" class="glyphicon" ng-class="fieldName != 'processStartTime' ? 'glyphicon-sort' : reverseOrder?'glyphicon-chevron-down':'glyphicon-chevron-up'"></i></th>
+									<th class="sortable">Priority
+										<i ng-click="orderByFieldName('priority')" class="glyphicon" ng-class="fieldName != 'priority' ? 'glyphicon-sort' : reverseOrder?'glyphicon-chevron-down':'glyphicon-chevron-up'"></i>
+									</th>
+									<th class="sortable">Assignee
+										<i ng-click="orderByFieldName('assignee')" class="glyphicon" ng-class="fieldName != 'assignee' ? 'glyphicon-sort' : reverseOrder?'glyphicon-chevron-down':'glyphicon-chevron-up'"></i>
+									</th>
+			                	</tr>
+			             	</thead>
+			             	<tbody>
+								<tr ng-repeat="task in currentTaskGroup.tasks | filter : filterByFields() | orderBy : fieldName : reverseOrder">
+			             			<td><a ng-click="openTask(task.id)">{{$index+1}}</a></td>
+			             			<td ng-if="$root.selectedProcess.key !== 'leasing'"><a ng-click="openTask(task.id)">{{task.processBusinessKey}}</a></td>
+			             			<td ng-if="$root.selectedProcess.key === 'leasing'"><a ng-click="openTask(task.id)">{{task.ncpID}}</a></td>
+			             			<td ng-if="$root.selectedProcess.key === 'leasing'"><a ng-click="openTask(task.id)">{{task.siteName}}</a></td>
+			             			<td ng-if="$root.selectedProcess.key === 'Revision'"><a ng-click="openTask(task.id)">{{task.site_name}}</a></td>
+			             			<td><a ng-click="openTask(task.id)">{{task.processStartUserId}}</a></td>
+			             			<td><a ng-click="openTask(task.id)">{{task.processStartTime | date: 'dd.MM.yyyy HH:mm'}}</a></td>
+									<td><a ng-click="openTask(task.id)">{{task.priority == 100 ? 'Emergency' : 'Regular'}}</a></td>
+									<td><a ng-click="openTask(task.id)">{{ task.assignee ? (task.assigneeObject.firstName + ' ' + task.assigneeObject.lastName) : 'nobody'}}</a></td>
+			             		</tr>
+			             	</tbody>
+			             </table>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>

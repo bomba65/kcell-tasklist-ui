@@ -1,0 +1,2173 @@
+<style>
+
+    .start-table tbody {
+        max-height:470px;
+        overflow-y:overlay;
+        width: 100%;
+    }
+    .start-table thead, .start-table tbody, .start-table tr, .start-table td, .start-table th{
+        display:block;
+    }
+    .start-table tbody tr td, .start-table thead tr th {
+        float:left;
+    }
+    .my-group .form-control{
+        width:50%;
+    }
+    .modal-lg.modal-dialog{
+        width: 90%;
+    }
+    input[type=number]::-webkit-inner-spin-button,
+    input[type=number]::-webkit-outer-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+    }
+    .modal{
+        overflow:auto !important;
+    }
+    .animate-if {
+        background:white;
+        overflow: hidden;
+        transition: 0.4s;
+        padding: 13px;
+        margin-bottom: 0px;
+        color: #b3b3b3;
+        background-color: #fff;
+        border: 2px solid #b3b3b3;
+        border-radius: 0;
+        -webkit-box-shadow: none;
+        box-shadow: none;
+    }
+
+    .animate-if.ng-enter, .animate-if.ng-leave {
+        transition:all 0.3s cubic-bezier(0.250, 0.460, 0.450, 0.940) ;
+    }
+
+    .animate-if.ng-enter,
+    .animate-if.ng-leave.ng-leave-active {
+        opacity:0;
+        max-height:0;
+        padding-top: 0px;
+        padding-bottom: 0px;
+    }
+
+    .animate-if.ng-leave,
+    .animate-if.ng-enter.ng-enter-active {
+        opacity:1;
+        max-height: 500px;
+        padding-top: 13px;
+        padding-bottom: 13px;
+    }
+</style>
+<form role="form" class="form-horizontal" name="kcell_form" novalidate>
+    <script cam-script type="text/form-script" type="text/javascript">
+<!--<script>-->
+        inject([ '$scope', '$http', '$rootScope', '$q', '$timeout', 'exModal', function($scope, $http, $rootScope, $q, $timeout, exModal) {
+            var uuid = new Date().getTime();
+            console.log($scope)
+
+            var variablesToCreate = [
+                {
+                    name: 'requestedDate',
+                    type: 'Date',
+                    submit: true,
+                    store: false
+                },
+                {
+                    name: 'validityDate',
+                    type: 'Date',
+                    value: new Date(),
+                    store: true
+                }, {
+                    name: 'contract',
+                    type: 'Integer',
+                    submit: true,
+                    store: true
+                }, {
+                    name: 'contractor',
+                    type: 'Integer',
+                    submit: true,
+                    store: true
+                }, {
+                    name: 'materialsRequired',
+                    type: 'String',
+                    submit: true,
+                    store: true
+                }, {
+                    name: 'leasingRequired',
+                    type: 'String',
+                    submit: true,
+                    store: true
+                }, {
+                    name: 'powerRequired',
+                    type: 'String',
+                    submit: true,
+                    store: true
+                }, {
+                    name: 'worksBelongsTo',
+                    type: 'String',
+                    submit: true,
+                    store: true
+                }, {
+                    name: 'relatedTo',
+                    type: 'String',
+                    submit: true,
+                    store: true
+                }, {
+                    name: 'site',
+                    type: 'String',
+                    submit: true,
+                    store: true
+                }, {
+                    name: 'siteName',
+                    type: 'String',
+                    submit: true,
+                    store: true
+                }, {
+                    name: 'site_name',
+                    type: 'String',
+                    submit: true,
+                    store: true
+                }, {
+                    name: 'jobWorks',
+                    type: 'Json',
+                    submit: true,
+                    store: true
+                },
+                //TEST ONLY
+                {
+                    name: 'ptype',
+                    type: 'String',
+                    submit: true,
+                    store: true
+                },
+                {
+                    name: 'createJRResult',
+                    type: 'String',
+                    submit: true,
+                    store: true
+                },
+                {
+                    name: 'resolutions',
+                    type: 'Json',
+                    submit: true,
+                    store: true,
+                    value: []
+                },
+                {
+                    name: 'initiatorFull',
+                    type: 'Json',
+                    submit: true,
+                    store: true
+                },
+                {
+                    name: 'jrNumber',
+                    type: 'String',
+                    submit: true,
+                    store: true
+                },
+                {
+                    name: 'siteRegion',
+                    type: 'String',
+                    submit: true,
+                    store: true
+                },
+                {
+                    name: 'oblastName',
+                    type: 'String',
+                    submit: true
+                },
+                {
+                    name: 'subcontractorName',
+                    type: 'String',
+                    submit: true
+                },
+                {
+                    name: 'isPermitDocsNeeded',
+                    type: 'String',
+                    submit: true,
+                    store: true
+                },
+                {
+                    name: 'supplementaryFiles',
+                    type: 'Json',
+                    submit: true,
+                    store: true
+                },
+                {
+                    name: 'siteStatus',
+                    type: 'String',
+                    submit: true,
+                    store: true
+                },
+                {
+                    name: 'siteSubStatus',
+                    type: 'String',
+                    submit: true,
+                    store: true
+                },
+                {
+                    name: 'sendNotifyToRegionHeads',
+                    type: 'Boolean',
+                    submit: true,
+                    store: true
+                },
+                {
+                    name: 'isOptical',
+                    type: 'Boolean',
+                    submit: true,
+                    store: true
+                },
+                {
+                    name: 'isSiteFromAssets',
+                    type: 'Boolean',
+                    submit: true,
+                    store: true
+                },
+                {
+                    name: 'siteAddress',
+                    type: 'String',
+                    submit: true,
+                    store: true
+                },
+            ];
+            var catalogs = {};
+            var permitWorks = ['3', '4', '5', '6', '7', '8', '9', '10', '35', '36', '37', '38', '39', '40', '41', '42', '43', '44', '65', '66', '67', '68', '69', '70', '71', '72', '73', '74', '75', '76', '77', '78', '86', '87', '91', '94', '95', '96', '155', '156', '157', '158', '159', '160'];
+            var rollOutContractWorks = ['1.1', '1.2', '1.3', '2.1', '2.2', '2.3', '2.4', '2.5', '2.6', '2.7', '2.8', '2.9', '2.10', '3.1', '3.2', '3.3', '3.4', '3.5', '3.6', '3.7', '3.8', '3.9', '3.10', '9.6', '9.7', '9.8', '9.9', '9.10', '9.11', '9.12', '9.13', '9.14', '9.15', '9.16', '9.17', '9.18', '9.19', '9.20', '9.21', '9.22', '9.23', '9.24', '9.25', '9.26', '9.27', '9.28', '9.45', '9.46', '9.47'];
+            var subContractorsMaterials = ['6.1', '6.2', '6.3', '6.4', '6.5', '6.8', '6.9', '6.10', '6.12', '6.13', '6.14', '6.15', '6.16', '6.17', '6.18', '6.19', '6.21', '6.22', '6.23', '6.24', '6.25', '6.27', '6.28', '6.29', '7.1', '7.2', '7.3', '7.5', '7.6', '7.7', '7.8', '7.9', '7.10', '7.11', '8.7', '9.58'];
+            var kcellMaterials = ['1.1', '1.2', '1.3', '1.4', '2.1', '2.2', '2.3', '2.4', '2.5', '2.6', '2.7', '2.8', '2.9', '2.10', '2.11', '2.12', '2.13', '2.14', '2.15', '2.16', '2.17', '2.18', '2.19', '2.20', '2.21', '2.22', '2.23', '2.24', '2.26', '2.28', '2.29', '2.30', '2.31', '2.32', '2.33', '2.34', '2.35', '2.36', '2.37', '2.38', '2.39', '2.40', '2.41', '2.42', '2.43', '2.44', '2.45', '2.46',
+                                    '2.47', '2.48', '2.49', '2.50', '2.51', '2.52', '2.53', '2.54', '2.63', '3.1', '3.2', '3.3', '3.4', '3.5', '3.6', '3.7', '3.8', '3.9', '3.10', '3.11', '3.12', '3.13', '3.14', '3.15', '3.16', '3.17', '3.18', '3.19', '3.20', '3.21', '3.22', '3.23', '3.24', '3.25', '3.26', '3.27', '3.28', '3.29', '3.30', '3.31', '3.40', '3.41', '3.49', '3.54', '4.14', '4.15', '5.1',
+                                    '5.2', '5.3', '5.4', '5.9', '5.13', '6.7', '6.11', '6.20', '6.26', '7.4', '8.8', '8.13', '8.14', '8.15', '8.16', '8.20', '8.21', '8.22', '8.23', '8.24', '8.25', '9.3', '9.4', '9.5', '9.6', '9.7', '9.8', '9.9', '9.10', '9.11', '9.12', '9.13', '9.14', '9.15', '9.16', '9.17', '9.18', '9.19', '9.20', '9.21', '9.22', '9.23', '9.24', '9.25', '9.26', '9.27', '9.28', '9.29',
+                                    '9.30', '9.31', '9.32', '9.33', '9.34', '9.35', '9.36', '9.37', '9.38', '9.39', '9.40', '9.41', '9.42', '9.43', '9.44', '9.45', '9.46', '9.47', '9.48', '9.49', '9.50', '9.51', '9.52', '9.53', '9.54', '9.55', '9.56', '9.61', '9.63', '9.65', '9.66', '9.67', '9.68', '9.69', '9.70', '9.71', '9.72', '9.73', '9.74', '9.77', '9.78', '9.79', '9.81', '9.82', '9.83', '9.84',
+                                    '9.85', '9.86', '9.87', '9.88', '9.89', '9.90', '9.91', '9.92', '9.93', '9.94', '9.95', '9.96', '9.97', '9.98', '9.99', '9.100', '9.101', '9.102', '9.103', '9.104', '9.105', '9.106', '9.107', '10.1', '10.2'];
+            var allMaterials = ['2.25', '2.27', '2.55', '2.56', '2.57', '2.58', '2.59', '2.60', '2.61', '2.62', '3.32', '3.33', '3.34', '3.35', '3.36', '3.37', '3.38', '3.39', '3.42', '3.43', '3.44', '3.45', '3.46', '3.47', '3.48', '3.50', '3.51', '3.52', '3.53', '4.1', '4.2', '4.3', '4.4', '4.5', '4.6', '4.7', '4.8', '4.9', '4.10', '4.11', '4.12', '4.13', '4.16', '4.17', '4.18', '4.19', '5.5', '5.6',
+                                '5.7', '5.8', '5.10', '5.11', '5.12', '5.14', '5.15', '5.16', '5.17', '6.6', '8.1', '8.2', '8.3', '8.4', '8.5', '8.6', '8.9', '8.10', '8.11', '8.12', '8.17', '8.18', '8.19', '9.1', '9.2', '9.57', '9.59', '9.60', '9.62', '9.64', '9.75', '9.76', '9.80'];
+            $scope.showJump = false;
+            $scope.siteStatus = undefined;
+            $scope.siteSubStatus = undefined;
+            $scope.siteSubStatusId = undefined;
+            $scope.siteAddress = undefined;
+
+            if($rootScope.authentication.name === 'demo'){
+                $scope.showJump = true;
+            }
+
+            camForm.on('form-loaded', function () {
+                $scope.custom = {
+                    contract: 1,
+                    contractor: undefined
+                };
+                variablesToCreate.forEach(function (el) {
+                    camForm.variableManager.fetchVariable(el.name);
+                });
+
+                $scope.conts = [];
+                $http.get($rootScope.getCatalogsHttpByName('catalogs')).then(
+                        function(result){
+                            angular.extend(catalogs, result.data);
+                            angular.extend($scope, result.data);
+                            if($scope.contracts){
+                                for(var i=0;i<$scope.contracts.length;i++){
+                                    if($scope.contracts[i].service.id === $scope.custom.contract){
+                                        $scope.conts.push($scope.contracts[i].contractor);
+                                    }
+                                }
+                            }
+                        },
+                        function(error){
+                            console.log(error.data);
+                        }
+                );
+
+                $http.get('/camunda/catalogs/api/get/id/5').then(
+                    function(response) {
+                        $scope.regionCatalog = response.data.data.$list;
+                    }
+                );
+
+                $http.get('/camunda/catalogs/api/get/id/30').then(
+                    function(response) {
+                        $scope.oblastCatalog = response.data.data.$list;
+                    }
+                );
+
+                $http.get('/camunda/catalogs/api/get/id/131').then(
+                    function(response) {
+                        $scope.subcontractorCatalog = response.data.data.$list;
+                    }
+                );
+            });
+
+            camForm.on('variables-fetched', function () {
+                variablesToCreate.forEach(function (el) {
+                    if (camForm.variableManager.variables[el.name].type === undefined) {
+                        camForm.variableManager.variables[el.name].type = el.type;
+                        if(el.value){
+                            camForm.variableManager.variables[el.name].value = el.value;
+                        }
+                    }
+                    if(el.name === 'resolutions'){
+                        if(!$scope.jobModel){
+                            $scope.jobModel = {};
+                        }
+                        $scope['resolutions'] = camForm.variableManager.variables[el.name].value;
+                        $q.all($scope.resolutions.map(function (resolution) {
+                            return $http.get("/camunda/api/engine/engine/default/history/task?processInstanceId="+resolution.processInstanceId+"&taskId=" + resolution.taskId);
+                        })).then(function (tasks) {
+                            tasks.forEach(function (e, index) {
+                                $scope.resolutions[index].taskName = e.data[0].name;
+                                try {
+                                    $scope.resolutions[index].taskEndDate = new Date(e.data[0].endTime);
+                                    $scope.resolutions[index].assignDate = new Date(e.data[0].startTime);
+                                } catch(e){
+                                    console.log(e);
+                                }
+                            })
+                        });
+                        $q.all($scope.resolutions.map(function (resolution) {
+                            return $http.get("/camunda/api/engine/engine/default/history/identity-link-log?type=assignee&taskId=" + resolution.taskId + "&operationType=add&sortBy=time&sortOrder=desc");
+                        })).then(function (logs) {
+                            logs.forEach(function (e, index) {
+                                if(e.data.length > 0){
+                                    try {
+                                        $scope.resolutions[index].claimDate = new Date(e.data[0].time);
+                                    } catch(e){
+                                        console.log(e);
+                                    }
+                                }
+                            });
+                        });
+                    }
+                });
+                $http.get('/camunda/api/engine/engine/default/user/'+$rootScope.authentication.name+'/profile').then(
+                        function(result){
+                            $scope.initiatorFull = result.data;
+                        },
+                        function(error){}
+                );
+                $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name+ "/profile").then(function(result){
+                    $rootScope.authentication.assigneeName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
+                });
+                $scope.mainContract = "Roll-outRevision2020";
+            });
+
+            camForm.on('submit', function (e) {
+                variablesToCreate.forEach(function (el) {
+                    if (el.submit) {
+                        camForm.variableManager.variableValue(el.name, $scope[el.name]);
+                    }
+                });
+                var sendNotifyToRegionHeads = false;
+                var isOptical = false;
+                if ($scope.jobWorks.length > 0){
+                    sendNotifyToRegionHeads = !!$scope.jobWorks.filter(work => ['2.4','9.9', '9.10', '9.11', '9.20', '9.21', '9.22', '9.23', '9.24', '9.25','9.26', '9.27', '9.28']
+                    .includes(work.displayServiceName.slice(0, work.displayServiceName.indexOf(' ')))).length
+                }
+                if ($scope.jobWorks.length > 0) {
+                    isOptical = !!$scope.jobWorks.filter(work => ['9.90', '9.91', '9.92', '9.93', '9.94', '9.95', '9.96', '9.97', '9.98', '9.99', '9.100', '9.101', '9.102', '9.103', '9.104', '9.105', '9.106']
+                    .includes(work.sapServiceNumber)).length
+                }
+                camForm.variableManager.variableValue('sendNotifyToRegionHeads', sendNotifyToRegionHeads)
+                camForm.variableManager.variableValue('isOptical', isOptical)
+                if($scope.materialsRequiredCheckbox){
+                    camForm.variableManager.variableValue('materialsRequired', 'Yes');
+                } else {
+                    camForm.variableManager.variableValue('materialsRequired', 'No');
+                }
+                if($scope.leasingRequiredCheckbox){
+                    camForm.variableManager.variableValue('leasingRequired', 'Yes');
+                } else {
+                    camForm.variableManager.variableValue('leasingRequired', 'No');
+                }
+                if($scope.powerRequiredCheckbox){
+                    camForm.variableManager.variableValue('powerRequired', 'Yes');
+                } else {
+                    camForm.variableManager.variableValue('powerRequired', 'No');
+                }
+                if($scope.ptypeCheckbox){
+                    camForm.variableManager.variableValue('ptype', 'test');
+                    camForm.variableManager.variableValue('createJRResult', "approved");
+                } else {
+                    camForm.variableManager.variableValue('ptype', 'prod');
+                    camForm.variableManager.variableValue('createJRResult', "approved");
+                }
+
+                camForm.variableManager.variableValue('jrNumber', $scope.jrNumber);
+                camForm.variableManager.variableValue('site_name', $scope.site_name);
+                camForm.variableManager.variableValue('siteStatus', $scope.siteStatus);
+                camForm.variableManager.variableValue('siteSubStatus', $scope.siteSubStatus);
+                camForm.variableManager.variableValue('site', $scope.site);
+                camForm.variableManager.variableValue('siteName', $scope.siteName);
+                camForm.variableManager.variableValue('siteRegion', $scope.siteRegion);
+                camForm.variableManager.variableValue('contractor', parseInt($scope.custom.contractor));
+                if($scope.isPermitDocsNeeded){
+                    camForm.variableManager.variableValue('isPermitDocsNeeded', 'true');
+                } else {
+                    camForm.variableManager.variableValue('isPermitDocsNeeded', 'false');
+                }
+
+                $scope.resolutions = [];
+                $scope.resolutions.push({processInstanceId: 'noProcessInstanceId', assignee: $rootScope.authentication.name, assigneeName: $rootScope.authentication.assigneeName, resolution: 'created', comment: $scope.explanation, taskId: 'noTaskId', taskName:'Job Request Start', taskEndDate:$scope.requestedDate,  visibility: 'all'});
+                camForm.variableManager.variableValue('resolutions', $scope.resolutions);
+
+                camForm.variableManager.variableValue('initiatorFull', $scope.initiatorFull);
+                var validityDate = new Date($scope.validityDate);
+                camForm.variableManager.variableValue('validityDate', validityDate);
+                camForm.variableManager.variableValue('contract', parseInt($scope.custom.contract));
+                //camForm.variableManager.variableValue('relatedTo', parseInt($scope.relatedTo));
+                camForm.variableManager.variableValue('jobWorks', JSON.parse(angular.toJson($scope.jobWorks)));
+
+                if($scope.supplementaryFiles && $scope.supplementaryFiles.length > 0){
+                    camForm.variableManager.variableValue('supplementaryFiles', $scope.supplementaryFiles);
+                } else {
+                    camForm.variableManager.destroyVariable('supplementaryFiles');
+                }
+                if($scope.reason === '2'){
+                    camForm.variableManager.variableValue('worksBelongsTo', 'Yes');
+                } else {
+                    camForm.variableManager.variableValue('worksBelongsTo', $scope.worksBelongsTo);
+                }
+                camForm.variableManager.variableValue('isSiteFromAssets', true);
+                camForm.variableManager.variableValue('siteAddress', $scope.siteAddress);
+                camForm.variableManager.createVariable({
+                    name: 'cityNameShow',
+                    type: 'String',
+                    value: $scope.siteRegionShow
+                });
+                camForm.variableManager.createVariable({
+                    name: 'siteSubStatusId',
+                    type: 'Integer',
+                    value: $scope.siteSubStatusId
+                });
+            });
+
+            $scope.open = open;
+            $scope.toggleJr = toggleJr;
+            $scope.getJobs = getJobs;
+            $scope.getStatus = getStatus;
+            $scope.getJobsAll = getJobsAll;
+            $scope.showHistory = showHistory;
+            $scope.addJobWork = addJobWork;
+            $scope.showMoreJobRequests = showMoreJobRequests;
+            $scope.showAllJobRequests = showAllJobRequests;
+            $scope.reverseOrder = false;
+		    $scope.fieldName = '';
+            $scope.refreshJobRequests = refreshJobRequests;
+            $scope.showMore = false;
+            $scope.showAll = false;
+            $scope.page = 0;
+            $scope.jobRequestsCount = 0;
+            $scope.fileSelected = fileSelected;
+            $scope.download = download;
+            $scope.removeWork = removeWork;
+            $scope.serviceChanged = serviceChanged;
+            $scope.jobWorks = [{relatedSites:[]}];
+            $scope.jobRequests = {};
+
+            $scope.regions = [
+                {id: 'alm', name: 'Almaty', value: 'Alm'},
+                {id: 'astana', name: 'Astana', value: 'Ast'},
+                {id: 'nc', name: 'North and Center', value: 'N\&C'},
+                {id: 'east', name: 'East', value: 'E'},
+                {id: 'south', name: 'South', value: 'S'},
+                {id: 'west', name: 'West', value: 'W'}
+            ]
+            $scope.oblastToSelect = ['Алматинская область','Жамбылская область'];
+            $scope.regionsMap = {
+                '1': 'Alm',
+                '2': 'Ast',
+                '3': 'N&C',
+                '4': 'E',
+                '5': 'S',
+                '6': 'W'
+            };
+            $scope.regionsMapLC = {
+                '1': 'alm',
+                '2': 'astana',
+                '3': 'nc',
+                '4': 'east',
+                '5': 'south',
+                '6': 'west'
+            };
+            $scope.contractorShortName = {
+                '-1': '##',
+                '4': 'LSE',
+                '5': 'KR'
+            };
+            $scope.reasonShortName = {
+                '1': 'P&O',
+                '2': 'TNU',
+                '3': 'S&FM',
+                '4': 'SAO',
+                '5': 'RO'
+            };
+
+            $scope.reasonNewShortName = {
+                        '1': 'ОПТ',
+                        '2': 'ТР',
+                        '3': 'ИНФ',
+                        '4': 'Э',
+                        '5': 'СМР'
+            };
+
+            $scope.regionsNewMap = {
+                        '1': 'А',
+                        '2': 'C',
+                        '3': 'С',
+                        '4': 'В',
+                        '5': 'Ю',
+                        '6': 'З'
+            };
+
+            $scope.contractorNewShortName = {
+                        '5': 'КСЛ',
+                        '6': 'АЛТ',
+                        '7': 'ЛОГ',
+                        '8': 'АРЛ',
+                        '10': 'ФОР',
+                        '11': 'ТРК',
+
+            };
+
+            $scope.notAllowedANRUjobs = ['4.14','4.15'];
+            $scope.notAllowedSFMjobs = ['4.16','4.17','4.18','5.5','6.1','6.2','6.3','6.4','6.5','6.6','6.7','6.8','6.1','6.11','6.12','6.13','6.16','6.17','6.18',
+            '6.19','6.2','6.21','6.22','6.23','6.24','6.25','6.26','6.27','6.28','6.29','7.1','7.2','7.3','7.4','7.5','7.6','7.7','7.8','7.9','7.1','7.11','8.3','8.4','10.1','10.2'];
+            $scope.notAllowedTNUjobs = ['9.7','9.8','9.1','9.11','9.12','9.13','9.15','9.16','9.18','9.19','9.21','9.22','9.24','9.25','9.27','9.28','9.87','9.88','9.89','9.107'];
+
+            $scope.notAllowedAllGroupsJobs = ['4.14', '4.15', '4.16', '4.17', '4.18', '5.5', '6.1', '6.2', '6.3', '6.4', '6.5', '6.6', '6.7', '6.8', '6.10', '6.11', '6.12', '6.13', '6.16', '6.17', '6.18', '6.19', '6.2', '6.21', '6.22', '6.23', '6.24', '6.25', '6.26', '6.27', '6.28', '6.29', '7.1', '7.2', '7.3', '7.4', '7.5', '7.6', '7.7', '7.8', '7.9', '7.10', '7.11', '8.3', '8.4', '9.7', '9.8', '9.10', '9.11', '9.12', '9.13', '9.15', '9.16', '9.18', '9.19', '9.21', '9.22', '9.24', '9.25', '9.27', '9.28', '9.87', '9.88', '9.89', '9.107', '10.1', '10.2']
+
+
+            $scope.jobWorkReasons = [
+                {id: 'installation', expenseType: 'CAPEX', name: 'Installation', detail: 'Монтаж - установка нового оборудования'},
+                {id: 'modernization', expenseType: 'CAPEX', name: 'Modernization', detail: 'Модернизация - замена оборудования на более производительное'},
+                {id: 'change_support', expenseType: 'OPEX', name: 'Change for support', detail: 'Замена - восстановление вышедшего из строя оборудования/OC для поддержания их в рабочем состоянии  с целью их профилактики'},
+                {id: 'change_improvement', expenseType: 'CAPEX', name: 'Change for improvement', detail: 'Замена - восстановление вышедшего из строя оборудования/ОС для улучшения состояния объекта, повышающего его первоначально оцененные нормативные показатели: срок службы, производственную мощность и т. д'},
+                {id: 'replacement', expenseType: 'OPEX', name: 'Replacement', detail: 'Перемещение - в пределах одного сайта'},
+                {id: 'removal', expenseType: 'OPEX', name: 'Removal', detail: 'Демонтаж - снятие оборудования'}
+            ];
+
+            $scope.requestedDate = new Date();
+            $scope.isFileVisible = isFileVisible;
+            $scope.getDictNameById = getDictNameById;
+            var currentDate = new Date();
+
+            $scope.datepickerOptions = {
+                minDate: currentDate
+            };
+
+            function removeWork(index){
+                $scope.jobWorks.splice(index,1);
+            }
+
+            function toggleJr(index){
+                if($scope.jrIndex === index){
+                    $scope.jrIndex = undefined;
+                } else {
+                    $scope.jrIndex = index;
+                }
+            }
+
+            function open($event) {
+                $event.preventDefault();
+                $event.stopPropagation();
+                $scope.dateFieldOpened = true;
+            };
+
+
+            function getTotalJobsCount(){
+                var query = {
+                    "processDefinitionKey" : "Revision",
+                    //"active" : true,
+                    "variables" :
+                            [{
+                                "name": "siteName",
+                                "operator": "eq",
+                                "value" : $scope.siteId
+                            }]
+                };
+                var path  = '/camunda/api/engine/engine/default/process-instance';
+                $http.post(path,query).then(
+                        function(result){
+                            var piIds = [];
+                            var addJobRequests = {};
+                            for(var i=0;i<result.data.length;i++){
+                                piIds.push(result.data[i].id);
+                            }
+                            var variableQuery = {
+                                processInstanceIdIn: piIds
+                            };
+                            if(piIds.length > 0){
+                                $http.post('/camunda/api/engine/engine/default/variable-instance?deserializeValues=false', variableQuery).then(
+                                        function(variables){
+                                            for(var i=0;i<variables.data.length;i++){
+                                                if(!addJobRequests[variables.data[i].processInstanceId]){
+                                                    $scope.jobRequestsCount++;
+                                                    addJobRequests[variables.data[i].processInstanceId] = {}
+                                                }
+                                            }
+                                        },
+                                        function(error){
+                                            console.log(error);
+                                        }
+                                );
+                            }
+                        },
+                        function(error){
+                            console.log(error);
+                        }
+                );
+            }
+
+           function getJobsAll() {
+                var query = {
+                    "processDefinitionKey" : "Revision",
+                    "variables" :
+                            [{
+                                "name": "siteName",
+                                "operator": "eq",
+                                "value" : $scope.siteId
+                            }]
+                };
+                var path  = '/camunda/api/engine/engine/default/history/process-instance?firstResult='+($scope.page*5);
+                $http.post(path,query).then(
+                        function(result){
+                            var piIds = [];
+                            $scope.showMore = false;
+                            $scope.showAll = false;
+                            for(var i=0;i<result.data.length;i++){
+                                piIds.push(result.data[i].id);
+                            }
+                            var variableQuery = {
+                                processInstanceIdIn: piIds
+                            };
+                            if(piIds.length > 0){
+                                $http.post('/camunda/api/engine/engine/default/history/variable-instance?deserializeValues=false', variableQuery).then(
+                                        function(variables){
+                                            for(var i=0;i<variables.data.length;i++){
+                                                if(!$scope.jobRequests[variables.data[i].processInstanceId]){
+                                                    $scope.jobRequests[variables.data[i].processInstanceId] = {};
+                                                }else if(variables.data[i].name === 'supplementaryFiles'){
+                                                    if (variables.data[i].value){
+                                                        variables.data[i].value = JSON.parse(variables.data[i].value);
+                                                    }
+                                                    $scope.jobRequests[variables.data[i].processInstanceId][variables.data[i].name] = variables.data[i];
+                                                } else if(IsJsonString(variables.data[i].value)){
+                                                    $scope.jobRequests[variables.data[i].processInstanceId][variables.data[i].name] = JSON.parse(variables.data[i].value);
+                                                }
+                                                else {
+                                                    $scope.jobRequests[variables.data[i].processInstanceId][variables.data[i].name] = variables.data[i].value;
+                                                }
+
+                                            }
+                                            angular.forEach(result.data, function(key, value) {
+                                                 if ( $scope.jobRequests[key['id']]) {
+                                                    angular.extend($scope.jobRequests[key['id']], catalogs);
+                                                    var status = getStatus(key['state'], $scope.jobRequests[key['id']].acceptPerformedJob)
+                                                    $scope.jobRequests[key['id']]['statusName'] = status;
+                                                }
+                                            })
+                                        },
+                                        function(error){
+                                            console.log(error);
+                                        }
+                                );
+                            }
+                        },
+                        function(error){
+                            console.log(error);
+                        }
+                );
+            }
+
+            function IsJsonString(str) {
+                try {
+                    JSON.parse(str);
+                } catch (e) {
+                    return false;
+                }
+                return true;
+            }
+
+            function getJobs(){
+                var query = {
+                    "processDefinitionKey" : "Revision",
+                    "variables" :
+                            [{
+                                "name": "siteName",
+                                "operator": "eq",
+                                "value" : $scope.siteId
+                            }]
+                };
+                var path  = '/camunda/api/engine/engine/default/history/process-instance?firstResult='+($scope.page*5)+'&maxResults=5';
+                $http.post(path,query).then(
+                        function(result){
+                            $scope.page = $scope.page + 1;
+                            var piIds = [];
+                            if(result.data.length < 5){
+                                $scope.showMore = false;
+                                $scope.showAll = false;
+                            } else {
+                                $scope.showMore = true;
+                                $scope.showAll = true;
+                            }
+                            for(var i=0;i<result.data.length;i++){
+                                piIds.push(result.data[i].id);
+                            }
+                            var variableQuery = {
+                                processInstanceIdIn: piIds
+                            };
+                            if(piIds.length > 0){
+                                $http.post('/camunda/api/engine/engine/default/history/variable-instance?deserializeValues=false', variableQuery).then(
+                                        function(variables){
+                                            for(var i=0;i<variables.data.length;i++){
+                                                if(!$scope.jobRequests[variables.data[i].processInstanceId]){
+                                                    $scope.jobRequests[variables.data[i].processInstanceId] = {};
+                                                }else if(variables.data[i].name === 'supplementaryFiles'){
+                                                    if (variables.data[i].value){
+                                                        variables.data[i].value = JSON.parse(variables.data[i].value);
+                                                    }
+                                                    $scope.jobRequests[variables.data[i].processInstanceId][variables.data[i].name] = variables.data[i];
+                                                } else if(IsJsonString(variables.data[i].value)) {
+                                                    $scope.jobRequests[variables.data[i].processInstanceId][variables.data[i].name] = JSON.parse(variables.data[i].value);
+                                                }
+                                                else {
+                                                    $scope.jobRequests[variables.data[i].processInstanceId][variables.data[i].name] = variables.data[i].value;
+                                                }
+
+                                            }
+                                            angular.forEach(result.data, function(key, value) {
+                                                if ($scope.jobRequests[key['id']]) {
+                                                console.log($scope.jobRequests[key['id']]);
+                                                angular.extend($scope.jobRequests[key['id']], catalogs);
+                                                var status = getStatus(key['state'], $scope.jobRequests[key['id']].acceptPerformedJob)
+                                                $scope.jobRequests[key['id']]['statusName'] = status;
+                                                }
+                                            })
+                                        },
+                                        function(error){
+                                            console.log(error);
+                                        }
+                                );
+                            }
+                        },
+                        function(error){
+                            console.log(error);
+                        }
+                );
+            }
+
+
+             function getTotalJobsCount(){
+                var query = {
+                    "processDefinitionKey" : "Revision",
+                    "variables" :
+                            [{
+                                "name": "siteName",
+                                "operator": "eq",
+                                "value" : $scope.siteId
+                            }]
+                };
+                var path  = '/camunda/api/engine/engine/default/history/process-instance?firstResult='+(0);
+                var jobRequests = {};
+                $http.post(path,query).then(
+                        function(result){
+                            var piIds = [];
+                            for(var i=0;i<result.data.length;i++){
+                                piIds.push(result.data[i].id);
+                            }
+                            var variableQuery = {
+                                processInstanceIdIn: piIds
+                            };
+                            if(piIds.length > 0){
+                                $http.post('/camunda/api/engine/engine/default/history/variable-instance?deserializeValues=false', variableQuery).then(
+                                        function(variables){
+
+                                            for(var i=0;i<variables.data.length;i++){
+                                                if(!jobRequests[variables.data[i].processInstanceId]){
+                                                    $scope.jobRequestsCount++;
+                                                    jobRequests[variables.data[i].processInstanceId] = {};
+                                                }
+
+
+                                            }
+                                        },
+                                        function(error){
+                                            console.log(error);
+                                        }
+                                );
+                            }
+                        },
+                        function(error){
+                            console.log(error);
+                        }
+                );
+            }
+
+            function addJobWork(){
+                $scope.jobWorks.push({relatedSites:[]});
+            }
+
+            function showMoreJobRequests(){
+                getJobs();
+            }
+
+            function showAllJobRequests() {
+                getJobsAll();
+            }
+
+            function refreshJobRequests(){
+                if($scope.mainContract === 'emergencyRevision2022' || $scope.mainContract === 'Roll-outRevision2020'){
+                    $scope.rolloutOrEmergency = true;
+                }else{
+                    $scope.rolloutOrEmergency = false;
+                }
+                $scope.page = 0;
+                $scope.jobRequestsCount = 0;
+                $scope.jrIndex = undefined;
+                $scope.jobRequests = {};
+                getJobs();
+                getTotalJobsCount();
+                console.log(typeof $scope.reason)
+                if ($scope.reason === undefined) {
+                    $scope.priority = null
+                } else if ($scope.reason !== '4') {
+                    $scope.priority = "regular"
+                } else if ($scope.reason === '4') {
+                    $scope.priority = null
+                }
+            }
+
+            $scope.orderByFieldName = function(fieldName) {
+                if ($scope.fieldName == fieldName) {
+                    $scope.reverseOrder = !$scope.reverseOrder;
+                } else {
+                    $scope.reverseOrder = false;
+                    $scope.fieldName = fieldName;
+                }
+		    };
+		    function getStatus(state, value) {
+		        return (state == 'COMPLETED' || state == 'EXTERNALLY_TERMINATED' || state == 'INTERNALLY_TERMINATED') ? 'Closed' : (value == 'accepted' ? 'Accepted & waiting scan attach' : (value == 'scan attached' ? 'Accepted & waiting invoice' : 'In progress'))
+		    }
+
+		    function isFileVisible(file) {
+                return !file.visibility || file.visibility == 'all' || (file.visibility == 'kcell' && $rootScope.hasGroup('kcellUsers'));
+             }
+
+            function getDictNameById(dictionary, id) {
+                return _.find(dictionary, function(dict){
+                    return dict.id === id;
+                });
+            }
+
+
+            function fileSelected(el, bindedInput){
+                $timeout(function () {
+                    $scope.$apply(function () {
+                        uploadFileToMinio(el.files[0], bindedInput);
+
+                    });
+
+                })
+            }
+
+            function uploadFileToMinio(file, bindedInput) {
+                var fileValue = {
+                    name: file.name.replace(/[/\\?%#*:|"<>]/g, '-'),
+                    path: uuid + '/' + file.name.replace(/[/\\?%#*:|"<>;]/g, '-')
+                };
+                $http({method: 'GET', url: '/camunda/uploads/tmp/put/' + fileValue.path, transformResponse: [] }).
+                then(function(response) {
+                    $http.put(response.data, file, {headers: {'Content-Type': undefined}}).then(
+                        function () {
+                            if(!$scope.supplementaryFiles){
+                                $scope.supplementaryFiles = [];
+                            }
+                            $scope.supplementaryFiles.push(fileValue);
+                            angular.element(document.querySelector('#supplementaryFiles')).val(null);
+                            $(bindedInput).val('');
+                        },
+                        function (error) {
+                            console.log(error.data);
+                        }
+                    );
+                }, function(error){
+                    console.log(error.data);
+                });
+            }
+
+             function showHistory(resolutions){
+                exModal.open({
+                    scope: {
+                        resolutions: resolutions,
+                        isKcellStaff: $rootScope.hasGroup('kcellUsers'),
+                        procDef: 'Revision',
+                        download: function(path) {
+                            $http({method: 'GET', url: '/camunda/uploads/get/' + path, transformResponse: [] }).
+                            then(function(response) {
+                                document.getElementById('fileDownloadIframe').src = response.data;
+                            }, function(error){
+                                console.log(error);
+                            });
+                        }
+                    },
+                    templateUrl: './js/partials/resolutionsModal.html',
+                    size: 'lg'
+                }).then(function(results){
+                });
+            }
+
+            $scope.clearFile = function(index){
+                $scope.supplementaryFiles.splice(index, 1);
+            }
+            function download(file) {
+                $http({method: 'GET', url: '/camunda/uploads/get/' + file.path, transformResponse: [] }).
+                then(function(response) {
+                    document.getElementById('fileDownloadIframe').src = response.data;
+                }, function(error){
+                    console.log(error.data);
+                });
+            };
+
+            function serviceChanged(){
+                $scope.conts = [];
+                if($scope.contracts){
+                    for(var i=0;i<$scope.contracts.length;i++){
+                        if($scope.contracts[i].service.id == $scope.custom.contract){
+                            $scope.conts.push($scope.contracts[i].contractor);
+                        }
+                    }
+                }
+            }
+
+            camForm.on('store', function() {
+                variablesToCreate.forEach(function (el) {
+                    if (el.store) {
+                        camForm.variableManager.variableValue(el.name, $scope[el.name]);
+                    }
+                });
+
+                var validityDate = new Date($scope.validityDate);
+                camForm.variableManager.variableValue('validityDate', validityDate);
+                camForm.variableManager.variableValue('contract', parseInt($scope.custom.contract));
+                camForm.variableManager.variableValue('contractor', parseInt($scope.custom.contractor));
+                camForm.variableManager.variableValue('jobWorks', JSON.parse(angular.toJson($scope.jobWorks)));
+            });
+
+            camForm.on('variables-restored', function() {
+                variablesToCreate.forEach(function (el) {
+                    if (el.store) {
+                        if(el.type === 'Date'){
+                            $scope[el.name] = new Date(camForm.variableManager.variableValue(el.name));
+                        } else {
+                            $scope[el.name] = camForm.variableManager.variableValue(el.name);
+                        }
+                    }
+                });
+                if(camForm.variableManager.variableValue('contract')){
+                    $scope.custom.contract = parseInt(camForm.variableManager.variableValue('contract'));
+                }
+                if(camForm.variableManager.variableValue('contractor')){
+                    $scope.custom.contractor = parseInt(camForm.variableManager.variableValue('contractor'));
+                }
+                try{
+                    if(camForm.variableManager.variableValue('requestedDate')){
+                        $scope.requestedDate = new Date(camForm.variableManager.variableValue('requestedDate'));
+                    } else {
+                        $scope.requestedDate = new Date();
+                    }
+                } catch(e){
+                    $scope.requestedDate = new Date();
+                }
+                try{
+                    if(camForm.variableManager.variableValue('jobWorks')){
+                        $scope.jobWorks = JSON.parse(angular.toJson(camForm.variableManager.variableValue('jobWorks')));
+                    } else {
+                        $scope.jobWorks = [{relatedSites:[]}];
+                    }
+                } catch(e){
+                    $scope.jobWorks = [{relatedSites:[]}];
+                }
+                refreshJobRequests();
+                serviceChanged();
+            });
+
+            $scope.getUnits = function($item, index){
+                if($item.id === -1){
+                    $scope.jobWorks[index].sapServiceNumber = undefined;
+                    $scope.jobWorks[index].id = undefined;
+                    $scope.jobWorks[index].displayServiceName = undefined;
+                    $scope.jobWorks[index].materialUnit = undefined;
+                    $scope.jobWorks[index].materialsProvidedBy = undefined;
+                    $scope.jobWorks[index].materialsProvidedByDisabled = false;
+                } else {
+                    $scope.jobWorks[index].materialsProvidedBy = 'kcell';
+                    $scope.jobWorks[index].sapServiceNumber = $item.sapServiceNumber;
+                    $scope.jobWorks[index].id = $item.id;
+                    $scope.jobWorks[index].displayServiceName = $item.displayServiceName;
+                    $scope.jobWorks[index].materialUnit = $item.units;
+                    $scope.jobWorks[index].materialsProvidedByDisabled = true;
+                    if (subContractorsMaterials.includes($scope.jobWorks[index].sapServiceNumber)) {
+                        $scope.jobWorks[index].materialsProvidedBy = 'subcontractor'
+                    }
+                    if (kcellMaterials.includes($scope.jobWorks[index].sapServiceNumber)) {
+                        $scope.jobWorks[index].materialsProvidedBy = 'kcell'
+                    }
+                    if (allMaterials.includes($scope.jobWorks[index].sapServiceNumber)) {
+                        $scope.jobWorks[index].materialsProvidedByDisabled = false;
+                    }
+                }
+            };
+            $scope.getWorks = function(val) {
+                var result = _.filter($scope.works, function(work){
+                    return work.displayServiceName.toLowerCase().indexOf(val.toLowerCase()) !== -1;
+                })
+
+                result = _.filter(result, function(element){
+                    if(!$scope.mainContract || !$scope.custom.contractor){
+                        return false;
+                    } else {
+                        if($scope.mainContract === '2022Work-agreement') {
+                            return element.id >= 4000;
+                        } else if($scope.mainContract === 'Roll-outRevision2020' || $scope.mainContract === 'emergencyRevision2022'){
+                            return (element.id >= 3000 && element.id < 4000);
+                        } else if($scope.mainContract === 'Roll-out'){
+                            return (element.id > 1000 && element.id < 2000);
+                        } else if($scope.mainContract === 'Revision'){
+                            if($scope.contractorShortName[$scope.custom.contractor] === 'KR'){
+                                return (element.id < 1000 || (element.id > 2000 && element.id < 3000));
+                            } else {
+                                return element.id < 1000;
+                            }
+                        }
+                    }
+                });
+
+                result = _.filter(result, function(element){
+                    if($scope.mainContract === 'Roll-out') {
+                        if(element.id !== 1013 && _.some($scope.jobWorks, function(w){ return w.sapServiceNumber === 'RO13' })){
+                            return false;
+                        } else if(element.id === 1013 && _.some($scope.jobWorks, function(w){ return w.sapServiceNumber && w.sapServiceNumber !== 'RO13' })) {
+                            return false;
+                        } else {
+                            return true;
+                        }
+                    } else if($scope.mainContract === 'Revision') {
+                        if(element.id === 9){
+                            return $scope.siteStatus && $scope.siteStatus === 'will be dismantled';
+                        } else if(element.id === 8){
+                            return $scope.siteStatus && $scope.siteStatus === 'will be replacement';
+                        } else {
+                            return true;
+                        }
+                    } else if($scope.mainContract === 'Roll-outRevision2020' || $scope.mainContract === 'emergencyRevision2022') {
+                            // siteSubStatus == Will be rqeplacement or Will be dismantled
+                        if ($scope.siteSubStatusId !== 6 && $scope.siteSubStatusId !== 7) {
+                            return element.id !== 3007
+                        } else {
+                            return true;
+                        }
+                    } else return true;
+                });
+
+                result = _.filter(result, function(element){
+                    if($scope.mainContract === 'Roll-out' || $scope.mainContract === 'Revision'){
+                        return true;
+                    } else if($scope.mainContract === 'Roll-outRevision2020' || $scope.mainContract === 'emergencyRevision2022') {
+                       if($scope.custom.contractor === '5') {
+                            // if($scope.reason === '1') {
+                            //    return $scope.notAllowedANRUjobs.indexOf(element.sapServiceNumber) === -1;
+                            // } else if($scope.reason === '2') {
+                            //     return $scope.notAllowedTNUjobs.indexOf(element.sapServiceNumber) === -1;
+                            // } else if($scope.reason === '3') {
+                            //     return $scope.notAllowedSFMjobs.indexOf(element.sapServiceNumber) === -1;
+                            // } else return true;
+
+                            return !$scope.notAllowedAllGroupsJobs.includes(element.sapServiceNumber)
+
+                       } else return true;
+                    } else return true;
+                });
+
+                if(result.length === 0){
+                    result.push({
+                        "id":-1,
+                        "sapServiceNumber":"",
+                        "sapPOServiceName":"Не найдено",
+                        "displayServiceName":"Не найдено",
+                        "currency":"",
+                        "units":""
+                    });
+                }
+                return result;
+            }
+
+
+            $scope.defineExpenseType = function(index){
+                for(var i=0;i<$scope.jobWorkReasons.length;i++){
+                    if($scope.jobWorks[index].reason === $scope.jobWorkReasons[i].id){
+                        $scope.jobWorks[index].expenseType = $scope.jobWorkReasons[i].expenseType;
+                        $scope.jobWorks[index].reasonDetail = $scope.jobWorkReasons[i].detail;
+                    }
+                }
+                $(function () {
+                    $('[data-toggle="tooltip"]').tooltip('fixTitle');
+                });
+            };
+
+
+
+            $scope.getSite = function(val) {
+                return $http.get('/camunda/sites/name/contains/' + val).then(
+                        function(response){
+                            return response.data.map(el => ({ id: el.id, name: el.siteid, site_name: el.site_name }))
+                        }
+                );
+            };
+
+            function setOblastName(val) {
+                        for (const item of $scope.oblastCatalog) {
+                            if (item['siteId'] === undefined) {
+                                continue;
+                            }
+                            if (item.siteId.value.split(',').map((item) => parseInt(item, 10)).includes(parseInt(val.substring(0,2), 10))) {
+                              $scope.oblastName = item.value;
+                              break;
+                            }
+                        }
+            };
+
+            function setSubcontractorName(val) {
+                        for (const item of $scope.subcontractorCatalog) {
+                            if (item['siteId'] === undefined) {
+                                continue;
+                            }
+                            if (item.siteId.value.split(',').map((item) => parseInt(item, 10)).includes(parseInt(val.substring(0,2), 10))) {
+                              $scope.subcontractorName = item.value;
+                              if($scope.mainContract === '2022Work-agreement') {
+                                  $scope.custom.contractor = item.id;
+                              }
+                              break;
+                            }
+                        }
+            };
+
+            function setRegion(regionId, regionName) {
+                $scope.siteRegion = regionId ? $scope.regionsMapLC[regionId] : '';
+                $scope.siteRegionShow = regionName ? regionName : '';
+                $scope.regionShortName = regionId ? $scope.regionsMap[regionId] : '';
+                $scope.regionNewShortName = regionId ? $scope.regionsNewMap[regionId] : '';
+            }
+
+            $scope.siteSelected = function($item){
+                $scope.jobWorks = [{relatedSites:[]}];
+                $scope.siteName = $item.name;
+                $scope.site = $item.id;
+                $scope.site_name = $item.site_name;
+                $http.get('/camunda/sites/id/' + $item.id).then(function(result) {
+                    var siteInfo = result.data
+                    $scope.siteId = siteInfo.site_id;
+                    console.log($scope.siteId);
+                    $scope.siteAddress = ''
+                    $scope.siteRegion = ''
+                    if (siteInfo.facility_main_id){
+                        if (siteInfo.facility_main_id.address_id) {
+                            var adress = '';
+                            if (siteInfo.facility_main_id.address_id.region_id) {
+                                if (siteInfo.facility_main_id.address_id.region_id.name) {
+                                    adress = siteInfo.facility_main_id.address_id.region_id.name;
+                                }
+                            }
+                            if (siteInfo.facility_main_id.address_id.city_id && siteInfo.facility_main_id.address_id.city_id.id) {
+                                if (siteInfo.facility_main_id.address_id.city_id.district_id && siteInfo.facility_main_id.address_id.city_id.district_id.id) {
+                                    if (siteInfo.facility_main_id.address_id.city_id.district_id.oblast_id && siteInfo.facility_main_id.address_id.city_id.district_id.oblast_id.id) {
+                                        adress = (adress ? adress + ', ' : '') + siteInfo.facility_main_id.address_id.city_id.district_id.oblast_id.name;
+                                    }
+                                    adress = (adress ? adress + ', ' : '') + siteInfo.facility_main_id.address_id.city_id.district_id.name;
+                                }
+                                adress = (adress ? adress + ', ' : '') + siteInfo.facility_main_id.address_id.city_id.name;
+                                if (siteInfo.facility_main_id.address_id.city_id.city_type_id && siteInfo.facility_main_id.address_id.city_id.city_type_id.id) {
+                                    adress = (adress ? adress + ' (' : '') + siteInfo.facility_main_id.address_id.city_id.city_type_id.name + ')';
+                                }
+                            }
+                            if (siteInfo.facility_main_id.address_id.cadastral_number) {
+                                adress = (adress ? adress + ', ' : '') + siteInfo.facility_main_id.address_id.cadastral_number;
+                            }
+                            if (siteInfo.facility_main_id.address_id.street) {
+                                adress = (adress ? adress + ', ' : '') + siteInfo.facility_main_id.address_id.street;
+                            }
+                            if (siteInfo.facility_main_id.address_id.building) {
+                                adress = (adress ? adress + ', ' : '') + siteInfo.facility_main_id.address_id.building;
+                            }
+                            if (siteInfo.facility_main_id.address_id.note) {
+                                adress = (adress ? adress + ', ' : '') + siteInfo.facility_main_id.address_id.note;
+                            }
+                            $scope.siteAddress = adress;
+                            if ($scope.mainContract === '2022Work-agreement') {
+                                const regionId = $scope.oblastCatalog.find( item => item['siteId'] === undefined ? false :
+                                    item.siteId.value.split(',').map((item) => parseInt(item, 10)).includes(parseInt(siteInfo.site_id.substring(0,2), 10))
+                                ).parent;
+                                const regionName = $scope.regionCatalog.find(item => item.id === regionId).value;
+                                setRegion(regionId, regionName);
+                            } else {
+                                const regionId = siteInfo.facility_main_id.address_id.region_id?.id;
+                                const regionName = siteInfo.facility_main_id.address_id.region_id?.name;
+                                setRegion(regionId, regionName);
+                            }
+                            setOblastName(siteInfo.site_id);
+                            setSubcontractorName(siteInfo.site_id);
+                            checkIfNeedToSelectOblast();
+                        }
+                    }
+                    $scope.siteStatus = siteInfo.site_status_id ? siteInfo.site_status_id.name : '';
+                    $scope.siteSubStatus = siteInfo.site_substatus_id ? siteInfo.site_substatus_id.name : '';
+                    $scope.siteSubStatusId = siteInfo.site_substatus_id ? siteInfo.site_substatus_id.id : 0;
+                     $scope.refreshJobRequests();
+                })
+
+                $(function () {
+                    $('[data-toggle="tooltip"]').tooltip('fixTitle');
+                });
+            };
+
+            $scope.regionSelected = function(siteRegion){
+                var r = _.find($scope.regions, function (r) {
+                    return r.id === siteRegion;
+                });
+                if(r){
+                    $scope.regionShortName = r.value;
+                    refreshJobRequests();
+                }
+            }
+
+            $scope.needToSelectOblast = false;
+            function checkIfNeedToSelectOblast() {
+                const siteId = $scope.siteId ? $scope.siteId.substring(0,2) : '';
+                $scope.needToSelectOblast = $scope.mainContract === '2022Work-agreement'
+                    && ['03','05','07'].includes(siteId);
+                if ($scope.needToSelectOblast) {
+                    $scope.oblastName = null;
+                }
+            }
+
+            $scope.selectedOblast = undefined;
+            $scope.oblastSelected = function(selectedOblast) {
+                if (selectedOblast) {
+                    $scope.oblastName = selectedOblast;
+                }
+            }
+
+            $scope.workSiteSelected = function($item, $index){
+                if(!$scope.jobWorks[$index].relatedSites){
+                    $scope.jobWorks[$index].relatedSites = [];
+                }
+                if(!_.some($scope.jobWorks[$index].relatedSites, function(value){
+                            return value.site_name === $item.site_name;
+                        })){
+                    $scope.jobWorks[$index].relatedSites.push($item);
+                }
+                $scope.tempSite = {};
+            };
+
+            $scope.removeRelatedSite = function(i, j){
+                $scope.jobWorks[i].relatedSites.splice(j,1);
+            }
+
+            $scope.siteJobWorkSelected = function($item, $index){
+                $scope.jobWorks[$index].sites.name = $item.name;
+                $scope.jobWorks[$index].sites.id = $item.id;
+            };
+            $scope.clearWorkSiteId = function($index){
+                if(!$scope.jobWorks[$index].sites){
+                    $scope.jobWorks[$index].sites = {id:undefined};
+                }
+                $scope.jobWorks[$index].sites.id = undefined;
+            };
+
+            $scope.preSubmit = function(){
+                var deferred = $q.defer();
+                var contains = _.some(_.flatMap($scope.jobWorks, 'relatedSites'), function(value){
+                    return value.site_name === $scope.site_name;
+                });
+
+                var containsPermit = _.intersection(_.map($scope.jobWorks, 'sapServiceNumber'), permitWorks);
+                var containsRollOut = _.intersection(_.map($scope.jobWorks, 'sapServiceNumber'), rollOutContractWorks);
+                $scope.isPermitDocsNeeded = containsPermit.length > 0;
+                if($scope.mainContract==='Roll-outRevision2020') {
+                    $scope.isPermitDocsNeeded = containsRollOut.length > 0;
+                }
+                if(!contains){
+                    deferred.reject('At least one job should contains Main Site');
+                    return deferred.promise;
+                } else {
+                    if($scope.custom.contractor === '-1'){
+                        $scope.jrNumber = $scope.regionShortName + '-##-' + $scope.reasonShortName[$scope.reason] + '-' + $scope.requestedDate.getFullYear().toString().substr(-2) + '-####';
+                        camForm.businessKey = $scope.jrNumber;
+                        deferred.resolve();
+                        return deferred.promise;
+                    } else {
+                        var jrCounter;
+                        if($scope.mainContract === '2022Work-agreement') {
+                            jrCounter = $scope.regionNewShortName+'-'+$scope.contractorNewShortName[$scope.custom.contractor]+'-'+$scope.reasonNewShortName[$scope.reason]+'-'+$scope.requestedDate.getFullYear().toString().substr(-2);
+                        } else {
+                            jrCounter = $scope.regionShortName+'-'+$scope.contractorShortName[$scope.custom.contractor]+'-'+$scope.reasonShortName[$scope.reason]+'-'+$scope.requestedDate.getFullYear().toString().substr(-2)+($scope.mainContract==='Roll-out'?'-Ro':'');
+                        }
+                        return $http.post('/asset-management/jobrequestcounter/' + jrCounter).then(
+                            function(result){
+                                $scope.jrNumber = result.data;
+                                camForm.businessKey = result.data;
+                            }
+                        );
+                    }
+                }
+            }
+        }]);
+    </script>
+    <iframe id="fileDownloadIframe" style="display:none;"></iframe>
+
+    <div class="form-group">
+        <div class="col-sm-8">
+            <h4>Create job request</h4>
+        </div>
+        <div class="col-sm-1">
+            <label>JR Number:</label>
+        </div>
+        <div class="col-sm-3">
+            <span ng-if="mainContract !== '2022Work-agreement'">{{regionShortName?regionShortName:'###'}}-{{contractorShortName[custom.contractor]?contractorShortName[custom.contractor]:'##'}}-{{reasonShortName[reason]?reasonShortName[reason]:'###'}}-{{requestedDate.getFullYear().toString().substr(-2)}}-{{siteCounter?siteCounter:'####'}}{{mainContract == 'Roll-out'?'-Ro':''}}</span>
+            <span ng-if="mainContract === '2022Work-agreement'">{{regionNewShortName?regionNewShortName:'###'}}-{{contractorNewShortName[custom.contractor]?contractorNewShortName[custom.contractor]:'##'}}-{{reasonNewShortName[reason]?reasonNewShortName[reason]:'###'}}-{{requestedDate.getFullYear().toString().substr(-2)}}-{{siteCounter?siteCounter:'####'}}{{mainContract == 'Roll-out'?'-Ro':''}}</span>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label class="col-sm-3 control-label">Contract:</label>
+        <div class="col-sm-3">
+            <select class="form-control selectpicker" select-picker title="" cam-variable-name="mainContract" name="mainContract" required cam-variable-type="String" ng-change="refreshJobRequests()">
+                <option value="Roll-outRevision2020">Roll-out and Revision 2020</option>
+                <option ng-if="$root.authentication.name === 'demo'" value="Revision">Revision</option>
+                <option ng-if="$root.authentication.name === 'demo'" value="Roll-out">Roll-out</option>
+                <option value="2022Work-agreement">Договор Подряда на Выполнение Работ 2022</option>
+                <option value="emergencyRevision2022">Emergency Revision 2022</option>
+            </select>
+            <label class="error" ng-if="kcell_form.mainContract.$error.required && ( kcell_form.mainContract.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-3 control-label">Job to:</label>
+        <div class="col-sm-8" ng-if="mainContract !== '2022Work-agreement'">
+            <label class="radio-inline" ng-if="$root.authentication.name === 'demo'">
+                <input type="radio" name="contractor" ng-disabled="['emergencyRevision2022'].includes(mainContract)" ng-model="custom.contractor" id="lse" value="4"> TOO Line System Engineering
+            </label>
+            <label class="radio-inline">
+                <input type="radio" name="contractor" ng-model="custom.contractor" id="subcontractor" value="-1"> Subcontractor
+            </label>
+            <label class="radio-inline">
+                <input type="radio" name="contractor" ng-disabled="['emergencyRevision2022'].includes(mainContract)" ng-model="custom.contractor" id="kcell_region" value="5"> Kcell_region
+            </label>
+            <label class="error" ng-if="kcell_form.contractor.$error.required && ( kcell_form.contractor.$touched || view.submitted)">Required field</label>
+        </div>
+        <div class="col-sm-8" ng-if="mainContract === '2022Work-agreement'">
+            <label class="radio-inline">
+                <input type="radio" ng-checked="true"> Subcontractor
+            </label>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-3 control-label">JR Creation date</label>
+        <div class="col-sm-3">
+            <div class="form-control">{{requestedDate | date: 'dd.MM.yyyy HH:mm'}}</div>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-3 control-label">Validity date:</label>
+        <div class="col-sm-3" ng-if="mainContract !== '2022Work-agreement'">
+            <div class="input-group">
+                <input type="text" ng-model="validityDate" name="validityDate" required class="form-control" datepicker-popup="dd.MM.yyyy" is-open="dateFieldOpened" id="validityDate" min-date="datepickerOptions.minDate" />
+                <span class="input-group-btn">
+                    <button type="button" class="btn btn-default" ng-click="open($event)">
+                        <i class="glyphicon glyphicon-calendar"></i>
+                    </button>
+                </span>
+            </div>
+        </div>
+        <div class="col-sm-3" ng-if="mainContract === '2022Work-agreement'">
+            <div class="form-control">{{requestedDate | date: 'dd.MM.yyyy HH:mm'}}</div>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-3 control-label">Site:</label>
+        <div class="col-sm-6">
+            <div class="input-group">
+                <input type="text" ng-model="site_name" name="site_name" typeahead="site as sites.site_name for sites in getSite($viewValue)" typeahead-on-select="siteSelected($item,$model,$label)" class="form-control" required autocomplete="off" placeholder="Site Name">
+                <input type="hidden" ng-model="siteName" name="siteId" required/>
+                <span class="input-group-btn" ng-if="siteName" data-toggle="tooltip" data-placement="right" title="Site status">
+                    <button type="button" class="btn btn-default">
+                        {{siteStatus ? siteStatus : 'Working site'}}
+                    </button>
+                </span>
+                <span class="input-group-btn" ng-if="siteName" data-toggle="tooltip" data-placement="right" title="Site substatus">
+                    <button type="button" class="btn btn-default">
+                        {{siteSubStatus ? siteSubStatus : 'Working site'}}
+                    </button>
+                </span>
+            </div>
+            <label class="error" ng-if="kcell_form.site_name.$error.required && ( kcell_form.site_name.$touched || view.submitted)">Required field</label>
+            <label class="error" ng-if="kcell_form.siteId.$error.required && ( kcell_form.siteName.$touched || view.submitted)">Необходимо выбрать сайт из списка</label>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-3 control-label">Region:</label>
+        <input type="hidden" ng-model="siteRegionShow" name="siteRegionShow" required/>
+        <div class="col-sm-3">
+            <div class="form-control">{{siteRegionShow}}</div>
+            <label class="error" ng-if="kcell_form.siteRegionShow.$error.required && ( kcell_form.siteRegionShow.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+    <div class="form-group" ng-if="mainContract === '2022Work-agreement'">
+        <label class="col-sm-3 control-label">Oblast:</label>
+        <div class="col-sm-3" ng-if="!needToSelectOblast">
+            <div class="form-control">{{oblastName}}</div>
+        </div>
+        <div class="col-sm-3" ng-if="needToSelectOblast">
+            <select ng-model="selectedOblast" ng-options="o as o for o in oblastToSelect"
+                    class="form-control" title="" name="selectedOblast" ng-required="true" ng-change="oblastSelected(selectedOblast)">
+                <option value="">select oblast</option>
+            </select>
+            <label class="error" ng-if="kcell_form.selectedOblast.$error.required && ( kcell_form.selectedOblast.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+    <div class="form-group" ng-if="mainContract === '2022Work-agreement'">
+        <label class="col-sm-3 control-label">Subcontractor:</label>
+        <input type="hidden" ng-model="subcontractorName" name="subcontractorName"/>
+        <div class="col-sm-3">
+            <div class="form-control">{{subcontractorName}}</div>
+        </div>
+    </div>
+    <div class="form-group" ng-if="siteAddress">
+        <label class="col-sm-3 control-label">Site Address:</label>
+        <div class="col-sm-6">
+            <div class="form-control" style="height: auto">{{siteAddress}}</div>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-3 control-label">Reason:</label>
+        <div class="col-sm-3">
+            <select class="form-control selectpicker" select-picker select-model="reasons" title="" cam-variable-name="reason" name="reason" ng-required="true" cam-variable-type="String" ng-change="refreshJobRequests()">
+                <option value="">select reason</option>
+                <option ng-if="mainContract != 'emergencyRevision2022'" value="{{r.id}}" ng-repeat="r in reasons" ng-selected="{{r.id == reason}}">{{r.name}}</option>
+                <option ng-if="mainContract == 'emergencyRevision2022'" value="{{reasons[3].id}}" ng-selected="{{reasons[3].id == reason}}">{{reasons[3].name}}</option>
+            </select>
+            <label class="error" ng-if="kcell_form.reason.$error.required && ( kcell_form.reason.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+    <div class="form-group" ng-if="mainContract !== '2022Work-agreement'">
+        <label class="col-sm-3 control-label">Related to the:</label>
+        <div class="col-sm-8">
+            <label class="radio-inline">
+                <input type="radio" name="relatedTo" required ng-model="relatedTo" value="Capacity"> Capacity
+            </label>
+            <label class="radio-inline">
+                <input type="radio" name="relatedTo" required ng-model="relatedTo" value="Coverage"> Coverage
+            </label>
+            <label class="radio-inline">
+                <input type="radio" name="relatedTo" required ng-model="relatedTo" value="Quality"> Quality
+            </label>
+            <label class="radio-inline">
+                <input type="radio" name="relatedTo" required ng-model="relatedTo" value="Field works"> Field works
+            </label>
+            <label class="error" ng-if="kcell_form.relatedTo.$error.required && ( kcell_form.relatedTo.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-3 control-label">Type of project:</label>
+        <div class="col-sm-3">
+            <select cam-variable-name="project" name="project" cam-variable-type="String" class="form-control selectpicker" select-picker required title="">
+                <option style="display:none" value=""></option>
+                <option value="N/A" selected>N/A</option>
+                <option value="4G Sharing">4G Sharing</option>
+                <option ng-if="reason === '2'" value="Other - (Re-routing, re-planning, etc.)">Other - (Re-routing, re-planning, etc.)</option>
+                <option ng-if="reason === '2'" value="Transmission FIX/IPVPN">Transmission FIX/IPVPN</option>
+                <option ng-if="reason === '2'" value="Transmission PBX">Transmission PBX</option>
+                <option ng-if="reason === '2'" value="Transmission 1+1">Transmission 1+1</option>
+                <option ng-if="reason === '2'" value="Transmission Upgrades">Transmission Upgrades</option>
+                <option ng-if="reason === '2'" value="Transmission Revision LTE">Transmission Revision LTE</option>
+
+                <!-- <option ng-if="reason === '3'" value="Air conditioner planned installation 1+1 for transmission (53 sites)">Air conditioner planned installation 1+1 for transmission (53 sites)</option> -->
+                <!-- <option ng-if="reason === '3'" value="Power system planned modernization 40 sites(ZTE B121)">Power system planned modernization 40 sites(ZTE B121)</option> -->
+                <!-- <option ng-if="reason === '3'" value="Termobox installation for «4G sharing» project">Termobox installation for «4G sharing» project</option> -->
+                <option ng-if="reason === '3'" value="Termobox installation for transmission (TN)">Termobox installation for transmission (TN)</option>
+                <!-- <option ng-if="reason === '3'" value="Termobox installation for «rollout»">Termobox installation for «rollout»</option> -->
+                <option ng-if="reason === '3'" value="Установка ИБП для организации услуги fix клиенту (по запросу от группы трансмиссии)">Установка ИБП для организации услуги fix клиенту (по запросу от группы трансмиссии)</option>
+
+                <option ng-if="reason === '1'" value="LTE 2019">LTE 2019</option>
+                <option ng-if="reason === '1'" value="LTE 2100 2019">LTE 2100 2019</option>
+                <option ng-if="reason === '1'" value="LTE 1800 2019">LTE 1800 2019</option>
+                <option ng-if="reason === '1'" value="2G+3G Roll-Out 2019">2G+3G Roll-Out 2019</option>
+                <option ng-if="reason === '1'" value="ZTE SWAP">ZTE SWAP</option>
+                <option ng-if="reason === '1'" value="CA_LTE1800">CA_LTE1800</option>
+                <option ng-if="reason === '1'" value="3CCA_LTE2100">3CCA_LTE2100</option>
+                <option ng-if="reason === '1'" value="MIMO 4x4">MIMO 4x4</option>
+                <option ng-if="reason === '1'" value="CEM">CEM</option>
+                <option ng-if="reason === '1'" value="SES">SES</option>
+                <option value="Roll-Out 2020">Roll-Out 2020</option>
+                <option value="250+">250+</option>
+                <option value="Roll-Out 2021">Roll-Out 2021</option>
+                <option ng-if="reason === '5'" value=" 2G/3G from 2019"> 2G/3G from 2019 </option>
+                <option ng-if="reason === '5'" value=" 65 - Com. Block"> 65 - Com. Block </option>
+                <option ng-if="reason === '5'" value=" RND 2020"> RND 2020 </option>
+                <option ng-if="reason === '5'" value=" LTE from 2019"> LTE from 2019 </option>
+                <option ng-if="reason === '5'" value=" LTE 2020"> LTE 2020 </option>
+                <option ng-if="reason === '5'" value=" Com. Block 2020"> Com. Block 2020 </option>
+                <option ng-if="reason === '5'" value=" LTE 2019"> LTE 2019 </option>
+                <option ng-if="reason === '5'" value=" B2B 2020"> B2B 2020 </option>
+                <option ng-if="reason === '5'" value=" 250+"> 250+ </option>
+                <option ng-if="reason === '5'" value=" Com. Block (3 Reg.)"> Com. Block (3 Reg.) </option>
+                <option ng-if="reason === '5'" value=" ERG"> ERG </option>
+                <option ng-if="reason === '5'" value=" License settlement"> License settlement </option>
+                <option ng-if="reason === '5'" value=" Kazminerals LTE Project"> Kazminerals LTE Project </option>
+
+                <option ng-if="reason === '4'" value="Facility Improvement"> Facility Improvement</option> 
+                <option ng-if="reason === '4'" value="ППР крупно-узловых сайтов"> ППР крупно-узловых сайтов</option> 
+
+                <option ng-if="reason === '2'" value="Модернизация сети трансмиссии (строительство новых хопов и апгрейд старых для увеличения емкости сети, кроме работ по проектам Roll-Out и 250+)"> Модернизация сети трансмиссии (строительство новых хопов и апгрейд старых для увеличения емкости сети, кроме работ по проектам Roll-Out и 250+)</option>
+                <option ng-if="reason === '2'" value="Roll-Out - вспомогательные работы для запуска новых сайтов (кроме работ по проекту 250+)"> Roll-Out - вспомогательные работы для запуска новых сайтов (кроме работ по проекту 250+)</option>
+                <option ng-if="reason === '2'" value="Проект 250+ (включая модернизацию сети для запуска сайтов по данному проекту)"> Проект 250+ (включая модернизацию сети для запуска сайтов по данному проекту)</option>
+                <option ng-if="reason === '2'" value="Надежность сети трансмиссии (добавление 1+1, перенос, укрепление антенн для лучшей настройки, добавление PFU 1+1 и т.д.) "> Надежность сети трансмиссии (добавление 1+1, перенос, укрепление антенн для лучшей настройки, добавление PFU 1+1 и т.д.) </option>
+                <option ng-if="reason === '2'" value="Перенос оборудования трансмиссии (re-routing, re-planning)"> Перенос оборудования трансмиссии (re-routing, re-planning)</option>
+                <option ng-if="reason === '2'" value="Подключение сторонних клиентов (FIX/IPVPN/PBX)"> Подключение сторонних клиентов (FIX/IPVPN/PBX)</option>
+                <option ng-if="reason === '2'" value="Межоператорские соединения (sharing, ТПТ и т.д.)"> Межоператорские соединения (sharing, ТПТ и т.д.)</option>
+                <option ng-if="reason === '2'" value="Перевод спутниковых сайтов на наземную трансмиссию"> Перевод спутниковых сайтов на наземную трансмиссию</option>
+
+                <option ng-if="reason === '3'" value="Power system modernization"> Power system modernization</option>
+                <option ng-if="reason === '3'" value="Power system installation"> Power system installation</option>
+                <option ng-if="reason === '3'" value="Air conditioner installation"> Air conditioner installation</option>
+                <option ng-if="reason === '3'" value="Termobox installation"> Termobox installation</option>
+                <option ng-if="reason === '3'" value="Строительство HOP-POINT"> Строительство HOP-POINT</option>
+                <option ng-if="reason === '3'" value="Revision works for transmission "> Revision works for transmission </option>
+                <option ng-if="reason === '3'" value="Revision works по причинам необходимой модернизации инфраструктуры"> Revision works по причинам необходимой модернизации инфраструктуры</option>
+                <option value="10 сайтов на свап 6201-6601">10 сайтов на свап 6201-6601</option>
+                <option value="200 pc">200 pc</option>
+                <option value="Utilization">Utilization</option>
+                <option value="Вышка акимата">Вышка акимата</option>
+                <option value="Ерейментау">Ерейментау</option>
+                <option value="Инспекция связи">Инспекция связи</option>
+                <option value="Чарын">Чарын</option>
+                <option value="Turkestan 5G">Turkestan 5G</option>
+            </select>
+            <label class="error" ng-if="kcell_form.project.$error.required && ( kcell_form.project.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-3 control-label">Priority:</label>
+        <div class="col-sm-3">
+            <select cam-variable-name="priority" name="priority" cam-variable-type="String" class="form-control selectpicker" select-picker title=""
+            ng-disabled="reason && reason !== '4'" required>
+                <option value="">select priority</option>
+                <option value="regular">Regular</option>
+                <option value="emergency">Emergency</option>
+            </select>
+            <label class="error" ng-if="kcell_form.priority.$error.required && ( kcell_form.priority.$touched || view.submitted)">Required field</label>
+        </div>
+        <label class="col-sm-offset-3" ng-if="priority === 'emergency'"> «только для работ согласно пункту контракта 12.6.Внеплановые работы по заявкам (KPIвпр)»– цена работ увеличивается на новая цена = цена * 1.2</label>
+    </div>
+    <div class="form-group" ng-hide="reason === '2'">
+        <label class="col-sm-3 control-label">Works belongs to KZT, Beeline, ODS:</label>
+        <div class="col-sm-8">
+            <!-- NOT REQUIRED -->
+            <label class="radio-inline">
+                <input type="radio" name="worksBelongsTo" ng-model="worksBelongsTo" id="worksBelongsTo1" ng-checked="reason === '2'" value="Yes" ng-required="reason !== '2'" > Yes
+            </label>
+            <label class="radio-inline">
+                <input type="radio" name="worksBelongsTo" ng-model="worksBelongsTo" id="worksBelongsTo2" value="No" ng-required="reason !== '2'"> No
+            </label>
+            <label class="error" ng-if="kcell_form.worksBelongsTo.$error.required && ( kcell_form.worksBelongsTo.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-3 control-label">Supplementary files:</label>
+        <div class="col-sm-6">
+            <div class="input-group" ng-repeat="file in supplementaryFiles track by $index">
+                <a ng-click="download(file)">{{file.name}}</a> | <a ng-click="clearFile($index);"><i class="glyphicon glyphicon-trash"></i></a>
+                <div class="input-group-addon" ng-show="file.name && hasGroup('kcellUsers')">
+                    <label class="radio-inline">
+                        <input type="radio" name="supplementaryFileVisibility_{{$index}}"
+                               ng-model="file.visibility" value="all" ng-required="file.name && hasGroup('kcellUsers')"> Visible for all
+                    </label>
+                    <label class="radio-inline">
+                        <input type="radio" name="supplementaryFileVisibility_{{$index}}"
+                               ng-model="file.visibility" value="kcell" ng-required="file.name && hasGroup('kcellUsers')"> Kcell staff only
+                    </label>
+                    <label class="error" ng-show="kcell_form['supplementaryFileVisibility_'+$index].$error.required && ( kcell_form['supplementaryFileVisibility_'+$index].$index.$touched || view.submitted)">Required field</label>
+                </div>
+            </div>
+            <div class="input-group">
+                <label class="input-group-btn">
+                    <span class="btn btn-default">
+                        Choose File <input type="file" id="supplementaryFiles" name="supplementaryFiles" style="display: none;" onchange="angular.element(this).scope().fileSelected(this, '#supplementaryFilesName');$('#supplementaryFilesName').val(this.files[0].name)" >
+                    </span>
+                </label>
+                <input type="text" class="form-control upload-filename" id="supplementaryFilesName" placeholder="No File Chosen" readonly>
+            </div>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-3 control-label">Running job requests for these sites ({{jobRequestsCount}} JRs)</label>
+        <div class="col-sm-8">
+
+            <table class="table table-condensed start-table" ng-if="jobRequestsCount>0" style="width:100%">
+                <thead><tr>
+                    <th class="sortable col-xs-3">JR No
+                        <i ng-click="orderByFieldName('jrNumber')" class="glyphicon" ng-class="fieldName != 'jrNumber' ? 'glyphicon-sort' : reverseOrder?'glyphicon-chevron-down':'glyphicon-chevron-up'"></i></th>
+                    </th>
+                    <th class="sortable col-xs-3">Type of Project
+                        <i ng-click="orderByFieldName('project')" class="glyphicon" ng-class="fieldName != 'project' ? 'glyphicon-sort' : reverseOrder?'glyphicon-chevron-down':'glyphicon-chevron-up'"></i></th>
+                    </th>
+                    <th class="sortable col-xs-2">Creation date
+                        <i ng-click="orderByFieldName('requestedDate')" class="glyphicon" ng-class="fieldName != 'requestedDate' ? 'glyphicon-sort' : reverseOrder?'glyphicon-chevron-down':'glyphicon-chevron-up'"></i></th>
+                    </th>
+                    <th class="sortable col-xs-4">Status
+                        <i ng-click="orderByFieldName('statusName')" class="glyphicon" ng-class="fieldName != 'statusName' ? 'glyphicon-sort' : reverseOrder?'glyphicon-chevron-down':'glyphicon-chevron-up'"></i></th>
+                    </th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr ng-repeat-start="(k,job) in jobRequests | toArray | orderBy : fieldName : reverseOrder">
+                    <td class="col-xs-3"><a ng-click="toggleJr($index)">{{job.jrNumber}}</a></td>
+                    <td class="col-xs-3">{{job.project}}</td>
+                    <td class="col-xs-2">{{job.requestedDate | date: 'dd.MM.yyyy'}}</td>
+                    <td class="col-xs-4">{{job.statusName}}</td>
+                </tr>
+                <tr ng-repeat-end style="padding: 0;" ng-if="jrIndex === $index">
+                    <td class="col-xs-11">
+                        <table class="table table-condensed table-bordered" style="margin: 12px 0 12px 0;">
+                            <tbody style="max-height:fit-content;">
+                                <tr>
+                                    <td style="width: 100%; height:100%; overflow:hidden;">
+                                   <div class="row">
+                                       <div class="col-md-4">
+                                           <div class="row">
+                                               <div class="col-md-12">
+                                                   <div class="panel panel-default">
+                                                       <div class="panel-heading">Details</div>
+                                                       <div class="panel-body" style="padding:10px 10px 0 10px;">
+                                                           <div class="form-group">
+                                                               <div class="col-sm-12"><b>Initiator</b>: {{job.initiatorFull.firstName}}
+                                                                   {{job.initiatorFull.lastName}}
+                                                               </div>
+                                                               <div class="col-sm-12"><b>JR Number</b>: {{job.jrNumber}}</div>
+                                                               <div class="col-sm-12"><b>Priority</b>: {{job.priority ==
+                                                                   'emergency'?'Emergency':'Regular'}}
+                                                               </div>
+                                                               <div class="col-sm-12"><b>Reason</b>: {{reasonsTitle[job.reason]}}
+                                                               </div>
+                                                               <div class="col-sm-12"><b>Materials required</b>: {{job.materialsRequired}}
+                                                               </div>
+                                                               <div class="col-sm-12"><b>Leasing required</b>: {{job.leasingRequired}}</div>
+                                                               <div class="col-sm-12"><b>Site (near end)</b>: {{job.siteName}}</div>
+                                                               <div class="col-sm-12"><b>Site Name</b>: {{job.site_name}}</div>
+                                                           </div>
+                                                       </div>
+                                                   </div>
+                                               </div>
+                                           </div>
+                                           <div class="row">
+                                               <div class="col-md-12">
+                                                   <a href="" class="btn btn-default" style="float:right; margin-top:-15px" ng-click="showHistory(job.resolutions)" class="ng-binding"><span class="glyphicon glyphicon-list-alt" aria-hidden="true"></span> History  </a>
+
+                                               </div>
+                                           </div>
+                                       </div>
+                                       <div class="col-md-8">
+                                           <div class="row">
+                                               <div class="col-xs-4 col-md-4" ng-if="requestedDate < compareDate"><b>Requested date</b>:
+                                                   {{job.requestedDate | date: 'dd.MM.yyyy HH:mm'}}
+                                               </div>
+                                               <div class="col-xs-4 col-md-4" ng-if="requestedDate >= compareDate"><b>Job Request date</b>:
+                                                   {{job.contractorJobAssignedDate | date: 'dd.MM.yyyy HH:mm'}}
+                                               </div>
+                                           </div>
+                                           <div class="row">
+                                               <div class="col-xs-4 col-md-4"><b>Validity date</b>: {{job.validityDate | date:
+                                                   'dd.MM.yyyy'}}
+                                               </div>
+                                               <div class="col-xs-4 col-md-4"><b>Contract</b>: {{servicesTitle[job.contract]}}
+                                               </div>
+                                               <div class="col-xs-4 col-md-4"><b>SA&O Complaint Id</b>: {{job.soaComplaintId}}</div>
+                                           </div>
+                                           <div class="row">
+                                               <div class="col-xs-4 col-md-4"><b>Contractor</b>:
+                                                   {{contractorsTitle[job.contractor]}}
+                                               </div>
+                                               <div class="col-xs-4 col-md-4"><b>Power engineering required</b>: {{job.powerRequired}}</div>
+                                               <div class="col-xs-4 col-md-4"><b>Project</b>: {{job.project}}</div>
+
+                                           </div>
+                                           <div class="row">
+                                               <div class="col-xs-4 col-md-4"><b>Perform date</b>: {{job.performDate | date: 'dd.MM.yyyy'}}
+                                               </div>
+                                               <div class="col-xs-4 col-md-4"><b>Acceptance date</b>: {{job.acceptanceDate | date:
+                                                   'dd.MM.yyyy'}}
+                                               </div>
+                                           </div>
+                                           <div class="row" ng-if="job.monthActNumber || job.invoiceNumber">
+                                               <div class="col-xs-4 col-md-4" ng-if="job.monthActNumber"><b>Monthly Act Number</b>:
+                                                   #{{job.monthActNumber}}
+                                               </div>
+                                               <div class="col-xs-4 col-md-4" ng-if="job.invoiceNumber"><b>Invoice Number</b>:
+                                                   #{{job.invoiceNumber}} dated {{job.invoiceDate | date:'dd.MM.yyyy'}}
+                                               </div>
+                                           </div>
+                                           <div class="row" ng-if="job.processTechnicalUpdates">
+                                               <div class="col-md-12"><b>Technical updates</b>: {{job.processTechnicalUpdates}}</div>
+                                           </div>
+                                           <div class="row" ng-if="job.delayInfo">
+                                               <div class="col-xs-4 col-md-4"><b>Delay</b>: {{job.delayInfo}} (days)
+                                                   <a ng-show="job.showDelayHint" role="button" data-toggle="collapse" href="#collapseDelayInfo"
+                                                      aria-expanded="false" aria-controls="collapseDelayInfo">
+                                                       <i class="glyphicon glyphicon-question-sign"></i>
+                                                   </a>
+                                               </div>
+                                           </div>
+                                           <br/>
+                                           <div class="row">
+                                               <div class="col-md-12"><b>Supplementary files</b>:</div>
+                                               <div class="col-md-12" ng-repeat="file in job.supplementaryFiles.value track by $index"><a
+                                                       ng-if="isFileVisible(file)" ng-click="download(file)">{{file.name}}</a></div>
+                                           </div>
+                                           <br/>
+                                           <div class="row">
+                                               <div class="col-md-12"><b>Works</b>:</div>
+                                               <div class="col-md-12" ng-repeat="work in job.jobWorks track by $index">&nbsp;&nbsp;&nbsp;&nbsp;{{work.displayServiceName}},
+                                                   works qty: {{work.quantity}}, materials qty: {{work.materialQuantity}} {{work.materialUnit}}<span
+                                                           ng-if="work.relatedSites.length > 0">, on sites: <ul class="site-list"><li
+                                                           ng-repeat="rs in work.relatedSites">{{rs.site_name}}</li></ul>,</span>
+                                                   <span ng-if="work.reason">work request reason: {{jobReasonTitleShort[work.reason]}}</span>
+                                                   <div class="col-md-12" ng-repeat="file in work.files">
+                                                       <div class="col-md-12" ng-if="file.valueInfo">&nbsp;&nbsp;&nbsp;&nbsp;{{$index+1}}.<a
+                                                               href="/camunda/api/engine/engine/default/{{job.statusName && job.statusName == 'Closed'?'history/':''}}variable-instance/{{file.id}}/data">{{file.valueInfo.filename}}
+                                                           (Old version, read only)</a></div>
+                                                       <div class="col-md-12" ng-if="file">&nbsp;&nbsp;&nbsp;&nbsp;{{$index+1}}.<a
+                                                               ng-click="download(file)">{{file.name}}</a></div>
+                                                   </div>
+                                               </div>
+                                           </div>
+                                           <br/>
+                                           <div class="row">
+                                               <div class="col-md-12"><b>Explanation of works</b>: {{job.explanation}}</div>
+                                           </div>
+                                           <div class="row" ng-if="job.sapPRNo">
+                                               <div class="col-md-12"><b>SAP Purchase Request No</b>: {{job.sapPRNo}} <a
+                                                       href="{{job.sapPRFileXLS.contentUrl}}" ng-if="false">(Download PR)</a></div>
+                                           </div>
+                                           <div class="row" ng-if="job.sapPONo">
+                                               <div class="col-md-12"><b>SAP PO No</b>: {{job.sapPONo.value}}</div>
+                                           </div>
+                                           <div class="row" ng-if="job.jrBlank">
+                                               <div class="col-md-12"><b>JR Blank:</b> <a ng-click="download(job.jrBlank)">{{job.jrBlank.name}}</a>
+                                               </div>
+                                           </div>
+                                           <div class="row" ng-if="job.jrBlank.contentUrl">
+                                               <div class="col-md-12"><a href="{{job.jrBlank.contentUrl}}">JR Blank (Old version, read only)</a>
+                                               </div>
+                                           </div>
+                                           <div class="row"
+                                                ng-if="job.kcellWarehouseMaterialsListName.name && isFileVisible(job.kcellWarehouseMaterialsListName)">
+                                               <div class="col-md-12"><b>Kcell Warehouse Materials List:</b> <a
+                                                       ng-click="download(job.kcellWarehouseMaterialsListName)">{{job.kcellWarehouseMaterialsListName.name}}</a>
+                                               </div>
+                                           </div>
+                                           <div class="row"
+                                                ng-if="job.kcellWarehouseMaterialsListName && job.kcellWarehouseMaterialsListName.length > 0">
+                                               <div class="col-md-12"><b>Kcell Warehouse Materials List:</b>
+                                                   <a ng-if="isFileVisible(file)" ng-repeat="file in job.kcellWarehouseMaterialsListName"
+                                                      ng-click="download(file)">{{file.name}}{{$last?'':', '}}</a>
+                                               </div>
+                                           </div>
+                                           <div class="row" ng-if="job.kcellWarehouseMaterialsList.contentUrl">
+                                               <div class="col-md-12"><a href="{{job.kcellWarehouseMaterialsList.contentUrl}}">Kcell Warehouse
+                                                   Materials List: <i>{{job.kcellWarehouseMaterialsList.valueInfo.filename}}</i> (Old version,
+                                                   read only)</a></div>
+                                           </div>
+                                           <div class="row"
+                                                ng-if="job.kcellWarehouseMaterialsAdditionalList && job.kcellWarehouseMaterialsAdditionalList.length>0">
+                                               <div class="col-md-12"><b>Kcell Warehouse Additional Materials List:</b>
+                                                   <a ng-if="isFileVisible(file)"
+                                                      ng-repeat="file in job.kcellWarehouseMaterialsAdditionalList"
+                                                      ng-click="download(file)">{{file.name}}{{$last?'':', '}}</a>
+                                               </div>
+                                           </div>
+                                           <div class="row"
+                                                ng-if="job.contractorZIPWarehouseMaterialsListName.name && isFileVisible(job.contractorZIPWarehouseMaterialsListName)">
+                                               <div class="col-md-12"><b>Contractor ZIP Warehouse Materials List:</b> <a
+                                                       ng-click="download(job.contractorZIPWarehouseMaterialsListName)">{{job.contractorZIPWarehouseMaterialsListName.name}}</a>
+                                               </div>
+                                           </div>
+                                           <div class="row" ng-if="job.contractorZIPWarehouseMaterialsList.contentUrl">
+                                               <div class="col-md-12"><a href="{{job.contractorZIPWarehouseMaterialsList.contentUrl}}">Contractor
+                                                   ZIP Warehouse Materials List:
+                                                   <i>{{job.contractorZIPWarehouseMaterialsList.valueInfo.filename}}</i> (Old version, read only)</a>
+                                               </div>
+                                           </div>
+                                           <div class="row"
+                                                ng-if="job.mlApprovalAdditionalInfoFile.name && isFileVisible(job.mlApprovalAdditionalInfoFile)">
+                                               <div class="col-md-12"><b>Additional files for ML approval:</b> <a
+                                                       ng-click="download(job.mlApprovalAdditionalInfoFile)">{{job.mlApprovalAdditionalInfoFile.name}}</a>
+                                               </div>
+                                           </div>
+                                           <div class="row" ng-if="job.sapTransferRequestFile.contentUrl">
+                                               <div class="col-md-12"><a href="{{job.sapTransferRequestFile.contentUrl}}">SAP Transport Request
+                                                   File</a></div>
+                                           </div>
+                                           <div class="row" ng-if="job.eLicenseResolutionFile.contentUrl">
+                                               <div class="col-md-12"><a href="{{job.eLicenseResolutionFile.contentUrl}}">E-License resolution
+                                                   file: <i>{{job.eLicenseResolutionFile.valueInfo.filename}}</i> (Old version, read only)</a>
+                                               </div>
+                                           </div>
+                                           <div class="row" ng-if="job.eLicenseResolutionFileName.name">
+                                               <div class="col-md-12"><b>E-License resolution file:</b> <a
+                                                       ng-click="download(job.eLicenseResolutionFileName)">{{job.eLicenseResolutionFileName.name}}</a>
+                                               </div>
+                                           </div>
+                                           <div class="row" ng-if="job.tssrssidFile.contentUrl">
+                                               <div class="col-md-12"><a href="{{job.tssrssidFile.contentUrl}}">TSSR/SSID: <i>{{job.tssrssidFile.valueInfo.filename}}</i>
+                                                   (Old version, read only)</a></div>
+                                           </div>
+                                           <div class="row"
+                                                ng-if="job.tssrssidFileName.name && isFileVisible(job.tssrssidFileName)">
+                                               <div class="col-md-12"><b>TSSR/SSID:</b> <a ng-click="download(job.tssrssidFileName)">{{job.tssrssidFileName.name}}</a>
+                                               </div>
+                                           </div>
+                                           <div class="row" ng-repeat="trFile in job.trFiles">
+                                               <div class="col-md-12">
+                                                   <a ng-if="job.currentTask.id"
+                                                      href="/camunda/api/engine/engine/default/task/{{job.currentTask.id}}/variables/{{'trFile'+$index}}/data">TR
+                                                       File # {{trFile.id}}: <i>{{job['trFile'+$index].valueInfo.filename}}</i> (Old version, read
+                                                       only)</a>
+                                                   <a ng-if="!job.currentTask.id"
+                                                      href="/camunda/api/engine/engine/default/{{job.statusName && job.statusName == 'Closed'?'history/':''}}variable-instance/{{job['trFile'+$index].id}}/data">TR
+                                                       File # {{trFile.id}}: <i>{{job['trFile'+$index].valueInfo.filename}}</i> (Old version, read
+                                                       only)</a>
+                                               </div>
+                                           </div>
+                                           <div ng-if="job.trFilesName && job.trFilesName.length > 0">
+                                               <div class="row" ng-repeat="trFile in job.trFilesName">
+                                                   <div class="col-md-12">
+                                                       <b>TR File #{{trFile.description}}</b>
+                                                       <a ng-if="isFileVisible(trFile)" ng-click="download(trFile)">{{trFile.name}}</a>
+                                                       <b> Warehouse:</b> {{getDictNameById(job.warehouses, trFile.warehouse).name}}
+                                                   </div>
+                                               </div>
+                                           </div>
+                                           <div ng-if="job.trAdditionalFilesName && job.trAdditionalFilesName.length > 0">
+                                               <div class="row" ng-repeat="trFile in job.trAdditionalFilesName">
+                                                   <div class="col-md-12">
+                                                       <b>TR Additional File #{{trFile.description}}</b>
+                                                       <a ng-if="isFileVisible(trFile)" ng-click="download(trFile)">{{trFile.name}}</a>
+                                                       <b> Warehouse:</b> {{getDictNameById(job.warehouses, trFile.warehouse).name}}
+                                                   </div>
+                                               </div>
+                                           </div>
+                                           <div class="row" ng-if="job.actOfMaterialsDispatchingFile.contentUrl">
+                                               <div class="col-md-12"><a href="{{job.actOfMaterialsDispatchingFile.contentUrl}}">Act of Materials
+                                                   Dispatching file: <i>{{job.actOfMaterialsDispatchingFile.valueInfo.filename}}</i> (Old version,
+                                                   read only)</a></div>
+                                           </div>
+                                           <div class="row"
+                                                ng-if="job.actOfMaterialsDispatchingFileName.name && isFileVisible(job.actOfMaterialsDispatchingFileName)">
+                                               <div class="col-md-12"><b>Act of Materials Dispatching file: </b><a
+                                                       ng-click="download(job.actOfMaterialsDispatchingFileName.value)">{{job.actOfMaterialsDispatchingFileName.value.name}}</a>
+                                               </div>
+                                           </div>
+                                           <div ng-if="job.actOfMaterialsDispatchingFiles &&  job.actOfMaterialsDispatchingFiles.length>0">
+                                               <div class="row" ng-repeat="file in job.actOfMaterialsDispatchingFiles">
+                                                   <div class="col-md-12">
+                                                       <b>Act of Materials Dispatching file [{{file.uploader}}]: </b>
+                                                       <a ng-if="isFileVisible(file)" ng-click="download(file)">
+                                                           {{file.name}}
+                                                       </a>
+                                                   </div>
+                                               </div>
+                                           </div>
+                                           <div class="row" ng-if="job.initiatorFiles && job.initiatorFiles.length>0">
+                                               <div class="col-md-12"><b>Initiator file(s):</b>
+                                                   <a ng-if="isFileVisible(file)" ng-repeat="file in job.initiatorFiles"
+                                                      ng-click="download(file.value)">{{file.value.name}}{{$last?'':', '}}</a>
+                                               </div>
+                                           </div>
+                                           <div class="row" ng-if="job.maintananceFiles && job.maintananceFiles.length>0">
+                                               <div class="col-md-12"><b>Maintanance file(s):</b>
+                                                   <a ng-if="isFileVisible(file.value)" ng-repeat="file in job.maintananceFiles"
+                                                      ng-click="download(file.value)">{{file.value.name}}{{$last?'':', '}}</a>
+                                               </div>
+                                           </div>
+                                           <div class="row" ng-if="job.planningFiles && job.planningFiles.length>0">
+                                               <div class="col-md-12"><b>Planning file(s):</b>
+                                                   <a ng-if="isFileVisible(file.value)" ng-repeat="file in job.planningFiles"
+                                                      ng-click="download(file.value)">{{file.value.name}}{{$last?'':', '}}</a>
+                                               </div>
+                                           </div>
+                                           <div class="row" ng-if="job.scanCopyFile">
+                                               <div class="col-md-12"><b>Attached scan copy:</b>
+                                                   <a ng-click="download(job.scanCopyFile.value)">{{job.scanCopyFile.value.name}}</a>
+                                               </div>
+                                           </div>
+                                           <div class="collapse" id="collapseDelayInfo">
+                                               <div class="well">
+                                                   <h4>Delay Info Calculations</h4>
+                                                   <table class="table ">
+                                                       <tbody>
+                                                       <tr>
+                                                           <td><b>Revision</b></td>
+                                                           <td></td>
+                                                       </tr>
+                                                       <tr>
+                                                           <td><b>Region</b></td>
+                                                           <td><b>Calculation</b></td>
+                                                       </tr>
+                                                       <tr>
+                                                           <td><b>Conditions:</b></td>
+                                                           <td><b>Alarms elimination require</b></td>
+                                                       </tr>
+                                                       <tr>
+                                                           <td>Almaty</td>
+                                                           <td>Delay = Job Acceptance Date - Job Request Date - (8 business day + holidays)</td>
+                                                       </tr>
+                                                       <tr>
+                                                           <td>South</td>
+                                                           <td>Delay = Job Acceptance Date - Job Request Date - (8 business day + holidays)</td>
+                                                       </tr>
+                                                       <tr>
+                                                           <td>North</td>
+                                                           <td>Delay = Job Acceptance Date - Job Request Date - (8 business day + holidays)</td>
+                                                       </tr>
+                                                       <tr>
+                                                           <td>West</td>
+                                                           <td>Delay = Job Acceptance Date - Job Request Date - (8 business day + holidays)</td>
+                                                       </tr>
+                                                       <tr>
+                                                           <td></td>
+                                                           <td></td>
+                                                       </tr>
+                                                       <tr>
+                                                           <td><b>Region</b></td>
+                                                           <td><b>Calculation</b></td>
+                                                       </tr>
+                                                       <tr>
+                                                           <td><b>Conditions:</b></td>
+                                                           <td><b>Alarms elimination not require + with Mterials from customer</b></td>
+                                                       </tr>
+                                                       <tr>
+                                                           <td>Almaty</td>
+                                                           <td>Delay = Job Acceptance Date - Material List signed Date - (7 business days + holidays)
+                                                           </td>
+                                                       </tr>
+                                                       <tr>
+                                                           <td>South</td>
+                                                           <td>Delay = Job Acceptance Date - Material List signed Date - (10 business days +
+                                                               holidays)
+                                                           </td>
+                                                       </tr>
+                                                       <tr>
+                                                           <td>North</td>
+                                                           <td>Delay = Job Acceptance Date - Material List signed Date - (10 business days +
+                                                               holidays)
+                                                           </td>
+                                                       </tr>
+                                                       <tr>
+                                                           <td>East</td>
+                                                           <td>Delay = Job Acceptance Date - Material List signed Date - (13 business days +
+                                                               holidays)
+                                                           </td>
+                                                       </tr>
+                                                       <tr>
+                                                           <td>West</td>
+                                                           <td>Delay = Job Acceptance Date - Material List signed Date - (15 business days +
+                                                               holidays)
+                                                           </td>
+                                                       </tr>
+                                                       <tr>
+                                                           <td></td>
+                                                           <td></td>
+                                                       </tr>
+                                                       <tr>
+                                                           <td><b>Region</b></td>
+                                                           <td><b>Calculation</b></td>
+                                                       </tr>
+                                                       <tr>
+                                                           <td><b>Conditions:</b></td>
+                                                           <td><b>Alarms elimination not require + w/o Mterials from customer</b></td>
+                                                       </tr>
+                                                       <tr>
+                                                           <td>Almaty</td>
+                                                           <td>Delay = Job Acceptance Date - Job Request Date - (5 business days + holidays)</td>
+                                                       </tr>
+                                                       <tr>
+                                                           <td>South</td>
+                                                           <td>Delay = Job Acceptance Date - Job Request Date - (5 business days + holidays)</td>
+                                                       </tr>
+                                                       <tr>
+                                                           <td>North</td>
+                                                           <td>Delay = Job Acceptance Date - Job Request Date - (5 business days + holidays)</td>
+                                                       </tr>
+                                                       <tr>
+                                                           <td>East</td>
+                                                           <td>Delay = Job Acceptance Date - Job Request Date - (5 business days + holidays)</td>
+                                                       </tr>
+                                                       <tr>
+                                                           <td>West</td>
+                                                           <td>Delay = Job Acceptance Date - Job Request Date - (5 business days + holidays)</td>
+                                                       </tr>
+                                                       </tbody>
+                                                   </table>
+                                               </div>
+                                           </div>
+                                       </div>
+                                   </div>
+                               </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </td>
+                    <td class="col-xs-1"></td>
+
+                </tr>
+
+                </tbody>
+            </table>
+            <div class="col-md-12" style="padding-left:0;">
+                <button type="button" ng-click="showMoreJobRequests()" class="btn btn-sm btn-default" ng-disabled="!showMore || !showAll"><i class="glyphicon glyphicon-th-large"></i> <span ng-if="showMore && showAll">Show more</span><span ng-if="!showAll || !showMore">No more similar job requests</span></span></button>
+                <button type="button" ng-click="showAllJobRequests()" class="btn btn-sm btn-default" ng-disabled="!showMore || !showAll"><i class="glyphicon glyphicon-th"></i> <span ng-if="showMore && showAll">Show all</span><span ng-if="!showAll || !showMore">No more similar job requests</span></span></button>
+            </div>
+        </div>
+    </div>
+    <h4>Works</h4>
+    <div class="col-sm-12">
+        <div class="row">
+            <table class="table table-condensed">
+                <thead>
+                <tr>
+                    <th width="40%">Works</th>
+                    <th width="7%">Works Qty</th>
+                    <th width="13%" ng-if="!rolloutOrEmergency && mainContract !== '2022Work-agreement'">Materials Qty</th>
+                    <th width="13%" ng-if="rolloutOrEmergency && mainContract !== '2022Work-agreement'">Materials By</th>
+                    <th width="30%">Sites involved</th>
+                    <th width="10%"></th>
+                </tr>
+                </thead>
+                <tbody ng-repeat="jobWork in jobWorks">
+                    <tr>
+                        <td>
+                                <div>
+                                    <input type="text" ng-model="jobWork.displayServiceName" name="displayServiceName{{$index}}"
+                                           ng-disabled="!mainContract || !siteName || !custom.contractor"
+                                           typeahead="works as works.displayServiceName for works in getWorks($viewValue)"
+                                           typeahead-on-select="getUnits($item, $index)"
+                                           class="form-control works-container"  required autocomplete="off" placeholder="Search works">
+                                    <input type="hidden" ng-model="jobWork.sapServiceNumber" name="sapServiceNumber{{$index}}" required>
+                                </div>
+                                <label class="error" ng-if="kcell_form['displayServiceName'+$index].$error.required && ( kcell_form['displayServiceName'+$index].$touched || view.submitted)">Required field</label>
+                                <label class="error" ng-if="kcell_form['sapServiceNumber'+$index].$error.required && ( kcell_form['displayServiceName'+$index].$touched || view.submitted)">Please select from list</label>
+                        </td>
+                        <td>
+                            <input type="number" class="form-control" name="quantity{{$index}}" required ng-model="jobWork.quantity" min="1"/>
+                            <label class="error" ng-if="kcell_form['quantity'+$index].$error.required && ( kcell_form['quantity'+$index].$touched || view.submitted)">Required field</label>
+                        </td>
+                        <td ng-if="!rolloutOrEmergency && mainContract !== '2022Work-agreement'">
+                            <div class="input-group">
+                                <input type="number" class="form-control" name="materialQuantity{{$index}}" required ng-model="jobWork.materialQuantity" min="0" style="min-width: 55px;" />
+                                <span class="input-group-addon">{{jobWork.materialUnit}}</span>
+                            </div>
+                            <label class="error" ng-if="kcell_form['materialQuantity'+$index].$error.required && ( kcell_form['materialQuantity'+$index].$touched || view.submitted)">Required field</label>
+                        </td>
+                        <td style="padding-left: 40px" ng-if="rolloutOrEmergency && mainContract !== '2022Work-agreement'">
+                            <input id="subContractorMaterial{{$index}}" type="radio" ng-model="jobWork.materialsProvidedBy" name="materialsProvidedBy{{$index}}" value="subcontractor" required ng-disabled="jobWork.materialsProvidedByDisabled">
+                            <label class="bolder" for="subContractorMaterial{{$index}}">Subcontractor</label>
+                            <br/>
+                            <input id="kcellMaterials{{$index}}" type="radio" ng-model="jobWork.materialsProvidedBy" name="materialsProvidedBy{{$index}}" value="kcell" required ng-disabled="jobWork.materialsProvidedByDisabled">
+                            <label class="bolder" for="kcellMaterials{{$index}}">Kcell</label>
+                            <label class="error" ng-show="kcell_form['materialsProvidedBy'+$index].$error.required && ( kcell_form['materialsProvidedBy'+$index].$touched || view.submitted)">Required field</label>
+                        </td>
+                        <td>
+                            <span ng-repeat="rs in jobWork.relatedSites" class="my-tag" ng-class="{'main-site':rs.site_name===site_name}"><span ng-if="rs.site_name===site_name">Main Site: </span>{{rs.site_name}} <a ng-click="removeRelatedSite($parent.$index, $index)">&times;</a></span>
+                            <input type="text" ng-model="tempSite.name" style="display: inline-block; width:100px;" name="tempSiteName" typeahead="site as sites.site_name for sites in getSite($viewValue)" typeahead-on-select="workSiteSelected($item, $index); tempSite={};" class="form-control" autocomplete="off" placeholder="Add Site">
+                        </td>
+
+                        <td>
+                            <div class="col-md-1"><button type="button" class="btn btn-sm btn-default" ng-if="$index !== 0" ng-click="removeWork($index)"><i class="glyphicon glyphicon-trash"></i> Remove</button></div>
+                        </td>
+                    </tr>
+                    <tr ng-if="mainContract !== '2022Work-agreement'">
+                        <td>
+                            <div class="input-group">
+                                <span class="input-group-addon">
+                                    Work Request Reason
+                                    <a role="button" data-toggle="collapse" href="#collapseReasonGeneralInfo" aria-expanded="false" aria-controls="collapseReasonGeneralInfo">
+                                        <i class="glyphicon glyphicon-question-sign"></i>
+                                    </a>
+                                </span>
+                                <select ng-model="jobWork.reason" name="reason{{$index}}" required class="form-control selectpicker" select-picker select-model="jobWorkReasons" title="" ng-change="defineExpenseType($index)">
+                                    <option value="">Select work request reason</option>
+                                    <option ng-repeat="reason in jobWorkReasons" ng-selected="{{reason.id == jobWork.reason}}" value="{{reason.id}}">{{reason.name}}</option>
+                                </select>
+                            </div>
+                            <label class="error" ng-if="kcell_form['reason'+$index].$error.required && ( kcell_form['reason'+$index].$touched || view.submitted)">Required field</label>
+                        </td>
+                        <td colspan="4">
+                            <i ng-show="jobWork.reasonDetail" class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="right" title="{{jobWork.reasonDetail}}"></i>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="border-width: 0px" colspan="4">
+                            <div class="collapse" id="collapseReasonGeneralInfo">
+                                <div class="well">
+                                    <b>Installation</b> Монтаж - установка нового оборудования <br />
+                                    <b>Modernization</b> Модернизация - замена оборудования на более производительное <br />
+                                    <b>Change for support</b> Замена - восстановление вышедшего из строя оборудования/OC для поддержания их в рабочем состоянии  с целью их профилактики <br />
+                                    <b>Change for improvement</b> Замена - восстановление вышедшего из строя оборудования/ОС для улучшения состояния объекта, повышающего его первоначально оцененные нормативные показатели: срок службы, производственную мощность и т. д<br />
+                                    <b>Replacement</b> Перемещение - в пределах одного сайта<br />
+                                    <b>Removal</b> Демонтаж - снятие оборудования
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td colspan="5"><button type="button" class="btn btn-sm btn-default" style="margin-top: 10px;" ng-click="addJobWork()"><i class="glyphicon glyphicon-plus"></i> Add work</button></td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-3 control-label">Materials ordering Required:</label>
+        <div class="col-sm-8">
+            <input type="checkbox" cam-variable-name="materialsRequiredCheckbox" cam-variable-type="Boolean" />
+        </div>
+        <div class="col-sm-12" style="padding-left: 40px; padding-top: 10px"><span>*Галочка нужна в случае необходимости заказа/одобрения/выдачи материалов</span></div>
+    </div>
+    <div class="form-group" ng-hide="reason === '2'">
+        <label class="col-sm-3 control-label">Leasing required:</label>
+        <div class="col-sm-8">
+            <input type="checkbox" cam-variable-name="leasingRequiredCheckbox" cam-variable-type="Boolean" />
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-3 control-label">Power engineering required:</label>
+        <div class="col-sm-8">
+            <input type="checkbox" cam-variable-name="powerRequiredCheckbox" cam-variable-type="Boolean" />
+        </div>
+    </div>
+    <div class="form-group" ng-show="showJump">
+        <label class="col-sm-3 control-label">Jump to Fill Applied Changes (test only):</label>
+        <div class="col-sm-8">
+            <input type="checkbox" cam-variable-name="ptypeCheckbox" cam-variable-type="Boolean" />
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-3 control-label">Explanation of works</label>
+        <div class="col-sm-8">
+            <!-- NOT REQUIRED -->
+            <textarea class="form-control" name="explanation" cam-variable-name="explanation" cam-variable-type="String" placeholder="Explanation of works..." maxlength="1500" rows="4" required></textarea>
+            <label class="error" ng-if="kcell_form.explanation.$error.required && ( kcell_form.explanation.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+</form>

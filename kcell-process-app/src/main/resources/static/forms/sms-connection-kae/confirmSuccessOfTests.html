@@ -1,0 +1,139 @@
+<form role="form" class="form-horizontal" name="kcell_form" novalidate>
+    <script cam-script type="text/form-script">
+        inject(['$scope', '$http', 'Uri', '$rootScope', '$q', '$timeout', function ($scope, $http, Uri, $rootScope, $q, $timeout) {
+            var variables = [
+                'resolutions',
+                'identifiers',
+                'identifierType',
+                'clientBIN',
+                'officialClientCompanyName',
+                'clientCompanyLatName',
+                'description',
+                'connectionType',
+                'smsServiceType',
+                'MSGGWaccount',
+                'smsServiceLogin',
+                'startDate',
+                'ipNumber',
+                'applicationScanCopyFileName',
+                'contractScanCopyFileName',
+                'abonentTarif',
+                'techSpecNumber',
+                'techSpecFIO',
+                'techSpecEmail',
+                'tarifPlane',
+                'billing',
+                'provider',
+                'contractNumber',
+                'finalIDs',
+                'operatorType',
+                'responsibleB2BDelivery',
+                'responsibleB2BSales'
+            ];
+
+            camForm.on('form-loaded', function () {
+                variables.forEach(function (el) {
+                    camForm.variableManager.fetchVariable(el);
+                });
+                $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
+                        function(result){
+                            $scope.processInstanceId = result.data.processInstanceId;
+                        },
+                        function (error) {
+                            console.log(error.data);
+                        }
+                );
+                $scope.bulksmsInfo = {};
+                $scope.bulksmsInfo.files = [];
+            });
+
+            camForm.on('variables-fetched', function () {
+                variables.forEach(function (el) {
+                    if (el === 'resolutions') {
+                        if (camForm.variableManager.variables[el].value) {
+                            $scope.resolutions = angular.copy(camForm.variableManager.variables[el].value);
+                            camForm.variableManager.destroyVariable(el);
+                        }
+                    } else if (el === 'applicationScanCopyFileName' || el === 'contractScanCopyFileName') {
+                        $scope[el] = camForm.variableManager.variables[el].value;
+                        $scope.bulksmsInfo.files.push(camForm.variableManager.variables[el].value);
+                    } else {
+                        $scope[el] = camForm.variableManager.variables[el].value;
+                        $scope.bulksmsInfo[el] = camForm.variableManager.variables[el].value;
+                    }
+                });
+                $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name+ "/profile").then(function(result){
+                    $rootScope.authentication.assigneeName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
+                });
+                $scope.bulksmsInfo.showTarif = true;
+                console.log($scope.bulksmsInfo);
+                console.log($scope.bulksmsInfo.files);
+
+                camForm.variableManager.createVariable({
+                    name: 'confirmSuccessOfTestsTaskResult',
+                    type: 'String',
+                    value: ''
+                });
+
+                camForm.variableManager.createVariable({
+                    name: 'confirmGeneralReadinessTaskResult',
+                    type: 'String',
+                    value: ''
+                });
+
+                camForm.variableManager.createVariable({
+                    name: 'confirmSuccessOfTestsTaskComment',
+                    type: 'String',
+                    value: ''
+                });
+
+                $scope.confirmSuccessOfTestsTaskResult = '';
+                $scope.confirmGeneralReadinessTaskResult = '';
+            });
+
+            camForm.on('submit', function () {
+                
+                <!-- camForm.variableManager.variableValue('confirmGeneralReadinessTaskResult', $scope.confirmGeneralReadinessTaskResult); -->
+                camForm.variableManager.variableValue('confirmSuccessOfTestsTaskResult', $scope.confirmSuccessOfTestsTaskResult);
+                camForm.variableManager.variableValue('confirmSuccessOfTestsTaskComment', $scope.confirmSuccessOfTestsTaskComment);
+                if($scope.confirmSuccessOfTestsTaskResult == 'rejected') {
+                    camForm.variableManager.createVariable({
+                        name: 'newIpNumber',
+                        type: 'String',
+                        value: $scope.newIpNumber
+                    });
+                }
+                console.log($scope);
+            });
+        }]);
+
+    </script>
+    <info-bulksms bulksms-info="bulksmsInfo"></info-bulksms>
+    <h5>Подтвердите что тестирование номера успешно прошло</h5>
+    <div class="form-group">
+        <label class="col-sm-3 control-label">Решение</label>
+        <div class="col-sm-9">
+            <label class="radio-inline">
+                <input type="radio" name="confirmSuccessOfTestsTaskResult" ng-model="confirmSuccessOfTestsTaskResult" value="Completed" required> Complete
+            </label>
+            <label class="radio-inline">
+                <input type="radio" name="confirmSuccessOfTestsTaskResult" ng-model="confirmSuccessOfTestsTaskResult" value="rejected" required> Change IP Address
+            </label>
+            <label class="radio-inline">
+                <input type="radio" name="confirmSuccessOfTestsTaskResult" ng-model="confirmSuccessOfTestsTaskResult" value="terminated" required> Reject
+            </label>
+            <label class="error" ng-show="kcell_form.confirmSuccessOfTestsTaskResult.$error.required && ( kcell_form.confirmSuccessOfTestsTaskResult.$touched || view.submitted)">Required field</label>
+        </div>
+        <label class="col-sm-3" ng-show="confirmSuccessOfTestsTaskResult=='rejected'">Откуда</label>
+        <div class="col-sm-9" ng-show="confirmSuccessOfTestsTaskResult=='rejected'">
+            <input type="text" name="newIpNumber" ng-model="newIpNumber">
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-3 control-label">Комментарии</label>
+        <div class="col-sm-9">
+            <textarea class="form-control" ng-model="confirmSuccessOfTestsTaskComment" name="confirmSuccessOfTestsTaskComment" placeholder="Comments..." maxlength="500" rows="4" style="resize:none"></textarea>
+            <label class="error" ng-show="kcell_form.confirmSuccessOfTestsTaskComment.$error.required && ( kcell_form.confirmSuccessOfTestsTaskComment.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+</form>

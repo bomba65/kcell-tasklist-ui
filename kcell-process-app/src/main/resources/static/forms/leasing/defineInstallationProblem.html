@@ -1,0 +1,333 @@
+<form role="form" class="form-horizontal" name="kcell_form" novalidate>
+    <script cam-script type="text/form-script" type="text/javascript">
+        inject(['$scope', '$http', 'Uri', '$rootScope', '$q', '$timeout', function ($scope, $http, Uri, $rootScope, $q, $timeout) {
+            var variables = [
+                'resolutions',
+                'ncpID',
+                'siteType',
+                'regionName',
+                'latitude',
+                'longitude',
+                'initiator',
+                'project',
+                'reason',
+                'part',
+                'plannedCabinetType',
+                'targetCoverage',
+                'rbsType',
+                'bands',
+                'rrFile',
+                'newCandidateRRFiles',
+                'candidate',
+                'cellAntenna',
+                'renterCompany',
+                'transmissionAntenna',
+                'powerSource',
+                'farEndInformation',
+                'receivingTSForCandiateSiteFiles',
+                'receivingContractPSDFiles',
+                'receivingApprovalFromTheLandlordFiles',
+                'modifyCandidateRRFiles',
+                'estimateTechnicalCapabilityResFiles',
+                'registrationCommercialOfferFiles',
+                'preparationSSIDandTSSRFiles',
+                'requestTechnicalParametersKTFiles',
+                'confirmPaymentDevelopmentOfTCKTFiles',
+                'receivingTSFiles',
+                'signingLeaseContractAddAgreementKTFiles',
+                'sendMessageToStartPaymentKTFiles',
+                'reqKZTRwithTechEquipmentParamsFiles',
+                'receivingContractDevDesignEstimateFiles',
+                'confirmReceiptEstimateFiles',
+                'receivingContractInstallationWorksFiles',
+                'requestTechnicalParametersKPFiles',
+                'confirmReceiptResponseKPFiles',
+                'signingLeaseContractAddAgreementKPFiles',
+                'sendMessageToStartPaymentKPFiles',
+                'requestTechnicalParametersKTForFEFiles',
+                'confirmPaymentDevelopmentOfTCKTForFEFiles',
+                'receivingTSForFEFiles',
+                'signingLeaseContractAddAgreementForFEFiles',
+                'sendMessageToStartPaymentKTForFEFiles',
+                'reqKZTRwithTechEquipmentParamsForFEFiles',
+                'receivingContractDevDesignEstimateForFEFiles',
+                'registrationCommercialOfferForFEFiles',
+                'confirmReceiptEstimateForFEFiles',
+                'receivingContractInstallationWorksForFEFiles',
+                'requestTechnicalParametersKPForFEFiles',
+                'confirmReceiptResponseKPForFEFiles',
+                'signingLeaseContractAddAgreementKPForFEFiles',
+                'sendMessageToStartPaymentKPForFEFiles',
+                'contractRentLoadingSAPFiles',
+                'approvalContractRentInSAPFiles',
+                'powerContractLoadingInSAPFiles',
+                'approvalPowerContractInSAPFiles',
+                'uploadSignedOwnerLeaseContractFiles',
+                'defineInstallationProblemFiles',
+                'address',
+                'ne_tr_parameters',
+                'ne_tr_rate',
+            ];
+
+            $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
+                function(result){
+                    $scope.taskAssignee = result.data.assignee;
+                },
+                function (error) {
+                    console.log(error.data);
+                }
+            );
+
+            camForm.on('form-loaded', function () {
+                variables.forEach(function (el) {
+                    camForm.variableManager.fetchVariable(el);
+                });
+                $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
+                        function(result){
+                            $scope.processInstanceId = result.data.processInstanceId;
+                            $http.get('/camunda/api/engine/engine/default/process-instance/' + $scope.processInstanceId).then(
+                                function(result){
+                                    console.log('process-instance/')
+                                    console.log(result.data)
+                                    $scope.businessKey = result.data.businessKey;
+                                },
+                                function (error) {console.log(error.data);}
+                            );
+                        },
+                        function (error) {
+                            console.log(error.data);
+                        }
+                );
+                $scope.leasingCandidate = {};
+                $scope.leasingFiles = [];
+            });
+
+            camForm.on('variables-fetched', function () {
+                $scope.defineInstallationProblemFiles = [];
+                variables.forEach(function (el) {
+                    if(camForm.variableManager.variables[el].value){
+                        $scope[el] = camForm.variableManager.variables[el].value;
+                        $scope.leasingCandidate[el] = camForm.variableManager.variables[el].value;
+                        if ( el.toLowerCase().includes('file') ) {
+                            $scope.leasingFiles = $scope.leasingFiles.concat(camForm.variableManager.variables[el].value)
+                        }
+                    }
+                });
+                camForm.variableManager.createVariable({
+                    name: 'defineInstallationProblemTaskResult',
+                    type: 'String',
+                    value: ''
+                });
+                camForm.variableManager.createVariable({
+                    name: 'defineInstallationProblemTaskComment',
+                    type: 'String',
+                    value: ''
+                });
+                camForm.variableManager.createVariable({
+                    name: 'leasingProblem',
+                    type: 'String',
+                    value: ''
+                });
+
+                $scope.defineInstallationProblemTaskResult = '';
+                $scope.view.variablesFetched = true;
+            });
+
+            camForm.on('submit', function () {
+                camForm.variableManager.variableValue('defineInstallationProblemTaskResult', $scope.defineInstallationProblemTaskResult);
+                camForm.variableManager.variableValue('leasingProblem', $scope.defineInstallationProblemTaskResult === 'Approve' ? 'No' : 'Yes');
+                camForm.variableManager.variableValue('defineInstallationProblemTaskComment', $scope.defineInstallationProblemTaskComment);
+
+                if(!camForm.variableManager.variables['defineInstallationProblemFiles'].type){
+                    camForm.variableManager.destroyVariable('defineInstallationProblemFiles');
+                    camForm.variableManager.createVariable({
+                        name: 'defineInstallationProblemFiles',
+                        type: 'Json',
+                        value: $scope.defineInstallationProblemFiles
+                    });
+                } else {
+                    camForm.variableManager.variableValue('defineInstallationProblemFiles', $scope.defineInstallationProblemFiles);
+                }
+                camForm.variableManager.destroyVariable('resolutions');
+            });
+
+            $scope.fileSelected = function (el, fileName) {
+                $timeout(function () {
+                    $scope.$apply(function () {
+                        uploadFileToMinio(el.files[0], fileName);
+                    });
+                })
+            };
+
+            function uploadFileToMinio(file, fileName) {
+                var fileIndex = $scope[fileName].length;
+
+                var fileToUpload = {
+                    name: file.name.replace(/[/\\?%*:|"<>]/g, '-'),
+                    path: $scope.processInstanceId + '/' + camForm.taskId + '/' + file.name.replace(/[/\\?%*:|"<>]/g, '-'),
+                    date: new Date(),
+                    author: $scope.taskAssignee
+                };
+                $http({
+                    method: 'GET',
+                    url: '/camunda/uploads/put/' + fileToUpload.path,
+                    transformResponse: []
+                }).then(function (response) {
+                    $http.put(response.data, file, {headers: {'Content-Type': undefined}}).then(
+                            function () {
+                                $scope[fileName].push(fileToUpload);
+                                angular.element(document.querySelector('#' + fileName)).val(null);
+                            },
+                            function (error) {
+                                console.log(error.data);
+                            }
+                    );
+                }, function(error){
+                    console.log(error.data);
+                });
+            }
+
+            $scope.singleFileSelected = function (el, fileName) {
+                $timeout(function () {
+                    $scope.$apply(function () {
+                        uploadSingleFileToMinio(el.files[0], fileName);
+                    });
+                })
+            };
+
+            function uploadSingleFileToMinio(file, fileName) {
+                var fileToUpload = {
+                    name: file.name.replace(/[/\\?%*:|"<>]/g, '-'),
+                    path: $scope.processInstanceId + '/' + camForm.taskId + '/' + file.name.replace(/[/\\?%*:|"<>]/g, '-'),
+                    date: new Date(),
+                    author: $scope.taskAssignee
+                };
+                $http({
+                    method: 'GET',
+                    url: '/camunda/uploads/put/' + fileToUpload.path,
+                    transformResponse: []
+                }).then(function (response) {
+                    $http.put(response.data, file, {headers: {'Content-Type': undefined}}).then(
+                            function () {
+                                $scope[fileName] = fileToUpload;
+                                angular.element(document.querySelector('#' + fileName)).val(null);
+                            },
+                            function (error) {
+                                console.log(error.data);
+                            }
+                    );
+                }, function(error){
+                    console.log(error.data);
+                });
+            }
+
+            $scope.clearFile = function (list, fileIndex) {
+                $scope[list].splice(fileIndex, 1);
+            }
+
+            $scope.clearSingleFile = function (list) {
+                $scope[list] = undefined;
+            }
+
+            $scope.fileDownload = function (file) {
+                $http({
+                    method: 'GET',
+                    url: '/camunda/uploads/get/' + file.path,
+                    transformResponse: []
+                }).then(function (response) {
+                    document.getElementById('fileDownloadIframe').src = response.data;
+                }, function(error){
+                    console.log(error.data);
+                });
+            }
+        }]);
+
+    </script>
+    <div class="form-group">
+        <label class="col-sm-12 control-label">
+            <p/> <b>Business key: </b>{{businessKey}}
+        </label>
+    </div>
+     <leasing-candidate ng-if="view.variablesFetched" leasing-candidate="leasingCandidate"></leasing-candidate>
+
+    <!-- <accordion class="content-visible-accordion background-yellow-accordion">
+        <accordion-group is-open="false" style="background-color: #ffffcc; !important;" >
+            <accordion-heading>
+                    Instruction for Power engineer <i class="pull-right glyphicon"
+                                            ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
+            </accordion-heading>
+            <div>
+                <p><b>1) «Подключение в точке присоединения к сетям РЭС на границе раздела ответственности»:</b></p>
+                <ul>
+                    <li>Оформить заявку письмом в адрес Арендодателя (основного Потребителя э/энергии) на выдачу ТУ по подключению к сетям Арендодателя;</li>
+                    <li>Согласовать полученные ТУ с региональным РЭС;</li>
+                    <li>Прикрепить к форме скан.копию заявления на ТУ с отметкой Арендодателя, скан.копию выданных ТУ с отметкой РЭС о согласовании;</li>
+                    <li>Одобрить форму в системе (выбрать <b>Approve</b> в Resolution).</li>
+                </ul>
+                <p><b>2) «Подключение к внутренним сетям Арендодателя»:</b></p>
+                <ul>
+                    <li>Оформить заявку письмом в адрес Арендодателя об определении точки подключения к сетям электроснабжения;</li>
+                    <li>Прикрепить к форме скан.копию заявления с отметкой Арендодателя, ответ Арендодателя об определении точки подключения;</li>
+                    <li>Одобрить форму в системе (выбрать <b>Approve</b> в Resolution).</li>
+                </ul>
+                <p><b>3) В случае отказа Арендодателя в подключении к сетям электроснабжения:</b></p>
+                <ul>
+                    <li>Прикрепить скан.копию мотивированного отказа</li>
+                    <li>Отклонить форму в системе с комментарием об отсутствии ТВ (выбрать <b>Leasing Problem</b> в Resolution)</li>
+                </ul>
+                <p><b>4) В случае отказа РЭС в выдаче ТУ, прикрепить скан. копию отказа к форме в системе и поставить отметкуоб отсутствии возможности - Leasing Problem.</b></p>
+            </div>
+        </accordion-group>
+    </accordion> -->
+
+
+    <iframe id="fileDownloadIframe" style="display:none;"></iframe>
+    
+    <leasing-attachments leasing-files="leasingFiles"></leasing-attachments>
+    
+    <div class="form-group">
+        <label class="col-md-4 control-label">Upload files:</label>
+        <div class="col-sm-8">
+            <div ng-show="defineInstallationProblemFiles.length > 0" class="input-group" ng-repeat="file in defineInstallationProblemFiles">
+                {{$index + 1}}.
+                <a ng-click="fileDownload(file)">{{file.name}}</a> | <a ng-click="clearFile('defineInstallationProblemFiles', $index)"><i class="glyphicon glyphicon-trash"></i></a>
+            </div>
+            <ng-form name="kcell_material_file_form">
+                <input type="file" class="form-control" id="defineInstallationProblemFiles" name="defineInstallationProblemFiles"  required-file="defineInstallationProblemFiles.length == 0" ng-model="file.file" onchange="angular.element(this).scope().fileSelected(this, 'defineInstallationProblemFiles')"/>
+            </ng-form>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label class="col-sm-4 control-label">Resolution</label>
+        <div class="col-sm-8">
+            <div class="row">
+                <label class="radio-inline">
+                    <input type="radio" name="defineInstallationProblemTaskResult" ng-model="defineInstallationProblemTaskResult" value="Power problem" required> Power problem
+                </label>
+                <label class="radio-inline">
+                    <input type="radio" name="defineInstallationProblemTaskResult" ng-model="defineInstallationProblemTaskResult" value="Leasing problem (Candidate)" required> Leasing problem (Candidate)
+                </label>
+                <label class="radio-inline">
+                    <input type="radio" name="defineInstallationProblemTaskResult" ng-model="defineInstallationProblemTaskResult" value="Candidate modify required" required> Candidate modify required
+                </label>
+            </div>
+            <div class="row">
+                <label class="radio-inline">
+                    <input type="radio" name="defineInstallationProblemTaskResult" ng-model="defineInstallationProblemTaskResult" value="Transmission problem" required> Transmission problem
+                </label>
+                <label class="radio-inline">
+                    <input type="radio" name="defineInstallationProblemTaskResult" ng-model="defineInstallationProblemTaskResult" value="Leasing problem (FE)" required> Leasing problem (FE)
+                </label>
+            </div>            
+            <label class="error" ng-show="kcell_form.defineInstallationProblemTaskResult.$error.required && ( kcell_form.defineInstallationProblemTaskResult.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label class="col-sm-4 control-label">Comments</label>
+        <div class="col-sm-8">
+            <textarea class="form-control" ng-model="defineInstallationProblemTaskComment" name="defineInstallationProblemTaskComment" placeholder="Comments..." maxlength="500" rows="4" style="resize:none"></textarea>
+        </div>
+    </div>
+</form>

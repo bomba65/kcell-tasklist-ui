@@ -1,0 +1,152 @@
+<form role="form" class="form-horizontal" name="kcell_form" novalidate>
+    <script cam-script type="text/form-script" type="text/javascript">
+        inject(['$scope', '$http', 'Uri', '$rootScope', '$q', '$timeout', function ($scope, $http, Uri, $rootScope, $q, $timeout) {
+            var variables = [
+                'resolutions',
+                'ncpID',
+                'siteType',
+                'regionName',
+                'latitude',
+                'longitude',
+                'initiator',
+                'project',
+                'reason',
+                'part',
+                'plannedCabinetType',
+                'targetCoverage',
+                'rbsType',
+                'bands',
+                'rrFile',
+                'newCandidateRRFiles',
+                'candidate',
+                'cellAntenna',
+                'renterCompany',
+                'transmissionAntenna',
+                'powerSource',
+                'farEndInformation',
+                'threeFarEndNotNecessary',
+                'address',
+                'ne_tr_parameters',
+                'ne_tr_rate',
+            ];
+
+            camForm.on('form-loaded', function () {
+                variables.forEach(function (el) {
+                    camForm.variableManager.fetchVariable(el);
+                });
+                $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
+                        function(result){
+                            $scope.processInstanceId = result.data.processInstanceId;
+                            $http.get('/camunda/api/engine/engine/default/process-instance/' + $scope.processInstanceId).then(
+                                function(result){
+                                    console.log('process-instance/')
+                                    console.log(result.data)
+                                    $scope.businessKey = result.data.businessKey;
+                                },
+                                function (error) {console.log(error.data);}
+                            );
+                        },
+                        function (error) {
+                            console.log(error.data);
+                        }
+                );
+                $scope.leasingCandidate = {};
+                $http.get('/camunda/api/engine/engine/default/user?memberOfGroup=LeasingRegionalGroup').then(
+                        function(result){
+                            $scope.regionalPerformers = result.data;
+                        },
+                        function (error) {
+                            console.log(error.data);
+                        }
+                );
+            });
+
+            camForm.on('variables-fetched', function () {
+                variables.forEach(function (el) {
+                    if(camForm.variableManager.variables[el].value){
+                        $scope[el] = camForm.variableManager.variables[el].value;
+                        $scope.leasingCandidate[el] = camForm.variableManager.variables[el].value;
+                    }
+                });
+                camForm.variableManager.createVariable({
+                    name: 'regionalAssignPerformerTaskResult',
+                    type: 'String',
+                    value: ''
+                });
+
+                camForm.variableManager.createVariable({
+                    name: 'regionalAssignPerformerTaskComment',
+                    type: 'String',
+                    value: ''
+                });
+                camForm.variableManager.createVariable({
+                    name: 'regionalPerformer',
+                    type: 'String',
+                    value: ''
+                });
+
+                $scope.regionalAssignPerformerTaskResult = '';
+                $scope.regionalPerformer = '';
+                $scope.view.variablesFetched = true;
+            });
+
+            camForm.on('submit', function () {
+                camForm.variableManager.variableValue('regionalAssignPerformerTaskResult', $scope.regionalAssignPerformerTaskResult);
+                camForm.variableManager.variableValue('regionalAssignPerformerTaskComment', $scope.regionalAssignPerformerTaskComment);
+                camForm.variableManager.variableValue('regionalPerformer', $scope.regionalPerformer);
+                camForm.variableManager.destroyVariable('resolutions');
+            });
+
+            $scope.download = function (file) {
+                $http({method: 'GET', url: '/camunda/uploads/get/' + file.path, transformResponse: [] }).
+                then(function(response) {
+                    document.getElementById('fileDownloadIframe').src = response.data;
+                }, function(error){
+                    console.log(error.data);
+                });
+            }
+        }]);
+
+    </script>
+    <div class="form-group">
+        <label class="col-sm-12 control-label">
+            <p/> <b>Business key: </b>{{businessKey}}
+        </label>
+    </div>
+     <leasing-candidate ng-if="view.variablesFetched" leasing-candidate="leasingCandidate"></leasing-candidate>
+
+    <iframe id="fileDownloadIframe" style="display:none;"></iframe>
+
+    <div class="form-group">
+        <label class="col-md-4 control-label">Download RR:</label>
+        <div class="col-sm-8">
+            <a ng-click="download(rrFile)">{{rrFile.name}}</a>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-md-4 control-label">RR files:</label>
+        <div class="col-sm-8">
+            <div ng-show="newCandidateRRFiles.length > 0" class="input-group" ng-repeat="file in newCandidateRRFiles">
+                {{$index + 1}}.
+                <a ng-click="download(file)">{{file.name}}</a>
+            </div>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-4 control-label">Назначить ответственного исполнителя</label>
+        <div class="col-sm-8">
+            <select class="form-control" id="regionalPerformer" name="regionalPerformer"
+                    ng-model="regionalPerformer"
+                    ng-options="cp.id as cp.firstName + ' ' + cp.lastName for cp in regionalPerformers"
+                    required></select>
+                <label class="error" ng-show="kcell_form.regionalPerformer.$error.required && ( kcell_form.regionalPerformer.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-4 control-label">Comments</label>
+        <div class="col-sm-8">
+            <textarea class="form-control" ng-model="regionalAssignPerformerTaskComment" name="regionalAssignPerformerTaskComment" placeholder="Comments..." maxlength="500" rows="4" style="resize:none"></textarea>
+            <label class="error" ng-show="kcell_form.regionalAssignPerformerTaskComment.$error.required && ( kcell_form.regionalAssignPerformerTaskComment.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+</form>

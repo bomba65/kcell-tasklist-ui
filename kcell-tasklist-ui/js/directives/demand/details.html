@@ -1,0 +1,129 @@
+<style>
+    .product-offer {
+        border: 1px solid #ccc;
+        border-radius: 10px;
+        padding-top: 5px;
+        margin-bottom: 10px;
+        /*background-color: #f5f5f5;*/
+    }
+    .product-offer:hover {
+        background-color: #d2d6e0;
+    }
+
+    .panel-group {
+        margin-bottom: 10px;
+    }
+
+    .panel-group > .panel > .panel-collapse > .panel-body {
+        padding: 7px 15px 7px 15px;    }
+
+</style>
+<div class="col-sm-8" style="padding: 0;">
+    <div class="panel-group custom-panel">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h4 class="panel-title">Product Configurations</h4>
+            </div>
+            <div class="panel-body">
+                <div class="form-group">
+                    <label class="col-sm-3 control-label">Product type:<span class="text-danger glyphicon-asterisk"></span></label>
+                    <div class="col-sm-5">
+                        <select class="form-control selectpicker" select-picker title="" name="gProductType" ng-model="data.productType" ng-disabled="disabled" ng-required="!disabled">
+                            <option ng-class="!disabled? 'hide-default-option' : ''" value=""></option>
+                            <option value="Tariff">Tariff</option>
+                            <option value="Service">Service</option>
+                        </select>
+                        <span class="has-error" ng-if="form.gProductType.$error.required && (form.gProductType.$touched || view.submitted)">Required field</span>
+                    </div>
+                    <label class="col-sm-2 control-label">Version:</label>
+                    <label class="col-sm-2 control-label">{{data.productVersion}}</label>
+                </div>
+                <div class="form-group">
+                    <label class="col-sm-3 control-label">Product Name:<span class="text-danger glyphicon-asterisk"></span></label>
+                    <div class="col-sm-9" ng-if="disabled">
+                        <div class="disabled-element">{{(data.productName && data.productName.length)?data.productName:'&nbsp;'}}</div>
+                    </div>
+                    <div class="col-sm-9" ng-if="!disabled">
+                        <textarea elastic-textarea rows="1" class="form-control" name="gProductName" ng-model="data.productName" ng-change="productNameChange()" typeahead="name as c.name for c in catalog.products | filter:{name:$viewValue}" typeahead-on-select="productNameSelected($item)" autocomplete="off" required></textarea>
+                        <span class="has-error" ng-if="form.gProductName.$error.required && (form.gProductName.$touched || view.submitted)">Required field</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="col-sm-4" style="padding: 0; padding-left: 10px;">
+    <div class="panel-group custom-panel">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h4 class="panel-title">Deliverables</h4>
+            </div>
+            <div class="panel-body">
+                <div class="form-group">
+                    <label class="col-sm-4 control-label">Deliverable<span class="text-danger glyphicon-asterisk"></span></label>
+                    <div class="col-sm-8" ng-if="!disabled">
+                        <div ng-dropdown-multiselect="" options="deliverableOptions" selected-model="data.deliverable" extra-settings="multiselectSettings"></div>
+                        <input type="hidden" name="detailsDeliverable" ng-model="deliverableHidden" required>
+                        <span class="has-error" ng-if="form.detailsDeliverable.$error.required && (form.detailsDeliverable.$touched || view.submitted)">Required field</span>
+                        <span style="height: 100%; width: auto;" ng-if="data.deliverable.length">
+                            <p ng-repeat="d in data.deliverable">{{d.v}}</p>
+                        </span>
+                    </div>
+                    <div class="col-sm-8" ng-if="disabled">
+                        <div class="form-control" style="height: 100%;" disabled>
+                            {{(data.deliverable && data.deliverable.length)?'':'&nbsp;'}}
+                            <div ng-repeat="d in data.deliverable">{{d.v}}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="col-sm-12" style="padding: 0;">
+    <accordion>
+        <accordion-group is-open="true">
+            <accordion-heading>
+                Product Offers <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
+            </accordion-heading>
+
+            <div ng-repeat="p in data.productOffers track by $index" class="col-sm-12 product-offer" ng-click="togglePDCollapse($event, $index)" ng-style="{'margin-bottom':($index == data.productOffers.length - 1)?'0':'10px'}">
+                <div class="pull-right thelabel" style="margin-right: 16px;" ng-if="!disabled" ng-click="productOfferDelete($index)">
+                    <div class="form-group thelabel">
+                        <i class="pull-right glyphicon glyphicon-trash control-label glyphicon-clickable thelabel"></i>
+                    </div>
+                </div>
+                <div class="form-group col-sm-9">
+                    <label class="col-sm-4 control-label"><span class="thelabel">Product offer name</span></label>
+                    <div class="col-sm-8" ng-if="!disabled">
+                        <textarea elastic-textarea rows="1" class="form-control" ng-model="p.name" ng-change="productOfferChange($index)" typeahead="name as c.name for c in catalog.offers | filter:{name:$viewValue}" typeahead-on-select="productOfferSelected($item, $index)" autocomplete="off"></textarea>
+                    </div>
+                    <div class="col-sm-8" ng-if="disabled">
+                        <div class="disabled-element">{{p.name}}</div>
+                    </div>
+                </div>
+                <div class="form-group col-sm-3">
+                    <label class="col-sm-6 control-label"><span class="thelabel">Version</span></label>
+                    <label class="col-sm-6 control-label"><span class="thelabel">{{p.version}}</span></label>
+                </div>
+                <div class="col-sm-12" style="margin-left: 10px;" ng-if="!pdCollapsed[$index]">
+                    <div class="form-group">
+                        <label class="col-sm-12 control-label"><span class="thelabel">Product offer description</span></label>
+                        <div class="col-sm-12" ng-if="!disabled">
+                            <textarea rows="1" elastic-textarea class="form-control" ng-model="p.description"></textarea>
+                        </div>
+                        <div class="col-sm-12" ng-if="disabled">
+                            <div class="disabled-element">{{p.description}}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-12" ng-if="!disabled" style="margin-top: 5px;">
+                <button type="button" class="btn btn-default pull-right" ng-click="productOfferAdd()">Add new offer</button>
+            </div>
+
+        </accordion-group>
+    </accordion>
+</div>

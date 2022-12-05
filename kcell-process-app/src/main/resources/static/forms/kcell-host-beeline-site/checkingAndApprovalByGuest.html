@@ -1,0 +1,159 @@
+<form role="form" class="form-horizontal" name="kcell_form" novalidate>
+    <script cam-script type="text/form-script">
+        inject(['$scope', '$q', '$http', '$rootScope', function ($scope, $q, $http, $rootScope) {
+            var variables = [
+                'sharingPlan',
+                'resolutions',
+                'ssidtssrFiles',
+                'acceptanceDocFiles',
+                'revisionJrStatus',
+                'rolloutJrStatus',
+                'transmission_jr_status',
+                'sharingPlanStatus'
+            ];
+
+            camForm.on('form-loaded', function () {
+                variables.forEach(function (el) {
+                    camForm.variableManager.fetchVariable(el);
+                });
+                $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
+                    function(result){
+                        $scope.processInstanceId = result.data.processInstanceId;
+                    },
+                    function (error) {
+                        console.log(error.data);
+                    }
+                );
+            });
+
+            camForm.on('variables-fetched', function () {
+                variables.forEach(function (el) {
+                    if (el === 'resolutions') {
+                        if (camForm.variableManager.variables[el].value) {
+                            $scope.resolutions = angular.copy(camForm.variableManager.variables[el].value);
+                            $q.all($scope.resolutions.map(function (resolution) {
+                                return $http.get("/camunda/api/engine/engine/default/user/" + resolution.assignee + "/profile");
+                            })).then(function (profiles) {
+                                profiles.forEach(function (e, index) {
+                                    $scope.resolutions[index].assigneeName = (e.data.firstName ? e.data.firstName : "") + " " + (e.data.lastName ? e.data.lastName : "");
+                                });
+                            });
+                            $q.all($scope.resolutions.map(function (resolution) {
+                                return $http.get("/camunda/api/engine/engine/default/history/task?processInstanceId=" + resolution.processInstanceId + "&taskId=" + resolution.taskId);
+                            })).then(function (tasks) {
+                                tasks.forEach(function (e, index) {
+                                    if (e.data.length > 0) {
+                                        $scope.resolutions[index].taskName = e.data[0].name;
+                                        try {
+                                            $scope.resolutions[index].taskEndDate = new Date(e.data[0].endTime);
+                                            $scope.resolutions[index].assignDate = new Date(e.data[0].startTime);
+                                        } catch (e) {
+                                            console.log(e);
+                                        }
+                                    }
+                                });
+                            });
+                            $q.all($scope.resolutions.map(function (resolution) {
+                                return $http.get("/camunda/api/engine/engine/default/history/identity-link-log?type=assignee&taskId=" + resolution.taskId + "&operationType=add&sortBy=time&sortOrder=desc");
+                            })).then(function (logs) {
+                                logs.forEach(function (e, index) {
+                                    if(e.data.length > 0){
+                                        try {
+                                            $scope.resolutions[index].claimDate = new Date(e.data[0].time);
+                                        } catch(e){
+                                            console.log(e);
+                                        }
+                                    }
+                                });
+                            });
+                        }
+                    } else if (el === 'sharingPlanStatus') {
+                        $scope[el] = camForm.variableManager.variables[el].value;
+                        $scope.sharingPlan.status = camForm.variableManager.variables[el].value;
+                    } else {
+                        $scope[el] = camForm.variableManager.variables[el].value;
+                    }
+                });
+
+                if($scope.sharingPlan){
+                    $scope.sharingPlan.ssidtssrFiles = angular.copy($scope.ssidtssrFiles);
+                    $scope.sharingPlan.acceptanceDocFiles = angular.copy($scope.acceptanceDocFiles);
+                    $scope.sharingPlan.currentTask = {id:camForm.taskId};
+                }
+
+                camForm.variableManager.createVariable({
+                    name: 'checkingAndApprovalByGuestStatusResult',
+                    type: 'String',
+                    value: ''
+                });
+
+                camForm.variableManager.createVariable({
+                    name: 'checkingAndApprovalByGuestStatusComment',
+                    type: 'String',
+                    value: ''
+                });
+
+                camForm.variableManager.createVariable({
+                    name: 'replanStatus',
+                    type: 'String',
+                    value: ''
+                });
+
+                camForm.variableManager.createVariable({
+                    name: 'guestStatus',
+                    type: 'String',
+                    value: ''
+                });
+            });
+
+            camForm.on('submit', function () {
+                camForm.variableManager.variableValue('checkingAndApprovalByGuestStatusResult', $scope.checkingAndApprovalByGuestStatusResult);
+                camForm.variableManager.variableValue('checkingAndApprovalByGuestStatusComment', $scope.checkingAndApprovalByGuestStatusComment);
+                if ($scope.checkingAndApprovalByGuestStatusResult !== 'replan') {
+                    camForm.variableManager.variableValue('replanStatus', 'notreplan');
+                } else {
+                    camForm.variableManager.variableValue('replanStatus', 'replan');
+                }
+                camForm.variableManager.variableValue('guestStatus', $scope.checkingAndApprovalByGuestStatusResult);
+                camForm.variableManager.destroyVariable('resolutions');
+            });
+        }]);
+
+    </script>
+    <shared-site-plan plan-model="sharingPlan"></shared-site-plan>
+    <div class="form-group">
+        <label class="col-sm-4 control-label">JR Statutes:</label>
+        <div class="col-sm-8">
+            <div class="well">
+                <p>Rollout JR:</p>
+                <div class="row">
+                    <div class="col-md-12" ng-repeat="rollout in rolloutJrStatus">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{rollout.jrNumber}}, {{rollout.createdIn}}, {{rollout.jrStatus}}</div>
+                </div>
+                <p>Revision JR:</p>
+                <div class="row">
+                    <div class="col-md-12" ng-repeat="revision in revisionJrStatus">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{revision.jrNumber}}, {{revision.createdIn}}, {{revision.jrStatus}}</div>
+                </div>
+                <p>Transmission Status: {{transmission_jr_status}}</p>
+            </div>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-4 control-label">Checking and Approval by Guest Status:</label>
+        <div class="col-sm-8">
+            <label class="radio-inline">
+                <input type="radio" ng-model="checkingAndApprovalByGuestStatusResult" name="checkingAndApprovalByGuestStatusResult" value="approved" required> Approved
+            </label>
+            <label class="radio-inline">
+                <input type="radio" ng-model="checkingAndApprovalByGuestStatusResult" name="checkingAndApprovalByGuestStatusResult" value="rejected" required> Rejected
+            </label>
+            <label class="error" ng-show="kcell_form.checkingAndApprovalByGuestStatusResult.$error.required && ( kcell_form.checkingAndApprovalByGuestStatusResult.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-4 control-label">Comments</label>
+        <div class="col-sm-8">
+            <textarea class="form-control" ng-model="checkingAndApprovalByGuestStatusComment" name="checkingAndApprovalByGuestStatusComment" placeholder="Comments..." maxlength="500" rows="4" ng-required="checkingAndApprovalByGuestStatusResult !== 'approved'"></textarea>
+            <label class="error" ng-show="kcell_form.checkingAndApprovalByGuestStatusComment.$error.required && ( kcell_form.checkingAndApprovalByGuestStatusComment.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+</form>

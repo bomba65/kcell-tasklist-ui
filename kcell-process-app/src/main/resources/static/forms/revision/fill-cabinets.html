@@ -1,0 +1,107 @@
+<h4>Cabinets to BSC/RNC Connection</h4>
+<h4>RBS Quantity: {{fillSite.cabinets.length}} <a ng-click="addCabinet()" class="btn btn-primary"><i class="glyphicon glyphicon-plus"></i> Add Cabinet</a></h4>
+<accordion>
+    <accordion-group ng-repeat="cabinet in fillSite.cabinets track by $index">
+        <ng-form name="cabinetForm">
+            <accordion-heading>
+                <span ng-class="{error:cabinetForm.$invalid && view.submitted}">RBS #{{$index+1}}</span> <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
+            </accordion-heading>
+            <div class="row">
+                <div class="col-md-12">
+                    <a ng-click="removeCabinet($index)" class="btn btn-danger" ng-if="cabinet.id.indexOf('_NEW')==0"><i class="glyphicon glyphicon-trash"></i> Remove</a>
+                </div>
+            </div>
+            <div class="form-group row">
+                <label class="col-sm-4 control-label ">BSC Name</label>
+                <div class="col-sm-3">
+                    <select class="form-control" ng-model="cabinet.equipment.params.bsc" ng-disabled="isInstallationDisabled(cabinet._command)">
+                        <option value="{{bsc}}" ng-repeat="bsc in cabinetBscs">{{bsc}}</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-group row">
+                <label class="col-sm-4 control-label ">RNC Name</label>
+                <div class="col-sm-3">
+                    <select class="form-control" ng-model="cabinet.equipment.params.rnc" ng-disabled="isInstallationDisabled(cabinet._command)">
+                        <option value="{{rnc}}" ng-repeat="rnc in cabinetRncs">{{rnc}}</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-group row">
+                <label class="col-sm-4 control-label ">Vendor</label>
+                <div class="col-sm-3">
+                    <select class="form-control" ng-model="cabinet.equipment.params.company_vendor_id" ng-disabled="isInstallationDisabled(cabinet._command)">
+                        <option value="Ericsson">Ericsson</option>
+                        <option value="ZTE">ZTE</option>
+                        <option value="Huawei">Huawei</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-group row">
+                <label class="col-sm-4 control-label ">RBS type</label>
+                <div class="col-sm-3">
+                    <select class="form-control" ng-model="cabinet.equipment.params.cabinet_type" ng-disabled="isInstallationDisabled(cabinet._command)">
+                        <option value="6101">6101</option>
+                        <option value="6102">6102</option>
+                        <option value="2202">2202</option>
+                        <option value="2206">2206</option>
+                        <option value="2216">2216</option>
+                        <option value="2302">2302</option>
+                        <option value="2308">2308</option>
+                        <option value="2409">2409</option>
+                        <option value="3106">3106</option>
+                        <option value="3206">3206</option>
+                        <option value="3418">3418</option>
+                        <option value="3518">3518</option>
+                        <option value="6201">6201</option>
+                        <option value="6501">6501</option>
+                        <option value="6601">6601</option>
+                        <option value="8700">8700</option>
+                        <option value="8900">8900</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-group row">
+                <label class="col-sm-4 control-label">Serial Number</label>
+                <div class="col-sm-3">
+                    <input type="text" class="form-control" name="cabinetEquipmentParamsSerialNumber" ng-model="cabinet.equipment.params.serial_number" ng-disabled="isInstallationDisabled(cabinet._command)"/>
+                    <label class="error" ng-show="cabinetForm.cabinetEquipmentParamsSerialNumber.$error.required && ( cabinetForm.cabinetEquipmentParamsSerialNumber.$touched || view.submitted)">Required field</label>
+                </div>
+            </div>
+            <div class="form-group row">
+                <label class="col-sm-4 control-label">Facility</label>
+                <div class="col-sm-3">
+                    <select class="form-control" ng-model="cabinet.facility" name="cabinetFacility" ng-disabled="isInstallationDisabled(cabinet._command)">
+                        <option value="{{f.id}}" ng-repeat="f in fillSite.facilities">{{f.definition}} ({{f.params.name}})</option>
+                    </select>
+                    <label class="error" ng-show="cabinetForm.cabinetFacility.$error.required && ( cabinetForm.cabinetFacility.$touched || view.submitted)">Required field</label>
+                </div>
+            </div>
+            <div class="form-group row">
+                <label class="col-sm-4 control-label ">Construction type</label>
+                <div class="col-sm-3">
+                    <select class="form-control" ng-model="cabinet.params.construction_type" ng-disabled="isInstallationDisabled(cabinet._command)">
+                        <option value="indoor">indoor</option>
+                        <option value="outdoor">outdoor</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-group row">
+                <label class="col-sm-4 control-label ">Voltage</label>
+                <div class="col-sm-3">
+                    <select class="form-control" ng-model="cabinet.equipment.params.voltage" ng-disabled="isInstallationDisabled(cabinet._command)">
+                        <option value="-48">-48</option>
+                        <option value="220">220</option>
+                        <option value="380">380</option>
+                    </select>
+                </div>
+            </div>
+            <div class="btn-group" role="group" ng-if="cabinet.id.indexOf('_NEW') !== 0">
+                <button type="button" class="btn btn-default" ng-click="resetCabinet($index)">Reset</button>
+                <button type="button" class="btn {{cabinet._command == 'MODIFY_INSTALLATION'?'btn-primary':'btn-default'}}" ng-click="cabinet._command = 'MODIFY_INSTALLATION'">Modify settings</button>
+                <button type="button" class="btn {{cabinet._command == 'REPLACE_EQUIPMENT'?'btn-primary':'btn-default'}}" ng-click="cabinet._command = 'REPLACE_EQUIPMENT'">Replace</button>
+                <button type="button" class="btn {{cabinet._command == 'DISMANTLE_EQUIPMENT'?'btn-primary':'btn-default'}}" ng-click="cabinet._command = 'DISMANTLE_EQUIPMENT'">Dismantle</button>
+            </div>
+        </ng-form>
+    </accordion-group>
+</accordion>

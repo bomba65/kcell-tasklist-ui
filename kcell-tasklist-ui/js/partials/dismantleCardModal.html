@@ -1,0 +1,240 @@
+<iframe id="fileDownloadIframe" style="display:none;"></iframe>
+<style>
+    .card-modal-header {
+        background:transparent; color:black; padding:0 15px 0 15px;
+    }
+
+</style>
+<div class="card-modal-header">
+    <button type="button" class="close" ng-click="$dismiss()" aria-hidden="true">&times;</button>
+    <h4 style="margin-top:14px;">{{businessKey}}</h4>
+</div>
+<div class="modal-body new-card-search" style="padding-top:5px">
+    <div class="row">
+        <div class="col-md-4">
+            <div class="row">
+                <div class="col-md-8">
+                    <span class="block-headers">&nbsp;</span>
+                </div>
+                <div class="col-md-4">
+                    <div class="dropdown" style="position:absolute; right:15px; top:-6px;">
+                        <button class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown">More
+                            <span class="caret"></span></button>
+                        <ul class="dropdown-menu">
+                            <li><a href="" ng-click="showDiagram(processDefinitionId, dismantleInfo.tasks)" class="ng-binding"><span
+                                    class="glyphicon glyphicon-indent-left" aria-hidden="true"></span>
+                                Diagram</a></li>
+                            <li><a href="" ng-click="showHistory(dismantleInfo.resolutions.value, dismantleInfo.processDefinitionKey)"
+                                   class="ng-binding"><span class="glyphicon glyphicon-list-alt"
+                                                            aria-hidden="true"></span> History </a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="panel panel-default" style="margin:18px 0 0 0">
+                        <div class="panel-heading block-headers">Details</div>
+                        <div class="panel-body" style="padding:10px 0 10px 0;word-break:break-word;">
+                            <div class="form-group">
+                                <div class="col-sm-12"><b>Initiator</b>: {{dismantleInfo.initiatorFull.value.firstName}}
+                                    {{dismantleInfo.initiatorFull.value.lastName}}
+                                </div>
+                                <div class="col-sm-12"><b>Site Name</b>: {{dismantleInfo.site_name.value}}</div>
+                                <div class="col-sm-12"><b>Type of project</b>: {{dismantleInfo.project.value}}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-12">
+                    <ul class="nav nav-stacked" id="accordion1">
+                        <li class="panel panel-default" style="margin:0">
+                            <a data-toggle="collapse" data-parent="#accordion1" href="#firstLink"
+                               style="background-color: #f5f5f5;" class="block-headers">User Tasks</a>
+
+                            <ul id="firstLink" class="collapse in ul-padding">
+                                <div ng-repeat="task in dismantleInfo.tasks" >
+                                    <div class="task">
+                                        <h5>
+                                            <a ng-if="hasGroup('revision_managers') || hasGroup('revision_audit')"
+                                               ui-sref="tasks.task({id:task.id})" target="_blank">{{
+                                                (task.name || task.id) }}</a></h5>
+                                        <h5><span
+                                                ng-if="!(hasGroup('revision_managers') || hasGroup('revision_audit'))"
+                                                ui-sref="tasks.task({id:task.id})" target="_blank">{{ (task.name || task.id) }}</span>
+                                        </h5>
+                                        <div class="card-task-descr" ng-if="task.description"> {{ task.description }}</div>
+                                        <small ng-if="hasGroup('kcellUsers')" class="text-muted"
+                                               ng-if="task.group">
+                                            Group: <a
+                                                ng-click="showGroupDetails(task.group)">{{task.group}}</a>
+                                        </small>
+                                        <br/>
+                                        <small class="text-muted" ng-if="task.assignee">{{
+                                            task.assigneeObject.firstName }} {{ task.assigneeObject.lastName
+                                            }}
+                                        </small>
+                                        <small class="text-muted" ng-if="!task.assignee">Unassigned</small>
+                                    </div>
+                                </div>
+                            </ul>
+                        </li>
+
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-8">
+            <div class="row">
+                <div class="col-xs-12 col-md-12">
+                    <h4>SDR Information</h4>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-xs-4 col-md-4"><b>SDR Creation date</b>:
+                    {{dismantleInfo.sdrCreationDate.value | date: 'dd.MM.yyyy'}}
+                </div>
+                <div class="col-xs-4 col-md-4"><b>SA&O Complaint Id</b>:
+                    {{dismantleInfo.soaComplaintId.value}}
+                </div>
+                <div class="col-xs-4 col-md-4"><b>Type of Project</b>:
+                    {{dismantleInfo.project.value}}
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-xs-4 col-md-4"><b>Validity date</b>:
+                    {{dismantleInfo.validityDate.value | date: 'dd.MM.yyyy'}}
+                </div>
+                <div class="col-xs-8 col-md-8"><b>Initiator of dismantling</b>:
+                    {{catalogs.initiatorsLabel[dismantleInfo.dismantlingInitiator.value]}}
+                </div>
+            </div>
+
+            <div class="row" style="margin-top: 30px;">
+                <div class="col-xs-12 col-md-12">
+                    <h4>Alternative places for setting of site</h4>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-sm-12">
+                    <div ng-repeat="i in dismantleInfo.alternativePlaces.value track by $index" style="float: left; margin-right: 20px;">
+                        <table>
+                            <tr>
+                                <td>Alternative {{$index+1}}: </td>
+                                <td>{{dismantleInfo.alternativePlaces.value[$index]}}</td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="row" style="margin-top: 20px;">
+                <label class="col-sm-2 control-label">
+                    Traffic: <br />
+                    (average monthly)
+                </label>
+                <div class="col-sm-10">
+                    <table class="table table-bordered">
+                        <tbody>
+                            <tr ng-repeat="siteInfo in dismantleInfo.siteInformation.value">
+                                <td>{{siteInfo.name}}</td>
+                                <td>{{siteInfo.gsmLabel}}</td>
+                                <td>{{siteInfo.gsmValue}}</td>
+                                <td>{{siteInfo.umtsLabel}}</td>
+                                <td>{{siteInfo.umtsValue}}</td>
+                                <td>{{siteInfo.lteLabel}}</td>
+                                <td>{{siteInfo.lteValue}}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="row" style="margin-top: 30px;">
+                <div class="col-xs-12 col-md-12">
+                    <h4>Site Information</h4>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-xs-6 col-md-6"><b>GSM Antenna type</b>:
+                    <span ng-repeat="gt in dismantleInfo.gsmAntennaTypes.value" class="my-tag">{{gt}}</span>
+                </div>
+                <div class="col-xs-6 col-md-6"><b>Band</b>:
+                    {{dismantleInfo.band.value}}
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-xs-6 col-md-6"><b>Transmission Antenna type</b>:
+                    {{dismantleInfo.transmissionAntennaType.value}}
+                </div>
+                <div class="col-xs-6 col-md-6"><b>RBS location</b>:
+                    {{dismantleInfo.rbsLocation.value}}
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-xs-6 col-md-6"><b>RBS Quantity</b>:
+                    {{dismantleInfo.rbsQuantity.value}}
+                </div>
+                <div class="col-xs-6 col-md-6"><b>Square, m2</b>:
+                    {{dismantleInfo.squareMeter.value}}
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-xs-12 col-md-12"><b>RBS type</b>:
+                    <span ng-repeat="rt in dismantleInfo.rbsTypes.value" class="my-tag">{{rt}}</span>
+                </div>
+            </div>
+
+            <div class="row" style="margin-top: 30px;">
+                <div class="col-xs-12 col-md-12">
+                    <h4>Contract Information</h4>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-xs-6 col-md-6"><b>Contract ID</b>:
+                    {{dismantleInfo.contractId.value}}
+                </div>
+                <div class="col-xs-6 col-md-6"><b>Legally name</b>:
+                    {{dismantleInfo.legallyName.value}}
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-xs-6 col-md-6"><b>Contract type</b>:
+                    {{catalogs.contractTypeLabel[dismantleInfo.contractType.value]}}
+                </div>
+                <div class="col-xs-6 col-md-6"><b>Contact information</b>:
+                    {{dismantleInfo.contactInformation.value}}
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-xs-12 col-md-12"><b>Address</b>:
+                    {{dismantleInfo.address.value}}
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-xs-6 col-md-6"><b>Coverage area</b>:
+                    <a ng-click="download(dismantleInfo.coverageAreaFile.value.path)">{{dismantleInfo.coverageAreaFile.value.name}}</a>
+                </div>
+                <div class="col-xs-6 col-md-6" ng-if="dismantleInfo.siteDismantlingDocument.value"><b>Site Dismantling Request</b>:
+                    <a ng-click="download(dismantleInfo.siteDismantlingDocument.value.path)">{{dismantleInfo.siteDismantlingDocument.value.name}}</a>
+                </div>
+            </div>
+
+            <div class="row" style="margin-top: 30px;">
+                <div class="col-xs-12 col-md-12"><b>Reason of dismantling</b>:
+                    {{dismantleInfo.dismantlingReason.value}}
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-xs-12 col-md-12"><b>Comments</b>:
+                    {{dismantleInfo.startComment.value}}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal-footer" id="modal-footer">
+    <button type="button" class="btn btn-default" style="float:right;" ng-click="$dismiss()">Close</button>
+</div>

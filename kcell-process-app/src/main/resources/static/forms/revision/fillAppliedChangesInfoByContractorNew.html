@@ -1,0 +1,1894 @@
+<style>
+    .badge1 {
+        position:relative;
+    }
+    .badge1[data-badge]:after {
+        content:attr(data-badge);
+        position:absolute;
+        top:-10px;
+        right:-10px;
+        font-size:.7em;
+        background:green;
+        color:white;
+        width:18px;height:18px;
+        text-align:center;
+        line-height:18px;
+        border-radius:50%;
+        box-shadow:0 0 1px #333;
+    }
+</style>
+<form role="form" class="form-horizontal kcell-form-custom" name="kcell_form" novalidate>
+    <script cam-script type="text/form-script">
+        inject(['$scope', '$http', 'Uri', '$rootScope', '$q', 'Upload', '$timeout', 'exModal', function ($scope, $http, Uri, $rootScope, $q, Upload, $timeout, exModal) {
+            var variables = [
+                'requestedDate',
+                'jrNumber',
+                'initiatorFull',
+                'validityDate',
+                'soaComplaintId',
+                'site',
+                'siteName',
+                'siteAddress',
+                'site_name',
+                'reason',
+                'contract',
+                'contractor',
+                'materialsRequired',
+                'leasingRequired',
+                'powerRequired',
+                'project',
+                'supplementaryFiles',
+                'explanation',
+                'jobWorks',
+                'sapPRFileXLS',
+                'sapPRNo',
+                'kcellWarehouseMaterialsList',
+                'contractorZIPWarehouseMaterialsList',
+                'kcellWarehouseMaterialsListName',
+                'kcellWarehouseMaterialsAdditionalList',
+                'contractorZIPWarehouseMaterialsListName',
+                'sapTransferRequestFile',
+                'resolutions',
+                'actOfMaterialsDispatchingFile',
+                'actOfMaterialsDispatchingFileName',
+                'actOfMaterialsDispatchingFiles',
+                'jrBlank',
+                'trFilesName',
+                'trAdditionalFilesName',
+                'trFiles',
+                'tssrssidFile',
+                'tssrssidFileName',
+                'siteWorksFiles',
+                'priority',
+                'mlApprovalAdditionalInfoFile',
+                'contractorJobAssignedDate',
+                'mainContract'
+            ];
+
+            $scope.facilityRegions = ['Astana', 'Almaty', 'North', 'South', 'East', 'West', 'All regions (LINE)'];
+            $scope.facilityOwners = ['Kcell', 'Kazakhtelecom', 'ODS', 'Beeline', 'KTC', 'KTZH', 'Other'];
+            $scope.facilityBuildingTypes = ['Administrative', 'House', 'Other'];
+            $scope.cabinetBscs = ['AlmBSC8', 'AlmBSC9'];
+            $scope.cabinetRncs = ['AlmRNC5', 'AlmRNC6'];
+            $scope.antennaModels = ["1710-2500", "2K742215", "2xK742215", "379-623", "3x742223", "639684", "730-376", "730-382", "730376", "730382", "732-448", "732448", "735-727", "735727", "736-624", "736623", "736624", "738-573", "738694", "739-322", "739-489", "739-619", "739-620", "739-621", "739-622", "739-623", "739-624", "739-625", "739-626", "739-627", "739-628", "739-629", "739-630", "739-631", "739-634", "739-637", "739-639", "739-646", "739-683", "739-684", "739-685", "739-686", "739-687", "739-688", "739-689", "739-785", "739326", "739384", "739489", "739619", "739620", "739622", "739623", "739623N", "739634", "739646", "7396684", "739682", "739684", "739684_05", "739684OWN", "73922", "739630", "7396884", "739785", "741215", "741316", "741322", "741571", "741571K742149", "741572", "741785", "742", "742149", "742211", "742215", "742223", "742224", "7422270", "742236", "742264", "742270", "742322", "742351", "742515", "749684", "80010173", "80010203", "80010248", "80010303", "80010305", "80010306", "80010504", "741-211", "741-215", "741-316", "741-322", "741-326", "741-376", "741-571", "741-572", "741-622", "741-623", "741-717", "741-785", "741211", "741326", "741522", "741571x17", "741571x53", "741684", "741717", "7417854", "742-149", "742-211", "742-212", "742-213", "742-215", "742-223", "742-235", "742-236", "742-326", "742212", "742213", "7422224", "742226", "742243", "742271V03", "742272V03", "742571", "742624", "744-223", "789-684", "800-10141", "800-10173", "80010122", "80010290", "80010291", "8001030303", "80010304", "80010456", "80010465", "80010510", "80010622V01", "80010664", "80010665", "80010699", "80010864", "80010865", "80010866", "80010867", "80010868", "80070305", "8010303", "839-623", "876-960", "ADU4518R10", "ADU4518R11", "AQU4518R5", "ATR4517R1", "ATR4518R4", "ATR4518R7", "CELLMAX-O-CPUSE_VERTICAL_01DT", "DBXLH-6565A-A2M", "DBXLH-6565A-VTM", "DBXLH-6565C-A2M", "DBXLH-6565C-R2M", "DBXLH-6565C-VTM", "default", "HBX-6516DS-A1M", "HBX-6516DS-R2M", "HBX-6516DS-T2M", "HBX-6516DS-VTM", "HBX-6517DS-A1M", "HBXX-6516DS-A2M", "LBX-6515DS-VTM", "LDX-6513DS-VTM", "LDX-6515DS-VTM", "LDX-6516DS-VTM", "sector", "TBXLHA-6565B-A3M", "TBXLHB-6565A-A3M", "TBXLHB-6565A-R2M", "TBXLHB-6565A-VTM"];
+            var diff;
+            var siteWorksFiles = [];
+            var files = [];
+            if(window.requirejs){
+                diff = window.requirejs('deep-diff').diff;
+            } else {
+                diff = window.DeepDiff;
+            }
+
+            $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
+                function(result){
+                    $scope.processInstanceId = result.data.processInstanceId;
+                },
+                function (error) {
+                    console.log(error.data);
+                }
+            );
+            $scope.jobModel = {};
+            $scope.showAddHop = false;
+            $scope.farEndSite = {};
+            $scope.indoorUnit = {
+                id : generateId(),
+                params: {},
+                equipment: {
+                    params: {},
+                    definition: "IU",
+                    id: generateId()
+                },
+                definition: "IU",
+                _command: "INSTALL_NEW_EQUIPMENT"
+            };
+            $scope.outdoorUnit = {
+                id : generateId(),
+                params: {},
+                equipment: {
+                    params: {},
+                    definition: "OU",
+                    id: generateId()
+                },
+                definition: "OU",
+                _command: "INSTALL_NEW_EQUIPMENT"
+            };
+            $scope.antenna = {
+                id : generateId(),
+                params: {},
+                equipment: {
+                    params: {},
+                    definition: "AU",
+                    id: generateId()
+                },
+                definition: "AU",
+                _command: "INSTALL_NEW_EQUIPMENT"
+            };
+            $scope.technologies = ['2G', '3G', 'WiMAX', 'LTE', 'Indoor'];
+            $http.get(Uri.appUri("engine://engine/:engine/task/" + camForm.taskId + "/form")).then(function (result) {
+                $scope.contextPath = result.data.contextPath;
+            });
+            camForm.on('form-loaded', function () {
+                variables.forEach(function (el) {
+                    camForm.variableManager.fetchVariable(el);
+                });
+
+                $http.get($rootScope.getCatalogsHttpByName('catalogs')).then(
+                        function (result) {
+                            angular.extend($scope, result.data);
+                            angular.extend($scope.jobModel, result.data);
+                        },
+                        function (error) {
+                            console.log(error.data);
+                        }
+                );
+                camForm.variableManager.createVariable({
+                    name: 'fillAppliedChangesInfoByContractorTaskResult',
+                    type: 'String',
+                    value: ''
+                });
+                camForm.variableManager.createVariable({
+                    name: 'modifyWorks',
+                    type: 'Boolean',
+                    value: undefined
+                });
+                camForm.variableManager.createVariable({
+                    name: 'fillApplied',
+                    type: 'String',
+                    value: ''
+                });
+                camForm.variableManager.createVariable({
+                    name: 'fillSite',
+                    type: 'Json',
+                    value: {}
+                });
+                camForm.variableManager.createVariable({
+                    name: 'commands',
+                    type: 'Json',
+                    value: {}
+                });
+                camForm.variableManager.createVariable({
+                    name: 'summaries',
+                    type: 'Json',
+                    value: {}
+                });
+            });
+            camForm.on('variables-fetched', function () {
+                variables.forEach(function (el) {
+                    $scope.jobModel[el] = camForm.variableManager.variables[el];
+                    if(el === 'tssrssidFileName') {
+                        $scope[el] = camForm.variableManager.variables[el];
+                        $scope[el].type = 'Json';
+                    } else if(el === 'siteWorksFiles' && camForm.variableManager.variables[el].value) {
+                        siteWorksFiles = camForm.variableManager.variables[el].value;
+                    }
+                    if (el === 'resolutions') {
+                        $scope[el] = camForm.variableManager.variables[el].value;
+                    }
+                });
+                $scope.sitesWorks = JSON.parse($scope.jobModel.jobWorks.originalValue);
+
+                $http.get('/asset-management/api/facilityDefinitions').then(
+                        function (result) {
+                            $scope.facilityDefinitions = [];
+                            for (var i = 0; i < result.data._embedded.facilityDefinitions.length; i++) {
+                                var id = result.data._embedded.facilityDefinitions[i]._links.self.href.replace("{projection}", "").substr(result.data._embedded.facilityDefinitions[i]._links.self.href.replace("{projection}", "").lastIndexOf('/') + 1);
+                                $scope.facilityDefinitions.push({
+                                    name: result.data._embedded.facilityDefinitions[i].name,
+                                    id: id
+                                });
+                            }
+                        },
+                        function (error) {
+                            console.log(error.data);
+                        }
+                );
+                $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name+ "/profile").then(function(result){
+                    $rootScope.authentication.assigneeName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
+                });
+
+                $scope.sitesWorks.forEach(function (work, index) {
+                    $scope.sitesWorks[index].files = [];
+                });
+
+                siteWorksFiles.forEach(function (file) {
+                    if(file.name){
+                        var workIndex = file.name.split('_')[1];
+                        if(!containsFile($scope.sitesWorks[workIndex].files, file)){
+                            $scope.sitesWorks[workIndex].files.push(file);
+                            getImagePath(file);
+                        }
+                    }
+                });
+                if(camForm.variableManager.variables['fillAppliedChangesByContractorComment']){
+                    camForm.variableManager.variableValue('fillAppliedChangesByContractorComment', '');
+                }
+
+                $scope.isUploadPhoto = $scope.jobModel.contractor.value === 5 && ($scope.jobModel.reason.value === '1' || $scope.jobModel.reason.value === '2');
+                $scope.isOldContract = $scope.jobModel.mainContract.value === 'Revision' || $scope.jobModel.mainContract.value === 'Roll-out'
+                if($scope.isUploadPhoto){
+                    $scope.sitesWorks.forEach(function (work, index) {
+                        if(work.photoFiles && work.photoFiles['before']){
+                            work.photoFiles['before'].forEach(function(file) {
+                                getImagePath(file);
+                            });
+                        }
+                        if(work.photoFiles && work.photoFiles['after']){
+                            work.photoFiles['after'].forEach(function(file){
+                                getImagePath(file);
+                            });
+                        }
+                    });
+                }
+            });
+
+            $scope.preSubmit = function(){
+                var deferred = $q.defer();
+                if($scope.isUploadPhoto && !$scope.isOldContract){
+                    $scope.sitesWorks.forEach(function(e,i){
+                        var beforeExists = false;
+                        var afterExists = false;
+                        if(e.photoFiles){
+                            if(e.photoFiles.before){
+                                beforeExists = true;
+                            }
+                            if(e.photoFiles.after){
+                                afterExists = true;
+                            }
+                        }
+                        if(!beforeExists) {
+                            deferred.reject('Work #' + (i+1)+ ' Should have photo before');
+                        }
+                        if(!afterExists) {
+                            deferred.reject('Work #' + (i+1)+ ' Should have photo after');
+                        }
+                    });
+                    deferred.resolve();
+                } else {
+                    deferred.resolve();
+                }
+                return deferred.promise;
+            };
+
+            camForm.on('submit', function () {
+                camForm.variableManager.variableValue('fillAppliedChangesInfoByContractorTaskResult', $scope.fillAppliedChangesInfoByContractorTaskResult);
+                camForm.variableManager.createVariable({
+                    name: 'fill_applied_changes_infoTaskResult',
+                    type: 'String',
+                    value: $scope.fillAppliedChangesInfoByContractorTaskResult
+                });
+                if ($scope.fillAppliedChangesInfoByContractorTaskResult == 'saveChanges') {
+                    $scope.createCommandsDocument();
+                    $scope.createSummaryDocument();
+
+                    var siteWorksFiles = [];
+                    var siteWorksPhotoFiles = [];
+                    $scope.sitesWorks.forEach(function(e,i){
+                        if(e.files){
+                            e.files.forEach(function(f, j){
+                                if(f.value){
+                                    if(f.value.isNew){
+                                        files.push(f.value);
+                                        delete f.value.isNew;
+                                    }
+                                    siteWorksFiles.push(f);
+                                }
+                            });
+                        }
+                        if(e.photoFiles){
+                            if(e.photoFiles.before){
+                                e.photoFiles.before.forEach(function(f, j){
+                                    if(f.imgSrc){
+                                        delete f.imgSrc;
+                                    }
+                                    if(f.value){
+                                        if(f.value.isNew){
+                                            files.push(f.value);
+                                            delete f.value.isNew;
+                                        }
+                                        siteWorksPhotoFiles.push(f);
+                                    }
+                                });
+                            }
+                            if(e.photoFiles.after){
+                                e.photoFiles.after.forEach(function(f, j){
+                                    if(f.imgSrc){
+                                        delete f.imgSrc;
+                                    }
+                                    if(f.value){
+                                        if(f.value.isNew){
+                                            files.push(f.value);
+                                            delete f.value.isNew;
+                                        }
+                                        siteWorksPhotoFiles.push(f);
+                                    }
+                                });
+                            }
+                        }
+                    });
+                    if($scope.additionalFiles){
+                        $scope.additionalFiles.forEach(function(f, j){
+                            if(f.value){
+                                if(f.value.isNew){
+                                    files.push(f.value);
+                                    delete f.value.isNew;
+                                }
+                                $scope.additionalFiles.push(f);
+                            }
+                        });
+                    }
+
+                    if(camForm.variableManager.variables['siteWorksFiles']){
+                        camForm.variableManager.destroyVariable('siteWorksFiles');
+                    }
+                    camForm.variableManager.createVariable({
+                        name: 'siteWorksFiles',
+                        type: 'Json',
+                        value: siteWorksFiles
+                    });
+
+                    if(camForm.variableManager.variables['siteWorksPhotoFiles']){
+                        camForm.variableManager.destroyVariable('siteWorksPhotoFiles');
+                    }
+                    camForm.variableManager.createVariable({
+                        name: 'siteWorksPhotoFiles',
+                        type: 'Json',
+                        value: siteWorksPhotoFiles
+                    });
+
+                    if($scope.tssrssidFileName && $scope.tssrssidFileName.value && $scope.tssrssidFileName.value.isNew){
+                        delete $scope.tssrssidFileName.value.isNew;
+                        files.push($scope.tssrssidFileName.value);
+                    }
+
+                    if(camForm.variableManager.variables['tssrssidFileName']){
+                        if($scope.tssrssidFileName){
+                            camForm.variableManager.variableValue('tssrssidFileName', $scope.tssrssidFileName.value);
+                        } else{
+                            camForm.variableManager.variableValue('tssrssidFileName', null);
+                        }
+                    } else if($scope.tssrssidFileName) {
+                        camForm.variableManager.createVariable($scope.tssrssidFileName);
+                    }
+
+                    camForm.variableManager.variableValue('commands', JSON.parse(angular.toJson($scope.commands)));
+                    camForm.variableManager.variableValue('summaries', JSON.parse(angular.toJson($scope.summaries)));
+                    camForm.variableManager.variableValue('fillSite', JSON.parse(angular.toJson($scope.fillSite)));
+                    camForm.variableManager.variableValue('fillApplied', 'saveChanges');
+                } else if ($scope.fillAppliedChangesInfoByContractorTaskResult == 'cannotPerform') {
+                    camForm.variableManager.variableValue('fillApplied', 'cannotPerform');
+                } else if ($scope.fillAppliedChangesInfoByContractorTaskResult == 'notAvailable') {
+                    camForm.variableManager.variableValue('fillApplied', 'notAvailable');
+                } else if ($scope.fillAppliedChangesInfoByContractorTaskResult == 'notEnough') {
+                    camForm.variableManager.variableValue('fillApplied', 'notEnough');
+                }
+
+                var visibility = 'all';
+                if($scope.fillAppliedChangesByContractorComment && $scope.fillAppliedChangesByContractorCommentVisibility){
+                    visibility  = $scope.fillAppliedChangesByContractorCommentVisibility;
+                    camForm.variableManager.createVariable({
+                        name: 'fill_applied_changes_infoTaskCommentVisibility',
+                        type: 'String',
+                        value: visibility
+                    });
+                }
+                camForm.variableManager.createVariable({
+                    name: 'fill_applied_changes_infoTaskComment',
+                    type: 'String',
+                    value: $scope.fillAppliedChangesByContractorComment
+                });
+                camForm.variableManager.createVariable({
+                    name: 'fill_applied_changes_infoFiles',
+                    type: 'Json',
+                    value: files
+                });
+                camForm.variableManager.variableValue('jobWorks', $scope.sitesWorks);
+                camForm.variableManager.destroyVariable('resolutions');
+            });
+
+            camForm.on('store', function () {
+                camForm.variableManager.variableValue('fillAppliedChangesInfoByContractorTaskResult', $scope.fillAppliedChangesInfoByContractorTaskResult);
+                camForm.variableManager.variableValue('fillSite', $scope.fillSite);
+            });
+
+            camForm.on('variables-restored', function () {
+                $scope.fillAppliedChangesInfoByContractorTaskResult = camForm.variableManager.variableValue('fillAppliedChangesInfoByContractorTaskResult');
+                $scope.fillSite = camForm.variableManager.variableValue('fillSite');
+                if (angular.equals({}, $scope.fillSite)) {
+                    $scope.fillSite = {
+                        facilities: [],
+                        contacts: [],
+                        cabinets: [],
+                        powerSources: [],
+                        rus: [],
+                        dus: [],
+                        antennas: [],
+                        transmissions: [],
+                        ius: [],
+                        ous: [],
+                        aus: [],
+                        supplementary: [],
+                        siteId: $scope.jobModel.site.originalValue
+                    };
+                    $http.get('/asset-management/api/sites/' + $scope.fillSite.siteId + '?projection=full', {headers:{'If-None-Match':'*'}}).then(
+                            function (result) {
+                                var site = result.data;
+                                if (site.facilities !== undefined) {
+                                    $scope.fillSite.facilities = site.facilities;
+                                    $scope.fillSite.facilities.forEach(function (facility) {
+                                        facility._original = angular.copy(facility);
+                                    });
+                                }
+                                if (site.powerSources !== undefined) {
+                                    $scope.fillSite.powerSources = site.powerSources;
+                                    $scope.fillSite.powerSources.forEach(function(powerSource){
+                                        powerSource._original = angular.copy(powerSource);
+                                    });
+                                }
+                                if (site.installations !== undefined) {
+                                    var map = _.groupBy(site.installations, 'equipment.definition');
+
+                                    $scope.fillSite.cabinets = map.CABINET || [];
+                                    $scope.fillSite.cabinets.forEach(function(cabinet){
+                                        cabinet._original = angular.copy(cabinet);
+                                    });
+
+                                    $scope.fillSite.ius = map.IU || [];
+                                    $scope.fillSite.ius.forEach(function(iu){
+                                        iu._original = angular.copy(iu);
+                                    });
+
+                                    $scope.fillSite.ous = map.OU || [];
+                                    $scope.fillSite.ous.forEach(function(ou){
+                                        ou._original = angular.copy(ou);
+                                    });
+
+                                    $scope.fillSite.aus = map.AU || [];
+                                    $scope.fillSite.aus.forEach(function(au){
+                                        au._original = angular.copy(au);
+                                    });
+                                    if(map.RU){
+                                        map.RU.forEach(function (ru) {
+                                            /*ru.equipment.params.technologies = {};
+                                            $scope.technologies.forEach(function (e) {
+                                                ru.equipment.params.technologies[e] = ru.equipment.params.rat.indexOf(e) >= 0;
+                                            });*/
+                                            if(!ru.connections){
+                                                ru.connections = {};
+                                            }
+                                            if(!ru.connections.RU2RBS){
+                                                ru.connections.RU2RBS = {id: generateId(), equipments: [ru.equipment.id], definition: 'RU2RBS'};
+                                            }
+                                            ru._original = angular.copy(ru);
+                                        });
+                                    }
+                                    if(map.DU){
+                                        map.DU.forEach(function (du) {
+                                            /*du.equipment.params.technologies = {};
+                                            $scope.technologies.forEach(function (e) {
+                                                du.equipment.params.technologies[e] = du.equipment.params.rat.indexOf(e) >= 0;
+                                            });*/
+                                            if(!du.connections){
+                                                du.connections = {};
+                                            }
+                                            if(!du.connections.DU2RBS){
+                                                du.connections.DU2RBS = {id: generateId(), equipments: [du.equipment.id], definition: 'DU2RBS'};
+                                            }
+                                            du._original = angular.copy(du);
+                                        });
+                                    }
+                                    if(map.ANTENNA){
+                                        map.ANTENNA.forEach(function (antenna) {
+                                            /*antenna.equipment.params.technologies = {};
+                                            $scope.technologies.forEach(function (e) {
+                                                antenna.equipment.params.technologies[e] = antenna.equipment.params.rat.indexOf(e) >= 0;
+                                            });*/
+                                            if(!antenna.connections){
+                                                antenna.connections = {};
+                                            }
+                                            if(!antenna.connections.ANTENNA2RBS){
+                                                antenna.connections.ANTENNA2RBS = {id: generateId(), equipments: [antenna.equipment.id], definition: 'ANTENNA2RBS'};
+                                            }
+                                            antenna._original = angular.copy(antenna);
+                                        });
+                                    }
+                                    if(map.SUPPLEMENTARY){
+                                        map.SUPPLEMENTARY.forEach(function (antenna) {
+                                            /*antenna.equipment.params.technologies = {};
+                                            $scope.technologies.forEach(function (e) {
+                                                antenna.equipment.params.technologies[e] = antenna.equipment.params.rat.indexOf(e) >= 0;
+                                            });*/
+                                            antenna._original = angular.copy(antenna);
+                                        });
+                                    }
+                                    $scope.fillSite.rus = map.RU || [];
+                                    $scope.fillSite.dus = map.DU || [];
+                                    $scope.fillSite.antennas = map.ANTENNA || [];
+                                    $scope.fillSite.supplementary = map.SUPPLEMENTARY || [];
+                                }
+                                getConnections(result.data);
+                            },
+                            function (error) {
+                                console.log(error.data);
+                            }
+                    );
+                }
+            });
+
+            function getConnections(fillSite){
+                var equipmentIds = _.map(fillSite.installations, 'equipment.id');
+                if(equipmentIds.length > 0){
+                    $http.get("/asset-management/api/connectionInstances/search/findByEquipments?equipments=" + equipmentIds.join() + "&projection=full").then(
+                        function(result){
+                            var connectionsByDefinition = _.groupBy(result.data._embedded.connectionInstances, "definition") || [];
+                            if(connectionsByDefinition['TRANSMISSION_RADIO_RELAY']){
+                                connectionsByDefinition['TRANSMISSION_RADIO_RELAY'].forEach(function(hop){
+                                    if(hop.params.sites){
+                                        hop.params.sites.forEach(function(site){
+                                            if(site !== $scope.jobModel.site.originalValue){
+                                                hop.farEnd = {
+                                                    site: {
+                                                        id: site
+                                                    }
+                                                };
+                                            }
+                                        });
+                                        hop.valid = "valid";
+                                        getSiteData(hop);
+                                    }
+                                    hop._original = angular.copy(hop);
+                                });
+                            }
+                            if(connectionsByDefinition['RU2RBS']){
+                                connectionsByDefinition['RU2RBS'].forEach(function(connection){
+                                    $scope.fillSite.rus.forEach(function(ru){
+                                        if(connection.equipments.indexOf(ru.equipment.id) >=0){
+                                            if(connection.equipments[0] !== ru.equipment.id){
+                                                var temp = angular.copy(connection.equipments[0]);
+                                                connection.equipments[0] = angular.copy(connection.equipments[1]);
+                                                connection.equipments[1] = angular.copy(temp);
+                                            }
+                                            ru.connections = {
+                                                'RU2RBS' : connection
+                                            }
+                                        }
+                                        if(ru._original){
+                                            delete ru['_original'];
+                                        }
+                                        ru._original = angular.copy(ru);
+                                    });
+                                });
+                            }
+                            if(connectionsByDefinition['DU2RBS']){
+                                connectionsByDefinition['DU2RBS'].forEach(function(connection){
+                                    $scope.fillSite.dus.forEach(function(ru){
+                                        if(connection.equipments.indexOf(ru.equipment.id) >=0){
+                                            if(connection.equipments[0] !== ru.equipment.id){
+                                                var temp = angular.copy(connection.equipments[0]);
+                                                connection.equipments[0] = angular.copy(connection.equipments[1]);
+                                                connection.equipments[1] = angular.copy(temp);
+                                            }
+                                            ru.connections = {
+                                                'DU2RBS' : connection
+                                            }
+                                        }
+                                        if(ru._original){
+                                            delete ru['_original'];
+                                        }
+                                        ru._original = angular.copy(ru);
+                                    });
+                                });
+                            }
+                            if(connectionsByDefinition['ANTENNA2RBS']){
+                                connectionsByDefinition['ANTENNA2RBS'].forEach(function(connection){
+                                    $scope.fillSite.antennas.forEach(function(ru){
+                                        if(connection.equipments.indexOf(ru.equipment.id) >=0){
+                                            if(connection.equipments[0] !== ru.equipment.id){
+                                                var temp = angular.copy(connection.equipments[0]);
+                                                connection.equipments[0] = angular.copy(connection.equipments[1]);
+                                                connection.equipments[1] = angular.copy(temp);
+                                            }
+                                            ru.connections = {
+                                                'ANTENNA2RBS' : connection
+                                            }
+                                        }
+                                        if(ru._original){
+                                            delete ru['_original'];
+                                        }
+                                        ru._original = angular.copy(ru);
+                                    });
+                                });
+                            }
+                        },
+                        function (error) {
+                            console.log(error.data);
+                        }
+                    );
+                }
+            }
+
+            function guid() {
+                function s4() {
+                    return Math.floor((1 + Math.random()) * 0x10000)
+                            .toString(16)
+                            .substring(1);
+                }
+
+                return s4() + s4() + '-' + s4() + '-' + s4() + '-' +
+                        s4() + '-' + s4() + s4() + s4();
+            }
+
+            function generateId(){
+                return "_NEW:" + guid();
+            }
+
+            $scope.addPerson = function (index) {
+                if (!$scope.fillSite.facilities[index].params.contacts) {
+                    $scope.fillSite.facilities[index].params.contacts = [];
+                }
+                $scope.fillSite.facilities[index].params.contacts.push({});
+            };
+
+            $scope.removePerson = function (facilityIndex, personIndex) {
+                $scope.fillSite.facilities[facilityIndex].params.contacts.splice(personIndex, 1);
+            };
+
+            $scope.addFacility = function () {
+                $scope.fillSite.facilities.push({id: generateId(), params: {contacts: []}, _command: "ADD_FACILITY"});
+            };
+
+            $scope.removeFacility = function (index) {
+                $scope.fillSite.facilities.splice(index, 1);
+            };
+
+            $scope.addCabinet = function () {
+                $scope.fillSite.cabinets.push({id: generateId(), params: {}, equipment:{definition:"CABINET",params:{}, id: generateId()}, _command: "INSTALL_NEW_EQUIPMENT", definition:"CABINET"});
+            };
+
+            $scope.removeCabinet = function (index) {
+                $scope.fillSite.cabinets.splice(index, 1);
+            };
+
+            $scope.addRu = function () {
+                var equipmentId = generateId();
+                $scope.fillSite.rus.push({params: {}, equipment: {definition:"RU", params: {rat: {}}, id: equipmentId}, _command: "INSTALL_NEW_EQUIPMENT",definition:"RU", connections : {'RU2RBS':{equipments:[equipmentId],definition:'RU2RBS', _command:'CONNECT_EQUIPMENT'}}});
+            };
+
+            $scope.removeRu = function (index) {
+                $scope.fillSite.rus.splice(index, 1);
+            };
+
+            $scope.addDu = function () {
+                var equipmentId = generateId();
+                $scope.fillSite.dus.push({params: {}, equipment: {definition:"DU", params: {rat: {}}, id: equipmentId}, _command: "INSTALL_NEW_EQUIPMENT",definition:"DU", connections : {'DU2RBS':{equipments:[equipmentId],definition:'DU2RBS', _command:'CONNECT_EQUIPMENT'}}});
+            };
+
+            $scope.removeDu = function (index) {
+                $scope.fillSite.dus.splice(index, 1);
+            };
+
+            $scope.changeModificationType = function (target, value) {
+                $scope.fillSite[target] = value;
+            };
+
+            $scope.addPowerSource = function () {
+                $scope.fillSite.powerSources.push({
+                    params: {
+                        cable_ways: [],
+                        cable_way: {},
+                        lightning_sys: {},
+                        grounding_sys: {},
+                        disel_generator: {},
+                        oil_tank: {},
+                        electricity_counter: {}
+                    },
+                    _command: "CREATE_POWERSOURCE"
+                });
+            };
+
+            $scope.removePowerSource = function (index) {
+                $scope.fillSite.powerSources.splice(index, 1);
+            };
+
+            $scope.addSupplementary = function () {
+                $scope.fillSite.supplementary.push({equipment: {definition:"SUPPLEMENTARY", params:{}}, params: {}, _command: "INSTALL_NEW_EQUIPMENT", definition:"SUPPLEMENTARY"});
+            }
+
+            $scope.removeSupplementary = function (index) {
+                $scope.fillSite.supplementary.splice(index, 1);
+            };
+
+            $scope.addAntenna = function () {
+                var equipmentId = generateId();
+                $scope.fillSite.antennas.push({params: {}, equipment: {definition:"ANTENNA", params: {rat: {}}, id: equipmentId}, params: {}, _command: "INSTALL_NEW_EQUIPMENT",definition:"ANTENNA", connections : {'ANTENNA2RBS':{equipments:[equipmentId],definition:'ANTENNA2RBS', _command:'CONNECT_EQUIPMENT'}}});
+            }
+
+            $scope.removeAntenna = function (index) {
+                $scope.fillSite.antennas.splice(index, 1);
+            };
+
+            $scope.addCellToPower = function (index) {
+                if (!$scope.fillSite.powerSources[index].params.cable_ways) {
+                    $scope.fillSite.powerSources[index].params.cable_ways = [];
+                }
+                $scope.fillSite.powerSources[index].params.cable_ways.push({});
+            };
+
+            $scope.removeCellFromPower = function (powerIndex, cableIndex) {
+                $scope.fillSite.powerSources[powerIndex].params.cable_ways.splice(cableIndex, 1);
+            };
+
+            $scope.fromCharCode = function (c) {
+                return String.fromCharCode(c);
+            };
+
+            $scope.toggleConnectionEquipment = function(index, equipment, hopForm){
+                console.log(hopForm);
+                var idx = $scope.fillSite.transmissions[index].equipments.indexOf(equipment);
+
+                if(idx > -1){
+                    $scope.fillSite.transmissions[index].equipments.splice(idx,1);
+                } else {
+                    $scope.fillSite.transmissions[index].equipments.push(equipment);
+                }
+                var farEndValid = false;
+                var nearEndValid = false;
+                $scope.fillSite.transmissions[index].equipments.forEach(function(e){
+                    if(_.map($scope.fillSite.transmissions[index].farEnd.ius, 'equipment.id').indexOf(e) >= 0){
+                        farEndValid = true;
+                    }
+                    if(_.map($scope.fillSite.transmissions[index].farEnd.ous, 'equipment.id').indexOf(e) >= 0){
+                        farEndValid = true;
+                    }
+                    if(_.map($scope.fillSite.transmissions[index].farEnd.aus, 'equipment.id').indexOf(e) >= 0){
+                        farEndValid = true;
+                    }
+                    if(_.map($scope.fillSite.ius, 'equipment.id').indexOf(e) >= 0){
+                        nearEndValid = true;
+                    }
+                    if(_.map($scope.fillSite.ous, 'equipment.id').indexOf(e) >= 0){
+                        nearEndValid = true;
+                    }
+                    if(_.map($scope.fillSite.aus, 'equipment.id').indexOf(e) >= 0){
+                        nearEndValid = true;
+                    }
+                });
+                hopForm.$setValidity('connectionEquipmentValid', farEndValid && nearEndValid);
+                if(farEndValid && nearEndValid){
+                    $scope.fillSite.transmissions[index].valid = "valid";
+                } else {
+                    $scope.fillSite.transmissions[index].valid = "";
+                }
+                console.log(hopForm);
+            };
+
+            function getSiteData(hop){
+                $http.get('/asset-management/api/sites/' + hop.farEnd.site.id + '?projection=full', {headers:{'If-None-Match':'*'}}).then(
+                    function (result) {
+                        var site = result.data;
+                        hop.farEnd.site.name = site.name;
+                        if (site.installations !== undefined) {
+                            var map = _.groupBy(site.installations, 'equipment.definition');
+                            console.log(map);
+                            hop.farEnd.ous = angular.copy(map.OU);
+                            hop.farEnd.ius = angular.copy(map.IU);
+                            hop.farEnd.aus = angular.copy(map.AU);
+                            hop._original = angular.copy(hop);
+                            $scope.fillSite.transmissions.push(hop);
+                        } else {
+                            hop._original = angular.copy(hop);
+                            $scope.fillSite.transmissions.push(hop);
+                        }
+                    },
+                    function (error) {
+                        console.log(error.data);
+                    }
+                );
+            }
+
+            $scope.addHop = function () {
+                var selectedSite = angular.copy($scope.farEndSite);
+                var hop = {
+                    farEnd : {
+                        site: {
+                            id: selectedSite.id,
+                            name: selectedSite.name,
+                            site_name: selectedSite.site_name
+                        }
+                    },
+                    definition: "TRANSMISSION_RADIO_RELAY",
+                    params: {
+                        sites: [$scope.jobModel.site.originalValue, selectedSite.id]
+                    },
+                    nearEnd: {site: $scope.jobModel.site.originalValue},
+                    _command: "CONNECT_EQUIPMENT",
+                    equipments: []
+                };
+                $scope.farEndSite = {}
+                getSiteData(hop);
+                $scope.toggleHop();
+            }
+
+            $scope.removeHop = function(index){
+                $scope.fillSite.transmissions.splice(index, 1);
+            };
+
+            $scope.addIndoorUnit = function () {
+                $scope.fillSite.ius.push({
+                    id : generateId(),
+                    params: {},
+                    equipment: {
+                        params: {},
+                        definition: "IU",
+                        id: generateId()
+                    },
+                    definition: "IU",
+                    _command: "INSTALL_NEW_EQUIPMENT"
+                });
+            };
+
+            $scope.removeIndoorUnit = function(index){
+                $scope.fillSite.ius.splice(index,1);
+            };
+
+            $scope.addOutdoorUnit = function () {
+                $scope.fillSite.ous.push({
+                    id : generateId(),
+                    params: {},
+                    equipment: {
+                        params: {},
+                        definition: "OU",
+                        id: generateId()
+                    },
+                    definition: "OU",
+                    _command: "INSTALL_NEW_EQUIPMENT"
+                });
+            };
+
+            $scope.removeOutdoorUnit = function(index){
+                $scope.fillSite.ous.splice(index,1);
+            };
+
+            $scope.addAntennaUnit = function () {
+                $scope.fillSite.aus.push({
+                    id : generateId(),
+                    params: {},
+                    equipment: {
+                        params: {},
+                        definition: "AU",
+                        id: generateId()
+                    },
+                    definition: "AU",
+                    _command: "INSTALL_NEW_EQUIPMENT"
+                });
+            };
+
+            $scope.removeAntennaUnit = function(index){
+                $scope.fillSite.aus.splice(index,1);
+            }
+
+            $scope.toggleHop = function () {
+                $scope.showAddHop = !$scope.showAddHop;
+            };
+
+            $scope.addIndoorConnection = function (index) {
+                $scope.fillSite.transmissions[index].indoorConnections.push({params:{}});
+            };
+
+            $scope.removeIndoorConnection = function (transmissionIndex, idcIndex) {
+                $scope.fillSite.transmissions[transmissionIndex].indoorConnections.splice(idcIndex,1)
+            }
+
+            $scope.addOutdoorConnection = function (index) {
+                $scope.fillSite.transmissions[index].outdoorConnections.push({params:{}});
+            };
+
+            $scope.removeOutdoorConnection = function (transmissionIndex, odcIndex) {
+                $scope.fillSite.transmissions[transmissionIndex].outdoorConnections.splice(odcIndex,1)
+            }
+
+            $scope.addAntennaConnection = function (index) {
+                $scope.fillSite.transmissions[index].antennaConnections.push({params:{}});
+            };
+
+            $scope.removeAntennaConnection = function (transmissionIndex, antennaIndex) {
+                $scope.fillSite.transmissions[transmissionIndex].antennaConnections.splice(antennaIndex,1)
+            }
+
+            $scope.myRegex = /[a-zA-Z]{4}[0-9]{6,6}[a-zA-Z0-9]{3}/;
+
+            $scope.createSummaryDocument = function(){
+                var fillSite = angular.copy($scope.fillSite);
+                var summary = {
+                    facilities: [],
+                    cabinets: [],
+                    antennas: [],
+                    rus: [],
+                    dus: [],
+                    powerSources: [],
+                    supplementary: [],
+                    transmissions: []
+                };
+                if(fillSite !== undefined){
+                    console.log("FILL SITE IS NOT NULL");
+                    summary.facility = _.flatMap(fillSite.facilities, function(e){
+                        var original = angular.copy(e._original);
+                        var modified = angular.copy(e);
+                        console.log(original, modified);
+                        if(original){
+                            original = _.omitBy(original, function(value, key){
+                                return key.indexOf('_') === 0 ;
+                            });
+                        }
+                        modified = _.omitBy(modified, function(value, key){
+                            return key.indexOf('_') === 0;
+                        });
+                        if(e._command === 'MODIFY_FACILITY'){
+                            var delta = diff(original, modified);
+                            var result = [{command: e._command, lhs: original, rhs: modified, delta: delta}];
+                            for(var i=0;i<result[0].delta.length;i++){
+                                if(result[0].delta[i].path){
+                                    if(result[0].delta[i].path.length === 4){
+                                        if(result[0].delta[i].path[1] === 'contacts'){
+                                            result[0].delta[i].path.splice(2,1);
+                                        }
+                                    }
+                                }
+                            }
+                            return result;
+                        } else if(e._command === 'ADD_FACILITY'){
+                            var contacts = [];
+                            if(modified.params.contacts){
+                                for(var i=0;i<modified.params.contacts.length;i++){
+                                    contacts.push({});
+                                }
+                            }
+                            modified = _.omitBy(modified, function(value, key){
+                                return key === 'id';
+                            });
+                            var result = [{command: e._command, rhs: modified, delta: diff({params:{contacts: contacts}}, modified)}];
+                            if(result[0].delta){
+                                for(var i=0;i<result[0].delta.length;i++){
+                                    if(result[0].delta[i].path){
+                                        if(result[0].delta[i].path.length === 4){
+                                            if(result[0].delta[i].path[1] === 'contacts'){
+                                                result[0].delta[i].path.splice(2,1);
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            return result;
+                        } else {
+                            return [];
+                        }
+                    });
+
+                    summary.cabinets = _.flatMap(fillSite.cabinets, createSummaryForEquipment);
+                    summary.rus = _.flatMap(fillSite.rus, createSummaryForEquipment);
+                    summary.dus = _.flatMap(fillSite.dus, createSummaryForEquipment);
+                    summary.antennas = _.flatMap(fillSite.antennas, createSummaryForEquipment);
+                    summary.supplementary = _.flatMap(fillSite.supplementary, createSummaryForEquipment);
+                    summary.ius = _.flatMap(fillSite.ius, createSummaryForEquipment);
+                    summary.ous = _.flatMap(fillSite.ous, createSummaryForEquipment);
+                    summary.aus = _.flatMap(fillSite.aus, createSummaryForEquipment);
+                    summary.powerSources = _.flatMap(fillSite.powerSources, function(e){
+                        var original = angular.copy(e._original);
+                        var modified = angular.copy(e);
+                        if(original){
+                            original = _.omitBy(original, function(value, key){
+                                return key.indexOf('_') === 0;
+                            });
+                        }
+                        modified = _.omitBy(modified, function(value, key){
+                            return key.indexOf('_') === 0;
+                        });
+                        if(e._command === 'MODIFY_POWERSOURCE'){
+                            var delta = diff(original, modified);
+                            var result = [{command: e._command, lhs: original, rhs: modified, delta: delta}];
+                            for(var i=0;i<result[0].delta.length;i++){
+                                if(result[0].delta[i].path){
+                                    if(result[0].delta[i].path){
+                                        if(result[0].delta[i].path.length === 4){
+                                            if(result[0].delta[i].path[1] === 'cable_ways'){
+                                                result[0].delta[i].path.splice(2,1);
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            return result;
+                        } else if(e._command === 'CREATE_POWERSOURCE'){
+                            var cable_ways = [];
+                            if(modified.params.cable_ways){
+                                for(var i=0;i<modified.params.cable_ways.length;i++){
+                                    cable_ways.push({});
+                                }
+                            }
+                            modified = _.omitBy(modified, function(value, key){
+                                return key === 'id';
+                            });
+                            var result = [{command: e._command, rhs: modified, delta: diff({params:{
+                                cable_ways: cable_ways,
+                                cable_way: {},
+                                lightning_sys: {},
+                                grounding_sys: {},
+                                disel_generator: {},
+                                oil_tank: {},
+                                electricity_counter: {}}}, modified)}];
+                            if(result[0].delta){
+                                for(var i=0;i<result[0].delta.length;i++){
+                                    if(result[0].delta[i].path){
+                                        if(result[0].delta[i].path.length === 4){
+                                            if(result[0].delta[i].path[1] === 'cable_ways'){
+                                                result[0].delta[i].path.splice(2,1);
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            return result;
+                        } else if(e._command === 'REMOVE_POWERSOURCE'){
+                            return [{command: e._command, lhs:{id:e.id}}];
+                        } else {
+                            return [];
+                        }
+                    });
+                    summary.transmissions = _.flatMap(fillSite.transmissions, function(e){
+                        var original = angular.copy(e._original);
+                        var modified = angular.copy(e);
+                        if(original){
+                            original.params  = _.omitBy(original.params, function(value, key){
+                                return key.indexOf('_') === 0;
+                            });
+                            original = _.omitBy(original, function(value, key){
+                                return key.indexOf('_') === 0 || key === 'farEnd' || key === 'nearEnd' || key === 'definition' || key === 'valid';
+                            });
+                        }
+                        modified.params  = _.omitBy(modified.params, function(value, key){
+                            return key.indexOf('_') === 0 || key === 'sites';
+                        });
+                        modified = _.omitBy(modified, function(value, key){
+                            return key.indexOf('_') === 0  || key === 'farEnd' || key === 'nearEnd' || key === 'definition' || key === 'valid';
+                        });
+                        if(e._command === 'MODIFY_CONNECTION'){
+                            var delta = diff(original, modified);
+                            return [{command: e._command, lhs: original, rhs: modified, delta: delta}];
+                        } else if(e._command === 'CONNECT_EQUIPMENT'){
+                            modified = _.omitBy(modified, function(value, key){
+                                return key === 'id';
+                            });
+                            return [{command: e._command, rhs: modified, delta: diff({params:{}}, modified)}];
+                        } else if(e._command === 'REMOVE_CONNECTION'){
+                            return [{commnad: e._command, lhs:{id:e.id}}];
+                        } else {
+                            return [];
+                        }
+                    });
+                    console.log(summary);
+                    $scope.summaries = summary;
+                }
+            };
+            function createSummaryForEquipment(e){
+                var definition = e.definition;
+                var original = angular.copy(e._original);
+                var modified = angular.copy(e);
+                if(original){
+                    original.equipment = _.omitBy(original.equipment, function(value, key){
+                        return key.indexOf('_') === 0 || key === 'id' || key === 'definition';
+                    });
+                    for(var c in original.connections){
+                        original.connections[c] = _.omitBy(original.connections[c], function(value, key){
+                            return key.indexOf('_') === 0 || key === 'id' || key === 'definition' || key === '_command';
+                        });
+                    }
+                    original = _.omitBy(original, function(value, key){
+                        return key.indexOf('_') === 0 || key === 'definition';
+                    });
+                }
+                modified.equipment = _.omitBy(modified.equipment, function(value, key){
+                    return key.indexOf('_') === 0 || key === 'id' || key === 'definition';
+                });
+                for(var c in modified.connections){
+                    modified.connections[c] = _.omitBy(modified.connections[c], function(value, key){
+                        return key.indexOf('_') === 0 || key === 'id' || key === 'definition' || key === '_command';
+                    });
+                }
+                modified = _.omitBy(modified, function(value, key){
+                    return key.indexOf('_') === 0 || key === 'definition';
+                });
+                if(e._command === 'MODIFY_INSTALLATION'){
+                    var delta = diff(original, modified);
+                    return [{command: e._command, lhs: original, rhs: modified, delta: delta}];
+                } else if(e._command === 'INSTALL_NEW_EQUIPMENT'){
+                    modified = _.omitBy(modified, function(value, key){
+                        return key === 'id';
+                    });
+                    if(e.connections){
+                        var connectionsObject = {};
+                        connectionsObject[definition+"2RBS"] = {equipments:[]}
+                        return [{command: e._command, rhs: modified, delta: diff({params:{}, equipment:{params: {rat: {}}}, connections:connectionsObject}, modified)}];
+                    } else {
+                        return [{command: e._command, rhs: modified, delta: diff({params:{}, equipment:{params: {}}}, modified)}];
+                    }
+                } else if(e._command === 'DISMANTLE_EQUIPMENT'){
+                    //return [{command: e._command, lhs: original, delta: diff(original, {facility:original.facility, equipment: {params: {}}, params:{}})}];
+                    return [{command: e._command, lhs:{id:e.id}}];
+                } else {
+                    return [];
+                }
+
+            }
+            $scope.createCommandsDocument = function(){
+                console.log("CREATE COMMANDS DOCUMENT")
+                var fillSite = angular.copy($scope.fillSite);
+                var summary = [];
+                if(fillSite !== undefined){
+                    var facilityCommands = _.flatMap(fillSite.facilities, function(e){
+                        if(e._command == 'ADD_FACILITY'){
+                            return [{command:e._command, payload:e}];
+                        } else if(e._command == 'MODIFY_FACILITY'){
+                            return [{command:e._command, id: e.id, payload:e}];
+                        } else {
+                            return [];
+                        }
+                    });
+                    summary = summary.concat(facilityCommands);
+
+                    var cabinetCommands = _.flatMap(fillSite.cabinets, createCommandForEquipment);
+                    summary = summary.concat(cabinetCommands);
+
+                    var ruCommands = _.flatMap(fillSite.rus, createCommandForEquipment);
+                    summary = summary.concat(ruCommands);
+
+                    var ruDuAntennaConnections = _.filter(_.flatMap(_.filter(_.map(_.concat(fillSite.rus, fillSite.dus, fillSite.antennas), 'connections'),undefined), createCommandForConnection), function(e){return e.equipments && e.equipments.length == 2 && e._command});
+                    if(ruDuAntennaConnections){
+                        ruDuAntennaConnections.forEach(function(e){
+                            if(!e.id || e.id.indexOf('_NEW:') == 0){
+                                e._command = 'CONNECT_EQUIPMENT';
+                            }
+
+                        });
+                    }
+
+                    var ruDuAntennaConnectionsCommands = _.flatMap(ruDuAntennaConnections, function(e){
+                        if(e._command == 'CONNECT_EQUIPMENT'){
+                            return [{command:e._command, payload:e}];
+                        } else if(e._command == 'MODIFY_CONNECTION'){
+                            return [{command:e._command, id: e.id, payload:e}];
+                        } else if(e._command == 'REMOVE_CONNECTION') {
+                            return [{command:e._command, payload:{id: e.id}}];
+                        } else {
+                            return [];
+                        }
+                    })
+
+
+                    summary = summary.concat(ruDuAntennaConnectionsCommands);
+
+                    var duCommands = _.flatMap(fillSite.dus, createCommandForEquipment);
+                    summary = summary.concat(duCommands);
+
+                    var powerSourcesCommands = _.flatMap(fillSite.powerSources, function(e){
+                        if(e._command == 'CREATE_POWERSOURCE'){
+                            return [{command:e._command, payload:e}];
+                        } else if(e._command == 'MODIFY_POWERSOURCE'){
+                            return [{command:e._command, id: e.id, payload:e}];
+                        } else if(e._command == 'REMOVE_POWERSOURCE') {
+                            return [{command:e._command, payload:{id: e.id}}];
+                        } else if(e._command == 'REPLACE_POWERSOURCE') {
+                            var payload = angular.copy(e);
+                            payload.id = generateId();
+                            return [{command:e._command, id: e.id, payload: payload}];
+                        } else {
+                            return [];
+                        }
+                    });
+                    summary = summary.concat(powerSourcesCommands);
+
+                    var antennasCommands = _.flatMap(fillSite.antennas, createCommandForEquipment);
+                    summary = summary.concat(antennasCommands);
+
+                    var supplementaryCommands = _.flatMap(fillSite.supplementary, createCommandForEquipment);
+                    summary = summary.concat(supplementaryCommands);
+
+                    var indoorUnitCommands = _.flatMap(fillSite.ius, createCommandForEquipment);
+                    summary = summary.concat(indoorUnitCommands);
+
+                    var outdoorUnitCommands = _.flatMap(fillSite.ous, createCommandForEquipment);
+                    summary = summary.concat(outdoorUnitCommands);
+
+                    var antennaUnitCommands = _.flatMap(fillSite.aus, createCommandForEquipment);
+                    summary = summary.concat(antennaUnitCommands);
+
+                    var tranmissionCommands = _.flatMap(fillSite.transmissions, function(e){
+                        delete e['farEnd'];
+                        delete e['nearEnd'];
+                        if(e._command == 'CONNECT_EQUIPMENT'){
+                            return [{command:e._command, payload:e}];
+                        } else if(e._command == 'MODIFY_CONNECTION'){
+                            return [{command:e._command, id: e.id, payload:e}];
+                        } else if(e._command == 'REMOVE_CONNECTION') {
+                            return [{command:e._command, payload:{id: e.id}}];
+                        } else {
+                            return [];
+                        }
+                    });
+                    summary = summary.concat(tranmissionCommands);
+                    $scope.commands = summary;
+                }
+            };
+            function createCommandForEquipment(e){
+                if(e._command == 'INSTALL_NEW_EQUIPMENT'){
+                    var payload = angular.copy(e);
+                    delete payload['connections'];
+                    return [{command:e._command, payload: payload}];
+                } else if(e._command == 'MODIFY_INSTALLATION'){
+                    var payload = angular.copy(e);
+                    delete payload['connections'];
+                    return [{command:e._command, id: e.id, payload: payload}];
+                } else if(e._command == 'DISMANTLE_EQUIPMENT') {
+                    return [{command:e._command, payload:{id: e.id}}];
+                } else if(e._command == 'REPLACE_EQUIPMENT') {
+                    var payload = angular.copy(e);
+                    if(!payload.equipment){
+                        payload.equipment = {params:{}};
+                    }
+                    payload.equipment.id = generateId();
+                    payload.equipment.definition = e.definition;
+                    return [{command:e._command, id: e.id, payload: payload}];
+                } else {
+                    return [];
+                }
+            };
+            function createCommandForConnection(e){
+                return _.values(e);
+            };
+
+            $scope.getSite = function(val) {
+                return $http.get('/asset-management/api/sites/search/findByNameIgnoreCaseContaining?name='+val).then(
+                    function(response){
+                        var sites = _.flatMap(response.data._embedded.sites, function(s){
+                            if(s.params.site_name){
+                                return s.params.site_name.split(',').map(function(sitename){
+                                    return {
+                                        name: s.name,
+                                        id: s._links.self.href.substring(s._links.self.href.lastIndexOf('/')+1),
+                                        site_name: sitename
+                                    };
+                                })
+                            } else {
+                                return [];
+                            }
+                        });
+                        return sites;
+                    }
+                );
+            };
+
+            $scope.siteSelected = function($item){
+                $scope.farEndSite.name = $item.name;
+                $scope.farEndSite.id = $item.id;
+                $scope.farEndSite.site_name  = $item.site_name;
+            };
+
+            $scope.tssrssidFileModel = {};
+
+            $scope.resetFacility = function(index){
+                var facility = angular.copy($scope.fillSite.facilities[index]._original);
+                facility._original = angular.copy(facility);
+                $scope.fillSite.facilities[index] = facility;
+                delete $scope.fillSite.facilities[index]['_command'];
+            };
+
+            $scope.resetCabinet = function(index){
+                var cabinet = angular.copy($scope.fillSite.cabinets[index]._original);
+                cabinet._original = angular.copy(cabinet);
+                $scope.fillSite.cabinets[index] = cabinet;
+                delete $scope.fillSite.cabinets[index]['_command'];
+            };
+
+            $scope.resetAntenna = function(index){
+                var antenna = angular.copy($scope.fillSite.antennas[index]._original);
+                antenna._original = angular.copy(antenna);
+                $scope.fillSite.antennas[index] = antenna;
+                delete $scope.fillSite.antennas[index]['_command'];
+            };
+
+            $scope.resetIndoorUnit = function(index){
+                var iu = angular.copy($scope.fillSite.ius[index]._original);
+                iu._original = angular.copy(iu);
+                $scope.fillSite.ius[index] = iu;
+                delete $scope.fillSite.ius[index]['_command'];
+            };
+
+            $scope.resetOutdoorUnit = function(index){
+                var ou = angular.copy($scope.fillSite.ous[index]._original);
+                ou._original = angular.copy(ou);
+                $scope.fillSite.ous[index] = ou;
+                delete $scope.fillSite.ous[index]['_command'];
+            };
+
+            $scope.resetAntennaUnit = function(index){
+                var au = angular.copy($scope.fillSite.aus[index]._original);
+                au._original = angular.copy(au);
+                $scope.fillSite.aus[index] = au;
+                delete $scope.fillSite.aus[index]['_command'];
+            };
+
+            $scope.resetSupplementary = function(index){
+                var supp = angular.copy($scope.fillSite.supplementary[index]._original);
+                supp._original = angular.copy(supp);
+                $scope.fillSite.supplementary[index] = supp;
+                delete $scope.fillSite.supplementary[index]['_command'];
+            };
+
+            $scope.resetRu = function(index){
+                var ru = angular.copy($scope.fillSite.rus[index]._original);
+                ru._original = angular.copy(ru);
+                $scope.fillSite.rus[index] = ru;
+                delete $scope.fillSite.rus[index]['_command'];
+            };
+
+            $scope.resetDu = function(index){
+                var du = angular.copy($scope.fillSite.dus[index]._original);
+                du._original = angular.copy(du);
+                $scope.fillSite.dus[index] = du;
+                delete $scope.fillSite.dus[index]['_command'];
+            };
+
+            $scope.resetHop = function(index){
+                var hop = angular.copy($scope.fillSite.transmissions[index]._original);
+                hop._original = angular.copy(hop);
+                $scope.fillSite.transmissions[index] = hop;
+                delete $scope.fillSite.transmissions[index]['_command'];
+            };
+
+            $scope.resetPowerSource = function(index){
+                var powerSource = angular.copy($scope.fillSite.powerSources[index]._original);
+                powerSource._original = angular.copy(powerSource);
+                $scope.fillSite.powerSources[index] = powerSource;
+                delete $scope.fillSite.powerSources[index]['_command'];
+            };
+
+            $scope.isInstallationDisabled = function(command){
+                return command !== 'MODIFY_INSTALLATION' && command !== 'REPLACE_EQUIPMENT' && command !== 'INSTALL_NEW_EQUIPMENT';
+            };
+
+            $scope.isFacilityDisabled = function(command){
+                return command !== 'MODIFY_FACILITY' && command !== 'ADD_FACILITY';
+            };
+
+            $scope.isPowerSourceDisabled = function(command){
+                return command !== 'MODIFY_POWERSOURCE' && command !== 'REPLACE_POWERSOURCE' && command !== 'CREATE_POWERSOURCE';
+            };
+
+            $scope.isHopDisabled = function(command){
+                return command !== 'MODIFY_CONNECTION' && command !== 'REMOVE_CONNECTION' && command !== 'CONNECT_EQUIPMENT';
+            };
+
+            $scope.resetFacilitySummary = function(index){
+                for(var i =0;i<$scope.fillSite.facilities.length;i++){
+                    if($scope.fillSite.facilities[i]._original && $scope.fillSite.facilities[i]._original.id){
+                        if($scope.fillSite.facilities[i]._original.id === $scope.summaries.facility[index].lhs.id){
+                            console.log("reset facility");
+                            $scope.fillSite.facilities[i] = $scope.fillSite.facilities[i]._original
+                            $scope.fillSite.facilities[i]._original = angular.copy($scope.fillSite.facilities[i]);
+                        }
+                    }
+                }
+                $scope.summaries.facility.splice(index, 1);
+            };
+
+            $scope.resetCabinetSummary = function(index){
+                for(var i =0;i<$scope.fillSite.cabinets.length;i++){
+                    if($scope.fillSite.cabinets[i]._original && $scope.fillSite.cabinets[i]._original.id){
+                        if($scope.fillSite.cabinets[i]._original.id === $scope.summaries.cabinets[index].lhs.id){
+                            console.log("reset cabinet");
+                            $scope.fillSite.cabinets[i] = $scope.fillSite.cabinets[i]._original
+                            $scope.fillSite.cabinets[i]._original = angular.copy($scope.fillSite.cabinets[i]);
+                        }
+                    }
+                }
+                $scope.summaries.cabinets.splice(index, 1);
+            };
+
+            $scope.resetCabinetSummary = function(index){
+                for(var i =0;i<$scope.fillSite.cabinets.length;i++){
+                    if($scope.fillSite.cabinets[i]._original && $scope.fillSite.cabinets[i]._original.id){
+                        if($scope.fillSite.cabinets[i]._original.id === $scope.summaries.cabinets[index].lhs.id){
+                            console.log("reset cabinet");
+                            $scope.fillSite.cabinets[i] = $scope.fillSite.cabinets[i]._original
+                            $scope.fillSite.cabinets[i]._original = angular.copy($scope.fillSite.cabinets[i]);
+                        }
+                    }
+                }
+                $scope.summaries.cabinets.splice(index, 1);
+            };
+
+            $scope.resetRUSummary = function(index){
+                for(var i =0;i<$scope.fillSite.rus.length;i++){
+                    if($scope.fillSite.rus[i]._original && $scope.fillSite.rus[i]._original.id){
+                        if($scope.fillSite.rus[i]._original.id === $scope.summaries.rus[index].lhs.id){
+                            console.log("reset cabinet");
+                            $scope.fillSite.rus[i] = $scope.fillSite.rus[i]._original
+                            $scope.fillSite.rus[i]._original = angular.copy($scope.fillSite.rus[i]);
+                        }
+                    }
+                }
+                $scope.summaries.rus.splice(index, 1);
+            };
+
+            $scope.resetDUSummary = function(index){
+                for(var i =0;i<$scope.fillSite.dus.length;i++){
+                    if($scope.fillSite.dus[i]._original && $scope.fillSite.dus[i]._original.id){
+                        if($scope.fillSite.dus[i]._original.id === $scope.summaries.dus[index].lhs.id){
+                            console.log("reset cabinet");
+                            $scope.fillSite.dus[i] = $scope.fillSite.dus[i]._original
+                            $scope.fillSite.dus[i]._original = angular.copy($scope.fillSite.dus[i]);
+                        }
+                    }
+                }
+                $scope.summaries.dus.splice(index, 1);
+            };
+
+            $scope.resetAntennaSummary = function(index){
+                for(var i =0;i<$scope.fillSite.antennas.length;i++){
+                    if($scope.fillSite.antennas[i]._original && $scope.fillSite.antennas[i]._original.id){
+                        if($scope.fillSite.antennas[i]._original.id === $scope.summaries.antennas[index].lhs.id){
+                            console.log("reset cabinet");
+                            $scope.fillSite.antennas[i] = $scope.fillSite.antennas[i]._original
+                            $scope.fillSite.antennas[i]._original = angular.copy($scope.fillSite.antennas[i]);
+                        }
+                    }
+                }
+                $scope.summaries.antennas.splice(index, 1);
+            };
+
+            $scope.resetSupplementarySummary = function(index){
+                for(var i =0;i<$scope.fillSite.supplementary.length;i++){
+                    if($scope.fillSite.supplementary[i]._original && $scope.fillSite.supplementary[i]._original.id){
+                        if($scope.fillSite.supplementary[i]._original.id === $scope.summaries.supplementary[index].lhs.id){
+                            console.log("reset cabinet");
+                            $scope.fillSite.supplementary[i] = $scope.fillSite.supplementary[i]._original
+                            $scope.fillSite.supplementary[i]._original = angular.copy($scope.fillSite.supplementary[i]);
+                        }
+                    }
+                }
+                $scope.summaries.supplementary.splice(index, 1);
+            };
+
+            $scope.resetPowerSourceSummary = function(index){
+                for(var i =0;i<$scope.fillSite.powerSources.length;i++){
+                    if($scope.fillSite.powerSources[i]._original && $scope.fillSite.powerSources[i]._original.id){
+                        if($scope.fillSite.powerSources[i]._original.id === $scope.summaries.powerSources[index].lhs.id){
+                            console.log("reset cabinet");
+                            $scope.fillSite.powerSources[i] = $scope.fillSite.powerSources[i]._original
+                            $scope.fillSite.powerSources[i]._original = angular.copy($scope.fillSite.powerSources[i]);
+                        }
+                    }
+                }
+                $scope.summaries.powerSources.splice(index, 1);
+            };
+
+            $scope.resetIndoorUnitSummary = function(index){
+                for(var i =0;i<$scope.fillSite.ius.length;i++){
+                    if($scope.fillSite.ius[i]._original && $scope.fillSite.ius[i]._original.id){
+                        if($scope.fillSite.ius[i]._original.id === $scope.summaries.ius[index].lhs.id){
+                            console.log("reset cabinet");
+                            $scope.fillSite.ius[i] = $scope.fillSite.ius[i]._original
+                            $scope.fillSite.ius[i]._original = angular.copy($scope.fillSite.ius[i]);
+                        }
+                    }
+                }
+                $scope.summaries.ius.splice(index, 1);
+            };
+
+            $scope.resetOutdoorUnitSummary = function(index){
+                for(var i =0;i<$scope.fillSite.ous.length;i++){
+                    if($scope.fillSite.ous[i]._original && $scope.fillSite.ous[i]._original.id){
+                        if($scope.fillSite.ous[i]._original.id === $scope.summaries.ous[index].lhs.id){
+                            console.log("reset cabinet");
+                            $scope.fillSite.ous[i] = $scope.fillSite.ous[i]._original
+                            $scope.fillSite.ous[i]._original = angular.copy($scope.fillSite.ous[i]);
+                        }
+                    }
+                }
+                $scope.summaries.ous.splice(index, 1);
+            };
+
+            $scope.resetAntennaUnitSummary = function(index){
+                for(var i =0;i<$scope.fillSite.aus.length;i++){
+                    if($scope.fillSite.aus[i]._original && $scope.fillSite.aus[i]._original.id){
+                        if($scope.fillSite.aus[i]._original.id === $scope.summaries.aus[index].lhs.id){
+                            console.log("reset cabinet");
+                            $scope.fillSite.aus[i] = $scope.fillSite.aus[i]._original
+                            $scope.fillSite.aus[i]._original = angular.copy($scope.fillSite.aus[i]);
+                        }
+                    }
+                }
+                $scope.summaries.aus.splice(index, 1);
+            };
+
+            $scope.resetHopSummary = function(index){
+                for(var i =0;i<$scope.fillSite.transmissions.length;i++){
+                    if($scope.fillSite.transmissions[i]._original && $scope.fillSite.transmissions[i]._original.id){
+                        if($scope.fillSite.transmissions[i]._original.id === $scope.summaries.transmissions[index].lhs.id){
+                            console.log("reset cabinet");
+                            $scope.fillSite.transmissions[i] = $scope.fillSite.transmissions[i]._original
+                            $scope.fillSite.transmissions[i]._original = angular.copy($scope.fillSite.transmissions[i]);
+                        }
+                    }
+                }
+                $scope.summaries.transmissions.splice(index, 1);
+            };
+
+            $scope.fileSelected = function (el, variableName, bindedInput) {
+                $timeout(function () {
+                    $scope.$apply(function () {
+                        uploadFileToMinio(el.files[0], variableName, bindedInput);
+                    });
+                })
+            };
+
+            function uploadFileToMinio(file, variableName, bindedInput) {
+                var fileToUpload = {
+                    name: 'tssrssidFileName',
+                    type: 'Json',
+                    value: {
+                        name: file.name.replace(/[/\\?%*:|"<>]/g, '-'),
+                        isNew: true,
+                        path: $scope.processInstanceId + '/' + camForm.taskId + '/' + file.name.replace(/[/\\?%*:|"<>]/g, '-')
+                    }
+                };
+                $http({method: 'GET', url: '/camunda/uploads/put/' + fileToUpload.value.path, transformResponse: [] }).
+                then(function(response) {
+                    $http.put(response.data, file, {headers: {'Content-Type': undefined}}).then(
+                        function () {
+                            $scope[variableName] = fileToUpload;
+                            $(bindedInput).val('');
+                        },
+                        function (error) {
+                            console.log(error.data);
+                        }
+                    );
+                }, function(error){
+                    console.log(error.data);
+                });
+            }
+
+            $scope.clearTSSRFile = function (variableName) {
+                $scope[variableName].value = {};
+                angular.element(document.querySelector('#tssrssidFileName')).val(null);
+            }
+
+            $scope.siteWorkfileSelected = function(el, workIndex, bindedInput){
+                $timeout(function () {
+                    $scope.$apply(function () {
+                        uploadSiteWorkFileToMinio(el.files[0], workIndex, bindedInput);
+                    });
+                })
+            };
+
+            $scope.siteWorkPhotoFileSelected = function(el, workIndex, bindedInput, fileType){
+                $timeout(function () {
+                    $scope.$apply(function () {
+                        uploadSiteWorkPhotoFileToMinio(el.files[0], workIndex, bindedInput, fileType);
+                    });
+                })
+            };
+
+            $scope.additionalFileSelected = function(el, workIndex, bindedInput){
+                $timeout(function () {
+                    $scope.$apply(function () {
+                        uploadAdditionalFileToMinio(el.files[0], bindedInput);
+                    });
+                })
+            };
+
+            function uploadSiteWorkFileToMinio(file, workIndex, bindedInput) {
+                if(!$scope.sitesWorks[workIndex].files){
+                    $scope.sitesWorks[workIndex].files = [];
+                }
+                var fileIndex = $scope.sitesWorks[workIndex].files.length;
+
+                var fileToUpload = {
+                    name: 'work_' + workIndex + '_file_' + fileIndex,
+                    type: 'Json',
+                    value: {
+                        name: file.name,
+                        isNew: true,
+                        path: $scope.processInstanceId + '/' + camForm.taskId + '/' + file.name
+                    }
+                };
+                $http({method: 'GET', url: '/camunda/uploads/put/' + fileToUpload.value.path, transformResponse: [] }).
+                    then(function(response) {
+                        $http.put(response.data, file, {headers: {'Content-Type': undefined}}).then(
+                        function () {
+                            $scope.sitesWorks[workIndex].files.push(fileToUpload);
+                            angular.element(document.querySelector('#works_' + workIndex + '_file_' + fileIndex)).val(null);
+                            $(bindedInput).val('');
+                        });
+                }, function(error){
+                    console.log(error.data);
+                });
+            }
+
+            function uploadSiteWorkPhotoFileToMinio(file, workIndex, bindedInput, fileType) {
+                if(!$scope.sitesWorks[workIndex].photoFiles){
+                    $scope.sitesWorks[workIndex].photoFiles = {};
+                }
+                if(!$scope.sitesWorks[workIndex].photoFiles[fileType]){
+                    $scope.sitesWorks[workIndex].photoFiles[fileType] = [];
+                }
+                var fileIndex = $scope.sitesWorks[workIndex].photoFiles[fileType].length;
+
+                var fileToUpload = {
+                    name: 'work_' + workIndex + '_file_' + fileType + '_' + fileIndex,
+                    type: 'Json',
+                    value: {
+                        name: file.name,
+                        isNew: true,
+                        path: $scope.processInstanceId + '/' + camForm.taskId + '/' + file.name
+                    }
+                };
+                $http({method: 'GET', url: '/camunda/uploads/put/' + fileToUpload.value.path, transformResponse: [] }).
+                    then(function(response) {
+                        $http.put(response.data, file, {headers: {'Content-Type': undefined}}).then(
+                        function () {
+                            $scope.sitesWorks[workIndex].photoFiles[fileType].push(fileToUpload);
+                            angular.element(document.querySelector('#works_' + workIndex + '_file_' + fileType + '_' + fileIndex)).val(null);
+                            $(bindedInput).val('');
+                            getImagePath($scope.sitesWorks[workIndex].photoFiles[fileType][$scope.sitesWorks[workIndex].photoFiles[fileType].length-1]);
+                        });
+                }, function(error){
+                    console.log(error.data);
+                });
+            }
+
+            function uploadAdditionalFileToMinio(file, bindedInput) {
+                if(!$scope.additionalFiles){
+                    $scope.additionalFiles = [];
+                }
+                var fileIndex = $scope.additionalFiles.length;
+
+                var fileToUpload = {
+                    name: 'additional_files_' + fileIndex,
+                    type: 'Json',
+                    value: {
+                        name: file.name,
+                        isNew: true,
+                        path: $scope.processInstanceId + '/' + camForm.taskId + '/' + file.name
+                    }
+                };
+                $http({method: 'GET', url: '/camunda/uploads/put/' + fileToUpload.value.path, transformResponse: [] }).
+                    then(function(response) {
+                        $http.put(response.data, file, {headers: {'Content-Type': undefined}}).then(
+                        function () {
+                            $scope.additionalFiles.push(fileToUpload);
+                            angular.element(document.querySelector('#additional_files_' + fileIndex)).val(null);
+                            $(bindedInput).val('');
+                        });
+                }, function(error){
+                    console.log(error.data);
+                });
+            }
+
+            $scope.showImage = function(fileSrc){
+                exModal.open({
+                    scope: {
+                        fileSrc: fileSrc
+                    },
+                    templateUrl: './js/partials/revisionImageModal.html',
+                    size: 'lg'
+                }).then(function(results){
+                });
+            }
+
+            function containsFile(files, file){
+                for(var i = 0; i<files.length; i++){
+                    if(files[i].name === file.name){
+                        return true;
+                    }
+                }
+                return false;
+            }
+
+            function getImagePath(file) {
+                console.log(file);
+                $http({method: 'GET', url: '/camunda/uploads/get/' + file.value.path, transformResponse: [] }).
+                then(function(response) {
+                    file.imgSrc = response.data;
+                }, function(error){
+                    console.log(error.data);
+                });
+            }
+
+            $scope.download = function (file) {
+                console.log(file);
+                $http({method: 'GET', url: '/camunda/uploads/get/' + file.value.path, transformResponse: [] }).
+                then(function(response) {
+                    document.getElementById('fileDownloadIframe').src = response.data;
+                }, function(error){
+                    console.log(error.data);
+                });
+            }
+
+            $scope.downloadOldFile = function (file) {
+                document.getElementById('fileDownloadIframe').src = '/camunda/api/engine/engine/default/variable-instance/' + file.id + '/data';
+            }
+
+            $scope.clearFile = function (parentIndex, fileIndex) {
+                $scope.sitesWorks[parentIndex].files.splice(fileIndex, 1);
+            }
+
+            $scope.clearFileNewImage = function (parentIndex, fileIndex, fileType) {
+                console.log(parentIndex);
+                console.log(fileIndex);
+                console.log(fileType);
+                console.log($scope.sitesWorks);
+                $scope.sitesWorks[parentIndex].photoFiles[fileType].splice(fileIndex, 1);
+            }
+
+            $scope.isVisible = function (resolution) {
+               return !resolution.visibility
+                    || resolution.visibility === 'all'
+                    || (resolution.visibility === 'kcell' && $rootScope.hasGroup('kcellUsers'));
+            }
+
+            $scope.hasComment = function () {
+                return $scope.checkDocsAndApproveBySiteLeasingComment && $rootScope.hasGroup('kcellUsers');
+            }
+
+            $scope.open = function ($event) {
+                $event.preventDefault();
+                $event.stopPropagation();
+                $scope.dateFieldOpened = true;
+            };
+        }]);
+    </script>
+    <h4>Site Id: {{jobModel.site.originalValue}}, Site Name: {{jobModel.site_name.originalValue}} </h4>
+    <table class="table table-hover  well">
+        <thead>
+        <tr>
+            <th>#</th>
+            <th>List of works</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr ng-repeat="work in jobModel.jobWorks.value">
+            <td>{{$index+1}}</td>
+            <td>{{work.displayServiceName}}, works qty: {{work.quantity}}, materials qty:
+                {{work.materialQuantity}} {{jobModel.unitsTitle[work.unit]}}, on sites: <ul class="site-list"><li ng-repeat="rs in work.relatedSites">{{rs.site_name}}</li></ul>
+                <span>, materials from: {{work.materialsProvidedBy}}</span>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+    <tabset class="my-tab-head my-tab" justified="true" id="executeWorksId">
+        <tab select="createSummaryDocument(fillSite)">
+            <tab-heading><span class="glyphicon glyphicon-leaf"></span> Summary</tab-heading>
+            <ng-include ng-if="contextPath" src="contextPath+'/forms/revision/fill-summary.html'"></ng-include>
+        </tab>
+        <tab>
+            <tab-heading ng-class="{error: fillFacilityFormValidator.$invalid && view.submitted}"><span class="glyphicon glyphicon-map-marker" ng-class="{error: fillFacilityFormValidator.$invalid && view.submitted}"></span> Facility</tab-heading>
+            <ng-form name="fillFacilityFormValidator">
+                <ng-include ng-if="contextPath" src="contextPath+'/forms/revision/fill-facility.html'"></ng-include>
+            </ng-form>
+        </tab>
+        <tab>
+            <tab-heading ng-class="{error: fillCabinetsFormValidator.$invalid && view.submitted}"><span class="glyphicon glyphicon-th" ng-class="{error: fillCabinetsFormValidator.$invalid && view.submitted}"></span> Cabinets</tab-heading>
+            <ng-form name="fillCabinetsFormValidator">
+                <ng-include ng-if="contextPath" src="contextPath+'/forms/revision/fill-cabinets.html'"></ng-include>
+            </ng-form>
+        </tab>
+        <tab>
+            <tab-heading title="Radio/Digital Units" ng-class="{error: fillRUDUSFormValidator.$invalid && view.submitted}"><span class="glyphicon glyphicon-cog" ng-class="{error: fillRUDUSFormValidator.$invalid && view.submitted}"></span> RU/DU</tab-heading>
+            <ng-form name="fillRUDUSFormValidator">
+                <ng-include ng-if="contextPath" src="contextPath+'/forms/revision/fill-radio.html'"></ng-include>
+            </ng-form>
+        </tab>
+        <tab>
+            <tab-heading title="Antenna Systems" ng-class="{error: fillAntennaFormValidator.$invalid && view.submitted}"><span class="glyphicon glyphicon-signal" ng-class="{error: fillAntennaFormValidator.$invalid && view.submitted}"></span> Antenna</tab-heading>
+            <ng-form name="fillAntennaFormValidator">
+                <ng-include ng-if="contextPath" src="contextPath+'/forms/revision/fill-antenna.html'"></ng-include>
+            </ng-form>
+        </tab>
+        <tab>
+            <tab-heading ng-class="{error: fillPowerFormValidator.$invalid && view.submitted}"><span class="glyphicon glyphicon-flash" ng-class="{error: fillPowerFormValidator.$invalid && view.submitted}"></span> Power</tab-heading>
+            <ng-form name="fillPowerFormValidator">
+                <ng-include ng-if="contextPath" src="contextPath+'/forms/revision/fill-power.html'"></ng-include>
+            </ng-form>
+        </tab>
+        <tab>
+            <tab-heading ng-class="{error: fillTransmissionFormValidator.$invalid && view.submitted}"><span class="glyphicon glyphicon-transfer" ng-class="{error: fillTransmissionFormValidator.$invalid && view.submitted}"></span> Transmission</tab-heading>
+            <ng-form name="fillTransmissionFormValidator">
+                <ng-include ng-if="contextPath" src="contextPath+'/forms/revision/fill-transmission.html'"></ng-include>
+            </ng-form>
+        </tab>
+        <tab>
+            <tab-heading ng-class="{error: fillSupplementaryFormValidator.$invalid && view.submitted}"><span class="glyphicon glyphicon-leaf" ng-class="{error: fillSupplementaryFormValidator.$invalid && view.submitted}"></span> Supplementary</tab-heading>
+            <ng-form name="fillSupplementaryFormValidator">
+                <ng-include ng-if="contextPath" src="contextPath+'/forms/revision/fill-supplementary.html'"></ng-include>
+            </ng-form>
+        </tab>
+    </tabset>
+    <div class="well">
+        <div class="form-group">
+            <label class="col-sm-4 control-label">Resolution</label>
+            <div class="col-sm-8">
+                <label class="radio-inline">
+                    <input type="radio" name="fillAppliedChangesInfoByContractorTaskResult"
+                           ng-model="fillAppliedChangesInfoByContractorTaskResult" value="saveChanges" required> Save
+                    changes
+                </label>
+                <label class="radio-inline">
+                    <input type="radio" name="fillAppliedChangesInfoByContractorTaskResult"
+                           ng-model="fillAppliedChangesInfoByContractorTaskResult" value="notAvailable" required>
+                    Materials not available
+                </label>
+                <label class="radio-inline">
+                    <input type="radio" name="fillAppliedChangesInfoByContractorTaskResult"
+                           ng-model="fillAppliedChangesInfoByContractorTaskResult" value="notEnough" required>
+                    Materials not enough
+                </label>
+                <label class="radio-inline">
+                    <input type="radio" name="fillAppliedChangesInfoByContractorTaskResult"
+                           ng-model="fillAppliedChangesInfoByContractorTaskResult" value="cannotPerform" required>
+                    Cannot perform works
+                </label>
+                <label class="error" ng-show="kcell_form.fillAppliedChangesInfoByContractorTaskResult.$error.required && ( kcell_form.fillAppliedChangesInfoByContractorTaskResult.$touched || view.submitted)">Required field</label>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-4 control-label">Comments</label>
+            <div class="col-sm-8">
+                <textarea class="form-control" rows="4" maxlength="500" cam-variable-name="fillAppliedChangesByContractorComment" name="fillAppliedChangesByContractorComment" ng-required="fillAppliedChangesInfoByContractorTaskResult == 'notAvailable' || fillAppliedChangesInfoByContractorTaskResult == 'notEnough' || fillAppliedChangesInfoByContractorTaskResult == 'cannotPerform'" cam-variable-type="String"></textarea>
+                <label class="error" ng-show="kcell_form.fillAppliedChangesByContractorComment.$error.required && ( kcell_form.fillAppliedChangesByContractorComment.$touched || view.submitted)">Required field</label>
+            </div>
+        </div>
+        <div class="form-group" ng-show="hasComment()">
+            <label class="col-sm-4 control-label">Comments visibility</label>
+            <div class="col-sm-8">
+                <label class="radio-inline">
+                    <input type="radio" name="fillAppliedChangesByContractorCommentVisibility"
+                           ng-model="fillAppliedChangesByContractorCommentVisibility" value="all" ng-required="hasComment()"> Visible for all
+                </label>
+                <label class="radio-inline">
+                    <input type="radio" name="fillAppliedChangesByContractorCommentVisibility"
+                           ng-model="fillAppliedChangesByContractorCommentVisibility" value="kcell" ng-required="hasComment()"> Kcell staff only
+                </label>
+                <label class="error" ng-show="kcell_form.fillAppliedChangesByContractorCommentVisibility.$error.required && ( kcell_form.fillAppliedChangesByContractorCommentVisibility.$touched || view.submitted)">Required field</label>
+            </div>
+        </div>
+    </div>
+    <iframe id="fileDownloadIframe" download style="display:none;"></iframe>
+    <accordion>
+        <accordion-group is-open="isHistoryOpen">
+            <accordion-heading>
+                History <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
+            </accordion-heading>
+            <resolution-history resolutions="resolutions" isKcellStaff="hasGroup('kcellUsers')" procDef="processDefinitionKey"></resolution-history>
+        </accordion-group>
+    </accordion>
+</form>

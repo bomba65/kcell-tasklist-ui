@@ -1,0 +1,339 @@
+<style>
+    .well {
+        background: white;
+    }
+</style>
+
+    <div class="row new-card-search" style="margin-top:10px; margin-bottom:10px;">
+        <div class="col-md-4">
+            <div class="row" style="margin-top:10px;">
+                <div class="col-md-8">
+                    <span class="process-status">
+                        Status: {{getStatus(toggleInfoAftersales.state, toggleInfoAftersales.acceptPerformedJob.value)}}</span>
+                </div>
+                <div class="col-md-4">
+
+                    <div class="dropdown" style="position:absolute; right:15px; top:-6px;">
+                        <button class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown">More
+                            <span class="caret"></span></button>
+                        <ul class="dropdown-menu">
+                            <li>
+                                <button type="button" class="btn-default btn drop-button"
+                                        ng-click="showDiagram(toggleInfoAftersales.processDefinitionId, toggleInfoAftersales.tasks, toggleInfoAftersales.callActivityTasks)"><span
+                                        class="glyphicon glyphicon-indent-left" aria-hidden="true"></span>
+                                    Diagram
+                                </button>
+                            </li>
+                            <li>
+                                <button type="button" class="btn-default btn drop-button"
+                                        ng-click="showHistory(toggleInfoAftersales.resolutions.value, jobModel.processDefinitionKey)">
+                                    <span class="glyphicon glyphicon-list-alt" aria-hidden="true"></span> History
+                                </button>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="panel panel-default" style="margin:18px 0 0 0">
+                        <div class="panel-heading block-headers">Details</div>
+                        <div class="panel-body" style="padding:10px 0 10px 0; word-break:break-word;">
+                            <div class="form-group">
+                                <div class="col-sm-12" ng-if="toggleInfoAftersales.starter"><b>Отправитель запроса</b>:
+                                    {{toggleInfoAftersales.starter}}
+                                </div>
+                                <div class="col-sm-12">
+                                    <b>Идентификатор:</b><br/>
+                                    <span class="col-sm-12 pull-left"
+                                          ng-repeat="i in toggleInfoAftersales.identifiers[0].operators track by $index"
+                                          ng-show="{{toggleInfoAftersales.operatorType === 'offnet'? '(!i.connected) && i.isAvailable || i.wasAvailable': 'i.isAvailable'}}">{{i.name + ' - ' + (i.oldTitle ? i.oldTitle : i.title? i.title : toggleInfoAftersales.identifiers[0].title)}}</span>
+                                </div>
+                                <div class="col-sm-12" ng-if="toggleInfoAftersales.clientBIN"><b>БИН клиента</b>:
+                                    {{toggleInfoAftersales.clientBIN}}
+                                </div>
+
+                            </div>
+
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-12">
+                    <ul class="nav nav-stacked" id="accordion2">
+                        <li class="panel panel-default" style="margin:0; word-break:break-word;">
+                            <a data-toggle="collapse" data-parent="#accordion2" href="#secondLink"
+                               style="background-color: #f5f5f5;" class="block-headers">User Tasks</a>
+
+                            <ul id="secondLink" class="collapse in ul-padding">
+                                <div ng-repeat="task in toggleInfoAftersales.tasks_decr">
+                                    <div class="task">
+                                        <h5><a ui-sref="tasks.task({id:task.id})" target="_blank">{{ (task.name || task.id) }}</a></h5>
+                                        <div ng-if="task.description" class="card-task-descr"> {{ task.description }} </div>
+                                        <small class="text-muted" ng-if="task.group">
+                                            Group: <a ng-click="showGroupDetails(task.group)">{{task.group}}</a>
+                                        </small>
+                                        <br/>
+                                        <small class="text-muted" ng-if="task.assignee">{{ task.assigneeObject.firstName }} {{ task.assigneeObject.lastName }}</small>
+                                        <small class="text-muted" ng-if="!task.assignee">Unassigned</small>
+                                    </div>
+                                </div>
+                            </ul>
+                        </li>
+
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-8">
+            <div class="row" style="margin-top:5px;">
+                <div class="col-md-6">
+                    <div class="col-sm-12">
+                        <h4 class="block-headers">Общая информация:</h4>
+                    </div>
+                </div>
+                <div class="col-md-6 form-group" style="padding-right:10px;">
+                    <div class="col-sm-12">
+                        <h4 class="block-headers">Техническая информация:</h4>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="col-sm-12" ng-show="toggleInfoAftersales.priority"
+                         ng-class="{ 'text-danger': toggleInfoAftersales.priority==='Критично'} "><b>Приоритет</b>:
+                        {{toggleInfoAftersales.priority}}
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="col-sm-12"><b>Юридическое наименование компании</b>:
+                        {{toggleInfoAftersales.oldOfficialClientCompanyName ?
+                        toggleInfoAftersales.oldOfficialClientCompanyName:toggleInfoAftersales.officialClientCompanyName}}
+                    </div>
+                    <div class="col-sm-12" ng-if="toggleInfoAftersales.description"><b>Описание</b>:
+                        {{toggleInfoAftersales.description}}
+                    </div>
+                    <div class="col-sm-12" ng-if="toggleInfoAftersales.contractNumber"><b>Номер договора</b>:
+                        {{toggleInfoAftersales.oldContractNumber ?
+                        toggleInfoAftersales.oldContractNumber:toggleInfoAftersales.contractNumber}}
+                    </div>
+                    <div class="col-sm-12" ng-if="toggleInfoAftersales.responsibleB2BSales"><b>Отвественный B2B
+                        Sales</b>:
+                        {{toggleInfoAftersales.responsibleB2BSales.name}}
+                    </div>
+                    <div class="col-sm-12" ng-if="toggleInfoAftersales.responsibleB2BDelivery"><b>Отвественный B2B
+                        Delivery</b>:
+                        {{toggleInfoAftersales.responsibleB2BDelivery.name}}
+                    </div>
+                    <div class="col-sm-12" ng-if="!toggleInfoAftersales.disconnectProcess &&
+             (toggleInfoAftersales.operatorWasConnected ||
+             toggleInfoAftersales.operatorWasDisconnected ||
+             toggleInfoAftersales.operatorWasChanged ||
+             toggleInfoAftersales.changeConnectionType ||
+             toggleInfoAftersales.changeProvider ||
+             toggleInfoAftersales.changeOfficialClientCompanyName ||
+             toggleInfoAftersales.changeContractNumber ||
+             (toggleInfoAftersales.ipNumber && toggleInfoAftersales.changeIpNumber)||
+             toggleInfoAftersales.connectOperator && toggleInfoAftersales.operatorType==='onnet')">
+                        <b>Изменения:</b><br>
+                    </div>
+                    <span class="col-sm-12 pull-left"
+                          ng-style="{'color':'black', 'margin-bottom':'5px', 'font-weight':'bold'}"
+                          ng-if="((toggleInfoAftersales.connectOperator && toggleInfoAftersales.operatorType==='onnet') || toggleInfoAftersales.onnetToOffnet)">
+                    <span ng-style="{'background-color':'#AEDD94'}"><b>Тип трафика:</b> Off-Net/On-Net</span> <br>
+            </span>
+                    <span class="col-sm-12 pull-left"
+                          ng-style="{'color':'black', 'margin-bottom':'5px', 'font-weight':'bold'}"
+                          ng-if="toggleInfoAftersales.onnetToOffnet && toggleInfoAftersales.provider">
+                    <span ng-style="{'background-color':'#AEDD94'}"><b>Провайдер:</b> {{toggleInfoAftersales.provider}}</span>
+            </span>
+                    <span ng-style="{'color':'black', 'margin-bottom':'5px', 'font-weight':'bold'}" class="col-sm-12"
+                          ng-repeat="i in toggleInfoAftersales.identifiers[0].operators track by $index"
+                          ng-show="{{toggleInfoAftersales.operatorType === 'offnet'? '((i.connected && toggleInfoAftersales.operatorWasConnected) || (i.disconnected && toggleInfoAftersales.operatorWasDisconnected)  || (i.changed && toggleInfoAftersales.operatorWasChanged)) && (i.changeIdentifierType || !toggleInfoAftersales.changeIdentifierType) && (!toggleInfoAftersales.providerPage || i.selectedIdentifier || toggleInfoAftersales.digitalIdentifier || toggleInfoAftersales.freePhoneProvider) && (i.connected || !toggleInfoAftersales.pageConnected)': 'i.isAvailable'}}">
+                <span ng-style="(i.disconnected) ? {'background-color':'#FF3217'} : (i.connected || i.changed  ? {'background-color':'#AEDD94'} : {})">
+                    {{i.changed ? 'Новый заголовок ' + i.name + ' - ' + i.title :
+                    i.disconnected ? i.name +' - '
+                    + (i.oldTitle ? i.oldTitle : toggleInfoAftersales.identifiers[0].title)
+                    + ': отключен':
+                    i.connected? i.name +' - '
+                    + (i.title ? i.title : toggleInfoAftersales.identifiers[0].title)
+                    + ': добавлен': ''}}
+                    <br ng-if="i.connected || i.disconnected">
+                    {{(i.connected || i.disconnected) ?(i.connected?'Дата подключения ':'Дата отключения ') +
+                    (i.newOperatorDate | date: 'dd.MM.yyyy'): ''}}</span>
+                </span>
+                    <span class="col-sm-12 pull-left"
+                          ng-if="((toggleInfoAftersales.provider && toggleInfoAftersales.oldProvider &&  (toggleInfoAftersales.provider!=toggleInfoAftersales.oldProvider)) || toggleInfoAftersales.newProviderDate) && toggleInfoAftersales.changeProvider"
+                          ng-style="{'color':'black', 'margin-bottom':'5px', 'font-weight':'bold'}">
+                  <span ng-style="{'background-color':'#AEDD94'}">
+                      {{toggleInfoAftersales.provider ? "Новый провайдер: " : ''}} {{(toggleInfoAftersales.provider==='MMS'?'MMS':toggleInfoAftersales.provider==='KIT'?'KIT' :toggleInfoAftersales.provider==='SMS Consult'?'SMS Consult' : '') }} <br
+                          ng-if="toggleInfoAftersales.provider"> {{ 'Дата переключения ' + (toggleInfoAftersales.newProviderDate | date: 'dd.MM.yyyy')}}</span>
+                </span>
+                    <span class="col-sm-12 pull-left"
+                          ng-style="{'color':'black', 'margin-bottom':'5px', 'font-weight':'bold'}"
+                          ng-show="toggleInfoAftersales.relatedProcessDefinitionKey === 'freephone' && toggleInfoAftersales.connectionType && toggleInfoAftersales.changeConnectionType && toggleInfoAftersales.oldConnectionType && toggleInfoAftersales.oldConnectionType!=toggleInfoAftersales.connectionType">
+                    <span ng-style="{'background-color':'#AEDD94'}"><b>Новый тип подключения</b>: {{toggleInfoAftersales.connectionType==='SIP'?'SIP':toggleInfoAftersales.connectionType==='E1'?'E1':toggleInfoAftersales.connectionType==='SIP_SBC'?'SIP_SBC':'ПЕРЕАДРЕСАЦИЯ'}}</span>
+                </span>
+                    <span class="col-sm-12 pull-left"
+                          ng-style="{'color':'black', 'margin-bottom':'5px', 'font-weight':'bold'}"
+                          ng-show="(toggleInfoAftersales.relatedProcessDefinitionKey === 'bulksmsConnectionKAE' && (toggleInfoAftersales.connectionType === 'rest' || toggleInfoAftersales.connectionType === 'smpp')) && toggleInfoAftersales.oldConnectionType && toggleInfoAftersales.connectionType && toggleInfoAftersales.oldConnectionType && toggleInfoAftersales.oldConnectionType!=toggleInfoAftersales.connectionType">
+                    <span ng-style="{'background-color':'#AEDD94'}"><b>Новый тип подключения</b>: {{toggleInfoAftersales.connectionType==='smpp'?'SMPP':toggleInfoAftersales.connectionType==='rest'?'REST':''}}</span>
+                </span>
+                    <span class="col-sm-12 pull-left"
+                          ng-style="{'color':'black', 'margin-bottom':'5px', 'font-weight':'bold'}"
+                          ng-show="toggleInfoAftersales.changeOfficialClientCompanyName">
+                <span ng-style="{'background-color':'#AEDD94'}"><b>Новое юридическое наименование компании:</b> {{toggleInfoAftersales.officialClientCompanyName}}</span>
+                </span>
+                    <span class="col-sm-12 pull-left"
+                          ng-style="{'color':'black', 'margin-bottom':'5px', 'font-weight':'bold'}"
+                          ng-if="toggleInfoAftersales.ipNumber && toggleInfoAftersales.changeIpNumber && toggleInfoAftersales.oldIpNumber && toggleInfoAftersales.oldIpNumber!=toggleInfoAftersales.ipNumber">
+                    <span ng-style="{'background-color':'#AEDD94'}"><b>Новый IP:</b> {{toggleInfoAftersales.ipNumber}}</span>
+                </span>
+                    <!--<div class="col-sm-12" ng-if="!toggleInfoAftersales.disconnectProcess">
+                                        <b>Новый заголовок:</b><br><span class="col-lg-9 pull-left" ng-style="(i.disconnected) ? {'color':'red'} : (i.connected || i.changed ? {'color':'green'} : {})" ng-style="{'padding-left': 0}" ng-repeat="i in toggleInfoAftersales.identifiers[0].operators track by $index" ng-show="{{toggleInfoAftersales.operatorType === 'offnet'? 'i.isAvailable || i.wasAvailable': 'i.isAvailable' }}">{{i.changed ? i.name + ' - ' + i.title : i.disconnected ? 'отключен' : i.connected ? 'подключен' : ''}} <br></span>
+                                    </div>-->
+                </div>
+                <div class="col-md-6 form-group">
+                    <div class="col-sm-12"
+                         ng-show="toggleInfoAftersales.operatorType && !toggleInfoAftersales.hideOperatorType"><b>Тип
+                        трафика</b>:
+                        {{toggleInfoAftersales.onnetToOffnet ? 'On-Net' :
+                        (toggleInfoAftersales.operatorType === 'offnet'?'Off-Net/On-Net':'On-Net')
+                        }}
+                    </div>
+                    <div class="col-sm-12" ng-if="toggleInfoAftersales.connectionType">
+                        <div class="col-sm-6"
+                             ng-show="toggleInfoAftersales.relatedProcessDefinitionKey === 'freephone' && toggleInfoAftersales.connectionType"
+                             ng-style="{'padding-left': 0}"><b>Тип подключения</b>:
+                            {{(toggleInfoAftersales.oldConnectionType ?
+                            toggleInfoAftersales.oldConnectionType :
+                            toggleInfoAftersales.connectionType)==='SIP'?'SIP':(toggleInfoAftersales.oldConnectionType ?
+                            toggleInfoAftersales.oldConnectionType :
+                            toggleInfoAftersales.connectionType)==='E1'?'E1':(toggleInfoAftersales.oldConnectionType ?
+                            toggleInfoAftersales.oldConnectionType :
+                            toggleInfoAftersales.connectionType)==='SIP_SBC'?'SIP_SBC':'ПЕРЕАДРЕСАЦИЯ'}}
+                        </div>
+                        <div class="col-sm-6"
+                             ng-show="toggleInfoAftersales.relatedProcessDefinitionKey === 'bulksmsConnectionKAE' && toggleInfoAftersales.connectionType"
+                             ng-style="{'padding-left': 0}"><b>Тип подключения</b>:
+                            {{(toggleInfoAftersales.oldConnectionType ?
+                            toggleInfoAftersales.oldConnectionType : toggleInfoAftersales.connectionType)==='web'?'Web
+                            interface':(toggleInfoAftersales.oldConnectionType ? toggleInfoAftersales.oldConnectionType
+                            :
+                            toggleInfoAftersales.connectionType)==='rest'?'REST':'SMPP'}}
+                        </div>
+                    </div>
+                    <div class="col-sm-12"
+                         ng-show="toggleInfoAftersales.abonentTarif && toggleInfoAftersales.showTarif"><b>Тариф для
+                        абонента</b>: {{toggleInfoAftersales.abonentTarif}}
+                    </div>
+                    <div class="col-sm-12" ng-if="toggleInfoAftersales.MSGGWaccount"><b>Платформа</b>: MSG GW</div>
+                    <div class="col-sm-12" ng-if="toggleInfoAftersales.MSGGWaccount"><b>Аккаунт MSG GW</b>:
+                        {{toggleInfoAftersales.MSGGWaccount}}
+                    </div>
+                    <div class="col-sm-12" ng-if="toggleInfoAftersales.startDate"><b>Предполагаемая дата запуска</b>:
+                        {{toggleInfoAftersales.startDate | date: 'dd.MM.yyyy'}}
+                    </div>
+                    <div class="col-sm-12" ng-if="toggleInfoAftersales.provider && !toggleInfoAftersales.onnetToOffnet">
+                        <b>Провайдер</b>: {{(toggleInfoAftersales.oldProvider ?
+                        toggleInfoAftersales.oldProvider :
+                        toggleInfoAftersales.provider)==='MMS'?'MMS':(toggleInfoAftersales.oldProvider ?
+                        toggleInfoAftersales.oldProvider : toggleInfoAftersales.provider)==='KIT'?'KIT':'SMS­-Consult'}}
+                    </div>
+                    <div class="col-sm-12" ng-if="toggleInfoAftersales.ipNumber"><b>IP</b>:
+                        {{toggleInfoAftersales.oldIpNumber ?
+                        toggleInfoAftersales.oldIpNumber : toggleInfoAftersales.ipNumber}}
+                    </div>
+                    <div class="col-sm-12" ng-if="toggleInfoAftersales.transmitNumber"><b>Номер переадресации</b>:
+                        {{toggleInfoAftersales.oldTransmitNumber ? toggleInfoAftersales.oldTransmitNumber :
+                        toggleInfoAftersales.transmitNumber}}
+                    </div>
+                    <div class="col-sm-12"
+                         ng-if="toggleInfoAftersales.transmitNumber && toggleInfoAftersales.changeTransmitNumber"
+                         ng-style="{'color':'green'}"><b>Новый номер переадресации</b>:
+                        {{toggleInfoAftersales.transmitNumber}}
+                    </div>
+                    <div class="col-sm-12" ng-if="toggleInfoAftersales.toIP"><b>Куда</b>: {{toggleInfoAftersales.toIP}}
+                    </div>
+                    <div class="col-sm-12" ng-if="toggleInfoAftersales.toPort"><b>Порт</b>:
+                        {{toggleInfoAftersales.toPort}}
+                    </div>
+                    <div class="col-sm-12" ng-if="toggleInfoAftersales.addressATS"><b>Адрес АТС клиента</b>:
+                        {{toggleInfoAftersales.addressATS}}
+                    </div>
+                    <div class="col-sm-12" ng-if="toggleInfoAftersales.coordinates"><b>Координаты</b>:
+                        {{toggleInfoAftersales.coordinates}}
+                    </div>
+
+                    <div class="col-sm-12" ng-if="toggleInfoAftersales.smsServiceType"><b>Тип СМС услуги</b>:
+                        {{toggleInfoAftersales.oldSmsServiceType ? toggleInfoAftersales.oldSmsServiceType :
+                        toggleInfoAftersales.smsServiceType}}
+                    </div>
+                    <div class="col-sm-12"
+                         ng-if="toggleInfoAftersales.smsServiceType && (toggleInfoAftersales.changeSmsServiceType || (toggleInfoAftersales.oldSmsServiceType && toggleInfoAftersales.changeConnectionType))"
+                         ng-style="{'color':'green'}"><b>Подключен тип СМС услуги</b>:
+                        {{toggleInfoAftersales.smsServiceType}}
+                    </div>
+
+                    <div class="col-sm-12" ng-if="toggleInfoAftersales.testNumber"><b>Тестовый номер</b>:
+                        {{toggleInfoAftersales.testNumber}}
+                    </div>
+                    <div class="col-sm-12" ng-if="toggleInfoAftersales.receivingServerAddress"><b>Адрес и порт
+                        принимающего сервера
+                        клиента</b>: {{toggleInfoAftersales.receivingServerAddress}}
+                    </div>
+                    <div class="col-sm-12"
+                         ng-if="toggleInfoAftersales.receivingServerLogin || toggleInfoAftersales.receivingServerPass">
+                        <b>Логин/пароль
+                            принимающего сервера клиента</b>:
+                        {{toggleInfoAftersales.receivingServerLogin}}/{{toggleInfoAftersales.receivingServerPass}}
+                    </div>
+                    <div class="col-sm-12" ng-if="toggleInfoAftersales.addressServerMO"><b>Адрес и порт MO сервера
+                        клиента</b>:
+                        {{toggleInfoAftersales.addressServerMO}}
+                    </div>
+                    <div class="col-sm-12" ng-if="toggleInfoAftersales.channelKLM"><b>KLM канал</b>:
+                        {{toggleInfoAftersales.channelKLM}}
+                    </div>
+                    <div class="col-sm-12" ng-if="toggleInfoAftersales.deliveryReport"><b>Получать отчет о доставке</b>
+                    </div>
+                    <div class="col-sm-12" ng-if="toggleInfoAftersales.buildingOwner"><b>Собственник здания</b>:
+                        {{toggleInfoAftersales.buildingOwner}}
+                    </div>
+                    <div class="col-sm-12 tech-spec-card"
+                         ng-if="toggleInfoAftersales.techSpecFIO || toggleInfoAftersales.techSpecNumber || toggleInfoAftersales.techSpecEmail">
+                        <h4 class="block-headers">Технический специалист:</h4></div>
+                    <div ng-show="toggleInfoAftersales.techSpecFIO" class="col-md-12"><b>ФИО</b>:
+                        {{toggleInfoAftersales.techSpecFIO}}
+                    </div>
+                    <div ng-show="toggleInfoAftersales.techSpecNumber" class="col-md-12"><b>Телефон</b>:
+                        {{toggleInfoAftersales.techSpecNumber}}
+                    </div>
+                    <div ng-show="toggleInfoAftersales.techSpecEmail" class="col-md-12"><b>Email</b>:
+                        {{toggleInfoAftersales.techSpecEmail}}
+                    </div>
+                </div>
+            </div>
+            <br>
+            <div class="row">
+                <div class="col-md-12" ng-show="toggleInfoAftersales.files.length > 0">
+                    <div class="row">
+                        <div class="col-md-12">Прикрепленные файлы:</div>
+                        <iframe id="fileDownloadIframe" style="display:none;"></iframe>
+                        <div class="col-sm-12">
+                            <div ng-repeat="file in toggleInfoAftersales.files track by $index">
+                                <a
+                                        ng-click="download(file.path)"
+                                        download="{{file.name}}">
+                                    {{file.name}}</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>

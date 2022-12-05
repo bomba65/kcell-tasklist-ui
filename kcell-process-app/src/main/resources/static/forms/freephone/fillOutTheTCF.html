@@ -1,0 +1,148 @@
+<form role="form" class="form-horizontal" name="kcell_form" novalidate>
+    <script cam-script type="text/form-script">
+        inject(['$scope', '$http', 'Uri', '$rootScope', '$q', '$timeout', function ($scope, $http, Uri, $rootScope, $q, $timeout) {
+            var variables = [
+                'resolutions',
+                'identifiers',
+                'connectionType',
+                'transmitNumber',
+                'ipNumber',
+                'applicationScanCopyFileName',
+                'contractScanCopyFileName',
+                'abonentTarif',
+                'description',
+                'techSpecNumber',
+                'techSpecFIO',
+                'officialClientCompanyName',
+                'clientCompanyLatName',
+                'addressATS',
+                'coordinates',
+                'priority',
+                'provider',
+                'clientBIN',
+                'techSpecEmail',
+                'finalIDs',
+                'operatorType',
+                'orgaBilling',
+                'amdocsBilling'
+            ];
+
+            camForm.on('form-loaded', function () {
+                variables.forEach(function (el) {
+                    camForm.variableManager.fetchVariable(el);
+                });
+                $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
+                        function(result){
+                            $scope.processInstanceId = result.data.processInstanceId;
+                        },
+                        function (error) {
+                            console.log(error.data);
+                        }
+                );
+                $scope.freephoneInfo = {};
+                $scope.freephoneInfo.files = [];
+            });
+
+            camForm.on('variables-fetched', function () {
+                variables.forEach(function (el) {
+                    if (el === 'resolutions') {
+                        if (camForm.variableManager.variables[el].value) {
+                            $scope.resolutions = angular.copy(camForm.variableManager.variables[el].value);
+                            camForm.variableManager.destroyVariable(el);
+                        }
+                    } else if (el === 'applicationScanCopyFileName' || el === 'contractScanCopyFileName') {
+                        $scope[el] = camForm.variableManager.variables[el].value;
+                        $scope.freephoneInfo.files.push(camForm.variableManager.variables[el].value);
+                    } else {
+                        $scope[el] = camForm.variableManager.variables[el].value;
+                        $scope.freephoneInfo[el] = camForm.variableManager.variables[el].value;
+                    }
+                });
+                $scope.freephoneInfo.showTarif = true;
+
+                camForm.variableManager.createVariable({
+                    name: 'fillOutTheTCFTaskResult',
+                    type: 'String',
+                    value: ''
+                });
+
+                camForm.variableManager.createVariable({
+                    name: 'fillOutTheTCFTaskComment',
+                    type: 'String',
+                    value: ''
+                });
+
+                $scope.fillOutTheTCFTaskResult = '';
+
+                for (var id of $scope.identifiers) {
+                    id.serviceName = 'Outgoing IVR ' + id.title + ' ' + $scope.clientCompanyLatName;
+                    id.counter = '60 sec';
+                    id.pricePerCounter = $scope.abonentTarif;
+                };
+
+
+            });
+            
+            camForm.on('submit', function () {
+                $scope.fillOutTheTCFTaskResult = 'Completed';
+                camForm.variableManager.variableValue('fillOutTheTCFTaskResult', $scope.fillOutTheTCFTaskResult);
+                camForm.variableManager.variableValue('fillOutTheTCFTaskComment', $scope.fillOutTheTCFTaskComment);
+                camForm.variableManager.variableValue('identifiers', $scope.identifiers);
+            });
+        }]);
+
+    </script>
+    <!--<info-freephone freephone-info="freephoneInfo"></info-freephone>-->
+    <div class="form-group row" ng-repeat="id in identifiers" style="padding-bottom: 2vh" >
+        <div class="col-sm-12">
+            <label class="control-label"/>Идентификатор - {{id.title}}
+            <br>
+            <label class="control-label"/>Биллинг - <b> {{ amdocsBilling?'Amdocs':'' }} {{ orgaBilling?'Orga':'' }}</b>
+        </div>
+        <div class="col-sm-12">
+            <label class="col-sm-12 control-label"> <b>Service Name</b>: {{id.serviceName}}</label>
+            <label class="col-sm-12 control-label"> <b>Short Number</b>: {{id.title}}</label>
+            <label class="col-sm-12 control-label"> <b>Counter</b>: {{id.counter}}</label>
+        </div>
+        <div class="col-sm-12" ng-show="amdocsBilling" style="padding-top: 1vh">
+            <label class="col-sm-4 control-label"><b>Amdocs ID</b>:</label>
+            <div class="col-sm-4">
+                <input class="form-control form-control-sm" id="{{'id' + id.title + 'amdocsID'}}" name="{{'id' + id.title + 'amdocsID'}}" ng-required="amdocsBilling" ng-model="id.amdocsID">
+                <label class="error" ng-show="kcell_form.{{'id' + id.title + 'amdocsID'}}.$error.required && ( kcell_form.{{'id' + id.title + 'amdocsID'}}.$touched || view.submitted)">Required field</label>
+            </div>
+        </div>
+        <div class="col-sm-12" ng-show="orgaBilling" style="padding-top: 1vh">
+            <label class="col-sm-4 control-label"><b>Orga ID</b>:</label>
+            <div class="col-sm-4">
+                <input class="form-control input-sm" id="{{'id' + id.title + 'orgaID'}}" name="{{'id' + id.title + 'orgaID'}}" ng-required="orgaBilling" ng-model="id.orgaID">
+                <label class="error" ng-show="kcell_form.{{'id' + id.title + 'orgaID'}}.$error.required && ( kcell_form.{{'id' + id.title + 'orgaID'}}.$touched || view.submitted)">Required field</label>
+            </div>
+        </div>
+        <div class="col-sm-12" style="padding-top: 1vh">
+            <label class="col-sm-4 control-label"><b>Price per counter</b>:</label>
+            <div class="col-sm-4">
+                <input class="form-control input-sm" id="{{'pricePerCounter'+id.title}}" name="{{'pricePerCounter'+id.title}}" ng-model="id.pricePerCounter" required >
+                <label class="error" ng-show="kcell_form.{{'pricePerCounter'+id.title}}.$error.required && ( kcell_form.{{'pricePerCounter'+id.title}}.$touched || view.submitted)">Required field</label>
+            </div>
+        </div>
+        <div class="col-sm-12" style="padding-top: 1vh">
+            <label class="col-sm-4 control-label"><b>Comments for ICTD</b>:</label>
+            <div class="col-sm-4">
+                <select class="form-control form-control-sm" id="{{'CommentsForICTD'+id.title}}" name="{{'CommentsForICTD'+id.title}}" required
+                        ng-model="id.CommentsForICTD">
+                    <option value="Please create new name and tariff">Please create new name and tariff</option>
+                    <option value="Please change name and tariff">Please change name and tariff</option>
+                </select>
+                <label class="error" ng-show="kcell_form.{{'CommentsForICTD'+id.title}}.$error.required && ( kcell_form.{{'CommentsForICTD'+id.title}}.$touched || view.submitted)">Required field</label>
+            </div>
+        </div>
+        <div class="col-sm-12"><hr/></div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-3 control-label">Комментарии</label>
+        <div class="col-sm-9">
+            <textarea class="form-control" ng-model="fillOutTheTCFTaskComment" name="fillOutTheTCFTaskComment" placeholder="Comments..." maxlength="500" rows="4" style="resize:none"></textarea>
+            <label class="error" ng-show="kcell_form.fillOutTheTCFTaskComment.$error.required && ( kcell_form.fillOutTheTCFTaskComment.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+</form>

@@ -1,0 +1,214 @@
+<form role="form" class="form-horizontal" name="kcell_form" novalidate>
+    <script cam-script type="text/form-script">
+        inject(['$scope', '$http', 'Uri', '$rootScope', '$q', 'toasty', '$timeout', function ($scope, $http, Uri, $rootScope, $q, toasty, $timeout) {
+            $scope.techSpecs = {};
+            $scope.legalInfo = {};
+            $scope.typeOfWork = '';
+            $scope.resolutions = [];
+            var history = null;
+            var processInstanceId = null;
+            var assigneeName = $rootScope.authentication.name;
+            var taskKey = camForm.taskId;
+            var createdDate = new Date();
+
+            $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name + "/profile").then(function(result){
+                    assigneeName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
+                });
+
+
+             $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
+                function(result){
+                    var processInstanceId = result.data.processInstanceId;
+                    $http.get('/camunda/api/engine/engine/default/process-instance/' + processInstanceId).then(
+                        function(result){
+                            $scope.businessKey = result.data.businessKey;
+                        },
+                        function (error) {console.log(error.data);}
+                    );
+                },
+                function (error) { console.log(error.data);}
+            );
+            $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
+                    function (result) {
+                        console.log(result.data);
+                        processInstanceId = result.data.processInstanceId;
+                        taskKey = result.data.taskDefinitionKey;
+                        history = historyVariablesManager(camForm, taskKey);
+                        history.createVariables(true);
+                        configureViews();
+                    },
+                    function (error) {
+                        console.log(error.data);
+                    }
+                );
+
+            camForm.on('form-loaded', function () {
+                camForm.variableManager.fetchVariable('techSpecs');
+                camForm.variableManager.fetchVariable('numberRequest');
+                camForm.variableManager.fetchVariable('clientPriority');
+                camForm.variableManager.fetchVariable('legalInfo');
+                camForm.variableManager.fetchVariable('workType');
+                camForm.variableManager.fetchVariable('resolutions');
+                camForm.variableManager.fetchVariable('numbersAmount');
+                camForm.variableManager.fetchVariable('action');
+            });
+
+            camForm.on('variables-fetched', function () {
+                $scope.techSpecs = camForm.variableManager.variableValue('techSpecs');
+                $scope.li = camForm.variableManager.variableValue('legalInfo');
+                $scope.numberRequest = camForm.variableManager.variableValue('numberRequest');
+                $scope.numbersAmount = camForm.variableManager.variableValue('numbersAmount');
+                $scope.clientPriority = camForm.variableManager.variableValue('clientPriority');
+                $scope.resolutions = camForm.variableManager.variableValue('resolutions');
+                $scope.workType = camForm.variableManager.variableValue('workType');
+                $scope.action = camForm.variableManager.variableValue('action');
+
+                camForm.variableManager.createVariable({
+                    name: 'changeNotExistingChannelSettingsTaskResult',
+                    type: 'String',
+                    value: ''
+                });
+            });
+
+            camForm.on('submit', function(e) {
+              camForm.variableManager.variableValue('changeNotExistingChannelSettingsTaskResult', $scope.resolution);
+
+              $scope.resolutions.push({
+                    assignee: assigneeName,
+                    resolution: $scope.resolution,
+                    comment: $scope.comment,
+                    taskEndDate: new Date(),
+                    taskName: 'Change transport/connection settings on '+ $scope.techSpecs.connectionPoint,
+                    assignDate: createdDate,
+                    claimDate: createdDate,
+              });
+              camForm.variableManager.variableValue('resolutions', $scope.resolutions);
+            });
+        }]);
+
+    </script>
+    <header-info number-request="numberRequest" legal-info="li" client-priority="clientPriority" work-type="workType"></header-info>
+
+    <accordion class="background-yellow-accordion">
+        <accordion-group is-open="true">
+            <accordion-heading>
+                Technical specification <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
+            </accordion-heading>
+            <div class="form-group">
+                <label class="col-sm-4 control-label">Authorization type: </label>
+                <div class="col-sm-8">
+                    <div class="disabled-element">{{techSpecs.sip.authorizationType}}</div>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-4 control-label">Public static IP for voice traffic: </label>
+                <div class="col-sm-8">
+                    <div ng-if="action.changeCodecs" class="disabled-element">{{techSpecs.sip.curPublicVoiceIP}}</div>
+                    <div ng-if="action.changeIP" class="disabled-element">{{techSpecs.sip.newPublicVoiceIP}}</div>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-4 control-label">Public static IP for signaling: </label>
+                <div class="col-sm-8">
+                    <div ng-if="action.changeCodecs" class="disabled-element">{{techSpecs.sip.curSignalingIP}}</div>
+                    <div ng-if="action.changeIP" class="disabled-element">{{techSpecs.sip.newSignalingIP}}</div>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-4 control-label">Transport Layer Protocol: </label>
+                <div class="col-sm-8">
+                    <input type="text" class="form-control" ng-model="techSpecs.sip.transProtocol" disabled>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-4 control-label">Ports for signaling: </label>
+                <div class="col-sm-8">
+                    <input type="text" class="form-control" ng-model="techSpecs.sip.signalingPort" disabled>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-4 control-label">Count of sessions (double talks): </label>
+                <div class="col-sm-8">
+                    <input type="text" class="form-control" ng-model="techSpecs.sip.sessionsCount" disabled>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-4 control-label">Ports for voice traffic: </label>
+                <div class="row">
+                    <div class="col-sm-3">
+                        <input type="text" class="form-control" ng-model="techSpecs.sip.voicePortStart" disabled>
+                    </div>
+                    <div class="col-sm-1" style="text-align: center">
+                        <span> - </span>
+                    </div>
+                    <div class="col-sm-3">
+                        <input type="text" class="form-control" ng-model="techSpecs.sip.voicePortEnd" disabled>
+                    </div>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-4 control-label">Preffered coding: </label>
+                <div class="col-sm-8">
+                    <input type="text" class="form-control" ng-model="techSpecs.sip.coding" disabled>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-4 control-label">Description: </label>
+                <div class="col-sm-8">
+                    <input type="text" class="form-control" ng-model="techSpecs.sip.description" disabled>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-4 control-label">Caller ID:</label>
+                <div class="col-sm-8">
+                    <input type="text" class="form-control" ng-model="li.callerID" disabled>
+                </div>
+            </div>
+        </accordion-group>
+    </accordion>
+
+
+    <div class="col-sm-12">
+        <accordion>
+            <accordion-group is-open="isHistoryOpen">
+                <accordion-heading>
+                    History <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
+                </accordion-heading>
+                <table class="table">
+                    <thead>
+                    <tr>
+                        <th>Activity</th>
+                        <th>Assignee</th>
+                        <th>Date</th>
+                        <th>Resolution</th>
+                        <th>Comment</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr ng-repeat="resolution in resolutions | orderBy:'-' track by $index">
+                        <td>{{resolution.taskName}}</td>
+                        <td>{{resolution.assignee}}</td>
+                        <td>{{resolution.assignDate | date: 'dd.MM.yyyy HH:mm'}}</td>
+                        <td>{{resolution.resolution}}</td>
+                        <td>{{resolution.comment}}</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </accordion-group>
+        </accordion>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-4 control-label">Resolution:</label>
+        <div class="col-sm-8">
+            <label class="radio-inline"><input type="radio" value="Complete" ng-model="resolution" required> Complete</label>
+            <label class="radio-inline"><input type="radio" value="Modify" ng-model="resolution" required> Need modify</label>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-12 control-label">Comments:<span class="text-danger glyphicon-asterisk" ng-show="resolution == 'Modify'"></span></label>
+        <div class="col-sm-12">
+            <textarea class="form-control" name="comment" ng-model="comment" ng-required="resolution == 'Modify'"></textarea>
+            <span class="has-error" ng-if="kcell_form.comment.$error.required && (kcell_form.comment.$touched || view.submitted)">Required field</span>
+        </div>
+    </div>
+</form>

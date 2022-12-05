@@ -1,0 +1,114 @@
+<form role="form" class="form-horizontal" name="kcell_form" novalidate>
+    <script cam-script type="text/form-script">
+        inject(['$scope', '$http', 'Uri', '$rootScope', '$q', '$timeout', function ($scope, $http, Uri, $rootScope, $q, $timeout) {
+            var variables = [
+                'resolutions',
+                'identifiers',
+                'identifierType',
+                'clientBIN',
+                'officialClientCompanyName',
+                'clientCompanyLatName',
+                'description',
+                'connectionType',
+                'smsServiceType',
+                'MSGGWaccount',
+                'smsServiceLogin',
+                'startDate',
+                'ipNumber',
+                'applicationScanCopyFileName',
+                'contractScanCopyFileName',
+                'abonentTarif',
+                'techSpecNumber',
+                'techSpecFIO',
+                'techSpecEmail',
+                'tarifPlane',
+                'billing',
+                'provider',
+                'finalIDs',
+                'contractNumber',
+                'operatorType',
+                'responsibleB2BDelivery',
+                'responsibleB2BSales'
+            ];
+
+            camForm.on('form-loaded', function () {
+                variables.forEach(function (el) {
+                    camForm.variableManager.fetchVariable(el);
+                });
+                $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
+                        function(result){
+                            $scope.processInstanceId = result.data.processInstanceId;
+                        },
+                        function (error) {
+                            console.log(error.data);
+                        }
+                );
+                $scope.bulksmsInfo = {};
+                $scope.bulksmsInfo.files = [];
+            });
+
+            camForm.on('variables-fetched', function () {
+                variables.forEach(function (el) {
+                    if (el === 'resolutions') {
+                        if (camForm.variableManager.variables[el].value) {
+                            $scope.resolutions = angular.copy(camForm.variableManager.variables[el].value);
+                            camForm.variableManager.destroyVariable(el);
+                        }
+                    } else if (el === 'applicationScanCopyFileName' || el === 'contractScanCopyFileName') {
+                        $scope[el] = camForm.variableManager.variables[el].value;
+                        $scope.bulksmsInfo.files.push(camForm.variableManager.variables[el].value);
+                    } else {
+                        $scope[el] = camForm.variableManager.variables[el].value;
+                        $scope.bulksmsInfo[el] = camForm.variableManager.variables[el].value;
+                    }
+                });
+                $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name+ "/profile").then(function(result){
+                    $rootScope.authentication.assigneeName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
+                });
+                $scope.bulksmsInfo.showTarif = true;
+                console.log($scope.bulksmsInfo);
+                console.log($scope.bulksmsInfo.files);
+
+                camForm.variableManager.createVariable({
+                    name: 'confirmGeneralReadinessTaskResult',
+                    type: 'String',
+                    value: ''
+                });
+
+                camForm.variableManager.createVariable({
+                    name: 'confirmGeneralReadinessTaskComment',
+                    type: 'String',
+                    value: ''
+                });
+
+                $scope.confirmGeneralReadinessTaskResult = '';
+            });
+
+            camForm.on('submit', function () {
+                camForm.variableManager.variableValue('confirmGeneralReadinessTaskResult', $scope.confirmGeneralReadinessTaskResult);
+                camForm.variableManager.variableValue('confirmGeneralReadinessTaskComment', $scope.confirmGeneralReadinessTaskComment);
+            });
+        }]);
+
+    </script>
+    <info-bulksms bulksms-info="bulksmsInfo"></info-bulksms>
+    <div class="form-group">
+        <label class="col-sm-3 control-label">Решение</label>
+        <div class="col-sm-9">
+            <label class="radio-inline">
+                <input type="radio" name="confirmGeneralReadinessTaskResult" ng-model="confirmGeneralReadinessTaskResult" value="approved" required> Approve
+            </label>
+            <label class="radio-inline">
+                <input type="radio" name="confirmGeneralReadinessTaskResult" ng-model="confirmGeneralReadinessTaskResult" value="rejected" required> Reject
+            </label>
+            <label class="error" ng-show="kcell_form.confirmGeneralReadinessTaskResult.$error.required && ( kcell_form.confirmGeneralReadinessTaskResult.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-3 control-label">Комментарии</label>
+        <div class="col-sm-9">
+            <textarea class="form-control" ng-model="confirmGeneralReadinessTaskComment" name="confirmGeneralReadinessTaskComment" placeholder="Comments..." maxlength="500" rows="4" style="resize:none"></textarea>
+            <label class="error" ng-show="kcell_form.confirmGeneralReadinessTaskComment.$error.required && ( kcell_form.confirmGeneralReadinessTaskComment.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+</form>

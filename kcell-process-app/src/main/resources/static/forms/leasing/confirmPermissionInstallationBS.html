@@ -1,0 +1,282 @@
+<form role="form" class="form-horizontal" name="kcell_form" novalidate>
+    <script cam-script type="text/form-script" type="text/javascript">
+        inject(['$scope', '$http', 'Uri', '$rootScope', '$q', '$timeout', function ($scope, $http, Uri, $rootScope, $q, $timeout) {
+            var variables = [
+                'resolutions',
+                'ncpID',
+                'siteType',
+                'regionName',
+                'latitude',
+                'longitude',
+                'initiator',
+                'project',
+                'reason',
+                'part',
+                'plannedCabinetType',
+                'targetCoverage',
+                'rbsType',
+                'bands',
+                'rrFile',
+                'newCandidateRRFiles',
+                'candidate',
+                'cellAntenna',
+                'renterCompany',
+                'transmissionAntenna',
+                'powerSource',
+                'farEndInformation',
+                'address',
+                'leasingProceduresStatus',
+                'ne_tr_parameters',
+                'ne_tr_rate',
+                'powerProblem',
+                'rejections',
+                'setInstStatusFromUDB',
+            ];
+
+            var files = ['actOfPerformanceTechnicalConditionsFiles',
+            'uploadCopyOfOwnerSignedLeaseContractFiles',
+            'confirmApprovalLeaseContractInSAPCMFiles',
+            'confirmLoadingLeaseContractInSAPCMFiles',
+            'confirmSendMessageToStartPaymentKPFEFiles',
+            'approvalContractRentInSAPFiles',
+            'approvalPowerContractInSAPFiles',
+            'checkAndApproveFEFiles',
+            'commercialOnAirFiles',
+            'confirmActOfPerformanceTechnicalConditionsFiles',
+            'confirmPaymentDevelopmentOfTCKTFiles',
+            'confirmPaymentDevelopmentOfTCKTForFEFiles',
+            'confirmReceiptEstimateFiles',
+            'confirmReceiptEstimateForFEFiles',
+            'ConfirmReceiptOfTSfromRESforCandidateFiles',
+            'confirmReceiptResponseKPFiles',
+            'confirmReceiptResponseKPFEFiles',
+            'confirmSigningLeaseContractFiles',
+            'confirmStartLeasingFiles',
+            'confirmStartLeasingNOFiles',
+            'confirmTFOfConnectingToLandlordPowerGridForFEFiles',
+            'confirmTFOfConnectingToPowerGridForCandidateFiles',
+            'connectionFromOwnerNetworksFiles',
+            'contractRentLoadingSAPFiles',
+            'createNewCandidateSiteFiles',
+            'defineInstallationProblemFiles',
+            'estimateTechnicalCapabilityResFiles',
+            'installationWorksDoneFiles',
+            'modifyCandidateSiteFiles',
+            'powerContractLoadingInSAPFiles',
+            'powerProblemSolutionFiles',
+            'preparationSSIDandTSSRFiles',
+            'preperationSSIDorTSSRProjectFiles',
+            'receivingApprovalFromTheLandlordFiles',
+            'receivingContractDevDesignEstimateFiles',
+            'receivingContractDevDesignEstimateForFEFiles',
+            'receivingContractInstallationWorksFiles',
+            'receivingContractInstallationWorksForFEFiles',
+            'receivingContractPSDFiles',
+            'receivingTSFiles',
+            'receivingTSForFEFiles',
+            'registrationCommercialOfferFiles',
+            'registrationCommercialOfferForFEFiles',
+            'reqKZTRwithTechEquipmentParamsFiles',
+            'reqKZTRwithTechEquipmentParamsForFEFiles',
+            'requestForAdmissionForWorkOnTUFiles',
+            'requestTechnicalParametersKPFiles',
+            'requestTechnicalParametersKPFEFiles',
+            'requestTechnicalParametersKTFiles',
+            'requestTechnicalParametersKTForFEFiles',
+            'sendMessageToStartPaymentKPFiles',
+            'sendMessageToStartPaymentKPForFEFiles',
+            'sendMessageToStartPaymentKTFiles',
+            'sendMessageToStartPaymentKTForFEFiles',
+            'sendMessageToStartPaymentNationalFiles',
+            'sendMessageToStartPaymentSimpleFiles',
+            'signingLeaseContractAddAgreementFiles',
+            'signingLeaseContractAddAgreementForFEFiles',
+            'signingLeaseContractAddAgreementKPFiles',
+            'signingLeaseContractAddAgreementKPFEFiles',
+            'signingLeaseContractAddAgreementKTFiles',
+            'startingInstallationWorksFiles',
+            'transmissionProblemSolutionFiles',
+            'uploadSignedOwnerLeaseContractFiles'];
+
+            $scope.leasingFiles = [];
+
+            camForm.on('form-loaded', function () {
+                variables.forEach(function (el) {
+                    camForm.variableManager.fetchVariable(el);
+                });
+                files.forEach(function (f) {
+                    camForm.variableManager.fetchVariable(f);
+                });
+                $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
+                        function(result){
+                            $scope.processInstanceId = result.data.processInstanceId;
+                            $scope.taskKey = result.data.taskDefinitionKey;
+                            $http.get('/camunda/api/engine/engine/default/process-instance/' + $scope.processInstanceId).then(
+                                function(result){
+                                    console.log('process-instance/')
+                                    console.log(result.data)
+                                    $scope.businessKey = result.data.businessKey;
+                                },
+                                function (error) {console.log(error.data);}
+                            );
+                        },
+                        function (error) {
+                            console.log(error.data);
+                        }
+                );
+
+                $scope.leasingCandidate = {};
+            });
+
+            camForm.on('variables-fetched', function () {
+                variables.forEach(function (el) {
+                    if(camForm.variableManager.variables[el].value){
+                        $scope[el] = camForm.variableManager.variables[el].value;
+                        $scope.leasingCandidate[el] = camForm.variableManager.variables[el].value;
+                    }
+                });
+                files.forEach(function (f) {
+                    if(camForm.variableManager.variables[f] && camForm.variableManager.variables[f].value){
+                        if ( f.toLowerCase().includes('file') ) {
+                            $scope.leasingFiles = $scope.leasingFiles.concat(camForm.variableManager.variables[f].value)
+                        }
+                    }
+                });
+                camForm.variableManager.createVariable({
+                    name: 'confirmPermissionInstallationBSTaskResult',
+                    type: 'String',
+                    value: ''
+                });
+                camForm.variableManager.createVariable({
+                    name: 'confirmPermissionInstallationBSTaskComment',
+                    type: 'String',
+                    value: ''
+                });
+                camForm.variableManager.createVariable({
+                    name: 'needSSID',
+                    type: 'String',
+                    value: ''
+                });
+
+                $scope.confirmPermissionInstallationBSTaskResult = '';
+                $scope.needSSID = '';
+                $scope.view.variablesFetched = true;
+            });
+
+            camForm.on('submit', function () {
+                camForm.variableManager.variableValue('confirmPermissionInstallationBSTaskResult', $scope.confirmPermissionInstallationBSTaskResult);
+
+                if(!camForm.variableManager.variables['leasingProceduresStatus'] || (camForm.variableManager.variables['leasingProceduresStatus'] && !camForm.variableManager.variables['leasingProceduresStatus'].type)){
+                    if(camForm.variableManager.variables['leasingProceduresStatus'] && !camForm.variableManager.variables['leasingProceduresStatus'].type){
+                        camForm.variableManager.destroyVariable('leasingProceduresStatus');
+                    }
+                    camForm.variableManager.createVariable({
+                        name: 'leasingProceduresStatus',
+                        type: 'String',
+                        value: $scope.confirmPermissionInstallationBSTaskResult
+                    });
+                } else {
+                    camForm.variableManager.variableValue('leasingProceduresStatus', $scope.confirmPermissionInstallationBSTaskResult);
+                }
+
+                // camForm.variableManager.variableValue('needSSID', $scope.needSSID);
+                camForm.variableManager.variableValue('confirmPermissionInstallationBSTaskComment', $scope.confirmPermissionInstallationBSTaskComment);
+                camForm.variableManager.destroyVariable('resolutions');
+            });
+
+            $scope.fileDownload = function (file) {
+                $http({
+                    method: 'GET',
+                    url: '/camunda/uploads/get/' + file.path,
+                    transformResponse: []
+                }).then(function (response) {
+                    document.getElementById('fileDownloadIframe').src = response.data;
+                }, function (error) {
+                    console.log(error.data);
+                });
+            }
+        }]);
+
+    </script>
+    <div ng-if="powerProblem === 'Yes' || setInstStatusFromUDB === 'Leasing problem'">
+        <div ng-repeat="rejection in rejections">
+        <div class="form-group" >
+            <label class="col-sm-3 control-label" style="color: red">Was rejected by:</label>
+            <div class="col-sm-9">
+                <label style="padding-top: 5px">{{rejection.rejectedBy}}</label>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-3 control-label" style="color: red">Rejection reason:</label>
+            <div class="col-sm-9">
+                <textarea class="form-control"  style="resize: none" ng-model="rejection.rejectedReason" disabled> </textarea>
+            </div>
+        </div>
+    </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-12 control-label">
+            <p/> <b>Business key: </b>{{businessKey}}
+        </label>
+    </div>
+     <leasing-candidate ng-if="view.variablesFetched" leasing-candidate="leasingCandidate"></leasing-candidate>
+
+    <!-- <div class="form-group">
+        <label class="col-md-4 control-label">Download RR:</label>
+        <div class="col-sm-8">
+            <a ng-click="download(rrFile)">{{rrFile.name}}</a>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-md-4 control-label">RR files:</label>
+        <div class="col-sm-8">
+            <div ng-show="newCandidateRRFiles.length > 0" class="input-group" ng-repeat="file in newCandidateRRFiles">
+                {{$index + 1}}.
+                <a ng-click="download(file)">{{file.name}}</a>
+            </div>
+        </div>
+    </div> -->
+    <leasing-attachments leasing-files="leasingFiles" task-key="taskKey" modify="'false'"></leasing-attachments>
+    <iframe id="fileDownloadIframe" style="display:none;"></iframe>
+
+<!--    <div class="form-group">-->
+<!--        <label class="col-sm-4 control-label">SSID / TSSR project required</label>-->
+<!--        <div class="col-sm-8">-->
+<!--            <label class="radio-inline">-->
+<!--                <input type="radio" name="needSSID" ng-model="needSSID" value="yes" required> Yes-->
+<!--            </label>-->
+<!--            <label class="radio-inline">-->
+<!--                <input type="radio" name="needSSID" ng-model="needSSID" value="later" required> Later-->
+<!--            </label>-->
+<!--            <label class="error" ng-show="kcell_form.needSSID.$error.required && ( kcell_form.needSSID.$touched || view.submitted)">Required field</label>-->
+<!--        </div>-->
+<!--    </div>-->
+
+    <div class="form-group">
+        <label class="col-sm-3 control-label">Resolution</label>
+        <div class="col-sm-9">
+            <label class="radio-inline">
+                <input type="radio" name="confirmPermissionInstallationBSTaskResult" ng-model="confirmPermissionInstallationBSTaskResult" value="waitContract" required> Wait Contract
+            </label>
+            <label class="radio-inline">
+                <input type="radio" name="confirmPermissionInstallationBSTaskResult" ng-model="confirmPermissionInstallationBSTaskResult" value="verbalAgreement" required> Verbal agreement (without contract)
+            </label>
+            <label class="radio-inline">
+                <input type="radio" name="confirmPermissionInstallationBSTaskResult" ng-model="confirmPermissionInstallationBSTaskResult" value="verbalAgreementContractAfterIW" required> Verbal agreement (signing contract after installation works)
+            </label>
+            <label class="radio-inline">
+                <input type="radio" name="confirmPermissionInstallationBSTaskResult" ng-model="confirmPermissionInstallationBSTaskResult" value="refusal" required> Refusal
+            </label>
+            <label class="error" ng-show="kcell_form.confirmPermissionInstallationBSTaskResult.$error.required && ( kcell_form.confirmPermissionInstallationBSTaskResult.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label class="col-sm-3 control-label">Comments</label>
+        <div class="col-sm-9">
+            <textarea class="form-control" ng-model="confirmPermissionInstallationBSTaskComment" name="confirmPermissionInstallationBSTaskComment" placeholder="Comments..." maxlength="500" rows="4" style="resize:none"
+                      ng-required="confirmPermissionInstallationBSTaskResult == 'notAgree'"></textarea>
+            <label class="error" ng-show="kcell_form.confirmPermissionInstallationBSTaskComment.$error.required && ( kcell_form.confirmPermissionInstallationBSTaskComment.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+</form>

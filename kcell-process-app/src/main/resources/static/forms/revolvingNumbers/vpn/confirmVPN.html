@@ -1,0 +1,187 @@
+<form role="form" class="form-horizontal" name="kcell_form" novalidate>
+  <style>
+    .background-yellow-accordion .panel-body {
+      background-color: #ffffcc;
+      border: 1px solid #b3b3b3;
+      color: #333;
+    }
+
+    .content-visible-accordion .panel {
+      overflow: visible;
+    }
+  </style>
+  <script cam-script type="text/form-script">
+        inject(['$scope', '$http', 'Uri', '$rootScope', '$q', 'toasty', '$timeout', function ($scope, $http, Uri, $rootScope, $q, toasty, $timeout) {
+            $scope.legalInfo = {};
+            $scope.resolutions = [];
+            $scope.attachments = [];
+
+            $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
+                function(result){
+                    var processInstanceId = result.data.processInstanceId;
+                    $http.get('/camunda/api/engine/engine/default/process-instance/' + processInstanceId).then(
+                        function(result){
+                            $scope.businessKey = result.data.businessKey;
+                        },
+                        function (error) {console.log(error.data);}
+                    );
+                },
+                function (error) { console.log(error.data);}
+            );
+
+            camForm.on('form-loaded', function () {
+                camForm.variableManager.fetchVariable('legalInfo');
+                camForm.variableManager.fetchVariable('resolutions');
+                camForm.variableManager.fetchVariable('attachments');
+                camForm.variableManager.fetchVariable('vpnName');
+                camForm.variableManager.fetchVariable('numbersAmount');
+            });
+
+            camForm.on('variables-fetched', function () {
+                $scope.legalInfo = camForm.variableManager.variableValue('legalInfo');
+                $scope.resolutions = camForm.variableManager.variableValue('resolutions');
+                $scope.attachments = camForm.variableManager.variableValue('attachments');
+                $scope.vpnName = camForm.variableManager.variableValue('vpnName');
+                $scope.numbersAmount = camForm.variableManager.variableValue('numbersAmount');
+
+                if (!$scope.techSpecs) $scope.techSpecs = {};
+
+                if (!$scope.vpnName) $scope.vpnName = 'vpn';
+
+                camForm.variableManager.createVariable({
+                    name: $scope.vpnName+'ConfirmVPNTaskResult',
+                    type: 'String',
+                    value: ''
+                });
+
+                camForm.variableManager.createVariable({
+                    name: $scope.vpnName+'ConfirmVPNTaskComment',
+                    type: 'String',
+                    value: ''
+                });
+            });
+
+            camForm.on('submit', function (event) {
+                camForm.variableManager.variableValue($scope.vpnName+'ConfirmVPNTaskResult', $scope.resolution);
+                camForm.variableManager.variableValue($scope.vpnName+'ConfirmVPNTaskComment', $scope.comment);
+            });
+
+            $scope.downloadFile = function (file) {
+                $http({method: 'GET', url: '/camunda/uploads/' + (file.path.split('/').length === 2 ? 'tmp/' : '') + 'get/' + file.path, transformResponse: [] }).then(
+                    function(response) {
+                        document.getElementById('fileDownloadIframe').src = response.data;
+                    },
+                    function(response) {console.log(response.data);}
+                );
+            }
+        }]);
+    </script>
+
+  <div class="form-group">
+    <label class="col-sm-3 control-label" style="padding-top: 0">Number request:</label>
+    <div class="col-sm-9">{{businessKey}}</div>
+  </div>
+  <div class="form-group">
+    <label class="col-sm-3 control-label" style="padding-top: 0">Client:</label>
+    <div class="col-sm-9">{{legalInfo.legalName}} {{legalInfo.BIN}}</div>
+  </div>
+  <div class="form-group">
+    <label class="col-sm-3 control-label" style="padding-top: 0">Priority:</label>
+    <div class="col-sm-9">{{legalInfo.clientPriority}}</div>
+  </div>
+  <div class="form-group">
+    <label class="col-sm-3 control-label" style="padding-top: 0">Service:</label>
+    <div class="col-sm-9">Revolving numbers</div>
+  </div>
+  <div class="form-group">
+    <label class="col-sm-3 control-label" style="padding-top: 0">Amount of numbers:</label>
+    <div class="col-sm-9">{{numbersAmount}}</div>
+  </div>
+
+  <div class="col-sm-12"><hr /></div>
+
+  <iframe id="fileDownloadIframe" style="display:none;"></iframe>
+  <div class="form-group">
+    <label class="col-sm-2 control-label">Attachments</label>
+    <div class="col-sm-10">
+      <div class="col-sm-12" style="padding: 0;">
+        <table class="table table-bordered">
+          <thead>
+          <tr>
+            <th>File Name</th>
+            <th>Created</th>
+            <th>Created By</th>
+          </tr>
+          </thead>
+          <tbody>
+          <tr ng-repeat="file in attachments track by $index">
+            <td><a ng-click="downloadFile(file)">{{file.name}}</a></td>
+            <td>{{file.created | date: 'dd.MM.yyyy HH:mm'}}</td>
+            <td>{{file.createdBy}}</td>
+          </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-sm-12"><hr /></div>
+
+  <div class="form-group">
+    <label class="col-sm-2 control-label">Resolution</label>
+    <div class="col-sm-10">
+      <label class="radio-inline">
+        <input type="radio" ng-model="resolution" name="resolution" value="Approve" required> Approve
+      </label>
+      <label class="radio-inline">
+        <input type="radio" ng-model="resolution" name="resolution" value="Modify VPN questionnaire" required> Modify VPN questionnaire
+      </label>
+      <label class="error" ng-show="kcell_form.resolution.$error.required && ( kcell_form.resolution.$touched || view.submitted)">Required field</label>
+    </div>
+  </div>
+
+  <div class="form-group">
+    <label class="col-sm-2 control-label">Comment <span class="text-danger glyphicon-asterisk" ng-if="resolution == 'Modify VPN questionnaire'"></span></label>
+    <div class="col-sm-10">
+      <textarea elastic-textarea class="form-control" rows="4" name="comment" ng-model="comment" ng-required="resolution == 'Modify VPN questionnaire'"></textarea>
+      <label class="error" ng-show="kcell_form.comment.$error.required && ( kcell_form.comment.$touched || view.submitted)">Required field</label>
+    </div>
+  </div>
+
+  <accordion>
+    <accordion-group is-open="isHistoryOpen">
+      <accordion-heading>
+        History <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
+      </accordion-heading>
+      <table class="table">
+        <thead>
+        <tr>
+          <th>Activity</th>
+          <th>Assignee</th>
+          <th>Assigned date</th>
+          <th>Claimed date</th>
+          <th>Resolution date</th>
+          <th>Resolution</th>
+          <th>Comment</th>
+          <th>Attachments</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr ng-repeat="resolution in resolutions | orderBy:'-' track by $index">
+          <td>{{resolution.taskName}}</td>
+          <td>{{resolution.assigneeName}}</td>
+          <td>{{resolution.assignDate | date: 'dd.MM.yyyy HH:mm'}}</td>
+          <td>{{resolution.claimDate | date: 'dd.MM.yyyy HH:mm'}}</td>
+          <td>{{resolution.taskEndDate | date: 'dd.MM.yyyy HH:mm'}}</td>
+          <td>{{resolution.resolution}}</td>
+          <td>{{resolution.comment}}</td>
+          <td>
+            <p ng-repeat="file in resolution.attachments.added">{{file}}</p>
+            <p ng-repeat="file in resolution.attachments.removed" class="text-danger">{{file}}</p>
+          </td>
+        </tr>
+        </tbody>
+      </table>
+    </accordion-group>
+  </accordion>
+</form>

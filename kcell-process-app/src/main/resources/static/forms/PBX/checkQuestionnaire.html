@@ -1,0 +1,751 @@
+<form role="form" class="form-horizontal" name="kcell_form" novalidate>
+  <script cam-script type="text/form-script">
+    inject([ '$scope', '$http', '$rootScope', '$q', '$timeout', 'historyVariablesManager', function($scope, $http, $rootScope, $q, $timeout, historyVariablesManager) {
+    $scope.ci = {};
+    $scope.ts = {};
+    $scope.sip = {};
+    $scope.e1 = {};
+    $scope.dir = {};
+    $scope.showDescription = false;
+    var processInstanceId = null;
+    var assigneeName = $rootScope.authentication.name;
+    var taskKey = camForm.taskId;
+    var history = null;
+
+    $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name + "/profile").then(function(result){
+      assigneeName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
+    });
+
+    $scope.downloadFile = function (file) {
+      $http({method: 'GET', url: '/camunda/uploads/' + (file.path.split('/').length === 2 ? 'tmp/' : '') + 'get/' + file.path, transformResponse: [] }).then(
+        function(response) {
+          document.getElementById('fileDownloadIframe').src = response.data;
+        },
+        function(response) { console.log(response.data); }
+      );
+    };
+
+    $scope.clearFile = function(fileIndex) {
+      $scope.attachments.splice(fileIndex, 1);
+    };
+
+    $scope.fileSelected = function(el ){
+      $timeout(function () {
+        $scope.$apply(function () {
+          uploadFileToMinio(el.files[0]);
+        });
+      })
+    };
+
+    function uploadFileToMinio(file) {
+      var fileToUpload = {
+        name: file.name.replace(/[/\\?%*:|"<>]/g, '-'),
+        path: processInstanceId + '/' + camForm.taskId + '/' + file.name.replace(/[/\\?%*:|"<>]/g, '-'),
+        created: new Date(),
+        createdBy: assigneeName
+      };
+      $http({method: 'GET', url: '/camunda/uploads/put/' + fileToUpload.path, transformResponse: [] }).then(
+        function(response) {
+          $http.put(response.data, file, {headers: {'Content-Type': undefined}}).then(
+            function () {
+              $scope.attachments.push(fileToUpload);
+              angular.element(document.querySelector('#attachments')).val(null);
+            },
+            function (error) {
+              console.log(error.data);
+            }
+          );
+        },
+        function(response) { console.log(response.data); }
+      );
+    }
+
+    $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
+      function (result) {
+        processInstanceId = result.data.processInstanceId;
+        taskKey = result.data.taskDefinitionKey;
+        history = historyVariablesManager(camForm, taskKey);
+        history.createVariables(true);
+        configureViews();
+      },
+      function (error) {
+        console.log(error.data);
+      }
+    );
+
+    camForm.on('form-loaded', function () {
+      camForm.variableManager.fetchVariable('resolutions');
+      camForm.variableManager.fetchVariable('clientPriority');
+      camForm.variableManager.fetchVariable('customerInformation');
+      camForm.variableManager.fetchVariable('technicalSpecifications');
+      camForm.variableManager.fetchVariable('sipProtocol');
+      camForm.variableManager.fetchVariable('e1Protocol');
+      camForm.variableManager.fetchVariable('sipDirectProtocol');
+      camForm.variableManager.fetchVariable('attachments');
+      camForm.variableManager.fetchVariable('poiMessage');
+      camForm.variableManager.fetchVariable('flow1NextTaskAssignee');
+      camForm.variableManager.fetchVariable('tariff');
+      camForm.variableManager.fetchVariable('numberRequest');
+      camForm.variableManager.fetchVariable('description');
+    });
+
+    camForm.on('variables-fetched', function () {
+      $scope.resolutions = camForm.variableManager.variableValue('resolutions');
+      camForm.variableManager.destroyVariable('resolutions');
+      $scope.clientPriority = camForm.variableManager.variableValue('clientPriority');
+      $scope.ci = camForm.variableManager.variableValue('customerInformation');
+      $scope.ts = camForm.variableManager.variableValue('technicalSpecifications');
+      $scope.sip = camForm.variableManager.variableValue('sipProtocol');
+      $scope.e1 = camForm.variableManager.variableValue('e1Protocol');
+      $scope.dir = camForm.variableManager.variableValue('sipDirectProtocol');
+      $scope.attachments = camForm.variableManager.variableValue('attachments');
+      $scope.poiMessage = camForm.variableManager.variableValue('poiMessage');
+      $scope.tariff = camForm.variableManager.variableValue('tariff');
+      $scope.numberRequest = camForm.variableManager.variableValue('numberRequest');
+      $scope.description = camForm.variableManager.variableValue('description');
+      if (!$scope.attachments) $scope.attachments = [];
+      $scope.lastAttachments = JSON.parse(JSON.stringify($scope.attachments));
+      $timeout(function(){
+        $scope.$apply(function(){
+          $scope.ci.companyRegistrationDate = new Date($scope.ci.companyRegistrationDate);
+        });
+      });
+    });
+
+    camForm.on('submit', function(e) {
+      camForm.variableManager.destroyVariable('poiMessage');
+      if (taskKey === 'confirmCheckingTSScheme') {
+        camForm.variableManager.createVariable({
+          name: 'confirmCheckingTSSchemeResolution',
+          type: 'String',
+          value: $scope.resolution,
+          store: true
+        });
+      }
+
+      if (taskKey === 'confirmSendingTest') {
+        camForm.variableManager.createVariable({
+          name: 'testLogin',
+          type: 'String',
+          value: $scope.ci.testLogin,
+          store: true
+        });
+
+        camForm.variableManager.createVariable({
+          name: 'testPassword',
+          type: 'String',
+          value: $scope.ci.testPassword,
+          store: true
+        });
+      }
+
+      if (taskKey === 'confirmAgreementTSScheme') {
+        camForm.variableManager.createVariable({
+          name: 'confirmAgreementTSSchemeResolution',
+          type: 'String',
+          value: $scope.resolution,
+          store: true
+        });
+      }
+      if($scope.ci.companyRegistrationDate){
+        $scope.ci.companyRegistrationDate = new Date($scope.ci.companyRegistrationDate);
+      }
+      if (taskKey === 'modifyConnectionSettings') {
+        camForm.variableManager.createVariable({
+          name: 'modifyConnectionSettingsResolution',
+          type: 'String',
+          value: $scope.resolution,
+          store: true
+        });
+      }
+      if (taskKey === 'confirmContractReceiption') {
+        camForm.variableManager.createVariable({
+          name: 'confirmContractReceiptionResolution',
+          type: 'String',
+          value: $scope.resolution,
+          store: true
+        });
+      }
+      if (taskKey === 'confirmReturn') {
+        $scope.resolution = $scope.resolution === 'Accepted' ? 'ROI=6 month' : 'ROI>6 month';
+        camForm.variableManager.createVariable({
+          name: 'poiMessage',
+          type: 'String',
+          value: $scope.resolution,
+          store: true
+        });
+      }
+      camForm.variableManager.variableValue('tariff', $scope.tariff);
+      if($scope.ci.companyRegistrationDate){
+        $scope.ci.companyRegistrationDate = new Date($scope.ci.companyRegistrationDate);
+      }
+      if ($scope.showView.resolution) {
+        history.setVariables($scope.resolution, $scope.comment, $scope.lastAttachments, $scope.attachments);
+      } else {
+        history.setVariables('Completed', $scope.comment, $scope.lastAttachments, $scope.attachments);
+      }
+      camForm.variableManager.destroyVariable('attachments');
+      camForm.variableManager.createVariable({
+        name: 'attachments',
+        type: 'json',
+        value: $scope.attachments,
+        store: true
+      });
+
+      var flow1NextTaskAssignee;
+      if ((taskKey === 'confirmAdditionIP' || taskKey === 'confirmTestingSuccess') && $scope.sip && $scope.ts) {
+        flow1NextTaskAssignee = 'starter';
+        if ($scope.ts.connectionPoint == 'SIP Proxy') flow1NextTaskAssignee = 'KCELL Technologies-P&S-B2BPM';
+        else if ($scope.sip.authorizationType == 'SIP-авторизация(доступ по стат. IP c лог/пар)'
+                && $scope.ts.connectionPoint == 'Asterisk') flow1NextTaskAssignee = 'Technologies-IT-EIT-ETS';
+      }
+      if ($scope.sip && $scope.ts
+          && (taskKey === 'modifyConnectionSettings'
+          || (taskKey == 'modifyConnectionSettings' && $scope.resolution == $scope.resolutionAcceptMsg))) {
+        flow1NextTaskAssignee = 'starter';
+        if ($scope.ts.connectionPoint == 'SIP Proxy') flow1NextTaskAssignee = 'KCELL Technologies-P&S-B2BPM';
+        else {
+          if ($scope.sip.authorizationType == 'SIP-транк(доступ по стат. IP)'
+              && $scope.ts.connectionPoint == 'SBC') flow1NextTaskAssignee = 'KCELL Technologies-SA&OS-NO-TNO';
+          else if ($scope.sip.authorizationType == 'SIP-авторизация(доступ по стат. IP c лог/пар)'
+              && $scope.ts.connectionPoint == 'Asterisk') flow1NextTaskAssignee = 'KCELL Technologies-IT-EIT-ETS';
+        }
+      }
+      camForm.variableManager.destroyVariable('flow1NextTaskAssignee');
+      if (flow1NextTaskAssignee) {
+        camForm.variableManager.createVariable({
+          name: 'flow1NextTaskAssignee',
+          type: 'String',
+          value: flow1NextTaskAssignee,
+          store: true
+        });
+      }
+
+      if(!camForm.variableManager.variables[taskKey + 'Resolution']){
+        camForm.variableManager.createVariable({
+          name: taskKey + 'Resolution',
+          type: 'String',
+          value: $scope.resolution,
+          store: true
+        });
+      }
+      if($scope.resolution == 'Rejected' && taskKey == 'modifyConnectionSettings') {
+        camForm.variableManager.createVariable({
+          name: 'newIpNumber',
+          type: 'String',
+          value: $scope.sip.ipVoiceTraffic,
+        });
+      }
+    });
+
+    $scope.resolutionAcceptMsg = 'Yes';
+    $scope.resolutionRejectMsg = 'No';
+    $scope.showView = {
+      ci: false,
+      ts: false,
+      attachments: false,
+      resolution: false,
+      pbxNumbers: false,
+      isntWork: false,
+      poi: false,
+      risk: false,
+      fileModify: false,
+      dangerResolution: false,
+      rootForCMMBGW: false,
+      tariff: false,
+      firewallRules: false,
+      tsNewDesign: false,
+      accessFields: false,
+      pbxContractNumber: false
+    };
+    $scope.legalInfo = false;
+    $scope.readonlyMode = true;
+    function configureViews() {
+        if($rootScope.hasGroup('delivery_pbx_sip_proxy_technical_dept') && (taskKey === 'confirmSendingTest' || taskKey === 'confirmTestingSuccess' || taskKey === 'confirmCommercialService')){
+          $scope.showAttachments = true;
+        } else {
+          $scope.showAttachments = false;
+        }
+        console.log($rootScope.hasGroup('delivery_pbx_sip_proxy_technical_dept'));
+        console.log(taskKey);
+        console.log($scope.showAttachments);
+      switch(taskKey) {
+        case 'confirmCheckingTSScheme':
+          $scope.showView = {tsNewDesign: true, resolution: true, attachments: true, fileModify: true, tuDownloadLink: true};
+          $scope.showDescription = true;
+          break;
+        case 'confirmAgreementTSScheme':
+          $scope.showView = {ts: true, attachments: false, resolution: true, tuDownloadLink: true};
+          break;
+        case 'confirmAgreementTSScheme':
+          $scope.showView = {tuDownloadLink: true};
+          break;
+        case 'confirmSendingTest':
+         $scope.showView = {tsNewDesign: true, testLogPass: true, attachments: $scope.showAttachments};
+         $scope.showDescription = true;
+          if($scope.ts.connectionPoint == 'SIP Proxy') {
+            $scope.showView = {tsNewDesign: true, testLogPass: false, attachments: $scope.showAttachments};
+          }
+          break;
+        case 'confirmTestingSuccess':
+          $scope.showView = {tsNewDesign: true, attachments: $scope.showAttachments};
+          break;
+        case 'confirmCommercialService':
+          $scope.showView = {tsNewDesign: true, accessFields: true, attachments: $scope.showAttachments};
+          break;
+        case 'confirmStartService':
+          $scope.resolutionAcceptMsg = 'Start service';
+          $scope.resolutionRejectMsg = 'Deal cancel';
+          $scope.showView = {
+            ts: true,
+            attachments: true,
+            fileModify: true,
+            tariff: true,
+            pbxNumbers: true,
+            pbxContractNumber: true,
+            resolution: true
+          };
+          break;
+        case 'confirmAdditionIP':
+          $scope.showView = {firewallRules: true};
+          break;
+        case 'e1confirmTestingBilling':
+        case 'e1createRequestTCF':
+          $scope.showView = {ts: true, pbxNumbers: true};
+          break;
+        case 'confirmLegalInformation':
+        case 'e1confirmLegalInformation':
+          $scope.showView = {ci: true, attachments: true, resolution: true};
+          $scope.legalInfo = true;
+          break;
+        case 'confirmCreatedRoot':
+          $scope.showView = {ci: true, attachments: true, pbxNumbers: true, rootForCMMBGW: true};
+          $scope.legalInfo = true;
+          $scope.readonlyMode = false;
+          break;
+        case 'confirmInTIC':
+        case 'confirmCreatedPOI':
+          $scope.showView = {ci: true, attachments: true, pbxNumbers: true, rootForCMMBGW: true};
+          $scope.legalInfo = true;
+          break;
+        case 'confirmNumbersInTIC':
+        case 'e1confirmCreatedRoot':
+        case 'e1confirmInTIC':
+        case 'e1confirmCreatedPOI':
+        case 'e1confirmNumbersInTIC':
+        case 'uploadTheContract':
+        case 'e1uploadTheContract':
+          $scope.showView = {ci: true, attachments: true, pbxNumbers: true, attachments: taskKey === 'uploadTheContract' || taskKey === 'e1uploadTheContract', fileModify: taskKey === 'uploadTheContract' || taskKey === 'e1uploadTheContract'};
+          $scope.legalInfo = true;
+          break;
+        case 'e1confirmCheckingTSScheme':
+          $scope.showView = {ts: true, instWork: true};
+          break;
+        case 'confirmReturn':
+          $scope.showView = {ts: true, resolution: true};
+          $scope.resolutionAcceptMsg = 'ROI=6 month';
+          $scope.resolutionRejectMsg = 'ROI>6 month';
+          break;
+        case 'confirmPaybackRisk':
+          $scope.showView = {ts: true, resolution: true, poi: true};
+          break;
+        case 'e1confirmAgreementTUScheme':
+          $scope.showView = {ts: true, resolution: true, poi: true, risk: true};
+          break;
+        case 'confirmTheEnd':
+        case 'confirmTheChannel':
+          $scope.showView = {ts: true, poi: true, risk: true};
+          break;
+
+        case 'modifyConnectionSettings':
+          $scope.readonlyMode = false;
+          $scope.resolutionAcceptMsg = 'No need';
+          $scope.resolutionRejectMsg = 'Modify connection settings';
+          $scope.showView = {
+            ci: true, 
+            attachments: true, 
+            ts: true, 
+            resolution: true, 
+            dangerResolution: true,
+            tariff: true,
+          };  
+          $scope.legalInfo = true;
+          break;
+        case 'confirmContractReceiption':
+          $scope.readonlyMode = false;
+          $scope.legalInfo = true;
+          $scope.showView = {ci: true, attachments: true, fileModify: true, resolution: true};
+      }
+    }
+    
+   }]);
+
+  </script>
+
+  <div class="col-sm-12">
+    <div class="form-group">
+      <label class="col-sm-4">Number request:</label>
+      <div class="col-sm-8"><span class="text-primary">{{numberRequest}}</span></div>
+    </div>
+    <div class="form-group">
+      <label class="col-sm-4">Client:</label>
+      <div class="col-sm-8">{{ci.legalName}} {{ci.bin}}</div>
+    </div>
+    <div class="form-group">
+      <label class="col-sm-4">Pr iority:</label>
+      <div class="col-sm-8"><span class="{{clientPriority == 'High'?'text-danger':''}} ">{{clientPriority}}</span></div>
+    </div>
+    <div class="form-group">
+      <label class="col-sm-4">Labels:</label>
+      <div class="col-sm-6">
+        <span ng-if="ci != null">{{ci.companyRegistrationCity}}</span> <span ng-if="ts != null">{{ts.connectionType}} {{ts.connectionPoint}}</span>
+      </div>
+      <div class="col-sm-2 pull-right" ng-if="ci && ci.salesRepresentative"><b>KAE:</b> {{ci.salesRepresentative}}</div>
+    </div>
+
+    <div class="col-sm-12">&#8203;</div>
+  </div>
+
+  <div class="col-sm-12 well"  ng-show="showView.ci || showView.ts">
+    <div ng-show="showView.ci">
+      <customer-information ci="ci" form="kcell_form" view="view" readonly="readonlyMode" legal="legalInfo"></customer-information>
+      <div class="col-sm-12"><hr /></div>
+    </div>
+
+    <div ng-show="showView.ts" class="col-sm-12">
+      <technical-specifications ts="ts" form="kcell_form" view="view" readonly="readonlyMode"></technical-specifications>
+      <div class="col-sm-12"><hr /></div>
+    </div>
+
+    <div ng-show="showView.ts" class="col-sm-12">
+      <sip-protocol sip="sip" form="kcell_form" view="view" readonly="readonlyMode" ng-if="ts.connectionType == 'SIP over internet'"></sip-protocol>
+      <e1-protocol e1="e1" form="kcell_form" view="view" readonly="readonlyMode" ng-if="ts.connectionType == 'E1'"></e1-protocol>
+      <sip-direct-protocol dir="dir" form="kcell_form" readonly="readonlyMode" view="view" ng-if="ts.connectionType == 'SIP cable direct'"></sip-direct-protocol>
+      <div class="form-group" ng-if="showView.tuDownloadLink">
+        <label class="col-sm-12 control-label"><a href="/camunda/pbx/{{camForm.taskId}}/generate-technical-condition" target="_blank">ТУ и схема</a></label>
+      </div>
+      <div class="col-sm-12"><hr /></div>
+
+      <div ng-show="sip.vpnTuning === 'Yes'">
+        <vpn-tunnel></vpn-tunnel>
+        <div class="col-sm-12"><hr /></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-sm-12" ng-show="showView.rootForCMMBGW">
+    <div class="form-group">
+      <label class="col-sm-4">Root for CMM/BGW:</label>
+      <div class="col-sm-8">
+        <input type="text" class="form-control" cam-variable-name="rootForCMMBGW" cam-variable-type="String">
+      </div>
+    </div>
+  </div>
+
+  <div class="col-sm-12 well" ng-show="showView.tsNewDesign">
+    <h4 class="text-center">Technical Specification</h4>
+    <div class="form-group">
+      <label class="col-sm-4 control-label">Connection type: </label>
+      <div class="col-sm-8">
+        <div class="disabled-element">{{ts.connectionType}}</div>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="col-sm-4 control-label">Connection point: </label>
+      <div class="col-sm-8">
+        <div class="disabled-element">{{ts.connectionPoint}}</div>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="col-sm-4 control-label">Authorization type: </label>
+      <div class="col-sm-8">
+        <div class="disabled-element">{{sip.authorizationType}}</div>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="col-sm-4 control-label">Public static IP for voice traffic: </label>
+      <div class="col-sm-8">
+        <div class="disabled-element">{{sip.ipVoiceTraffic}}</div>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="col-sm-4 control-label">Public static IP for signaling: </label>
+      <div class="col-sm-8">
+        <div class="disabled-element">{{sip.ipSignaling}}</div>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="col-sm-4 control-label">Transport Layer Protocol: </label>
+      <div class="col-sm-8">
+        <div class="disabled-element">{{sip.transportLayerProtocol}}</div>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="col-sm-4 control-label">Port for signaling: </label>
+      <div class="col-sm-8">
+        <div class="disabled-element">{{sip.signalingPort}}</div>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="col-sm-4 control-label">Count sessions (double talks): </label>
+      <div class="col-sm-8">
+        <div class="disabled-element">{{sip.sessionCount}}</div>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="col-sm-4 control-label">Port for voice traffic: </label>
+      <div class="col-sm-2">
+        <div class="disabled-element">{{sip.voiceTrafficPortStart}}</div>
+      </div>
+      <div class="col-sm-1"><hr /></div>
+      <div class="col-sm-2">
+        <div class="disabled-element">{{sip.voiceTrafficPortEnd}}</div>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="col-sm-4 control-label">Preferred coding: </label>
+      <div class="col-sm-8">
+        <div class="disabled-element">{{sip.preferredCoding}}</div>
+      </div>
+    </div>
+    <div ng-show="showView.accessFields">
+      <div class="form-group">
+        <label class="col-sm-4 control-label">Access to incoming / outgoing calls: </label>
+        <div class="col-sm-8">
+          <div class="disabled-element">{{ts.inOutCallAccess}}</div>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="col-sm-4 control-label">Access to international calls: </label>
+        <div class="col-sm-8">
+          <div style="border-radius: 5px; padding: 0 5px;">
+            <label class="radio-inline"><input type="radio"  value="Yes" ng-model="ts.intenationalCallAccess" disabled> Yes</label>
+            <label class="radio-inline"><input type="radio" value="No" ng-model="ts.intenationalCallAccess" disabled> No</label>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-sm-4">
+        <div class="form-group">
+          <label class="col-sm-12 control-label">Contact Person: </label>
+          <div class="col-sm-12">
+            <div class="disabled-element">{{ts.technicalPerson}}</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-sm-4">
+        <div class="form-group">
+          <label class="col-sm-12 control-label">Contact Email: </label>
+          <div class="col-sm-12">
+            <div class="disabled-element">{{ts.technicalEmail}}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="col-sm-12 control-label">Numbers PBX:</label>
+      <div class="col-sm-12">
+        <div class="disabled-element">{{ts.pbxNumbers}}</div>
+      </div>
+    </div>
+    <div class="form-group" ng-if="showView.tuDownloadLink">
+      <label class="col-sm-12 control-label"><a href="/camunda/pbx/{{camForm.taskId}}/generate-technical-condition" target="_blank">ТУ и схема</a></label>
+    </div>
+    <div class="form-group">
+      <label class="col-sm-4 control-label">VPN is required </label>
+      <div class="col-sm-8">
+        <div class="disabled-element">{{sip.vpnTuning}}</div>
+      </div>
+    </div>
+    <div class="form-group" ng-if="description && showDescription">
+      <label class="col-sm-12 control-label">Description:</label>
+      <div class="col-sm-12">
+        <textarea class="disabled-element col-sm-12" ng-model="description"></textarea>
+      </div>
+    </div>
+  </div>
+
+
+
+  <div class="col-sm-12" ng-show="showView.attachments">
+    <iframe id="fileDownloadIframe" style="display:none;"></iframe>
+    <div class="form-group">
+      <label class="col-sm-4 control-label">Attachments</label>
+      <div class="col-sm-8">
+        <input type="file" ng-if="showView.fileModify" class="form-control" id="attachments" name="attachments" onchange="angular.element(this).scope().fileSelected(this)"/>
+        <div class="col-sm-12">
+          <table class="table ">
+            <thead>
+            <tr>
+              <th>File Name</th>
+              <th>Created</th>
+              <th>Created By</th>
+              <th ng-if="showView.fileModify">Delete</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr ng-repeat="file in attachments track by $index">
+              <td><a ng-click="downloadFile(file)">{{file.name}}</a></td>
+              <td>{{file.created | date: 'dd.MM.yyyy HH:mm'}}</td>
+              <td>{{file.createdBy}}</td>
+              <td ng-if="showView.fileModify"><a ng-click="clearFile($index)"><i class="glyphicon glyphicon-trash"></i></a></td>
+            </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <div class="col-sm-12"><hr /></div>
+  </div>
+
+  <div class="col-sm-12" ng-show="showView.tariff">
+    <div class="form-group">
+      <label class="col-sm-4 control-label">Tariff: <span class="text-danger glyphicon-asterisk"></span></label>
+      <div class="col-sm-8">
+        <select class="form-control" ng-model="tariff">
+          <option value="Стартовый 5">Стартовый 5</option>
+          <option value="Стартовый 10">Стартовый 10</option>
+          <option value="Бизнес стандарт">Бизнес стандарт</option>
+          <option value="Бизнес пакет 30">Бизнес пакет 30</option>
+          <option value="Бизнес пакет 50">Бизнес пакет 50</option>
+          <option value="Бизнес пакет 100">Бизнес пакет 100</option>
+          <option value="Бизнес пакет 150">Бизнес пакет 150</option>
+          <option value="Бизнес пакет 200">Бизнес пакет 200</option>
+          <option value="Бизнес пакет 300">Бизнес пакет 300</option>
+          <option value="Бизнес пакет 400">Бизнес пакет 400</option>
+          <option value="Бизнес пакет 600">Бизнес пакет 600</option>
+          <option value="Бизнес пакет 700 ">Бизнес пакет 700 </option>
+          <option value="Бизнес пакет 1 млн">Бизнес пакет 1 млн</option>
+          <option value="Бизнес пакет 1.5 млн">Бизнес пакет 1.5 млн</option>
+          <option value="Бизнес пакет 2.5 млн">Бизнес пакет 2.5 млн</option>
+          <option value="Бизнес пакет 3 млн">Бизнес пакет 3 млн</option>
+          <option value="Нестандартный пакет">Нестандартный пакет</option>
+          <option value="Бизнес универсальный">Бизнес универсальный</option>
+        </select>
+        <input type="text" ng-show="tariff == 'Нестандартный пакет'" class="form-control" cam-variable-name="tariffExtra" cam-variable-type="String" placeholder="Укажите тариф">
+      </div>
+    </div>
+  </div>
+
+  <div class="col-sm-12" ng-show="showView.pbxNumbers">
+    <div class="form-group">
+      <label class="col-sm-12">Numbers PBX:</label>
+      <div class="col-sm-12">
+        <textarea class="form-control" ng-model="ts.pbxNumbers" disabled></textarea>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-sm-12" ng-show="showView.pbxContractNumber">
+    <div class="form-group">
+      <label class="col-sm-4 control-label">Contract number:</label>
+      <div class="col-sm-8">
+        <input type="text" class="form-control" name="pbxContractNumber" cam-variable-name="pbxContractNumber" cam-variable-type="String" ng-required="showView.pbxContractNumber"></textarea>
+        <span class="has-error" ng-if="kcell_form.pbxContractNumber.$error.required && (kcell_form.pbxContractNumber.$touched || view.submitted)">Required field</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-sm-12" ng-show="showView.poi">
+    <div class="form-group">
+      <label class="col-sm-4">Period of return on investments of the connection</label>
+      <b class="col-sm-8">{{poiMessage}}</b>
+    </div>
+    <div class="form-group" ng-if="showView.risk && poiMessage=='ROI>6 month'">
+      <label class="col-sm-4">Connection with payback risk</label>
+      <b class="col-sm-8">Confirmed</b>
+    </div>
+  </div>
+
+  <div class="form-group" ng-show="showView.instWork">
+    <label class="col-sm-12 control-label">Installation work:</label>
+    <div class="col-sm-12">
+      <textarea class="form-control" name="instWork" cam-variable-name="instWork" cam-variable-type="String"></textarea>
+    </div>
+  </div>
+
+  <div class="form-group" ng-show="showView.firewallRules">
+    <div class="col-sm-12 control-label">Requested Firewall access rules:</div>
+    <div class="col-sm-12">
+      <table class="table " style="background: #ffffcc; color: #333; border: 1px solid #b3b3b3">
+        <thead>
+        <tr>
+          <th>Source (IP address or Network)</th>
+          <th>Destination (IP address or Network)</th>
+          <th>Service and ports</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr>
+          <td>{{sip.ipVoiceTraffic}}</td>
+          <td>
+            <span ng-if="ts.connectionPoint == 'SIP Proxy' && sip.authorizationType == 'SIP-транк(доступ по стат. IP)'">2.78.58.154</span>
+            <span ng-if="ts.connectionPoint == 'SIP Proxy' && sip.authorizationType == 'SIP-авторизация(доступ по стат. IP c лог/пар)'">2.78.58.167</span>
+            <span ng-if="ts.connectionPoint == 'Asterisk'">195.47.255.212</span>
+            <span ng-if="ts.connectionPoint == 'SBC' && ts.virtualNumbersCount < 100">195.47.255.119</span>
+            <span ng-if="ts.connectionPoint == 'SBC' && ts.virtualNumbersCount > 99 && ts.virtualNumbersCount < 1000">195.47.255.84</span>
+            <span ng-if="ts.connectionPoint == 'SBC' && ts.virtualNumbersCount > 999">195.47.255.97</span>
+          </td>
+          <td>
+            {{sip.transportLayerProtocol}} ({{sip.signalingPort}}) <br />
+            RTP ({{sip.voiceTrafficPortStart}} - {{sip.voiceTrafficPortEnd}})
+          </td>
+        </tr>
+        <tr>
+          <td>{{sip.ipSignaling}}</td>
+          <td></td>
+          <td></td>
+        </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="col-sm-12"  ng-if="showView.showRevenue">
+    <div class="form-group">
+      <label class="col-sm-4 ">Revenue:</label>
+      <div class="col-sm-4">
+        <input type="text" class="form-control" placeholder="Revenue" name="revenue" ng-model="revenue" ng-show="needRevenue">
+        <b class="col-sm-4" ng-show="!needRevenue">{{revenue}}</b>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-sm-12" ng-show="showView.showPaybackRiskStatus">
+    <div class="form-group">
+      <label class="col-sm-4">Payback risk status:</label>
+      <b class="col-sm-8">{{paybackRiskStatus}}</b>
+    </div>
+  </div>
+
+  <div class="col-sm-12"  ng-show="showView.paybackRiskStatus">
+    <div class="form-group">
+      <label class="col-sm-4 control-label">Payback risk status:</label>
+      <div class="col-sm-4">
+        <input type="text" class="form-control" placeholder="Payback risk status" name="paybackRiskStatus" ng-model="paybackRiskStatus" ng-show="needPaybackRiskStatus">
+        <b class="col-sm-4" ng-show="!needPaybackRiskStatus">{{paybackRiskStatus}}</b>
+      </div>
+    </div>
+  </div>
+
+  <div class="form-group" ng-show="showView.resolution">
+    <label class="col-sm-4 control-label">Confirm:</label>
+    <div class="col-sm-8">
+      <label class="radio-inline"><input type="radio" name="resolution" value="Accepted" ng-model="resolution" ng-required="showView.resolution"> {{resolutionAcceptMsg}}</label>
+      <label class="radio-inline"><input type="radio" name="resolution" value="Rejected" ng-model="resolution" ng-required="showView.resolution"> {{resolutionRejectMsg}}</label>
+      <label class="radio-inline" ng-show="showView.dangerResolution"><input type="radio" name="resolution1" value="Cancel connection" ng-model="resolution" ng-required="showView.resolution">Cancel connection</label>
+
+      <label class="error" ng-show="kcell_form.resolution.$error.required && (kcell_form.resolution.$touched || view.submitted)">Required field</label>
+    </div>
+  </div>
+
+
+  <div class="form-group">
+    <label class="col-sm-12 control-label">Comments:<span class="text-danger glyphicon-asterisk" ng-show="resolution == 'Rejected'"></span></label>
+    <div class="col-sm-12">
+      <textarea class="form-control" name="comment" ng-model="comment" ng-required="resolution == 'Rejected'"></textarea>
+      <span class="has-error" ng-if="kcell_form.comment.$error.required && (kcell_form.comment.$touched || view.submitted)">Required field</span>
+    </div>
+  </div>
+</form>

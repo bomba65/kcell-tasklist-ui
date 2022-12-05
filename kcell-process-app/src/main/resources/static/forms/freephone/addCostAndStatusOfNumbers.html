@@ -1,0 +1,119 @@
+<form role="form" class="form-horizontal" name="kcell_form" novalidate>
+    <script cam-script type="text/form-script">
+        inject(['$scope', '$http', 'Uri', '$rootScope', '$q', '$timeout', function ($scope, $http, Uri, $rootScope, $q, $timeout) {
+            var variables = [
+                'identifiers',
+                'operatorType',
+                'operators'
+            ];
+
+            camForm.on('form-loaded', function () {
+                variables.forEach(function (el) {
+                    camForm.variableManager.fetchVariable(el);
+                });
+                $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
+                        function(result){
+                            $scope.processInstanceId = result.data.processInstanceId;
+                        },
+                        function (error) {
+                            console.log(error.data);
+                        }
+                );
+                $scope.freephoneInfo = {};
+                $scope.freephoneInfo.files = [];
+            });
+
+            camForm.on('variables-fetched', function () {
+                variables.forEach(function (el) {
+                    if (el === 'resolutions') {
+                        if (camForm.variableManager.variables[el].value) {
+                            $scope.resolutions = angular.copy(camForm.variableManager.variables[el].value);
+                            camForm.variableManager.destroyVariable(el);
+                        }
+                    } else {
+                        $scope[el] = camForm.variableManager.variables[el].value;
+                    }
+                });
+                $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name+ "/profile").then(function(result){
+                    $rootScope.authentication.assigneeName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
+                });
+
+                camForm.variableManager.createVariable({
+                    name: 'addCostAndStatusOfNumbersTaskResult',
+                    type: 'String',
+                    value: ''
+                });
+
+                camForm.variableManager.createVariable({
+                    name: 'addCostAndStatusOfNumbersTaskComment',
+                    type: 'String',
+                    value: ''
+                });
+
+                $scope.addCostAndStatusOfNumbersTaskResult = '';
+
+            });
+
+            camForm.on('submit', function (evt) {
+                // evt.submitPrevented = true;
+                $scope.addCostAndStatusOfNumbersTaskResult = 'Completed';
+
+                camForm.variableManager.variableValue('addCostAndStatusOfNumbersTaskResult', $scope.addCostAndStatusOfNumbersTaskResult);
+                camForm.variableManager.variableValue('addCostAndStatusOfNumbersTaskComment', $scope.addCostAndStatusOfNumbersTaskComment);
+                camForm.variableManager.variableValue('identifiers', $scope.identifiers);
+            });
+        }]);
+
+    </script>
+    <p>Добавьте информацию по статусам и ценам за короткий номер</p>
+    <div class="form-group" ng-repeat="id in identifiers">
+        <label class="col-sm-12 control-label">Идентификатор - {{id.title}}
+        <div class="col-sm-12" style="border-left: solid; border-left-width: 1px; margin-left: 2vh">
+            <div class="form-group">
+                <div class="col-sm-1">
+                    <p>&nbsp;</p>
+                    <div class="input">
+                        <label for="operator.id">АП</label>
+                    </div>
+                    <br>
+                    <div class="input">
+                        <label for="operator.id">ЕП</label>
+                    </div>
+                </div>
+                <div class="col-sm-10">
+                    <div class="col-sm-3" ng-repeat="operator in id.operators">
+                        <label for="operator.id"><input type="checkbox" ng-model="operator.isAvailable" ng-change="clearPrices(operator)" ng-if="operator.id !== 'kcell'"> {{operator.name}}</label>
+                        <div class="input" id="operator.id" >
+                            <input ng-model="operator.priceAP" name="{{operator.id + 'AP'}}" class="form-control"  placeholder="{{operator.isAvailable?'Цена':'Не доступен'}}" ng-disabled="!operator.isAvailable || operator.id === 'kcell'" ng-required="operator.isAvailable && operator.id !== 'kcell'"/>
+                            <label class="error" ng-show="kcell_form.{{operator.id + 'AP'}}.$error.required && ( kcell_form.{{operator.id + 'AP'}}.$touched || view.submitted)">Required field</label>
+                        </div>
+                        <br>
+                        <div class="input">
+                            <input ng-model="operator.priceEP" name="{{operator.id + 'EP'}}" class="form-control"  placeholder="{{operator.isAvailable?'Цена':'Не доступен'}}" ng-disabled="!operator.isAvailable || operator.id === 'kcell'" ng-required="operator.isAvailable && operator.id !== 'kcell'"/>
+                            <label class="error" ng-show="kcell_form.{{operator.id + 'EP'}}.$error.required && ( kcell_form.{{operator.id + 'EP'}}.$touched || view.submitted)">Required field</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="col-sm-2">
+                </div>
+                <div class="col-sm-5">
+                    <label>АП -­ Абонентский платёж</label>
+                </div>
+                <div class="col-sm-5">
+                    <label>ЕП -­ Единовременный платёж</label>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!--<info-freephone freephone-info="freephoneInfo"></info-freephone>-->
+    <div class="form-group">
+        <label class="col-sm-3 control-label">Комментарии</label>
+        <div class="col-sm-9">
+            <textarea class="form-control" ng-model="addCostAndStatusOfNumbersTaskComment" name="addCostAndStatusOfNumbersTaskComment" placeholder="Comments..." maxlength="500" rows="4" style="resize:none"></textarea>
+            <label class="error" ng-show="kcell_form.addCostAndStatusOfNumbersTaskComment.$error.required && ( kcell_form.addCostAndStatusOfNumbersTaskComment.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+</form>

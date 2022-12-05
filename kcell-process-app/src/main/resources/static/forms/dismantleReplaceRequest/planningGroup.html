@@ -1,0 +1,175 @@
+<form role="form" class="form-horizontal" name="kcell_form" novalidate>
+    <script cam-script type="text/form-script">
+        inject(['$scope', '$http', 'Uri', '$rootScope', '$q', 'Upload', '$timeout', function ($scope, $http, Uri, $rootScope, $q, Upload, $timeout) {
+            var variables = [
+                'siteInformation',
+                'alternativePlaces',
+                'siteRegion',
+                'sdrCreationDate',
+                'validityDate',
+                'siteName',
+                'site',
+                'site_name',
+                'gsmAntennaTypes',
+                'coverageAreaFile',
+                'transmissionAntennaType',
+                'project',
+                'band',
+                'rbsLocation',
+                'otherRbsLocation',
+                'contractType',
+                'rbsTypes',
+                'requestType',
+                'soaComplaintId',
+                'dismantlingInitiator',
+                'otherInitiator',
+                'priority',
+                'contractId',
+                'rbsQuantity',
+                'legallyName',
+                'squareMeter',
+                'contactInformation',
+                'address',
+                'dismantlingReason',
+                'startComment',
+                'resolutions',
+                'sdrNumber',
+                'siteDismantlingDocument',
+                'srrCreationDate',
+                'replacementInitiator',
+                'siteToName',
+                'siteTo',
+                'site_to_name',
+                'siteFromRbsQuantity',
+                'siteToRbsQuantity',
+                'siteFromLatitude',
+                'siteToLatitude',
+                'siteFromLongitude',
+                'siteToLongitude',
+                'siteFromRbsTypes',
+                'siteToRbsTypes',
+                'siteFromBand',
+                'siteToBand',
+                'siteFromRbsLocation',
+                'siteToRbsLocation',
+                'siteFromSquareMeter',
+                'siteToSquareMeter',
+                'siteFromGsmAntennaTypes',
+                'siteToGsmAntennaTypes',
+                'siteFromTransmissionAntennaType',
+                'siteToTransmissionAntennaType',
+                'siteFromContractId',
+                'siteToContractId',
+                'siteFromContractType',
+                'siteToContractType',
+                'siteFromLegallyName',
+                'siteToLegallyName',
+                'siteFromAddress',
+                'siteToAddress',
+                'siteAddress',
+                'siteTAddress',
+                'siteFromContactInformation',
+                'siteToContactInformation',
+                'replacementReason',
+                'siteToCoverageAreaFile',
+                'srrNumber',
+                'planningUnit',
+                'supplementaryFiles'
+            ];
+
+            camForm.on('form-loaded', function () {
+                variables.forEach(function (el) {
+                    camForm.variableManager.fetchVariable(el);
+                });
+                $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
+                        function(result){
+                            $scope.processInstanceId = result.data.processInstanceId;
+                        },
+                        function (error) {
+                            console.log(error.data);
+                        }
+                );
+                $scope.dismantleInfo = {};
+                $scope.replacementInfo = {};
+            });
+            
+            $scope.download = function(file) {
+                $http({method: 'GET', url: '/camunda/uploads/get/' + file.path, transformResponse: [] }).
+                then(function(response) {
+                    document.getElementById('fileDownloadIframe').src = response.data;
+                }, function(error){
+                    console.log(error.data);
+                });
+            };
+            
+            camForm.on('variables-fetched', function () {
+                variables.forEach(function (el) {
+                    if(camForm.variableManager.variables[el].value){
+                        if(camForm.variableManager.variables[el].type === 'Date'){
+                            $scope[el] = new Date(camForm.variableManager.variables[el].value);
+                            $scope.dismantleInfo[el] = new Date(camForm.variableManager.variables[el].value);
+                            $scope.replacementInfo[el] = new Date(camForm.variableManager.variables[el].value);
+                        } else {
+                            $scope[el] = camForm.variableManager.variables[el].value;
+                            $scope.dismantleInfo[el] = camForm.variableManager.variables[el].value;
+                            $scope.replacementInfo[el] = camForm.variableManager.variables[el].value;
+                        }
+                    }
+                });
+                camForm.variableManager.createVariable({
+                    name: 'planning_groupTaskResult',
+                    type: 'String',
+                    value: ''
+                });
+
+                camForm.variableManager.createVariable({
+                    name: 'planning_groupTaskComment',
+                    type: 'String',
+                    value: ''
+                });
+
+                $scope.planning_groupTaskResult = '';
+                $scope.planning_groupTaskComment = '';
+            });
+
+            camForm.on('submit', function () {
+                console.log($scope)
+                camForm.variableManager.variableValue('planning_groupTaskResult', $scope.planning_groupTaskResult);
+                camForm.variableManager.variableValue('planning_groupTaskComment', $scope.planning_groupTaskComment);
+                camForm.variableManager.destroyVariable('resolutions');
+            });
+        }]);
+    </script>
+    <dismantle-info dismantle-info="dismantleInfo" ng-if="requestType == 'dismantle'"></dismantle-info>
+    <replacement-info replacement-info="replacementInfo" ng-if="requestType == 'replacement'"></replacement-info>
+    <div class="form-group">
+        <label class="col-sm-{{requestType == 'dismantle' ? '4' : '3'}} control-label">Resolution</label>
+        <div class="col-sm-{{requestType == 'dismantle' ? '8' : '9'}}">
+            <label class="radio-inline">
+                <input type="radio" name="planning_groupTaskResult" ng-model="planning_groupTaskResult" value="approve" required> Approve
+            </label>
+            <label class="radio-inline">
+                <input type="radio" name="planning_groupTaskResult" ng-model="planning_groupTaskResult" value="reject" required> Reject
+            </label>
+            <label class="radio-inline">
+                <input type="radio" name="planning_groupTaskResult" ng-model="planning_groupTaskResult" value="returnForCorrection" required> Return for correction
+            </label>
+            <label class="error" ng-show="kcell_form.planning_groupTaskResult.$error.required && ( kcell_form.planning_groupTaskResult.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-3 control-label">Supplementary files:</label>
+        <div class="col-sm-9">
+            <div ng-show="supplementaryF.name" ng-repeat="supplementaryF in supplementaryFiles track by $index">
+                <a ng-click="download(supplementaryFiles[$index])">{{supplementaryF.name}}</a> 
+            </div>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-{{requestType == 'dismantle' ? '4' : '3'}} control-label">Comments</label>
+        <div class="col-sm-{{requestType == 'dismantle' ? '8' : '9'}}">
+            <textarea class="form-control" ng-model="planning_groupTaskComment" name="planning_groupTaskComment" placeholder="Comments..." maxlength="500" rows="4" style="resize:none" ng-required="planning_groupTaskResult == 'reject' || planning_groupTaskResult == 'returnForCorrection'"></textarea>
+            <label class="error" ng-show="kcell_form.planning_groupTaskComment.$error.required && ( kcell_form.planning_groupTaskComment.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+</form>

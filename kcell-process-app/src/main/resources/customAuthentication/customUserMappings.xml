@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="customUserUpperCase">
+
+    <resultMap id="userNameResultMap" type="String">
+        <id property="id" column="ID_" jdbcType="VARCHAR"/>
+    </resultMap>
+
+    <select id="selectUser" parameterType="string" resultMap="userNameResultMap">
+      select * from public.ACT_ID_USER where upper(ID_) = upper(#{id,jdbcType=VARCHAR}) limit 1
+    </select>
+
+    <resultMap id="userResultMap" type="org.camunda.bpm.engine.impl.persistence.entity.UserEntity">
+        <id property="id" column="ID_" jdbcType="VARCHAR" />
+        <result property="revision" column="REV_" jdbcType="INTEGER" />
+        <result property="firstName" column="FIRST_" jdbcType="VARCHAR" />
+        <result property="lastName" column="LAST_" jdbcType="VARCHAR" />
+        <result property="email" column="EMAIL_" jdbcType="VARCHAR" />
+        <result property="dbPassword" column="PWD_" jdbcType="VARCHAR" />
+        <result property="salt" column="SALT_" jdbcType="VARCHAR" />
+        <result property="lockExpirationTime" column="LOCK_EXP_TIME_" jdbcType="TIMESTAMP" />
+        <result property="attempts" column="ATTEMPTS_" jdbcType="INTEGER" />
+    </resultMap>
+
+    <select id="selectUserByQueryCriteria" parameterType="org.camunda.bpm.engine.impl.UserQueryImpl" resultMap="userResultMap">
+        <include refid="bindOrderBy"/>
+        ${limitBefore}
+        select ${distinct} RES.*
+        ${limitBetween}
+        <include refid="selectUserByQueryCriteriaSql" />
+        ${orderBy}
+        ${limitAfter}
+    </select>
+
+    <sql id="selectUserByQueryCriteriaSql">
+
+        from public.ACT_ID_USER RES
+        <if test="groupId != null">
+            inner join public.ACT_ID_MEMBERSHIP M on RES.ID_ = M.USER_ID_
+            inner join public.ACT_ID_GROUP G on M.GROUP_ID_ = G.ID_
+        </if>
+        <if test="tenantId != null">
+            inner join public.ACT_ID_TENANT_MEMBER TM on RES.ID_ = TM.USER_ID_
+        </if>
+
+        <where>
+            <if test="id != null">
+                upper(RES.ID_) = upper(#{id})
+            </if>
+            <if test="ids != null &amp;&amp; ids.length > 0">
+                and RES.ID_ in
+                <foreach item="item" index="index" collection="ids"
+                         open="(" separator="," close=")">
+                    #{item}
+                </foreach>
+            </if>
+            <if test="firstName != null">
+                and RES.FIRST_ = #{firstName}
+            </if>
+            <if test="firstNameLike != null">
+                and RES.FIRST_ like #{firstNameLike} ESCAPE ${escapeChar}
+            </if>
+            <if test="lastName != null">
+                and RES.LAST_ = #{lastName}
+            </if>
+            <if test="lastNameLike != null">
+                and RES.LAST_ like #{lastNameLike} ESCAPE ${escapeChar}
+            </if>
+            <if test="email != null">
+                and RES.EMAIL_ = #{email}
+            </if>
+            <if test="emailLike != null">
+                and RES.EMAIL_ like #{emailLike} ESCAPE ${escapeChar}
+            </if>
+            <if test="groupId != null">
+                and G.ID_ = #{groupId}
+            </if>
+            <if test="procDefId != null">
+                and exists (select ID_ from public.ACT_RU_IDENTITYLINK where PROC_DEF_ID_ = #{procDefId} and USER_ID_=RES.ID_ )
+            </if>
+            <if test="tenantId != null">
+                and TM.TENANT_ID_ = #{tenantId}
+            </if>
+        </where>
+    </sql>
+
+    <sql id="bindOrderBy">
+        <choose>
+            <when test="orderingProperties.size > 0">
+                <foreach collection="orderingProperties" item="orderingProperty" index="index">
+                    <bind name="newOrderBy" value="@org.camunda.bpm.engine.impl.db.sql.MybatisJoinHelper@orderBy(orderingProperty, index)" />
+
+                    <if test="index == 0">
+                        <bind name="internalOrderBy" value="newOrderBy"/>
+                    </if>
+                    <if test="index > 0">
+                        <bind name="internalOrderBy" value="internalOrderBy + ', ' + newOrderBy"/>
+                    </if>
+                </foreach>
+            </when>
+            <otherwise>
+                <bind name="internalOrderBy" value="'RES.ID_ asc'"/>
+            </otherwise>
+        </choose>
+
+    </sql>
+
+</mapper>

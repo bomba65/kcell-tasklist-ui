@@ -1,0 +1,238 @@
+<form role="form" class="form-horizontal" name="kcell_form" novalidate style="max-width: 900px;">
+    <style>
+        .well {
+            color: #333;
+        }
+    </style>
+    <script cam-script type="text/form-script">
+        inject(['$scope', '$http', 'Uri', '$rootScope', '$q', 'toasty', '$timeout', 'historyVariablesManager', function ($scope, $http, Uri, $rootScope, $q, toasty, $timeout, historyVariablesManager) {
+
+            var history = null;
+            camForm.on('form-loaded', function () {
+                $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
+                  function (result) {
+                      $scope.processInstanceId = result.data.processInstanceId;
+                      $scope.taskName = result.data.name;
+                      history = historyVariablesManager(camForm, result.data.taskDefinitionKey);
+                      history.createVariables(true);
+                      $http.get('/camunda/api/engine/engine/default/process-instance/' + $scope.processInstanceId).then(
+                        function (result) {
+                            $scope.businessKeyUAT = result.data.businessKey;
+                        },
+                        function (error) {
+                            console.log(error.data);
+                        }
+                      );
+                  },
+                  function (error) {
+                      console.log(error.data);
+                  }
+                );
+
+                camForm.variableManager.fetchVariable('resolutions');
+                camForm.variableManager.fetchVariable('generalProductDesc');
+                camForm.variableManager.fetchVariable('attachments');
+                camForm.variableManager.fetchVariable('data');
+                camForm.variableManager.fetchVariable('launchTaskResult');
+                camForm.variableManager.fetchVariable('approvalList');
+                camForm.variableManager.fetchVariable('approvalIndex');
+            });
+
+            camForm.on('variables-fetched', function () {
+                $scope.resolutions = camForm.variableManager.variableValue('resolutions');
+                camForm.variableManager.destroyVariable('resolutions');
+                $scope.generalProductDesc = camForm.variableManager.variableValue('generalProductDesc');
+                $scope.attachments = camForm.variableManager.variableValue('attachments');
+                $scope.data = camForm.variableManager.variableValue('data');
+                $scope.launchTaskResult = camForm.variableManager.variableValue('launchTaskResult');
+                $scope.approvalList = camForm.variableManager.variableValue('approvalList');
+                $scope.approvalIndex = camForm.variableManager.variableValue('approvalIndex');
+
+                if (!$scope.attachments) $scope.attachments = [];
+                if (!$scope.data) $scope.data = [];
+
+                $scope.lastAttachments = JSON.parse(JSON.stringify($scope.attachments));
+            });
+
+            $scope.preSubmit = function () {
+                return $http.get('/camunda/api/engine/engine/default/process-instance/' + $scope.processInstanceId + '/variables/approvalList?deserializeValue=false').then(
+                  function (resp) {
+                      $scope.approvalList = JSON.parse(resp.data.value);
+                  },
+                  function (error) {
+                      toasty.error(error.data.message);
+                  }
+                );
+            };
+
+
+            camForm.on('submit', function (event) {
+                history.setVariables($scope.resolution, $scope.comment, $scope.lastAttachments, $scope.attachments);
+                camForm.variableManager.variableValue('attachments', $scope.attachments);
+
+                $scope.approvalList[$scope.approvalIndex].date = new Date();
+                $scope.approvalList[$scope.approvalIndex].result = $scope.resolution;
+                $scope.approvalList[$scope.approvalIndex].comment = $scope.comment;
+                camForm.variableManager.variableValue('approvalList', $scope.approvalList);
+            });
+
+
+            var assigneeName = $rootScope.authentication.name;
+            $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name + "/profile").then(function (result) {
+                assigneeName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
+            });
+
+            $scope.downloadFile = function (file) {
+                $http({
+                    method: 'GET',
+                    url: '/camunda/uploads/tmp/get/' + file.path,
+                    transformResponse: []
+                }).then(function (response) {
+                    document.getElementById('fileDownloadIframe').src = response.data;
+                }, function (error) {
+                    console.log(error.data);
+                });
+            }
+
+        }]);
+    </script>
+    <div class="form-group">
+        <label class="col-sm-2 control-label"> Business Key:</label>
+        <div class="col-sm-4">
+            <input rows="1" class="form-control" ng-model="businessKeyUAT" disabled>
+        </div>
+        <label class="col-sm-2 control-label"> Activity:</label>
+        <div class="col-sm-4">
+            <input rows="1" class="form-control" value="Approve Test Protocol" disabled> </input>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-2 control-label"> Demand Name: </label>
+        <div class="col-sm-10">
+            <input rows="1" class="form-control" cam-variable-name="demandName" cam-variable-type="String" disabled>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label class="col-sm-12 control-label" > General Product/Service description</label>
+        <div class="col-sm-12" style="margin-top: 5px">
+            <summernote-rich-text data="generalProductDesc" disabled="true" min-height="100"></summernote-rich-text>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label class="col-sm-12 control-label" id="testCases" name="testCases">Test cases</label>
+        <div class="col-sm-12" style="margin-top: 5px">
+            <table class="table ">
+                <thead>
+                <tr>
+                    <th class="col-sm-2 text-center"># Test case</th>
+                    <th class="col-sm-8 text-center"># Use case</th>
+                    <th class="col-sm-2 text-center">Result</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr ng-repeat="r in data track by $index">
+                    <td class="col-sm-2 text-center">Test case {{$index+1}}</td>
+                    <td class="col-sm-8">{{r.useCase}}</td>
+                    <td class="col-sm-2 text-center">{{r.result}}</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label class="col-sm-12 control-label">Approval list</label>
+        <div class="col-sm-12" style="margin-top: 5px">
+            <table class="table ">
+                <thead>
+                <tr>
+                    <th class="col-sm-3 text-center">Role</th>
+                    <th class="col-sm-2 text-center">Responsible</th>
+                    <th class="col-sm-2 text-center">Date</th>
+                    <th class="col-sm-2 text-center">Result</th>
+                    <th class="col-sm-3 text-center">Comment</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr ng-repeat="user in approvalList track by $index" ng-if="user.role && user.role.length">
+                    <td class="col-sm-3 text-center">{{user.role}}</td>
+                    <td class="col-sm-2 text-center">{{user.responsibleName}}</td>
+                    <td class="col-sm-2 text-center">{{user.date |  date: 'dd.MM.yyyy HH:mm'}}</td>
+                    <td class="col-sm-2 text-center">{{user.result ? user.result : 'Waiting'}}</td>
+                    <td class="col-sm-3">{{user.comment}}</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label class="col-sm-2 control-label">Resolution</label>
+        <div class="col-sm-10">
+            <label class="radio-inline">
+                <input type="radio" ng-model="launchTaskResult" name="launchTaskResult" value="ready" disabled> Ready to launch
+            </label>
+            <label class="radio-inline">
+                <input type="radio" ng-model="launchTaskResult" name="launchTaskResult" value="riskReady" disabled> Ready to launch with risks
+            </label>
+            <label class="radio-inline">
+                <input type="radio" ng-model="launchTaskResult" name="launchTaskResult" value="notReady" disabled> NOT Ready to launch
+            </label>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label class="col-sm-12 control-label"> Risks/Limitation</label>
+        <div class="col-sm-12" style="margin-top: 5px">
+            <textarea elastic-textarea style="resize:vertical;" class="form-control" rows="4" cam-variable-name="risksLimits" cam-variable-type="String" readonly></textarea>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <iframe id="fileDownloadIframe" style="display:none;"></iframe>
+        <label class="col-sm-12 control-label">Attachments</label>
+        <div class="col-sm-12" style="margin-top: 5px">
+            <table class="table ">
+                <thead>
+                <tr>
+                    <th class="col-sm-3 text-center">Category</th>
+                    <th class="col-sm-3 text-center">File Name</th>
+                    <th class="col-sm-3 text-center">Date</th>
+                    <th class="col-sm-3 text-center">Responsible</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr ng-repeat="file in attachments track by $index">
+                    <td class="col-sm-3 text-center">{{file.category}}</td>
+                    <td class="col-sm-3 text-center"><a ng-click="downloadFile(file)">{{file.name}}</a></td>
+                    <td class="col-sm-3 text-center">{{file.created | date: 'dd.MM.yyyy HH:mm'}}</td>
+                    <td class="col-sm-3 text-center">{{file.createdBy}}</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label class="col-sm-2 control-label">Resolution</label>
+        <div class="col-sm-10">
+            <label class="radio-inline">
+                <input type="radio" ng-model="resolution" name="resolution" value="Approved" required> Approved
+            </label>
+            <label class="radio-inline">
+                <input type="radio" ng-model="resolution" name="resolution" value="Rejected" required> Reject
+            </label>
+            <label class="error" ng-show="kcell_form.resolution.$error.required && ( kcell_form.resolution.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label class="col-sm-12 control-label">Comments</label>
+        <div class="col-sm-12" style="margin-top: 5px">
+            <textarea elastic-textarea style="resize:vertical;" class="form-control" rows="4" maxlength="2500" ng-model="comment" name="comment" ng-required="resolution == 'Rejected'"></textarea>
+            <label class="error" ng-show="kcell_form.comment.$error.required && ( kcell_form.comment.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+</form>

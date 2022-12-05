@@ -1,0 +1,107 @@
+= Kcell demo process application
+:author: Tair Sabirgaliev
+:email: <tair.sabirgaliev@gmail.com>
+
+This demo showcases the Kcell proof of concept application
+
+== Features implemented
+
+The following features are implemented:
+
+* Basic process implementation
+** Exclusive gateway with runtime decision
+** Service task to call a remote SOAP service
+* Task assignment to individuals or groups
+* Tasklist UI
+* Task forms
+** Generated forms based on BPMN metadata extension
+** Embedded html forms
+** Generic forms built at runtime
+* Process runtime info
+* Task comments
+* Mail notification on task assignment
+
+Here is the BPMN diagram of the demo process:
+
+image::kcell-demo-process-app/src/main/resources/kcellDemoProcess.png[Process Diagram,500]
+
+== How to get started
+
+You need Docker stack of tools (`docker` + `docker-compose`) installed on your environment and a decent Internet connection to download docker images.
+
+==== Default application start
+
+First, build demo process application:
+----
+$ ./docker-build.sh
+----
+
+Start all the containers in background:
+
+_You can use NGINX_PORT variable to set Nginx container exposed port (if ignored 80 port is used by default)_
+
+----
+$ docker-compose up -d
+----
+Now you can navigate to *http://localhost/* to access the Camunda (creds are - demo/demo)
+
+Stop the containers started in background:
+----
+$ docker-compose stop
+----
+
+Stop and clean all the container state (including db and network):
+----
+$ docker-compose down
+----
+
+==== Start app as Camunda developer
+
+Use +docker-compose-dev-camunda.yml+ to start app and start your local Camunda instance:
+
+----
+$ docker-compose -f docker-compose-dev-camunda.yml up -d
+----
+
+==== Start app as Assets developer
+
+Use +docker-compose-dev-assets.yml+ to start app:
+
+----
+$ docker-compose -f docker-compose-dev-assets.yml up -d
+----
+
+==== Start app in test environment
+
+Use +docker-compose-test.yml+ to start app with some exposed ports:
+
+----
+$ docker-compose -f docker-compose-test.yml up -d
+----
+
+==== Start app with forwarded logs to Fluentd
+
+For this you need to extend the base +docker-compose.yml+ with +docker-compose-fluentd.yml+:
+
+----
+$ docker-compose -f docker-compose.yml -f docker-compose-fluentd.yml up -d
+----
+
+_You have to specify Fluentd address and port with variables: FLUENTD_ADDRESS (required), FLUENTD_PORT (by default is 24224)._
+
+== Example
+
+In this example we are going to:
+
+- Start app in Camunda developer environment
+- Set our web-server's container port to 81
+- Sending our app logs to Fluentd instance with 25300 port
+
+----
+$ NGINX_PORT=81 FLUENTD_ADDRESS=192.168.0.50 FLUENTD_PORT=25300 docker-compose -f docker-compose-dev-camunda.yml -f docker-compose-fluentd.yml up -d
+----
+
+== Where to go next?
+* http://camunda.org
+* https://hub.docker.com/r/camunda/camunda-bpm-platform
+* http://bpmn.io

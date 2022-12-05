@@ -1,0 +1,337 @@
+<form role="form" class="form-horizontal" name="kcell_form" novalidate>
+    <script cam-script type="text/form-script" type="text/javascript">
+        inject(['$scope', '$http', 'Uri', '$rootScope', '$q', '$timeout', function ($scope, $http, Uri, $rootScope, $q, $timeout) {
+            var variables = [
+                'resolutions',
+                'ncpID',
+                'siteType',
+                'regionName',
+                'latitude',
+                'longitude',
+                'initiator',
+                'project',
+                'reason',
+                'part',
+                'plannedCabinetType',
+                'targetCoverage',
+                'rbsType',
+                'bands',
+                'rrFile',
+                'newCandidateRRFiles',
+                'candidate',
+                'cellAntenna',
+                'renterCompany',
+                'transmissionAntenna',
+                'powerSource',
+                'farEndInformation',
+                'receivingTSForCandiateSiteFiles',
+                'modifyCandidateRRFiles',
+                'ne_tr_parameters',
+                'ne_tr_rate',
+                'address'
+            ];
+
+            var files = ['actOfPerformanceTechnicalConditionsFiles',
+            'uploadCopyOfOwnerSignedLeaseContractFiles',
+            'confirmApprovalLeaseContractInSAPCMFiles',
+            'confirmLoadingLeaseContractInSAPCMFiles',
+            'confirmSendMessageToStartPaymentKPFEFiles',
+            'approvalContractRentInSAPFiles',
+            'approvalPowerContractInSAPFiles',
+            'checkAndApproveFEFiles',
+            'commercialOnAirFiles',
+            'confirmActOfPerformanceTechnicalConditionsFiles',
+            'confirmPaymentDevelopmentOfTCKTFiles',
+            'confirmPaymentDevelopmentOfTCKTForFEFiles',
+            'confirmReceiptEstimateFiles',
+            'confirmReceiptEstimateForFEFiles',
+            'ConfirmReceiptOfTSfromRESforCandidateFiles',
+            'confirmReceiptResponseKPFiles',
+            'confirmReceiptResponseKPFEFiles',
+            'confirmSigningLeaseContractFiles',
+            'confirmStartLeasingFiles',
+            'confirmStartLeasingNOFiles',
+            'confirmTFOfConnectingToLandlordPowerGridForFEFiles',
+            'confirmTFOfConnectingToPowerGridForCandidateFiles',
+            'connectionFromOwnerNetworksFiles',
+            'contractRentLoadingSAPFiles',
+            'createNewCandidateSiteFiles',
+            'defineInstallationProblemFiles',
+            'estimateTechnicalCapabilityResFiles',
+            'installationWorksDoneFiles',
+            'modifyCandidateSiteFiles',
+            'powerContractLoadingInSAPFiles',
+            'powerProblemSolutionFiles',
+            'preparationSSIDandTSSRFiles',
+            'preperationSSIDorTSSRProjectFiles',
+            'receivingApprovalFromTheLandlordFiles',
+            'receivingContractDevDesignEstimateFiles',
+            'receivingContractDevDesignEstimateForFEFiles',
+            'receivingContractInstallationWorksFiles',
+            'receivingContractInstallationWorksForFEFiles',
+            'receivingContractPSDFiles',
+            'receivingTSFiles',
+            'receivingTSForFEFiles',
+            'registrationCommercialOfferFiles',
+            'registrationCommercialOfferForFEFiles',
+            'reqKZTRwithTechEquipmentParamsFiles',
+            'reqKZTRwithTechEquipmentParamsForFEFiles',
+            'requestForAdmissionForWorkOnTUFiles',
+            'requestTechnicalParametersKPFiles',
+            'requestTechnicalParametersKPFEFiles',
+            'requestTechnicalParametersKTFiles',
+            'requestTechnicalParametersKTForFEFiles',
+            'sendMessageToStartPaymentKPFiles',
+            'sendMessageToStartPaymentKPForFEFiles',
+            'sendMessageToStartPaymentKTFiles',
+            'sendMessageToStartPaymentKTForFEFiles',
+            'sendMessageToStartPaymentNationalFiles',
+            'sendMessageToStartPaymentSimpleFiles',
+            'signingLeaseContractAddAgreementFiles',
+            'signingLeaseContractAddAgreementForFEFiles',
+            'signingLeaseContractAddAgreementKPFiles',
+            'signingLeaseContractAddAgreementKPFEFiles',
+            'signingLeaseContractAddAgreementKTFiles',
+            'startingInstallationWorksFiles',
+            'transmissionProblemSolutionFiles',
+            'uploadSignedOwnerLeaseContractFiles'];
+
+            $scope.leasingFiles = [];
+
+            $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
+                function(result){
+                    $scope.taskAssignee = result.data.assignee;
+                },
+                function (error) {
+                    console.log(error.data);
+                }
+            );
+
+            camForm.on('form-loaded', function () {
+                variables.forEach(function (el) {
+                    camForm.variableManager.fetchVariable(el);
+                });
+                files.forEach(function (f) {
+                    camForm.variableManager.fetchVariable(f);
+                });
+                $scope.leasingCandidate = {};
+                $scope.dictionary = {};
+                $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
+                        function(result){
+                            $scope.processInstanceId = result.data.processInstanceId;
+                            $scope.taskKey = result.data.taskDefinitionKey;
+                            $scope.leasingCandidate.taskKey = result.data.taskDefinitionKey;
+                            $http.get('/camunda/api/engine/engine/default/process-instance/' + $scope.processInstanceId).then(
+                                function(result){
+                                    console.log('process-instance/')
+                                    console.log(result.data)
+                                    $scope.businessKey = result.data.businessKey;
+                                },
+                                function (error) {console.log(error.data);}
+                            );
+                        },
+                        function (error) {
+                            console.log(error.data);
+                        }
+                );
+                $http.get('/api/leasingCatalogs?version=3').then(
+                    function(result){
+                        angular.extend($scope.dictionary, result.data);
+                        $scope.antennasList = $scope.dictionary.antennas;
+                        $scope.frequencyBand = $scope.dictionary.frequencyBand;
+                        $scope.availableBands = $scope.dictionary.bands;
+                        $scope.BSC = $scope.dictionary.BSC;
+                        $scope.çsList = $scope.dictionary.constructionType;
+                        $scope.addressesList = $scope.dictionary.addresses;
+                        $scope.oblastList = _.uniqBy($scope.dictionary.addresses, 'oblast').map( (e, index) => { return {"name" : e.oblast, "id" : index} });
+                        $scope.cityList = _.uniqBy($scope.dictionary.addresses, 'city').map( (e, index) => { return {"name" : e.city, "id" : index} });
+                        $scope.districtList = _.uniqBy($scope.dictionary.addresses, 'district').map( (e, index) => { return {"name" : e.district, "id" : index} });
+                        $scope.filteredDistricts = $scope.districtList;
+                        $scope.filteredDistrictsInCAI = $scope.districtList;
+
+                        $scope.catalogsFetched = true;
+
+                        if ($scope.catalogsFetched && $scope.variablesFetched){
+                            $scope.setConstructionType()
+                        }
+
+
+                    },
+                    function(error){
+                        console.log(error);
+                    }
+                );
+            });
+
+            camForm.on('variables-fetched', function () {
+                $scope.uploadRSDandVSDfilesFiles = [];
+                variables.forEach(function (el) {
+                    if(camForm.variableManager.variables[el].value){
+                        $scope[el] = camForm.variableManager.variables[el].value;
+                        $scope.leasingCandidate[el] = camForm.variableManager.variables[el].value;
+                    }
+                });
+                files.forEach(function (f) {
+                    if(camForm.variableManager.variables[f] && camForm.variableManager.variables[f].value){
+                        if (f === 'uploadRSDandVSDfilesFiles') {
+                            $scope[f] = camForm.variableManager.variables[f].value;
+                        } else if ( f.toLowerCase().includes('file') ) {
+                            $scope.leasingFiles = $scope.leasingFiles.concat(camForm.variableManager.variables[f].value)
+                        }
+                    }
+                });
+                camForm.variableManager.createVariable({
+                    name: 'uploadRSDandVSDfilesTaskResult',
+                    type: 'String',
+                    value: ''
+                });
+                camForm.variableManager.createVariable({
+                    name: 'uploadRSDandVSDfilesTaskComment',
+                    type: 'String',
+                    value: ''
+                });
+
+                $scope.uploadRSDandVSDfilesTaskResult = 'letterInProgress';
+                $scope.view.variablesFetched = true;
+            });
+
+
+            camForm.on('submit', function (evt) {
+                //evt.submitPrevented = true;
+                camForm.variableManager.variableValue('uploadRSDandVSDfilesTaskResult', $scope.uploadRSDandVSDfilesTaskResult);
+                camForm.variableManager.variableValue('uploadRSDandVSDfilesTaskComment', $scope.uploadRSDandVSDfilesTaskComment);
+
+                // var thisTaskFiles = $scope.leasingFiles.filter(f => {return f.varName === 'uploadRSDandVSDfilesFiles'});
+                if(!camForm.variableManager.variables['uploadRSDandVSDfilesFiles'] || !camForm.variableManager.variables['uploadRSDandVSDfilesFiles'].type){
+                    if(camForm.variableManager.variables['uploadRSDandVSDfilesFiles']){
+                        camForm.variableManager.destroyVariable('uploadRSDandVSDfilesFiles');
+                    }
+                    camForm.variableManager.createVariable({
+                        name: 'uploadRSDandVSDfilesFiles',
+                        type: 'Json',
+                        value: $scope.uploadRSDandVSDfilesFiles
+                    });
+                } else {
+                    camForm.variableManager.variableValue('uploadRSDandVSDfilesFiles', $scope.uploadRSDandVSDfilesFiles);
+                }
+                camForm.variableManager.destroyVariable('resolutions');
+            });
+
+            $scope.fileSelected = function (el, fileName) {
+                $timeout(function () {
+                    $scope.$apply(function () {
+                        uploadFileToMinio(el.files[0], fileName);
+                    });
+                })
+            };
+
+            function uploadFileToMinio(file, fileName) {
+                var fileIndex = $scope[fileName].length;
+
+                var fileToUpload = {
+                    date: new Date(),
+                    author:  $scope.taskAssignee,
+                    name: file.name.replace(/[/\\?%*:|"<>]/g, '-'),
+                    path: $scope.processInstanceId + '/' + camForm.taskId + '/' + file.name.replace(/[/\\?%*:|"<>]/g, '-')
+                };
+                $http({
+                    method: 'GET',
+                    url: '/camunda/uploads/put/' + fileToUpload.path,
+                    transformResponse: []
+                }).then(function (response) {
+                    $http.put(response.data, file, {headers: {'Content-Type': undefined}}).then(
+                            function () {
+                                fileToUpload.varName = 'uploadRSDandVSDfilesFiles';
+                                // $scope.leasingFiles.push(fileToUpload);
+                                $scope[fileName].push(fileToUpload);
+                                angular.element(document.querySelector('#' + fileName)).val(null);
+                                console.log($scope.leasingFiles)
+                            },
+                            function (error) {
+                                console.log(error.data);
+                            }
+                    );
+                }, function(error){
+                    console.log(error.data);
+                });
+            };
+
+            $scope.clearFile = function (list, fileIndex) {
+                $scope[list].splice(fileIndex, 1);
+            }
+
+            $scope.fileDownload = function (file) {
+                $http({
+                    method: 'GET',
+                    url: '/camunda/uploads/get/' + file.path,
+                    transformResponse: []
+                }).then(function (response) {
+                    document.getElementById('fileDownloadIframe').src = response.data;
+                }, function(error){
+                    console.log(error.data);
+                });
+            }
+
+            $scope.hasUploadedThisTaskFile = function(){
+                return _.some($scope.leasingFiles, function (f) {
+                    return f.varName === 'uploadRSDandVSDfilesFiles';
+                });
+            }
+        }]);
+
+    </script>
+    <div class="form-group">
+        <label class="col-sm-12 control-label">
+            <p/> <b>Business key: </b>{{businessKey}}
+        </label>
+    </div>
+     <leasing-candidate ng-if="view.variablesFetched" leasing-candidate="leasingCandidate"  frequency-band="frequencyBand" sector="sector" antennas-list="antennasList" dictionary="dictionary" kcell_form="kcell_form"></leasing-candidate>
+
+    <leasing-attachments leasing-files="leasingFiles" task-key="taskKey" modify="'false'"></leasing-attachments>
+    <iframe id="fileDownloadIframe" style="display:none;"></iframe>
+<!--    <div class="form-group">-->
+<!--        <label class="col-sm-3 control-label"></label>-->
+<!--        <div class="col-sm-9">-->
+<!--            <input type="file" class="form-control" id="uploadRSDandVSDfilesFiles"-->
+<!--                   name="uploadRSDandVSDfilesFiles" ng-model="file.file" required-file="!hasUploadedThisTaskFile()"-->
+<!--                   onchange="angular.element(this).scope().fileSelected(this, 'uploadRSDandVSDfilesFiles')"/>-->
+<!--            <label class="has-error" ng-show="kcell_form.uploadRSDandVSDfilesFiles.$error.validFile">File is required</label>-->
+<!--        </div>-->
+<!--    </div>-->
+    <div class="form-group">
+        <label class="col-sm-3 control-label">VSD file:</label>
+        <div class="col-sm-9">
+            <div class="row">
+                <table class="table table-condensed" ng-show="uploadRSDandVSDfilesFiles.length > 0">
+                    <thead>
+                    <tr>
+                        <td><b>File Name</b></td>
+                        <td><b>Created date</b></td>
+                        <td><b>Created By</b></td>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr ng-repeat="file in uploadRSDandVSDfilesFiles track by $index">
+                        <td><a ng-click="fileDownload(file)">{{file.name}}</a><a ng-click="clearFile('uploadRSDandVSDfilesFiles', $index)"><i
+                                class="glyphicon glyphicon-trash"></i></a></td>
+                        <td>{{file.date | date : 'dd.MM.yyyy'}}</td>
+                        <td>{{file.author}}</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <input type="file" class="form-control" id="uploadRSDandVSDfilesFiles"
+                   name="uploadRSDandVSDfilesFiles" ng-model="file.file" required-file="uploadRSDandVSDfilesFiles.length < 1"
+                   onchange="angular.element(this).scope().fileSelected(this, 'uploadRSDandVSDfilesFiles')"/>
+            <label class="has-error" ng-show="kcell_form.uploadRSDandVSDfilesFiles.$error.validFile && (kcell_form.uploadRSDandVSDfilesFiles.$touched || view.submitted)">File is required</label>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label class="col-sm-3 control-label">Comments</label>
+        <div class="col-sm-9">
+            <textarea class="form-control" ng-model="uploadRSDandVSDfilesTaskComment" name="uploadRSDandVSDfilesTaskComment" placeholder="Comments..." maxlength="500" rows="4" style="resize:none"></textarea>
+        </div>
+    </div>
+</form>

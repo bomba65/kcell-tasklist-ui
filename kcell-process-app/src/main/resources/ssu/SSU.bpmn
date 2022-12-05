@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" id="Definitions_15fjiw4" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="4.3.0">
+  <bpmn:collaboration id="Collaboration_17eij8k">
+    <bpmn:participant id="Participant_0lidxih" processRef="SSU" />
+  </bpmn:collaboration>
+  <bpmn:process id="SSU" name="SSU" isExecutable="true">
+    <bpmn:startEvent id="ssu_start" camunda:formKey="embedded:app:forms/ssu/start.html" camunda:initiator="starter">
+      <bpmn:extensionElements>
+        <camunda:executionListener delegateExpression="${fileMoveListener}" event="end">
+          <camunda:field name="fileVars">
+            <camunda:string>files</camunda:string>
+          </camunda:field>
+        </camunda:executionListener>
+      </bpmn:extensionElements>
+      <bpmn:outgoing>SequenceFlow_1unuhuq</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:serviceTask id="ssu_form_application" name="Формирование заявки для робота" camunda:delegateExpression="${ssuFormApplication}">
+      <bpmn:incoming>SequenceFlow_1unuhuq</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_0aeyj3g</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:sendTask id="ssu_send_application" name="Отправка письма с заявкой роботу" camunda:delegateExpression="${camundaMailer}">
+      <bpmn:extensionElements>
+        <camunda:inputOutput>
+          <camunda:inputParameter name="html">
+            <camunda:script scriptFormat="groovy" resource="ssu/applicationBody.groovy" />
+          </camunda:inputParameter>
+          <camunda:inputParameter name="subject">SSU. Create ID customer</camunda:inputParameter>
+          <camunda:inputParameter name="to">
+            <camunda:script scriptFormat="groovy" resource="ssu/applicationToBillingObject.groovy" />
+          </camunda:inputParameter>
+        </camunda:inputOutput>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_1v97q2v</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_0otvzuh</bpmn:outgoing>
+    </bpmn:sendTask>
+    <bpmn:endEvent id="EndEvent_03fghz7">
+      <bpmn:incoming>Flow_0rgmjxl</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:exclusiveGateway id="Gateway_01zjh6t" default="Flow_1v97q2v">
+      <bpmn:incoming>SequenceFlow_0aeyj3g</bpmn:incoming>
+      <bpmn:outgoing>Flow_1v97q2v</bpmn:outgoing>
+      <bpmn:outgoing>Flow_14y153n</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:sendTask id="ssu_send_application_billing_object" name="Отправка письма с заявкой роботу (Billing)" camunda:delegateExpression="${camundaMailer}">
+      <bpmn:extensionElements>
+        <camunda:inputOutput>
+          <camunda:inputParameter name="to">
+            <camunda:script scriptFormat="groovy" resource="ssu/applicationToBillingObject.groovy" />
+          </camunda:inputParameter>
+          <camunda:inputParameter name="subject">SSU. Change billing objects</camunda:inputParameter>
+          <camunda:inputParameter name="html">
+            <camunda:script scriptFormat="groovy" resource="ssu/applicationBodyBillingObject.groovy" />
+          </camunda:inputParameter>
+        </camunda:inputOutput>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_14y153n</bpmn:incoming>
+      <bpmn:outgoing>Flow_13xoxra</bpmn:outgoing>
+    </bpmn:sendTask>
+    <bpmn:exclusiveGateway id="Gateway_1km5awr">
+      <bpmn:incoming>SequenceFlow_0otvzuh</bpmn:incoming>
+      <bpmn:incoming>Flow_13xoxra</bpmn:incoming>
+      <bpmn:outgoing>Flow_0rgmjxl</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:sequenceFlow id="SequenceFlow_0otvzuh" sourceRef="ssu_send_application" targetRef="Gateway_1km5awr" />
+    <bpmn:sequenceFlow id="SequenceFlow_0aeyj3g" sourceRef="ssu_form_application" targetRef="Gateway_01zjh6t" />
+    <bpmn:sequenceFlow id="SequenceFlow_1unuhuq" sourceRef="ssu_start" targetRef="ssu_form_application" />
+    <bpmn:sequenceFlow id="Flow_1v97q2v" sourceRef="Gateway_01zjh6t" targetRef="ssu_send_application" />
+    <bpmn:sequenceFlow id="Flow_14y153n" name="Billing Object" sourceRef="Gateway_01zjh6t" targetRef="ssu_send_application_billing_object">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${ssu_id == '2'}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_0rgmjxl" sourceRef="Gateway_1km5awr" targetRef="EndEvent_03fghz7" />
+    <bpmn:sequenceFlow id="Flow_13xoxra" sourceRef="ssu_send_application_billing_object" targetRef="Gateway_1km5awr" />
+    <bpmn:textAnnotation id="TextAnnotation_0ip5f61">
+      <bpmn:text>Fill questionnaire</bpmn:text>
+    </bpmn:textAnnotation>
+    <bpmn:association id="Association_1medgvd" sourceRef="ssu_start" targetRef="TextAnnotation_0ip5f61" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Collaboration_17eij8k">
+      <bpmndi:BPMNShape id="Participant_0lidxih_di" bpmnElement="Participant_0lidxih" isHorizontal="true">
+        <dc:Bounds x="153" y="80" width="780" height="330" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="TextAnnotation_0ip5f61_di" bpmnElement="TextAnnotation_0ip5f61">
+        <dc:Bounds x="207" y="100" width="100" height="40" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_0otvzuh_di" bpmnElement="SequenceFlow_0otvzuh">
+        <di:waypoint x="710" y="237" />
+        <di:waypoint x="735" y="237" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_0aeyj3g_di" bpmnElement="SequenceFlow_0aeyj3g">
+        <di:waypoint x="470" y="237" />
+        <di:waypoint x="515" y="237" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_1unuhuq_di" bpmnElement="SequenceFlow_1unuhuq">
+        <di:waypoint x="275" y="237" />
+        <di:waypoint x="370" y="237" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1v97q2v_di" bpmnElement="Flow_1v97q2v">
+        <di:waypoint x="565" y="237" />
+        <di:waypoint x="610" y="237" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_14y153n_di" bpmnElement="Flow_14y153n">
+        <di:waypoint x="540" y="262" />
+        <di:waypoint x="540" y="350" />
+        <di:waypoint x="610" y="350" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="523" y="303" width="65" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0rgmjxl_di" bpmnElement="Flow_0rgmjxl">
+        <di:waypoint x="785" y="237" />
+        <di:waypoint x="872" y="237" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_13xoxra_di" bpmnElement="Flow_13xoxra">
+        <di:waypoint x="710" y="350" />
+        <di:waypoint x="760" y="350" />
+        <di:waypoint x="760" y="262" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="_BPMNShape_StartEvent_2" bpmnElement="ssu_start">
+        <dc:Bounds x="239" y="219" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="ServiceTask_1nhbwq4_di" bpmnElement="ssu_form_application">
+        <dc:Bounds x="370" y="197" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="SendTask_0t758s3_di" bpmnElement="ssu_send_application">
+        <dc:Bounds x="610" y="197" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="EndEvent_03fghz7_di" bpmnElement="EndEvent_03fghz7">
+        <dc:Bounds x="872" y="219" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_01zjh6t_di" bpmnElement="Gateway_01zjh6t" isMarkerVisible="true">
+        <dc:Bounds x="515" y="212" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0yuivuy_di" bpmnElement="ssu_send_application_billing_object">
+        <dc:Bounds x="610" y="310" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_1km5awr_di" bpmnElement="Gateway_1km5awr" isMarkerVisible="true">
+        <dc:Bounds x="735" y="212" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Association_1medgvd_di" bpmnElement="Association_1medgvd">
+        <di:waypoint x="257" y="219" />
+        <di:waypoint x="257" y="140" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

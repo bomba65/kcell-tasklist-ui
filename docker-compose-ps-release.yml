@@ -1,0 +1,108 @@
+version: '3'
+
+services:
+
+  camundadb:
+    image: postgres:9.6
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_DB=process-engine
+      - POSTGRES_USER=camunda
+      - POSTGRES_PASSWORD=meta4camunda
+    volumes:
+      - /flow-storage/flow-volumes/camundadb:/var/lib/postgresql/data:rw
+
+  assetsdb:
+    image: mdillon/postgis:9.6
+    ports:
+      - "5433:5432"
+    environment:
+      - POSTGRES_DB=assets
+      - POSTGRES_USER=assets
+      - POSTGRES_PASSWORD=assets
+    volumes:
+      - /flow-storage/flow-volumes/assetsdb:/var/lib/postgresql/data:rw
+
+  minio:
+    image: minio/minio:RELEASE.2018-09-01T00-38-25Z
+    ports:
+      - "9002:9002"
+    environment:
+      - MINIO_ACCESS_KEY=AKIAIOSFODNN7EXAMPLE
+      - MINIO_SECRET_KEY=wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
+    volumes:
+      - /flow-storage/flow-volumes/minio/data:/export:rw
+      - /flow-storage/flow-volumes/minio/config:/root/.minio:rw
+    command: server /export --address ":9002"
+    dns:
+      - "127.0.0.11"
+      - "8.8.8.8"
+
+  nginx:
+    image: nginx:1.14.0
+    ports:
+      - "81:80"
+    volumes:
+      - ./nginx/conf/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/html/:/usr/share/nginx/html/:ro
+      - ./kcell-process-app/src/main/resources/static/:/usr/share/nginx/kcell/webapp/:ro
+      - ./kcell-tasklist-ui/:/usr/share/nginx/kcell-tasklist-ui/:ro
+    dns:
+      - "127.0.0.11"
+      - "8.8.8.8"
+    extra_hosts:
+      - "host.docker.internal:172.17.0.1"
+
+  mail:
+    image: tozd/postfix:ubuntu-trusty
+    volumes:
+      - ./mail/run.initialization:/etc/service/postfix/run.initialization:ro
+    environment:
+      - RELAY_HOST=maildev
+      - RELAY_PORT=1025
+
+  maildev:
+    image: djfarrelly/maildev
+    ports:
+      - "1080:1080"
+      - "1025:1025"
+    command: ["bin/maildev", "--base-pathname", "/mail"]
+
+  headless_chrome:
+    image: kcell/headless_chrome
+    ports:
+      - "8800:8800"
+
+  process-app:
+    image: kcell/process-app
+    ports:
+      - "8080:8080"
+    environment:
+      - DATASOURCE_URL=jdbc:postgresql://camundadb:5432/process-engine?stringtype=unspecified
+      - DATASOURCE_USER=camunda
+      - DATASOURCE_PASSWORD=meta4camunda
+      - MINIO_URL=http://minio:9002
+      - MAIL_HOST=mail
+      - MAIL_PORT=25
+      - ASSET_URL=https://asset.flow.kcell.kz
+      - CATALOG_URL=https://catalogs.flow.kcell.kz
+      - APP_BASE_URL=https://flow.kcell.kz
+      - EMAIL_DO_SEND=false
+      - EMAIL_BASE_URL=https://delivery.kcell.kz
+      - LDAP_ENABLED=true
+      - LDAP_PASSWORD=a%3Wxp79G*J?HB8-
+      - LDAP_EXT_ENABLED=true
+      - LDAP_EXT_PASSWORD=H243c2A9dy2
+    extra_hosts:
+      - "dbm1-scan1:192.168.116.6"
+      - "dbm1dbadm02:192.168.117.3"
+
+  asset-management:
+    image: kcell/asset-management
+    ports:
+      - "8081:8081"
+    environment:
+      - DATASOURCE_URL=jdbc:postgresql://assetsdb:5432/assets?stringtype=unspecified
+      - DATASOURCE_USER=assets
+      - DATASOURCE_PASSWORD=assets

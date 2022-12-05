@@ -1,0 +1,337 @@
+<style>
+    .well {
+        color: #333;
+    }
+</style>
+<form role="form" class="form-horizontal" name="kcell_form" novalidate>
+    <script cam-script type="text/form-script">
+        inject(['$scope', '$http', 'Uri', '$rootScope', '$q', '$timeout', function ($scope, $http, Uri, $rootScope, $q, $timeout) {
+            var variables = [
+                'requestedDate',
+                'jrNumber',
+                'initiatorFull',
+                'validityDate',
+                'soaComplaintId',
+                'site',
+                'siteName',
+                'siteAddress',
+                'site_name',
+                'reason',
+                'contract',
+                'contractor',
+                'materialsRequired',
+                'leasingRequired',
+                'powerRequired',
+                'project',
+                'supplementaryFiles',
+                'explanation',
+                'jobWorks',
+                'sapPRFileXLS',
+                'sapPRNo',
+                'kcellWarehouseMaterialsList',
+                'contractorZIPWarehouseMaterialsList',
+                'kcellWarehouseMaterialsListName',
+                'kcellWarehouseMaterialsAdditionalList',
+                'contractorZIPWarehouseMaterialsListName',
+                'sapTransferRequestFile',
+                'resolutions',
+                'actOfMaterialsDispatchingFile',
+                'actOfMaterialsDispatchingFileName',
+                'actOfMaterialsDispatchingFiles',
+                'jrBlank',
+                'tssrssidFile',
+                'tssrssidFileName',
+                'trFilesName',
+                'trAdditionalFilesName',
+                'trFiles',
+                'siteWorksFiles',
+                'initiatorFiles',
+                'maintananceFiles',
+                'planningFiles',
+                'priority',
+                'acceptPerformedJob',
+                'performDate',
+                'mlApprovalAdditionalInfoFile',
+                'delayInfo',
+                'contractorJobAssignedDate',
+                'mainContract',
+                'acceptanceDate',
+                'rolloutRO2Delay',
+                'rolloutRO3Delay',
+                'rolloutRO4Delay',
+                'contains13Work'
+            ];
+            $scope.jobModel = {};
+            var workFiles = [];
+            var newFiles = [];
+            $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
+                    function(result){
+                        $scope.processInstanceId = result.data.processInstanceId;
+                    },
+                    function (error) {
+                        console.log(error.data);
+                    }
+            );
+            camForm.on('form-loaded', function () {
+                $scope.attachScanCopyTaskResult = 'scan attached';
+                variables.forEach(function (el) {
+                    console.log("FETCH FROM VARIABLES");
+                    camForm.variableManager.fetchVariable(el);
+                });
+
+                $http.get($rootScope.getCatalogsHttpByName('catalogs')).then(
+                        function (result) {
+                            angular.extend($scope, result.data);
+                            angular.extend($scope.jobModel, result.data);
+                        },
+                        function (error) {
+                            console.log(error.data);
+                        }
+                );
+                camForm.variableManager.createVariable({
+                    name: 'attachScanCopyTaskResult',
+                    type: 'String',
+                    value: ''
+                });
+                camForm.variableManager.createVariable({
+                    name: 'revisionPrepare',
+                    type: 'String',
+                    value: ''
+                });
+            });
+            camForm.on('variables-fetched', function () {
+                variables.forEach(function (el) {
+                    if(el === 'resolutions'){
+                        $scope.resolutions = angular.copy(camForm.variableManager.variables[el].value);
+                    } else if(el === 'tssrssidFileName' && camForm.variableManager.variables[el] && camForm.variableManager.variables[el].value && camForm.variableManager.variables[el].value.name) {
+                        $scope.jobModel[el] = camForm.variableManager.variables[el];
+                    } else if(el === 'siteWorksFiles' && camForm.variableManager.variables[el].value) {
+                        workFiles = camForm.variableManager.variables[el].value;
+                    } else {
+                        $scope.jobModel[el] = camForm.variableManager.variables[el];
+                    }
+                    if(el !== 'resolutions'){
+                        $scope[el] = camForm.variableManager.variables[el];
+                    }
+                });
+                $http.get(Uri.appUri("engine://engine/:engine/task/" + camForm.taskId + "/form-variables")).then(function(result){
+                    console.log("GET FROM URI");
+                    angular.forEach(result.data, function(value, key) {
+                        if(key.startsWith('works_')){
+                            $scope[key] = value;
+                            $scope.jobModel[key] = value;
+                        }
+                    });
+                    console.log("FETCHED");
+                });
+                $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name+ "/profile").then(function(result){
+                    $rootScope.authentication.assigneeName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
+                });
+
+                workFiles.forEach(function(file,i){
+                    if(file.name){
+                        var workIndex = file.name.split('_')[1];
+                        console.log($scope.jobModel.jobWorks);
+                        if(!$scope.jobModel.jobWorks.value[workIndex].files) {
+                            $scope.jobModel.jobWorks.value[workIndex].files = [];
+                        }
+                        if($scope.jobModel.jobWorks.value[workIndex].files && !containsFile($scope.jobModel.jobWorks.value[workIndex].files, file)){
+                            $scope.jobModel.jobWorks.value[workIndex].files.push(file);
+                        }
+                    }
+                });
+                camForm.variableManager.createVariable({
+                    name: 'scanCopyFile',
+                    type: 'Json',
+                    submit: true,
+                    store: true
+                });
+                $scope.jobModel.showDelayHint = true;
+                camForm.variableManager.variableValue('attachScanCopyComment', '');
+
+            });
+
+            camForm.on('submit', function (event) {
+                camForm.variableManager.variableValue('attachScanCopyTaskResult', $scope.attachScanCopyTaskResult);
+                camForm.variableManager.createVariable({
+                    name: 'attach-scan-copy-of-acceptance-formTaskResult',
+                    type: 'String',
+                    value: $scope.attachScanCopyTaskResult
+                });
+                $scope.acceptPerformedJob.type = 'String';
+
+                if(camForm.variableManager.variables['acceptPerformedJob']){
+                    camForm.variableManager.variableValue('acceptPerformedJob', 'scan attached');
+                } else {
+                    $scope.acceptPerformedJob.value = 'scan attached';
+                    camForm.variableManager.createVariable($scope.acceptPerformedJob);
+                }
+
+                camForm.variableManager.variableValue('revisionPrepare', $scope.attachScanCopyTaskResult);
+                var visibility = 'all';
+                if($scope.attachScanCopyComment && $scope.attachScanCopyCommentVisibility){
+                    visibility = $scope.attachScanCopyCommentVisibility;
+                    camForm.variableManager.createVariable({
+                        name: 'attach-scan-copy-of-acceptance-formTaskCommentVisibility',
+                        type: 'String',
+                        value: visibility
+                    });
+                }
+                camForm.variableManager.createVariable({
+                    name: 'attach-scan-copy-of-acceptance-formTaskComment',
+                    type: 'String',
+                    value: $scope.attachScanCopyComment
+                });
+                if($scope.scanCopyFile){
+                    camForm.variableManager.variableValue('scanCopyFile', $scope.scanCopyFile);
+                    newFiles.push($scope.scanCopyFile.value);
+                } else {
+                    camForm.variableManager.destroyVariable('scanCopyFile');
+                }
+                camForm.variableManager.createVariable({
+                    name: 'attach-scan-copy-of-acceptance-formFiles',
+                    type: 'Json',
+                    value: newFiles
+                });
+                camForm.variableManager.destroyVariable('resolutions');
+            });
+
+            camForm.on('store', function() {
+                camForm.variableManager.variableValue('attachScanCopyTaskResult', $scope.attachScanCopyTaskResult);
+            });
+
+            camForm.on('variables-restored', function() {
+                $scope.attachScanCopyTaskResult = camForm.variableManager.variableValue('attachScanCopyTaskResult');
+            });
+
+            $scope.download = function (file) {
+                console.log(file);
+                $http({method: 'GET', url: '/camunda/uploads/get/' + file.value.path, transformResponse: [] }).
+                then(function(response) {
+                    document.getElementById('fileDownloadIframe').src = response.data;
+                }, function(error){
+                    console.log(error.data);
+                });
+            }
+
+            $scope.downloadOldFile = function (file) {
+                document.getElementById('fileDownloadIframe').src = '/camunda/api/engine/engine/default/variable-instance/' + file.id + '/data';
+            }
+
+            function containsFile(files, file){
+                for(var i = 0; i<files.length; i++){
+                    if(files[i].name === file.name){
+                        return true;
+                    }
+                }
+                return false;
+            }
+
+            $scope.fileSelected = function(el, fileName, bindedInput){
+                if(el.files[0]){
+                    $timeout(function () {
+                        $scope.$apply(function () {
+                            uploadFileToMinio(el.files[0], fileName, bindedInput);
+                        });
+                    })                } else {
+                    $scope.$apply(function(){
+                        $scope[fileName] = undefined;
+                    });
+                }
+            };
+
+            function uploadFileToMinio(file, fileName, bindedInput) {
+                var fileToUpload = {
+                    name: 'scanCopyFile',
+                    type: 'Json',
+                    value: {
+                        name: file.name.replace(/[/\\?%*:|"<>]/g, '-'),
+                        isNew : true,
+                        path: $scope.processInstanceId + '/' + camForm.taskId + '/' + file.name.replace(/[/\\?%*:|"<>]/g, '-')
+                    }
+                };
+                $http({method: 'GET', url: '/camunda/uploads/put/' + fileToUpload.value.path, transformResponse: [] }).
+                then(function(response) {
+                    $http.put(response.data, file, {headers: {'Content-Type': undefined}}).then(
+                            function () {
+                                $scope[fileName] = fileToUpload;
+                                angular.element(document.querySelector('#'+fileName)).val(null);
+                                $(bindedInput).val('');
+                            },
+                            function (error) {
+                                console.log(error.data);
+                            }
+                    );
+                }, function(error){
+                    console.log(error.data);
+                });
+            }
+
+            $scope.clearFile = function(filename){
+                delete $scope[filename];
+            };
+
+            $scope.isVisible = function (resolution) {
+               return !resolution.visibility || resolution.visibility === 'all' || (resolution.visibility === 'kcell' && $rootScope.hasGroup('kcellUsers'));
+            }
+
+            $scope.hasComment = function () {
+                return $scope.attachScanCopyComment && $rootScope.hasGroup('kcellUsers');
+            }
+        }]);
+    </script>
+    <job-request job-model="jobModel"></job-request>
+    <ng-include ng-if="contextPath" src="contextPath+'/forms/revision/summaries-card.html'"></ng-include>
+    <iframe id="fileDownloadIframe" style="display:none;"></iframe>
+
+    <div style="margin-bottom: 20px;"></div>
+    <div class="form-group">
+        <label class="col-sm-4 control-label">Attach scan copy of Acceptance Form:</label>
+        <div class="col-sm-8">
+            <div ng-show="scanCopyFile.value.name">
+                <a ng-click="download(scanCopyFile)">{{scanCopyFile.value.name}}</a> | <a ng-click="clearFile('scanCopyFile')"><i class="glyphicon glyphicon-trash"></i></a>
+            </div>
+            <!--<input ng-hide="scanCopyFile.value.name" type="file" class="form-control" id="scanCopyFile" name="scanCopyFile" ng-model="scanCopyFile"
+                   required-file="!scanCopyFile.value.name" onchange="angular.element(this).scope().fileSelected(this, 'scanCopyFile')"/>-->
+            <div class="input-group" ng-hide="scanCopyFile.value.name">
+                <label class="input-group-btn">
+                    <span class="btn btn-default">
+                        Choose File <input type="file" id="scanCopyFile" name="scanCopyFile" ng-model="scanCopyFile" required-file="!scanCopyFile.value.name" style="display: none;" onchange="angular.element(this).scope().fileSelected(this, 'scanCopyFile', '#supplementaryFilesName');$('#supplementaryFilesName').val(this.files[0].name)" >
+                    </span>
+                </label>
+                <input type="text" class="form-control upload-filename" id="supplementaryFilesName" placeholder="No File Chosen" readonly>
+            </div>
+            <label class="has-error" ng-show="kcell_form.scanCopyFile.$error.validFile">File is required</label>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label class="col-sm-4 control-label">Comments</label>
+        <div class="col-sm-8">
+            <textarea class="form-control" rows="4" maxlength="500" cam-variable-name="attachScanCopyComment" name="attachScanCopyComment" cam-variable-type="String"></textarea>
+            <label class="error" ng-show="kcell_form.attachScanCopyComment.$error.required && ( kcell_form.attachScanCopyComment.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+    <div class="form-group" ng-show="hasComment()">
+        <label class="col-sm-4 control-label">Comments visibility</label>
+        <div class="col-sm-8">
+            <label class="radio-inline">
+                <input type="radio" name="attachScanCopyCommentVisibility"
+                       ng-model="attachScanCopyCommentVisibility" value="all" ng-required="hasComment()"> Visible for all
+            </label>
+            <label class="radio-inline">
+                <input type="radio" name="attachScanCopyCommentVisibility"
+                       ng-model="attachScanCopyCommentVisibility" value="kcell" ng-required="hasComment()"> Kcell staff only
+            </label>
+            <label class="error" ng-show="kcell_form.attachScanCopyCommentVisibility.$error.required && ( kcell_form.attachScanCopyCommentVisibility.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+    <accordion>
+        <accordion-group is-open="isHistoryOpen">
+            <accordion-heading>
+                History <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
+            </accordion-heading>
+            <resolution-history resolutions="resolutions" procDef="Revision"></resolution-history>
+        </accordion-group>
+    </accordion>
+</form>

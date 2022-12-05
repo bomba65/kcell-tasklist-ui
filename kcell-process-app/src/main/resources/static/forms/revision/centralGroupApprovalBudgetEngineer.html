@@ -1,0 +1,503 @@
+<style>
+    .well {
+        color: #333;
+    }
+</style>
+<form role="form" class="form-horizontal" name="kcell_form" novalidate>
+    <script cam-script type="text/form-script" type="text/javascript">
+        inject(['$scope', '$http', 'Uri', '$rootScope', '$q', function ($scope, $http, Uri, $rootScope, $q) {
+            var variables = [
+                'requestedDate',
+                'jrNumber',
+                'initiatorFull',
+                'validityDate',
+                'soaComplaintId',
+                'site',
+                'siteName',
+                'siteAddress',
+                'site_name',
+                'reason',
+                'contract',
+                'contractor',
+                'materialsRequired',
+                'leasingRequired',
+                'powerRequired',
+                'project',
+                'supplementaryFiles',
+                'explanation',
+                'resolutions',
+                'workPrices',
+                'jobWorks',
+                'jobWorksTotal',
+                'jrBlank',
+                'tssrssidFile',
+                'tssrssidFileName',
+                'priority',
+                'contractorJobAssignedDate',
+                'mainContract',
+                'worksPriceList',
+                'siteRegion',
+                'oblastName',
+                'subcontractorName',
+            ];
+
+            $scope.contractorCodes = {
+                4: 'Line_Eng',
+                6: 'ALTA_Tel',
+                7: 'Logycom',
+                8: 'Arlan_SI',
+                9: 'inter'
+            }
+
+            $scope.jobModel = {};
+            $scope.newProjectChangedFlag = false;
+
+            $scope.subContractorsMaterials = ['6.1', '6.2', '6.3', '6.4', '6.5', '6.8', '6.9', '6.10', '6.12', '6.13', '6.14', '6.15', '6.16', '6.17', '6.18', '6.19', '6.21', '6.22', '6.23', '6.24', '6.25', '6.27', '6.28', '6.29', '7.1', '7.2', '7.3', '7.5', '7.6', '7.7', '7.8', '7.9', '7.10', '7.11', '8.7', '9.58'];
+            $scope.kcellMaterials = ['1.1', '1.2', '1.3', '1.4', '2.1', '2.2', '2.3', '2.4', '2.5', '2.6', '2.7', '2.8', '2.9', '2.10', '2.11', '2.12', '2.13', '2.14', '2.15', '2.16', '2.17', '2.18', '2.19', '2.20', '2.21', '2.22', '2.23', '2.24', '2.26', '2.28', '2.29', '2.30', '2.31', '2.32', '2.33', '2.34', '2.35', '2.36', '2.37', '2.38', '2.39', '2.40', '2.41', '2.42', '2.43', '2.44', '2.45', '2.46',
+                                    '2.47', '2.48', '2.49', '2.50', '2.51', '2.52', '2.53', '2.54', '2.63', '3.1', '3.2', '3.3', '3.4', '3.5', '3.6', '3.7', '3.8', '3.9', '3.10', '3.11', '3.12', '3.13', '3.14', '3.15', '3.16', '3.17', '3.18', '3.19', '3.20', '3.21', '3.22', '3.23', '3.24', '3.25', '3.26', '3.27', '3.28', '3.29', '3.30', '3.31', '3.40', '3.41', '3.49', '3.54', '4.14', '4.15', '5.1',
+                                    '5.2', '5.3', '5.4', '5.9', '5.13', '6.7', '6.11', '6.20', '6.26', '7.4', '8.8', '8.13', '8.14', '8.15', '8.16', '8.20', '8.21', '8.22', '8.23', '8.24', '8.25', '9.3', '9.4', '9.5', '9.6', '9.7', '9.8', '9.9', '9.10', '9.11', '9.12', '9.13', '9.14', '9.15', '9.16', '9.17', '9.18', '9.19', '9.20', '9.21', '9.22', '9.23', '9.24', '9.25', '9.26', '9.27', '9.28', '9.29',
+                                    '9.30', '9.31', '9.32', '9.33', '9.34', '9.35', '9.36', '9.37', '9.38', '9.39', '9.40', '9.41', '9.42', '9.43', '9.44', '9.45', '9.46', '9.47', '9.48', '9.49', '9.50', '9.51', '9.52', '9.53', '9.54', '9.55', '9.56', '9.61', '9.63', '9.65', '9.66', '9.67', '9.68', '9.69', '9.70', '9.71', '9.72', '9.73', '9.74', '9.77', '9.78', '9.79', '9.81', '9.82', '9.83', '9.84',
+                                    '9.85', '9.86', '9.87', '9.88', '9.89', '9.90', '9.91', '9.92', '9.93', '9.94', '9.95', '9.96', '9.97', '9.98', '9.99', '9.100', '9.101', '9.102', '9.103', '9.104', '9.105', '9.106', '9.107', '10.1', '10.2'];
+            $scope.allMaterials = ['2.25', '2.27', '2.55', '2.56', '2.57', '2.58', '2.59', '2.60', '2.61', '2.62', '3.32', '3.33', '3.34', '3.35', '3.36', '3.37', '3.38', '3.39', '3.42', '3.43', '3.44', '3.45', '3.46', '3.47', '3.48', '3.50', '3.51', '3.52', '3.53', '4.1', '4.2', '4.3', '4.4', '4.5', '4.6', '4.7', '4.8', '4.9', '4.10', '4.11', '4.12', '4.13', '4.16', '4.17', '4.18', '4.19', '5.5', '5.6',
+                                '5.7', '5.8', '5.10', '5.11', '5.12', '5.14', '5.15', '5.16', '5.17', '6.6', '8.1', '8.2', '8.3', '8.4', '8.5', '8.6', '8.9', '8.10', '8.11', '8.12', '8.17', '8.18', '8.19', '9.1', '9.2', '9.57', '9.59', '9.60', '9.62', '9.64', '9.75', '9.76', '9.80'];
+
+
+            $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
+                    function(result){
+                        $scope.processInstanceId = result.data.processInstanceId;
+                    },
+                    function (error) {
+                        console.log(error.data);
+                    }
+            );
+
+            var Big;
+            if(window.require){
+                $scope.Big = require('big-js')
+                Big = require('big-js')
+            }
+
+            camForm.on('form-loaded', function () {
+                variables.forEach(function (el) {
+                    camForm.variableManager.fetchVariable(el);
+                });
+
+                $http.get($rootScope.getCatalogsHttpByName('catalogs')).then(
+                        function (result) {
+                            angular.extend($scope, result.data);
+                            angular.extend($scope.jobModel, result.data);
+                        },
+                        function (error) {
+                            console.log(error.data);
+                        }
+                );
+
+                $http.get('/camunda/catalogs/api/get/id/131').then(
+                    function(response) {
+                        $scope.subcontractorCatalog = response.data.data.$list;
+                    }
+                );
+
+                camForm.variableManager.createVariable({
+                    name: 'centralGroupApprovalBudgetEngineerTaskResult',
+                    type: 'String',
+                    value: ''
+                });
+                camForm.variableManager.createVariable({
+                    name: 'createJRResult',
+                    type: 'String',
+                    value: undefined
+                });
+                camForm.variableManager.createVariable({
+                    name: 'jobPrices',
+                    type: 'Json',
+                    value: {}
+                });
+                $scope.jobModel.showPrice = true;
+            });
+            camForm.on('variables-fetched', function () {
+                variables.forEach(function (el) {
+                    if(el === 'workPrices'){
+                        $scope.jobModel[el] = JSON.parse(camForm.variableManager.variables[el].originalValue);
+                        angular.forEach($scope.jobModel.workPrices, function(price){
+                            if(!price.materialsProvidedBy || !(price.materialsProvidedBy === 'kcell' || price.materialsProvidedBy === 'subcontractor')){
+                                if($scope.subContractorsMaterials.indexOf(price.sapServiceNumber)!==-1){
+                                    price.materialsProvidedBy = 'subcontractor';
+                                } else if($scope.kcellMaterials.indexOf(price.sapServiceNumber)!==-1){
+                                    price.materialsProvidedBy = 'kcell';
+                                }
+                            }
+                        });
+                    } else {
+                        $scope.jobModel[el] = camForm.variableManager.variables[el];
+                        $scope[el] = camForm.variableManager.variables[el].value;
+                    }
+                });
+                $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name+ "/profile").then(function(result){
+                    $rootScope.authentication.assigneeName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
+                });
+                if(camForm.variableManager.variables['centralGroupApprovalBudgetEngineerComment']){
+                    camForm.variableManager.variableValue('centralGroupApprovalBudgetEngineerComment', '');
+                }
+            });
+
+            camForm.on('submit', function () {
+                camForm.variableManager.variableValue('workPrices', JSON.parse(angular.toJson($scope.jobModel.workPrices)));
+                camForm.variableManager.variableValue('centralGroupApprovalBudgetEngineerTaskResult', $scope.centralGroupApprovalBudgetEngineerTaskResult);
+                camForm.variableManager.createVariable({
+                    name: 'approve_jr_budgetTaskResult',
+                    type: 'String',
+                    value: $scope.centralGroupApprovalBudgetEngineerTaskResult
+                });
+                if ($scope.centralGroupApprovalBudgetEngineerTaskResult === 'approved') {
+                    camForm.variableManager.variableValue('createJRResult', 'approved');
+                    if($scope.newContractor){
+                        camForm.variableManager.variableValue('jrNumber', $scope.jrNumber);
+                        camForm.variableManager.variableValue('contractor', $scope.newContractor);
+                        camForm.variableManager.variableValue('requestedDate', new Date());
+                    }
+                    camForm.variableManager.variableValue('workPrices', $scope.jobModel.workPrices);
+                    camForm.variableManager.variableValue('jobWorksTotal', $scope.jobModel.jobWorksTotal.value);
+                } else {
+                    camForm.variableManager.variableValue('createJRResult', 'rejected');
+                }
+                var visibility = 'all';
+                if($scope.centralGroupApprovalBudgetEngineerComment && $scope.centralGroupApprovalBudgetEngineerCommentVisibility){
+                    visibility = $scope.centralGroupApprovalBudgetEngineerCommentVisibility;
+                    camForm.variableManager.createVariable({
+                        name: 'approve_jr_budgetTaskCommentVisibility',
+                        type: 'String',
+                        value: visibility
+                    });
+                }
+                camForm.variableManager.createVariable({
+                    name: 'approve_jr_budgetTaskComment',
+                    type: 'String',
+                    value: $scope.centralGroupApprovalBudgetEngineerComment
+                });
+                camForm.variableManager.destroyVariable('resolutions');
+                camForm.variableManager.variableValue('jobWorks', $scope.jobWorks);
+                if ( $scope.newProjectChangedFlag === true && $scope.project !== $scope.newProject ) {
+                    camForm.variableManager.destroyVariable('project');
+                    camForm.variableManager.createVariable({
+                        name: 'project',
+                        type: 'String',
+                        value: $scope.newProject
+                    });
+                }
+            });
+
+            camForm.on('store', function() {
+                camForm.variableManager.variableValue('centralGroupApprovalBudgetEngineerTaskResult', $scope.centralGroupApprovalBudgetEngineerTaskResult);
+            });
+
+            camForm.on('variables-restored', function() {
+                $scope.centralGroupApprovalBudgetEngineerTaskResult = camForm.variableManager.variableValue('centralGroupApprovalBudgetEngineerTaskResult');
+            });
+
+            $scope.isVisible = function (resolution) {
+               return !resolution.visibility || resolution.visibility === 'all' || (resolution.visibility === 'kcell' && $rootScope.hasGroup('kcellUsers'));
+            }
+
+            $scope.hasComment = function () {
+                return $scope.centralGroupApprovalBudgetEngineerComment && $rootScope.hasGroup('kcellUsers');
+            }
+
+            $scope.calculateBasePriceByQuantity = function(work){
+                var unitWorkPrice = Big(work.unitWorkPrice);
+                var quantity = Big(work.quantity);
+                var result = unitWorkPrice.times(quantity);
+                return result.toFixed(2).replace('.',',');
+            }
+
+            $scope.calculateBasePriceTotal = function(){
+                var total = Big(0.0);
+                angular.forEach($scope.jobModel.workPrices, function(work){
+                    total = total.plus((work.basePriceByQuantity? Big(work.basePriceByQuantity) : Big(work.unitWorkPrice).times(Big(work.quantity))));
+                });
+                return total.toFixed(2).replace('.',',');
+            }
+
+            $scope.preSubmit = function(){
+                var deferred = $q.defer();
+                if($scope.contractor === -1 && $scope.centralGroupApprovalBudgetEngineerTaskResult === 'approved' && $scope.jrNumber.indexOf('##')!==-1){
+                    var jrCounter = $scope.jrNumber.replace('-##-', '-'+$scope.contractorCodes[$scope.newContractor]+'-').replace('-####', '');
+                    return $http.post('/asset-management/jobrequestcounter/' + jrCounter).then(
+                        function(result){
+                            $scope.jrNumber = result.data;
+                        }
+                    );
+                } else {
+                    deferred.resolve();
+                    return deferred.promise;
+                }
+            }
+
+            $scope.projectTypeChange = function() {
+                if ($scope.jobModel && $scope.jobModel.project && $scope.jobModel.project.value && $scope.jobModel.project.originalValue) {
+                    $scope.newProjectChangedFlag = true;
+                    $scope.jobModel.project.value = $scope.newProject;
+                    $scope.jobModel.project.originalValue = $scope.newProject;
+                }
+            }
+
+            $scope.correctPrice = function(){
+                var siteRegion = $scope.siteRegion;
+                if('nc' === siteRegion || 'east' === siteRegion){
+                    siteRegion = 'astana';
+                }
+                var jobWorksTotal = Big(0.0);
+                $scope.jobModel.workPrices.forEach(function(work, i){
+                    var workPrice = angular.copy(work);
+                    var price = _.filter($scope.worksPriceList, function(wpl){
+                        if(wpl.sapServiceNumber === work.sapServiceNumber){
+                            return true;
+                        }
+                    })[0][work.materialsProvidedBy && work.materialsProvidedBy === 'subcontractor'?'priceWithMaterial':'priceWithoutMaterial'];
+                    var unitWorkPrice = Big(price);
+                    var unitTransportationPrice = Big(0.0);
+                    unitTransportationPrice = unitTransportationPrice.toFixed(2);
+
+                    var unitWorkPricePlusTx = Big(price);
+
+                    if (workPrice.relatedSites.length > 0) {
+                        var unitWorkPricePerSite = unitWorkPricePlusTx.div(Big(workPrice.relatedSites.length));
+                        var netWorkPricePerSite = unitWorkPricePerSite.times(Big(workPrice.quantity));
+                        work.unitWorkPricePerSite = unitWorkPricePerSite.toFixed(2);
+                        work.netWorkPricePerSite  = netWorkPricePerSite.toFixed(2);
+                    } else {
+                        var unitWorkPricePerSite = unitWorkPricePlusTx.div(Big(1));
+                        var netWorkPricePerSite = unitWorkPricePerSite.times(Big(workPrice.quantity));
+                        work.unitWorkPricePerSite = unitWorkPricePerSite.toFixed(2);
+                        work.netWorkPricePerSite = netWorkPricePerSite.toFixed(2);
+                    }
+
+                    var basePriceByQuantity = unitWorkPrice.times(Big(workPrice.quantity));
+
+                    var total = unitWorkPricePlusTx.times(Big(workPrice.quantity));
+                    work.unitWorkPrice = unitWorkPrice.toFixed(2);
+                    work.unitWorkPricePlusTx = unitWorkPricePlusTx.toFixed(2);
+                    work.basePriceByQuantity = basePriceByQuantity.toFixed(2);
+                    work.total = total.toFixed(2);
+
+                    jobWorksTotal = jobWorksTotal.plus(total);
+
+                    work.basePrice = Big(price).toFixed(2);
+
+                    if(work.materialsProvidedBy){
+                        $scope.jobWorks[i].materialsProvidedBy = work.materialsProvidedBy;
+                        $scope.jobModel.jobWorks.value[i].materialsProvidedBy = work.materialsProvidedBy;
+                    }
+                });
+
+                $scope.jobModel.jobWorksTotal.value = jobWorksTotal.toFixed(2);
+            }
+        }]);
+    </script>
+    <job-request job-model="jobModel"></job-request>
+    <div class="form-group">
+        <label class="col-sm-3 control-label">Type of project:</label>
+        <div class="col-sm-3">
+            <select ng-model="newProject" name="project" class="form-control" ng-change="projectTypeChange()">
+                <option style="display:none" value=""></option>
+                <option value="N/A" selected>N/A</option>
+                <option value="4G Sharing">4G Sharing</option>
+                <option ng-if="jobModel.reason.value === '2'" value="Other - (Re-routing, re-planning, etc.)">Other - (Re-routing, re-planning, etc.)</option>
+                <option ng-if="jobModel.reason.value === '2'" value="Transmission FIX/IPVPN">Transmission FIX/IPVPN</option>
+                <option ng-if="jobModel.reason.value === '2'" value="Transmission PBX">Transmission PBX</option>
+                <option ng-if="jobModel.reason.value === '2'" value="Transmission 1+1">Transmission 1+1</option>
+                <option ng-if="jobModel.reason.value === '2'" value="Transmission Upgrades">Transmission Upgrades</option>
+                <option ng-if="jobModel.reason.value === '2'" value="Transmission Revision LTE">Transmission Revision LTE</option>
+
+                <!-- <option ng-if="jobModel.reason.value === '3'" value="Air conditioner planned installation 1+1 for transmission (53 sites)">Air conditioner planned installation 1+1 for transmission (53 sites)</option> -->
+                <!-- <option ng-if="jobModel.reason.value === '3'" value="Power system planned modernization 40 sites(ZTE B121)">Power system planned modernization 40 sites(ZTE B121)</option> -->
+                <!-- <option ng-if="jobModel.reason.value === '3'" value="Termobox installation for «4G sharing» project">Termobox installation for «4G sharing» project</option> -->
+                <option ng-if="jobModel.reason.value === '3'" value="Termobox installation for transmission (TN)">Termobox installation for transmission (TN)</option>
+                <!-- <option ng-if="jobModel.reason.value === '3'" value="Termobox installation for «rollout»">Termobox installation for «rollout»</option> -->
+                <option ng-if="jobModel.reason.value === '3'" value="Установка ИБП для организации услуги fix клиенту (по запросу от группы трансмиссии)">Установка ИБП для организации услуги fix клиенту (по запросу от группы трансмиссии)</option>
+
+                <option ng-if="jobModel.reason.value === '1'" value="LTE 2019">LTE 2019</option>
+                <option ng-if="jobModel.reason.value === '1'" value="LTE 2100 2019">LTE 2100 2019</option>
+                <option ng-if="jobModel.reason.value === '1'" value="LTE 1800 2019">LTE 1800 2019</option>
+                <option ng-if="jobModel.reason.value === '1'" value="2G+3G Roll-Out 2019">2G+3G Roll-Out 2019</option>
+                <option ng-if="jobModel.reason.value === '1'" value="ZTE SWAP">ZTE SWAP</option>
+                <option ng-if="jobModel.reason.value === '1'" value="CA_LTE1800">CA_LTE1800</option>
+                <option ng-if="jobModel.reason.value === '1'" value="3CCA_LTE2100">3CCA_LTE2100</option>
+                <option ng-if="jobModel.reason.value === '1'" value="MIMO 4x4">MIMO 4x4</option>
+                <option ng-if="jobModel.reason.value === '1'" value="CEM">CEM</option>
+                <option ng-if="jobModel.reason.value === '1'" value="SES">SES</option>
+                <option value="Roll-Out 2020">Roll-Out 2020</option>
+                <option value="250+">250+</option>
+                <option value="Roll-Out 2021">Roll-Out 2021</option>
+                <option ng-if="jobModel.reason.value === '5'" value=" 2G/3G from 2019"> 2G/3G from 2019 </option>
+                <option ng-if="jobModel.reason.value === '5'" value=" 65 - Com. Block"> 65 - Com. Block </option>
+                <option ng-if="jobModel.reason.value === '5'" value=" RND 2020"> RND 2020 </option>
+                <option ng-if="jobModel.reason.value === '5'" value=" LTE from 2019"> LTE from 2019 </option>
+                <option ng-if="jobModel.reason.value === '5'" value=" LTE 2020"> LTE 2020 </option>
+                <option ng-if="jobModel.reason.value === '5'" value=" Com. Block 2020"> Com. Block 2020 </option>
+                <option ng-if="jobModel.reason.value === '5'" value=" LTE 2019"> LTE 2019 </option>
+                <option ng-if="jobModel.reason.value === '5'" value=" B2B 2020"> B2B 2020 </option>
+                <option ng-if="jobModel.reason.value === '5'" value=" 250+"> 250+ </option>
+                <option ng-if="jobModel.reason.value === '5'" value=" Com. Block (3 Reg.)"> Com. Block (3 Reg.) </option>
+                <option ng-if="jobModel.reason.value === '5'" value=" ERG"> ERG </option>
+                <option ng-if="jobModel.reason.value === '5'" value=" License settlement"> License settlement </option>
+                <option ng-if="jobModel.reason.value === '5'" value=" Kazminerals LTE Project"> Kazminerals LTE Project </option>
+
+                <option ng-if="jobModel.reason.value === '4'" value="Facility Improvement"> Facility Improvement</option>
+                <option ng-if="jobModel.reason.value === '4'" value="ППР крупно-узловых сайтов"> ППР крупно-узловых сайтов</option>
+
+                <option ng-if="jobModel.reason.value === '2'" value="Модернизация сети трансмиссии (строительство новых хопов и апгрейд старых для увеличения емкости сети, кроме работ по проектам Roll-Out и 250+)"> Модернизация сети трансмиссии (строительство новых хопов и апгрейд старых для увеличения емкости сети, кроме работ по проектам Roll-Out и 250+)</option>
+                <option ng-if="jobModel.reason.value === '2'" value="Roll-Out - вспомогательные работы для запуска новых сайтов (кроме работ по проекту 250+)"> Roll-Out - вспомогательные работы для запуска новых сайтов (кроме работ по проекту 250+)</option>
+                <option ng-if="jobModel.reason.value === '2'" value="Проект 250+ (включая модернизацию сети для запуска сайтов по данному проекту)"> Проект 250+ (включая модернизацию сети для запуска сайтов по данному проекту)</option>
+                <option ng-if="jobModel.reason.value === '2'" value="Надежность сети трансмиссии (добавление 1+1, перенос, укрепление антенн для лучшей настройки, добавление PFU 1+1 и т.д.) "> Надежность сети трансмиссии (добавление 1+1, перенос, укрепление антенн для лучшей настройки, добавление PFU 1+1 и т.д.) </option>
+                <option ng-if="jobModel.reason.value === '2'" value="Перенос оборудования трансмиссии (re-routing, re-planning)"> Перенос оборудования трансмиссии (re-routing, re-planning)</option>
+                <option ng-if="jobModel.reason.value === '2'" value="Подключение сторонних клиентов (FIX/IPVPN/PBX)"> Подключение сторонних клиентов (FIX/IPVPN/PBX)</option>
+                <option ng-if="jobModel.reason.value === '2'" value="Межоператорские соединения (sharing, ТПТ и т.д.)"> Межоператорские соединения (sharing, ТПТ и т.д.)</option>
+                <option ng-if="jobModel.reason.value === '2'" value="Перевод спутниковых сайтов на наземную трансмиссию"> Перевод спутниковых сайтов на наземную трансмиссию</option>
+
+                <option ng-if="jobModel.reason.value === '3'" value="Power system modernization"> Power system modernization</option>
+                <option ng-if="jobModel.reason.value === '3'" value="Power system installation"> Power system installation</option>
+                <option ng-if="jobModel.reason.value === '3'" value="Air conditioner installation"> Air conditioner installation</option>
+                <option ng-if="jobModel.reason.value === '3'" value="Termobox installation"> Termobox installation</option>
+                <option ng-if="jobModel.reason.value === '3'" value="Строительство HOP-POINT"> Строительство HOP-POINT</option>
+                <option ng-if="jobModel.reason.value === '3'" value="Revision works for transmission "> Revision works for transmission </option>
+                <option ng-if="jobModel.reason.value === '3'" value="Revision works по причинам необходимой модернизации инфраструктуры"> Revision works по причинам необходимой модернизации инфраструктуры</option>
+            </select>
+            <label class="error" ng-if="kcell_form.project.$error.required && ( kcell_form.project.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+    <div class="form-group" ng-if="mainContract === '2022Work-agreement'">
+        <label class="col-sm-3 control-label">Oblast:</label>
+        <input type="hidden" ng-model="oblastName" name="oblastName"/>
+        <div class="col-sm-3">
+            <div class="form-control">{{oblastName}}</div>
+        </div>
+    </div>
+    <div class="form-group" ng-if="mainContract === '2022Work-agreement'">
+        <label class="col-sm-3 control-label">Subcontractor:</label>
+        <input type="hidden" ng-model="subcontractorName" name="subcontractorName"/>
+        <div class="col-sm-3">
+            <div class="form-control">{{subcontractorName}}</div>
+        </div>
+    </div>
+    <div class="row">
+        <table class="table table-condensed">
+            <thead>
+            <tr>
+                <th width="25%">Works</th>
+                <th ng-if="jobModel.mainContract.value != 'Roll-out'">Works Qty</th>
+                <th ng-if="jobModel.mainContract.value != 'Roll-outRevision2020'">Materials Qty</th>
+                <th ng-if="jobModel.mainContract.value != 'Roll-outRevision2020'">Type of expenses</th>
+                <th>Sites</th>
+                <th ng-if="jobModel.mainContract.value == 'Roll-outRevision2020'">Materials by</th>
+                <th>Base Price</th>
+                <th ng-if="jobModel.mainContract.value != 'Roll-out' && jobModel.mainContract.value != 'Roll-outRevision2020'">Base + Transportation +8%</th>
+                <th>Base Price * works q-ty</th>
+                <th ng-if="jobModel.mainContract.value != 'Roll-out'">1 work price per site Sum/site q-ty</th>
+                <th ng-if="jobModel.mainContract.value != 'Roll-out'">Sum * works q-ty</th>
+                <th style="text-align:right;font-weight: bold;font-size: 16px;background-color: lightpink;">Total</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr ng-repeat="work in jobModel.workPrices">
+                <td>{{work.displayServiceName}}</td>
+                <td ng-if="jobModel.mainContract.value != 'Roll-out'">{{work.quantity}}</td>
+                <td ng-if="jobModel.mainContract.value != 'Roll-outRevision2020'">{{work.materialQuantity}}</td>
+                <td ng-if="jobModel.mainContract.value != 'Roll-outRevision2020'">{{work.expenseType}}</td>
+                <td><span ng-repeat="rs in work.relatedSites" class="my-tag" ng-class="{'main-site':rs.site_name===jobModel.site_name.value}"><span ng-if="rs.site_name===jobModel.site_name.value">Main Site: </span>{{rs.site_name}}</span></td>
+                <td ng-if="jobModel.mainContract.value == 'Roll-outRevision2020'">
+                    <label class="radio-inline">
+                        <input type="radio" name="materialsProvidedBy{{$parent.$index}}"
+                               ng-model="work.materialsProvidedBy" value="subcontractor" ng-required="centralGroupHeadApprovalTaskResult === 'approved'" ng-change="correctPrice()" ng-disabled="$parent.subContractorsMaterials.indexOf(work.sapServiceNumber)!==-1 || $parent.kcellMaterials.indexOf(work.sapServiceNumber)!==-1"> Subcontractor
+                    </label>
+                    <label class="radio-inline">
+                        <input type="radio" name="materialsProvidedBy{{$parent.$index}}"
+                               ng-model="work.materialsProvidedBy" value="kcell" ng-required="centralGroupHeadApprovalTaskResult === 'approved'" ng-change="correctPrice()" ng-disabled="$parent.subContractorsMaterials.indexOf(work.sapServiceNumber)!==-1 || $parent.kcellMaterials.indexOf(work.sapServiceNumber)!==-1"> Kcell
+                    </label>
+                    <label class="error" ng-show="kcell_form['materialsProvidedBy' + $parent.$index].$error.required && ( kcell_form['materialsProvidedBy' + $parent.$index].$touched || view.submitted)">Required field</label>
+                </td>
+                <td>{{work.unitWorkPrice.replace('.',',')}}&nbsp;&#8376;</td>
+                <td ng-if="jobModel.mainContract.value != 'Roll-out' && jobModel.mainContract.value != 'Roll-outRevision2020'">{{work.unitWorkPricePlusTx.replace('.',',')}}&nbsp;&#8376;</td>
+                <td>{{work.basePriceByQuantity ? work.basePriceByQuantity.replace('.',',') : calculateBasePriceByQuantity(work)}}&nbsp;&#8376;</td>
+                <td ng-if="jobModel.mainContract.value != 'Roll-out'"><span ng-if="work.unitWorkPricePerSite >= 0">{{work.unitWorkPricePerSite.replace('.',',')}}&nbsp;&#8376;</span></td>
+                <td ng-if="jobModel.mainContract.value != 'Roll-out'"><span ng-if="work.netWorkPricePerSite >= 0">{{work.netWorkPricePerSite.replace('.',',')}}&nbsp;&#8376;</span></td>
+                <td style="text-align:right;font-weight: bold;font-size: 16px;background-color: lightpink;"><span style="padding: 6px 0px;display: inline-block;">{{work.total.replace('.',',')}}&nbsp;&#8376;</span></td>
+            </tr>
+            <tr>
+                <th colspan="{{jobModel.mainContract.value != 'Roll-out'?'4':'2'}}">Total</th>
+                <th>{{calculateBasePriceTotal()}}&nbsp;&#8376;</th>
+                <th ng-if="jobModel.mainContract.value != 'Roll-out' && jobModel.mainContract.value != 'Roll-outRevision2020'"></th>
+                <th></th>
+                <th ng-if="jobModel.mainContract.value != 'Roll-out'"></th>
+                <th ng-if="jobModel.mainContract.value != 'Roll-out'"></th>
+                <th style="text-align:right;font-weight: bold;font-size: 16px;background-color: lightpink;">{{jobModel.jobWorksTotal.value.replace('.',',')}}&nbsp;&#8376;</th>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+    <br/>
+    <div class="form-group" ng-if="contractor === -1">
+        <label class="col-sm-4 control-label">Please choose Subcontractor:</label>
+        <div class="col-sm-8" ng-if="mainContract !== '2022Work-agreement'">
+            <label class="radio-inline">
+                <input type="radio" name="newContractor" ng-model="$parent.newContractor" value="4" ng-required="centralGroupApprovalBudgetEngineerTaskResult === 'approved'"> Line System Engineering
+            </label>
+            <label class="radio-inline">
+                <input type="radio" name="newContractor" ng-model="$parent.newContractor" value="6" ng-required="centralGroupApprovalBudgetEngineerTaskResult === 'approved'"> Алта Телеком
+            </label>
+            <label class="radio-inline">
+                <input type="radio" name="newContractor" ng-model="$parent.newContractor" value="7" ng-required="centralGroupApprovalBudgetEngineerTaskResult === 'approved'"> Логиком
+            </label>
+            <label class="radio-inline">
+                <input type="radio" name="newContractor" ng-model="$parent.newContractor" value="8" ng-required="centralGroupApprovalBudgetEngineerTaskResult === 'approved'"> Arlan SI
+            </label>
+            <label class="error" ng-show="kcell_form.newContractor.$error.required && ( kcell_form.newContractor.$touched || view.submitted)">Required field</label>
+        </div>
+        <div class="col-sm-8" ng-if="mainContract === '2022Work-agreement'">
+            <label class="radio-inline" ng-repeat='subcontractor in subcontractorCatalog'>
+                <input type="radio" ng-disabled="subcontractor.id !== contractor" ng-checked="subcontractor.id === contractor"> {{subcontractor.value}}
+            </label>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-4 control-label">Resolution</label>
+        <div class="col-sm-8">
+            <label class="radio-inline">
+                <input type="radio" ng-model="centralGroupApprovalBudgetEngineerTaskResult" name="centralGroupApprovalBudgetEngineerTaskResult" value="approved" required> Approve
+            </label>
+            <label class="radio-inline">
+                <input type="radio" ng-model="centralGroupApprovalBudgetEngineerTaskResult" name="centralGroupApprovalBudgetEngineerTaskResult" value="rejected" required> Return for correction
+            </label>
+            <label class="error" ng-show="kcell_form.centralGroupApprovalBudgetEngineerTaskResult.$error.required && ( kcell_form.centralGroupApprovalBudgetEngineerTaskResult.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-4 control-label">Comments</label>
+        <div class="col-sm-8">
+            <textarea class="form-control" cam-variable-name="centralGroupApprovalBudgetEngineerComment" name="centralGroupApprovalBudgetEngineerComment" cam-variable-type="String" placeholder="Comments..." maxlength="500" rows="4" ng-required="centralGroupApprovalBudgetEngineerTaskResult === 'rejected'"></textarea>
+            <label class="error" ng-show="kcell_form.centralGroupApprovalBudgetEngineerComment.$error.required && ( kcell_form.centralGroupApprovalBudgetEngineerComment.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+    <div class="form-group" ng-show="hasComment()">
+        <label class="col-sm-4 control-label">Comments visibility</label>
+        <div class="col-sm-8">
+            <label class="radio-inline">
+                <input type="radio" name="centralGroupApprovalBudgetEngineerCommentVisibility"
+                       ng-model="centralGroupApprovalBudgetEngineerCommentVisibility" value="all" ng-required="hasComment()"> Visible for all
+            </label>
+            <label class="radio-inline">
+                <input type="radio" name="centralGroupApprovalBudgetEngineerCommentVisibility"
+                       ng-model="centralGroupApprovalBudgetEngineerCommentVisibility" value="kcell" ng-required="hasComment()"> Kcell staff only
+            </label>
+            <label class="error" ng-show="kcell_form.centralGroupApprovalBudgetEngineerCommentVisibility.$error.required && ( kcell_form.centralGroupApprovalBudgetEngineerCommentVisibility.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+    <accordion>
+        <accordion-group is-open="isHistoryOpen">
+            <accordion-heading>
+                History <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
+            </accordion-heading>
+            <resolution-history resolutions="resolutions" procDef="Revision"></resolution-history>
+        </accordion-group>
+    </accordion>
+</form>

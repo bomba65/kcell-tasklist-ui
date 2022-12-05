@@ -1,0 +1,273 @@
+<div class="card-modal-header">
+    <button type="button" class="close" ng-click="$dismiss()" aria-hidden="true">&times;</button>
+    <h4 style="margin-top:14px;">{{jobModel.businessKey}}</h4>
+</div>
+<div class="modal-body new-card-search" style="padding-top:5px">
+
+    <div class="row">
+        <div class="col-md-4">
+            <div class="row" style="margin-top:10px;">
+                <div class="col-md-8">
+                    <span class="process-status">
+                        Status: {{getStatus(jobModel.state, jobModel.acceptPerformedJob.value)}}</span>
+                </div>
+                <div class="col-md-4">
+                    <div class="dropdown" style="position:absolute; right:15px; top:-6px;">
+                        <button class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown">More
+                            <span class="caret"></span></button>
+                        <ul class="dropdown-menu">
+                            <li>
+                                <button type="button" class="btn-default btn drop-button"
+                                        ng-click="showDiagram(jobModel.processDefinitionId, jobModel.tasks)"><span
+                                        class="glyphicon glyphicon-indent-left" aria-hidden="true"></span>
+                                    Diagram
+                                </button>
+                            </li>
+                            <li>
+                                <button type="button" class="btn-default btn drop-button"
+                                        ng-click="showHistory(jobModel.resolutions.value, 'PBX')">
+                                    <span class="glyphicon glyphicon-list-alt" aria-hidden="true"></span> History
+                                </button>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="panel panel-default" style="margin:18px 0 0 0">
+                        <div class="panel-heading block-headers">Details</div>
+                        <div class="panel-body" style="padding:10px 0 10px 0;word-break:break-word;">
+                            <div class="form-group">
+                                <div class="col-sm-12" ng-if="jobModel.starter"><b>Отправитель запроса</b>:
+                                    {{jobModel.starter}}
+                                </div>
+                                <div class="col-sm-12"><b>БИН клиента</b>: {{jobModel.customerInformation.bin}}</div>
+                                <div class="col-sm-12" ng-show="jobModel.clientPriority"
+                                     ng-class="{ 'text-danger': jobModel.clientPriority==='Критично'} "><b>Приоритет</b>:
+                                    {{jobModel.clientPriority}}
+                                </div>
+                                <div class="col-sm-12"><b>Юридическое наименование компании</b>:
+                                    {{jobModel.customerInformation.legalName}}
+                                </div>
+                                <div class="col-sm-12" ng-if="jobModel.contractNumber"><b>Номер договора</b>:
+                                    {{jobModel.contractNumber}}
+                                </div>
+                                <div class="col-sm-12" ng-if="jobModel.responsibleB2BSales"><b>Отвественный B2B Sales</b>:
+                                    {{jobModel.responsibleB2BSales.name}}
+                                </div>
+                                <div class="col-sm-12" ng-if="jobModel.responsibleB2BDelivery"><b>Отвественный B2B Delivery</b>:
+                                    {{jobModel.responsibleB2BDelivery.name}}
+                                </div>
+                            </div>
+
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-12">
+                    <ul class="nav nav-stacked" id="accordion1">
+                        <li class="panel panel-default" style="margin:0; word-break:break-word;">
+                            <a data-toggle="collapse" data-parent="#accordion1" href="#firstLink"
+                               style="background-color: #f5f5f5;" class="block-headers">User Tasks</a>
+
+
+                            <ul id="firstLink" class="collapse in ul-padding">
+                                <div ng-repeat="task in jobModel.tasks">
+                                    <div class="task">
+                                        <h5><a ui-sref="tasks.task({id:task.id})" target="_blank">{{ (task.name || task.id) }}</a></h5>
+                                        <div ng-if="task.description" class="card-task-descr"> {{ task.description }} </div>
+                                        <small class="text-muted" ng-if="task.group">
+                                            Group: <a ng-click="showGroupDetails(task.group)">{{task.group}}</a>
+                                        </small>
+                                        <br/>
+                                        <small class="text-muted" ng-if="task.assignee">{{ task.assigneeObject.firstName }} {{ task.assigneeObject.lastName }}</small>
+                                        <small class="text-muted" ng-if="!task.assignee">Unassigned</small>
+                                    </div>
+                                </div>
+                            </ul>
+
+                        </li>
+
+                    </ul>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-12">
+                    <ul class="nav nav-stacked">
+                        <li class="panel panel-default" style="margin:0; word-break: break-word">
+                            <a  data-toggle="collapse" data-parent="#accordion1" href="#secondLink"
+                               style="background-color: #f5f5f5;" class="block-headers">Timer Events</a>
+                            <ul ng-if="jobModel.otherActivities.length > 0" class="collapse in ul-padding" id="secondLink">
+                                <div ng-repeat="event in jobModel.otherActivities">
+                                    <div class="task">
+                                        <h5>Name: {{event.name}}</h5>
+                                    </div>
+                                </div>
+                            </ul>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-8">
+            <div class="row" style="margin-top:5px;">
+                <div class="col-md-12 form-group" style="padding-right:10px;">
+                    <div class="col-sm-12 text-center">
+                        <h4 class="block-headers">Общая информация </h4>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-12 form-group">
+                    <div class="col-sm-12" ng-show="jobModel.clientPriority"><b>Приоритет</b>:
+                        {{jobModel.clientPriority}}
+                    </div>
+                    <div class="col-sm-12" ng-show="jobModel.customerInformation.legalName"><b>Юридическое наименование
+                        компании</b>: {{jobModel.customerInformation.legalName}}
+                    </div>
+                    <div class="col-sm-12" ng-show="jobModel.customerInformation.bin"><b>БИН
+                        клиента</b>: {{jobModel.customerInformation.bin}}
+                    </div>
+                    <div class="col-sm-12" ng-show="jobModel.customerInformation.legalAddress"><b>Юридический
+                        адрес</b>: {{jobModel.customerInformation.legalAddress}}
+                    </div>
+                    <div class="col-sm-12" ng-show="jobModel.customerInformation.mailingAddress"><b>Почтовый
+                        адрес</b>: {{jobModel.customerInformation.mailingAddress}}
+                    </div>
+                    <div class="col-sm-12" ng-show="jobModel.customerInformation.email"><b>Email</b>:
+                        {{jobModel.customerInformation.email}}
+                    </div>
+                    <div class="col-sm-12" ng-show="jobModel.customerInformation.accountant"><b>Контактное
+                        лицо</b>: {{jobModel.customerInformation.accountant}}
+                    </div>
+                    <div class="col-sm-12" ng-show="jobModel.customerInformation.accountantNumber"><b>Контактный
+                        номер</b>: {{jobModel.customerInformation.accountantNumber}}
+                    </div>
+                    <div class="col-sm-12" ng-show="jobModel.customerInformation.ticName"><b>TIC
+                        name</b>: {{jobModel.customerInformation.ticName}}
+                    </div>
+                    <div class="col-sm-12" ng-show="jobModel.customerInformation.iban"><b>IBAN</b>:
+                        {{jobModel.customerInformation.iban}}
+                    </div>
+                    <div class="col-sm-12" ng-show="jobModel.customerInformation.bankName"><b>Bank Name</b>:
+                        {{jobModel.customerInformation.bankName}}
+                    </div>
+                    <div class="col-sm-12" ng-show="jobModel.customerInformation.swift"><b>SWIFT</b>:
+                        {{jobModel.customerInformation.swift}}
+                    </div>
+                    <div class="col-sm-12" ng-show="jobModel.customerInformation.kbe"><b>Kbe</b>:
+                        {{jobModel.customerInformation.kbe}}
+                    </div>
+                </div>
+            </div>
+
+            <div class="row" style="margin-top:5px;">
+                <div class="col-md-12 form-group" style="padding-right:10px;">
+                    <div class="col-sm-12 text-center">
+                        <h4 class="block-headers">Техническая информация</h4>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-12 form-group">
+                    <div class="col-sm-12" ng-show="jobModel.technicalSpecifications.pbxType"><b>Тип подключенного
+                        оборудования</b>: {{jobModel.technicalSpecifications.pbxType}}
+                    </div>
+                    <div class="col-sm-12" ng-show="jobModel.technicalSpecifications.pbxVendor"><b>Производитель
+                        оборудования</b>: {{jobModel.technicalSpecifications.pbxVendor}}
+                    </div>
+                    <div class="col-sm-12" ng-show="jobModel.technicalSpecifications.pbxModel"><b>Модель
+                        оборудования</b>:
+                        {{jobModel.technicalSpecifications.pbxModel}}
+                    </div>
+                    <div class="col-sm-12" ng-show="jobModel.technicalSpecifications.pbxLocation"><b>Координаты
+                        оборудования</b>: {{jobModel.technicalSpecifications.pbxLocation}}
+                    </div>
+                    <!--<div class="col-sm-12" ng-show="jobModel.technicalSpecifications.pbxCity"><b>Город, где находится
+                        оборудования</b>: {{jobModel.technicalSpecifications.pbxCity}}
+                    </div>
+                    <div class="col-sm-12" ng-show="jobModel.technicalSpecifications.pbxAddress"><b>Адрес (Улица, дом,
+                        этаж,
+                        где находится оборудование)</b>: {{jobModel.technicalSpecifications.pbxAddress}}
+                    </div>-->
+                    <div class="col-sm-12" ng-show="jobModel.technicalSpecifications.virtualNumbersCount"><b>Количество
+                        необходимых виртуальных номеров</b>: {{jobModel.technicalSpecifications.virtualNumbersCount}}
+                    </div>
+                    <div class="col-sm-12" ng-show="jobModel.technicalSpecifications.pbxNumbers"><b>Количество
+                        оборудования</b>: {{jobModel.technicalSpecifications.pbxNumbers}}
+                    </div>
+                    <div class="col-sm-12" ng-show="jobModel.technicalSpecifications.inOutCallAccess"><b>Входящие/Исходящие
+                        звонки</b>: {{jobModel.technicalSpecifications.inOutCallAccess}}
+                    </div>
+                    <div class="col-sm-12" ng-show="jobModel.technicalSpecifications.intenationalCallAccess"><b>Международные
+                        звонки</b>: {{jobModel.technicalSpecifications.intenationalCallAccess}}
+                    </div>
+                    <div class="col-sm-12" ng-show="jobModel.technicalSpecifications.connectionType"><b>Тип
+                        соединения</b>:
+                        {{jobModel.technicalSpecifications.connectionType}}
+                    </div>
+                    <div class="col-sm-12" ng-show="jobModel.technicalSpecifications.connectionPoint"><b>Точка
+                        соединения</b>:
+                        {{jobModel.technicalSpecifications.connectionPoint}}
+                    </div>
+                    <div class="col-sm-12 text-center" style="margin-top:10px;"
+                         ng-if="jobModel.technicalSpecifications.technicalPerson || jobModel.technicalSpecifications.technicalNumber || jobModel.technicalSpecifications.technicalEmail">
+                        <h4 class="block-headers" style="margin-bottom:18px;">Технический специалист</h4></div>
+                    <div ng-show="jobModel.technicalSpecifications.technicalPerson" class="col-md-12"><b>Контактное
+                        лицо</b>:
+                        {{jobModel.technicalSpecifications.technicalPerson}}
+                    </div>
+                    <div ng-show="jobModel.technicalSpecifications.technicalNumber" class="col-md-12"><b>Контактный
+                        телефон</b>: {{jobModel.technicalSpecifications.technicalNumber}}
+                    </div>
+                    <div ng-show="jobModel.technicalSpecifications.technicalEmail" class="col-md-12"><b>Контактный Email
+                        (для
+                        тестовых настроек)</b>: {{jobModel.technicalSpecifications.technicalEmail}}
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-12" ng-show="jobModel.files.length > 0">
+                <div class="row">
+                    <div class="col-md-12">Прикрепленные файлы:</div>
+                    <iframe id="fileDownloadIframe" style="display:none;"></iframe>
+                    <div class="col-sm-12">
+                        <div ng-repeat="file in jobModel.files track by $index">
+                            <a
+                                    ng-click="download(file)"
+                                    download="{{file.name}}">
+                                {{file.name}}</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-12" ng-if="(!jobModel.files || !jobModel.files.length) && jobModel.attachments && jobModel.attachments.length > 0">
+                <div class="row">
+                    <div class="col-md-12">Прикрепленные файлы:</div>
+                    <div class="col-sm-12">
+                        <div ng-repeat="file in jobModel.attachments track by $index">
+                            <a
+                                    ng-click="file.path.split('/')[0].indexOf('-') == -1 ? downloadTemp(file) : download(file)"
+                                    download="{{file.name}}">
+                                {{file.name}}</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+        </div>
+
+
+
+    </div>
+</div>
+</div>
+
+
+<div class="modal-footer-custom" id="modal-footer-custom">
+    <button type="button" class="btn btn-default" style="float:right;" ng-click="$dismiss()">Close</button>
+</div>

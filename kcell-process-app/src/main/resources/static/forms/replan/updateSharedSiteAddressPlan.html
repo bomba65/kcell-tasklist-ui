@@ -1,0 +1,448 @@
+<form role="form" class="form-horizontal" name="kcell_form" novalidate>
+    <script cam-script type="text/form-script">
+        inject(['$scope', '$q', '$http', '$rootScope', function ($scope, $q, $http, $rootScope) {
+            var variables = [
+                'sharingPlan',
+                'resolutions',
+                'ssidtssrFiles',
+                'rolloutJrStatus',
+                'sharingPlanStatus'
+            ];
+
+            camForm.on('form-loaded', function () {
+                variables.forEach(function (el) {
+                    camForm.variableManager.fetchVariable(el);
+                });
+                $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
+                        function(result){
+                            $scope.processInstanceId = result.data.processInstanceId;
+                        },
+                        function (error) {
+                            console.log(error.data);
+                        }
+                );
+            });
+
+            camForm.on('variables-fetched', function () {
+                variables.forEach(function (el) {
+                    if (el === 'resolutions') {
+                        if (camForm.variableManager.variables[el].value) {
+                            $scope.resolutions = angular.copy(camForm.variableManager.variables[el].value);
+                            $q.all($scope.resolutions.map(function (resolution) {
+                                return $http.get("/camunda/api/engine/engine/default/user/" + resolution.assignee + "/profile");
+                            })).then(function (profiles) {
+                                profiles.forEach(function (e, index) {
+                                    $scope.resolutions[index].assigneeName = (e.data.firstName ? e.data.firstName : "") + " " + (e.data.lastName ? e.data.lastName : "");
+                                });
+                            });
+                            $q.all($scope.resolutions.map(function (resolution) {
+                                return $http.get("/camunda/api/engine/engine/default/history/task?processInstanceId=" + resolution.processInstanceId + "&taskId=" + resolution.taskId);
+                            })).then(function (tasks) {
+                                tasks.forEach(function (e, index) {
+                                    if (e.data.length > 0) {
+                                        $scope.resolutions[index].taskName = e.data[0].name;
+                                        try {
+                                            $scope.resolutions[index].taskEndDate = new Date(e.data[0].endTime);
+                                            $scope.resolutions[index].assignDate = new Date(e.data[0].startTime);
+                                        } catch (e) {
+                                            console.log(e);
+                                        }
+                                    }
+                                });
+                            });
+                            $q.all($scope.resolutions.map(function (resolution) {
+                                return $http.get("/camunda/api/engine/engine/default/history/identity-link-log?type=assignee&taskId=" + resolution.taskId + "&operationType=add&sortBy=time&sortOrder=desc");
+                            })).then(function (logs) {
+                                logs.forEach(function (e, index) {
+                                    if(e.data.length > 0){
+                                        try {
+                                            $scope.resolutions[index].claimDate = new Date(e.data[0].time);
+                                        } catch(e){
+                                            console.log(e);
+                                        }
+                                    }
+                                });
+                            });
+                        } else {
+                            camForm.variableManager.destroyVariable('resolutions');
+                            camForm.variableManager.createVariable({
+                                name: 'resolutions',
+                                type: 'Json',
+                                value: ''
+                            });
+                        }
+                    } else if (el === 'sharingPlanStatus') {
+                        $scope[el] = camForm.variableManager.variables[el].value;
+                        $scope.sharingPlan.status = camForm.variableManager.variables[el].value;
+                    } else {
+                        $scope[el] = camForm.variableManager.variables[el].value;
+                    }
+                });
+                if(!$scope.ssidtssrFiles){
+                    $scope.ssidtssrFiles = [{file:undefined,id:undefined}];
+                } else {
+                    var files = "";
+                    $scope.ssidtssrFiles.forEach(function(file){
+                        files+="ssidtssrFile"+file.id+",";
+                    });
+                    $scope.ssidtssrFilesPrev = [];
+                    $http.get('/camunda/api/engine/engine/default/task/'+camForm.taskId+'/form-variables?deserializeValues=false&variableNames='+files).then(
+                            function(result){
+                                $scope.ssidtssrFiles.forEach(function(file, index){
+                                    if(result.data['ssidtssrFile'+file.id] && result.data['ssidtssrFile'+file.id].valueInfo){
+                                        $scope['ssidtssrFile'+file.id] = {
+                                            prev: result.data['ssidtssrFile'+file.id]
+                                        };
+                                        $scope.ssidtssrFiles[index] = $scope['ssidtssrFile'+file.id];
+                                    }
+                                });
+                            },
+                            function (error) {
+                                console.log(error.data);
+                            }
+                    );
+                }
+
+                if($scope.sharingPlan){
+                    $scope.sharingPlan.ssidtssrFiles = angular.copy($scope.ssidtssrFiles);
+                    $scope.sharingPlan.currentTask = {id:camForm.taskId};
+                    console.log($scope.sharingPlan);
+                }
+
+                camForm.variableManager.createVariable({
+                    name: 'updateSharedSiteAddressPlanResult',
+                    type: 'String',
+                    value: ''
+                });
+
+                camForm.variableManager.createVariable({
+                    name: 'updateSharedSiteAddressPlanComment',
+                    type: 'String',
+                    value: ''
+                });
+
+                camForm.variableManager.createVariable({
+                    name: 'updateSiteSharingAddressPlanResult',
+                    type: 'String',
+                    value: ''
+                });
+            });
+
+            camForm.on('submit', function () {
+                if(!$scope.resolutions){
+                    $scope.resolutions = [];
+                }
+                if($scope.updateSharedSiteAddressPlanResult !== 'updated'){
+                    camForm.variableManager.variableValue('updateSiteSharingAddressPlanResult', 'false');
+                } else {
+                    camForm.variableManager.variableValue('updateSiteSharingAddressPlanResult', 'true');
+                }
+                $scope.resolutions.push({processInstanceId: $scope.processInstanceId, assignee: $rootScope.authentication.name, resolution: $scope.updateSharedSiteAddressPlanResult, comment: $scope.updateSharedSiteAddressPlanComment, taskId: camForm.taskId});
+                camForm.variableManager.variableValue('resolutions', $scope.resolutions);
+                camForm.variableManager.variableValue('sharingPlan', $scope.sharingPlan);
+                camForm.variableManager.variableValue('updateSharedSiteAddressPlanResult', $scope.updateSharedSiteAddressPlanResult);
+                camForm.variableManager.variableValue('updateSharedSiteAddressPlanComment', $scope.updateSharedSiteAddressPlanComment);
+            });
+
+            $scope.addJrStatus = function(){
+                $scope.rolloutJrStatus.push({});
+            };
+
+            $scope.removeJrStatus = function(index){
+                $scope.rolloutJrStatus.splice(index,1);
+            };
+            $scope.saveJrStatus = function () {
+                var json = JSON.stringify( $scope.rolloutJrStatus, function( key, value ) {
+                    if( key === "$$hashKey" ) {
+                        return undefined;
+                    }
+                    return value;
+                });
+                $http.put('/camunda/api/engine/engine/default/process-instance/'+$scope.processInstanceId+'/variables/rolloutJrStatus',{"type":"Json","value": json}).then(
+                        function(){
+                        },
+                        function(error){
+                            console.log(error.data);
+                        }
+                );
+            };
+            $scope.isEditSharingPlan = false;
+
+            $scope.editSharingPlan = function(){
+                $scope.isEditSharingPlan = true;
+            };
+            $scope.removeSector = function(index){
+                $scope.sharingPlan.shared_sectors.splice(index, 1);
+            }
+            $scope.addSector = function(){
+                $scope.sharingPlan.shared_sectors.push({});
+            }
+        }]);
+
+    </script>
+    <style>
+        .sectors-table td{
+            padding: 3px;
+            vertical-align: top;
+        }
+        .sectors-table {
+            border: 1px solid #000;
+        }
+    </style>
+    <div class="form-group">
+        <div class="col-sm-12">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group row">
+                        <label class="col-sm-5 control-label">Status</label>
+                        <div class="col-sm-7">
+                            <div class="form-control">{{sharingPlan.status}}</div>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label class="col-sm-5 control-label">City</label>
+                        <div class="col-sm-7">
+                            <input type="text" class="form-control" ng-model="sharingPlan.city" />
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label class="col-sm-5 control-label">Oblast</label>
+                        <div class="col-sm-7">
+                            <input type="text" class="form-control" ng-model="sharingPlan.oblast" />
+                        </div>
+                    </div>
+                    <!--<div class="form-group row">-->
+                        <!--<label class="col-sm-5 control-label">Address</label>-->
+                        <!--<div class="col-sm-7">-->
+                            <!--<input type="text" class="form-control" ng-model="sharingPlan.address" />-->
+                        <!--</div>-->
+                    <!--</div>-->
+                    <!--div class="form-group row">
+                        <label class="col-sm-5 control-label">RollOut</label>
+                        <div class="col-sm-7">
+                            <input type="text" class="form-control" name="RollOut" ng-model="sharingPlan.rollout" required/>
+                            <label class="error" ng-show="kcell_form.RollOut.$error.required && ( kcell_form.RollOut.$touched || view.submitted)">Required field</label>
+                        </div>
+                    </div-->
+                    <div class="form-group row">
+                        <label class="col-sm-5 control-label">Host</label>
+                        <div class="col-sm-7">
+                            <!--<input type="text" class="form-control" ng-model="sharingPlan.host" required/>-->
+                            <select class="form-control" name="host" ng-model="sharingPlan.host">
+                                <option value="Beeline">Beeline</option>
+                                <option value="Kcell">Kcell</option>
+                            </select>
+                            <label class="error" ng-show="kcell_form.host.$error.required && ( kcell_form.host.$touched || view.submitted)">Required field</label>
+                        </div>
+                    </div>
+                    <!--<div class="form-group row">-->
+                    <!--<label class="col-sm-5 control-label">Site Owner</label>-->
+                    <!--<div class="col-sm-7">-->
+                    <!--<input type="text" class="form-control" ng-model="sharingPlan.site_owner" />-->
+                    <!--</div>-->
+                    <!--</div>-->
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group row">
+                        <label class="col-sm-5 control-label">Site Name</label>
+                        <div class="col-sm-7">
+                            <!--<div class="form-control">{{sharingPlan.site_name}}</div>-->
+                            <input type="text" class="form-control" name="site_name" ng-model="sharingPlan.site_name" required/>
+                            <label class="error" ng-show="kcell_form.site_name.$error.required && ( kcell_form.site_name.$touched || view.submitted)">Required field</label>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label class="col-sm-5 control-label">Site Id</label>
+                        <div class="col-sm-7">
+                            <!--<div class="form-control">{{sharingPlan.site_id}}</div>-->
+                            <input type="text" class="form-control" name="site_id" ng-model="sharingPlan.site_id" required/>
+                            <label class="error" ng-show="kcell_form.site_id.$error.required && ( kcell_form.site_id.$touched || view.submitted)">Required field</label>
+                        </div>
+                    </div>
+                    <!--div class="form-group row">
+                        <label class="col-sm-5 control-label">Site Usage Type</label>
+                        <div class="col-sm-7">
+                            <input type="text" class="form-control" name="site_usage_type" ng-model="sharingPlan.site_usage_type" required/>
+                            <label class="error" ng-show="kcell_form.site_usage_type.$error.required && ( kcell_form.site_usage_type.$touched || view.submitted)">Required field</label>
+                        </div>
+                    </div-->
+                    <div class="form-group row">
+                        <label class="col-sm-5 control-label">Infrastructure Owner</label>
+                        <div class="col-sm-7">
+                            <!--<input type="text" class="form-control" name="infrastructure_owner" ng-model="" required/>-->
+                            <select class="form-control" name="infrastructure_owner" ng-model="sharingPlan.infrastructure_owner">
+                                <option value="Beeline">Beeline</option>
+                                <option value="Kcell">Kcell</option>
+                            </select>
+                            <label class="error" ng-show="kcell_form.infrastructure_owner.$error.required && ( kcell_form.infrastructure_owner.$touched || view.submitted)">Required field</label>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label class="col-sm-5 control-label">Transport Owner</label>
+                        <div class="col-sm-7">
+                            <!--<input type="text" class="form-control" ng-model="sharingPlan.transmission_owner" required/>-->
+                            <select class="form-control" name="transmission_owner" ng-model="sharingPlan.transmission_owner">
+                                <option value="Beeline">Beeline</option>
+                                <option value="Kcell">Kcell</option>
+                            </select>
+                            <label class="error" ng-show="kcell_form.host.$error.required && ( kcell_form.host.$touched || view.submitted)">Required field</label>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label class="col-sm-5 control-label">Transport Channel Volume</label>
+                        <div class="col-sm-7">
+                            <input type="text" class="form-control" ng-model="sharingPlan.transmission_channel_volume_granted_to_partner" />
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label class="col-sm-5 control-label">Integration City</label>
+                        <div class="col-sm-7">
+                            <input type="text" class="form-control" ng-model="sharingPlan.integration_city"/>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div>
+                <button type="button" class="btn btn-default" ng-click="addSector()">
+                    <span class="glyphicon glyphicon-plus" aria-hidden="true"> Add Sector</span>
+                </button>
+            </div>
+            <table class="sectors-table">
+                <tbody ng-repeat="s in sharingPlan.shared_sectors">
+                <tr>
+                    <!--<td width="15%" style="border-right: 1px solid #000;">Sector&nbsp;Name</td>-->
+                    <td>Rollout</td>
+                    <td width="15%">Sector&nbsp;Name</td>
+                    <td>eNodeBId</td>
+                    <td>Position&nbsp;Type</td>
+                    <td>Location&nbsp;Type</td>
+                    <td>Placement&nbsp;Type</td>
+                    <td>Longitude</td>
+                    <td>Latitude</td>
+                    <td>Antenna</td>
+                    <td>Status <a class="pull-right glyphicon glyphicon-trash" ng-click="removeSector($index)"></a></td>
+                </tr>
+                <tr>
+                    <td style="padding-bottom: 10px;">
+                        <input type="text" name="{{'rollout' + $index}}" class="form-control" ng-model="s.rollout" required/>
+                        <label class="error" ng-show="kcell_form.{{'rollout' + $index}}.$error.required && ( kcell_form.{{'rollout' + $index}}.$touched || view.submitted)">Required field</label>
+                    </td>
+                    <td style="padding-bottom: 10px;">
+                        <input type="text" name="{{'sector_name' + $index}}" class="form-control" ng-model="s.sector_name" required/>
+                        <label class="error" ng-show="kcell_form.{{'sector_name' + $index}}.$error.required && ( kcell_form.{{ 'sector_name' + $index }}.$touched || view.submitted)">Required field</label>
+
+                    </td>
+                    <td style="padding-bottom: 10px;">
+                        <input type="text" class="form-control" name="{{'enodeb_id' + $index}}" ng-model="s.enodeb_id" required/>
+                        <label class="error" ng-show="kcell_form.{{'enodeb_id' + $index}}.$error.required && ( kcell_form.{{ 'enodeb_id' + $index }}.$touched || view.submitted)">Required field</label>
+                    </td>
+                    <td style="padding-bottom: 10px;"><input type="text" class="form-control" ng-model="s.position_type"/></td>
+                    <td style="padding-bottom: 10px;"><input type="text" class="form-control" ng-model="s.location_type"/></td>
+                    <td style="padding-bottom: 10px;">
+                        <input type="text" class="form-control" name="{{'placement_type' + $index}}" ng-model="s.placement_type"/>
+                        <label class="error" ng-show="kcell_form.{{'placement_type' + $index}}.$error.required && ( kcell_form.{{ 'placement_type' + $index }}.$touched || view.submitted)">Required field</label>
+                    </td>
+                    <td style="padding-bottom: 10px;">
+                        <input type="text" class="form-control" name="{{'longitude' + $index}}" ng-model="s.longitude" required/>
+                        <label class="error" ng-show="kcell_form.{{'longitude' + $index}}.$error.required && ( kcell_form.{{ 'longitude' + $index }}.$touched || view.submitted)">Required field</label>
+                    </td>
+                    <td style="padding-bottom: 10px;">
+                        <input type="text" class="form-control" name="{{'latitude' + $index}}" ng-model="s.latitude" required/>
+                        <label class="error" ng-show="kcell_form.{{'latitude' + $index}}.$error.required && ( kcell_form.{{ 'latitude' + $index }}.$touched || view.submitted)">Required field</label>
+                    </td>
+                    <td style="padding-bottom: 10px;">
+                        <input type="text" class="form-control" name="{{'antenna_type' + $index}}" ng-model="s.antenna_type" required/>
+                        <label class="error" ng-show="kcell_form.{{'antenna_type' + $index}}.$error.required && ( kcell_form.{{ 'antenna_type' + $index }}.$touched || view.submitted)">Required field</label>
+                    </td>
+                    <td style="padding-bottom: 10px;"><input type="text" class="form-control" ng-model="s.status"/></td>
+                </tr>
+                <tr>
+                    <td>Site Usage Type</td>
+                    <td>Address</td>
+                    <td>Height</td>
+                    <td>Azimuth</td>
+                    <td>Tilt&nbsp;(m/e)</td>
+                    <td>Power</td>
+                    <td>EMS&nbsp;Limits</td>
+                    <td>eNodeB&nbsp;Range</td>
+                    <td>Beeline&nbsp;Band</td>
+                    <td>Kcell&nbsp;Band</td>
+                    <td></td>
+                </tr>
+                <tr style="border-bottom: 1px solid #000;">
+                    <td style="padding-bottom: 10px;">
+                        <input type="text" name="{{'site_usage_type' + $index}}" class="form-control" ng-model="s.site_usage_type" required/>
+                        <label class="error" ng-show="kcell_form.{{'site_usage_type' + $index}}.$error.required && ( kcell_form.{{'site_usage_type' + $index}}.$touched || view.submitted)">Required field</label>
+                    </td>
+                    <td style="padding-bottom: 10px;">
+                        <input type="text" ng-model="s.address" class="form-control"/>
+                    </td>
+                    <td style="padding-bottom: 10px;">
+                        <div class="input-group">
+                            <input type="text" numbers-only class="form-control" name="{{'height' + $index}}" ng-model="s.height" placeholder="12m" required/>
+                            <span class="input-group-addon">m</span>
+                        </div>
+                        <label class="error" ng-show="kcell_form.{{'height' + $index}}.$error.required && ( kcell_form.{{ 'height' + $index }}.$touched || view.submitted)">Required field</label>
+                    </td>
+                    <td style="padding-bottom: 10px;">
+                        <div class="input-group">
+                            <input type="text" numbers-only class="form-control" name="{{'azimuth' + $index}}" ng-model="s.azimuth" placeholder="12 deg" required/>
+                            <span class="input-group-addon">deg</span>
+                        </div>
+                        <label class="error" ng-show="kcell_form.{{'azimuth' + $index}}.$error.required && ( kcell_form.{{ 'azimuth' + $index }}.$touched || view.submitted)">Required field</label>
+                    </td>
+                    <td style="padding-bottom: 10px;">
+                        <input type="text" ng-model="s.tilt" name="{{'tilt' + $index}}" class="form-control" required/>
+                        <label class="error" ng-show="kcell_form.{{'tilt' + $index}}.$error.required && ( kcell_form.{{ 'tilt' + $index }}.$touched || view.submitted)">Required field</label>
+                    </td>
+                    <td style="padding-bottom: 10px;">
+                        <div class="input-group">
+                            <input type="text" numbers-only class="form-control" name="{{'power_watt' + $index}}" ng-model="s.power_watt" placeholder="12 Watt" required/>
+                            <span class="input-group-addon">Watt</span>
+                        </div>
+                        <label class="error" ng-show="kcell_form.{{'power_watt' + $index}}.$error.required && ( kcell_form.{{ 'power_watt' + $index }}.$touched || view.submitted)">Required field</label>
+                    </td>
+                    <td style="padding-bottom: 10px;">
+                        <select class="form-control" ng-model="s.ems_limitations_info">
+                            <option value="да">да</option>
+                            <option value="нет">нет</option>
+                        </select>
+                    </td>
+                    <td style="padding-bottom: 10px;">
+                        <input type="text" numbers-only class="form-control" name="{{'enodeb_range' + $index}}" ng-model="s.enodeb_range" placeholder="20" required/>
+                        <label class="error" ng-show="kcell_form.{{'enodeb_range' + $index}}.$error.required && ( kcell_form.{{ 'enodeb_range' + $index }}.$touched || view.submitted)">Required field</label>
+                    </td>
+                    <td style="padding-bottom: 10px;">
+                        <input type="text" numbers-only class="form-control" name="{{'beeline_band' + $index}}" ng-model="s.beeline_band" placeholder="10" required/>
+                        <label class="error" ng-show="kcell_form.{{'beeline_band' + $index}}.$error.required && ( kcell_form.{{ 'beeline_band' + $index }}.$touched || view.submitted)">Required field</label>
+                    </td>
+                    <td style="padding-bottom: 10px;">
+                        <input type="text" numbers-only class="form-control" name="{{'kcell_band' + $index}}" ng-model="s.kcell_band" placeholder="10" required/>
+                        <label class="error" ng-show="kcell_form.{{'kcell_band' + $index}}.$error.required && ( kcell_form.{{ 'kcell_band' + $index }}.$touched || view.submitted)">Required field</label>
+                    </td>
+                    <td></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-4 control-label"> Modify Shared Site Address Plan Status:</label>
+        <div class="col-sm-8">
+            <label class="radio-inline">
+                <input type="radio" ng-model="updateSharedSiteAddressPlanResult" name="updateSharedSiteAddressPlanResult" value="updated" required> Updated
+            </label>
+            <label class="radio-inline">
+                <input type="radio" ng-model="updateSharedSiteAddressPlanResult" name="updateSharedSiteAddressPlanResult" value="notneeded" required> Not Needed
+            </label>
+            <label class="error" ng-show="kcell_form.updateSharedSiteAddressPlanResult.$error.required && ( kcell_form.updateSharedSiteAddressPlanResult.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-4 control-label">Comments</label>
+        <div class="col-sm-8">
+            <textarea class="form-control" ng-model="updateSharedSiteAddressPlanComment" name="updateSharedSiteAddressPlanComment" placeholder="Comments..." maxlength="500" rows="4" ng-required="updateSharedSiteAddressPlanResult !== 'completed'"></textarea>
+            <label class="error" ng-show="kcell_form.updateSharedSiteAddressPlanComment.$error.required && ( kcell_form.updateSharedSiteAddressPlanComment.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+</form>

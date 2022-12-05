@@ -1,0 +1,34 @@
+package kz.kcell.bpm.leasing;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.camunda.bpm.engine.delegate.DelegateExecution;
+import org.camunda.bpm.engine.delegate.ExecutionListener;
+import org.camunda.bpm.engine.delegate.Expression;
+import org.camunda.bpm.engine.delegate.JavaDelegate;
+import org.camunda.spin.plugin.variable.SpinValues;
+import org.camunda.spin.plugin.variable.value.JsonValue;
+
+public class DelegateSetStatus implements JavaDelegate {
+
+    Expression variable;
+    Expression value;
+    Expression label;
+
+    @Override
+    public void execute(DelegateExecution delegateExecution) throws Exception {
+
+        String variable = this.variable.getValue(delegateExecution).toString();
+        String value = this.value.getValue(delegateExecution).toString();
+        String label = this.label.getValue(delegateExecution).toString();
+
+        ObjectMapper mapper = new ObjectMapper();
+        ObjectNode status = mapper.createObjectNode();
+        status.put("value", value);
+        status.put("label", label);
+
+        JsonValue jsonValue = SpinValues.jsonValue(status.toString()).create();
+
+        delegateExecution.setVariable(variable, jsonValue);
+    }
+}

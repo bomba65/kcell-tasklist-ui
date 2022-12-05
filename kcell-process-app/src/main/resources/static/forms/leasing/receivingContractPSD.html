@@ -1,0 +1,221 @@
+<form role="form" class="form-horizontal" name="kcell_form" novalidate>
+    <script cam-script type="text/form-script" type="text/javascript">
+        inject(['$scope', '$http', 'Uri', '$rootScope', '$q', '$timeout', function ($scope, $http, Uri, $rootScope, $q, $timeout) {
+            var variables = [
+                'resolutions',
+                'ncpID',
+                'siteType',
+                'regionName',
+                'latitude',
+                'longitude',
+                'initiator',
+                'project',
+                'reason',
+                'part',
+                'plannedCabinetType',
+                'targetCoverage',
+                'rbsType',
+                'bands',
+                'rrFile',
+                'newCandidateRRFiles',
+                'candidate',
+                'cellAntenna',
+                'renterCompany',
+                'transmissionAntenna',
+                'powerSource',
+                'farEndInformation',
+                'threeFarEndNotNecessary',
+                'receivingContractPSDFiles',
+                'address',
+                'ne_tr_parameters',
+                'ne_tr_rate',
+            ];
+
+            camForm.on('form-loaded', function () {
+                variables.forEach(function (el) {
+                    camForm.variableManager.fetchVariable(el);
+                });
+                $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
+                        function(result){
+                            $scope.processInstanceId = result.data.processInstanceId;
+                            $http.get('/camunda/api/engine/engine/default/process-instance/' + $scope.processInstanceId).then(
+                                function(result){
+                                    console.log('process-instance/')
+                                    console.log(result.data)
+                                    $scope.businessKey = result.data.businessKey;
+                                },
+                                function (error) {console.log(error.data);}
+                            );
+                        },
+                        function (error) {
+                            console.log(error.data);
+                        }
+                );
+                $scope.leasingCandidate = {};
+            });
+
+            camForm.on('variables-fetched', function () {
+                $scope.receivingContractPSDFiles = [];
+                variables.forEach(function (el) {
+                    if(camForm.variableManager.variables[el].value){
+                        $scope[el] = camForm.variableManager.variables[el].value;
+                        $scope.leasingCandidate[el] = camForm.variableManager.variables[el].value;
+                    }
+                });
+                camForm.variableManager.createVariable({
+                    name: 'receivingContractPSDTaskResult',
+                    type: 'String',
+                    value: ''
+                });
+
+                camForm.variableManager.createVariable({
+                    name: 'receivingContractPSDTaskComment',
+                    type: 'String',
+                    value: ''
+                });
+
+                $scope.receivingContractPSDTaskResult = '';
+                $scope.view.variablesFetched = true;
+            });
+
+            camForm.on('submit', function () {
+                camForm.variableManager.variableValue('receivingContractPSDTaskResult', $scope.receivingContractPSDTaskResult);
+                if($scope.receivingContractPSDTaskResult === 'notReceived') {
+                    camForm.variableManager.createVariable({
+                        name: 'rentApprovalResult',
+                        type: 'String',
+                        value: 'refused'
+                    });
+                } else {
+                    camForm.variableManager.createVariable({
+                        name: 'rentApprovalResult',
+                        type: 'String',
+                        value: 'approved'
+                    });
+                }
+
+                camForm.variableManager.variableValue('receivingContractPSDTaskComment', $scope.receivingContractPSDTaskComment);
+
+                if(!camForm.variableManager.variables['receivingContractPSDFiles'].type){
+                    camForm.variableManager.destroyVariable('receivingContractPSDFiles');
+                    camForm.variableManager.createVariable({
+                        name: 'receivingContractPSDFiles',
+                        type: 'Json',
+                        value: $scope[el.name]
+                    });
+                } else {
+                    camForm.variableManager.variableValue('receivingContractPSDFiles', $scope.receivingContractPSDFiles);
+                }
+                camForm.variableManager.destroyVariable('resolutions');
+            });
+
+            $scope.fileSelected = function (el, fileName) {
+                $timeout(function () {
+                    $scope.$apply(function () {
+                        uploadFileToMinio(el.files[0], fileName);
+                    });
+                })
+            };
+
+            function uploadFileToMinio(file, fileName) {
+                var fileIndex = $scope[fileName].length;
+
+                var fileToUpload = {
+                    name: file.name.replace(/[/\\?%*:|"<>]/g, '-'),
+                    path: $scope.processInstanceId + '/' + camForm.taskId + '/' + file.name.replace(/[/\\?%*:|"<>]/g, '-')
+                };
+                $http({
+                    method: 'GET',
+                    url: '/camunda/uploads/put/' + fileToUpload.path,
+                    transformResponse: []
+                }).then(function (response) {
+                    $http.put(response.data, file, {headers: {'Content-Type': undefined}}).then(
+                            function () {
+                                $scope[fileName].push(fileToUpload);
+                                angular.element(document.querySelector('#' + fileName)).val(null);
+                            },
+                            function (error) {
+                                console.log(error.data);
+                            }
+                    );
+                }, function(error){
+                    console.log(error.data);
+                });
+            }
+
+            $scope.clearFile = function (list, fileIndex) {
+                $scope[list].splice(fileIndex, 1);
+            }
+
+            $scope.fileDownload = function (file) {
+                $http({
+                    method: 'GET',
+                    url: '/camunda/uploads/get/' + file.path,
+                    transformResponse: []
+                }).then(function (response) {
+                    document.getElementById('fileDownloadIframe').src = response.data;
+                }, function(error){
+                    console.log(error.data);
+                });
+            }
+        }]);
+
+    </script>
+    <div class="form-group">
+        <label class="col-sm-12 control-label">
+            <p/> <b>Business key: </b>{{businessKey}}
+        </label>
+    </div>
+     <leasing-candidate ng-if="view.variablesFetched" leasing-candidate="leasingCandidate"></leasing-candidate>
+
+    <iframe id="fileDownloadIframe" style="display:none;"></iframe>
+
+    <div class="form-group">
+        <label class="col-md-4 control-label">Download RR:</label>
+        <div class="col-sm-8">
+            <a ng-click="fileDownload(rrFile)">{{rrFile.name}}</a>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-md-4 control-label">RR files:</label>
+        <div class="col-sm-8">
+            <div ng-show="newCandidateRRFiles.length > 0" class="input-group" ng-repeat="file in newCandidateRRFiles">
+                {{$index + 1}}.
+                <a ng-click="fileDownload(file)">{{file.name}}</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label class="col-md-4 control-label">Upload files:</label>
+        <div class="col-sm-8">
+            <div ng-show="receivingContractPSDFiles.length > 0" class="input-group" ng-repeat="file in receivingContractPSDFiles">
+                {{$index + 1}}.
+                <a ng-click="fileDownload(file)">{{file.name}}</a> | <a ng-click="clearFile('receivingContractPSDFiles', $index)"><i class="glyphicon glyphicon-trash"></i></a>
+            </div>
+            <input type="file" class="form-control" id="receivingContractPSDFiles" name="receivingContractPSDFiles" ng-model="file.file" onchange="angular.element(this).scope().fileSelected(this, 'receivingContractPSDFiles')"/>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label class="col-sm-4 control-label">Contract a PSD for candidate site</label>
+        <div class="col-sm-8">
+            <label class="radio-inline">
+                <input type="radio" name="receivingContractPSDTaskResult" ng-model="receivingContractPSDTaskResult" value="received" required> Received
+            </label>
+            <label class="radio-inline">
+                <input type="radio" name="receivingContractPSDTaskResult" ng-model="receivingContractPSDTaskResult" value="notReceived" required> Not received
+            </label>
+            <label class="error" ng-show="kcell_form.receivingContractPSDTaskResult.$error.required && ( kcell_form.receivingContractPSDTaskResult.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label class="col-sm-4 control-label">Comments</label>
+        <div class="col-sm-8">
+            <textarea class="form-control" ng-model="receivingContractPSDTaskComment" name="receivingContractPSDTaskComment" placeholder="Comments..." maxlength="500" rows="4" style="resize:none"
+                      ng-required="receivingContractPSDTaskResult == 'notReceived'"></textarea>
+            <label class="error" ng-show="kcell_form.receivingContractPSDTaskComment.$error.required && ( kcell_form.receivingContractPSDTaskComment.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+</form>

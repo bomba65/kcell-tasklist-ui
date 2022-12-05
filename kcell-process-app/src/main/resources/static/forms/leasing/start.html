@@ -1,0 +1,723 @@
+<form role="form" class="form-horizontal" name="kcell_form" novalidate>
+    <style>
+        .background-yellow-accordion {
+            background-color: #ffffcc;
+            border: 1px solid #b3b3b3;
+            color: #333;
+            padding: 10px;
+        }
+
+    </style>
+    <script cam-script type="text/form-script" type="text/javascript">
+        inject(['$scope', '$http', 'Uri', '$rootScope', '$q', '$timeout', function ($scope, $http, Uri, $rootScope, $q, $timeout) {
+            camForm.on('form-loaded', function () {
+                var currentDate = new Date();
+                $scope.finalBands = {};
+                $scope.bands = [];
+                $scope.dictionary = {};
+                $scope.project = undefined;
+                $scope.filteredRbsTypes = [];
+                $scope.latitudePattern = '(4([1-9]{1}.[0-9]{6}|0.([6-9]{1}[0-9]{5}|5([7-9]{1}[0-9]{4}|6(9[0-9]{3}|8[0-9]{3}))))|5([0-4]{1}.[0-9]{6}|5.([0-3]{1}[0-9]{5}|4([0-3]{1}[0-9]{4}|40000))))';
+                $scope.longitudePattern = '([5-7]{1}[0-9]{1}.[0-9]{6}|4([7-9]{1}.[0-9]{6}|6.([5-9]{1}[0-9]{5}|49([4-9]{1}|3)[0-9]{3}))|8([0-6]{1}.[0-9]{6}|7.([0-2]{1}[0-9]{5}|3(0[0-9]{4}|1([0-4]{1}[0-9]{3}|5000)))))';
+
+
+                $scope.bandsForUDB = {
+                    "G900" : "1",
+                    "G1800" : "2",
+                    "U900" : "386",
+                    "U2100" : "201",
+                    "L800" : "325",
+                    "L1800" : "347",
+                    "L2100" : "201",
+                    "L2600" : "385",
+                    "G900+G1800" : "301",
+                    "G900+U2100" : "302",
+                    "G1800+U2100" : "303",
+                    "G900+G1800+U2100" : "304",
+                    "G1800+U2100+L800+L1800" : "346",
+                    "L800+L1800+L2100" : "365",
+                    "G900+G1800+U2100+L800" : "345",
+                    "G900+L800" : "405",
+                    "G900+L1800" : "406",
+                    "G900+L2100" : "407",
+                    "G1800+L800" : "408",
+                    "G1800+L1800" : "409",
+                    "G1800+L2100" : "410",
+                    "U2100+L800" : "411",
+                    "U2100+L1800" : "412",
+                    "U2100+L2100" : "413",
+                    "L800+L1800" : "414",
+                    "L800+L2100" : "415",
+                    "L1800+L2100" : "416",
+                    "G900+G1800+L800" : "417",
+                    "G900+G1800+L1800" : "418",
+                    "G900+G1800+L2100" : "419",
+                    "G900+U2100+L800" : "420",
+                    "G900+U2100+L1800" : "421",
+                    "G900+U2100+L2100" : "422",
+                    "G900+L800+L1800" : "423",
+                    "G900+L800+L2100" : "424",
+                    "G900+L1800+L2100" : "425",
+                    "G1800+U2100+L800" : "426",
+                    "G1800+U2100+L1800" : "427",
+                    "G1800+U2100+L2100" : "428",
+                    "G1800+L800+L1800" : "429",
+                    "G1800+L800+L2100" : "430",
+                    "G1800+L1800+L2100" : "431",
+                    "U2100+L800+L1800" : "432",
+                    "U2100+L800+L2100" : "433",
+                    "U2100+L1800+L2100" : "434",
+                    "G900+G1800+U2100+L1800" : "435",
+                    "G900+G1800+U2100+L2100" : "436",
+                    "G900+G1800+L800+L1800" : "437",
+                    "G900+G1800+L800+L2100" : "438",
+                    "G900+G1800+L1800+L2100" : "439",
+                    "G900+U2100+L800+L1800" : "440",
+                    "G900+U2100+L800+L2100" : "441",
+                    "G900+U2100+L1800+L2100" : "442",
+                    "G900+L800+L1800+L2100" : "444",
+                    "G1800+U2100+L800+L2100" : "445",
+                    "G1800+U2100+L1800+L2100" : "446",
+                    "G1800+L800+L1800+L2100" : "447",
+                    "U2100+L800+L1800+L2100" : "448",
+                    "G900+G1800+U2100+L800+L1800" : "449",
+                    "G900+G1800+U2100+L800+L2100" : "450",
+                    "G900+G1800+U2100+L1800+L2100" : "451",
+                    "G900+G1800+L800+L1800+L2100" : "452",
+                    "G900+U2100+L800+L1800+L2100" : "453",
+                    "G1800+U2100+L800+L1800+L2100" : "454",
+                    "G900+G1800+U2100+L800+L1800+L2100" : "455"};
+
+                $http.get('/api/leasingCatalogs?version=4').then(
+                    function(result){
+                        angular.extend($scope.dictionary, result.data);
+                        $scope.dictionary.rbsTypes = [];
+                        $scope.bands = $scope.dictionary.bands;
+                        $scope.years = $scope.dictionary.part;
+
+                        $http.get('/camunda/catalogs/api/get/id/2').then(
+                            function(result){
+                                $scope.newSitesMap = {};
+                                $scope.newInitiatorsMap = {};
+                                result.data.data.$list.forEach(function(item) {
+                                    $scope.newSitesMap[item.id] = item.value;
+                                });
+
+                                $http.get('/camunda/catalogs/api/get/id/7').then(
+                                    function(resultInitiators){
+                                        var newProjectsStructure = [];
+                                        var newProjectsIndex = {};
+                                        resultInitiators.data.data.$list.forEach(function(item, index) {
+                                            $scope.newInitiatorsMap[item.id] = item.value;
+                                            newProjectsStructure.push({initiator: item.value, project: []});
+                                            newProjectsIndex[item.id] = index;
+                                        });
+                                        $http.get('/camunda/catalogs/api/get/id/8').then(
+                                            function(resultProjects){
+                                                resultProjects.data.data.$list.forEach(function(item) {
+                                                    if(item.Initiator) {
+                                                        var tempItem = {
+                                                            name: item.value,
+                                                            assetId: item.id,
+                                                        };
+                                                        if(item.udb_id) {
+                                                            tempItem.id = item.udb_id.value;
+                                                        }
+                                                        item.Initiator.value.forEach(function(initiatorValue){
+                                                            newProjectsStructure[newProjectsIndex[initiatorValue]].project.push(tempItem);
+                                                        });
+                                                    }
+                                                });
+                                                $scope.dictionary.projects = newProjectsStructure;
+                                            },
+                                            function(error){
+                                                console.log(error);
+                                            }
+                                        );
+                                    },
+                                    function(error){
+                                        console.log(error);
+                                    }
+                                );
+                                $http.get('/camunda/catalogs/api/get/id/11').then(
+                                    function(resultRbsTypes){
+                                        var newRbsTypes = [];
+                                        resultRbsTypes.data.data.$list.forEach(function(item) {
+                                            var tempItem = {
+                                                "assetsId": item.id,
+                                                "rbsType": item.value,
+                                            };
+                                            if(item.udb_id) {
+                                                tempItem.id = item.udb_id.value;
+                                            }
+                                            if(item.Site_type) {
+                                                tempItem.siteType = $scope.newSitesMap[item.Site_type.value];
+                                            }
+                                            if(item.udb_id) {
+                                                tempItem.udbid = item.udb_id;
+                                            }
+                                            newRbsTypes.push(tempItem);
+                                        });
+                                        console.log(newRbsTypes);
+                                        $scope.dictionary.rbsType = newRbsTypes;
+                                        console.log($scope.dictionary.rbsType);
+                                        $scope.filteredRbsTypes = $scope.dictionary.rbsType;
+                                    },
+                                    function(error){
+                                        console.log(error);
+                                    }
+                                );
+                            },
+                            function(error){
+                                console.log(error);
+                            }
+                        );
+
+                        $http.post('/camunda/catalogs/api/get/rolloutcatalogids', [1, 2, 3, 5, 6, 7, 8, 10, 12]).then(
+                                function(res){
+                                    $scope.dictionary.part = res.data.part;
+                                    $scope.years = $scope.dictionary.part;
+                                    $scope.dictionary.initiators = res.data.ncp_initiator;
+                                    $scope.dictionary.rbs_cabinet_type = res.data.rbs_cabinet_type;
+                                    $scope.dictionary.regions = [];
+
+                                    for (let i = 0; i < res.data.regions.length ; i++ ) {
+                                        let r = res.data.regions[i];
+
+                                        var newR = {};
+                                        newR.code = r.id;
+                                        newR.name = r.name;
+                                        newR.catalogsId = r.catalogsId;
+
+                                        switch(r.name) {
+                                            case 'Astana':
+                                                newR.id = 'astana';
+                                                newR.code = '2';
+                                                break;
+                                            case 'Almaty':
+                                                newR.id = 'almaty';
+                                                break;
+                                            case 'East':
+                                                newR.id = 'east';
+                                                break;
+                                            case 'North & Central':
+                                                newR.id = 'nc';
+                                                break;
+                                            case 'South':
+                                                newR.id = 'south';
+                                                break;
+                                            case 'West':
+                                                newR.id = 'west';
+                                                break;
+                                            default:
+                                                console.log('not found region id')
+                                                break;
+                                        }
+                                        $scope.dictionary.regions.push(newR);
+
+                                    }
+                                    $scope.newBands = res.data.ncp_bands
+                                },
+                                function(error){
+                                    console.log(error);
+                                }
+                        );
+
+
+                    },
+                    function(error){
+                        console.log(error);
+                    }
+                );
+
+                camForm.variableManager.createVariable({
+                    name: 'bands',
+                    value: [],
+                    type: 'Json'
+                });
+
+                camForm.variableManager.createVariable({
+                    name: 'regionName',
+                    value: '',
+                    type: 'String'
+                });
+                camForm.variableManager.createVariable({
+                    name: 'regionCode',
+                    value: '',
+                    type: 'String'
+                });
+                camForm.variableManager.createVariable({
+                    name: 'regionCatalogId',
+                    value: '',
+                    type: 'String'
+                });
+            });
+
+            camForm.on('submit', function (evt) {
+                // evt.submitPrevented = true;
+                camForm.variableManager.variableValue('bands', $scope.selectedBands);
+                camForm.variableManager.variableValue('regionName', $scope.regionName);
+                camForm.variableManager.variableValue('regionCode', $scope.regionCode);
+                camForm.variableManager.variableValue('regionCatalogId', $scope.regionCatalogId);
+
+                camForm.variableManager.createVariable({
+                    name: 'resolutions',
+                    type: 'Json',
+                    value: []
+                });
+                camForm.variableManager.createVariable({
+                    name: 'part',
+                    type: 'Json',
+                    value: $scope.part
+                });
+                camForm.variableManager.createVariable({
+                    name: 'plannedCabinetTypeIdForUDB',
+                    type: 'String',
+                    value: $scope.plannedCabinetType === 'Indoor' ? '182' : '24'
+                });
+                camForm.variableManager.createVariable({
+                    name: 'initiator',
+                    type: 'Json',
+                    value: $scope.initiator
+                });
+                camForm.variableManager.createVariable({
+                    name: 'siteType',
+                    type: 'Json',
+                    value: $scope.siteType
+                });
+                camForm.variableManager.createVariable({
+                    name: 'rbsType',
+                    type: 'String',
+                    value: $scope.rbsType
+                });
+                camForm.variableManager.createVariable({
+                    name: 'rbsTypeId',
+                    type: 'String',
+                    value: $scope.rbsTypeId
+                });
+                camForm.variableManager.createVariable({
+                    name: 'planingInput',
+                    type: 'String',
+                    value: 'fromStart'
+                });
+                camForm.variableManager.createVariable({
+                    name: 'bandsIdForUDB',
+                    type: 'String',
+                    value: $scope.bandsIdForUDB
+                });
+                camForm.variableManager.createVariable({
+                    name: 'bandsIdFromCatalogs',
+                    type: 'Json',
+                    value: $scope.bandsIdFromCatalogs
+                });
+                camForm.variableManager.createVariable({
+                    name: 'plannedCabinetType',
+                    type: 'String',
+                    value: $scope.plannedCabinetType
+                });
+                if($scope.project){
+                    camForm.variableManager.createVariable({
+                        name: 'project',
+                        value: $scope.project,
+                        type: 'Json'
+                    });
+                    //for search
+                    camForm.variableManager.createVariable({
+                        name: 'projectForSearch',
+                        type: 'String',
+                        value: $scope.project.id
+                    });
+                }
+                if ($scope.reason) {
+                    camForm.variableManager.createVariable({
+                        name: 'reason',
+                        value: $scope.reason,
+                        type: 'Json'
+                    });
+                    //for search
+                    camForm.variableManager.createVariable({
+                        name: 'reasonForSearch',
+                        type: 'String',
+                        value: $scope.reason.id
+                    });
+                }
+
+                //for search
+                camForm.variableManager.createVariable({
+                    name: 'siteTypeForSearch',
+                    type: 'String',
+                    value: $scope.siteType.id
+                });
+                camForm.variableManager.createVariable({
+                    name: 'initiatorForSearch',
+                    type: 'String',
+                    value: $scope.initiator.id
+                });
+                camForm.variableManager.createVariable({
+                    name: 'siteRegion',
+                    value: $scope.region === 'almaty' ? 'alm' : $scope.region,
+                    type: 'String'
+                });
+                if ($scope.selectedBands && $scope.selectedBands.length > 0) {
+                    var bandValues = ',';
+                    angular.forEach($scope.selectedBands, function (sb) {
+                        bandValues = bandValues + sb.title + ',';
+                    });
+                    camForm.variableManager.createVariable({
+                        name: 'bandsJoinedByComma',
+                        type: 'String',
+                        value: bandValues
+                    });
+                }
+            });
+
+            $scope.$watch('bands', function (bands) {
+                $scope.selectedBands = [];
+                bands.forEach(function (b) {
+                    if (b.value) {
+                        $scope.selectedBands.push(b)
+                    }
+                })
+                $scope.selectedBandsString = ''
+                if ($scope.selectedBands.length > 0) {
+                    $scope.selectedBands.forEach((b, i) => {
+                        $scope.selectedBandsString = $scope.selectedBandsString + (i > 0 ? '+' : '') + b.title
+                    })
+                    $scope.bandsIdForUDB = $scope.bandsForUDB[$scope.selectedBandsString] ? $scope.bandsForUDB[$scope.selectedBandsString] : null
+                    $scope.bandsIdFromCatalogs = $scope.newBands.find(b => { return b.name === $scope.selectedBandsString})
+                }
+            }, true);
+
+            $scope.$watch('siteType', function (siteType) {
+                if(siteType && $scope.dictionary){
+                    $scope.rbsTypeObj = undefined;
+                    if (siteType && siteType.name.includes('GSite') && $scope.dictionary.rbsType) {
+                        $scope.filteredRbsTypes = $scope.dictionary.rbsType.filter(t => {return t.siteType === siteType.name});
+                    } else {
+                        $scope.filteredRbsTypes = $scope.dictionary.rbsType;
+                    }
+                }
+            }, true);
+
+            $scope.preSubmit = function () {
+                var deferred = $q.defer();
+        // ncpId check
+                return $http({
+                    method: 'GET',
+                    url: '/camunda/leasing/ncpCheck/' + $scope.ncpID,
+                    transformResponse: []
+                }).then(function (response) {
+                    if (response.status === 200) {
+                        // console.log("response.status === 200")
+                        var currentDate = new Date();
+                        var regionStr = '';
+                        if ($scope.regionCode === "1") {
+                            regionStr = "Alm";
+                        } else if ($scope.regionCode === "2") {
+                            regionStr = "N&C";
+                        } else if ($scope.regionCode === "3") {
+                            regionStr = "East";
+                        } else if ($scope.regionCode === "4") {
+                            regionStr = "South";
+                        } else if ($scope.regionCode === "5") {
+                            regionStr = "West";
+                        } else if ($scope.regionCode === "0") {
+                            regionStr = "Ast";
+                        }
+                        var rolloutCounter = 'ROLLOUT-' + currentDate.getFullYear().toString();
+                        return $http.post('/camunda/rolloutcounter/' + rolloutCounter).then(
+                                function (result) {
+                                    var businessKey = 'RO-' + regionStr + '-' + $scope.ncpID  + '-' + currentDate.getFullYear().toString() + '-' + result.data;
+                                    camForm.businessKey = businessKey;
+                                }
+                        );
+                        deferred.resolve();
+                        return deferred.promise;
+                    } else {
+                        deferred.reject('что-то пошло не так...');
+                        return deferred.promise;
+                    }
+                }, function(error){
+                    console.log("error:")
+                    console.log(error)
+                    if (error.status === 409) {
+                        console.log("error.status === 409")
+                        deferred.reject('NCP ID with id ' + $scope.ncpID + ' alreaty exist');
+                        return deferred.promise;
+                    } else console.log(error.data);
+                });
+          }
+
+     $scope.$watch('initiator', function (initiator) {
+        if(initiator && $scope.dictionary){
+            $scope.projectsByInitiator = {};
+            $scope.reasonsByProject = [];
+            $scope.projectsByInitiator = _.find($scope.dictionary.projects, function (p) {
+                return p.initiator === initiator.name;
+            })
+        }
+     }, true);
+
+     $scope.$watch('ncpID', function (ncpID) {
+         if(ncpID && ncpID.length === 5){
+
+             var firstElement = ncpID.charAt(0);
+             var secondElement = ncpID.charAt(1);
+             if (firstElement === '0') {
+                 $scope.region = 'almaty';
+             } else if (firstElement === '1' && secondElement === '1'){
+                $scope.region = 'astana';
+             } else if (firstElement === '1' || firstElement === '2') {
+                 $scope.region = 'nc';
+             } else if (firstElement === '3') {
+                 $scope.region = 'east';
+             } else if (firstElement === '4') {
+                 $scope.region = 'south';
+             } else if (firstElement === '5' || firstElement === '6' || firstElement === '7' || firstElement === '8') {
+                 $scope.region = 'west';
+             } else if (firstElement === '9') {
+                 $scope.region = undefined;
+             }
+
+             if (firstElement !== '9') {
+                 $scope.regionSelected($scope.region);
+             }
+         }
+     }, true);
+
+     $scope.regionSelected = function (region) {
+        if(region && $scope.dictionary){
+            var found = _.find($scope.dictionary.regions, function (r) {
+                 return r.id === region;
+            });
+            if(found){
+                $scope.regionName = found.name;
+                $scope.regionCode = found.code;
+                $scope.regionCatalogId = found.catalogsId;
+            }
+        }
+     }
+
+     $scope.types = function (rbsType) {
+         return Number(rbsType);
+     }
+     $scope.setRbsType = function (rbsTypeObj) {
+        if(rbsTypeObj){
+            $scope.rbsType = rbsTypeObj.rbsType;
+            $scope.rbsTypeId = rbsTypeObj.id;
+        }
+     }
+
+
+ }]);
+
+
+</script>
+    <div>
+        <h4>Create NCP</h4>
+    </div>
+    <div class="background-yellow-accordion">
+        <div class="form-group">
+            <label class="col-sm-4 control-label">NCP ID:</label>
+            <div class="col-sm-4">
+                <input class="form-control" id="ncpID" name="ncpID" required ng-model="ncpID" cam-variable-name="ncpID"
+                       cam-variable-type="String" limit-to="5" numbers-only>
+                <label class="error"
+                       ng-show="kcell_form.ncpID.$error.required && ( kcell_form.ncpID.$touched || view.submitted)">Required
+                    field</label>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-4 control-label">Type:</label>
+            <div class="col-sm-4">
+                <select class="form-control" id="siteType" name="siteType"
+                        ng-model="siteType"
+                        required>
+                    <option value="" disabled selected hidden>Select Site type</option>
+                    <option ng-repeat="type in dictionary.siteType" ng-value="type">{{type.name}}</option>
+                </select>
+                <label class="error"
+                       ng-show="kcell_form.siteType.$error.required && ( kcell_form.siteType.$touched || view.submitted)">Required
+                    field</label>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-4 control-label">Region name:</label>
+            <div class="col-sm-4">
+                <select class="form-control" id="region" name="region"
+                        cam-variable-name="region" cam-variable-type="String"
+                        ng-model="region"
+                        ng-change="regionSelected(region)"
+                        required ng-disabled="!ncpID.startsWith('9')">
+                    <option value="{{r.id}}" ng-repeat="r in dictionary.regions" ng-selected="{{r.id == region}}">
+                        {{r.name}}
+                    </option>
+                </select>
+                <label class="error"
+                       ng-show="kcell_form.region.$error.required && ( kcell_form.region.$touched || view.submitted)">Required
+                    field</label>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-4 control-label">Latitude:</label>
+            <div class="col-sm-4">
+                <input class="form-control" id="latitude" placeholder="ХХ.ХХХХХХ" name="latitude"
+                       ng-pattern="latitudePattern" required ng-model="latitude" cam-variable-name="latitude"
+                       maxlength="11" cam-variable-type="String">
+                <label class="error"
+                       ng-show="kcell_form.latitude.$error.required && ( kcell_form.latitude.$touched || view.submitted)">Required
+                    field</label>
+                <!-- <label class="error" ng-show="invalidLatitude">Latitude must be in [40.568, 55.440] range</label>-->
+                <label class="error"
+                       ng-if="kcell_form.latitude.$error.pattern && ( kcell_form.latitude.$touched || view.submitted)">Expected: 40.568000 <- Latitude <- 55.440000</label>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-4 control-label">Longitude:</label>
+            <div class="col-sm-4">
+                <input class="form-control" id="longitude" placeholder="ХХ.ХХХХХХ" name="longitude"
+                       ng-pattern="longitudePattern" required ng-model="longitude" cam-variable-name="longitude"
+                       maxlength="11" cam-variable-type="String">
+                <label class="error"
+                       ng-show="kcell_form.longitude.$error.required && ( kcell_form.longitude.$touched || view.submitted)">Required
+                    field</label>
+                <!--<label class="error" ng-show="invalidLongitude">Longitude must be in [46.493, 87.315] range</label>-->
+                <label class="error"
+                       ng-if="kcell_form.longitude.$error.pattern && ( kcell_form.longitude.$touched || view.submitted)">Expected: 46.493000 <- Longitude <-87.315000</label>
+
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-4 control-label">Initiator:</label>
+            <div class="col-sm-4">
+                <select class="form-control" id="initiator" name="initiator"
+                        ng-model="initiator"
+                        required>
+                    <option value="" disabled selected hidden>Select Initiator</option>
+                    <option ng-repeat="i in dictionary.initiators" ng-value="i">{{i.name}}</option>
+                </select>
+                <label class="error"
+                       ng-show="kcell_form.initiator.$error.required && ( kcell_form.initiator.$touched || view.submitted)">Required
+                    field</label>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label class="col-sm-4 control-label">Project:</label>
+            <div class="col-sm-4">
+                <select class="form-control" id="project" name="project"
+                        ng-disabled="!projectsByInitiator"
+                        ng-model="project"
+                        ng-required="projectsByInitiator">
+                    <option ng-repeat="pr in projectsByInitiator.project" ng-value="pr">{{pr.name}}</option>
+                </select>
+                <label class="error"
+                       ng-show="kcell_form.project.$error.required && ( kcell_form.project.$touched || view.submitted)">Required
+                    field</label>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label class="col-sm-4 control-label">Reason:</label>
+            <div class="col-sm-4">
+                <select class="form-control" id="reason" name="reason"
+                        ng-model="reason"
+                        required>
+                    <option ng-repeat="r in dictionary.reasons" ng-value="r">{{r.reason}}</option>
+                </select>
+                <label class="error"
+                       ng-show="kcell_form.reason.$error.required && ( kcell_form.reason.$touched || view.submitted)">Required
+                    field</label>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label class="col-sm-4 control-label">Part:</label>
+            <div class="col-sm-4">
+                <select class="form-control" id="part" name="part"
+                        ng-model="part"
+                        required>
+                    <option value="" disabled selected hidden></option>
+                    <option ng-repeat="y in years" ng-value="y">{{y.name}}</option>
+                </select>
+                <label class="error"
+                       ng-show="kcell_form.part.$error.required && ( kcell_form.part.$touched || view.submitted)">Required
+                    field</label>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label class="control-label col-sm-4">Target Coverage:</label>
+            <div class="col-sm-4" style="margin-top: 5px">
+                <textarea style="resize:vertical;" class="form-control" rows="4" maxlength="500" name="targetCoverage"
+                          cam-variable-name="targetCoverage" cam-variable-type="String"
+                          ng-model="targetCoverage"></textarea>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label class="col-sm-4 control-label">Planned cabinet type:</label>
+            <div class="col-sm-4">
+                <select class="form-control" id="plannedCabinetType" name="plannedCabinetType"
+                        ng-model="plannedCabinetType"
+                        required>
+                    <option value="" disabled selected hidden>Select Cabinet type</option>
+                    <option ng-repeat="c in dictionary.rbs_cabinet_type" ng-value="c.name">{{c.name}}
+                </select>
+                <label class="error"
+                       ng-show="kcell_form.plannedCabinetType.$error.required && ( kcell_form.plannedCabinetType.$touched || view.submitted)">Required
+                    field</label>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label class="col-sm-4 control-label">RBS type:</label>
+            <div class="col-sm-4">
+                <select class="form-control" id="rbsType" name="rbsType"
+                        ng-model="rbsTypeObj" ng-change="setRbsType(rbsTypeObj)" required>
+                    <option value="" disabled selected hidden>Select RBS type</option>
+                    <option ng-repeat="r in filteredRbsTypes | orderBy: rbsType" ng-value="r">{{r.rbsType}} {{(siteType && siteType.name.includes('GSite') ? '' : '- ' + r.siteType )}}
+                    </option>
+                </select>
+                <label class="error"
+                       ng-show="kcell_form.rbsType.$error.required && ( kcell_form.rbsType.$touched || view.submitted)">Required
+                    field</label>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-4 control-label">Bands:</label>
+            <div class="col-sm-4">
+                <div class="form-check col-sm-6" ng-repeat="band in bands track by $index">
+                    <input type="checkbox" name="bandValues" ng-model="band.value" class="form-check-input"
+                           id="{{'check' + $index}}" ng-required="!selectedBands || selectedBands.length==0">
+                    <label class="form-check-label" for="{{'check' + $index}}">{{ band.title }}</label>
+                </div>
+                <label class="error"
+                       ng-show="kcell_form.bandValues.$error.required && ( kcell_form.bandValues.$touched || view.submitted)">Required
+                    field</label>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-4 control-label">Selected bands:</label>
+            <div class="col-sm-4">
+                <span ng-repeat="band in selectedBands">{{$index == 0?' ': ' + ' }}{{band.title}}</span>
+                <input class="form-control" ng-hide="true" id="bandsIdForUDB" name="bandsIdForUDB" required
+                       ng-model="bandsIdForUDB">
+                <label class="error"
+                       ng-show="kcell_form.bandsIdForUDB.$error.required && ( kcell_form.bandsIdForUDB.$touched || view.submitted)">Недопустимое
+                    значение</label>
+            </div>
+        </div>
+
+
+    </div>
+
+    <div class="form-group" style="margin-top:10px;">
+        <label class="control-label col-sm-4">Comments:</label>
+        <div class="col-sm-8" style="margin-top: 5px">
+            <textarea style="resize:vertical;" class="form-control" rows="4" maxlength="500" name="createNCPTaskComment"
+                      cam-variable-name="createNCPTaskComment" cam-variable-type="String"
+                      ng-model="createNCPTaskComment"></textarea>
+        </div>
+    </div>
+</form>

@@ -1,0 +1,804 @@
+<style>
+    .well {
+        color: #333;
+    }
+</style>
+<form role="form" class="form-horizontal" name="kcell_form" novalidate>
+    <script cam-script type="text/form-script">
+        inject(['$scope', '$http', 'Uri', '$rootScope', '$q', 'Upload', '$timeout', 'exModal', function ($scope, $http, Uri, $rootScope, $q, Upload, $timeout, exModal) {
+            var variables = [
+                'requestedDate',
+                'jrNumber',
+                'initiatorFull',
+                'validityDate',
+                'soaComplaintId',
+                'site',
+                'siteName',
+                'siteAddress',
+                'site_name',
+                'reason',
+                'contract',
+                'contractor',
+                'materialsRequired',
+                'leasingRequired',
+                'powerRequired',
+                'project',
+                'supplementaryFiles',
+                'explanation',
+                'jobWorks',
+                'sapPRFileXLS',
+                'sapPRNo',
+                'kcellWarehouseMaterialsList',
+                'contractorZIPWarehouseMaterialsList',
+                'kcellWarehouseMaterialsListName',
+                'kcellWarehouseMaterialsAdditionalList',
+                'contractorZIPWarehouseMaterialsListName',
+                'sapTransferRequestFile',
+                'resolutions',
+                'actOfMaterialsDispatchingFile',
+                'actOfMaterialsDispatchingFileName',
+                'actOfMaterialsDispatchingFiles',
+                'jrBlank',
+                'tssrssidFile',
+                'tssrssidFileName',
+                'trFilesName',
+                'trAdditionalFilesName',
+                'trFiles',
+                'siteWorksFiles',
+                'initiatorFiles',
+                'maintananceFiles',
+                'planningFiles',
+                'priority',
+                'performDate',
+                'mlApprovalAdditionalInfoFile',
+                'delayInfo',
+                'acceptanceDate',
+                'contractorJobAssignedDate',
+                'mainContract',
+                'siteRegion',
+                'rolloutRO2Delay',
+                'rolloutRO3Delay',
+                'rolloutRO4Delay',
+                'contains13Work',
+                'contractorAttachesMaterialListTaskResult',
+                'siteWorksPhotoFiles'
+            ];
+            $scope.jobModel = {};
+            var workFiles = [];
+            var newFiles = [];
+
+            $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
+                    function(result){
+                        $scope.processInstanceId = result.data.processInstanceId;
+
+                        $http({
+                            method: 'POST',
+                            headers: {'Accept': 'application/hal+json, application/json; q=0.5'},
+                            data: {
+                                taskDefinitionKeyIn: ['set_materials_dispatch_status','UserTask_1g0uit4','accept_work_initiator','UserTask_1i7na4a'],
+                                processInstanceId: $scope.processInstanceId
+                            },
+                            url: '/camunda/api/engine/engine/default/history/task'
+                        }).then(function (res) {
+                            var validateTr = _.maxBy(_.filter(res.data, function(task){
+                                return task.taskDefinitionKey === 'set_materials_dispatch_status' || task.taskDefinitionKey === 'UserTask_1g0uit4';
+                            }), function(o) { return o.startTime; });
+
+                            if(validateTr){
+                                $scope.materialListSignedDate  = new Date(validateTr.startTime);
+                            }
+
+                            var acceptWorkInitiator = _.maxBy(_.filter(res.data, function(task){
+                                return task.taskDefinitionKey === 'accept_work_initiator' || task.taskDefinitionKey === 'UserTask_1i7na4a';
+                            }), function(o) { return o.startTime; });
+
+                            if(acceptWorkInitiator){
+                                $scope.acceptWorkStartTime = new Date(acceptWorkInitiator.startTime);
+                            }
+                        });
+                    },
+                    function (error) {
+                        console.log(error.data);
+                    }
+            );
+            camForm.on('form-loaded', function () {
+                variables.forEach(function (el) {
+                    camForm.variableManager.fetchVariable(el);
+                });
+
+                $http.get($rootScope.getCatalogsHttpByName('catalogs')).then(
+                        function (result) {
+                            angular.extend($scope, result.data);
+                            angular.extend($scope.jobModel, result.data);
+                        },
+                        function (error) {
+                            console.log(error.data);
+                        }
+                );
+                camForm.variableManager.createVariable({
+                    name: 'acceptAndSignByInitiatorTaskResult',
+                    type: 'String',
+                    value: ''
+                });
+                camForm.variableManager.createVariable({
+                    name: 'revisionPrepare',
+                    type: 'String',
+                    value: ''
+                });
+                camForm.variableManager.createVariable({
+                    name: 'acceptPerformedJob',
+                    type: 'String',
+                    value: ''
+                });
+                $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name+ "/profile").then(function(result){
+                    $rootScope.authentication.assigneeName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
+                });
+            });
+            camForm.on('variables-fetched', function () {
+                variables.forEach(function (el) {
+                    if(el === 'tssrssidFileName' && camForm.variableManager.variables[el] && camForm.variableManager.variables[el].value && camForm.variableManager.variables[el].value.name) {
+                        $scope.jobModel[el] = camForm.variableManager.variables[el];
+                    } else if(el === 'siteWorksFiles' && camForm.variableManager.variables[el].value) {
+                        workFiles = camForm.variableManager.variables[el].value;
+                    } else {
+                        $scope.jobModel[el] = camForm.variableManager.variables[el];
+                    }
+
+                    if(el === 'resolutions'){
+                        $scope[el] = camForm.variableManager.variables[el].value;
+                    } else {
+                        $scope[el] = camForm.variableManager.variables[el];
+                        if($scope[el].type === 'Date' && $scope[el].value){
+                            $scope[el].value = new Date($scope[el].value);
+                        }
+                    }
+                });
+                $http.get(Uri.appUri("engine://engine/:engine/task/" + camForm.taskId + "/form-variables")).then(function(result){
+                    angular.forEach(result.data, function(value, key) {
+                        if(key.startsWith('works_')){
+                            $scope[key] = value;
+                            $scope.jobModel[key] = value;
+                        }
+                    });
+                });
+
+                workFiles.forEach(function(file,i){
+                    if(file.name){
+                        var workIndex = file.name.split('_')[1];
+                        if(!containsFile($scope.jobModel.jobWorks.value[workIndex].files, file)){
+                            $scope.jobModel.jobWorks.value[workIndex].files.push(file);
+                        }
+                    }
+                });
+
+                $scope.initiatorFiles.type = 'Json';
+                if(!$scope.initiatorFiles.value){
+                    $scope.initiatorFiles.value = [];
+                }
+                if(!$scope.delayInfo.type){
+                    $scope.delayInfo.type = 'Integer';
+                }
+                if(!$scope.rolloutRO2Delay.type){
+                    $scope.rolloutRO2Delay.type = 'Integer';
+                }
+                if(!$scope.rolloutRO3Delay.type){
+                    $scope.rolloutRO3Delay.type = 'Integer';
+                }
+                if(!$scope.rolloutRO4Delay.type){
+                    $scope.rolloutRO4Delay.type = 'Integer';
+                }
+                if(!$scope.acceptanceDate.type){
+                    $scope.acceptanceDate.type = 'Date';
+                }
+                $scope.jobModel.showDelayHint = true;
+                if(camForm.variableManager.variables['acceptAndSignByInitiatorComment']){
+                    camForm.variableManager.variableValue('acceptAndSignByInitiatorComment', '');
+                }
+
+                $scope.jobModel.jobWorks.value.forEach(i => {
+                    i.photoFiles.after.forEach(j => {
+                        $scope.getImagePath(j)
+                    })
+                    i.photoFiles.before.forEach(j => {
+                        $scope.getImagePath(j)
+                    })
+                })
+                $scope.beforeAfterVisible = $scope.contractor.value === 5 && ($scope.reason.value === '1' || $scope.reason.value === '2');
+            });
+
+            camForm.on('submit', function () {
+                camForm.variableManager.variableValue('acceptAndSignByInitiatorTaskResult', $scope.acceptAndSignByInitiatorTaskResult);
+                camForm.variableManager.createVariable({
+                    name: 'accept_work_initiatorTaskResult',
+                    type: 'String',
+                    value: $scope.acceptAndSignByInitiatorTaskResult
+                });
+                if ($scope.acceptAndSignByInitiatorTaskResult === 'rejected') {
+                    camForm.variableManager.variableValue('acceptPerformedJob', 'rejected');
+                    if(camForm.variableManager.variables['performDate']){
+                        camForm.variableManager.destroyVariable('performDate');
+                    }
+                } else {
+                    camForm.variableManager.variableValue('acceptPerformedJob', 'accepted');
+                }
+
+                $scope.initiatorFiles.value.forEach(function (f, i) {
+                    if(f.value.isNew){
+                        newFiles.push(f.value);
+                        delete $scope.initiatorFiles.value[i].value.isNew;
+                    }
+                });
+
+                if(camForm.variableManager.variables['initiatorFiles']){
+                    camForm.variableManager.variableValue('initiatorFiles', $scope.initiatorFiles.value);
+                } else {
+                    camForm.variableManager.createVariable($scope.initiatorFiles);
+                }
+
+                var visibility = 'all';
+                if($scope.acceptAndSignByInitiatorComment && $scope.acceptAndSignByInitiatorCommentVisibility){
+                    visibility = $scope.acceptAndSignByInitiatorCommentVisibility;
+                    camForm.variableManager.createVariable({
+                        name: 'accept_work_initiatorTaskCommentVisibility',
+                        type: 'String',
+                        value: visibility
+                    });
+                }
+                camForm.variableManager.createVariable({
+                    name: 'accept_work_initiatorTaskComment',
+                    type: 'String',
+                    value: $scope.acceptAndSignByInitiatorComment
+                });
+                if($scope.acceptanceDate.value){
+                    camForm.variableManager.variableValue('acceptanceDate', new Date($scope.acceptanceDate.value));
+                }
+
+                camForm.variableManager.variableValue('delayInfo', $scope.revisionDelay);
+                camForm.variableManager.variableValue('rolloutRO2Delay', $scope.rollRO2Delay);
+                camForm.variableManager.variableValue('rolloutRO3Delay', $scope.rollRO3Delay);
+                camForm.variableManager.variableValue('rolloutRO4Delay', $scope.rollRO4Delay);
+
+                camForm.variableManager.createVariable({
+                    name: 'accept_work_initiatorFiles',
+                    type: 'Json',
+                    value: newFiles
+                });
+                camForm.variableManager.destroyVariable('resolutions');
+            });
+
+            camForm.on('store', function() {
+                camForm.variableManager.variableValue('acceptAndSignByInitiatorTaskResult', $scope.acceptAndSignByInitiatorTaskResult);
+            });
+
+            camForm.on('variables-restored', function() {
+                $scope.acceptAndSignByInitiatorTaskResult = camForm.variableManager.variableValue('acceptAndSignByInitiatorTaskResult');
+            });
+
+            $scope.showImage = function(fileSrc){
+                exModal.open({
+                    scope: {
+                        fileSrc: fileSrc
+                    },
+                    templateUrl: './js/partials/revisionImageModal.html',
+                    size: 'lg'
+                }).then(function(results){
+                });
+            }
+
+            $scope.getImagePath = function(file) {
+                console.log(file);
+                $http({method: 'GET', url: '/camunda/uploads/get/' + file.value.path, transformResponse: [] }).
+                then(function(response) {
+                    file.imgSrc = response.data;
+                }, function(error){
+                    console.log(error.data);
+                });
+            }
+
+
+            $scope.download = function (file) {
+                $http({method: 'GET', url: '/camunda/uploads/get/' + file.value.path, transformResponse: [] }).
+                then(function(response) {
+                    document.getElementById('fileDownloadIframe').src = response.data;
+                }, function(error){
+                    console.log(error.data);
+                });
+            }
+
+            $scope.downloadOldFile = function downloadOldFile(file) {
+                document.getElementById('fileDownloadIframe').src = '/camunda/api/engine/engine/default/variable-instance/' + file.id + '/data';
+            }
+
+            function containsFile(files, file){
+                for(var i = 0; i<files.length; i++){
+                    if(files[i].name === file.name){
+                        return true;
+                    }
+                }
+                return false;
+            }
+
+            $scope.fileSelected = function(el, bindedInput){
+                $timeout(function () {
+                    $scope.$apply(function () {
+                        uploadFileToMinio(el.files[0], bindedInput);
+                    });
+                })
+            };
+
+            function uploadFileToMinio(file, bindedInput) {
+                var fileIndex = $scope.initiatorFiles.value.length;
+
+                var fileToUpload = {
+                    name: 'initiator_file_' + fileIndex,
+                    type: 'Json',
+                    value: {
+                        name: file.name.replace(/[/\\?%*:|"<>]/g, '-'),
+                        isNew: true,
+                        path: $scope.processInstanceId + '/' + camForm.taskId + '/' + file.name.replace(/[/\\?%*:|"<>]/g, '-')
+                    }
+                };
+                $http({method: 'GET', url: '/camunda/uploads/put/' + fileToUpload.value.path, transformResponse: [] }).
+                then(function(response) {
+                    $http.put(response.data, file, {headers: {'Content-Type': undefined}}).then(
+                        function () {
+                            $scope.initiatorFiles.value.push(fileToUpload);
+                            angular.element(document.querySelector('#initiator_file_' + fileIndex)).val(null);
+                            $(bindedInput).val('');
+                        },
+                        function (error) {
+                            console.log(error.data);
+                        }
+                    );
+                }, function(error){
+                    console.log(error.data);
+                });
+            }
+
+            $scope.clearFile = function (fileIndex) {
+                $scope.initiatorFiles.value.splice(fileIndex, 1);
+            }
+
+            $scope.isVisible = function (resolution) {
+               return !resolution.visibility || resolution.visibility === 'all' || (resolution.visibility === 'kcell' && $rootScope.hasGroup('kcellUsers'));
+            }
+
+            $scope.hasComment = function () {
+                return $scope.acceptAndSignByInitiatorComment && $rootScope.hasGroup('kcellUsers');
+            }
+
+            $scope.open = function($event) {
+                $event.preventDefault();
+                $event.stopPropagation();
+                $scope.dateFieldOpened = true;
+            };
+
+            $scope.regionsTitle = {
+                alm : 'Almaty',
+                astana: 'Astana',
+                nc: 'North and Center',
+                east: 'East',
+                south: 'South',
+                west: 'West'
+            };
+
+            var holidays = $rootScope.holidays;
+            var weekendWorking = $rootScope.weekendWorking;
+            var holidaysForYear = $rootScope.holidaysForYear;
+            var doNotMarkNextHoliday = $rootScope.doNotMarkNextHoliday;
+
+            function calculateHolidays(beginDate, endDate){
+                if(beginDate && endDate){
+
+                    beginDate.setHours(0);
+                    beginDate.setMinutes(0);
+                    beginDate.setSeconds(0);
+                    beginDate.setMilliseconds(0);
+
+                    endDate.setHours(0);
+                    endDate.setMinutes(0);
+                    endDate.setSeconds(0);
+                    endDate.setMilliseconds(0);
+
+                    if(beginDate >= endDate){
+                        return 0;
+                    }
+
+                    var date = new Date(beginDate.valueOf());
+
+                    var counter = 0;
+                    while (date <= endDate){
+                        var holiday = false;
+
+                        var year = date.getFullYear();
+                        var month = date.getMonth() + 1;
+                        var thisDay = date.getDate();
+                        var day_type = date.getDay();
+
+                        if (holidays.includes(thisDay+'/'+month)) {
+                            counter++;
+                            if((day_type===6 || day_type===0) && doNotMarkNextHoliday.indexOf(thisDay+'/'+month+'/'+year) === -1){
+                                counter++;
+                            }
+                        } else if (holidaysForYear.includes(thisDay+'/'+month+'/'+year)) {
+                            counter++;
+                        } else if ((day_type===6 || day_type===0) && !weekendWorking.includes(thisDay+'/'+month + '/' + year)) {
+                            counter++;
+                        }
+                        date.setDate(date.getDate() + 1);
+                    }
+                    return counter;
+                } else {
+                    return 0;
+                }
+            }
+
+            function calculateTotalDays(startDate, lastDate){
+                if(startDate && lastDate){
+
+                    startDate.setHours(0);
+                    startDate.setMinutes(0);
+                    startDate.setSeconds(0);
+                    startDate.setMilliseconds(0);
+
+                    lastDate.setHours(0);
+                    lastDate.setMinutes(0);
+                    lastDate.setSeconds(0);
+                    lastDate.setMilliseconds(0);
+
+                    if(startDate >= lastDate){
+                        return 0;
+                    }
+
+                    var iterate = new Date(startDate.valueOf());
+
+                    var count = 0;
+                    while (iterate <= lastDate){
+                        count++;
+                        iterate.setDate(iterate.getDate() + 1);
+                    }
+                    return count;
+                } else {
+                    return 0;
+                }
+            }
+
+            $scope.calcRevisionDelay = function(start, end, constant){
+                $scope.revisionHolidays = calculateHolidays(start, end);
+                $scope.revisionTotalDays = calculateTotalDays(start, end)
+                $scope.revisionDelay = 0;
+                if(($scope.revisionTotalDays - (constant + $scope.revisionHolidays)) > 0){
+                    $scope.revisionDelay = $scope.revisionTotalDays - (constant + $scope.revisionHolidays);
+                }
+                return $scope.revisionDelay;
+            }
+
+            $scope.calcRolloutRO2Delay = function(start, end, constant){
+                $scope.rolloutRO2Holidays = calculateHolidays(start, end);
+                $scope.rolloutRO2TotalDays = calculateTotalDays(start, end)
+                $scope.rollRO2Delay = 0;
+                if(($scope.rolloutRO2TotalDays - (constant + $scope.rolloutRO2Holidays)) > 0){
+                    $scope.rollRO2Delay = $scope.rolloutRO2TotalDays - (constant + $scope.rolloutRO2Holidays);
+                }
+                return $scope.rollRO2Delay;
+            }
+
+            $scope.calcRolloutRO3Delay = function(start, end, constant){
+                $scope.rolloutRO3Holidays = calculateHolidays(start, end);
+                $scope.rolloutRO3TotalDays = calculateTotalDays(start, end)
+                $scope.rollRO3Delay = 0;
+                if(($scope.rolloutRO3TotalDays - (constant + $scope.rolloutRO3Holidays)) > 0){
+                    $scope.rollRO3Delay = $scope.rolloutRO3TotalDays - (constant + $scope.rolloutRO3Holidays);
+                }
+                return $scope.rollRO3Delay;
+            }
+
+            $scope.calcRolloutRO4Delay = function(start, end, constant){
+                $scope.rolloutRO4Holidays = calculateHolidays(start, end);
+                $scope.rolloutRO4TotalDays = calculateTotalDays(start, end)
+                $scope.rollRO4Delay = 0;
+                if(($scope.rolloutRO4TotalDays - (constant + $scope.rolloutRO4Holidays)) > 0){
+                    $scope.rollRO4Delay = $scope.rolloutRO4TotalDays - (constant + $scope.rolloutRO4Holidays);
+                }
+                return $scope.rollRO4Delay;
+            }
+        }]);
+    </script>
+    <job-request job-model="jobModel"></job-request>
+    <ng-include ng-if="contextPath" src="contextPath+'/forms/revision/summaries-card.html'"></ng-include>
+    <iframe id="fileDownloadIframe" style="display:none;"></iframe>
+
+    <div style="margin-bottom: 20px;"></div>
+    <h3>Works: </h3>
+    <div class="row" ng-repeat="work in jobModel.jobWorks.value">
+        <div class="col-md-12">&nbsp;&nbsp;&nbsp;&nbsp;{{work.displayServiceName}}, works qty: {{work.quantity}}, on sites: {{work.sites}}</div>
+        <div class="col-md-12" ng-if="beforeAfterVisible">
+            <div style="margin-bottom: 10px"></div>
+            <div class="row">
+                <div class="col-md-12">Photo before:</div>
+            </div>
+            <div class="row">
+                <div class="col-md-3" ng-repeat="file in work.photoFiles['before'] track by $index">
+                    <div ng-if="file.valueInfo">&nbsp;&nbsp;&nbsp;&nbsp;{{$index+1}}.
+                        <a ng-click="downloadOldFile(file)">{{file.valueInfo.filename}} (Old file, read only)</a>
+                        <a ng-click="showImage('/camunda/api/engine/engine/default/variable-instance/' + file.id + '/data')"><img ng-src="{{'/camunda/api/engine/engine/default/variable-instance/' + file.id + '/data'}}" /></a>
+                    </div>
+                    <div ng-if="file.value.name">
+                        <a ng-click="showImage(file.imgSrc)"> <img ng-src="{{file.imgSrc}}" width="100%"/></a>
+                        <a ng-click="download(file)" style="position: absolute"><i class="glyphicon glyphicon-download-alt"></i></a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-12" ng-if="beforeAfterVisible">
+            <div class="row">
+                <div class="col-md-12">Photo after:</div>
+            </div>
+            <div class="row">
+                <div class="col-md-3" ng-repeat="file in work.photoFiles['after'] track by $index">
+                    <div ng-if="file.valueInfo">&nbsp;&nbsp;&nbsp;&nbsp;{{$index+1}}.
+                        <a ng-click="downloadOldFile(file)">{{file.valueInfo.filename}} (Old file, read only)</a>
+                        <a ng-click="showImage('/camunda/api/engine/engine/default/variable-instance/' + file.id + '/data')"><img ng-src="{{'/camunda/api/engine/engine/default/variable-instance/' + file.id + '/data'}}" /></a>
+                    </div>
+                    <div ng-if="file.value.name">
+                        <a ng-click="showImage(file.imgSrc)"> <img ng-src="{{file.imgSrc}}" width="100%"/></a>
+                        <a ng-click="download(file)" style="position: absolute"><i class="glyphicon glyphicon-download-alt"></i></a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label class="col-sm-4 control-label">Additional files</label>
+        <div class="col-md-12" ng-repeat="file in initiatorFiles.value">
+            <div class="input-group">
+                {{$index + 1}}.
+                <a ng-click="download(file)">{{file.value.name}}</a> | <a ng-click="clearFile($index)"><i class="glyphicon glyphicon-trash"></i></a>
+                <div class="input-group-addon">
+                    <label class="radio-inline">
+                        <input type="radio" name="initiatorFilesVisibility_{{$index}}"
+                               ng-model="file.value.visibility" value="all" ng-required="hasGroup('kcellUsers') && file.value.name"> Visible for all
+                    </label>
+                    <label class="radio-inline">
+                        <input type="radio" name="initiatorFilesVisibility_{{$index}}"
+                               ng-model="file.value.visibility" value="kcell" ng-required="hasGroup('kcellUsers') && file.value.name"> Kcell staff only
+                    </label>
+                    <label class="error" ng-show="kcell_form['initiatorFilesVisibility_'+$index].$error.required && ( kcell_form['initiatorFilesVisibility_'+$index].$touched || view.submitted)">Required field</label>
+                </div>
+            </div>
+        </div>
+        <!--<input type="file" class="form-control" id="initiator_file_{{initiatorFiles.value.length}}" name="initiator_file_{{initiatorFiles.value.length}}" ng-model="file.file" onchange="angular.element(this).scope().fileSelected(this)"/>-->
+        <div class="input-group">
+            <label class="input-group-btn">
+                    <span class="btn btn-default">
+                        Choose File <input type="file" id="initiator_file_{{initiatorFiles.value.length}}" name="initiator_file_{{initiatorFiles.value.length}}" ng-model="file.file"  style="display: none;" onchange="angular.element(this).scope().fileSelected(this, '#supplementaryFilesName');$('#supplementaryFilesName').val(this.files[0].name)" >
+                    </span>
+            </label>
+            <input type="text" class="form-control upload-filename" id="supplementaryFilesName" placeholder="No File Chosen" readonly>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label class="col-sm-4 control-label">Please, add Acceptance Date*</label>
+        <div class="col-sm-4">
+            <div class="input-group">
+                <input type="text" ng-model="acceptanceDate.value" name="acceptanceDate" class="form-control" datepicker-popup="dd.MM.yyyy" is-open="dateFieldOpened" id="acceptanceDate" min-date="datepickerOptions.minDate"  ng-required="acceptAndSignByInitiatorTaskResult == 'approved'" />
+                <span class="input-group-btn">
+                    <button type="button" class="btn btn-default" ng-click="open($event)">
+                        <i class="glyphicon glyphicon-calendar"></i>
+                    </button>
+                </span>
+            </div>
+            <label class="error" ng-show="kcell_form.acceptanceDate.$error.required && ( kcell_form.acceptanceDate.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+    <div ng-if="mainContract.value == 'Revision'">
+        <div class="form-group">
+            <label class="col-sm-12 control-label">
+                Delay Info Calculation: for {{regionsTitle[siteRegion.value]}} region, {{materialsRequired.value === 'Yes' ? 'with' : 'w/o'}} materials. Alarms elimination {{priority.value === 'emergency' ? 'required' : 'not required'}}
+            </label>
+        </div>
+        <div ng-if="priority.value == 'emergency'">
+            <div class="form-group">
+                <label class="col-sm-12 control-label">
+                    <b>Delay</b> = Job Acceptance Date - Job Request Date - (8 business days + holidays)
+                </label>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-12 control-label">
+                    <b>Delay</b> = {{acceptanceDate.value ? (acceptanceDate.value | date: 'dd.MM.yyyy') : 'N/A' }} - {{contractorJobAssignedDate.value ? (contractorJobAssignedDate.value | date: 'dd.MM.yyyy') : 'N/A'}} - (8 business day + {{revisionHolidays}}) = {{calcRevisionDelay(contractorJobAssignedDate.value, acceptanceDate.value, 8)}}
+                </label>
+            </div>
+        </div>
+        <div ng-if="priority.value == 'regular'">
+            <div ng-if="materialsRequired.value == 'Yes' && contractorAttachesMaterialListTaskResult.value !== 'notRequired'">
+                <div ng-if="siteRegion.value == 'alm'">
+                    <div class="form-group">
+                        <label class="col-sm-12 control-label">
+                            <b>Delay</b> = Job Acceptance Date - Material List signed Date - (7 business days + holidays)
+                        </label>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-sm-12 control-label">
+                            <b>Delay</b> = {{acceptanceDate.value ? (acceptanceDate.value | date: 'dd.MM.yyyy') : 'N/A' }} - {{materialListSignedDate ? (materialListSignedDate | date: 'dd.MM.yyyy') : 'N/A'}} - (7 business day + {{revisionHolidays}}) = {{calcRevisionDelay(materialListSignedDate, acceptanceDate.value, 7)}}
+                        </label>
+                    </div>
+                </div>
+                <div ng-if="siteRegion.value == 'south' || siteRegion.value == 'nc' || siteRegion.value == 'astana'">
+                    <div class="form-group">
+                        <label class="col-sm-12 control-label">
+                            <b>Delay</b> = Job Acceptance Date - Material List signed Date - (10 business days + holidays)
+                        </label>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-sm-12 control-label">
+                            <b>Delay</b> = {{acceptanceDate.value ? (acceptanceDate.value | date: 'dd.MM.yyyy') : 'N/A' }} - {{materialListSignedDate ? (materialListSignedDate | date: 'dd.MM.yyyy') : 'N/A'}} - (10 business day + {{revisionHolidays}}) = {{calcRevisionDelay(materialListSignedDate, acceptanceDate.value, 10)}}
+                        </label>
+                    </div>
+                </div>
+                <div ng-if="siteRegion.value == 'east'">
+                    <div class="form-group">
+                        <label class="col-sm-12 control-label">
+                            <b>Delay</b> = Job Acceptance Date - Material List signed Date - (13 business days + holidays)
+                        </label>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-sm-12 control-label">
+                            <b>Delay</b> = {{acceptanceDate.value ? (acceptanceDate.value | date: 'dd.MM.yyyy') : 'N/A' }} - {{materialListSignedDate ? (materialListSignedDate | date: 'dd.MM.yyyy') : 'N/A'}} - (13 business day + {{revisionHolidays}}) = {{calcRevisionDelay(materialListSignedDate, acceptanceDate.value, 13)}}
+                        </label>
+                    </div>
+                </div>
+                <div ng-if="siteRegion.value == 'west'">
+                    <div class="form-group">
+                        <label class="col-sm-12 control-label">
+                            <b>Delay</b> = Job Acceptance Date - Material List signed Date - (15 business days + holidays)
+                        </label>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-sm-12 control-label">
+                            <b>Delay</b> = {{acceptanceDate.value ? (acceptanceDate.value | date: 'dd.MM.yyyy') : 'N/A' }} - {{materialListSignedDate ? (materialListSignedDate | date: 'dd.MM.yyyy') : 'N/A'}} - (15 business day + {{revisionHolidays}}) = {{calcRevisionDelay(materialListSignedDate, acceptanceDate.value, 15)}}
+                        </label>
+                    </div>
+                </div>
+            </div>
+            <div ng-if="materialsRequired.value == 'No' || (materialsRequired.value == 'Yes' && contractorAttachesMaterialListTaskResult.value === 'notRequired')">
+                <div class="form-group">
+                    <label class="col-sm-12 control-label">
+                        <b>Delay</b> = Job Acceptance Date - Job Request Date - (5 business days + holidays)
+                    </label>
+                </div>
+                <div class="form-group">
+                    <label class="col-sm-12 control-label">
+                        <b>Delay</b> = {{acceptanceDate.value ? (acceptanceDate.value | date: 'dd.MM.yyyy') : 'N/A' }} - {{contractorJobAssignedDate.value | date: 'dd.MM.yyyy'}} - (5 business day + {{revisionHolidays}}) = {{calcRevisionDelay(contractorJobAssignedDate.value, acceptanceDate.value, 5)}}
+                    </label>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div ng-if="mainContract.value == 'Roll-out'">
+        <div ng-if="!contains13Work.value">
+            <div ng-if="siteRegion.value == 'alm'">
+                <div class="form-group">
+                    <label class="col-sm-12 control-label">
+                        <b>On-air Delay</b> = Job Request Performed Date - Material List signed Date - (10 business days + holidays)
+                    </label>
+                </div>
+                <div class="form-group">
+                    <label class="col-sm-12 control-label">
+                        <b>On-air Delay</b> = {{ (performDate.value || acceptWorkStartTime) | date: 'dd.MM.yyyy'}} - {{materialListSignedDate ? (materialListSignedDate | date: 'dd.MM.yyyy') : 'N/A'}} - (7 business day + {{rolloutRO2Holidays}}) = {{calcRolloutRO2Delay(materialListSignedDate, (performDate.value ? performDate.value : acceptWorkStartTime), 7)}}
+                    </label>
+                </div>
+            </div>
+            <div ng-if="siteRegion.value == 'south' || siteRegion.value == 'nc' || siteRegion.value == 'astana'">
+                <div class="form-group">
+                    <label class="col-sm-12 control-label">
+                        <b>On-air Delay</b> = Job Request Performed Date - Material List signed Date - (15 business days + holidays)
+                    </label>
+                </div>
+                <div class="form-group">
+                    <label class="col-sm-12 control-label">
+                        <b>On-air Delay</b> = {{ (performDate.value || acceptWorkStartTime) | date: 'dd.MM.yyyy'}} - {{materialListSignedDate ? (materialListSignedDate | date: 'dd.MM.yyyy') : 'N/A'}} - (15 business day + {{rolloutRO2Holidays}}) = {{calcRolloutRO2Delay(materialListSignedDate, (performDate.value ? performDate.value : acceptWorkStartTime), 15)}}
+                    </label>
+                </div>
+            </div>
+            <div ng-if="siteRegion.value == 'east'">
+                <div class="form-group">
+                    <label class="col-sm-12 control-label">
+                        <b>On-air Delay</b> = Job Request Performed Date - Material List signed Date - (18 business days + holidays)
+                    </label>
+                </div>
+                <div class="form-group">
+                    <label class="col-sm-12 control-label">
+                        <b>On-air Delay</b> = {{ (performDate.value || acceptWorkStartTime) | date: 'dd.MM.yyyy'}} - {{materialListSignedDate ? (materialListSignedDate | date: 'dd.MM.yyyy') : 'N/A'}} - (18 business day + {{rolloutRO2Holidays}}) = {{calcRolloutRO2Delay(materialListSignedDate, (performDate.value ? performDate.value : acceptWorkStartTime), 18)}}
+                    </label>
+                </div>
+            </div>
+            <div ng-if="siteRegion.value == 'west'">
+                <div class="form-group">
+                    <label class="col-sm-12 control-label">
+                        <b>On-air Delay</b> = Job Request Performed Date - Material List signed Date - (20 business days + holidays)
+                    </label>
+                </div>
+                <div class="form-group">
+                    <label class="col-sm-12 control-label">
+                        <b>On-air Delay</b> = {{ (performDate.value || acceptWorkStartTime) | date: 'dd.MM.yyyy'}} - {{materialListSignedDate ? (materialListSignedDate | date: 'dd.MM.yyyy') : 'N/A'}} - (20 business day + {{rolloutRO2Holidays}}) = {{calcRolloutRO2Delay(materialListSignedDate, (performDate.value ? performDate.value : acceptWorkStartTime), 20)}}
+                    </label>
+                </div>
+            </div>
+
+
+            <div class="form-group">
+                <label class="col-sm-12 control-label">
+                    <b>Acceptance Delay</b> = Delay = Job Request Acceptance Date - JR Performed Date - (30 business days + holidays)
+                </label>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-12 control-label">
+                    <b>Acceptance Delay</b> = {{acceptanceDate.value ? (acceptanceDate.value | date: 'dd.MM.yyyy') : 'N/A' }} - {{performDate.value | date: 'dd.MM.yyyy'}} - (30 business day + {{rolloutRO3Holidays}}) = {{calcRolloutRO3Delay(performDate.value, acceptanceDate.value, 30)}}
+                </label>
+            </div>
+        </div>
+
+        <div ng-if="contains13Work.value">
+            <div class="form-group">
+                <label class="col-sm-12 control-label">
+                    <b>Project preparation works Delay</b> = Delay = JR Performed Date - JR Request Date - (10 business days + holidays)
+                </label>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-12 control-label">
+                    <b>Project preparation works Delay</b> = {{performDate.value | date: 'dd.MM.yyyy'}} - {{contractorJobAssignedDate.value ? (contractorJobAssignedDate.value | date: 'dd.MM.yyyy') : 'N/A'}} - (10 business day + {{rolloutRO4Holidays}}) = {{calcRolloutRO4Delay(performDate.value, contractorJobAssignedDate.value, 10)}}
+                </label>
+            </div>
+        </div>
+    </div>
+
+    <div style="border: black 1px solid; padding: 4px;">
+        <p>
+            *Важно: Даты Job Request date и Acceptance Date должны совпадать с датами, проставляемыми в подписываемой Acceptance форме
+        </p>
+    </div>
+
+    <div class="form-group">
+        <label class="col-sm-4 control-label">Resolution</label>
+        <div class="col-sm-8">
+            <label class="radio-inline">
+                <input type="radio" name="acceptAndSignByInitiatorTaskResult" ng-model="acceptAndSignByInitiatorTaskResult" value="approved" required> Approved
+            </label>
+            <label class="radio-inline">
+                <input type="radio" name="acceptAndSignByInitiatorTaskResult" ng-model="acceptAndSignByInitiatorTaskResult" value="rejected" required> Not approved, request corrections
+            </label>
+            <label class="error" ng-show="kcell_form.acceptAndSignByInitiatorTaskResult.$error.required && ( kcell_form.acceptAndSignByInitiatorTaskResult.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-4 control-label">Comments</label>
+        <div class="col-sm-8">
+            <textarea class="form-control" rows="4" maxlength="500" cam-variable-name="acceptAndSignByInitiatorComment" name="acceptAndSignByInitiatorComment" ng-required="acceptAndSignByInitiatorTaskResult == 'rejected'" cam-variable-type="String"></textarea>
+            <label class="error" ng-show="kcell_form.acceptAndSignByInitiatorComment.$error.required && ( kcell_form.acceptAndSignByInitiatorComment.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+    <div class="form-group" ng-show="hasComment()">
+        <label class="col-sm-4 control-label">Comments visibility</label>
+        <div class="col-sm-8">
+            <label class="radio-inline">
+                <input type="radio" name="acceptAndSignByInitiatorCommentVisibility"
+                       ng-model="acceptAndSignByInitiatorCommentVisibility" value="all" ng-required="hasComment()"> Visible for all
+            </label>
+            <label class="radio-inline">
+                <input type="radio" name="acceptAndSignByInitiatorCommentVisibility"
+                       ng-model="acceptAndSignByInitiatorCommentVisibility" value="kcell" ng-required="hasComment()"> Kcell staff only
+            </label>
+            <label class="error" ng-show="kcell_form.acceptAndSignByInitiatorCommentVisibility.$error.required && ( kcell_form.acceptAndSignByInitiatorCommentVisibility.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+    <accordion>
+        <accordion-group is-open="isHistoryOpen">
+            <accordion-heading>
+                History <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
+            </accordion-heading>
+            <resolution-history resolutions="resolutions" procDef="Revision"></resolution-history>
+        </accordion-group>
+    </accordion>
+</form>

@@ -1,0 +1,397 @@
+<style>
+    .well {
+        color: #333;
+    }
+</style>
+<form role="form" class="form-horizontal" name="kcell_form" novalidate>
+    <script cam-script type="text/form-script">
+        inject(['$scope', '$http', 'Uri', '$rootScope', '$q', '$timeout', function ($scope, $http, Uri, $rootScope, $q, $timeout) {
+            var variables = [
+                'requestedDate',
+                'jrNumber',
+                'initiatorFull',
+                'validityDate',
+                'soaComplaintId',
+                'site',
+                'siteName',
+                'siteAddress',
+                'site_name',
+                'reason',
+                'contract',
+                'contractor',
+                'materialsRequired',
+                'leasingRequired',
+                'powerRequired',
+                'project',
+                'supplementaryFiles',
+                'explanation',
+                'jobWorks',
+                'sapPRFileXLS',
+                'sapPRNo',
+                'kcellWarehouseMaterialsList',
+                'eLicenseResolutionFile',
+                'eLicenseResolutionFileName',
+                'resolutions',
+                'contractorZIPWarehouseMaterialsList',
+                'kcellWarehouseMaterialsListName',
+                'kcellWarehouseMaterialsAdditionalList',
+                'contractorZIPWarehouseMaterialsListName',
+                'jrBlank',
+                'tssrssidFile',
+                'tssrssidFileName',
+                'priority',
+                'approveMaterialsListResult',
+                'approveMaterialsGroupList',
+                'sapTransferRequestFile',
+                'actOfMaterialsDispatchingFile',
+                'actOfMaterialsDispatchingFileName',
+                'actOfMaterialsDispatchingFiles',
+                'trFilesName',
+                'trAdditionalFilesName',
+                'trFiles',
+                'siteWorksFiles',
+                'mlApprovalAdditionalInfoFile',
+                'contractorJobAssignedDate',
+                'mainContract',
+                'needAdditionalApproveByCenterRollout'
+            ];
+            $scope.jobModel = {};
+            $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
+                    function(result){
+                        $scope.processInstanceId = result.data.processInstanceId;
+                    },
+                    function (error) {
+                        console.log(error.data);
+                    }
+            );
+
+            camForm.on('form-loaded', function () {
+                variables.forEach(function (el) {
+                    camForm.variableManager.fetchVariable(el);
+                });
+
+                $http.get($rootScope.getCatalogsHttpByName('catalogs')).then(
+                        function (result) {
+                            angular.extend($scope, result.data);
+                            angular.extend($scope.jobModel, result.data);
+                        },
+                        function (error) {
+                            console.log(error.data);
+                        }
+                );
+                camForm.variableManager.createVariable({
+                    name: 'approveMaterialsListByCenterTaskResult',
+                    type: 'String',
+                    value: ''
+                });
+            });
+            camForm.on('variables-fetched', function () {
+                variables.forEach(function (el) {
+                    $scope.jobModel[el] = camForm.variableManager.variables[el];
+                    if(el === 'approveMaterialsListResult' && camForm.variableManager.variables[el].value){
+                        $scope[el] = camForm.variableManager.variables[el].value;
+                    }
+                    if(el === 'approveMaterialsGroupList'){
+                        $scope[el] = camForm.variableManager.variables[el].value;
+                    }
+                    if(el === 'mlApprovalAdditionalInfoFile') {
+                        $scope[el] = camForm.variableManager.variables[el];
+                        $scope[el].type = 'Json';
+                    }
+                    if (el === 'resolutions' || (el === 'needAdditionalApproveByCenterRollout' && camForm.variableManager.variables[el].value)) {
+                        $scope[el] = camForm.variableManager.variables[el].value;
+                    }
+                });
+                $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name+ "/profile").then(function(result){
+                    $rootScope.authentication.assigneeName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
+                });
+                if($scope.approveMaterialsGroupList && $scope.approveMaterialsGroupList.length > 0){
+                    $scope.optimizationMaterialApproveRequired = $scope.approveMaterialsGroupList.indexOf('P&O') !== -1;
+                    $scope.transmissionMaterialApproveRequired = $scope.approveMaterialsGroupList.indexOf('Transmission') !== -1;
+                    $scope.infrastructureMaterialApproveRequired = $scope.approveMaterialsGroupList.indexOf('S&FM') !== -1;
+                    $scope.operationMaterialApproveRequired = $scope.approveMaterialsGroupList.indexOf('Operation') !== -1;
+                    $scope.rollOutMaterialApproveRequired = $scope.approveMaterialsGroupList.indexOf('Roll-out') !== -1;
+                }
+                if(camForm.variableManager.variables['approveMaterialsListByCenterComment']){
+                    camForm.variableManager.variableValue('approveMaterialsListByCenterComment', '');
+                }
+                $scope.isOldContract = $scope.jobModel.mainContract.value === 'Revision' || $scope.jobModel.mainContract.value === 'Roll-out'
+            });
+
+            camForm.on('submit', function () {
+                var files = [];
+                camForm.variableManager.variableValue('approveMaterialsListByCenterTaskResult', $scope.approveMaterialsListByCenterTaskResult);
+                camForm.variableManager.createVariable({
+                    name: 'approve_additional_material_list_center1TaskResult',
+                    type: 'String',
+                    value: $scope.approveMaterialsListByCenterTaskResult
+                });
+
+                if($scope.mlApprovalAdditionalInfoFile && $scope.mlApprovalAdditionalInfoFile.value && $scope.mlApprovalAdditionalInfoFile.value.isNew){
+                    files.push($scope.mlApprovalAdditionalInfoFile.value);
+                    delete $scope.mlApprovalAdditionalInfoFile.value.isNew;
+                }
+
+                if(camForm.variableManager.variables['mlApprovalAdditionalInfoFile']){
+                    if($scope.mlApprovalAdditionalInfoFile){
+                        camForm.variableManager.variableValue('mlApprovalAdditionalInfoFile', $scope.mlApprovalAdditionalInfoFile.value);
+                    } else{
+                        camForm.variableManager.variableValue('mlApprovalAdditionalInfoFile', null);
+                    }
+                } else if($scope.mlApprovalAdditionalInfoFile) {
+                    camForm.variableManager.createVariable($scope.mlApprovalAdditionalInfoFile);
+                }
+
+                if($scope.approveMaterialsListResult){
+                    if(camForm.variableManager.variables['approveMaterialsListResult'] && camForm.variableManager.variables['approveMaterialsListResult'].type){
+                        camForm.variableManager.variableValue('approveMaterialsListResult', $scope.approveMaterialsListResult);
+                    } else {
+                        camForm.variableManager.destroyVariable('approveMaterialsListResult');
+                        camForm.variableManager.createVariable({
+                            name: 'approveMaterialsListResult',
+                            type: 'String',
+                            value: $scope.approveMaterialsListResult
+                        });
+                    }
+                }
+
+                $scope.approveMaterialsGroupList = [];
+                if($scope.optimizationMaterialApproveRequired && $scope.approveMaterialsGroupList.indexOf('P&O')===-1){
+                    $scope.approveMaterialsGroupList.push('P&O');
+                }
+                if($scope.transmissionMaterialApproveRequired && $scope.approveMaterialsGroupList.indexOf('Transmission')===-1){
+                    $scope.approveMaterialsGroupList.push('Transmission');
+                }
+                if($scope.infrastructureMaterialApproveRequired && $scope.approveMaterialsGroupList.indexOf('S&FM')===-1){
+                    $scope.approveMaterialsGroupList.push('S&FM');
+                }
+                if($scope.operationMaterialApproveRequired && $scope.approveMaterialsGroupList.indexOf('Operation')===-1){
+                    $scope.approveMaterialsGroupList.push('Operation');
+                }
+                if($scope.rollOutMaterialApproveRequired && $scope.approveMaterialsGroupList.indexOf('Roll-out')===-1){
+                    $scope.approveMaterialsGroupList.push('Roll-out');
+                }
+                camForm.variableManager.variableValue('approveMaterialsGroupList', $scope.approveMaterialsGroupList);
+
+                $scope.approveTrMaterialsGroupList = angular.copy($scope.approveMaterialsGroupList);
+                if($scope.jobModel.reason.value === '1' && $scope.approveTrMaterialsGroupList.indexOf('P&O')===-1){
+                    $scope.approveTrMaterialsGroupList.push('P&O');
+                } else if($scope.jobModel.reason.value === '2' && $scope.approveTrMaterialsGroupList.indexOf('Transmission')===-1){
+                    $scope.approveTrMaterialsGroupList.push('Transmission');
+                } else if($scope.jobModel.reason.value === '3' && $scope.approveTrMaterialsGroupList.indexOf('S&FM')===-1){
+                    $scope.approveTrMaterialsGroupList.push('S&FM');
+                } else if($scope.jobModel.reason.value === '4' && $scope.approveTrMaterialsGroupList.indexOf('Operation')===-1){
+                    $scope.approveTrMaterialsGroupList.push('Operation');
+                } else if($scope.jobModel.reason.value === '5' && $scope.approveTrMaterialsGroupList.indexOf('Roll-out')===-1){
+                    $scope.approveTrMaterialsGroupList.push('Roll-out');
+                }
+
+                camForm.variableManager.createVariable({
+                    name: 'approveTrMaterialsGroupList',
+                    type: 'Json',
+                    value: $scope.approveTrMaterialsGroupList
+                });
+
+                var visibility = 'all';
+                if($scope.approveMaterialsListByCenterComment && $scope.approveMaterialsListByCenterCommentVisibility){
+                    visibility = $scope.approveMaterialsListByCenterCommentVisibility;
+                    camForm.variableManager.createVariable({
+                        name: 'approve_additional_material_list_center1TaskCommentVisibility',
+                        type: 'String',
+                        value: visibility
+                    });
+                }
+                camForm.variableManager.createVariable({
+                    name: 'approve_additional_material_list_center1TaskComment',
+                    type: 'String',
+                    value: $scope.approveMaterialsListByCenterComment
+                });
+                camForm.variableManager.destroyVariable('resolutions');
+                if (camForm.variableManager.variables['needAdditionalApproveByCenterRollout'] && camForm.variableManager.variables['needAdditionalApproveByCenterRollout'].value) {
+                    camForm.variableManager.variableValue('needAdditionalApproveByCenterRollout', $scope.needAdditionalApproveByCenterRollout);
+                } else {
+                    if(camForm.variableManager.variables['needAdditionalApproveByCenterRollout']){
+                        camForm.variableManager.destroyVariable('needAdditionalApproveByCenterRollout');
+                    }
+                    camForm.variableManager.createVariable({
+                        name: 'needAdditionalApproveByCenterRollout',
+                        type: 'Boolean',
+                        value: $scope.needAdditionalApproveByCenterRollout
+                    });
+                }
+            });
+
+            $scope.fileSelected = function(el, fileName, bindedInput){
+                if(el.files[0]){
+                    $timeout(function () {
+                        $scope.$apply(function () {
+                            uploadFileToMinio(el.files[0], fileName, bindedInput);
+                        });
+                    })
+                } else {
+                    $scope.$apply(function(){
+                        $scope[fileName] = undefined;
+                    });
+                }
+            };
+
+            function uploadFileToMinio(file, fileName, bindedInput) {
+                var fileToUpload = {
+                    name: fileName,
+                    type: 'Json',
+                    value: {
+                        name: file.name.replace(/[/\\?%*:|"<>]/g, '-'),
+                        isNew : true,
+                        path: $scope.processInstanceId + '/' + camForm.taskId + '/' + file.name.replace(/[/\\?%*:|"<>]/g, '-')
+                    }
+                };
+                $http({method: 'GET', url: '/camunda/uploads/put/' + fileToUpload.value.path, transformResponse: [] }).
+                then(function(response) {
+                    $http.put(response.data, file, {headers: {'Content-Type': undefined}}).then(
+                            function () {
+                                $scope[fileName] = fileToUpload;
+                                angular.element(document.querySelector('#'+fileName)).val(null);
+                                $(bindedInput).val('');
+                            },
+                            function (error) {
+                                console.log(error.data);
+                            }
+                    );
+                }, function(error){
+                    console.log(error.data);
+                });
+            }
+
+            camForm.on('store', function() {
+                camForm.variableManager.variableValue('approveMaterialsListByCenterTaskResult', $scope.approveMaterialsListByCenterTaskResult);
+            });
+
+            $scope.clearFile = function(filename){
+                delete $scope[filename];
+            };
+
+            $scope.download = function (file) {
+                console.log(file);
+                $http({method: 'GET', url: '/camunda/uploads/get/' + file.value.path, transformResponse: [] }).
+                then(function(response) {
+                    document.getElementById('fileDownloadIframe').src = response.data;
+                }, function(error){
+                    console.log(error.data);
+                });
+            }
+
+            $scope.isVisible = function (resolution) {
+               return !resolution.visibility || resolution.visibility === 'all' || (resolution.visibility === 'kcell' && $rootScope.hasGroup('kcellUsers'));
+            }
+
+            $scope.hasComment = function () {
+                return $scope.approveMaterialsListByCenterComment && $rootScope.hasGroup('kcellUsers');
+            }
+        }]);
+    </script>
+    <job-request job-model="jobModel"></job-request>
+    <iframe id="fileDownloadIframe" style="display:none;"></iframe>
+    <div class="form-group" ng-hide="isOldContract || jobModel.reason.value === '5'">
+        <label class="col-sm-4 control-label">Need additional approve by Center Rollout unit:</label>
+        <div class="col-sm-8">
+            <label class="radio-inline">
+                <input type="checkbox" ng-model="needAdditionalApproveByCenterRollout" name="needAdditionalApproveByCenterRollout" />
+            </label>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-4 control-label">Please select the groups who must approve material list</label>
+        <div class="col-sm-8">
+            <label class="radio-inline" ng-show="jobModel.reason.value != '1'">
+                <input type="checkbox" cam-variable-name="optimizationMaterialApproveRequired" name="materialApproveGroupList" cam-variable-type="Boolean" /> P&O
+            </label><br/>
+            <label class="radio-inline" ng-show="jobModel.reason.value != '2'">
+                <input type="checkbox" cam-variable-name="transmissionMaterialApproveRequired" name="materialApproveGroupList" cam-variable-type="Boolean" /> Transmission
+            </label><br/>
+            <label class="radio-inline" ng-show="jobModel.reason.value != '3'">
+                <input type="checkbox" cam-variable-name="infrastructureMaterialApproveRequired" name="materialApproveGroupList" cam-variable-type="Boolean" /> S&FM
+            </label><br/>
+            <label class="radio-inline" ng-show="jobModel.reason.value != '4'">
+                <input type="checkbox" cam-variable-name="operationMaterialApproveRequired" name="materialApproveGroupList" cam-variable-type="Boolean" /> Operation
+            </label><br/>
+            <label class="radio-inline" ng-show="jobModel.reason.value != '5'">
+                <input type="checkbox" cam-variable-name="rollOutMaterialApproveRequired" name="materialApproveGroupList" cam-variable-type="Boolean" /> Roll-out
+            </label><br/>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label class="col-sm-4 control-label">Additional information for ml approval:</label>
+        <div class="col-sm-8">
+            <div ng-show="mlApprovalAdditionalInfoFile.value.name">
+                <a ng-click="download(mlApprovalAdditionalInfoFile)">{{mlApprovalAdditionalInfoFile.value.name}}</a> | <a ng-click="clearFile('mlApprovalAdditionalInfoFile')"><i class="glyphicon glyphicon-trash"></i></a>
+            </div>
+            <!--<input ng-hide="mlApprovalAdditionalInfoFile.value.name" type="file" class="form-control" id="mlApprovalAdditionalInfoFile"
+                   name="mlApprovalAdditionalInfoFile" ng-model="mlApprovalAdditionalInfoFile" onchange="angular.element(this).scope().fileSelected(this, 'mlApprovalAdditionalInfoFile')"/>-->
+            <div class="input-group" ng-hide="mlApprovalAdditionalInfoFile.value.name">
+                <label class="input-group-btn">
+                    <span class="btn btn-default">
+                        Choose File <input type="file" id="mlApprovalAdditionalInfoFile" name="mlApprovalAdditionalInfoFile" ng-model="mlApprovalAdditionalInfoFile"  style="display: none;" onchange="angular.element(this).scope().fileSelected(this, 'mlApprovalAdditionalInfoFile', '#supplementaryFilesName');$('#supplementaryFilesName').val(this.files[0].name)" >
+                    </span>
+                </label>
+                <input type="text" class="form-control upload-filename" id="supplementaryFilesName" placeholder="No File Chosen" readonly>
+            </div>
+        </div>
+    </div>
+    <div class="form-group" ng-show="mlApprovalAdditionalInfoFile.value.name && hasGroup('kcellUsers')">
+        <label class="col-sm-4 control-label"><b>Additional information for ml approval visibility:</label>
+        <div class="col-sm-8">
+            <label class="radio-inline">
+                <input type="radio" name="mlApprovalAdditionalInfoFileVisibility"
+                       ng-model="mlApprovalAdditionalInfoFile.value.visibility" value="all" ng-required="mlApprovalAdditionalInfoFile.value && hasGroup('kcellUsers')"> Visible for all
+            </label>
+            <label class="radio-inline">
+                <input type="radio" name="mlApprovalAdditionalInfoFileVisibility"
+                       ng-model="mlApprovalAdditionalInfoFile.value.visibility" value="kcell" ng-required="mlApprovalAdditionalInfoFile.value && hasGroup('kcellUsers')"> Kcell staff only
+            </label>
+            <label class="error" ng-show="kcell_form.mlApprovalAdditionalInfoFileVisibility.$error.required && ( kcell_form.mlApprovalAdditionalInfoFileVisibility.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label class="col-sm-4 control-label">Resolution</label>
+        <div class="col-sm-8">
+            <label class="radio-inline">
+                <input type="radio" ng-model="approveMaterialsListByCenterTaskResult" name="approveMaterialsListByCenterTaskResult" value="approved" required> Approve
+            </label>
+            <label class="radio-inline">
+                <input type="radio" ng-model="approveMaterialsListByCenterTaskResult" name="approveMaterialsListByCenterTaskResult" value="return" required> Return for correction
+            </label>
+            <label class="error" ng-show="kcell_form.approveMaterialsListByCenterTaskResult.$error.required && ( kcell_form.approveMaterialsListByCenterTaskResult.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-4 control-label">Comments</label>
+        <div class="col-sm-8">
+            <textarea class="form-control" rows="4" maxlength="500" name="approveMaterialsListByCenterComment" ng-model="approveMaterialsListByCenterComment" ng-required="approveMaterialsListByCenterTaskResult == 'return'"></textarea>
+            <label class="error" ng-show="kcell_form.approveMaterialsListByCenterComment.$error.required && ( kcell_form.approveMaterialsListByCenterComment.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+    <div class="form-group" ng-show="hasComment()">
+        <label class="col-sm-4 control-label">Comments visibility</label>
+        <div class="col-sm-8">
+            <label class="radio-inline">
+                <input type="radio" name="approveMaterialsListByCenterCommentVisibility"
+                       ng-model="approveMaterialsListByCenterCommentVisibility" value="all" ng-required="hasComment()"> Visible for all
+            </label>
+            <label class="radio-inline">
+                <input type="radio" name="approveMaterialsListByCenterCommentVisibility"
+                       ng-model="approveMaterialsListByCenterCommentVisibility" value="kcell" ng-required="hasComment()"> Kcell staff only
+            </label>
+            <label class="error" ng-show="kcell_form.approveMaterialsListByCenterCommentVisibility.$error.required && ( kcell_form.approveMaterialsListByCenterCommentVisibility.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+    <accordion>
+        <accordion-group is-open="isHistoryOpen">
+            <accordion-heading>
+                History <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
+            </accordion-heading>
+            <resolution-history resolutions="resolutions" procDef="Revision"></resolution-history>
+        </accordion-group>
+    </accordion>
+</form>

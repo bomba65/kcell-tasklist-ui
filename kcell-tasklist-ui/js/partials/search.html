@@ -1,0 +1,1408 @@
+<style type="text/css">
+  .nowrapDots {
+    display:inline-block;
+    width:180px;
+    white-space: nowrap;
+    overflow:hidden !important;
+    text-overflow: ellipsis;
+  }
+  .multiselect-parent {
+    width: 100%;
+  }
+
+  .modal{
+    overflow:auto !important;
+  }
+
+  .multiselect-parent .dropdown-toggle {
+    width: 100%;
+    text-align:left;
+  }
+  .multiselect-parent .dropdown-toggle > .caret {
+    float:right;
+    margin-top:5px;
+  }
+</style>
+
+
+<div class="row layout-row">
+  <div class="col-md-12 no-float" >
+    <div class="currentTask">
+      <div class="scrollcontainer">
+        <!--div class="scrollable" ng-if="viewSelectedProjectKey==='NetworkInfrastructure'"-->
+        <div class="scrollable" ng-show="selectedProject.key==='All'">
+          <div class="page-body container-fluid">
+            <div class="row">
+              <div class="form-group">
+                <div class="col-sm-12">
+                  <h3 class="text-center">Please select a project</h3>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+        <div class="scrollable" ng-show="selectedProject.key==='NetworkInfrastructure'">
+          <div class="page-body container-fluid">
+            <h3>Revision Works Processes Search</h3>
+            <div class="row">
+              <div class="form-group">
+                <div class="col-sm-8">
+                  <h3>Filter</h3>
+                </div>
+                <div class="col-sm-4">
+                  <a class="btn btn-default" style="float: right" ng-click="clearFilters()">Clear filters</a>
+                </div>
+              </div>
+            </div>
+            <div class="row">
+              <div class="form-group col-sm-4">
+                <label class="col-sm-4 control-label">Year:</label>
+                <div class="col-sm-4">
+                  <select ng-model="filter.beginYear" class="form-control selectpicker" select-picker title="" ng-options="y as y for y in years"></select>
+                </div>
+                <div class="col-sm-4">
+                  <select ng-model="filter.endYear" class="form-control selectpicker" select-picker title="" ng-options="y as y for y in years"></select>
+                </div>
+              </div>
+              <div class="form-group col-sm-4">
+                <label class="col-sm-4 control-label">JR Number:</label>
+                <div class="col-sm-2">
+                  <select ng-model="filter.businessKeyFilterType" class="form-control selectpicker" select-picker title="" ng-init="filter.businessKeyFilterType = 'eq'">
+                    <option value="eq">=</option>
+                    <option value="like">like</option>
+                  </select>
+                </div>
+                <div class="col-sm-6">
+                  <input type="text" ng-model="filter.businessKey" class="form-control" placeholder="Alm-XXX-P&O-20-4025" />
+                </div>
+              </div>
+              <div class="form-group col-sm-4">
+                <label class="col-sm-4 control-label">Requested Date:</label>
+                <div class="col-sm-8">
+                  <div class="input-group">
+                    <input type="text" ng-model="filter.requestedDateRange" name="requestedDate" class="form-control calendar-range-readonly" readonly/>
+                    <span class="input-group-btn">
+						                    <button type="button" calendar-range class="btn btn-default" id="calendarRangeButton" name="requestedDate">
+						                        <i class="glyphicon glyphicon-calendar"></i>
+						                    </button>
+						                </span>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+            <div class="row">
+              <div class="form-group col-sm-4">
+                <label class="col-sm-4 control-label">Site Id:</label>
+                <div class="col-sm-8">
+                  <input type="text" ng-model="filter.siteId" name="site_id" typeahead="site as sites.name for sites in getSiteId($viewValue)" typeahead-on-select="siteIdSelected($item,$model,$label)" class="form-control" autocomplete="off" placeholder="Site Id">
+                </div>
+              </div>
+              <div class="form-group col-sm-4">
+                <label class="col-sm-4 control-label">Sitename:</label>
+                <div class="col-sm-8">
+                  <input type="text" ng-model="filter.sitename" name="site_name" typeahead="site as sites.site_name for sites in getSite($viewValue)" typeahead-on-select="siteSelected($item,$model,$label)" class="form-control" autocomplete="off" placeholder="Site Name">
+                </div>
+              </div>
+              <div class="form-group col-sm-4">
+                <label class="col-sm-4 control-label">Validity Date:</label>
+                <div class="col-sm-8">
+                  <div class="input-group">
+                    <input type="text" ng-model="filter.validityDateRange" name="validityDate" class="form-control calendar-range-readonly" readonly/>
+                    <span class="input-group-btn">
+						                    <button type="button" calendar-range class="btn btn-default" id="calendarRangeButton" name="validityDate">
+						                        <i class="glyphicon glyphicon-calendar"></i>
+						                    </button>
+						                </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="row">
+              <div class="form-group col-sm-4" ng-if="hasGroup('head_kcell_users') || hasGroup('revision_managers') || hasGroup('revision_audit')">
+                <label class="col-sm-4 control-label">Region:</label>
+                <div class="col-sm-8">
+                  <select ng-model="filter.region" class="form-control selectpicker" select-picker title="" select-model="regionsMap" ng-init="filter.region = 'all'">
+                    <option value="all">All</option>
+                    <option value="{{key}}" ng-repeat="(key, value) in regionsMap" ng-selected="{{key == filter.region}}">{{value}}</option>
+                  </select>
+                </div>
+              </div>
+              <div class="form-group col-sm-4">
+                <label class="col-sm-4 control-label">Requestor:</label>
+                <div class="col-sm-8">
+                  <input type="text" ng-model="filter.requestor" class="form-control" placeholder="Name.Surname@kcell.kz" />
+                </div>
+              </div>
+              <div class="form-group col-sm-4">
+                <label class="col-sm-4 control-label">Priority:</label>
+                <div class="col-sm-8">
+                  <select ng-model="filter.priority" class="form-control selectpicker" select-picker title="">
+                    <option></option>
+                    <option value="regular">Regular</option>
+                    <option value="emergency">Emergency</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+            <div class="row">
+              <div class="form-group col-sm-4">
+                <label class="col-sm-4 control-label">Current activity:</label>
+                <div class="col-sm-8">
+                  <select ng-model="filter.activityId" class="form-control selectpicker" select-picker title="" select-model="includedUserTasks">
+                    <option></option>
+                    <option value="{{task.id}}" ng-repeat="task in includedUserTasks | orderBy: 'name'" ng-selected="{{task.id == filter.activity}}">{{task.name}}</option>
+                  </select>
+                </div>
+              </div>
+              <div class="form-group col-sm-4">
+                <label class="col-sm-4 control-label">Work Type:</label>
+                <div class="col-sm-8">
+                  <select ng-model="filter.workType" class="form-control selectpicker" select-picker title="" select-model="reasons">
+                    <option></option>
+                    <option value="{{r.id}}" ng-repeat="r in reasons" ng-selected="{{r.id == filter.workType}}">{{r.name}}</option>
+                  </select>
+                </div>
+              </div>
+              <div class="form-group col-sm-4">
+                <label class="col-sm-4 control-label">Contains work:</label>
+                <div class="col-sm-8">
+                  <select ng-model="filter.workName" class="form-control selectpicker" select-picker title="" select-model="works">
+                    <option></option>
+                    <option ng-repeat="work in works" ng-selected="{{filter.workName == work.sapPOServiceName}}" value="{{work.sapPOServiceName}}">{{work.sapPOServiceName}}</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+            <div class="row">
+              <div class="form-group col-sm-4">
+                <label class="col-sm-4 control-label">Contract:</label>
+                <div class="col-sm-8">
+                  <select ng-model="filter.mainContract" class="form-control selectpicker" select-picker title="" ng-init="filter.mainContract = 'All'">
+                    <option value="All">All</option>
+                    <option value="Revision">Revision</option>
+                    <option value="Roll-out">Roll-out</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+            <div class="row">
+              <div class="form-group">
+                <div class="col-sm-8">
+                  <a class="btn btn-primary" ng-click="search(true)">Filter ({{processInstancesTotal}})<i class="fa fa-search"></i></a>
+                </div>
+                <div class="col-sm-4">
+                  <a ng-if="lastSearchParams" class="btn btn-default" style="float: right" id="xlsxClick" ng-click="getXlsxProcessInstances()">{{xlsxPrepared ? 'Export to Excel' : 'Prepare Excel'}}</a>
+                </div>
+              </div>
+            </div>
+            <div style="margin-bottom: 20px;"></div>
+
+            <table class="table table-condensed table-hover" ng-if="processInstances" id="revisionsTable" name="revisionsTable">
+              <thead class="fixed-header">
+              <tr>
+                <th>#</th>
+                <th>Region</th>
+                <th>Sitename</th>
+                <th>JR Number</th>
+                <th>Execution Time</th>
+                <th>Current Activity</th>
+                <th>Contractor</th>
+                <th>Reason</th>
+                <th>Requested By</th>
+                <th>Current Assignee</th>
+                <th>Requested Date</th>
+                <th>Validity Date</th>
+                <th>Jobs List</th>
+              </tr>
+              </thead>
+              <tbody>
+              <tr ng-repeat="pi in processInstances" class="pi-{{pi.state == 'EXTERNALLY_TERMINATED'?'COMPLETED':pi.state}}">
+                <td>{{(filter.page-1)*20 + $index + 1}}</td>
+                <td>{{regionsMap[pi.siteRegion]}}</td>
+                <td>{{pi.site_name}}</td>
+                <td>
+                  <a ng-click="toggleProcessViewRevision($index, pi.processDefinitionKey, pi.processDefinitionId, pi.businessKey)">
+                    {{pi.businessKey}}
+                  </a>
+                </td>
+                <td>{{pi.executionTime}} days</td>
+                <td style="max-width: 100px;">
+                  <span ng-if="!(hasGroup('revision_managers') || hasGroup('revision_audit'))" ng-repeat="task in pi.tasks">{{$index+1}}. {{task.name}}<br/></span>
+                  <a ng-if="hasGroup('revision_managers') || hasGroup('revision_audit')" ng-repeat="task in pi.tasks" ui-sref="tasks.task({id:task.id})" target="_blank">{{$index+1}}. {{task.name}}<br/></a>
+                  <span ng-repeat="act in pi.otherActivities">{{pi.tasks.length+$index+1}}. {{act.activityName}}<br/></span>
+                </td>
+                <td>{{contractorShortName[pi.contractor]}}</td>
+                <td>{{reasonShortName[pi.reason]}}</td>
+                <td>{{profiles[pi.startUserId].firstName}} {{profiles[pi.startUserId].lastName}}</td>
+                <td>
+                  <a ng-click="showTaskDetail(task)" ng-repeat="task in pi.tasks">{{$index+1}}. {{profiles[task.assignee] ? (profiles[task.assignee].firstName + ' ' + profiles[task.assignee].lastName) : 'Not claimed'}}<br/></a>
+                </td>
+                <td>{{pi.requestedDate | date:'dd MMM yyyy'}}</td>
+                <td>{{pi.validityDate | date:'dd MMM yyyy'}}</td>
+                <td style="max-width: 190px;">
+                  <a ng-click="showWorkDetail(pi.jobWorks)">
+											<span ng-repeat="work in pi.jobWorks" class="nowrapDots">
+												{{work.displayServiceName}}, works qty: {{work.quantity}}, materials qty: {{work.materialQuantity}} {{work.materialUnit}}
+												<br/>
+											</span>
+                  </a>
+                </td>
+              </tr>
+
+              </tbody>
+              <tbody>
+              <tr>
+                <td colspan="13" style="text-align: center">
+                  <a ng-disabled="filter.page <= 1" ng-click="selectPage(1)" class="btn btn-pagination"> << </a>
+                  <a ng-disabled="filter.page <= 1" ng-click="prevPage()" class="btn btn-pagination"> < </a>
+                  <a ng-repeat="page in getPages()" ng-disabled="filter.page == page" ng-click="selectPage(page)" ng-class="filter.page == page? 'btn-pagination-active':''" class="btn btn-pagination">{{page}}</a>
+                  <a ng-disabled="filter.page >= processInstancesPages" ng-click="nextPage()" class="btn btn-pagination"> > </a>
+                  <a ng-disabled="filter.page >= processInstancesPages" ng-click="selectPage(processInstancesPages)" class="btn btn-pagination"> >> </a>
+                </td>
+              </tr>
+              </tbody>
+            </table>
+
+            <table id="xlsxRevisionsTable" name="xlsxRevisionsTable" id="xlsxRevisionsTable" style="display: none;">
+              <thead>
+              <tr>
+                <th>#</th>
+                <th>Region</th>
+                <th>Sitename</th>
+                <th>JR Number</th>
+                <th>Execution Time</th>
+                <th>Current Activity</th>
+                <th>Contractor</th>
+                <th>Reason</th>
+                <th>Requested By</th>
+                <th>Current Assignee</th>
+                <th>Requested Date</th>
+                <th>Validity Date</th>
+                <th>Jobs List</th>
+                <th>Explanation</th>
+              </tr>
+              </thead>
+              <tbody ng-repeat="pi in xlsxProcessInstances">
+              <tr>
+                <td>{{$index + 1}}</td>
+                <td>{{regionsMap[pi.siteRegion]}}</td>
+                <td>{{pi.site_name}}</td>
+                <td>{{pi.businessKey}}</td>
+                <td>{{pi.executionTime}} days</td>
+                <td>
+                  <span ng-repeat="task in pi.tasks">{{$index+1}}. {{task.name}}<br/></span>
+                  <span ng-repeat="act in pi.otherActivities">{{pi.tasks.length+$index+1}}. {{act.activityName}}<br/></span>
+                </td>
+                <td>{{contractorShortName[pi.contractor]}}</td>
+                <td>{{reasonShortName[pi.reason]}}</td>
+                <td>{{profiles[pi.startUserId].firstName}} {{profiles[pi.startUserId].lastName}}</td>
+                <td>
+                  <span ng-repeat="task in pi.tasks">{{$index+1}}. {{profiles[task.assignee] ? (profiles[task.assignee].firstName + ' ' + profiles[task.assignee].lastName) : 'Not claimed'}}<br/></span>
+                </td>
+                <td>{{pi.requestedDate | date:'dd MMM yyyy'}}</td>
+                <td>{{pi.validityDate | date:'dd MMM yyyy'}}</td>
+                <td>
+										<span ng-repeat="work in pi.jobWorks">
+											{{work.displayServiceName}}, works qty: {{work.quantity}}, materials qty: {{work.materialQuantity}} {{work.materialUnit}}
+											<br/>
+										</span>
+                </td>
+                <td>{{pi.explanation}}
+                </td>
+              </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <!--/div>
+
+        <div class="scrollcontainer"></div-->
+        <!--div class="scrollable" ng-if="viewSelectedProjectKey==='DeliveryPortal'"-->
+        <div class="scrollable" ng-show="selectedProject.key==='DeliveryPortal'">
+          <div class="page-body container-fluid">
+            <div ng-switch on="selectedProcess.key">
+              <h3 ng-switch-when="AftersalesPBX">Aftersales PBX Process Search</h3>
+              <h3 ng-switch-when="revolvingNumbers">PBX Revolving Numbers Process Search</h3>
+              <h3 ng-switch-default>Delivery Portal Processes Search</h3>
+            </div>
+            <div class="row">
+              <div class="form-group">
+                <div class="col-sm-8">
+                  <h3>Filter</h3>
+                </div>
+                <div class="col-sm-4"></div>
+              </div>
+            </div>
+            <div ng-if="selectedProcess.key !== 'AftersalesPBX' && selectedProcess.key !== 'revolvingNumbers'">
+              <div class="row">
+                <div class="form-group col-sm-4">
+                  <label class="col-sm-4 control-label">BIN</label>
+                  <div class="col-sm-8">
+                    <input limit-to="12" type="number" ng-model="filterDP.bin" ng-pattern="binPattern" id="bin" name="bin" typeahead="bin as bin for bin in getBIN($viewValue)" typeahead-on-select="binSelected($item,$model,$label)" typeahead-min-length="3" class="form-control" autocomplete="off" placeholder="BIN" required>
+                    <label class="error" ng-show="DeliveryPortalForm.bin.$error.pattern && (DeliveryPortalForm.bin.$touched)">Неверный формат БИН</label>
+                  </div>
+                </div>
+                <div class="form-group col-sm-4">
+                  <label class="col-sm-4 control-label">Process:</label>
+                  <div class="col-sm-8">
+                    <select ng-model="filterDP.processDefinitionKey" class="form-control selectpicker" select-picker title="" ng-change="handleProcessDefintionChange()" ng-options="option.value as option.name for option in filterDP.processDefinitions">
+                      <option ng-selected="true" value="">select a process</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="form-group col-sm-4">
+                  <label class="col-sm-4 control-label">Activity:</label>
+                  <div class="col-sm-8">
+                    <select ng-model="filterDP.activityId" class="form-control selectpicker" select-picker title="" select-model="userTasksDP[filterDP.processDefinitionKey]">
+                      <option ng-selected="true" value="">select a process task</option>
+                      <option value="{{task.id}}" ng-repeat="task in userTasksDP[filterDP.processDefinitionKey] | orderBy: 'name'" >{{task.name}}</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+              <div class="row">
+                <div class="form-group col-sm-4">
+                  <label class="col-sm-4 control-label">User:</label>
+                  <div class="col-sm-8">
+                    <input type="text" ng-model="filterDP.initiator" name="initiator" typeahead="users as users.name for users in getUsers($viewValue)" typeahead-on-select="userSelected($item,$model,$label)" typeahead-min-length="2" class="form-control" required autocomplete="off">
+                  </div>
+                </div>
+                <!--div class="form-group col-sm-4">
+                  <label class="col-sm-4 control-label">Start Date:</label>
+                  <div class="col-sm-8">
+                    <div class="input-group">
+                      <input type="text" ng-model="filterDP.startDate" name="startDate" class="form-control" datepicker-popup="dd.MM.yyyy" is-open="startDateOpened" id="startDate" />
+                      <span class="input-group-btn">
+                        <button type="button" class="btn btn-default" ng-click="open($event, 'startDateOpened')">
+                          <i class="glyphicon glyphicon-calendar"></i>
+                        </button>
+                      </span>
+                    </div>
+                  </div>
+                </div>
+                <div class="form-group col-sm-4">
+                  <label class="col-sm-4 control-label">End Date:</label>
+                  <div class="col-sm-8">
+                    <div class="input-group">
+                      <input type="text" ng-model="filterDP.endDate" name="endDate" class="form-control" datepicker-popup="dd.MM.yyyy" is-open="endDateOpened" id="endDate" />
+                      <span class="input-group-btn">
+                        <button type="button" class="btn btn-default" ng-click="open($event, 'endDateOpened')">
+                          <i class="glyphicon glyphicon-calendar"></i>
+                        </button>
+                      </span>
+                    </div>
+                  </div>
+                </div-->
+                <div class="form-group col-sm-4">
+                  <label class="col-sm-4 control-label">Short number:</label>
+                  <div class="col-sm-8">
+                    <input type="text" ng-model="filterDP.shortNumber" class="form-control" placeholder="Short number" />
+                  </div>
+                </div>
+                <div class="form-group col-sm-4">
+                  <label class="col-sm-4 control-label">Business Key:</label>
+                  <div class="col-sm-8">
+                    <input type="text" ng-model="filterDP.businessKey" class="form-control" placeholder="Business Key">
+                  </div>
+                </div>
+              </div>
+              <div class="row">
+                <div class="form-group col-sm-4">
+                  <label class="col-sm-4 control-label">Participation:</label>
+                  <div class="col-sm-8">
+                    <select ng-model="filterDP.participation" class="form-control selectpicker" select-picker title="">
+                      <option value="">Select participation</option>
+                      <option value="initiator">Inititator</option>
+                      <option value="participant">Participant</option>
+                    </select>
+                  </div>
+                </div>
+                <!--div class="form-group col-sm-4">
+                  <label class="col-sm-4 control-label">Short number:</label>
+                  <div class="col-sm-8">
+                    <input type="text" ng-model="filterDP.shortNumber" class="form-control" placeholder="Short number" />
+                  </div>
+                </div>
+                <div class="form-group col-sm-4">
+                  <label class="col-sm-4 control-label">Business Key:</label>
+                  <div class="col-sm-8">
+                    <input type="text" ng-model="filterDP.businessKey" class="form-control" placeholder="Business Key">
+                  </div>
+                </div-->
+                <div class="form-group col-sm-4">
+                  <label class="col-sm-4 control-label">Created Date:</label>
+                  <div class="col-sm-8">
+                    <div class="input-group">
+                      <input type="text" ng-model="filterDP.createdDateRange" name="multipleDate" class="form-control calendar-range-readonly" readonly/>
+                      <span class="input-group-btn">
+												<button type="button" calendar-range class="btn btn-default" id="multipleDateButton" name="multipleDate">
+													<i class="glyphicon glyphicon-calendar"></i>
+												</button>
+											</span>
+                    </div>
+                  </div>
+                </div>
+                <!--
+                <div class="form-group col-sm-4">
+                  Dates: {{filterDP.startDate}} - {{filterDP.endDate}}
+                </div>
+                -->
+              </div>
+              <div class="row">
+                <div class="form-group col-sm-4">
+                  <label class="col-sm-4 control-label">Show only active</label>
+                  <div class="col-sm-8">
+                    <input type="checkbox" ng-model="filterDP.unfinished" name="show_activeDP">
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div ng-if="selectedProcess.key === 'AftersalesPBX'">
+              <div class="row">
+                <div class="form-group col-sm-4">
+                  <label class="col-sm-4 control-label">BIN:</label>
+                  <div class="col-sm-8">
+                    <input limit-to="12" type="number" ng-model="filterDP.bin" ng-pattern="binPattern" id="bin" name="bin" typeahead="bin as bin for bin in getBIN($viewValue)" typeahead-on-select="binSelected($item,$model,$label)" typeahead-min-length="3" class="form-control" autocomplete="off" placeholder="170640014410">
+                  </div>
+                </div>
+                <div class="form-group col-sm-4">
+                  <label class="col-sm-4 control-label">TIC name:</label>
+                  <div class="col-sm-8">
+                    <input type="text" ng-model="filterDP.ticName" class="form-control" placeholder="TICNAMECLIENT1" />
+                  </div>
+                </div>
+                <div class="form-group col-sm-4">
+                  <label class="col-sm-4 control-label">Sales representative:</label>
+                  <div class="col-sm-8">
+                    <input type="text" ng-model="filterDP.salesRepr" placeholder="Roman.Pak@kcel.kz" name="salesRepr" typeahead="users as users.name for users in getUsers($viewValue)" typeahead-on-select="salesReprSelected($item)" typeahead-min-length="2" class="form-control" autocomplete="off">
+                    <span class="has-error" ng-if="filterDP.salesRepr && filterDP.salesRepr.length && !filterDP.salesReprId">User must be selected from the list</span>
+                  </div>
+                </div>
+              </div>
+              <div class="row">
+                <div class="form-group col-sm-4">
+                  <label class="col-sm-4 control-label">Business Key:</label>
+                  <div class="col-sm-8">
+                    <input type="text" ng-model="filterDP.businessKey" class="form-control" placeholder="AFTERSLSPBX_170640014410_TICNAMECLIENT1_001">
+                  </div>
+                </div>
+                <div class="form-group col-sm-4">
+                  <label class="col-sm-4 control-label">IP:</label>
+                  <div class="col-sm-8">
+                    <input type="text" ng-model="filterDP.ip" class="form-control" placeholder="199.165.110.254">
+                  </div>
+                </div>
+                <div class="form-group col-sm-4">
+                  <label class="col-sm-4 control-label">Connection Point:</label>
+                  <div class="col-sm-8">
+                    <select ng-model="filterDP.connectionPoint" class="form-control selectpicker" select-picker title="">
+                      <option></option>
+                      <option value="Asterisk">Asterisk</option>
+                      <option value="SBC">SBC</option>
+                      <option value="SIP Proxy">SIP Proxy</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+              <div class="row">
+                <div class="form-group col-sm-4">
+                  <label class="col-sm-4 control-label">Participation:</label>
+                  <div class="col-sm-8">
+                    <select ng-model="filterDP.participation" class="form-control selectpicker" select-picker title="">
+                      <option style="display:none"></option>
+                      <option value="all">All</option>
+                      <option value="initiator">Inititator</option>
+                      <option value="participant">Participant</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="form-group col-sm-4">
+                  <label class="col-sm-4 control-label">Created Date:</label>
+                  <div class="col-sm-8">
+                    <div class="input-group">
+                      <input type="text" ng-model="filterDP.createdDateRange" name="multipleDate" class="form-control calendar-range-readonly" readonly/>
+                      <span class="input-group-btn">
+												<button type="button" calendar-range class="btn btn-default" id="multipleDateButton" name="multipleDate">
+													<i class="glyphicon glyphicon-calendar"></i>
+												</button>
+											</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="form-group col-sm-4">
+                  <label class="col-sm-4 control-label">Show only active</label>
+                  <div class="col-sm-8">
+                    <input type="checkbox" ng-model="filterDP.unfinished" name="show_activeDP">
+                  </div>
+                </div>
+              </div>
+              <div class="row">
+                <div class="form-group col-sm-4">
+                  <label class="col-sm-4 control-label">Numbers PBX:</label>
+                  <div class="col-sm-8">
+                    <textarea elastic-textarea rows="2" ng-model="filterDP.pbxNumbers" class="form-control" placeholder="701030556X"></textarea>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div ng-if="selectedProcess.key === 'revolvingNumbers'">
+              <div class="row">
+                <div class="form-group col-sm-4">
+                  <label class="col-sm-4 control-label">BIN:</label>
+                  <div class="col-sm-8">
+                    <input limit-to="12" type="number" ng-model="filterDP.bin" ng-pattern="binPattern" id="bin" name="bin" typeahead="bin as bin for bin in getBIN($viewValue)" typeahead-on-select="binSelected($item,$model,$label)" typeahead-min-length="3" class="form-control" autocomplete="off" placeholder="170640014410">
+                  </div>
+                </div>
+                <div class="form-group col-sm-4">
+                  <label class="col-sm-4 control-label">TIC name:</label>
+                  <div class="col-sm-8">
+                    <input type="text" ng-model="filterDP.ticName" class="form-control" placeholder="TICNAMECLIENT1" />
+                  </div>
+                </div>
+                <div class="form-group col-sm-4">
+                  <label class="col-sm-4 control-label">Participation:</label>
+                  <div class="col-sm-8">
+                    <select ng-model="filterDP.participation" class="form-control selectpicker" select-picker title="">
+                      <option style="display:none"></option>
+                      <option value="all">All</option>
+                      <option value="initiator">Inititator</option>
+                      <option value="participant">Participant</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+              <div class="row">
+                <div class="form-group col-sm-4">
+                  <label class="col-sm-4 control-label">Business Key:</label>
+                  <div class="col-sm-8">
+                    <input type="text" ng-model="filterDP.businessKey" class="form-control" placeholder="AFTERSLSPBX_170640014410_TICNAMECLIENT1_001">
+                  </div>
+                </div>
+                <div class="form-group col-sm-4">
+                  <label class="col-sm-4 control-label">Caller ID:</label>
+                  <div class="col-sm-8">
+                    <input type="text" ng-model="filterDP.callerID" class="form-control" placeholder="123456">
+                  </div>
+                </div>
+                <div class="form-group col-sm-4">
+                  <label class="col-sm-4 control-label">Connection Point:</label>
+                  <div class="col-sm-8">
+                    <select ng-model="filterDP.connectionPoint" class="form-control selectpicker" select-picker title="">
+                      <option></option>
+                      <option value="Asterisk">Asterisk</option>
+                      <option value="SBC">SBC</option>
+                      <option value="SIP Proxy">SIP Proxy</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+              <div class="row">
+                <div class="form-group col-sm-4">
+                  <label class="col-sm-4 control-label">KAE:</label>
+                  <div class="col-sm-8">
+                    <input type="text" ng-model="filterDP.salesRepr" placeholder="Roman.Pak@kcel.kz" name="salesRepr" typeahead="users as users.name for users in getUsers($viewValue)" typeahead-on-select="salesReprSelected($item)" typeahead-min-length="2" class="form-control" autocomplete="off">
+                    <span class="has-error" ng-if="filterDP.salesRepr && filterDP.salesRepr.length && !filterDP.salesReprId">User must be selected from the list</span>
+                  </div>
+                </div>
+                <div class="form-group col-sm-4">
+                  <label class="col-sm-4 control-label">Callback number:</label>
+                  <div class="col-sm-8">
+                    <input type="text" ng-model="filterDP.callbackNumber" class="form-control" placeholder="8717231455">
+                  </div>
+                </div>
+                <div class="form-group col-sm-4">
+                  <label class="col-sm-4 control-label">Show only active</label>
+                  <div class="col-sm-8">
+                    <input type="checkbox" ng-model="filterDP.unfinished" name="show_activeDP">
+                  </div>
+                </div>
+              </div>
+              <div class="row">
+                <div class="form-group col-sm-4">
+                  <label class="col-sm-4 control-label">Numbers PBX:</label>
+                  <div class="col-sm-8">
+                    <textarea elastic-textarea rows="2" ng-model="filterDP.pbxNumbers" class="form-control" placeholder="701030556X"></textarea>
+                  </div>
+                </div>
+                <div class="form-group col-sm-4">
+                  <label class="col-sm-4 control-label">Created Date:</label>
+                  <div class="col-sm-8">
+                    <div class="input-group">
+                      <input type="text" ng-model="filterDP.createdDateRange" name="multipleDate" class="form-control calendar-range-readonly" readonly/>
+                      <span class="input-group-btn">
+												<button type="button" calendar-range class="btn btn-default" id="multipleDateButton" name="multipleDate">
+													<i class="glyphicon glyphicon-calendar"></i>
+												</button>
+											</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="row">
+              <div class="form-group col-sm-4"></div>
+              <div class="form-group col-sm-4">
+                <div class="col-sm-12">
+                  <center>
+                    <a class="btn btn-default" ng-click="clearFiltersDP()">Clear filters</a>
+                    <a class="btn btn-primary" ng-click="searchDP(true)"><i class="glyphicon glyphicon-search"></i> SEARCH ({{processInstancesDPTotal}})<i class="fa fa-search"></i></a>
+                  </center>
+                </div>
+              </div>
+              <div class="form-group col-sm-4">
+                <div class="col-sm-12">
+                  <a ng-if="processInstancesDPTotal > 0" style="float: right" id="xlsxClick" ng-click="getXlsxProcessInstancesDP()"><img src="./img/xls-download-icon-32x31.png"/></a>
+                </div>
+              </div>
+            </div>
+
+            <div style="margin-bottom: 20px;"></div>
+
+            <table class="table table-condensed table-hover" ng-if="processInstancesDP && selectedProcess.key !== 'AftersalesPBX' && selectedProcess.key !== 'revolvingNumbers'" id="deliveryPortalTable" name="deliveryPortalTable">
+              <thead class="fixed-header">
+              <tr>
+                <th>#</th>
+                <th>Business Key</th>
+                <th>BIN</th>
+                <th>Short number</th>
+                <th>Process</th>
+                <th>Initiator</th>
+                <th>Created date</th>
+                <th>Closed date</th>
+                <th>Activity</th>
+              </tr>
+              </thead>
+              <tbody ng-repeat="pi in getPageInstancesDP()">
+              <tr class="pi-{{pi.state == 'EXTERNALLY_TERMINATED'?'COMPLETED':pi.state}}">
+                <td>{{(filterDP.page-1)*filterDP.maxResults + $index + 1}}</td>
+                <td>
+                  <a ng-click="toggleProcessViewModalDP($index, pi.processDefinitionKey, pi.processDefinitionId, pi.businessKey)">{{pi.businessKey}}</a>
+                </td>
+                <td>{{pi.bin}}</td>
+                <!--td>{{pi.finalIDs}}</td-->
+                <td>{{pi.identifiers}}</td>
+                <td>{{pi.processDefinitionName}}</td>
+                <td>{{profiles[pi.startUserId].firstName}} {{profiles[pi.startUserId].lastName}}</td>
+                <td>{{pi.startTime | date:'dd MMM yyyy'}}</td>
+                <td>{{pi.endTime | date:'dd MMM yyyy'}}</td>
+                <td>
+										<span ng-repeat="task in pi.tasks">
+											{{$index+1}}. {{task.name}}<br/>
+										</span>
+                </td>
+              </tr>
+              </tbody>
+              <tbody>
+              <tr>
+                <td colspan="{{selectedProcess.key == 'AftersalesPBX'?13:9}}" style="text-align: center">
+                  <a ng-disabled="filterDP.page <= 1" ng-click="selectPageDP(1)" class="btn btn-pagination"> << </a>
+                  <a ng-disabled="filterDP.page <= 1" ng-click="prevPageDP()" class="btn btn-pagination"> < </a>
+                  <a ng-repeat="page in getPagesDP()" ng-disabled="filterDP.page == page" ng-click="selectPageDP(page)" ng-class="filterDP.page == page? 'btn-pagination-active':''" class="btn btn-pagination">{{page}}</a>
+                  <a ng-disabled="filterDP.page >= processInstancesDPPages" ng-click="nextPageDP()" class="btn btn-pagination"> > </a>
+                  <a ng-disabled="filterDP.page >= processInstancesDPPages" ng-click="selectPageDP(processInstancesDPPages)" class="btn btn-pagination"> >> </a>
+                </td>
+              </tr>
+              </tbody>
+            </table>
+
+            <table class="table table-condensed table-hover table-bordered" ng-if="processInstancesDP && selectedProcess.key === 'AftersalesPBX'" id="deliveryPortalTable" name="deliveryPortalTable">
+              <thead>
+              <tr>
+                <th>#</th>
+                <th>Business Key</th>
+                <th>BIN</th>
+                <th>TIC name</th>
+                <th>IP</th>
+                <th>Connection point</th>
+                <th>Sales representative</th>
+                <th>Numbers PBX</th>
+                <th>Initiator</th>
+                <th>Created date</th>
+                <th>Closed date</th>
+                <th>Current Assignee</th>
+                <th>Activity</th>
+              </tr>
+              </thead>
+              <tbody ng-repeat="pi in getPageInstancesDP()">
+              <tr class="pi-{{pi.state == 'EXTERNALLY_TERMINATED'?'COMPLETED':pi.state}}">
+                <td>{{(filterDP.page-1)*filterDP.maxResults + $index + 1}}</td>
+                <td>
+                  <a ng-click="toggleProcessViewModalDP($index, pi.processDefinitionKey, pi.processDefinitionId, pi.businessKey)">{{pi.businessKey}}</a>
+                </td>
+                <td>{{pi.bin}}</td>
+                <!--td>{{pi.finalIDs}}</td-->
+                <td>{{pi.legalInfo.ticName}}</td>
+                <td>
+                  <p>{{pi.techSpecs.sip.curPublicVoiceIP}}</p>
+                  <p ng-if="pi.techSpecs.sip.newPublicVoiceIP !== pi.techSpecs.sip.curPublicVoiceIP">{{pi.techSpecs.sip.newPublicVoiceIP}}</p>
+                  <p ng-if="pi.techSpecs.sip.curSignalingIP !== pi.techSpecs.sip.curPublicVoiceIP && pi.techSpecs.sip.curSignalingIP !== pi.techSpecs.sip.newPublicVoiceIP">{{pi.techSpecs.sip.curSignalingIP}}</p>
+                  <p ng-if="pi.techSpecs.sip.newSignalingIP !== pi.techSpecs.sip.curPublicVoiceIP && pi.techSpecs.sip.newSignalingIP !== pi.techSpecs.sip.newPublicVoiceIP && pi.techSpecs.sip.newSignalingIP !== pi.techSpecs.sip.curSignalingIP">{{pi.techSpecs.sip.newSignalingIP}}</p>
+                </td>
+                <td>
+                  <p>{{pi.techSpecs.connectionPoint}}</p>
+                  <p ng-if="pi.techSpecs.connectionPointNew !== pi.techSpecs.connectionPoint">{{pi.techSpecs.connectionPointNew}}</p>
+                </td>
+                <td>{{pi.legalInfo.salesRepr}}</td>
+                <td>{{pi.techSpecs.pbxNumbers}}</td>
+                <td>{{profiles[pi.startUserId].firstName}} {{profiles[pi.startUserId].lastName}}</td>
+                <td>{{pi.startTime | date:'dd MMM yyyy'}}</td>
+                <td>{{pi.endTime | date:'dd MMM yyyy'}}</td>
+                <td>
+										<span ng-repeat="task in pi.tasks">
+											<span ng-if="task.assignee && profiles[task.assignee]">{{$index+1}}. {{profiles[task.assignee].firstName}} {{profiles[task.assignee].lastName}}</span>
+											<span ng-if="task.assignee && !profiles[task.assignee]">{{$index+1}}. {{task.assignee}}</span>
+											<span ng-if="!task.assignee">{{$index+1}}. No assignee</span>
+											<br/>
+										</span>
+                </td>
+                <td>
+										<span ng-repeat="task in pi.tasks">
+											{{$index+1}}. {{task.name}}<br/>
+										</span>
+                </td>
+              </tr>
+              </tbody>
+              <tbody>
+              <tr>
+                <td colspan="13" style="text-align: center">
+                  <a ng-disabled="filterDP.page <= 1" ng-click="selectPageDP(1)" class="btn btn-success">First</a>
+                  <a ng-disabled="filterDP.page <= 1" ng-click="prevPageDP()" class="btn btn-success">Previous</a>
+                  <a ng-repeat="page in getPagesDP()" ng-disabled="filterDP.page == page" ng-click="selectPageDP(page)" class="btn btn-success">{{page}}</a>
+                  <a ng-disabled="filterDP.page >= processInstancesDPPages" ng-click="nextPageDP()" class="btn btn-success">Next</a>
+                  <a ng-disabled="filterDP.page >= processInstancesDPPages" ng-click="selectPageDP(processInstancesDPPages)" class="btn btn-success">Last</a>
+                </td>
+              </tr>
+              </tbody>
+            </table>
+
+            <table class="table table-condensed table-hover table-bordered" ng-if="processInstancesDP && selectedProcess.key === 'revolvingNumbers'" id="deliveryPortalTable" name="deliveryPortalTable">
+              <thead>
+              <tr>
+                <th>#</th>
+                <th>Business Key</th>
+                <th>BIN</th>
+                <th>TIC name</th>
+                <th>IP</th>
+                <th>Connection point</th>
+                <th>Sales representative</th>
+                <th>Numbers PBX</th>
+                <th>Created date</th>
+                <th>Closed date</th>
+                <th>Current Assignee</th>
+                <th>Activity</th>
+              </tr>
+              </thead>
+              <tbody ng-repeat="pi in getPageInstancesDP()">
+              <tr class="pi-{{pi.state == 'EXTERNALLY_TERMINATED'?'COMPLETED':pi.state}}">
+                <td>{{(filterDP.page-1)*filterDP.maxResults + $index + 1}}</td>
+                <td>
+                  <a ng-click="toggleProcessViewModalDP($index, pi.processDefinitionKey, pi.processDefinitionId, pi.businessKey)">{{pi.businessKey}}</a>
+                </td>
+                <td>{{pi.bin}}</td>
+                <!--td>{{pi.finalIDs}}</td-->
+                <td>{{pi.legalInfo.ticName}}</td>
+                <td>
+                  <p>{{pi.techSpecs.sip.voiceIP}}</p>
+                  <p ng-if="pi.techSpecs.sip.signalingIP !== pi.techSpecs.sip.voiceIP">{{pi.techSpecs.sip.signalingIP}}</p>
+                </td>
+                <td>{{pi.techSpecs.sip.connectionPoint}}</td>
+                <td>{{pi.legalInfo.salesRepr}}</td>
+                <td>{{pi.techSpecs.pbxNumbers}}</td>
+                <td>{{pi.startTime | date:'dd MMM yyyy'}}</td>
+                <td>{{pi.endTime | date:'dd MMM yyyy'}}</td>
+                <td>
+										<span ng-repeat="task in pi.tasks">
+											<span ng-if="task.assignee && profiles[task.assignee]">{{$index+1}}. {{profiles[task.assignee].firstName}} {{profiles[task.assignee].lastName}}</span>
+											<span ng-if="task.assignee && !profiles[task.assignee]">{{$index+1}}. {{task.assignee}}</span>
+											<span ng-if="!task.assignee">{{$index+1}}. No assignee</span>
+											<br/>
+										</span>
+                </td>
+                <td>
+										<span ng-repeat="task in pi.tasks">
+											{{$index+1}}. {{task.name}}<br/>
+										</span>
+                </td>
+              </tr>
+              <tr style="padding: 0;" ng-if="piIndex === ((filterDP.page-1)*filterDP.maxResults + $index) && jobModel">
+                <td colspan="13">
+                  <table class="table table-condensed table-hover table-bordered" style="margin: 0;">
+                    <tr>
+                      <td style="width: 70%">
+                        <pbx-revolving-numbers-info data="jobModel" ng-if="jobModel.processDefinitionKey === 'revolvingNumbers'"></pbx-revolving-numbers-info>
+                      </td>
+                      <td style="height: 1px; width: 30%" rowspan="2">
+                        <div class="left-wrapper" style="padding: 0">
+                          <div class="scrollcontainer">
+                            <div class="scrollable left" style="padding: 10px 0px; background: transparent;">
+                              <div>
+                                <div class="row" ng-if="jobModel.state">
+                                  <div class="col-xs-8 col-md-8"><b>{{getStatus(jobModel.state, jobModel.acceptPerformedJob.value)}}</b>
+                                  </div>
+                                </div>
+                              </div>
+                              <div>
+                                <a href="" class="btn btn-default" ng-click="showDiagram(pi.processDefinitionId)" class="ng-binding"><span class="glyphicon glyphicon-indent-left" aria-hidden="true"></span> Diagram</a>
+                              </div>
+                              <div style="margin-top: 10px;">
+                                <a href="" class="btn btn-default" ng-click="showHistory(jobModel.resolutions.value, pi.processDefinitionKey)" class="ng-binding"><span class="glyphicon glyphicon-list-alt" aria-hidden="true"></span> History  </a>
+                              </div>
+                              <ul id="tasks">
+                                <li ng-repeat="task in jobModel.tasks">
+                                  <div class="task">
+                                    <h5><a ui-sref="tasks.task({id:task.id})" target="_blank">{{ (task.name || task.id) }}</a></h5>
+                                    <div ng-if="task.description"> {{ task.description }} </div>
+                                    <small class="text-muted" ng-if="task.group">
+                                      Group: <a ng-click="showGroupDetails(task.group)">{{task.group}}</a>
+                                    </small>
+                                    <br/>
+                                    <small class="text-muted" ng-if="task.assignee">{{ task.assigneeObject.firstName }} {{ task.assigneeObject.lastName }}</small>
+                                    <small class="text-muted" ng-if="!task.assignee">Unassigned</small>
+                                  </div>
+                                </li>
+                              </ul>
+                            </div>
+                          </div>
+                        </div>
+                      </td>
+                    </tr>
+                  </table>
+                </td>
+              </tr>
+              </tbody>
+              <tbody>
+              <tr>
+                <td colspan="13" style="text-align: center">
+                  <a ng-disabled="filterDP.page <= 1" ng-click="selectPageDP(1)" class="btn btn-success">First</a>
+                  <a ng-disabled="filterDP.page <= 1" ng-click="prevPageDP()" class="btn btn-success">Previous</a>
+                  <a ng-repeat="page in getPagesDP()" ng-disabled="filterDP.page == page" ng-click="selectPageDP(page)" class="btn btn-success">{{page}}</a>
+                  <a ng-disabled="filterDP.page >= processInstancesDPPages" ng-click="nextPageDP()" class="btn btn-success">Next</a>
+                  <a ng-disabled="filterDP.page >= processInstancesDPPages" ng-click="selectPageDP(processInstancesDPPages)" class="btn btn-success">Last</a>
+                </td>
+              </tr>
+              </tbody>
+            </table>
+
+            <table ng-if="selectedProcess.key !== 'AftersalesPBX' && selectedProcess.key !== 'revolvingNumbers'" id="xlsxDeliveryPortalTable" name="xlsxDeliveryPortalTable" style="display: none;">
+              <thead>
+              <tr>
+                <th>#</th>
+                <th>Business Key</th>
+                <th>BIN</th>
+                <th>Short number</th>
+                <th>Process</th>
+                <th>Initiator</th>
+                <th>Created date</th>
+                <th>Closed date</th>
+                <th>Activity</th>
+              </tr>
+              </thead>
+              <tbody ng-repeat="pi in processInstancesDP">
+              <tr>
+                <td>{{$index + 1}}</td>
+                <td>{{pi.businessKey+''}}</td>
+                <td>{{pi.bin+''}}</td>
+                <!--td>{{pi.finalIDs}}</td-->
+                <td>{{pi.identifiers}}</td>
+                <td>{{pi.processDefinitionName}}</td>
+                <td>{{profiles[pi.startUserId].firstName}} {{profiles[pi.startUserId].lastName}}</td>
+                <td>{{pi.startTime | date:'dd MMM yyyy'}}</td>
+                <td>{{pi.endTime | date:'dd MMM yyyy'}}</td>
+                <td>
+										<span ng-repeat="task in pi.tasks">
+											{{$index+1}}. {{task.name}}<br/>
+										</span>
+                </td>
+              </tr>
+              </tbody>
+            </table>
+
+            <table ng-if="selectedProcess.key === 'AftersalesPBX'" id="xlsxDeliveryPortalTable" name="xlsxDeliveryPortalTable" style="display: none;">
+              <thead>
+              <tr>
+                <th>#</th>
+                <th>Business Key</th>
+                <th>BIN</th>
+                <th>TIC name</th>
+                <th>IP</th>
+                <th>Connection point</th>
+                <th>Sales representative</th>
+                <th>Numbers PBX</th>
+                <th>Initiator</th>
+                <th>Created date</th>
+                <th>Closed date</th>
+                <th>Current Assignee</th>
+                <th>Activity</th>
+              </tr>
+              </thead>
+              <tbody ng-repeat="pi in processInstancesDP">
+              <tr>
+                <td>{{$index + 1}}</td>
+                <td>{{pi.businessKey+''}}</td>
+                <td>{{pi.bin+''}}</td>
+                <!--td>{{pi.finalIDs}}</td-->
+                <td>{{pi.legalInfo.ticName}}</td>
+                <td>
+                  <p>{{pi.techSpecs.sip.curPublicVoiceIP}}</p>
+                  <p ng-if="pi.techSpecs.sip.newPublicVoiceIP !== pi.techSpecs.sip.curPublicVoiceIP">{{pi.techSpecs.sip.newPublicVoiceIP}}</p>
+                  <p ng-if="pi.techSpecs.sip.curSignalingIP !== pi.techSpecs.sip.curPublicVoiceIP && pi.techSpecs.sip.curSignalingIP !== pi.techSpecs.sip.newPublicVoiceIP">{{pi.techSpecs.sip.curSignalingIP}}</p>
+                  <p ng-if="pi.techSpecs.sip.newSignalingIP !== pi.techSpecs.sip.curPublicVoiceIP && pi.techSpecs.sip.newSignalingIP !== pi.techSpecs.sip.newPublicVoiceIP && pi.techSpecs.sip.newSignalingIP !== pi.techSpecs.sip.curSignalingIP">{{pi.techSpecs.sip.newSignalingIP}}</p>
+                </td>
+                <td>
+                  <p>{{pi.techSpecs.connectionPoint}}</p>
+                  <p ng-if="pi.techSpecs.connectionPointNew !== pi.techSpecs.connectionPoint">{{pi.techSpecs.connectionPointNew}}</p>
+                </td>
+                <td>{{pi.legalInfo.salesRepr}}</td>
+                <td>{{pi.techSpecs.pbxNumbers}}</td>
+                <td>{{profiles[pi.startUserId].firstName}} {{profiles[pi.startUserId].lastName}}</td>
+                <td>{{pi.startTime | date:'dd MMM yyyy'}}</td>
+                <td>{{pi.endTime | date:'dd MMM yyyy'}}</td>
+                <td>
+										<span ng-repeat="task in pi.tasks">
+											<span ng-if="task.assignee && profiles[task.assignee]">{{$index+1}}. {{profiles[task.assignee].firstName}} {{profiles[task.assignee].lastName}}</span>
+											<span ng-if="task.assignee && !profiles[task.assignee]">{{$index+1}}. {{task.assignee}}</span>
+											<span ng-if="!task.assignee">{{$index+1}}. No assignee</span>
+											<br/>
+										</span>
+                </td>
+                <td>
+										<span ng-repeat="task in pi.tasks">
+											{{$index+1}}. {{task.name}}<br/>
+										</span>
+                </td>
+              </tr>
+              </tbody>
+            </table>
+
+            <table ng-if="selectedProcess.key === 'revolvingNumbers'" id="xlsxDeliveryPortalTable" name="xlsxDeliveryPortalTable" style="display: none;">
+              <thead>
+              <tr>
+                <th>#</th>
+                <th>Business Key</th>
+                <th>BIN</th>
+                <th>TIC name</th>
+                <th>IP</th>
+                <th>Connection point</th>
+                <th>Sales representative</th>
+                <th>Numbers PBX</th>
+                <th>Created date</th>
+                <th>Closed date</th>
+                <th>Current Assignee</th>
+                <th>Activity</th>
+              </tr>
+              </thead>
+              <tbody ng-repeat="pi in processInstancesDP">
+              <tr>
+                <td>{{$index + 1}}</td>
+                <td>{{pi.businessKey+''}}</td>
+                <td>{{pi.bin+''}}</td>
+                <!--td>{{pi.finalIDs}}</td-->
+                <td>{{pi.legalInfo.ticName}}</td>
+                <td>
+                  <p>{{pi.techSpecs.sip.voiceIP}}</p>
+                  <p ng-if="pi.techSpecs.sip.signalingIP !== pi.techSpecs.sip.voiceIP">{{pi.techSpecs.sip.signalingIP}}</p>
+                </td>
+                <td>{{pi.techSpecs.sip.connectionPoint}}</td>
+                <td>{{pi.legalInfo.salesRepr}}</td>
+                <td>{{pi.techSpecs.pbxNumbers}}</td>
+                <td>{{pi.startTime | date:'dd MMM yyyy'}}</td>
+                <td>{{pi.endTime | date:'dd MMM yyyy'}}</td>
+                <td>
+										<span ng-repeat="task in pi.tasks">
+											<span ng-if="task.assignee && profiles[task.assignee]">{{$index+1}}. {{profiles[task.assignee].firstName}} {{profiles[task.assignee].lastName}}</span>
+											<span ng-if="task.assignee && !profiles[task.assignee]">{{$index+1}}. {{task.assignee}}</span>
+											<span ng-if="!task.assignee">{{$index+1}}. No assignee</span>
+											<br/>
+										</span>
+                </td>
+                <td>
+										<span ng-repeat="task in pi.tasks">
+											{{$index+1}}. {{task.name}}<br/>
+										</span>
+                </td>
+              </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="scrollable" ng-show="selectedProject.key==='DemandUAT'">
+          <div class="page-body container-fluid" ng-if="selectedProcess.key === 'All' || selectedProcess.key === 'UAT'">
+            <h3 ng-if="selectedProcess.key === 'All'" class="text-center">Please select a process</h3>
+            <h3 ng-if="selectedProcess.key === 'UAT'" class="text-center">UAT Process Search is not implemented yet</h3>
+          </div>
+          <div class="page-body container-fluid" ng-if="selectedProcess.key !== 'All' && selectedProcess.key !== 'UAT'">
+            <h3>{{selectedProcess.name}} Process Search</h3>
+            <div class="row">
+              <div class="form-group">
+                <div class="col-sm-8">
+                  <h3>Filter</h3>
+                </div>
+                <div class="col-sm-4"></div>
+              </div>
+            </div>
+            <div class="mt-3 row-m-t" ng-if="selectedProcess.key === 'Demand'">
+              <div class="row">
+                <div class="form-group col-sm-4">
+                  <label class="col-sm-4 control-label">Business key:</label>
+                  <div class="col-sm-8">
+                    <input type="text" ng-model="filter.businessKey" class="form-control">
+                  </div>
+                </div>
+                <div class="form-group col-sm-4">
+                  <label class="col-sm-4 control-label">Demand owner:</label>
+                  <div class="col-sm-8">
+                    <input type="text" ng-model="filter.demandOwner" name="demandOwner" typeahead="users as users.name for users in getDemandOwnerUsers($viewValue)" typeahead-on-select="demandOwnerSelected($item)" typeahead-min-length="2" class="form-control" autocomplete="off">
+
+                    <span class="has-error" ng-if="filter.demandOwner && filter.demandOwner.length && !filter.demandOwnerId">User must be selected from the list</span>
+                  </div>
+                </div>
+                <div class="form-group col-sm-4">
+                  <label class="col-sm-4 control-label">Assignee:</label>
+                  <div class="col-sm-8">
+                    <input type="text" ng-model="filter.assignee" name="assignee" typeahead="users as users.name for users in getDemandAssigneeUsers($viewValue)" typeahead-on-select="demandAssigneeSelected($item)" typeahead-min-length="2" class="form-control" autocomplete="off">
+                    <span class="has-error" ng-if="filter.assignee && filter.assignee.length && !filter.assigneeId">User must be selected from the list</span>
+                  </div>
+                </div>
+              </div>
+              <div class="row">
+                <div class="form-group col-sm-4">
+                  <label class="col-sm-4 control-label">Demand name:</label>
+                  <div class="col-sm-8">
+                    <input type="text" ng-model="filter.demandName" class="form-control">
+                  </div>
+                </div>
+                <div class="form-group col-sm-4">
+                  <label class="col-sm-4 control-label">Activity:</label>
+                  <div class="col-sm-8">
+
+                    <div ng-dropdown-multiselect="" options = 'demandOptions' selected-model="model_dummy" extra-settings="multiselectSettings" translation-texts="translationSettings" events="multiselectEvents"></div>
+
+                  </div>
+                </div>
+                <div class="form-group col-sm-4">
+                  <label class="col-sm-4 control-label">Need Technology delivery\analysis:</label>
+                  <div class="col-sm-8">
+                    <label class="radio-inline">
+                      <input type="radio"  ng-model="filter.technicalAnalysisValue" value="true"> Yes
+                    </label>
+                    <label class="radio-inline">
+                      <input type="radio" ng-model="filter.technicalAnalysisValue" value="false"> No
+                    </label>
+                    <label class="radio-inline">
+                      <input type="radio" ng-model="filter.technicalAnalysisValue" value="ignore"> Ignore filter
+                    </label>
+                  </div>
+                </div>
+              </div>
+              <div class="row">
+                <div class="form-group col-sm-4">
+                  <label class="col-sm-4 control-label">Demand Description:</label>
+                  <div class="col-sm-8">
+                    <textarea rows="1" elastic-textarea ng-model="filter.demandDescription" class="form-control"></textarea>
+                  </div>
+                </div>
+                <div class="form-group col-sm-4">
+                  <label class="col-sm-4 control-label">Status:</label>
+                  <div class="col-sm-8">
+                    <select ng-model="filter.status" class="form-control selectpicker" select-picker title="" select-model="statusList">
+                      <option ng-selected="true" value="">Select status</option>
+                      <option value="{{status}}" ng-repeat="status in statusList">{{status}}</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+              <!--<div class="row">-->
+              <div class="row">
+                <div class="form-group col-sm-4">
+                  <label class="col-sm-4 control-label">Initiative department:</label>
+                  <div class="col-sm-8">
+                    <select ng-model="filter.initiativeDep" class="form-control selectpicker" select-picker title="" select-model="initiativeDepList">
+                      <option ng-selected="true" value="">Select department</option>
+                      <option value="{{dep}}" ng-repeat="dep in initiativeDepList">{{dep}}</option>
+                    </select>
+                  </div>
+
+                </div>
+
+                <div class="form-group col-sm-4">
+                  <label class="col-sm-4 control-label">Product name:</label>
+                  <div class="col-sm-8">
+                    <input type="text" ng-model="filter.productName" class="form-control">
+                  </div>
+                </div>
+
+
+                <div class="form-group col-sm-4">
+                  <label class="col-sm-4 control-label">Product offer:</label>
+                  <div class="col-sm-8">
+                    <input type="text" ng-model="filter.productOffer" class="form-control">
+                  </div>
+                </div>
+              </div>
+              <div class="row form-group">
+                <div class="col-sm-4">
+                  <label class="col-sm-4 control-label">Created:</label>
+                  <div class="col-sm-8">
+                    <div class="input-group">
+                      <input type="text" class="form-control" ng-model="filter.createdStart" datepicker-popup="dd.MM.yyyy" is-open="createdStartDateFieldOpened" />
+                      <span class="input-group-btn">
+							<button type="button" class="btn btn-default" ng-click="createdStartDateFieldOpened = true">
+							<i class="glyphicon glyphicon-calendar"></i>
+							</button>
+							</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-sm-8">
+                  <div class="col-sm-4" ng-if="filter.createStartDateShowPeriod">
+                    <div class="input-group">
+                      <input type="text" class="form-control" ng-model="filter.createdEnd" datepicker-popup="dd.MM.yyyy" is-open="createdEndDateFieldOpened" min-date="filter.createdStart" />
+                      <span class="input-group-btn">
+							<button type="button" class="btn btn-default" ng-click="createdEndDateFieldOpened = true">
+							<i class="glyphicon glyphicon-calendar"></i>
+							</button>
+							</span>
+                    </div>
+                  </div>
+                  <div class="col-sm-4 checkbox-inline">
+                    <input type="checkbox" class="custom-checkbox" value="true" ng-model="filter.createStartDateShowPeriod">period
+                  </div>
+                </div>
+
+              </div>
+
+              <div class="row form-group">
+                <div class="col-sm-4">
+                  <label class="col-sm-4 control-label">Closed:</label>
+                  <div class="col-sm-8">
+                    <div class="input-group">
+                      <input type="text" class="form-control" ng-model="filter.closedStart" datepicker-popup="dd.MM.yyyy" is-open="closedStartDateFieldOpened" />
+                      <span class="input-group-btn">
+                				<button type="button" class="btn btn-default" ng-click="closedStartDateFieldOpened = true">
+                    			<i class="glyphicon glyphicon-calendar"></i>
+                				</button>
+           			 			</span>
+                    </div>
+                  </div></div>
+                <div class="col-sm-8">
+                  <div class="col-sm-4" ng-if="filter.createCloseDateShowPeriod">
+                    <div class="input-group">
+                      <input type="text" class="form-control" ng-model="filter.closedEnd" datepicker-popup="dd.MM.yyyy" is-open="closedEndDateFieldOpened" min-date="filter.closedStart" />
+                      <span class="input-group-btn">
+                				<button type="button" class="btn btn-default" ng-click="closedEndDateFieldOpened = true">
+                    			<i class="glyphicon glyphicon-calendar"></i>
+                				</button>
+           			 			</span>
+                    </div>
+                  </div>
+                  <div class="col-sm-4 checkbox-inline">
+                    <input type="checkbox" value="true" ng-model="filter.createCloseDateShowPeriod">period
+                  </div>
+                </div>
+              </div>
+
+
+              <div class="row form-group">
+                <div class="col-sm-4">
+                  <label class="col-sm-4 control-label">Planned launch by Demand owner:</label>
+                  <div class="col-sm-8">
+                    <div class="input-group">
+                      <input type="text" class="form-control" ng-model="filter.plannedLaunchStart" datepicker-popup="dd.MM.yyyy" is-open="plannedLaunchStartDateFieldOpened" />
+                      <span class="input-group-btn">
+                				<button type="button" class="btn btn-default" ng-click="plannedLaunchStartDateFieldOpened = true">
+                    			<i class="glyphicon glyphicon-calendar"></i>
+                				</button>
+           			 			</span>
+                    </div>
+                  </div></div>
+
+                <div class="col-sm-8">
+                  <div class="col-sm-4" ng-if="filter.createPlannedDateShowPeriod">
+                    <div class="input-group">
+                      <input type="text" class="form-control" ng-model="filter.plannedLaunchEnd" datepicker-popup="dd.MM.yyyy" is-open="plannedLaunchEndDateFieldOpened" min-date="filter.plannedLaunchStart" />
+                      <span class="input-group-btn">
+                				<button type="button" class="btn btn-default" ng-click="plannedLaunchEndDateFieldOpened = true">
+                    			<i class="glyphicon glyphicon-calendar"></i>
+                				</button>
+           			 			</span>
+                    </div>
+                  </div>
+                  <div class="col-sm-4 checkbox-inline">
+                    <input type="checkbox" value="true" ng-model="filter.createPlannedDateShowPeriod">period
+                  </div>
+                </div>
+              </div>
+
+              <div class="row form-group">
+                <div class="col-sm-4">
+                  <label class="col-sm-4 control-label">Planned launch by Requirement manager:</label>
+
+                  <div class="col-sm-8">
+                    <div class="input-group">
+                      <input type="text" class="form-control" ng-model="filter.actualLaunchStart" datepicker-popup="dd.MM.yyyy" is-open="actualLaunchStartDateFieldOpened" />
+                      <span class="input-group-btn">
+                				<button type="button" class="btn btn-default" ng-click="actualLaunchStartDateFieldOpened = true">
+                    			<i class="glyphicon glyphicon-calendar"></i>
+                				</button>
+           			 			</span>
+                    </div>
+                  </div></div>
+                <div class="col-sm-8">
+                  <div class="col-sm-4" ng-if="filter.createActualDateShowPeriod">
+                    <div class="input-group">
+                      <input type="text" class="form-control" ng-model="filter.actualLaunchEnd" datepicker-popup="dd.MM.yyyy" is-open="actualLaunchEndDateFieldOpened" min-date="filter.actualLaunchStart" />
+                      <span class="input-group-btn">
+                				<button type="button" class="btn btn-default" ng-click="actualLaunchEndDateFieldOpened = true">
+                    			<i class="glyphicon glyphicon-calendar"></i>
+                				</button>
+           			 			</span>
+                    </div>
+                  </div>
+                  <div class="col-sm-4 checkbox-inline">
+                    <input type="checkbox" value="true" ng-model="filter.createActualDateShowPeriod">period
+                  </div>
+
+                </div></div>
+
+              <!--</div> -->
+            </div>
+            <div class="row" style="margin-top: 20px;">
+              <div class="form-group col-sm-4"></div>
+              <div class="form-group col-sm-4">
+                <div class="col-sm-12">
+                  <center>
+                    <a class="btn btn-primary" ng-click="search(true)"><i class="glyphicon glyphicon-search"></i> SEARCH ({{processInstancesTotal}})<i class="fa fa-search"></i></a>
+                    <a class="btn btn-default" style="margin-left:6px;" ng-click="clear()">Clear filters</a>
+                  </center>
+                </div>
+              </div>
+              <div class="form-group col-sm-4">
+                <div class="col-sm-12">
+                  <a ng-if="lastSearchParams" class="btn btn-default" style="float: right" id="xlsxClick" ng-click="getDemandXlsx()">{{xlsxPrepared ? 'Export to Excel' : 'Prepare Excel'}}</a>
+                </div>
+              </div>
+            </div>
+
+            <div style="margin-bottom: 20px;"></div>
+
+            <table class="table table-condensed table-hover" ng-if="processInstances" ng-if="selectedProcess.key === 'Demand'">
+              <thead class="fixed-header">
+              <tr class="dm-result-header">
+                <th>#</th>
+                <th>Business Key</th>
+                <th>Demand name</th>
+                <th>Demand owner</th>
+                <th>Planned launch by Demand owner</th>
+                <th>Planned launch by Requirement manager</th>
+                <th>Created date</th>
+                <th>Closed date</th>
+                <th>Status</th>
+                <th>Assignee</th>
+                <th>Activity</th>
+              </tr>
+              </thead>
+              <tbody>
+              <tr ng-repeat="pi in processInstances track by $index" class="pi-{{pi.state == 'EXTERNALLY_TERMINATED'?'COMPLETED':pi.state}}">
+                <td>{{(filter.page-1)*filter.maxResults + $index + 1}}</td>
+                <td>
+                  <a ng-click="toggleProcessView($index, pi.processDefinitionKey, pi.processDefinitionId)">
+                    {{pi.businessKey}}
+                  </a>
+                </td>
+                <td>{{pi.demandName}}</td>
+                <td>{{pi.generalData.general.demandOwner}}</td>
+                <td>{{pi.generalData.general.plannedLaunch | date: 'dd.MM.yyyy'}}</td>
+                <td>{{pi.generalData.general.actualLaunch | date: 'dd.MM.yyyy'}}</td>
+                <td>{{pi.startTime | date:'dd.MM.yyyy HH:mm'}}</td>
+                <td>{{pi.endTime | date:'dd.MM.yyyy HH:mm'}}</td>
+                <td>{{pi.status}}</td>
+                <td>
+										<span ng-repeat="task in pi.tasks">
+											<span ng-if="task.assignee && profiles[task.assignee]">{{$index+1}}. {{profiles[task.assignee].firstName}} {{profiles[task.assignee].lastName}}</span>
+											<span ng-if="task.assignee && !profiles[task.assignee]">{{$index+1}}. {{task.assignee}}</span>
+											<span ng-if="!task.assignee">{{$index+1}}. No assignee</span>
+											<br/>
+										</span>
+                </td>
+                <td>
+										<span ng-repeat="task in pi.tasks">
+											{{task.name}}<br/>
+										</span>
+                </td>
+              </tr>
+              </tbody>
+              <tbody>
+              <tr>
+                <td colspan="13" style="text-align: center">
+                  <a ng-disabled="filter.page <= 1" ng-click="selectPage(1)" class="btn btn-pagination"> << </a>
+                  <a ng-disabled="filter.page <= 1" ng-click="prevPage()" class="btn btn-pagination"> < </a>
+                  <a ng-repeat="page in getPages()" ng-disabled="filter.page == page" ng-click="selectPage(page)" ng-class="filter.page == page? 'btn-pagination-active':''" class="btn btn-pagination">{{page}}</a>
+                  <a ng-disabled="filter.page >= processInstancesPages" ng-click="nextPage()" class="btn btn-pagination"> > </a>
+                  <a ng-disabled="filter.page >= processInstancesPages" ng-click="selectPage(processInstancesPages)" class="btn btn-pagination"> >> </a>
+                </td>
+              </tr>
+              </tbody>
+            </table>
+
+            <table id="xlsxDemandTable" style="display: none;">
+              <thead>
+              <thead>
+              <tr>
+                <th>#</th>
+                <th>Business Key</th>
+                <th>Demand name</th>
+                <th>Demand owner</th>
+                <th>Planned launch by Demand owner</th>
+                <th>Planned launch by Requirement manager</th>
+                <th>Created date</th>
+                <th>Closed date</th>
+                <th>Status</th>
+                <th>Assignee</th>
+                <th>Activity</th>
+              </tr>
+              </thead>
+              <tbody ng-repeat="pi in processInstances track by $index">
+              <tr class="pi-{{pi.state == 'EXTERNALLY_TERMINATED'?'COMPLETED':pi.state}}">
+                <td>{{(filter.page-1)*filter.maxResults + $index + 1}}</td>
+                <td>
+                  <a ng-click="toggleProcessView($index, pi.processDefinitionKey)">
+                    {{pi.businessKey}}
+                  </a>
+                </td>
+                <td>{{pi.demandName}}</td>
+                <td>{{pi.generalData.general.demandOwner}}</td>
+                <td>{{pi.generalData.general.plannedLaunch | date: 'dd.MM.yyyy'}}</td>
+                <td>{{pi.generalData.general.actualLaunch | date: 'dd.MM.yyyy'}}</td>
+                <td>{{pi.startTime | date:'dd MMM yyyy'}}</td>
+                <td>{{pi.endTime | date:'dd MMM yyyy'}}</td>
+                <td>{{pi.status}}</td>
+                <td>
+										<span ng-repeat="task in pi.tasks">
+											<span ng-if="task.assignee && profiles[task.assignee]">{{$index+1}}. {{profiles[task.assignee].firstName}} {{profiles[task.assignee].lastName}}</span>
+											<span ng-if="task.assignee && !profiles[task.assignee]">{{$index+1}}. {{task.assignee}}</span>
+											<span ng-if="!task.assignee">{{$index+1}}. No assignee</span>
+											<br/>
+										</span>
+                </td>
+                <td>
+										<span ng-repeat="task in pi.tasks">
+											{{$index+1}}. {{task.name}}<br/>
+										</span>
+                </td>
+              </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+<div class="diagram-pane scrollcontainer"  ng-show="showDiagramView && diagram.xml">
+  <a class="pull-right text-muted text-lg p-a-sm m-r-sm diagram-close-button" ng-click="showDiagramView = false;">×</a>
+  <div cam-widget-bpmn-viewer diagram-data="diagram.xml" on-load="highlightTask()" control="control"></div>
+</div>

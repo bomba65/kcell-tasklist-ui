@@ -1,0 +1,201 @@
+<style>
+    .well {
+        color: #333;
+    }
+</style>
+<form role="form" class="form-horizontal" name="kcell_form" novalidate>
+    <script cam-script type="text/form-script">
+        inject(['$scope', '$http', 'Uri', '$rootScope', '$q', function ($scope, $http, Uri, $rootScope, $q) {
+            var variables = [
+                'requestedDate',
+                'jrNumber',
+                'initiatorFull',
+                'validityDate',
+                'soaComplaintId',
+                'site',
+                'siteName',
+                'siteAddress',
+                'site_name',
+                'reason',
+                'contract',
+                'contractor',
+                'materialsRequired',
+                'leasingRequired',
+                'powerRequired',
+                'project',
+                'supplementaryFiles',
+                'explanation',
+                'jobWorks',
+                'sapPRFileXLS',
+                'sapPRNo',
+                'kcellWarehouseMaterialsList',
+                'kcellWarehouseMaterialsListName',
+                'kcellWarehouseMaterialsAdditionalList',
+                'eLicenseResolutionFile',
+                'eLicenseResolutionFileName',
+                'resolutions',
+                'contractorZIPWarehouseMaterialsList',
+                'contractorZIPWarehouseMaterialsListName',
+                'jrBlank',
+                'tssrssidFile',
+                'tssrssidFileName',
+                'priority',
+                'fillApplied',
+                'sapTransferRequestFile',
+                'actOfMaterialsDispatchingFile',
+                'actOfMaterialsDispatchingFileName',
+                'actOfMaterialsDispatchingFiles',
+                'trFilesName',
+                'trAdditionalFilesName',
+                'trFiles',
+                'siteWorksFiles',
+                'mlApprovalAdditionalInfoFile',
+                'contractorJobAssignedDate',
+                'mainContract'
+            ];
+            $scope.jobModel = {
+                hideSAPPRNO: true
+            };
+            $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
+                    function(result){
+                        $scope.processInstanceId = result.data.processInstanceId;
+                    },
+                    function (error) {
+                        console.log(error.data);
+                    }
+            );
+            camForm.on('form-loaded', function () {
+                variables.forEach(function (el) {
+                    camForm.variableManager.fetchVariable(el);
+                });
+
+                $http.get($rootScope.getCatalogsHttpByName('catalogs')).then(
+                        function (result) {
+                            angular.extend($scope, result.data);
+                            angular.extend($scope.jobModel, result.data);
+                        },
+                        function (error) {
+                            console.log(error.data);
+                        }
+                );
+                camForm.variableManager.createVariable({
+                    name: 'approveMaterialsListByTnuRegionTaskResult',
+                    type: 'String',
+                    value: ''
+                });
+                camForm.variableManager.createVariable({
+                    name: 'modifyWorks',
+                    type: 'Boolean',
+                    value: undefined
+                });
+            });
+            camForm.on('variables-fetched', function () {
+                variables.forEach(function (el) {
+                    $scope.jobModel[el] = camForm.variableManager.variables[el];
+                    if (el === 'resolutions') {
+                        $scope[el] = camForm.variableManager.variables[el].value;
+                    }
+                });
+                $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name+ "/profile").then(function(result){
+                    $rootScope.authentication.assigneeName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
+                });
+                if(camForm.variableManager.variables['approveMaterialsListByTnuRegionComment']){
+                    camForm.variableManager.variableValue('approveMaterialsListByTnuRegionComment', '');
+                }
+            });
+
+            camForm.on('submit', function () {
+                camForm.variableManager.variableValue('approveMaterialsListByTnuRegionTaskResult', $scope.approveMaterialsListByTnuRegionTaskResult);
+                camForm.variableManager.createVariable({
+                    name: 'approve_material_list_tnu_regionTaskResult',
+                    type: 'String',
+                    value: $scope.approveMaterialsListByTnuRegionTaskResult
+                });
+                if ($scope.approveMaterialsListByTnuRegionTaskResult === 'approved') {
+                    camForm.variableManager.variableValue('modifyWorks', false);
+                }
+                else{
+                    camForm.variableManager.variableValue('modifyWorks', true);
+                }
+
+                var visibility = 'all';
+                if($scope.approveMaterialsListByTnuRegionComment && $scope.approveMaterialsListByTnuRegionCommentVisibility){
+                    visibility = $scope.approveMaterialsListByTnuRegionCommentVisibility;
+                    camForm.variableManager.createVariable({
+                        name: 'approve_material_list_tnu_regionTaskCommentVisibility',
+                        type: 'String',
+                        value: visibility
+                    });
+                }
+                camForm.variableManager.createVariable({
+                    name: 'approve_material_list_tnu_regionTaskComment',
+                    type: 'String',
+                    value: $scope.approveMaterialsListByTnuRegionComment
+                });
+                camForm.variableManager.destroyVariable('resolutions');
+            });
+
+            camForm.on('store', function() {
+                camForm.variableManager.variableValue('approveMaterialsListByTnuRegionTaskResult', $scope.approveMaterialsListByTnuRegionTaskResult);
+            });
+
+            camForm.on('variables-restored', function() {
+                $scope.approveMaterialsListByTnuRegionTaskResult = camForm.variableManager.variableValue('approveMaterialsListByTnuRegionTaskResult');
+            });
+
+            $scope.isVisible = function (resolution) {
+                return !resolution.visibility || resolution.visibility === 'all' || (resolution.visibility === 'kcell' && $rootScope.hasGroup('kcellUsers'));
+            }
+
+            $scope.hasComment = function () {
+                return $scope.approveMaterialsListByTnuRegionComment && $rootScope.hasGroup('kcellUsers');
+            }
+        }]);
+    </script>
+    <job-request job-model="jobModel"></job-request>
+
+    <div class="form-group">
+        <label class="col-sm-4 control-label">Resolution</label>
+        <div class="col-sm-8">
+            <label class="radio-inline">
+                <input type="radio" ng-model="approveMaterialsListByTnuRegionTaskResult" name="approveMaterialsListByTnuRegionTaskResult" value="approved" required> Approved
+            </label>
+            <label class="radio-inline" ng-show="jobModel.fillApplied.value !== 'notEnough'">
+                <input type="radio" ng-model="approveMaterialsListByTnuRegionTaskResult" name="approveMaterialsListByTnuRegionTaskResult" value="modify" required> Modify works
+            </label>
+            <label class="radio-inline">
+                <input type="radio" ng-model="approveMaterialsListByTnuRegionTaskResult" name="approveMaterialsListByTnuRegionTaskResult" value="rejected" required> Reject
+            </label>
+            <label class="error" ng-show="kcell_form.approveMaterialsListByTnuRegionTaskResult.$error.required && ( kcell_form.approveMaterialsListByTnuRegionTaskResult.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-4 control-label">Comments</label>
+        <div class="col-sm-8">
+            <textarea class="form-control" rows="4" maxlength="500" cam-variable-name="approveMaterialsListByTnuRegionComment" name="approveMaterialsListByTnuRegionComment" ng-required="approveMaterialsListByTnuRegionTaskResult == 'modify' || approveMaterialsListByTnuRegionTaskResult == 'rejected'" cam-variable-type="String"></textarea>
+            <label class="error" ng-show="kcell_form.approveMaterialsListByTnuRegionComment.$error.required && ( kcell_form.approveMaterialsListByTnuRegionComment.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+    <div class="form-group" ng-show="hasComment()">
+        <label class="col-sm-4 control-label">Comments visibility</label>
+        <div class="col-sm-8">
+            <label class="radio-inline">
+                <input type="radio" name="approveMaterialsListByTnuRegionCommentVisibility"
+                       ng-model="approveMaterialsListByTnuRegionCommentVisibility" value="all" ng-required="hasComment()"> Visible for all
+            </label>
+            <label class="radio-inline">
+                <input type="radio" name="approveMaterialsListByTnuRegionCommentVisibility"
+                       ng-model="approveMaterialsListByTnuRegionCommentVisibility" value="kcell" ng-required="hasComment()"> Kcell staff only
+            </label>
+            <label class="error" ng-show="kcell_form.approveMaterialsListByTnuRegionCommentVisibility.$error.required && ( kcell_form.approveMaterialsListByTnuRegionCommentVisibility.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+    <accordion>
+        <accordion-group is-open="isHistoryOpen">
+            <accordion-heading>
+                History <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
+            </accordion-heading>
+            <resolution-history resolutions="resolutions" procDef="Revision"></resolution-history>
+        </accordion-group>
+    </accordion>
+</form>

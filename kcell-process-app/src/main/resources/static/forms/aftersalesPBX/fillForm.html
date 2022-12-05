@@ -1,0 +1,469 @@
+<form role="form" class="form-horizontal" name="kcell_form" novalidate>
+    <style>
+        .background-yellow-accordion .panel-body {
+            background-color: #ffffcc;
+            border: 1px solid #b3b3b3;
+            color: #333;
+        }
+
+        .content-visible-accordion .panel {
+            overflow: visible;
+        }
+    </style>
+    <script cam-script type="text/form-script">
+        inject(['$scope', '$http', 'Uri', '$rootScope', '$q', 'toasty', '$timeout', function ($scope, $http, Uri, $rootScope, $q, toasty, $timeout) {
+            var createDate = new Date();
+
+            $scope.legalInfo = {companyDate: new Date()};
+            $scope.techSpecs = {connectionType:'SIP over internet', sip: {}};
+            $scope.resolutions = [];
+            $scope.attachments = [];
+            $scope.pbxData = {};
+
+            $scope.action = {
+                tariffPlan: null,
+                tariffExtra: null,
+                changeNumbers: false,
+                changeIP: false,
+                changeConnection: false,
+                changeCodecs: false,
+                newTrunk: false,
+                changeVPN: false,
+                deleteTICName: false,
+                leaveTICName: false,
+                changeStandard: false,
+                changeCustom: false,
+                changeInvoice: false,
+                agreementTermination: false,
+                needBillingTest: false
+            };
+
+            var processInstanceId = null;
+            var taskName = null;
+            var assigneeName = $rootScope.authentication.name;
+
+            $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name+ "/profile").then(function(result){
+                assigneeName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
+            });
+
+            $scope.preSubmit = function() {
+                return $http.get('/camunda/api/engine/engine/default/history/process-instance/count?processDefinitionKey=AftersalesPBX').then(
+                    function(result) {
+                        var countPID = result.data.count + 1;
+                        var orderNumber = '';
+                        if (countPID < 1000) orderNumber += '0';
+                        if (countPID < 100) orderNumber += '0';
+                        if (countPID < 10) orderNumber += '0';
+                        orderNumber += countPID;
+                        camForm.businessKey = 'AFTERSLSPBX_' + $scope.legalInfo.BIN + '_' + $scope.legalInfo.ticName + '_' + orderNumber;
+                    },
+                    function(error) {}
+                );
+            }
+
+            camForm.on('submit', function (event) {
+                if($scope.legalInfo.companyDate){
+                    $scope.legalInfo.companyDate = new Date($scope.legalInfo.companyDate);
+                }
+                camForm.variableManager.createVariable({
+                    name: 'legalInfo',
+                    type: 'Json',
+                    value: $scope.legalInfo
+                });
+                camForm.variableManager.createVariable({
+                    name: 'clientBIN',
+                    type: 'String',
+                    value: $scope.legalInfo.BIN
+                });
+                camForm.variableManager.createVariable({
+                    name: 'techSpecs',
+                    type: 'Json',
+                    value: $scope.techSpecs
+                });
+                camForm.variableManager.createVariable({
+                    name: 'attachments',
+                    type: 'Json',
+                    value: $scope.attachments,
+                    store: true
+                });
+                camForm.variableManager.createVariable({
+                    name: 'action',
+                    type: 'Json',
+                    value: $scope.action,
+                    store: true
+                });
+                camForm.variableManager.createVariable({
+                    name: 'rootForCMMBGW',
+                    type: 'String',
+                    value: $scope.rootForCMMBGW,
+                    store: true
+                });
+
+                var submitDate = new Date ();
+                var attachmentsChanges = {added: [], removed: []}
+                for (var attachment of $scope.attachments) attachmentsChanges.added.push(attachment);
+                if(!$scope.resolutions) {
+                    $scope.resolutions = [];
+                }
+                $scope.resolutions.push({assignee: $rootScope.authentication.name, assigneeName: assigneeName, resolution: 'Complete', comment: $scope.comment, taskId: camForm.taskId, taskEndDate: submitDate, taskName: 'Filling of changes for Aftersales proccess', assignDate: createDate, claimDate: createDate, attachments: attachmentsChanges});
+                camForm.variableManager.createVariable({
+                    name: 'resolutions',
+                    type: 'Json',
+                    value: $scope.resolutions
+                });
+
+
+                if (!$scope.pbxData.tariffPlan) $scope.pbxData.tariffPlan = $scope.action.tariffPlan;
+                if (!$scope.pbxData.tariffExtra) $scope.pbxData.tariffExtra = $scope.action.tariffExtra;
+                if (!$scope.pbxData.rootForCMMBGW) $scope.pbxData.rootForCMMBGW = $scope.rootForCMMBGW;
+                if (!$scope.pbxData.legalInfo) $scope.pbxData.legalInfo = $scope.legalInfo;
+                if (!$scope.pbxData.techSpecs) $scope.pbxData.techSpecs = $scope.techSpecs;
+                if (!$scope.pbxData.sip) $scope.pbxData.sip = $scope.techSpecs.sip;
+                $scope.pbxData.sip.description = $scope.techSpecs.sip.description;
+                $scope.pbxData.sip.newSignalingIP = $scope.techSpecs.sip.newSignalingIP;
+                $scope.pbxData.sip.newPublicVoiceIP = $scope.techSpecs.sip.newPublicVoiceIP;
+                $scope.pbxData.techSpecs.removalNumbers = $scope.techSpecs.removalNumbers;
+                $scope.pbxData.techSpecs.connectionPointNew = $scope.techSpecs.connectionPointNew;
+                $scope.pbxData.fetched = true;
+                $scope.pbxData.legalInfo.fetched = true;
+                $scope.pbxData.techSpecs.fetched = true;
+                $scope.pbxData.sip.fetched = true;
+                camForm.variableManager.createVariable({
+                    name: 'pbxData',
+                    type: 'Json',
+                    value: $scope.pbxData,
+                    store: true
+                });
+
+                var createTSNameConName = '';
+                if (($scope.techSpecs.connectionPoint === "SIP Proxy" && $scope.action.changeNumbers) || ($scope.techSpecs.connectionPointNew === "SIP Proxy" && ($scope.action.changeConnection || $scope.action.newTrunk))) createTSNameConName = "(SIP Proxy)"
+                camForm.variableManager.createVariable({
+                    name: 'createTSNameConName',
+                    type: 'String',
+                    value: createTSNameConName,
+                    store: true
+                });
+
+                var workType = [];
+                for (var key in $scope.action) {
+                    if (!$scope.action[key]) continue;
+                    switch(key) {
+                        case 'changeNumbers': workType.push('Change numbers'); break;
+                        case 'changeIP': workType.push('Change IP, ports'); break;
+                        case 'changeConnection': workType.push('Change connection point'); break;
+                        case 'changeCodecs': workType.push('Change number of sessions, codec, protocol'); break;
+                        case 'newTrunk': workType.push('New trunk addition'); break;
+                        case 'changeVPN': workType.push('Addition/change VPN settings'); break;
+                        case 'deleteTICName': workType.push('Change in legal person with deleting TIC name in Personal Account'); break;
+                        case 'leaveTICName': workType.push('Change in legal person without deleting TIC name in Personal Account'); break;
+                        case 'changeStandard': workType.push('Change Tariff (standard)'); break;
+                        case 'changeCustom': workType.push('Change Tariff (custom)'); break;
+                        case 'changeInvoice': workType.push('Change invoice details/contacts'); break;
+                        case 'agreementTermination': workType.push('Termination of an agreement'); break;
+                    }
+                }
+                camForm.variableManager.createVariable({
+                    name: 'workType',
+                    type: 'Json',
+                    value: workType,
+                    store: true
+                });
+
+                var tGroup = 'sip_proxy';
+                if ($scope.techSpecs.connectionPoint === 'Asterisk') tGroup = 'asterisk';
+                else if ($scope.techSpecs.connectionPoint === 'SBC') tGroup = 'sbc';
+                camForm.variableManager.createVariable({
+                    name: 'technicalGroup',
+                    type: 'String',
+                    value: 'delivery_pbx_'+tGroup+'_technical_dept',
+                    store: true
+                });
+
+                tGroup = 'sip_proxy';
+                if ($scope.techSpecs.connectionPointNew === 'Asterisk') tGroup = 'asterisk';
+                else if ($scope.techSpecs.connectionPointNew === 'SBC') tGroup = 'sbc';
+                camForm.variableManager.createVariable({
+                    name: 'technicalGroupNew',
+                    type: 'String',
+                    value: 'delivery_pbx_'+tGroup+'_technical_dept',
+                    store: true
+                });
+            });
+
+            $scope.downloadFile = function (file) {
+                $http({method: 'GET', url: '/camunda/uploads/' + (file.path.split('/').length === 2 ? 'tmp/' : '') + 'get/' + file.path, transformResponse: [] }).then(
+                    function(response) {
+                        document.getElementById('fileDownloadIframe').src = response.data;
+                    },
+                    function(response) {console.log(response.data);}
+                );
+            }
+
+            $scope.clearFile = function(fileIndex) {
+                $scope.attachments.splice(fileIndex, 1);
+            }
+
+            $scope.fileSelected = function(el, bindedInput) {
+                $timeout(function () {
+                    $scope.$apply(function () {
+                        uploadFileToMinio(el.files[0], bindedInput);
+                    });
+                });
+            };
+
+            var uuid = new Date().getTime();
+
+            function uploadFileToMinio(file, bindedInput) {
+                var fileToUpload = {
+                    name: file.name.replace(/[/\\?%*:|"<>]/g, '-'),
+                    path: uuid + '/' + file.name.replace(/[/\\?%*:|"<>]/g, '-'),
+                    created: new Date(),
+                    createdBy: assigneeName
+                };
+                $http({method: 'GET', url: '/camunda/uploads/tmp/put/' + fileToUpload.path, transformResponse: [] }).then(
+                    function(response) {
+                        $http.put(response.data, file, {headers: {'Content-Type': undefined}}).then(
+                            function () {
+                                $scope.attachments.push(fileToUpload);
+                                angular.element(document.querySelector('#attachments')).val(null);
+                                $(bindedInput).val('');
+                            },
+                            function (error) {
+                                console.log(error.data);
+                            }
+                        );
+                    },
+                    function(response) { console.log(response.data); }
+                );
+            }
+
+            $scope.$on("aftersalesPBXBINCheck", function(e, result) {
+                if (!result) return;
+                $scope.pbxData.fetched = true;
+                if (result.tariff) {
+                    $scope.action.tariffPlan = result.tariff;
+                    $scope.pbxData.tariffPlan = $scope.action.tariffPlan;
+                }
+                if (result.tariffExtra) {
+                    $scope.action.tariffExtra = result.tariffExtra;
+                    $scope.pbxData.tariffExtra = $scope.action.tariffExtra;
+                }
+                if (result.rootForCMMBGW) {
+                    $scope.rootForCMMBGW = result.rootForCMMBGW;
+                    $scope.pbxData.rootForCMMBGW = $scope.rootForCMMBGW;
+                }
+                if (result.attachments) {
+                    $scope.attachments = JSON.parse(result.attachments);
+                }
+                if (result.action) {
+                    var actionTMP = JSON.parse(result.action);
+                    $scope.action.tariffPlan = actionTMP.tariffPlan;
+                    $scope.pbxData.tariffPlan = $scope.action.tariffPlan;
+                    
+                    $scope.action.tariffExtra = actionTMP.tariffExtra;
+                    $scope.pbxData.tariffExtra = $scope.action.tariffExtra;
+                }
+                if (result.aftersales) {
+                    if (result.legalInfo) {
+                        $scope.legalInfo = JSON.parse(result.legalInfo);
+                        if ($scope.legalInfo.companyDate) $scope.legalInfo.companyDate = new Date($scope.legalInfo.companyDate);
+                        if ($scope.legalInfo.termContract) $scope.legalInfo.termContract = new Date($scope.legalInfo.termContract);
+                        $scope.pbxData.legalInfo = JSON.parse(JSON.stringify($scope.legalInfo));
+                        $scope.pbxData.legalInfo.fetched = true;
+                    }
+                    if (result.techSpecs) {
+                        $scope.techSpecs = JSON.parse(result.techSpecs);
+                        scope.pbxData.techSpecs = JSON.parse(JSON.stringify($scope.techSpecs));
+                        scope.pbxData.techSpecs.fetched = true;
+
+                        scope.pbxData.sip = JSON.parse(JSON.stringify($scope.techSpecs.sip));
+                        scope.pbxData.sip.fetched = true;
+                    }
+                }
+            });
+
+
+            $scope.onActionCheck = function() {
+                if ($scope.action.changeConnection || $scope.action.newTrunk) $scope.action.needBillingTest = true;
+                else if (!$scope.action.changeConnection && !$scope.action.newTrunk) $scope.action.needBillingTest = false;
+                if (!$scope.action.newTrunk && !$scope.action.changeConnection) $scope.techSpecs.connectionPointNew = null;
+                if (!$scope.action.changeNumbers) {
+                    $scope.techSpecs.removalRequired = false;
+                    $scope.techSpecs.removalNumbers = null;
+                }
+                if ($scope.action.changeConnection) $scope.techSpecs.removalRequired = true;
+            };
+
+            $scope.kcell_form.comment.$setValidity('actionList', false);
+            $scope.$watch('action', function (data) {
+                var any = false;
+                for (var i in $scope.action) {
+                    if (i === 'tariffPlan' || i === 'tariffExtra' || i === 'needBillingTest') continue;
+                    if ($scope.action[i]) {
+                        any = true;
+                        break;
+                    }
+                }
+                if ($scope.kcell_form) $scope.kcell_form.comment.$setValidity('actionList', any);
+            }, true);
+        }]);
+    </script>
+    <tabset class="my-tab-head my-tab" justified="true">
+        <tab>
+            <tab-heading> Legal information </tab-heading>
+            <accordion class="content-visible-accordion">
+                <accordion-group is-open="true">
+                    <accordion-heading>
+                        Legal information <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
+                    </accordion-heading>
+                    <aftersales-legal-information data="legalInfo" pbx-data="pbxData.legalInfo" form="kcell_form" view="view" disabled="false"></aftersales-legal-information>
+                </accordion-group>
+            </accordion>
+            <div class="col-sm-12">
+                <div class="form-group">
+                    <label class="col-sm-5 control-label">Actual tariff plan: <span class="text-danger glyphicon-asterisk"></span></label>
+                    <div class="col-sm-7">
+                        <select class="form-control selectpicker" select-picker title="" name="tariffPlan" ng-model="action.tariffPlan" required ng-style="{'background-color': ((pbxData.fetched && pbxData.tariffPlan !== action.tariffPlan) ? 'orange' : null)}">
+                            <option style="display:none" value=""></option>
+                            <option value="Стартовый 5">Стартовый 5</option>
+                            <option value="Стартовый 10">Стартовый 10</option>
+                            <option value="Бизнес стандарт">Бизнес стандарт</option>
+                            <option value="Бизнес пакет 30">Бизнес пакет 30</option>
+                            <option value="Бизнес пакет 50">Бизнес пакет 50</option>
+                            <option value="Бизнес пакет 100">Бизнес пакет 100</option>
+                            <option value="Бизнес пакет 150">Бизнес пакет 150</option>
+                            <option value="Бизнес пакет 200">Бизнес пакет 200</option>
+                            <option value="Бизнес пакет 300">Бизнес пакет 300</option>
+                            <option value="Бизнес пакет 400">Бизнес пакет 400</option>
+                            <option value="Бизнес пакет 600">Бизнес пакет 600</option>
+                            <option value="Бизнес пакет 700 ">Бизнес пакет 700 </option>
+                            <option value="Бизнес пакет 1 млн">Бизнес пакет 1 млн</option>
+                            <option value="Бизнес пакет 1.5 млн">Бизнес пакет 1.5 млн</option>
+                            <option value="Бизнес пакет 2.5 млн">Бизнес пакет 2.5 млн</option>
+                            <option value="Бизнес пакет 3 млн">Бизнес пакет 3 млн</option>
+                            <option value="Нестандартный пакет">Нестандартный пакет</option>
+                            <option value="Бизнес универсальный">Бизнес универсальный</option>
+                        </select>
+                        <span class="has-error" ng-if="kcell_form.tariffPlan.$error.required && (kcell_form.tariffPlan.$touched || view.submitted)">Required field</span>
+
+                        <input type="text" ng-show="action.tariffPlan == 'Нестандартный пакет'" class="form-control" style="margin-top: 3px;" name="tariffExtra" ng-model="action.tariffExtra" placeholder="Укажите тариф" ng-required="action.tariffPlan == 'Нестандартный тариф'" ng-style="{'background-color': ((pbxData.fetched && pbxData.tariffExtra !== action.tariffExtra) ? 'orange' : null)}">
+                        <span class="has-error" ng-if="kcell_form.tariffExtra.$error.required && (kcell_form.tariffExtra.$touched || view.submitted)">Required field</span>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="col-sm-5">
+                        <div class="checkbox">
+                            <label style="font-weight: bold;"><input type="checkbox" ng-model="action.changeNumbers" ng-change="onActionCheck()" ng-disabled="action.changeConnection || action.newTrunk">Change numbers</label>
+                        </div>
+                    </div>
+                    <div class="col-sm-7">
+                        <div class="checkbox">
+                            <label><input type="checkbox" ng-model="action.needBillingTest" ng-disabled="!action.changeNumbers && !action.changeConnection && !action.newTrunk">Billing test required</label>
+                        </div>
+                    </div>
+                    <div class="col-sm-12">
+                        <div class="checkbox">
+                            <label><input type="checkbox" ng-model="action.changeIP">Change IP, ports</label>
+                        </div>
+                        <div class="checkbox">
+                            <label style="font-weight: bold;"><input type="checkbox" ng-model="action.changeConnection" ng-change="onActionCheck()" ng-disabled="action.changeNumbers || action.newTrunk">Change connection point</label>
+                        </div>
+                        <div class="checkbox">
+                            <label><input type="checkbox" ng-model="action.changeCodecs">Change number of sessions, codec, protocol</label>
+                        </div>
+                        <div class="checkbox">
+                            <label style="font-weight: bold;"><input type="checkbox" ng-model="action.newTrunk" ng-change="onActionCheck()" ng-disabled="action.changeConnection || action.changeNumbers">New trunk addition</label>
+                        </div>
+                        <div class="checkbox">
+                            <label><input type="checkbox" ng-model="action.changeVPN">Addition/change VPN settings</label>
+                        </div>
+                        <div class="checkbox">
+                            <label style="font-weight: bold;"><input type="checkbox" ng-model="action.deleteTICName" ng-disabled="action.agreementTermination">Change in legal person with deleting TIC name in Personal Account</label>
+                        </div>
+                        <div class="checkbox">
+                            <label><input type="checkbox" ng-model="action.leaveTICName">Change in legal person without deleting TIC name in Personal Account</label>
+                        </div>
+                        <div class="checkbox">
+                            <label style="font-weight: bold;"><input type="checkbox" ng-model="action.changeStandard" ng-disabled="action.changeCustom">Change Tariff (standard)</label>
+                        </div>
+                        <div class="checkbox">
+                            <label><input type="checkbox" ng-model="action.changeCustom" ng-disabled="action.changeStandard">Change Tariff (custom)</label>
+                        </div>
+                        <div class="checkbox">
+                            <label style="font-weight: bold;"><input type="checkbox" ng-model="action.changeInvoice">Change invoice details/contacts</label>
+                        </div>
+                        <div class="checkbox">
+                            <label><input type="checkbox" ng-model="action.agreementTermination" ng-disabled="action.deleteTICName">Termination of an agreement</label>
+                        </div>
+                        <span class="has-error" ng-if="kcell_form.comment.$error.actionList && (kcell_form.comment.$touched || view.submitted)">Please choose an action</span>
+                    </div>
+                </div>
+            </div>
+        </tab>
+        <tab select="$broadcast('tab-selected', 'techSpec')">
+            <tab-heading> Technical specification </tab-heading>
+            <accordion>
+                <accordion-group is-open="true">
+                    <accordion-heading>
+                        Technical specification <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
+                    </accordion-heading>
+                    <aftersales-technical-specifications data="techSpecs" pbx-data="pbxData.techSpecs" form="kcell_form" view="view" disabled="false" show-cp-new="action.newTrunk || action.changeConnection" edit-conn-point="true" remove-numbers="action.changeNumbers || action.changeConnection"></aftersales-technical-specifications>
+                </accordion-group>
+            </accordion>
+            <accordion ng-if="techSpecs.connectionType" class="background-yellow-accordion">
+                <accordion-group is-open="true">
+                    <accordion-heading>
+                        {{techSpecs.connectionType == 'SIP over internet' ? 'Connection via Internet channel by SIP protocol' : (techSpecs.connectionType == 'E1' ? 'Direct connection by E1 (30 channels)' : 'Direct connection by SIP Direct Protocols')}} <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
+                    </accordion-heading>
+                    <aftersales-sip-protocol ng-if="techSpecs.connectionType == 'SIP over internet'" data="techSpecs.sip" pbx-data="pbxData.sip" form="kcell_form" view="view" disabled="false" show-new-fields="action.newTrunk || action.changeConnection || action.changeIP"></aftersales-sip-protocol>
+                </accordion-group>
+            </accordion>
+        </tab>
+    </tabset>
+    <div class="col-sm-12"><hr /></div>
+
+    <iframe id="fileDownloadIframe" style="display:none;"></iframe>
+    <div class="form-group">
+        <label class="col-sm-2 control-label">Attacghments</label>
+        <div class="col-sm-10">
+            <!--<input type="file" class="form-control" id="attachments" name="attachments" onchange="angular.element(this).scope().fileSelected(this)"/>-->
+            <div class="input-group">
+                <label class="input-group-btn">
+                    <span class="btn btn-default">
+                        Choose File <input type="file" id="attachments" name="attachments" style="display: none;" onchange="angular.element(this).scope().fileSelected(this, '#supplementaryFilesName');$('#supplementaryFilesName').val(this.files[0].name)" >
+                    </span>
+                </label>
+                <input type="text" class="form-control upload-filename" id="supplementaryFilesName" placeholder="No File Chosen" readonly>
+            </div>
+            <div class="col-sm-12" style="padding: 0;">
+                <table class="table ">
+                    <thead>
+                    <tr>
+                        <th>File Name</th>
+                        <th>Created</th>
+                        <th>Created By</th>
+                        <th>Delete</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr ng-repeat="file in attachments track by $index">
+                        <td><a ng-click="downloadFile(file)">{{file.name}}</a></td>
+                        <td>{{file.created | date: 'dd.MM.yyyy HH:mm'}}</td>
+                        <td>{{file.createdBy}}</td>
+                        <td><a ng-click="clearFile($index)"><i class="glyphicon glyphicon-trash"></i></a></td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-sm-12"><hr /></div>
+
+    <div class="form-group">
+        <label class="col-sm-2 control-label">Comment</label>
+        <div class="col-sm-10">
+            <textarea elastic-textarea class="form-control" rows="4" ng-model="comment" name="comment"></textarea>
+        </div>
+    </div>
+</form>

@@ -1,0 +1,567 @@
+<style>
+    .well {
+        color: #333;
+    }
+</style>
+<form role="form" class="form-horizontal" name="kcell_form" novalidate>
+    <script cam-script type="text/form-script">
+        inject(['$scope', '$http', 'Uri', '$rootScope', '$q', 'Upload', '$timeout', function ($scope, $http, Uri, $rootScope, $q, Upload, $timeout) {
+            var variables = [
+                'requestedDate',
+                'jrNumber',
+                'initiatorFull',
+                'validityDate',
+                'soaComplaintId',
+                'site',
+                'siteName',
+                'siteAddress',
+                'site_name',
+                'reason',
+                'contract',
+                'contractor',
+                'materialsRequired',
+                'leasingRequired',
+                'powerRequired',
+                'project',
+                'supplementaryFiles',
+                'explanation',
+                'jobWorks',
+                'sapPRFileXLS',
+                'resolutions',
+                'sapPRNo',
+                'jrBlank',
+                'tssrssidFile',
+                'tssrssidFileName',
+                'kcellWarehouseMaterialsList',
+                'kcellWarehouseMaterialsListName',
+                'contractorZIPWarehouseMaterialsList',
+                'contractorZIPWarehouseMaterialsListName',
+                'priority',
+                'fillApplied',
+                'mlApprovalAdditionalInfoFile',
+                'kcellWarehouseMaterialsAdditionalList',
+                'contractorJobAssignedDate',
+                'mainContract',
+                'needAdditionalApproveByCenterRollout'
+            ];
+            $scope.kcellWarehouseMaterialsListExist = false;
+            $scope.kcellWarehouseMaterialsList = {};
+            $scope.contractorZIPWarehouseMaterialsList = {};
+            $scope.jobModel = {
+                hideSAPPRNO: true
+            };
+            $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
+                    function (result) {
+                        $scope.processInstanceId = result.data.processInstanceId;
+                    },
+                    function (error) {
+                        console.log(error.data);
+                    }
+            );
+            camForm.on('form-loaded', function () {
+                variables.forEach(function (el) {
+                    camForm.variableManager.fetchVariable(el);
+                });
+
+                $http.get($rootScope.getCatalogsHttpByName('catalogs')).then(
+                        function (result) {
+                            angular.extend($scope, result.data);
+                            angular.extend($scope.jobModel, result.data);
+                        },
+                        function (error) {
+                            console.log(error.data);
+                        }
+                );
+                camForm.variableManager.createVariable({
+                    name: 'attachMaterialListTaskResult',
+                    type: 'String',
+                    value: ''
+                });
+                camForm.variableManager.createVariable({
+                    name: 'modifyWorks',
+                    type: 'String',
+                    value: ''
+                });
+                camForm.variableManager.createVariable({
+                    name: 'regionTransmissionCheckRequired',
+                    type: 'String',
+                    value: ''
+                });
+            });
+            camForm.on('variables-fetched', function () {
+                variables.forEach(function (el) {
+                    $scope.jobModel[el] = camForm.variableManager.variables[el];
+                    if (camForm.variableManager.variables[el].valueInfo && (el === 'kcellWarehouseMaterialsList' || el === 'contractorZIPWarehouseMaterialsList')) {
+                        $scope[el + 'Exist'] = true;
+                        $scope[el] = {
+                            prev: camForm.variableManager.variables[el]
+                        };
+                    }
+                    if(el === 'kcellWarehouseMaterialsListName'){
+                        if(camForm.variableManager.variables[el] && camForm.variableManager.variables[el].value){
+                            if(camForm.variableManager.variables[el].value.name){
+                                $scope[el] = {
+                                    value: [camForm.variableManager.variables[el].value]
+                                };
+                            } else {
+                                $scope[el] = camForm.variableManager.variables[el];
+                            }
+                        } else {
+                            $scope[el] = camForm.variableManager.variables[el];
+                            $scope[el].value = [];
+                        }
+                        $scope[el].type = 'Json';
+                    }
+                    if (el === 'contractorZIPWarehouseMaterialsListName' || el === 'kcellWarehouseMaterialsAdditionalList') {
+                        $scope[el] = camForm.variableManager.variables[el];
+                        $scope[el].type = 'Json';
+                    }
+                    if (el === 'resolutions') {
+                        $scope[el] = camForm.variableManager.variables[el].value;
+                    }
+                    if (el === 'needAdditionalApproveByCenterRollout' && camForm.variableManager.variables[el].value) {
+                        $scope[el] = camForm.variableManager.variables[el].value;
+                    } else {
+                        $scope.needAdditionalApproveByCenterRollout = false;
+                    }
+                });
+                $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name + "/profile").then(function (result) {
+                    $rootScope.authentication.assigneeName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
+                });
+
+                if (!$scope.kcellWarehouseMaterialsAdditionalList.value) {
+                    $scope.kcellWarehouseMaterialsAdditionalList.value = [];
+                }
+                if(camForm.variableManager.variables['attachMaterialListComment']){
+                    camForm.variableManager.variableValue('attachMaterialListComment', '');
+                }
+            });
+
+            camForm.on('submit', function () {
+                var files = [];
+                camForm.variableManager.variableValue('attachMaterialListTaskResult', $scope.attachMaterialListTaskResult);
+                camForm.variableManager.createVariable({
+                    name: 'attach_ml_inhouseTaskResult',
+                    type: 'String',
+                    value: $scope.attachMaterialListTaskResult
+                });
+                if ($scope.attachMaterialListTaskResult === 'approved') {
+                    camForm.variableManager.variableValue('modifyWorks', false);
+                }
+                else {
+                    camForm.variableManager.variableValue('modifyWorks', true);
+                }
+
+                if ($scope.kcellWarehouseMaterialsListName && $scope.kcellWarehouseMaterialsListName.value && $scope.kcellWarehouseMaterialsListName.value.length > 0) {
+                    $scope.kcellWarehouseMaterialsListName.value.forEach(function (f, i) {
+                        if (f.isNew) {
+                            files.push(f);
+                            delete $scope.kcellWarehouseMaterialsListName.value[i].isNew;
+                        }
+                    });
+                }
+
+                if (camForm.variableManager.variables['kcellWarehouseMaterialsListName']) {
+                    if ($scope.kcellWarehouseMaterialsListName) {
+                        camForm.variableManager.variableValue('kcellWarehouseMaterialsListName', $scope.kcellWarehouseMaterialsListName.value);
+                    } else {
+                        camForm.variableManager.variableValue('kcellWarehouseMaterialsListName', []);
+                    }
+                } else if ($scope.kcellWarehouseMaterialsListName) {
+                    camForm.variableManager.createVariable($scope.kcellWarehouseMaterialsListName);
+                }
+
+                if ($scope.contractorZIPWarehouseMaterialsListName && $scope.contractorZIPWarehouseMaterialsListName.value && $scope.contractorZIPWarehouseMaterialsListName.value.isNew) {
+                    files.push($scope.contractorZIPWarehouseMaterialsListName.value);
+                    delete $scope.contractorZIPWarehouseMaterialsListName.value.isNew;
+                }
+
+                if (camForm.variableManager.variables['contractorZIPWarehouseMaterialsListName']) {
+                    if ($scope.contractorZIPWarehouseMaterialsListName) {
+                        camForm.variableManager.variableValue('contractorZIPWarehouseMaterialsListName', $scope.contractorZIPWarehouseMaterialsListName.value);
+                    } else {
+                        camForm.variableManager.variableValue('contractorZIPWarehouseMaterialsListName', null);
+                    }
+                } else if ($scope.contractorZIPWarehouseMaterialsListName) {
+                    camForm.variableManager.createVariable($scope.contractorZIPWarehouseMaterialsListName);
+                }
+
+                var visibility = 'all';
+                if ($scope.attachMaterialListComment && $scope.attachMaterialListCommentVisibility) {
+                    visibility = $scope.attachMaterialListCommentVisibility;
+                    camForm.variableManager.createVariable({
+                        name: 'attach_ml_inhouseTaskCommentVisibility',
+                        type: 'String',
+                        value: visibility
+                    });
+                }
+                camForm.variableManager.createVariable({
+                    name: 'attach_ml_inhouseTaskComment',
+                    type: 'String',
+                    value: $scope.attachMaterialListComment
+                });
+                camForm.variableManager.destroyVariable('resolutions');
+
+                $scope.kcellWarehouseMaterialsAdditionalList.value.forEach(function (f, i) {
+                    if (f.isNew) {
+                        files.push(f);
+                        delete $scope.kcellWarehouseMaterialsAdditionalList.value[i].isNew;
+                    }
+                });
+
+                if (camForm.variableManager.variables['kcellWarehouseMaterialsAdditionalList']) {
+                    camForm.variableManager.variableValue('kcellWarehouseMaterialsAdditionalList', $scope.kcellWarehouseMaterialsAdditionalList.value);
+                } else {
+                    camForm.variableManager.createVariable($scope.kcellWarehouseMaterialsAdditionalList);
+                }
+                camForm.variableManager.createVariable({
+                    name: 'attach_ml_inhouseFiles',
+                    type: 'Json',
+                    value: files
+                });
+
+                if (camForm.variableManager.variables['needAdditionalApproveByCenterRollout'] && camForm.variableManager.variables['needAdditionalApproveByCenterRollout'].value) {
+                    camForm.variableManager.variableValue('needAdditionalApproveByCenterRollout', $scope.needAdditionalApproveByCenterRollout);
+                } else {
+                    if(camForm.variableManager.variables['needAdditionalApproveByCenterRollout']){
+                        camForm.variableManager.destroyVariable('needAdditionalApproveByCenterRollout');
+                    }
+                    camForm.variableManager.createVariable({
+                        name: 'needAdditionalApproveByCenterRollout',
+                        type: 'Boolean',
+                        value: $scope.needAdditionalApproveByCenterRollout
+                    });
+                }
+
+                camForm.variableManager.variableValue('regionTransmissionCheckRequired', $scope.regionTransmissionCheckRequired);
+
+                $scope.approveMaterialsGroupList = [];
+                if($scope.optimizationMaterialApproveRequired){
+                    $scope.approveMaterialsGroupList.push('P&O');
+                }
+                if($scope.transmissionMaterialApproveRequired){
+                    $scope.approveMaterialsGroupList.push('Transmission');
+                }
+                if($scope.infrastructureMaterialApproveRequired){
+                    $scope.approveMaterialsGroupList.push('S&FM');
+                }
+                if($scope.operationMaterialApproveRequired){
+                    $scope.approveMaterialsGroupList.push('Operation');
+                }
+                if($scope.rollOutMaterialApproveRequired){
+                    $scope.approveMaterialsGroupList.push('Roll-out');
+                }
+
+                camForm.variableManager.createVariable({
+                    name: 'approveMaterialsGroupList',
+                    type: 'Json',
+                    value: $scope.approveMaterialsGroupList
+                });
+            });
+
+            camForm.on('store', function () {
+                camForm.variableManager.variableValue('attachMaterialListTaskResult', $scope.attachMaterialListTaskResult);
+            });
+
+            camForm.on('variables-restored', function () {
+                $scope.attachMaterialListTaskResult = camForm.variableManager.variableValue('attachMaterialListTaskResult');
+            });
+
+            $scope.fileSelected = function (el, fileName, bindedInput) {
+                if (el.files[0]) {
+                    $timeout(function () {
+                        $scope.$apply(function () {
+                            uploadFileToMinio(el.files[0], fileName, bindedInput);
+                            console.log('fsss');
+                        });
+                    })
+                } else {
+                    $scope.$apply(function () {
+                        $scope[fileName] = undefined;
+                    });
+                }
+            };
+
+            function uploadFileToMinio(file, fileName, bindedInput) {
+                var fileToUpload = {
+                    name: fileName,
+                    type: 'Json',
+                    value: {
+                        name: file.name.replace(/[/\\?%*:|"<>]/g, '-'),
+                        isNew: true,
+                        path: $scope.processInstanceId + '/' + camForm.taskId + '/' + file.name.replace(/[/\\?%*:|"<>]/g, '-')
+                    }
+                };
+                $http({
+                    method: 'GET',
+                    url: '/camunda/uploads/put/' + fileToUpload.value.path,
+                    transformResponse: []
+                }).then(function (response) {
+                    $http.put(response.data, file, {headers: {'Content-Type': undefined}}).then(
+                            function () {
+                                $scope[fileName] = fileToUpload;
+                                angular.element(document.querySelector('#' + fileName)).val(null);
+                                $(bindedInput).val('');
+                            },
+                            function (error) {
+                                console.log(error.data);
+                            }
+                    );
+                }, function(error){
+                    console.log(error.data);
+                });
+            }
+
+            $scope.clearFile = function (filename) {
+                delete $scope[filename];
+            };
+
+            $scope.download = function (file) {
+                $http({
+                    method: 'GET',
+                    url: '/camunda/uploads/get/' + file.value.path,
+                    transformResponse: []
+                }).then(function (response) {
+                    document.getElementById('fileDownloadIframe').src = response.data;
+                }, function(error){
+                    console.log(error.data);
+                });
+            }
+
+            //-------------------------------- Additional material files
+            $scope.additionalMaterialFileSelected = function (el, fileName, bindedInput) {
+                $timeout(function () {
+                    $scope.$apply(function () {
+                        uploadAdditionalMaterialFileToMinio(el.files[0], fileName, bindedInput);
+                    });
+                })
+            };
+
+            function uploadAdditionalMaterialFileToMinio(file, fileName, bindedInput) {
+                var fileIndex = $scope[fileName].value.length;
+
+                var fileToUpload = {
+                    name: file.name.replace(/[/\\?%*:|"<>]/g, '-'),
+                    isNew: true,
+                    path: $scope.processInstanceId + '/' + camForm.taskId + '/' + file.name.replace(/[/\\?%*:|"<>]/g, '-')
+                };
+                $http({
+                    method: 'GET',
+                    url: '/camunda/uploads/put/' + fileToUpload.path,
+                    transformResponse: []
+                }).then(function (response) {
+                    $http.put(response.data, file, {headers: {'Content-Type': undefined}}).then(
+                            function () {
+                                $scope[fileName].value.push(fileToUpload);
+                                angular.element(document.querySelector('#additional_material_file_' + fileIndex)).val(null);
+                                angular.element(document.querySelector('#kcell_material_file_' + fileIndex)).val(null);
+                                $(bindedInput).val('');
+
+                            },
+                            function (error) {
+                                console.log(error.data);
+                            }
+                    );
+                }, function(error){
+                    console.log(error.data);
+                });
+            }
+
+            $scope.clearAdditionalMaterialFile = function (list, fileIndex) {
+                $scope[list].value.splice(fileIndex, 1);
+            }
+
+            $scope.additionalMaterialFileDownload = function (file) {
+                $http({
+                    method: 'GET',
+                    url: '/camunda/uploads/get/' + file.path,
+                    transformResponse: []
+                }).then(function (response) {
+                    document.getElementById('fileDownloadIframe').src = response.data;
+                }, function(error){
+                    console.log(error.data);
+                });
+            }
+
+            $scope.isVisible = function (resolution) {
+                return !resolution.visibility || resolution.visibility === 'all' || (resolution.visibility === 'kcell' && $rootScope.hasGroup('kcellUsers'));
+            }
+
+            $scope.hasComment = function () {
+                return $scope.attachMaterialListComment && $rootScope.hasGroup('kcellUsers');
+            }
+        }]);
+    </script>
+    <job-request job-model="jobModel"></job-request>
+    <iframe id="fileDownloadIframe" style="display:none;"></iframe>
+    <div class="form-group" ng-show="kcellWarehouseMaterialsList.prev && jobModel.fillApplied.value !== 'notEnough'">
+        <label class="col-sm-4 control-label">Kcell Warehouse Materials List (xls) (Old version, read only):</label>
+        <div class="col-sm-8">
+            <div ng-if="kcellWarehouseMaterialsList.prev"><a href="{{kcellWarehouseMaterialsList.prev.contentUrl}}">{{kcellWarehouseMaterialsList.prev.valueInfo.filename}}</a> <a ng-click="clearFile('kcellWarehouseMaterialsList')">&times;</a></div>
+        </div>
+    </div>
+    <div class="form-group" ng-show="jobModel.fillApplied.value !== 'notEnough'">
+        <label class="col-sm-4 control-label">Kcell Warehouse Materials List (xls):</label>
+        <div class="col-sm-8">
+            <div ng-show="kcellWarehouseMaterialsListName.value.length > 0" class="input-group" ng-repeat="file in kcellWarehouseMaterialsListName.value">
+                {{$index + 1}}.
+                <a ng-click="additionalMaterialFileDownload(file)">{{file.name}}</a> | <a ng-click="clearAdditionalMaterialFile('kcellWarehouseMaterialsListName', $index)"><i class="glyphicon glyphicon-trash"></i></a>
+            </div>
+            <ng-form name="kcell_material_file_form">
+                <div class="input-group">
+                    <label class="input-group-btn">
+                    <span class="btn btn-default">
+                        Choose File <input type="file" id="kcell_material_file_{{kcellWarehouseMaterialsListName.value.length}}" name="kcell_material_file_{{kcellWarehouseMaterialsListName.value.length}}" ng-model="file.file" style="display: none;" required-file="attachMaterialListTaskResult === 'approved' && jobModel.fillApplied.value !== 'notEnough' && kcellWarehouseMaterialsListName.value.length == 0" onchange="angular.element(this).scope().additionalMaterialFileSelected(this, 'kcellWarehouseMaterialsListName', '#kcell-material-filename'); $('#kcell-material-filename').val(this.files[0].name)" >
+                    </span>
+                    </label>
+                    <input type="text" class="form-control upload-filename" id="kcell-material-filename" placeholder="No File Chosen" readonly>
+                </div>
+                <label class="has-error" ng-show="kcell_material_file_form['kcell_material_file_'+kcellWarehouseMaterialsListName.value.length].$error.validFile">File is required</label>
+            </ng-form>
+        </div>
+    </div>
+    <div class="form-group" ng-show="jobModel.fillApplied.value == 'notEnough'">
+        <label class="col-sm-4 control-label">Kcell WareHouse Additional Material List (xls)</label>
+        <div class="col-md-8">
+            <div class="input-group" ng-repeat="file in kcellWarehouseMaterialsAdditionalList.value">
+                {{$index + 1}}.
+                <a ng-click="additionalMaterialFileDownload(file)">{{file.name}}</a> | <a ng-click="clearAdditionalMaterialFile('kcellWarehouseMaterialsAdditionalList', $index)"><i class="glyphicon glyphicon-trash"></i></a>
+            </div>
+            <ng-form name="additional_material_file_form">
+                <div class="input-group">
+                    <label class="input-group-btn">
+                    <span class="btn btn-default">
+                        Choose File <input type="file" id="additional_material_file_{{kcellWarehouseMaterialsAdditionalList.value.length}}" style="display: none;" name="additional_material_file_{{kcellWarehouseMaterialsAdditionalList.value.length}}" ng-model="file.file" required-file="jobModel.fillApplied.value == 'notEnough' && attachMaterialListTaskResult === 'attached' && kcellWarehouseMaterialsAdditionalList.value.length == 0" onchange="angular.element(this).scope().additionalMaterialFileSelected(this, 'kcellWarehouseMaterialsAdditionalList', '#additional-material-filename'); $('#additional-material-filename').val(this.files[0].name)" >
+                    </span>
+                    </label>
+                    <input type="text" class="form-control upload-filename" id="additional-material-filename" placeholder="No File Chosen" readonly>
+
+                </div>
+                <!--<input type="file" class="form-control" id="additional_material_file_{{kcellWarehouseMaterialsAdditionalList.value.length}}"  onchange="angular.element(this).scope().additionalMaterialFileSelected(this, 'kcellWarehouseMaterialsAdditionalList')"/>-->
+                <label class="has-error" ng-show="additional_material_file_form['additional_material_file_'+kcellWarehouseMaterialsAdditionalList.value.length].$error.validFile">File is required</label>
+            </ng-form>
+        </div>
+    </div>
+
+    <div class="form-group" ng-show="contractorZIPWarehouseMaterialsList.prev && jobModel.fillApplied.value !== 'notEnough'">
+        <label class="col-sm-4 control-label">Contractor ZIP Warehouse Materials List (xls) (Old version, read only):</label>
+        <div class="col-sm-8">
+            <div ng-if="contractorZIPWarehouseMaterialsList.prev"><a href="{{contractorZIPWarehouseMaterialsList.prev.contentUrl}}">{{contractorZIPWarehouseMaterialsList.prev.valueInfo.filename}}</a></div>
+        </div>
+    </div>
+    <div class="form-group" ng-show="jobModel.fillApplied.value !== 'notEnough'">
+        <label class="col-sm-4 control-label">Contractor ZIP Warehouse Materials List (xls):</label>
+        <div class="col-sm-8">
+            <div ng-show="contractorZIPWarehouseMaterialsListName.value.name">
+                <a ng-click="download(contractorZIPWarehouseMaterialsListName)">{{contractorZIPWarehouseMaterialsListName.value.name}}</a> | <a ng-click="clearFile('contractorZIPWarehouseMaterialsListName')"><i class="glyphicon glyphicon-trash"></i></a>
+            </div>
+            <!--<input ng-hide="contractorZIPWarehouseMaterialsListName.value.name" type="file" class="form-control" id="contractorZIPWarehouseMaterialsListName"
+                   name="contractorZIPWarehouseMaterialsListName" ng-model="contractorZIPWarehouseMaterialsListName" onchange="angular.element(this).scope().fileSelected(this, 'contractorZIPWarehouseMaterialsListName')"/>-->
+            <div class="input-group" ng-hide="contractorZIPWarehouseMaterialsListName.value.name">
+                <label class="input-group-btn">
+                    <span class="btn btn-default">
+                        Choose File <input type="file" id="contractorZIPWarehouseMaterialsListName" name="contractorZIPWarehouseMaterialsListName" ng-model="contractorZIPWarehouseMaterialsListName" style="display: none;" onchange="angular.element(this).scope().fileSelected(this, 'contractorZIPWarehouseMaterialsListName', '#supplementaryFilesName');$('#supplementaryFilesName').val(this.files[0].name)" >
+                    </span>
+                </label>
+                <input type="text" class="form-control upload-filename" id="supplementaryFilesName" placeholder="No File Chosen" readonly>
+        </div>
+        </div>
+    </div>
+    <div class="form-group" ng-show="contractorZIPWarehouseMaterialsListName.value.name && hasGroup('kcellUsers')">
+        <label class="col-sm-4 control-label"><b>Kcell Warehouse Materials List (xls) visibility:</label>
+        <div class="col-sm-8">
+            <label class="radio-inline">
+                <input type="radio" name="contractorZIPWarehouseMaterialsListNameVisibility"
+                       ng-model="contractorZIPWarehouseMaterialsListName.value.visibility" value="all" ng-required="contractorZIPWarehouseMaterialsListName.value && hasGroup('kcellUsers')"> Visible for all
+            </label>
+            <label class="radio-inline">
+                <input type="radio" name="contractorZIPWarehouseMaterialsListNameVisibility"
+                       ng-model="contractorZIPWarehouseMaterialsListName.value.visibility" value="kcell" ng-required="contractorZIPWarehouseMaterialsListName.value && hasGroup('kcellUsers')"> Kcell staff only
+            </label>
+            <label class="error" ng-show="kcell_form.contractorZIPWarehouseMaterialsListNameVisibility.$error.required && ( kcell_form.contractorZIPWarehouseMaterialsListNameVisibility.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+<!--    <div class="form-group" ng-hide="jobModel.reason.value === '5'">-->
+<!--        <label class="col-sm-4 control-label">Need additional approve by Center Rollout unit:</label>-->
+<!--        <div class="col-sm-8">-->
+<!--            <label class="radio-inline">-->
+<!--                <input type="checkbox" ng-model="needAdditionalApproveByCenterRollout" name="needAdditionalApproveByCenterRollout" />-->
+<!--            </label>-->
+<!--        </div>-->
+<!--    </div>-->
+    <div class="form-group">
+        <label class="col-sm-4 control-label">Need additional approve by Transmission unit:</label>
+        <div class="col-sm-8">
+            <label class="radio-inline">
+                <input type="radio" ng-model="regionTransmissionCheckRequired" name="regionTransmissionCheckRequired" value="Yes" ng-required="attachMaterialListTaskResult === 'approved'"> Yes
+            </label>
+            <label class="radio-inline">
+                <input type="radio" ng-model="regionTransmissionCheckRequired" name="regionTransmissionCheckRequired" value="No" ng-required="attachMaterialListTaskResult === 'approved'"> No
+            </label>
+            <label class="error" ng-show="kcell_form.regionTransmissionCheckRequired.$error.required && ( kcell_form.regionTransmissionCheckRequired.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label class="col-sm-4 control-label">Please select the groups who must approve material list</label>
+        <div class="col-sm-8">
+            <label class="radio-inline" ng-show="jobModel.reason.value != '1'">
+                <input type="checkbox" cam-variable-name="optimizationMaterialApproveRequired" name="materialApproveGroupList" cam-variable-type="Boolean" /> P&O
+            </label><br/>
+            <label class="radio-inline" ng-show="jobModel.reason.value != '2'">
+                <input type="checkbox" cam-variable-name="transmissionMaterialApproveRequired" name="materialApproveGroupList" cam-variable-type="Boolean" /> Transmission
+            </label><br/>
+            <label class="radio-inline" ng-show="jobModel.reason.value != '3'">
+                <input type="checkbox" cam-variable-name="infrastructureMaterialApproveRequired" name="materialApproveGroupList" cam-variable-type="Boolean" /> S&FM
+            </label><br/>
+            <label class="radio-inline" ng-show="jobModel.reason.value != '4'">
+                <input type="checkbox" cam-variable-name="operationMaterialApproveRequired" name="materialApproveGroupList" cam-variable-type="Boolean" /> Operation
+            </label><br/>
+            <label class="radio-inline" ng-show="jobModel.reason.value != '5'">
+                <input type="checkbox" cam-variable-name="rollOutMaterialApproveRequired" name="materialApproveGroupList" cam-variable-type="Boolean" /> Roll-out
+            </label><br/>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label class="col-sm-4 control-label">Resolution</label>
+        <div class="col-sm-8">
+            <label class="radio-inline">
+                <input type="radio" name="attachMaterialListTaskResult" ng-model="attachMaterialListTaskResult" value="approved" required> Approved
+            </label>
+            <label class="radio-inline" ng-show="jobModel.fillApplied.value !== 'notEnough'">
+                <input type="radio" name="attachMaterialListTaskResult" ng-model="attachMaterialListTaskResult" value="modify" required> Modify works
+            </label>
+            <label class="error" ng-show="kcell_form.attachMaterialListTaskResult.$error.required && ( kcell_form.attachMaterialListTaskResult.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-4 control-label">Attach materials list comments</label>
+        <div class="col-sm-8">
+            <textarea class="form-control" cam-variable-name="attachMaterialListComment" name="attachMaterialListComment" ng-required="attachMaterialListTaskResult == 'modify'" cam-variable-type="String"></textarea>
+            <label class="error" ng-show="kcell_form.attachMaterialListComment.$error.required && ( kcell_form.attachMaterialListComment.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+    <div class="form-group" ng-show="hasComment()">
+        <label class="col-sm-4 control-label">Comments visibility</label>
+        <div class="col-sm-8">
+            <label class="radio-inline">
+                <input type="radio" name="attachMaterialListCommentVisibility"
+                       ng-model="attachMaterialListCommentVisibility" value="all" ng-required="hasComment()"> Visible for all
+            </label>
+            <label class="radio-inline">
+                <input type="radio" name="attachMaterialListCommentVisibility"
+                       ng-model="attachMaterialListCommentVisibility" value="kcell" ng-required="hasComment()"> Kcell staff only
+            </label>
+            <label class="error" ng-show="kcell_form.attachMaterialListCommentVisibility.$error.required && ( kcell_form.attachMaterialListCommentVisibility.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+    <accordion>
+        <accordion-group is-open="isHistoryOpen">
+            <accordion-heading>
+                History <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
+            </accordion-heading>
+            <resolution-history resolutions="resolutions" procDef="Revision"></resolution-history>
+        </accordion-group>
+    </accordion>
+</form>

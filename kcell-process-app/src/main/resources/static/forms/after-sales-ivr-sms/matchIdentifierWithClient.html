@@ -1,0 +1,200 @@
+<form role="form" class="form-horizontal" name="kcell_form" novalidate>
+    <script cam-script type="text/form-script">
+        inject(['$scope', '$http', 'Uri', '$rootScope', '$q', '$timeout', function ($scope, $http, Uri, $rootScope, $q, $timeout) {
+            var variables = [
+                'relatedProcessDefinitionKey',
+                'relatedProcessInstanceId',
+                'resolutions',
+                'identifiers',
+                'identifierType',
+                'abonentTarif',
+                'description',
+                'officialClientCompanyName',
+                'clientCompanyLatName',
+                'startDate',
+                'contractNumber',
+                'connectionType',
+                'previouslyBought',
+                'clientBIN',
+                'responsibleB2BDelivery',
+                'responsibleB2BSales',
+                'smsServiceType',
+                'MSGGWaccount',
+                'smsServiceLogin',
+                'ipNumber',
+                'applicationScanCopyFileName',
+                'contractScanCopyFileName',
+                'techSpecNumber',
+                'techSpecFIO',
+                'techSpecEmail',
+                'tarifPlane',
+                'billing',
+                'provider',
+                'operatorType',
+                'oldTransmitNumber',
+                'oldProvider',
+                'changeProvider',
+                'changeConnectionType',
+                'oldConnectionType',
+                'oldIpNumber',
+                'operatorWasConnected',
+                'newProviderDate',
+                'onnetToOffnet'
+            ];
+
+            camForm.on('form-loaded', function () {
+                variables.forEach(function (el) {
+                    camForm.variableManager.fetchVariable(el);
+                });
+                $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
+                        function(result){
+                            $scope.processInstanceId = result.data.processInstanceId;
+                        },
+                        function (error) {
+                            console.log(error.data);
+                        }
+                );
+               //$scope.aftersalesInfo = {};
+                $scope.aftersalesInfo = {
+                    providerPage: false,
+                    pageConnected: true
+                };
+
+                $scope.aftersalesInfo.files = [];
+            });
+
+            camForm.on('variables-fetched', function () {
+                variables.forEach(function (el) {
+                    if (el === 'resolutions') {
+                        if (camForm.variableManager.variables[el].value) {
+                            $scope.resolutions = angular.copy(camForm.variableManager.variables[el].value);
+                            $q.all($scope.resolutions.map(function (resolution) {
+                                if (resolution.assigneeName === undefined) {
+                                    return $http.get("/camunda/api/engine/engine/default/user/" + resolution.assignee + "/profile");
+                                } else {
+                                    return {data:{}};
+                                }
+                            })).then(function (profiles) {
+                                profiles.forEach(function (e, index) {
+                                    if ( $scope.resolutions[index].assigneeName === undefined) {
+                                        $scope.resolutions[index].assigneeName = (e.data.firstName ? e.data.firstName : "") + " " + (e.data.lastName ? e.data.lastName : "");
+                                    }
+                                });
+                            });
+                            $q.all($scope.resolutions.map(function (resolution) {
+                                return $http.get("/camunda/api/engine/engine/default/history/task?processInstanceId=" + resolution.processInstanceId + "&taskId=" + resolution.taskId);
+                            })).then(function (tasks) {
+                                tasks.forEach(function (e, index) {
+                                    if (e.data.length > 0) {
+                                        $scope.resolutions[index].taskName = e.data[0].name;
+                                        try {
+                                            $scope.resolutions[index].taskEndDate = new Date(e.data[0].endTime);
+                                            $scope.resolutions[index].assignDate = new Date(e.data[0].startTime);
+                                        } catch (e) {
+                                            console.log(e);
+                                        }
+                                    }
+                                });
+                            });
+                            $q.all($scope.resolutions.map(function (resolution) {
+                                return $http.get("/camunda/api/engine/engine/default/history/identity-link-log?type=assignee&taskId=" + resolution.taskId + "&operationType=add&sortBy=time&sortOrder=desc");
+                            })).then(function (logs) {
+                                logs.forEach(function (e, index) {
+                                    if(e.data.length > 0){
+                                        try {
+                                            $scope.resolutions[index].claimDate = new Date(e.data[0].time);
+                                        } catch(e){
+                                            console.log(e);
+                                        }
+                                    }
+                                });
+                            });
+                        }
+                    } else if (el === 'applicationScanCopyFileName' || el === 'contractScanCopyFileName') {
+                        $scope[el] = camForm.variableManager.variables[el].value;
+                        $scope.aftersalesInfo.files.push(camForm.variableManager.variables[el].value);
+                    } else {
+                        $scope[el] = camForm.variableManager.variables[el].value;
+                        $scope.aftersalesInfo[el] = camForm.variableManager.variables[el].value;
+                    }
+                });
+                $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name+ "/profile").then(function(result){
+                    $rootScope.authentication.assigneeName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
+                });
+
+                $scope.aftersalesInfo.showTarif = true;
+
+                camForm.variableManager.createVariable({
+                    name: 'matchIdentifierWithClientTaskResult',
+                    type: 'String',
+                    value: ''
+                });
+
+                camForm.variableManager.createVariable({
+                    name: 'matchIdentifierWithClientTaskComment',
+                    type: 'String',
+                    value: ''
+                });
+
+                $scope.matchIdentifierWithClientTaskResult = '';
+                if ($scope.relatedProcessDefinitionKey === 'freephone') {
+                    $scope.aftersalesInfo.freePhoneProvider = true;
+                }
+
+            });
+
+            camForm.on('submit', function (evt) {
+                // evt.submitPrevented = true;
+                $scope.matchIdentifierWithClientTaskResult = "Completed";
+                camForm.variableManager.variableValue('matchIdentifierWithClientTaskResult', $scope.matchIdentifierWithClientTaskResult);
+                camForm.variableManager.variableValue('matchIdentifierWithClientTaskComment', $scope.matchIdentifierWithClientTaskComment);
+                camForm.variableManager.destroyVariable('resolutions');
+                /*
+                for (const [index, id] of $scope.identifiers.entries()) {
+                    if (!_.find(id.operators, ['checked', true])) {
+                        $scope.identifiers.splice(index, 1);
+                    }
+                }
+                camForm.variableManager.variableValue('identifiers', $scope.identifiers);
+                */
+            });
+        }]);
+
+    </script>
+    <info-aftersales aftersales-info="aftersalesInfo"></info-aftersales>
+   <!-- <p>Добавьте информацию по статусам и ценам за короткий номер</p> -->
+    <div class="form-group" ng-repeat="id in identifiers">
+        <label class="col-sm-12 control-label"/>Идентификатор - {{id.title}}
+        <div class="col-sm-12" style="border-left: solid; border-left-width: 1px; margin-left: 2vh">
+            <table class="table">
+                <thead>
+                <tr>
+                    <th scope="col" class="col-sm-3">Оператор</th>
+                    <th scope="col" class="col-sm-3">Статус</th>
+                    <th scope="col" class="col-sm-3">Цена АП</th>
+                    <th scope="col" class="col-sm-3"><div ng-show="identifierType=='digital'">Цена ЕП</div></th>
+                    <!--th scope="col">Выбрать</th-->
+                </tr>
+                </thead>
+                <tbody>
+                <tr ng-repeat="o in id.operators" ng-if="o.connected && o.id!='kcell'">
+                    <th scope="row">{{o.name}}</th>
+                    <td>{{o.isAvailable?'Доступен':'Не доступен'}}</td>
+                    <td>
+                        <input ng-model="o.priceAP" class="form-control" ng-disabled="true"/>
+                    </td>
+                    <td>
+                        <input ng-show="identifierType=='digital'" ng-model="o.priceEP" class="form-control" ng-disabled="true"/>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-3 control-label">Комментарии</label>
+        <div class="col-sm-9">
+            <textarea class="form-control" ng-model="matchIdentifierWithClientTaskComment" name="matchIdentifierWithClientTaskComment" placeholder="Comments..." ng-required="matchIdentifierWithClientTaskResult === 'rejected'" maxlength="500" rows="4" style="resize:none"></textarea>
+        </div>
+    </div>
+</form>

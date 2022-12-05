@@ -1,0 +1,226 @@
+<style>
+    .well {
+        color: #333;
+    }
+</style>
+<form role="form" class="form-horizontal" name="kcell_form" novalidate>
+    <script cam-script type="text/form-script">
+        inject(['$scope', '$http', 'Uri', '$rootScope', '$q', '$timeout', function ($scope, $http, Uri, $rootScope, $q, $timeout) {
+            var variables = [
+                'requestedDate',
+                'jrNumber',
+                'initiatorFull',
+                'validityDate',
+                'soaComplaintId',
+                'site',
+                'siteName',
+                'siteAddress',
+                'site_name',
+                'reason',
+                'contract',
+                'contractor',
+                'materialsRequired',
+                'leasingRequired',
+                'powerRequired',
+                'project',
+                'supplementaryFiles',
+                'explanation',
+                'resolutions',
+                'workPrices',
+                'jobWorksTotal',
+                'jobWorks',
+                'jrBlank',
+                'tssrssidFile',
+                'tssrssidFileName',
+                'kcellWarehouseMaterialsList',
+                'contractorZIPWarehouseMaterialsList',
+                'kcellWarehouseMaterialsListName',
+                'kcellWarehouseMaterialsAdditionalList',
+                'contractorZIPWarehouseMaterialsListName',
+                'priority',
+                'mlApprovalAdditionalInfoFile',
+                'tnuSiteLocations',
+                'contractorJobAssignedDate',
+                'mainContract'
+            ];
+
+            $scope.jobModel = {};
+
+            $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
+                    function(result){
+                        $scope.processInstanceId = result.data.processInstanceId;
+                    },
+                    function (error) {
+                        console.log(error.data);
+                    }
+            );
+            camForm.on('form-loaded', function () {
+                variables.forEach(function (el) {
+                    camForm.variableManager.fetchVariable(el);
+                });
+
+                $http.get($rootScope.getCatalogsHttpByName('catalogs')).then(
+                        function (result) {
+                            angular.extend($scope, result.data);
+                            angular.extend($scope.jobModel, result.data);
+                        },
+                        function (error) {
+                            console.log(error.data);
+                        }
+                );
+                camForm.variableManager.createVariable({
+                    name: 'provideInfoForSlocCreateTaskResult',
+                    type: 'String',
+                    value: ''
+                });
+                $scope.provideInfoForSlocCreateTaskResult = '';
+                camForm.variableManager.variableValue('provideInfoForSlocCreateTaskResult', $scope.provideInfoForSlocCreateTaskResult);
+            });
+            camForm.on('variables-fetched', function () {
+                variables.forEach(function (el) {
+                    if(el === 'workPrices'){
+                        $scope.jobModel[el] = JSON.parse(camForm.variableManager.variables[el].originalValue);
+                    } else if(el === 'tnuSiteLocations'){
+                        $scope[el] = camForm.variableManager.variables[el].value;
+                    } else if(el === 'sapPRFileXLSName'){
+                        $scope[el] = camForm.variableManager.variables[el];
+                    } else {
+                        $scope.jobModel[el] = camForm.variableManager.variables[el];
+                    }
+                    if (el === 'resolutions') {
+                        $scope[el] = camForm.variableManager.variables[el].value;
+                    }
+                });
+                $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name+ "/profile").then(function(result){
+                    $rootScope.authentication.assigneeName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
+                });
+                if(camForm.variableManager.variables['provideInfoForSlocCreateComment']){
+                    camForm.variableManager.variableValue('provideInfoForSlocCreateComment', '');
+                }
+            });
+            camForm.on('submit', function (e) {
+                camForm.variableManager.variableValue('provideInfoForSlocCreateTaskResult', $scope.provideInfoForSlocCreateTaskResult);
+                camForm.variableManager.createVariable({
+                    name: 'provide_info_sloc_creationTaskResult',
+                    type: 'String',
+                    value: $scope.provideInfoForSlocCreateTaskResult
+                });
+                if($scope.jobModel.reason.value === '2'){
+                    camForm.variableManager.variableValue('tnuSiteLocations', $scope.tnuSiteLocations);
+                }
+
+                var visibility = 'all';
+                if($scope.provideInfoForSlocCreateComment && $scope.provideInfoForSlocCreateCommentVisibility){
+                    visibility = $scope.provideInfoForSlocCreateCommentVisibility;
+                    camForm.variableManager.createVariable({
+                        name: 'provide_info_sloc_creationTaskCommentVisibility',
+                        type: 'String',
+                        value: visibility
+                    });
+                }
+                camForm.variableManager.createVariable({
+                    name: 'provide_info_sloc_creationTaskComment',
+                    type: 'String',
+                    value: $scope.provideInfoForSlocCreateComment
+                });
+                camForm.variableManager.destroyVariable('resolutions');
+            });
+
+            camForm.on('store', function() {
+                camForm.variableManager.variableValue('provideInfoForSlocCreateTaskResult', $scope.provideInfoForSlocCreateTaskResult);
+            });
+
+            camForm.on('variables-restored', function() {
+                $scope.provideInfoForSlocCreateTaskResult = camForm.variableManager.variableValue('provideInfoForSlocCreateTaskResult');
+            });
+
+            $scope.isVisible = function (resolution) {
+                return !resolution.visibility || resolution.visibility === 'all' || (resolution.visibility === 'kcell' && $rootScope.hasGroup('kcellUsers'));
+            }
+
+            $scope.hasComment = function () {
+                return $scope.provideInfoForSlocCreateComment && $rootScope.hasGroup('kcellUsers');
+            }
+        }]);
+    </script>
+
+    <h4>Please pay attention that in SAP is absence information about Site location, please provide necessary information:</h4>
+
+    <job-request job-model="jobModel"></job-request>
+
+    <div ng-show="jobModel.reason.value !== '2'">
+        <div class="form-group">
+            <label class="col-sm-4 control-label">Site ID:</label>
+            <div class="col-sm-8">
+                <input type="text" class="form-control" value="{{jobModel.siteName.value}}" disabled="disabled"></input>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-4 control-label">Sitename:</label>
+            <div class="col-sm-8">
+                <input type="text" class="form-control" value="{{jobModel.site_name.value}}" disabled="disabled"></input>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-4 control-label">Adress:</label>
+            <div class="col-sm-8">
+                <input type="text" class="form-control" ng-model="siteAddress" cam-variable-name="siteAddress" name="siteAddress" ng-required="jobModel.reason.value !== '2'" cam-variable-type="String" placeholder="Adress..."></input>
+                <label class="error" ng-show="kcell_form.siteAddress.$error.required && ( kcell_form.siteAddress.$touched || view.submitted)">Required field</label>
+            </div>
+        </div>
+    </div>
+    <div ng-show="jobModel.reason.value == '2'">
+        <div class="col-sm-12">
+            <div class="row">
+                <table class="table table-condensed" class="form-group">
+                    <thead>
+                    <td>Site ID</td>
+                    <td>Sitename</td>
+                    <td>Adress</td>
+                    </thead>
+                    <tbody>
+                    <tr ng-repeat="(key, value) in tnuSiteLocations">
+                        <td>{{value.siteId}}</td>
+                        <td>{{value.siteName}}</td>
+                        <td>
+                            <input type="text" name="siteAddress{{$index}}" ng-required="jobModel.reason.value == '2'" ng-model="value.siteAddress" style="width: 400px;" />
+                            <label class="error" ng-if="kcell_form['siteAddress'+$index].$error.required && ( kcell_form['siteAddress'+$index].$touched || view.submitted)">Required field</label>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label class="col-sm-4 control-label">Comments:</label>
+        <div class="col-sm-8">
+            <textarea class="form-control" rows="4" maxlength="500" cam-variable-name="provideInfoForSlocCreateComment" name="provideInfoForSlocCreateComment" cam-variable-type="String"></textarea>
+            <label class="error" ng-show="kcell_form.provideInfoForSlocCreateComment.$error.required && ( kcell_form.provideInfoForSlocCreateComment.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+
+    <div class="form-group" ng-show="hasComment()">
+        <label class="col-sm-4 control-label">Comments visibility</label>
+        <div class="col-sm-8">
+            <label class="radio-inline">
+                <input type="radio" name="provideInfoForSlocCreateCommentVisibility"
+                       ng-model="provideInfoForSlocCreateCommentVisibility" value="all" ng-required="hasComment()"> Visible for all
+            </label>
+            <label class="radio-inline">
+                <input type="radio" name="provideInfoForSlocCreateCommentVisibility"
+                       ng-model="provideInfoForSlocCreateCommentVisibility" value="kcell" ng-required="hasComment()"> Kcell staff only
+            </label>
+            <label class="error" ng-show="kcell_form.provideInfoForSlocCreateCommentVisibility.$error.required && ( kcell_form.provideInfoForSlocCreateCommentVisibility.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+    <accordion>
+        <accordion-group is-open="isHistoryOpen">
+            <accordion-heading>
+                History <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
+            </accordion-heading>
+            <resolution-history resolutions="resolutions" procDef="Revision"></resolution-history>
+        </accordion-group>
+    </accordion>
+</form>

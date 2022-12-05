@@ -1,0 +1,129 @@
+<div class="card-modal-header">
+    <button type="button" class="close" ng-click="$dismiss()" aria-hidden="true">&times;</button>
+    <h4 style="margin-top:14px;">{{jobModel.businessKey}}</h4>
+</div>
+<div class="modal-body new-card-search" style="padding-top:5px">
+
+    <div class="row">
+        <div class="col-md-4">
+            <div class="row" style="margin-top:10px;">
+                <div class="col-md-8">
+                    <span class="process-status">
+                        Status: {{getStatus(jobModel.state, jobModel.acceptPerformedJob.value)}}</span>
+                </div>
+                <div class="col-md-4">
+                    <div class="dropdown" style="position:absolute; right:15px; top:-6px;">
+                        <button class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown">More
+                            <span class="caret"></span></button>
+                        <ul class="dropdown-menu">
+                            <li>
+                                <button type="button" class="btn-default btn drop-button"
+                                        ng-click="showDiagram(jobModel.processDefinitionId, jobModel.tasks)"><span
+                                        class="glyphicon glyphicon-indent-left" aria-hidden="true"></span>
+                                    Diagram
+                                </button>
+                            </li>
+                            <li>
+                                <button type="button" class="btn-default btn drop-button"
+                                        ng-click="showHistory(jobModel.resolutions.value, 'revolvingNumbers')">
+                                    <span class="glyphicon glyphicon-list-alt" aria-hidden="true"></span> History
+                                </button>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="panel panel-default" style="margin:18px 0 0 0">
+                        <div class="panel-heading block-headers">Details</div>
+                        <div class="panel-body" style="padding:10px 0 10px 0;word-break:break-word;">
+                            <div class="form-group">
+                                <div class="col-sm-12"><b>БИН:</b> {{jobModel.clientBIN}}</div>
+                                <div class="col-sm-12"><b>Наименование компании:</b> {{jobModel.legalInfo.comp_name}}</div>
+                                <div class="col-sm-12"><b>KAE:</b> {{jobModel.legalInfo.KAE}}</div>
+                                <div class="col-sm-12"><b>Initiator:</b> {{jobModel.starterName}}</div>
+                                <div class="col-sm-12"><b>Service:</b> {{jobModel.legalInfo.type}}</div>
+                                <div class="col-sm-12"><b>Description:</b> {{jobModel.responsiblePersonsInfo.comments}}</div>
+                            </div>
+
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-12">
+                    <ul class="nav nav-stacked" id="accordion1">
+                        <li class="panel panel-default" style="margin:0; word-break:break-word;">
+                            <a data-toggle="collapse" data-parent="#accordion1" href="#firstLink"
+                               style="background-color: #f5f5f5;" class="block-headers">User Tasks</a>
+                            <ul id="firstLink" class="collapse in ul-padding">
+                                <div ng-repeat="task in jobModel.tasks">
+                                    <div class="task">
+                                        <h5><a ui-sref="tasks.task({id:task.id})" target="_blank">{{ (task.name ||
+                                                task.id) }}</a></h5>
+                                        <div ng-if="task.description" class="card-task-descr"> {{ task.description }}
+                                        </div>
+                                        <small class="text-muted" ng-if="task.group">
+                                            Group: <a ng-click="showGroupDetails(task.group)">{{task.group}}</a>
+                                        </small>
+                                        <br/>
+                                        <small class="text-muted" ng-if="task.assignee">{{ task.assigneeObject ? task.assigneeObject.firstName : task.assignee }} {{ task.assigneeObject ? task.assigneeObject.lastName : '' }}
+                                        </small>
+                                        <small class="text-muted" ng-if="!task.assignee">Unassigned</small>
+                                    </div>
+                                </div>
+                            </ul>
+                        </li>
+
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-8">
+            <div class="row" style="margin-top:5px;margin-bottom: 10px;">
+                <div class="col-md-12">
+                    <div class="col-sm-12">
+                        <h4 class="block-headers">Technical Information:</h4>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+
+                <div class="col-md-12 form-group">
+                    <div class="col-sm-12"><b>Емкость канала:</b>
+                        {{jobModel.legalInfo.capacity}}
+                    </div>
+                    <div class="col-sm-12"><b>Количество "публичных" статистических IP адресов:</b>
+                        {{jobModel.legalInfo.ip_add}}
+                    </div>
+                    <div class="col-sm-12"><b>Адрес:</b>
+                        {{jobModel.connectionInfo.oblast}}, {{jobModel.connectionInfo.city}}, {{jobModel.connectionInfo.add_tech}}
+                    </div>
+                    <div class="col-sm-12"><b>ФИО и контакты техническогоспециалиста:</b>
+                        {{jobModel.responsiblePersonsInfo.fio_spec}}, {{jobModel.responsiblePersonsInfo.tel_spec}}
+                    </div>
+                </div>
+                <div class="col-md-12" ng-show="jobModel.attachments.length > 0">
+                    <div class="col-sm-12">
+                        <h4 class="block-headers" style="margin-bottom:20px;">Attachments:</h4>
+                    </div>
+                    <div class="col-md-12">
+                        <iframe id="fileDownloadIframe" style="display:none;"></iframe>
+                        <div class="col-sm-12">
+                            <div ng-repeat="file in jobModel.attachments track by $index">
+                                <a ng-click="download(file)" download="{{file.name}}">{{file.name}}</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="modal-footer-custom" id="modal-footer-custom">
+    <button type="button" class="btn btn-default" style="float:right;" ng-click="$dismiss()">Close</button>
+</div>

@@ -1,0 +1,731 @@
+<style>
+  .jobs-info {
+    border-style: solid;
+    border-width: medium;
+    border-color: navy;
+    padding: 25px;
+  }
+</style>
+<form role="form" class="form-horizontal" name="kcell_form" novalidate>
+  <script cam-script type="text/form-script" type="text/javascript">
+    inject(['$scope', '$http', 'Uri', '$rootScope', '$q', '$timeout', function ($scope, $http, Uri, $rootScope, $q, $timeout) {
+      var uuid = new Date().getTime();
+      var variables = [
+        'jrOrderedDate',
+        'jrNumber',
+        'initiatorFull',
+        'validityDate',
+        'site',
+        'address',
+        'Site_Name',
+        'siteRegionShow',
+        'jrReason',
+        'contract',
+        'contractor',
+        'attachments',
+        'explanation',
+        'jobs',
+        'jrType',
+        'worksTotalSum',
+        'resolution',
+        'comment',
+        'rejectedBy',
+        'resolutions',
+      ];
+
+
+      $scope.open = open;
+      $scope.orderDateFieldOpened = false;
+      $scope.validityDateFieldOpened = false;
+      $scope.setValidityDate = setValidityDate;
+      $scope.getSum = getSum;
+      $scope.getPrice = getPrice;
+      $scope.fileSelected = fileSelected;
+      $scope.addJobWork = addJobWork;
+      $scope.removeWork = removeWork;
+      $scope.currentDate = new Date();
+      $scope.minValidityDate = new Date();
+      $scope.initiator_comment = "";
+      $scope.o20JobWorks = [];
+
+      camForm.on('form-loaded', function () {
+        variables.forEach(function (el) {
+          camForm.variableManager.fetchVariable(el);
+        });
+        $http.get('/api/revisionPowerJobs').then(
+          function(result) {
+            $scope.jrTypesList = result.data.jrTypesList;
+            $scope.jrReasonsList = result.data.jrReasonsList;
+            $scope.contractsList = result.data.contractsList;
+            $scope.contractorsList = result.data.contractorsList;
+            $scope.works = _.forEach(result.data.works, function(work) {
+              work.title = work.num.toString()+ " " + work.title
+            })
+          }
+        );
+      });
+
+      camForm.on('variables-fetched', function () {
+        variables.forEach(function (el) {
+          if(camForm.variableManager.variables[el].value){
+              $scope[el] = camForm.variableManager.variables[el].value;
+          }
+        });
+        if ($scope.initiator_comment) {
+          camForm.variableManager.destroyVariable('initiator_comment');
+        }
+        if ($scope.jrType) {
+          $scope.jrType = JSON.stringify($scope.jrType)
+        }
+        if ($scope.jrReason) {
+          $scope.jrReason = JSON.stringify($scope.jrReason)
+        }
+        if ($scope.jrReasonName || $scope.jrTypeName) {
+          camForm.variableManager.destroyVariable('jrTypeName');
+          camForm.variableManager.destroyVariable('jrReasonName');
+        }
+
+        if ($scope.validityDate) {
+          $scope.validityDate = new Date($scope.validityDate)
+        }
+        if ($scope.jrOrderedDate) {
+          $scope.jrOrderedDate = new Date($scope.jrOrderedDate)
+        }
+      });
+
+      camForm.on('submit', function (evt) {
+        // evt.submitPrevented = true;
+        try{
+          camForm.variableManager.variableValue('worksTotalSum', $scope.worksTotalSum)
+          camForm.variableManager.variableValue('jrType', JSON.parse($scope.jrType))
+          camForm.variableManager.variableValue('jrReason', JSON.parse($scope.jrReason))
+          var jrReasonJson = JSON.parse($scope.jrReason)
+          var jrTypeJson = JSON.parse($scope.jrType)
+          camForm.variableManager.variableValue('jrTypeName', jrTypeJson.name)
+          camForm.variableManager.variableValue('jrReasonName', jrReasonJson.name)
+          var validity_date = new Date($scope.validityDate)
+          camForm.variableManager.variableValue('validityDate', validity_date)
+          var jr_ordered_date = new Date($scope.jrOrderedDate)
+          camForm.variableManager.variableValue('jrOrderedDate', jr_ordered_date)
+          camForm.variableManager.variableValue('explanation', $scope.explanation)
+          camForm.variableManager.variableValue('jobs', JSON.parse(angular.toJson($scope.jobs)))
+          camForm.variableManager.createVariable({
+            name: 'attachments',
+            type: 'Json',
+            value: $scope.attachments
+          });
+          camForm.variableManager.createVariable({
+            name: 'initiator_comment',
+            type: 'String',
+            value: $scope.initiator_comment
+          });
+          console.log($scope.resolution)
+          if($scope.resolution == 'cancelled') {
+            camForm.variableManager.createVariable({
+              name: 'decision',
+              type: 'String',
+              value: 'cancelled'
+            });
+          } else {
+            camForm.variableManager.createVariable({
+              name: 'decision',
+              type: 'String',
+              value: 'modified'
+            });
+          }
+          if($scope.attachments && $scope.attachments.length > 0){
+            camForm.variableManager.variableValue('attachments', JSON.parse(angular.toJson($attachments.jobs)))
+          }
+          camForm.variableManager.destroyVariable('resolutions');
+        } catch (error) {
+          console.log("error in submit: ", error)
+        }
+
+      });
+
+      function open($event, flag) {
+        $event.preventDefault();
+        $event.stopPropagation();
+        flag === 'jrDate' ? $scope.orderDateFieldOpened = true : $scope.validityDateFieldOpened = true;
+      };
+
+      function setValidityDate() {
+        if ($scope.jrOrderedDate) {
+          let type = JSON.parse($scope.jrType)
+          let date = new Date($scope.jrOrderedDate)
+          $scope.validityDate = getDateExclWknds(date, type.working_days)
+          $scope.minValidityDate = $scope.validityDate
+        }
+      };
+
+      function getDateExclWknds(fromDate, days) {
+        var count = 0;
+        while (count < days) {
+            fromDate.setDate(fromDate.getDate() + 1);
+            if (fromDate.getDay() != 0 && fromDate.getDay() != 6) // Skip weekends
+                count++;
+        }
+        return fromDate;
+      };
+
+      <!-- Work list logic start -->
+
+      $scope.getWorks = function(val) {
+
+        var result = _.filter($scope.works, function(work){
+          return work.title.toLowerCase().toString().indexOf(val.toLowerCase()) !== -1;
+        })
+
+        if(result.length === 0){
+          result.push({
+            "id":-1,
+            "num": "",
+            "title":"Не найдено",
+            "materialUnit":""
+          });
+        }
+        return result;
+      };
+
+      $scope.getUnits = function($item, index){
+        if(index === -1){
+            $scope.jobs[index].num = undefined;
+            $scope.jobs[index].title = undefined;
+            $scope.jobs[index].materialUnit = undefined;
+            $scope.jobs[index].materialPrice = undefined;
+            $scope.jobs[index].materialSum = undefined;
+        } else {
+
+            $scope.jobs[index].num = $item.num;
+            $scope.jobs[index].title = $item.title ;
+            $scope.jobs[index].materialUnit = $item.unit;
+            $scope.jobs[index].materialSum = 0;
+            $scope.jobs[index].transportationFor = {};
+            $scope.jobs[index].dismantlingFor = {};
+            $scope.jobs[index].referedWorks = $item.num;
+
+            <!-- TEMPORARY works dividing by regions -->
+            if ($scope.siteRegionShow === 'Astana') {
+              $scope.jobs[index].materialPrice = $item.astana;
+            } else if ($scope.siteRegionShow === 'East') {
+              $scope.jobs[index].materialPrice = $item.east;
+            } else if ($scope.siteRegionShow === 'West') {
+              $scope.jobs[index].materialPrice = $item.west;
+            } else if ($scope.siteRegionShow === 'South') {
+              $scope.jobs[index].materialPrice = $item.south;
+            } else {
+              $scope.jobs[index].materialPrice = $item.almaty;
+            }
+        }
+        for(let i=0; i<$scope.works.length; i++){
+          let work={}
+          if($scope.works[i].num == $scope.jobWorks[index].num){
+            work = $scope.jobWorks[index]
+            if(work.O20){
+              $scope.o20JobWorks.push(work)
+            }
+          }
+        }
+      };
+
+      function getSum(index) {
+        $scope.jobs[index].materialSum = ((+$scope.jobs[index].materialPrice)*$scope.jobs[index].quantity).toFixed(2)
+        console.log($scope.jobs)
+        $scope.worksTotalSum = $scope.jobs.map(i=>i.materialSum).reduce((a,b)=> {
+          return (parseFloat(a)+parseFloat(b)).toFixed(3)
+        })
+      };
+
+      function getPrice(index, transportation_flag, num) {
+          <!-- O21 -->
+          if (transportation_flag) {
+            let transptWork = JSON.parse($scope.jobs[index].transportationFor)
+            $scope.jobs[index].referedWorks = $scope.jobs[index].num + "-" + transptWork.num;
+            $scope.jobs[index].refersTo = transptWork.num;
+            $scope.jobs[index].materialPrice = (transptWork.materialPrice*0.5).toFixed(2);
+          } else {
+            <!-- O20 -->
+            let dismntWork = JSON.parse($scope.jobs[index].dismantlingFor)
+            $scope.jobs[index].refersTo = dismntWork.referedWorks;
+            $scope.jobs[index].materialPrice = (dismntWork.materialPrice*0.02).toFixed(2);
+          }
+        getSum(index);
+      };
+
+      function removeWork(index){
+        $scope.jobs.splice(index,1);
+      };
+
+      function addJobWork() {
+        $scope.jobs.push({relatedSites:[]});
+      };
+      <!-- Work list logic end -->
+
+      <!-- Upload File logic start -->
+      function fileSelected(el, bindedInput){
+        $timeout(function () {
+            $scope.$apply(function () {
+                uploadFileToMinio(el.files[0], bindedInput);
+            });
+
+        })
+      }
+
+      function uploadFileToMinio(file, bindedInput) {
+        var fileValue = {
+            name: file.name.replace(/[/\\?%#*:|"<>]/g, '-'),
+            path: uuid + '/' + file.name.replace(/[/\\?%#*:|"<>;]/g, '-')
+        };
+        $http({method: 'GET', url: '/camunda/uploads/tmp/put/' + fileValue.path, transformResponse: [] }).
+        then(function(response) {
+            $http.put(response.data, file, {headers: {'Content-Type': undefined}}).then(
+                function () {
+                    if(!$scope.attachments){
+                      $scope.attachments = [];
+                    }
+                    $scope.attachments.push(fileValue);
+                    angular.element(document.querySelector('#attachments')).val(null);
+                    $(bindedInput).val('');
+                },
+                function (error) {
+                  console.log(error.data);
+                }
+            );
+        }, function(error){
+          console.log(error.data);
+        });
+      };
+
+      $scope.clearFile = function(index){
+        $scope.attachments.splice(index, 1);
+      }
+      $scope.download = function download (file) {
+          $http({method: 'GET', url: '/camunda/uploads/' + (file.path.split('/').length === 2 ? 'tmp/' : '') + 'get/' + file.path, transformResponse: [] }).then(
+              function(response) {
+                  document.getElementById('fileDownloadIframe').src = response.data;
+              },
+              function(response) {console.log(response.data);}
+          );
+      }
+      <!-- Upload File logic end -->
+
+
+    }]);
+  </script>
+  <div class="row">
+    <label class="col-sm-3 control-label">Process Number:</label>
+    <div class="col-sm-5" style="color: rebeccapurple">
+      <div>{{jrNumber}}</div>
+    </div>
+  </div>
+  <div class="row">
+    <label class="col-sm-3 control-label" style="color: firebrick"
+      >Was rejected by:</label
+    >
+    <div class="col-sm-5" style="color: rebeccapurple">
+      <div>( {{rejectedBy}} )</div>
+    </div>
+  </div>
+  <div class="row">
+    <label class="col-sm-3 control-label" style="color: firebrick">
+      Rejection reason:</label
+    >
+    <div class="col-sm-5">
+      <div>{{comment}}</div>
+    </div>
+  </div>
+  <div class="jobs-info">
+    <div class="row" ng-if="job_to === 'contractor'">
+      <label class="col-sm-3 control-label">Contract:</label>
+      <div class="col-sm-3">
+        <div>{{contract.name}}</div>
+      </div>
+    </div>
+    <div class="row" ng-if="job_to === 'contractor'">
+      <label class="col-sm-3 control-label">Contractor:</label>
+      <div class="col-sm-3">
+        <div>{{contractor.name}}</div>
+      </div>
+    </div>
+    <div class="row" ng-if="job_to === 'kcell'">
+      <label class="col-sm-3">Inhouse works</label>
+    </div>
+    <div class="row">
+      <label class="col-sm-3 control-label">Site:</label>
+      <div class="col-sm-3">
+        <div>{{Site_Name}}</div>
+      </div>
+    </div>
+    <div class="row">
+      <label class="col-sm-3 control-label">Region:</label>
+      <div class="col-sm-3">
+        <div>{{siteRegionShow}}</div>
+      </div>
+    </div>
+    <div class="row">
+      <label class="col-sm-3 control-label">Site Address:</label>
+      <div class="col-sm-5">
+        <div style="height: auto">{{address}}</div>
+      </div>
+    </div>
+    <div class="row">
+      <label class="col-sm-3 control-label">JR reason:</label>
+      <div class="col-sm-5">
+        <select
+          class="form-control selectpicker"
+          select-picker
+          title=""
+          select-model="jrReasonsList"
+          ng-model="jrReason"
+          name="jrReason"
+          required
+          cam-variable-type="String"
+        >
+          <option value="">Select reason</option>
+          <option
+            ng-repeat="reason in jrReasonsList"
+            ng-selected="{{reason.id == jrReason.id}}"
+            value="{{reason}}"
+          >
+            {{reason.name}}
+          </option>
+        </select>
+        <label
+          class="error"
+          ng-if="kcell_form.jrReason.$error.required && ( kcell_form.jrReason.$touched || view.submitted)"
+          >Required field</label
+        >
+      </div>
+    </div>
+    <div class="row">
+      <label class="col-sm-3 control-label">JR type:</label>
+      <div class="col-sm-5">
+        <select
+          class="form-control selectpicker"
+          select-picker
+          title=""
+          select-model="jrTypesList"
+          required
+          ng-model="jrType"
+          ng-change="setValidityDate()"
+        >
+          <option value="">Select type</option>
+          <option
+            ng-repeat="type in jrTypesList"
+            ng-selected="{{type.id == jrType.id}}"
+            value="{{type}}"
+          >
+            {{type.name}}
+          </option>
+        </select>
+        <label
+          class="error"
+          ng-if="kcell_form.jrType.$error.required && ( kcell_form.jrType.$touched || view.submitted)"
+          >Required field</label
+        >
+      </div>
+    </div>
+    <div class="row">
+      <label class="col-sm-3 control-label">JR Ordered date:</label>
+      <div class="col-sm-5">
+        <div class="input-group">
+          <input
+            type="text"
+            ng-model="jrOrderedDate"
+            name="jrOrderedDate"
+            required
+            class="form-control"
+            datepicker-popup="dd.MM.yyyy"
+            is-open="orderDateFieldOpened"
+            placeholder="Select date"
+            ng-change="setValidityDate()"
+          />
+          <span class="input-group-btn">
+            <button
+              type="button"
+              class="btn btn-default"
+              ng-click="open($event, 'jrDate')"
+            >
+              <i class="glyphicon glyphicon-calendar"></i>
+            </button>
+          </span>
+        </div>
+      </div>
+    </div>
+    <div class="row">
+      <label class="col-sm-3 control-label">Validity date:</label>
+      <div class="col-sm-5">
+        <div class="input-group">
+          <input
+            type="text"
+            ng-model="validityDate"
+            name="validityDate"
+            required
+            class="form-control"
+            datepicker-popup="dd.MM.yyyy"
+            is-open="validityDateFieldOpened"
+            id="validityDate"
+            min-date="minValidityDate"
+            placeholder="Select date"
+          />
+          <span class="input-group-btn">
+            <button
+              type="button"
+              class="btn btn-default"
+              ng-click="open($event, 'valDate')"
+            >
+              <i class="glyphicon glyphicon-calendar"></i>
+            </button>
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <h4>Works</h4>
+    <div class="col-sm-12">
+      <div class="row">
+        <table class="table table-condensed">
+          <thead>
+            <tr>
+              <th width="5%">№</th>
+              <th width="40%">Type</th>
+              <th width="7%">Unit</th>
+              <th width="10%">Quantity</th>
+              <th width="10%">Price value</th>
+              <th width="8%">Sum</th>
+              <th width="15%">Refers to</th>
+              <th width="5%"></th>
+            </tr>
+          </thead>
+          <tbody ng-repeat="job in jobs">
+            <tr>
+              <td>
+                <span ng-if="job.title">{{job.num}}</span>
+              </td>
+              <td>
+                <div>
+                  <input
+                    type="text"
+                    ng-model="job.title"
+                    name="title{{$index}}"
+                    typeahead="works as works.title for works in getWorks($viewValue)"
+                    typeahead-on-select="getUnits($item, $index)"
+                    class="form-control works-container"
+                    required
+                    autocomplete="off"
+                    placeholder="Search work number"
+                  />
+                  <input
+                    type="hidden"
+                    ng-model="job.title"
+                    name="title{{$index}}"
+                    required
+                  />
+                </div>
+                <label
+                  class="error"
+                  ng-if="kcell_form['title'+$index].$error.required && ( kcell_form['title'+$index].$touched || view.submitted)"
+                  >Required field</label
+                >
+                <label
+                  class="error"
+                  ng-if="kcell_form['title'+$index].$error.required && ( kcell_form['title'+$index].$touched || view.submitted)"
+                  >Please select from list</label
+                >
+              </td>
+              <td>
+                <span ng-if="job.title">{{job.materialUnit}}</span>
+              </td>
+              <td>
+                <input
+                  type="number"
+                  class="form-control"
+                  name="quantity{{$index}}"
+                  required
+                  ng-model="job.quantity"
+                  min="1"
+                  ng-if="job.title"
+                  ng-change="getSum($index)"
+                />
+                <label
+                  class="error"
+                  ng-if="kcell_form['quantity'+$index].$error.required && ( kcell_form['quantity'+$index].$touched || view.submitted)"
+                  >Required field</label
+                >
+              </td>
+              <td>
+                <span ng-if="job.title">{{job.materialPrice}}</span>
+              </td>
+              <td>
+                <span ng-if="job.title">{{job.materialSum}}</span>
+              </td>
+              <td>
+                <select
+                  class="form-control selectpicker"
+                  select-picker
+                  title=""
+                  select-model="jobs"
+                  required
+                  cam-variable-type="String"
+                  ng-model="job.transportationFor"
+                  ng-if="job.num == 'O21'"
+                  ng-change="getPrice($index, true)"
+                >
+                  <option value="">Select work</option>
+                  <option
+                    ng-repeat="work in jobs"
+                    ng-selected="{{work === job.transportationFor}}"
+                    value="{{work}}"
+                  >
+                    {{work.num}}
+                  </option>
+                </select>
+                <select
+                  class="form-control selectpicker"
+                  select-picker
+                  title=""
+                  select-model="o20JobWorks"
+                  required
+                  cam-variable-type="String"
+                  ng-model="job.dismantlingFor"
+                  ng-if="job.num == 'O20'"
+                  ng-change="getPrice($index, false)"
+                >
+                  <option value="">Select work</option>
+                  <option
+                    ng-repeat="work in o20JobWorks"
+                    ng-selected="{{work === job.dismantlingFor}}"
+                    value="{{work}}"
+                  >
+                    {{work.num}}
+                  </option>
+                </select>
+              </td>
+              <td>
+                <div class="col-md-1">
+                  <a ng-if="job.title" ng-click="removeWork($index)"
+                    ><i class="glyphicon glyphicon-trash"></i
+                  ></a>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+          <tfoot>
+            <tr>
+              <td colspan="5">
+                <button
+                  type="button"
+                  class="btn btn-sm btn-default"
+                  style="margin-top: 10px"
+                  ng-click="addJobWork()"
+                >
+                  <i class="glyphicon glyphicon-plus"></i> Add work
+                </button>
+              </td>
+              <td colspan="3">
+                <label style="color: rebeccapurple"> Total: </label>
+                <span><b>{{worksTotalSum}}</b></span>
+              </td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    </div>
+
+    <div class="row">
+      <label class="col-sm-3 control-label">
+        <label style="color: darkred">*</label>
+        Comments by Regional Power Units:</label
+      >
+      <div class="col-sm-5">
+        <div>{{explanation}}</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="form-group">
+    <label class="col-sm-3 control-label" style="color: darkred"
+      >Resolution:</label
+    >
+    <div class="col-sm-8">
+      <label class="radio-inline">
+        <input
+          type="radio"
+          id="modified"
+          value="modified"
+          ng-model="resolution"
+          required
+        />
+        JR modified
+      </label>
+      <label class="radio-inline">
+        <input
+          type="radio"
+          id="cancelled"
+          value="cancelled"
+          ng-model="resolution"
+          required
+        />
+        Cancel JR
+      </label>
+      <label
+        class="error"
+        ng-if="kcell_form.resolution.$error.required && ( kcell_form.resolution.$touched || view.submitted)"
+        >Required field</label
+      >
+    </div>
+  </div>
+  <div class="form-group">
+    <label class="col-sm-3 control-label"> Attachments:</label>
+    <div class="col-sm-6">
+      <div class="input-group" ng-repeat="file in attachments track by $index">
+        <a ng-click="download(file)">{{file.name}}</a> |
+        <a ng-click="clearFile($index);"
+          ><i class="glyphicon glyphicon-trash"></i
+        ></a>
+      </div>
+      <div class="input-group">
+        <label class="input-group-btn">
+          <span class="btn btn-default">
+            Choose File
+            <input
+              type="file"
+              id="attachments"
+              name="attachments"
+              style="display: none"
+              onchange="angular.element(this).scope().fileSelected(this, '#attachedFilesName');$('#attachedFilesName').val(this.files[0].name)"
+            />
+          </span>
+        </label>
+        <input
+          type="text"
+          class="form-control upload-filename"
+          id="attachedFilesName"
+          placeholder="No File Chosen"
+          readonly
+        />
+      </div>
+    </div>
+  </div>
+  <div class="form-group">
+    <label class="col-sm-3 control-label">
+      <label style="color: darkred">*</label>
+      Comments:</label
+    >
+    <div class="col-sm-9">
+      <textarea
+        class="form-control"
+        name="initiator_comment"
+        ng-model="initiator_comment"
+        maxlength="1500"
+        rows="4"
+        required
+      ></textarea>
+      <label
+        class="error"
+        ng-if="kcell_form.initiator_comment.$error.required && ( kcell_form.initiator_comment.$touched || view.submitted)"
+        >Required field</label
+      >
+    </div>
+  </div>
+</form>

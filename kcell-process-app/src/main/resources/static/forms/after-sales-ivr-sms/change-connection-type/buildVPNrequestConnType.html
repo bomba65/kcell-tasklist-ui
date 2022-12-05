@@ -1,0 +1,243 @@
+<form role="form" class="form-horizontal" name="kcell_form" novalidate>
+    <script cam-script type="text/form-script">
+        inject(['$scope', '$http', 'Uri', '$rootScope', '$q', '$timeout', function ($scope, $http, Uri, $rootScope, $q, $timeout) {
+            var variables = [
+                'resolutions',
+                'changeOfficialClientCompanyName',
+                'changeContractNumber',
+                'disconnectOperator',
+                'connectOperator',
+                'changeConnectionType',
+                'changeIpNumber',
+                'changeIdentifier',
+                'changeSmsServiceType',
+                'changeProvider',
+                'changeTransmitNumber',
+                'relatedProcessDefinitionKey',
+                'relatedProcessInstanceId',
+                'identifiers',
+                'previouslyBought',
+                'operatorType',
+                'connectionType',
+                'clientBIN',
+                'contractNumber',
+                'clientCompanyLatName',
+                'officialClientCompanyName',
+                'description',
+                'ipNumber',
+                //'startDate',
+                'abonentTarif',
+                'amdocsBilling',
+                'orgaBilling',
+                'techSpecFIO',
+                'techSpecNumber',
+                'techSpecEmail',
+                'contractScanCopyFileName',
+                'applicationScanCopyFileName',
+                'responsibleB2BDelivery',
+                'responsibleB2BSales',
+                'channel',
+                'region',
+                'transmitNumber',
+                'coordinates',
+                'addressATS',
+                'VPNchannel',
+                'identifierType',
+                'deliveryReport',
+                'smsServiceType',
+                'MSGGWaccount',
+                'testNumber',
+                'receivingServerAddress',
+                'receivingServerLogin',
+                'receivingServerPass',
+                'addressServerMO',
+                'tarifPlane',
+                'provider',
+                'oldTransmitNumber',
+                'oldProvider',
+                'oldConnectionType'
+            ];
+
+            camForm.on('form-loaded', function () {
+                variables.forEach(function (el) {
+                    camForm.variableManager.fetchVariable(el);
+                });
+                $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
+                        function(result){
+                            $scope.processInstanceId = result.data.processInstanceId;
+                        },
+                        function (error) {
+                            console.log(error.data);
+                        }
+                );
+                $scope.aftersalesInfo = {};
+                $scope.aftersalesInfo.files = [];
+            });
+
+            camForm.on('variables-fetched', function () {
+                variables.forEach(function (el) {
+                    if (el === 'resolutions') {
+                        if (camForm.variableManager.variables[el].value) {
+                            $scope.resolutions = angular.copy(camForm.variableManager.variables[el].value);
+                            $q.all($scope.resolutions.map(function (resolution) {
+                                if (resolution.assigneeName === undefined) {
+                                    return $http.get("/camunda/api/engine/engine/default/user/" + resolution.assignee + "/profile");
+                                } else {
+                                    return {data:{}};
+                                }
+                            })).then(function (profiles) {
+                                profiles.forEach(function (e, index) {
+                                    if ( $scope.resolutions[index].assigneeName === undefined) {
+                                        $scope.resolutions[index].assigneeName = (e.data.firstName ? e.data.firstName : "") + " " + (e.data.lastName ? e.data.lastName : "");
+                                    }
+                                });
+                            });
+                            $q.all($scope.resolutions.map(function (resolution) {
+                                return $http.get("/camunda/api/engine/engine/default/history/task?processInstanceId=" + resolution.processInstanceId + "&taskId=" + resolution.taskId);
+                            })).then(function (tasks) {
+                                tasks.forEach(function (e, index) {
+                                    if (e.data.length > 0) {
+                                        $scope.resolutions[index].taskName = e.data[0].name;
+                                        try {
+                                            $scope.resolutions[index].taskEndDate = new Date(e.data[0].endTime);
+                                            $scope.resolutions[index].assignDate = new Date(e.data[0].startTime);
+                                        } catch (e) {
+                                            console.log(e);
+                                        }
+                                    }
+                                });
+                            });
+                            $q.all($scope.resolutions.map(function (resolution) {
+                                return $http.get("/camunda/api/engine/engine/default/history/identity-link-log?type=assignee&taskId=" + resolution.taskId + "&operationType=add&sortBy=time&sortOrder=desc");
+                            })).then(function (logs) {
+                                logs.forEach(function (e, index) {
+                                    if(e.data.length > 0){
+                                        try {
+                                            $scope.resolutions[index].claimDate = new Date(e.data[0].time);
+                                        } catch(e){
+                                            console.log(e);
+                                        }
+                                    }
+                                });
+                            });
+                        }
+                    } else if (el === 'applicationScanCopyFileName' || el === 'contractScanCopyFileName') {
+                        $scope[el] = camForm.variableManager.variables[el].value;
+                        $scope.aftersalesInfo.files.push(camForm.variableManager.variables[el].value);
+                    } else {
+                        $scope[el] = camForm.variableManager.variables[el].value;
+                        $scope.aftersalesInfo[el] = camForm.variableManager.variables[el].value;
+                    }
+                });
+                $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name+ "/profile").then(function(result){
+                    $rootScope.authentication.assigneeName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
+                });
+                $scope.aftersalesInfo.showTarif = true;
+                console.log($scope.aftersalesInfo);
+                console.log($scope.aftersalesInfo.files);
+
+                camForm.variableManager.createVariable({
+                    name: 'vpnQuestionnaireFileName',
+                    value: undefined,
+                    type: 'Json'
+                });
+
+                camForm.variableManager.createVariable({
+                    name: 'buildVPNrequestConnTypeTaskResult',
+                    type: 'String',
+                    value: ''
+                });
+
+                camForm.variableManager.createVariable({
+                    name: 'buildVPNrequestConnTypeTaskComment',
+                    type: 'String',
+                    value: ''
+                });
+
+                $scope.buildVPNrequestConnTypeTaskResult = '';
+            });
+
+            camForm.on('submit', function () {
+                $scope.buildVPNrequestConnTypeTaskResult = 'Completed';
+                var attachedFiles = [];
+                if($scope.vpnQuestionnaireFileName) {
+                    attachedFiles.push($scope.vpnQuestionnaireFileName);
+                    camForm.variableManager.variableValue('vpnQuestionnaireFileName', $scope.vpnQuestionnaireFileName);
+                }
+
+                camForm.variableManager.variableValue('buildVPNrequestConnTypeTaskResult', $scope.buildVPNrequestConnTypeTaskResult);
+                camForm.variableManager.variableValue('buildVPNrequestConnTypeTaskComment', $scope.buildVPNrequestConnTypeTaskComment);
+                camForm.variableManager.destroyVariable('resolutions');
+            });
+
+            $scope.download = function (file) {
+                console.log(file);
+                $http({method: 'GET', url: '/camunda/uploads/get/' + file.path, transformResponse: [] }).
+                then(function(response) {
+                    document.getElementById('fileDownloadIframe').src = response.data;
+                }, function(error){
+                    console.log(error.data);
+                });
+            }
+
+            $scope.fileSelected = function(el, fileName){
+                if(el.files[0]){
+                    $timeout(function () {
+                        $scope.$apply(function () {
+                            uploadFileToMinio(el.files[0], fileName);
+                        });
+                    })                } else {
+                    $scope.$apply(function(){
+                        $scope[fileName] = undefined;
+                    });
+                }
+            };
+
+            function uploadFileToMinio(file, fileName) {
+                var fileValue = {
+                    name: file.name.replace(/[/\\?%*:|"<>]/g, '-'),
+                    // path: uuid + '/' + file.name
+                    path: $scope.processInstanceId + '/' + camForm.taskId + '/' + file.name.replace(/[/\\?%*:|"<>]/g, '-')
+                };
+                $http({method: 'GET', url: '/camunda/uploads/put/' + fileValue.path, transformResponse: [] }).
+                then(function(response) {
+                    $http.put(response.data, file, {headers: {'Content-Type': undefined}}).then(
+                            function () {
+                                $scope[fileName] = fileValue;
+                                angular.element(document.querySelector('#'+fileName)).val(null);
+                            },
+                            function (error) {
+                                console.log(error.data);
+                            }
+                    );
+                }, function(error){
+                    console.log(error.data);
+                });
+            }
+
+            $scope.clearFile = function(filename){
+                delete $scope[filename];
+            };
+
+        }]);
+
+    </script>
+    <info-aftersales aftersales-info="aftersalesInfo"></info-aftersales>
+    <div class="form-group">
+        <label class="col-sm-4 control-label">Опросник по VPN:</label>
+        <div class="col-sm-8">
+            <div ng-show="vpnQuestionnaireFileName.name">
+                <a ng-click="download(vpnQuestionnaireFileName)">{{vpnQuestionnaireFileName.name}}</a> | <a ng-click="clearFile('vpnQuestionnaireFileName')"><i class="glyphicon glyphicon-trash"></i></a>
+            </div>
+            <input ng-hide="vpnQuestionnaireFileName.name" type="file" class="form-control" id="vpnQuestionnaireFileName" name="vpnQuestionnaireFileName" ng-model="vpnQuestionnaireFileName"
+            onchange="angular.element(this).scope().fileSelected(this, 'vpnQuestionnaireFileName')"/>
+            <label class="has-error" ng-show="kcell_form.vpnQuestionnaireFileName.$error.validFile && ( kcell_form.vpnQuestionnaireFileName.$touched || view.submitted)">File is required</label>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-3 control-label">Комментарии</label>
+        <div class="col-sm-9">
+            <textarea class="form-control" ng-model="buildVPNrequestConnTypeTaskComment" name="buildVPNrequestConnTypeTaskComment" placeholder="Comments..." maxlength="500" rows="4" style="resize:none"></textarea>
+        </div>
+    </div>
+</form>

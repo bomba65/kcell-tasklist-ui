@@ -1,0 +1,326 @@
+<style>
+    .well {
+        color: #333;
+    }
+</style>
+<form role="form" class="form-horizontal" name="kcell_form" novalidate>
+    <script cam-script type="text/form-script">
+        inject(['$scope', '$http', 'Uri', '$rootScope', 'exModal', '$q', function ($scope, $http, Uri, $rootScope, exModal, $q) {
+            var variables = [
+                'requestedDate',
+                'jrNumber',
+                'initiatorFull',
+                'validityDate',
+                'soaComplaintId',
+                'site',
+                'siteName',
+                'siteAddress',
+                'site_name',
+                'reason',
+                'contract',
+                'contractor',
+                'materialsRequired',
+                'leasingRequired',
+                'powerRequired',
+                'project',
+                'supplementaryFiles',
+                'explanation',
+                'jobWorks',
+                'sapPRFileXLS',
+                'sapPRNo',
+                'kcellWarehouseMaterialsList',
+                'contractorZIPWarehouseMaterialsList',
+                'kcellWarehouseMaterialsListName',
+                'kcellWarehouseMaterialsAdditionalList',
+                'contractorZIPWarehouseMaterialsListName',
+                'sapTransferRequestFile',
+                'resolutions',
+                'actOfMaterialsDispatchingFile',
+                'actOfMaterialsDispatchingFileName',
+                'actOfMaterialsDispatchingFiles',
+                'jrBlank',
+                'tssrssidFile',
+                'tssrssidFileName',
+                'trFiles',
+                'trFilesName',
+                'trAdditionalFilesName',
+                'siteWorksFiles',
+                'priority',
+                'performDate',
+                'mlApprovalAdditionalInfoFile',
+                'contractorJobAssignedDate',
+                'mainContract',
+                'siteWorksPhotoFiles'
+            ];
+            $scope.jobModel = {};
+            var workFiles = [];
+            $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
+                    function(result){
+                        $scope.processInstanceId = result.data.processInstanceId;
+                    },
+                    function (error) {
+                        console.log(error.data);
+                    }
+            );
+            camForm.on('form-loaded', function () {
+                variables.forEach(function (el) {
+                    console.log("FETCH FROM VARIABLES");
+                    camForm.variableManager.fetchVariable(el);
+                });
+
+                $http.get($rootScope.getCatalogsHttpByName('catalogs')).then(
+                        function (result) {
+                            angular.extend($scope, result.data);
+                            angular.extend($scope.jobModel, result.data);
+                        },
+                        function (error) {
+                            console.log(error.data);
+                        }
+                );
+                camForm.variableManager.createVariable({
+                    name: 'checkDocsAndApproveBySiteLeasingTaskResult',
+                    type: 'String',
+                    value: ''
+                });
+                camForm.variableManager.createVariable({
+                    name: 'revisionPrepare',
+                    type: 'String',
+                    value: ''
+                });
+            });
+            camForm.on('variables-fetched', function () {
+                console.log("FETCHED VARIABLES");
+                console.log(variables);
+                variables.forEach(function (el) {
+                    if(el === 'tssrssidFileName' && camForm.variableManager.variables[el] && camForm.variableManager.variables[el].value && camForm.variableManager.variables[el].value.name) {
+                        $scope.jobModel[el] = camForm.variableManager.variables[el];
+                    } else if(el === 'siteWorksFiles' && camForm.variableManager.variables[el].value) {
+                        workFiles = camForm.variableManager.variables[el].value;
+                    } else {
+                        $scope.jobModel[el] = camForm.variableManager.variables[el];
+                    }
+                    if(el === 'resolutions'){
+                        $scope[el] = camForm.variableManager.variables[el].value;
+                    } else {
+                        $scope[el] = camForm.variableManager.variables[el];
+                    }
+                });
+                $http.get(Uri.appUri("engine://engine/:engine/task/" + camForm.taskId + "/form-variables")).then(function(result){
+                    console.log("GET FROM URI");
+                    angular.forEach(result.data, function(value, key) {
+                        if(key.startsWith('works_')){
+                            $scope[key] = value;
+                            $scope.jobModel[key] = value;
+                        }
+                    });
+                    console.log("FETCHED");
+                });
+
+                $scope.jobModel.jobWorks.value.forEach(function (work, index) {
+                    $scope.jobModel.jobWorks.value[index].files = [];
+                });
+
+                workFiles.forEach(function(file,i){
+                    if(file.name){
+                        var workIndex = file.name.split('_')[1];
+                        if(!containsFile($scope.jobModel.jobWorks.value[workIndex].files, file)){
+                            $scope.jobModel.jobWorks.value[workIndex].files.push(file);
+                        }
+                    }
+                });
+                $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name+ "/profile").then(function(result){
+                    $rootScope.authentication.assigneeName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
+                });
+                if(camForm.variableManager.variables['checkDocsAndApproveBySiteLeasingComment']){
+                    camForm.variableManager.variableValue('checkDocsAndApproveBySiteLeasingComment', '');
+                }
+
+                $scope.jobModel.jobWorks.value.forEach(i => {
+                        i.photoFiles.after.forEach(j => {
+                            $scope.getImagePath(j)
+                        })
+                        i.photoFiles.before.forEach(j => {
+                            $scope.getImagePath(j)
+                        })
+                })
+
+                $scope.beforeAfterVisible = $scope.contractor.value === 5 && ($scope.reason.value === '1' || $scope.reason.value === '2');
+            });
+
+            camForm.on('submit', function () {
+                camForm.variableManager.variableValue('checkDocsAndApproveBySiteLeasingTaskResult', $scope.checkDocsAndApproveBySiteLeasingTaskResult);
+                camForm.variableManager.createVariable({
+                    name: 'verify_worksTaskResult',
+                    type: 'String',
+                    value: $scope.checkDocsAndApproveBySiteLeasingTaskResult
+                });
+                camForm.variableManager.variableValue('revisionPrepare', $scope.checkDocsAndApproveBySiteLeasingTaskResult);
+
+                var visibility = 'all';
+                if($scope.checkDocsAndApproveBySiteLeasingComment && $scope.checkDocsAndApproveBySiteLeasingCommentVisibility){
+                    visibility = $scope.checkDocsAndApproveBySiteLeasingCommentVisibility;
+                    camForm.variableManager.createVariable({
+                        name: 'verify_worksTaskCommentVisibility',
+                        type: 'String',
+                        value: visibility
+                    });
+                }
+                camForm.variableManager.createVariable({
+                    name: 'verify_worksTaskComment',
+                    type: 'String',
+                    value: $scope.checkDocsAndApproveBySiteLeasingComment
+                });
+                camForm.variableManager.destroyVariable('resolutions');
+            });
+
+            camForm.on('store', function() {
+                camForm.variableManager.variableValue('checkDocsAndApproveBySiteLeasingTaskResult', $scope.checkDocsAndApproveBySiteLeasingTaskResult);
+            });
+
+            camForm.on('variables-restored', function() {
+                $scope.checkDocsAndApproveBySiteLeasingTaskResult = camForm.variableManager.variableValue('checkDocsAndApproveBySiteLeasingTaskResult');
+            });
+
+            $scope.download = function (file) {
+                console.log(file);
+                $http({method: 'GET', url: '/camunda/uploads/get/' + file.value.path, transformResponse: [] }).
+                then(function(response) {
+                    document.getElementById('fileDownloadIframe').src = response.data;
+                }, function(error){
+                    console.log(error.data);
+                });
+            }
+
+            $scope.showImage = function(fileSrc){
+                exModal.open({
+                    scope: {
+                        fileSrc: fileSrc
+                    },
+                    templateUrl: './js/partials/revisionImageModal.html',
+                    size: 'lg'
+                }).then(function(results){
+                });
+            }
+
+            $scope.getImagePath = function(file) {
+                console.log(file);
+                $http({method: 'GET', url: '/camunda/uploads/get/' + file.value.path, transformResponse: [] }).
+                then(function(response) {
+                    file.imgSrc = response.data;
+                }, function(error){
+                    console.log(error.data);
+                });
+            }
+
+            $scope.downloadOldFile = function downloadOldFile(file) {
+                document.getElementById('fileDownloadIframe').src = '/camunda/api/engine/engine/default/variable-instance/' + file.id + '/data';
+            }
+
+            function containsFile(files, file){
+                for(var i = 0; i<files.length; i++){
+                    if(files[i].name === file.name){
+                        return true;
+                    }
+                }
+                return false;
+            }
+
+            $scope.isVisible = function (resolution) {
+               return !resolution.visibility || resolution.visibility === 'all' || (resolution.visibility === 'kcell' && $rootScope.hasGroup('kcellUsers'));
+            }
+
+            $scope.hasComment = function () {
+                return $scope.checkDocsAndApproveBySiteLeasingComment && $rootScope.hasGroup('kcellUsers');
+            }
+        }]);
+    </script>
+    <job-request job-model="jobModel"></job-request>
+    <ng-include ng-if="contextPath" src="contextPath+'/forms/revision/summaries-card.html'"></ng-include>
+    <h3>Works:</h3>
+    <iframe id="fileDownloadIframe" style="display:none;"></iframe>
+    <div class="row" ng-repeat="work in jobModel.jobWorks.value">
+        <div class="col-md-12">&nbsp;&nbsp;&nbsp;&nbsp;{{work.displayServiceName}}, works qty: {{work.quantity}}, on sites: {{work.sites}}</div>
+        <div class="col-md-12" ng-repeat="file in work.files">
+            <div class="col-md-12" ng-if="file.valueInfo">&nbsp;&nbsp;&nbsp;&nbsp;{{$index+1}}.<a ng-click="downloadOldFile(file)">{{file.valueInfo.filename}} (Old file, read only)</a></div>
+            <div class="col-md-12" ng-if="file.value">&nbsp;&nbsp;&nbsp;&nbsp;{{$index+1}}.<a ng-click="download(file)">{{file.value.name}}</a></div>
+        </div>
+        <div class="col-md-12" ng-if="beforeAfterVisible">
+            <div style="margin-bottom: 10px"></div>
+            <div class="row">
+                <div class="col-md-12">Photo before:</div>
+            </div>
+            <div class="row">
+                <div class="col-md-3" ng-repeat="file in work.photoFiles['before'] track by $index">
+                    <div ng-if="file.valueInfo">&nbsp;&nbsp;&nbsp;&nbsp;{{$index+1}}.
+                        <a ng-click="downloadOldFile(file)">{{file.valueInfo.filename}} (Old file, read only)</a>
+                        <a ng-click="showImage('/camunda/api/engine/engine/default/variable-instance/' + file.id + '/data')"><img ng-src="{{'/camunda/api/engine/engine/default/variable-instance/' + file.id + '/data'}}" /></a>
+                    </div>
+                    <div ng-if="file.value.name">
+                        <a ng-click="showImage(file.imgSrc)"> <img ng-src="{{file.imgSrc}}" width="100%"/></a>
+                        <a ng-click="download(file)" style="position: absolute"><i class="glyphicon glyphicon-download-alt"></i></a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-12" ng-if="beforeAfterVisible">
+            <div class="row">
+                <div class="col-md-12">Photo after:</div>
+            </div>
+            <div class="row">
+                <div class="col-md-3" ng-repeat="file in work.photoFiles['after'] track by $index">
+                    <div ng-if="file.valueInfo">&nbsp;&nbsp;&nbsp;&nbsp;{{$index+1}}.
+                        <a ng-click="downloadOldFile(file)">{{file.valueInfo.filename}} (Old file, read only)</a>
+                        <a ng-click="showImage('/camunda/api/engine/engine/default/variable-instance/' + file.id + '/data')"><img ng-src="{{'/camunda/api/engine/engine/default/variable-instance/' + file.id + '/data'}}" /></a>
+                    </div>
+                    <div ng-if="file.value.name">
+                        <a ng-click="showImage(file.imgSrc)"> <img ng-src="{{file.imgSrc}}" width="100%"/></a>
+                        <a ng-click="download(file)" style="position: absolute"><i class="glyphicon glyphicon-download-alt"></i></a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <div class="form-group">
+        <label class="col-sm-4 control-label">Resolution</label>
+        <div class="col-sm-8">
+            <label class="radio-inline">
+                <input type="radio" name="checkDocsAndApproveBySiteLeasingTaskResult" ng-model="checkDocsAndApproveBySiteLeasingTaskResult" value="approved" required> Approved
+            </label>
+            <label class="radio-inline">
+                <input type="radio" name="checkDocsAndApproveBySiteLeasingTaskResult" ng-model="checkDocsAndApproveBySiteLeasingTaskResult" value="notApproved" required> Not approved, request corrections
+            </label>
+            <label class="error" ng-show="kcell_form.checkDocsAndApproveBySiteLeasingTaskResult.$error.required && ( kcell_form.checkDocsAndApproveBySiteLeasingTaskResult.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-4 control-label">Comments</label>
+        <div class="col-sm-8">
+            <textarea class="form-control" rows="4" maxlength="500" cam-variable-name="checkDocsAndApproveBySiteLeasingComment" name="checkDocsAndApproveBySiteLeasingComment" ng-required="checkDocsAndApproveBySiteLeasingTaskResult == 'notApproved'" cam-variable-type="String"></textarea>
+            <label class="error" ng-show="kcell_form.checkDocsAndApproveBySiteLeasingComment.$error.required && ( kcell_form.checkDocsAndApproveBySiteLeasingComment.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+    <div class="form-group" ng-show="hasComment()">
+        <label class="col-sm-4 control-label">Comments visibility</label>
+        <div class="col-sm-8">
+            <label class="radio-inline">
+                <input type="radio" name="checkDocsAndApproveBySiteLeasingCommentVisibility"
+                       ng-model="checkDocsAndApproveBySiteLeasingCommentVisibility" value="all" ng-required="hasComment()"> Visible for all
+            </label>
+            <label class="radio-inline">
+                <input type="radio" name="checkDocsAndApproveBySiteLeasingCommentVisibility"
+                       ng-model="checkDocsAndApproveBySiteLeasingCommentVisibility" value="kcell" ng-required="hasComment()"> Kcell staff only
+            </label>
+            <label class="error" ng-show="kcell_form.checkDocsAndApproveBySiteLeasingCommentVisibility.$error.required && ( kcell_form.checkDocsAndApproveBySiteLeasingCommentVisibility.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+    <accordion>
+        <accordion-group is-open="isHistoryOpen">
+            <accordion-heading>
+                History <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
+            </accordion-heading>
+            <resolution-history resolutions="resolutions" procDef="Revision"></resolution-history>
+        </accordion-group>
+    </accordion>
+</form>

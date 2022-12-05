@@ -1,0 +1,111 @@
+<style>
+.table td, th {
+   text-align: center;   
+}
+</style>
+
+<div class="page-body container-fluid">
+    <div ng-repeat="definition in definitions" class="col-sm-12">
+        <h4 ng-if="getCurrentProjectDisplay()">Project: {{getCurrentProjectDisplay()}}</h4>
+        <h4 ng-if="currentTaskGroup.selectedProcessDisplay">Process: {{currentTaskGroup.selectedProcessDisplay}}</h4>
+        <h4>Task: {{definition.name}}</h4>
+        <table class="table ">
+            <thead>
+                <th>#</th>
+                <th>Business key</th>
+                <th ng-repeat="header in definition.configs.table.headers">{{header}}</th>
+                <th ng-hide="definition.configs.comment.overrideRowComment">Comment</th>
+                <th>{{definition.configs.resolutionQuestion || 'Confirm'}}<br/><input type="checkbox" ng-click="toggleAllTasks(definition)" ng-checked="definition.allTasksSelected">Select all </th>
+            </thead>
+            <tbody ng-if="allVariablesAssign" ng-repeat="instance in definition.tasks track by $index">
+                <tr ng-repeat="row in definition.configs.table.rows">
+                    <td>{{$parent.$index+1}}</td>
+                    <td><a ng-click="openTask(instance.taskId)">{{instance.processBusinessKey}}</a></td>
+                    <td ng-repeat="field in row.fields">
+                        <p ng-show="field.readOnly && ( field.type === 'date' || field.type === 'text' || field.type === 'textArea')">{{field.type === 'date' ? ( massTableField(instance,field.name) | date:"dd.MM.yyyy" ) : initTextValue( massTableField(instance,field.name ), field ) }}</p>
+                        <select name="field.name" id="{{field.name}}" ng-model="taskData[instance.taskId][field.name]" ng-show="field.type === 'select'" ng-change="onSelect(field, instance)">
+                            <option ng-repeat="option in field.selectOptions" value="{{option.name}}">{{option.name}}</option>
+                        </select>
+                        <textarea class="form-control" ng-show="!field.readOnly && field.type === 'textArea'" ng-model="instance[field.name]" ng-init="instance[field.name] = initTextValue(instance[field.name], field)" style="resize:none" ng-readonly="field.readOnly"></textarea>
+                        <input type="text" class="form-control" ng-show="!field.readOnly && field.type === 'text'" ng-model="instance[field.name]" ng-init="instance[field.name] = initTextValue(instance[field.name], field)" style="resize:none" ng-readonly="field.readOnly"/>
+                        <label class="error" ng-show="field.notNull && !field.readOnly && instance.resolution && !(taskData[instance.taskId][field.name] || massTableField(instance,field.name))">Required field</label>
+                    </td>
+                    <!--td ng-hide="override(row.fields, 'comment')"-->
+                    <td ng-if="$index%definition.configs.table.rows.length===0" rowspan="{{definition.configs.table.rows.length}}" ng-hide="definition.configs.comment.overrideRowComment">
+                        <textarea class="form-control" ng-model="instance.comment" ng-required="true" style="resize:none"></textarea>
+                        <label class="error" ng-show="!instance.comment && instance.resolution">Required field</label>
+                    </td>
+                    <td ng-if="$index%definition.configs.table.rows.length===0" rowspan="{{definition.configs.table.rows.length}}">
+                        <label class="radio-inline" ng-repeat="r in definition.configs.resolutions">
+                            <!--input type="radio" name="{{definition.id}}_resolution_{{$parent.$index}}_{{$index}}" ng-model="instance.resolution" value="{{r.variable}}"> {{r.text}}-->
+                            <input type="radio" id="resolution_{{instance.taskId}}" name="{{definition.id}}_resolution_{{instance.taskId}}" ng-model="instance.resolution" value="{{r.variable}}" ng-change="changeResolution(r.variable, definition)"> {{r.text}}
+                        </label>
+                        <br/>
+                        <a ng-click="clearResolution(definition, instance)" style="margin-left: 5px;"><i class="glyphicon glyphicon-remove-circle"></i> Clear</a>
+                    </td>
+                </tr>
+                
+            <!--tbody ng-if="allVariablesAssign">
+                <tr ng-repeat="instance in definition.tasks track by $index">
+                    <td>{{$index+1}}</td>
+                    <td><a ng-click="openTask(instance.taskId)">{{instance.processBusinessKey}}</a></td>
+                    <td ng-repeat="field in definition.configs.table.fields">
+                        <p>prefixValue: {{field.prefixValue}}</p>
+                        <p ng-show="field.readOnly && ( field.type === 'date' || field.type === 'text' )">{{field.type === 'date' ? ( massTableField(instance,field.name) | date:"dd.MM.yyyy" ) : massTableField(instance,field.name)}}</p>
+                        <select name="field.name" id="{{field.name}}" ng-model="taskData[instance.taskId][field.name]" ng-show="field.type === 'select'" ng-change="onSelect(field, instance)">
+                            <option ng-repeat="option in field.selectOptions" value="{{option.name}}">{{option.name}}</option>
+                        </select>
+                        <textarea class="form-control" ng-show="!field.readOnly && field.type === 'text'" ng-model="instance[field.name]" style="resize:none" ng-readonly="field.readOnly"></textarea>
+                        <label class="error" ng-show="field.notNull && !field.readOnly && instance.resolution && !(taskData[instance.taskId][field.name] || massTableField(instance,field.name))">Required field</label>
+                    </td>
+                    <td ng-hide="override(definition.configs.table.fields, 'comment')">
+                        <textarea class="form-control" ng-model="instance.comment" style="resize:none"></textarea>
+                    </td>
+                    <td>
+                        <label class="radio-inline" ng-repeat="r in definition.configs.resolutions">
+                            <input type="radio" name="{{definition.id}}_resolution_{{$parent.$index}}" ng-model="instance.resolution" value="{{r.variable}}"> {{r.text}}
+                        </label>
+                        <a ng-click="instance.resolution = null" style="margin-left: 5px;"><i class="glyphicon glyphicon-remove-circle"></i> Clear</a>
+                    </td>
+                </tr-->
+            </tbody>
+        </table>
+        <div class="col-sm-12"><hr/></div>
+        <div>
+            <div class="col-sm-9" ng-show="definition.configs.tcfUrl">
+                <div class="input-group">
+                    <a target="_blank" rel="noopener noreferrer" href="definition.configs.tcfUrl.url">{{definition.configs.tcfUrl.url}}</a>
+                </div>
+            </div>
+            <label class="col-sm-2 control-label" ng-show="definition.configs.showTCFID">{{definition.configs.TCFIDTitle?definition.configs.TCFIDTitle:'Введите TCF ID'}}:</label>
+            <div class="col-sm-3" ng-show="definition.configs.showTCFID">
+                <div class="input-group">
+                    <input type="text" ng-model="tcfId" name="tcfId" ng-required="definition.configs.showTCFID" class="form-control" ng-change="tcfChangeHandler(tcfId, definition)" />
+                </div>
+            </div>
+            <label class="col-sm-2 control-label" ng-show="definition.configs.comment.show">{{definition.configs.comment.commentTitle?definition.configs.comment.commentTitle:'Комментарии'}}:</label>
+            <div class="col-sm-9" ng-show="definition.configs.comment.show">
+                <div class="input-group col-sm-9">
+                    <textarea ng-model="commentPC" name="commentPC" ng-required="definition.configs.comment.show" class="form-control" ng-change="commentChangeHandler(commentPC, definition)"></textarea>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-12"><hr/></div>
+    </div>
+    <div class="col-sm-12">
+        <label class="col-sm-2 control-label" ng-show="definitions[0].configs.showCloseDate">{{definitions[0].configs.closeDateTitle?definitions[0].configs.closeDateTitle:'Дата закрытия'}}:</label>
+        <div class="col-sm-3" ng-show="definitions[0].configs.showCloseDate">
+            <div class="input-group">
+                <input type="text" ng-model="closeDate" name="closeDate" ng-required="definitions[0].configs.showCloseDate" class="form-control" datepicker-popup="dd.MM.yyyy" is-open="dateFieldOpened" />
+                <span class="input-group-btn">
+                    <button type="button" class="btn btn-default" ng-click="dateFieldOpened = true;">
+                        <i class="glyphicon glyphicon-calendar"></i>
+                    </button>
+                </span>
+            </div>
+        </div>
+        <div class="col-sm-3">
+            <button type="button" class="btn btn-primary" ng-click="submitThem()">Complete</button>
+        </div>
+    </div>
+</div>

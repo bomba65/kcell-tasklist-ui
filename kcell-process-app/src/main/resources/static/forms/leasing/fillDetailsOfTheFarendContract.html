@@ -1,0 +1,1129 @@
+<form role="form" class="form-horizontal" name="kcell_form" novalidate>
+    <script cam-script type="text/form-script" type="text/javascript">
+        inject(['$scope', '$http', 'Uri', '$rootScope', '$q', '$timeout', 'exModal', function ($scope, $http, Uri, $rootScope, $q, $timeout, exModal) {
+            var variables = [
+                'resolutions',
+                'ncpID',
+                'siteType',
+                'regionName',
+                'latitude',
+                'farEndInformation',
+                'longitude',
+                'initiator',
+                'project',
+                'reason',
+                'part',
+                'plannedCabinetType',
+                'targetCoverage',
+                'rbsType',
+                'bands',
+                'rrFile',
+                'newCandidateRRFiles',
+                'candidate',
+                'cellAntenna',
+                'renterCompany',
+                'transmissionAntenna',
+                'powerSource',
+                'ContractInfoInformation',
+                'receivingTSForCandiateSiteFiles',
+                'modifyCandidateRRFiles',
+                'address',
+                'ne_tr_parameters',
+                'ne_tr_rate',
+            ];
+
+            var files = ['actOfPerformanceTechnicalConditionsFiles',
+            'fillDetailsOfTheFarendContractFiles',
+            'confirmApprovalLeaseContractInSAPCMFiles',
+            'confirmLoadingLeaseContractInSAPCMFiles',
+            'confirmSendMessageToStartPaymentKPFEFiles',
+            'approvalContractRentInSAPFiles',
+            'approvalPowerContractInSAPFiles',
+            'checkAndApproveFEFiles',
+            'commercialOnAirFiles',
+            'confirmActOfPerformanceTechnicalConditionsFiles',
+            'confirmPaymentDevelopmentOfTCKTFiles',
+            'confirmPaymentDevelopmentOfTCKTForFEFiles',
+            'confirmReceiptEstimateFiles',
+            'confirmReceiptEstimateForFEFiles',
+            'ConfirmReceiptOfTSfromRESforCandidateFiles',
+            'confirmReceiptResponseKPFiles',
+            'confirmReceiptResponseKPFEFiles',
+            'confirmSigningLeaseContractFiles',
+            'confirmStartLeasingFiles',
+            'confirmStartLeasingNOFiles',
+            'confirmTFOfConnectingToLandlordPowerGridForFEFiles',
+            'confirmTFOfConnectingToPowerGridForCandidateFiles',
+            'connectionFromOwnerNetworksFiles',
+            'contractRentLoadingSAPFiles',
+            'createNewCandidateSiteFiles',
+            'defineInstallationProblemFiles',
+            'estimateTechnicalCapabilityResFiles',
+            'installationWorksDoneFiles',
+            'modifyCandidateSiteFiles',
+            'powerContractLoadingInSAPFiles',
+            'powerProblemSolutionFiles',
+            'preparationSSIDandTSSRFiles',
+            'preperationSSIDorTSSRProjectFiles',
+            'receivingApprovalFromTheLandlordFiles',
+            'receivingContractDevDesignEstimateFiles',
+            'receivingContractDevDesignEstimateForFEFiles',
+            'receivingContractInstallationWorksFiles',
+            'receivingContractInstallationWorksForFEFiles',
+            'receivingContractPSDFiles',
+            'receivingTSFiles',
+            'receivingTSForFEFiles',
+            'registrationCommercialOfferFiles',
+            'registrationCommercialOfferForFEFiles',
+            'reqKZTRwithTechEquipmentParamsFiles',
+            'reqKZTRwithTechEquipmentParamsForFEFiles',
+            'requestForAdmissionForWorkOnTUFiles',
+            'requestTechnicalParametersKPFiles',
+            'requestTechnicalParametersKPFEFiles',
+            'requestTechnicalParametersKTFiles',
+            'requestTechnicalParametersKTForFEFiles',
+            'sendMessageToStartPaymentKPFiles',
+            'sendMessageToStartPaymentKPForFEFiles',
+            'sendMessageToStartPaymentKTFiles',
+            'sendMessageToStartPaymentKTForFEFiles',
+            'sendMessageToStartPaymentNationalFiles',
+            'sendMessageToStartPaymentSimpleFiles',
+            'signingLeaseContractAddAgreementFiles',
+            'signingLeaseContractAddAgreementForFEFiles',
+            'signingLeaseContractAddAgreementKPFiles',
+            'signingLeaseContractAddAgreementKPFEFiles',
+            'signingLeaseContractAddAgreementKTFiles',
+            'startingInstallationWorksFiles',
+            'transmissionProblemSolutionFiles',
+            'uploadSignedOwnerLeaseContractFiles'];
+
+            $scope.leasingFiles = [];
+            $scope.deletedFiles = [];
+
+            $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
+                function(result){
+                    $scope.taskAssignee = result.data.assignee;
+                },
+                function (error) {
+                    console.log(error.data);
+                }
+            );
+
+            camForm.on('form-loaded', function () {
+                variables.forEach(function (el) {
+                    camForm.variableManager.fetchVariable(el);
+                });
+                files.forEach(function (f) {
+                    camForm.variableManager.fetchVariable(f);
+                });
+                $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
+                        function(result){
+                            $scope.processInstanceId = result.data.processInstanceId;
+                            $scope.taskKey = result.data.taskDefinitionKey;
+                            $http.get('/camunda/api/engine/engine/default/process-instance/' + $scope.processInstanceId).then(
+                                function(result){
+                                    console.log('process-instance/data')
+                                    console.log(result.data)
+                                    $scope.businessKey = result.data.businessKey;
+                                },
+                                function (error) {console.log(error.data);}
+                            );
+                        },
+                        function (error) {
+                            console.log(error.data);
+                        }
+                );
+                $scope.leasingCandidate = {};
+                $scope.contractInformationsFE = [];
+
+                $scope.dictionary = {};
+            });
+
+            camForm.on('variables-fetched', function () {
+                $scope.fillDetailsOfTheFarendContractFiles = [];
+                variables.forEach(function (el) {
+                    if(camForm.variableManager.variables[el].value){
+                        $scope[el] = camForm.variableManager.variables[el].value;
+                        $scope.leasingCandidate[el] = camForm.variableManager.variables[el].value;
+                    }
+                });
+                files.forEach(function (f) {
+                    if(camForm.variableManager.variables[f] && camForm.variableManager.variables[f].value){
+                        if ( f.toLowerCase().includes('file') ) {
+                            $scope.leasingFiles = $scope.leasingFiles.concat(camForm.variableManager.variables[f].value)
+                        }
+                    }
+                });
+                camForm.variableManager.createVariable({
+                    name: 'fillDetailsOfTheFarendContractTaskResult',
+                    type: 'String',
+                    value: ''
+                });
+                camForm.variableManager.createVariable({
+                    name: 'fillDetailsOfTheFarendContractDeletedFiles',
+                    type: 'Json',
+                    value: ''
+                });
+                camForm.variableManager.createVariable({
+                    name: 'fillDetailsOfTheFarendContractTaskComment',
+                    type: 'String',
+                    value: ''
+                });
+                camForm.variableManager.createVariable({
+                    name: 'contractInformationsFE',
+                    type: 'Json',
+                    value: ''
+                });
+
+                $scope.variablesFetched = true;
+
+                if ($scope.catalogsFetched && $scope.variablesFetched){
+                    $scope.setNewContract()
+                }
+
+                $scope.ibanPattern = '(KZ[0-9]{18})'
+
+                $scope.fillDetailsOfTheFarendContractTaskResult = '';
+                $http.get('/api/leasingCatalogs?version=3').then(
+                    function(result){
+                        angular.extend($scope.dictionary, result.data);
+                        if (!$scope.candidate) $scope.candidate = {};
+                        if (!$scope.candidate.rbsLocation) $scope.candidate.rbsLocation = $scope.dictionary.rbsLocation;
+                        $scope.antennasList = $scope.dictionary.antennas;
+                        $scope.bankList = $scope.dictionary.banks;
+                        if (!$scope.powerSource) $scope.powerSource = {};
+                        if (!$scope.powerSource.cableLayingType) $scope.powerSource.cableLayingType = $scope.dictionary.cableLayingType;
+                        $scope.availableBands = $scope.dictionary.bands;
+                        $scope.BSC = $scope.dictionary.BSC;
+                        $scope.frequencyBand = $scope.dictionary.frequencyBand;
+                        $scope.addressesList = $scope.dictionary.addresses;
+                        console.log($scope.dictionary.addresses.length)
+                        console.log('oblastList:')
+                        $scope.oblastList = _.uniqBy($scope.dictionary.addresses, 'oblast').map( (e, index) => { return {"name" : e.oblast, "id" : index} });
+                        $scope.cityList = _.uniqBy($scope.dictionary.addresses, 'city').map( (e, index) => { return {"name" : e.city, "id" : index} });
+                        $scope.districtList = _.uniqBy($scope.dictionary.addresses, 'district').map( (e, index) => { return {"name" : e.district, "id" : index} });
+                        $scope.filteredDistricts = $scope.districtList;
+                        console.log($scope.oblastList.length)
+                        $scope.view.variablesFetched = true;
+                        $scope.catalogsFetched = true;
+                        if ($scope.catalogsFetched && $scope.variablesFetched){
+                            $scope.setNewContract()
+                        }
+
+                    },
+                    function(error){
+                        console.log(error);
+                    }
+                );
+            });
+
+            $scope.setNewContract = function () {
+
+                $scope.newContractInfo = {
+                    ct_acquisitionType: 'newContract',
+                    ct_sitename: $scope.candidate.siteName,
+                    ct_legal_name: $scope.renterCompany.legalName,
+                    ct_contact_person: $scope.renterCompany.contactName,
+                    ct_rent_area: $scope.candidate.square,
+                    address: {
+                        addr_oblast: '',
+                        cn_addr_district: '',
+                        cn_addr_city: '',
+                    }
+                };
+
+                if ($scope.farEndInformation && $scope.farEndInformation.length >0) {
+                    $scope.newContractInfo.ct_sitename = $scope.farEndInformation[0].farEndName
+                    $scope.newContractInfo.ct_legal_name = $scope.farEndInformation[0].renterCompany.legalName
+                    $scope.newContractInfo.ct_contact_person = $scope.farEndInformation[0].renterCompany.name
+                    $scope.newContractInfo.ct_rent_area = $scope.farEndInformation[0].square
+
+
+                    let i = $scope.dictionary.legalType.findIndex( a => { return a.id === $scope.farEndInformation[0].legalType })
+                    // $scope.newContractInfo.legalType = _.find($scope.dictionary.legalType, {'id': $scope.renterCompany.legalType});
+                    if (i > -1){
+                        $scope.newContractInfo.legalType = $scope.dictionary.legalType[i]
+                    }
+                    $scope.contractInformationsFE.push(JSON.parse(JSON.stringify($scope.newContractInfo)))
+                    $scope.contractInformationsFE[$scope.contractInformationsFE.length-1].legalType = $scope.newContractInfo.legalType
+                }
+            }
+
+
+            camForm.on('submit', function () {
+                camForm.variableManager.variableValue('fillDetailsOfTheFarendContractTaskResult', $scope.fillDetailsOfTheFarendContractTaskResult);
+                camForm.variableManager.variableValue('fillDetailsOfTheFarendContractTaskComment', $scope.fillDetailsOfTheFarendContractTaskComment);
+                camForm.variableManager.variableValue('contractInformationsFE', $scope.contractInformationsFE);
+
+                var thisTaskFiles = $scope.leasingFiles.filter(f => {return f.varName === 'fillDetailsOfTheFarendContractFiles'});
+                // console.log('--thisTaskFiles--')
+                // console.log(thisTaskFiles)
+                // console.log('-----------------')
+                if(!camForm.variableManager.variables['fillDetailsOfTheFarendContractFiles'].type){
+                    camForm.variableManager.destroyVariable('fillDetailsOfTheFarendContractFiles');
+                    camForm.variableManager.createVariable({
+                        name: 'fillDetailsOfTheFarendContractFiles',
+                        type: 'Json',
+                        value: thisTaskFiles
+                    });
+                } else {
+                    camForm.variableManager.variableValue('fillDetailsOfTheFarendContractFiles', thisTaskFiles);
+                }
+                if(camForm.variableManager.variables.hasOwnProperty($scope.taskKey + "DeletedFiles")){
+                    camForm.variableManager.destroyVariable($scope.taskKey + "DeletedFiles");
+                    camForm.variableManager.createVariable({
+                        name: $scope.taskKey + "DeletedFiles",
+                        type: 'Json',
+                        value: $scope.deletedFiles
+                    });
+                } else {
+                    camForm.variableManager.variableValue($scope.taskKey + "DeletedFiles", $scope.deletedFiles);
+                }
+                camForm.variableManager.destroyVariable('resolutions');
+            });
+
+            $scope.fileSelected = function (el, fileName) {
+                $timeout(function () {
+                    $scope.$apply(function () {
+                        uploadFileToMinio(el.files[0], fileName);
+                    });
+                })
+            };
+
+            $scope.changeAcquisitionType = function (index) {
+                $scope.contractInformationsFE[index].ct_contractid_old = "";
+                $scope.contractInformationsFE[index].ct_agreement_type = "";
+            };
+
+            // $scope.contractlegalTypeChange = function (lt, index) {
+            //     // console.log('index', index)
+            //     // console.log('lt', lt)
+            //     // console.log('lt', typeof lt)
+            //     let ltJson = JSON.parse(lt)
+            //     $scope.contractInformations[index].legalTypeIdForUDB = ltJson.udbid;
+            //
+            //     // console.log('$scope.contractInformations[index].legalTypeIdForUDB:', $scope.contractInformations[index].legalTypeIdForUDB)
+            // };
+
+            function uploadFileToMinio(file, fileName) {
+                var fileIndex = $scope[fileName].length;
+
+                var fileToUpload = {
+                    date: new Date(),
+                    author:  $scope.taskAssignee,
+                    name: file.name.replace(/[/\\?%*:|"<>]/g, '-'),
+                    path: $scope.processInstanceId + '/' + camForm.taskId + '/' + file.name.replace(/[/\\?%*:|"<>]/g, '-')
+                };
+                $http({
+                    method: 'GET',
+                    url: '/camunda/uploads/put/' + fileToUpload.path,
+                    transformResponse: []
+                }).then(function (response) {
+                    $http.put(response.data, file, {headers: {'Content-Type': undefined}}).then(
+                            function () {
+                                fileToUpload.varName = 'fillDetailsOfTheFarendContractFiles';
+                                $scope.leasingFiles.push(fileToUpload);
+                                //$scope[fileName].push(fileToUpload);
+                                angular.element(document.querySelector('#' + fileName)).val(null);
+                                console.log($scope.leasingFiles)
+                            },
+                            function (error) {
+                                console.log(error.data);
+                            }
+                    );
+                }, function(error){
+                    console.log(error.data);
+                });
+            };
+
+            $scope.getContract = function(contractId, index){
+                $http({
+                    method: 'GET',
+                    url: '/camunda/leasing/contract/' + contractId,
+                    transformResponse: []
+                }).then(function (response) {
+                    let json = JSON.parse(response.data)
+                    if(json.length < 1) {
+                        console.log('Not Found')
+                    } else {
+                        const fc = json[0]
+                        console.log(fc)
+                        $scope.contractInformationsFE[index].ct_rent = fc.RENTSUM
+                        $scope.contractInformationsFE[index].ct_rent_all = fc.RENTSUM
+                        $scope.contractInformationsFE[index].ct_bin = fc.INN ? parseInt(fc.INN) : fc.RNN ? parseInt(fc.RNN) : ''
+                        $scope.contractInformationsFE[index].ct_iban = fc.IBAN
+                        // $scope.contractInformationsFE[index].ct_vat = fc.RENTSUM_VAT
+                        $scope.contractInformationsFE[index].ct_checkvat = fc.NEEDVAT === 'yes' ? 'Yes' : 'No'
+                        $scope.contractInformationsFE[index].ct_vendor_sap = fc.VENDOR_SAP_NO
+                        $scope.contractInformationsFE[index].ct_rent_area = fc.RENTAREA
+                        $scope.contractInformationsFE[index].ct_contract_sap = fc.CONTRACT_SAP_NO
+                        // $scope.contractInformationsFE[index].ct_rent = fc.USERNAME
+                        $scope.contractInformationsFE[index].ct_rent_power = fc.POWERSUPPLY
+                        $scope.contractInformationsFE[index].ct_contact_phone = fc.CONTACTPHONE
+                        $scope.contractInformationsFE[index].ct_access_status = fc.ACCESS_STATUS
+                        $scope.contractInformationsFE[index].ct_contract_type = fc.CONTRACTTYPE
+                        // $scope.contractInformationsFE[index].ct_agreement_type = fc.AA_TYPE
+                        $scope.contractInformationsFE[index].ct_legal_name = fc.LEGALNAME
+                        $scope.contractInformationsFE[index].ct_acceptance_act_date = new Date(fc.AREA_ACT_ACCEPT_DATE)
+                        $scope.contractInformationsFE[index].ct_contract_start_date = new Date(fc.CONTRACTSTARTDATE)
+                        $scope.contractInformationsFE[index].ct_contract_end_date = new Date(fc.CONTRACTENDDATE)
+                        $scope.contractInformationsFE[index].ct_payment_period = fc.PAYMENTPERIOD
+                        $scope.contractInformationsFE[index].ct_currency_type = fc.PAYMENTWAY
+
+                        // $scope.contractInformationsFE[index].ct_rent = fc.LEGALADDRESS
+                        $scope.contractInformationsFE[index].ct_autoprolongation = fc.AUTOPROLONGATION
+                        // $scope.contractInformationsFE[index].ct_rent = fc.INCOMINGDATE
+                        $scope.contractInformationsFE[index].ct_contact_person = fc.CONTACTPERSON
+                        $scope.contractInformationsFE[index].ct_executor = fc.CONTRACT_EXECUTOR
+                        $scope.contractInformationsFE[index].ct_cid = fc.CID
+                        $scope.contractInformationsFE[index].ct_action_id = fc.ACTION_ID
+                        $scope.contractInformationsFE[index].ct_csrelid = fc.CSRELID
+                        $scope.contractInformationsFE[index].ct_aaid = fc.AAID
+                        console.log('fetched bankid string: ', fc.BANK_ID.toString() )
+                        console.log('fetched bankid: ', fc.BANK_ID )
+                        let bank = $scope.bankList.filter( a => {return a.id === fc.BANK_ID.toString() })
+                        console.log(bank)
+                        if (bank && bank.length > 0 ) {
+                            console.log('bank.length > 0: ', bank.length > 0)
+                            $scope.contractInformationsFE[index].temp_bank = bank[0]
+                            $scope.setCtBic(bank[0], index)
+                        }
+                        console.log(' <----- bank')
+                    }
+                    console.log()
+                }, function(error){
+                    console.log(error.data);
+                });
+            }
+
+            $scope.filterDistrictAfterSelectContractInfoObl = function (addr_oblast, $index) {
+                console.log($scope.contractInformationsFE[$index]);
+                $scope.contractInformationsFE[$index].address.addr_oblast = addr_oblast
+                $scope.contractInformationsFE[$index].address.cn_addr_district = ''
+                $scope.contractInformationsFE[$index].address.cn_addr_city = ''
+                $scope.contractInformationsFE[$index].dictionary = {};
+                if($scope.contractInformationsFE[$index].address.addr_oblast && $scope.contractInformationsFE[$index].address.addr_oblast !== ''){
+                    $scope.contractInformationsFE[$index].dictionary.filteredByOblast = $scope.dictionary.addresses.filter(a => {return a.oblast === $scope.contractInformationsFE[$index].address.addr_oblast});
+                    $scope.contractInformationsFE[$index].dictionary.filteredDistricts = _.uniqBy($scope.contractInformationsFE[$index].dictionary.filteredByOblast, 'district').map( (e, index) => { return {"name" : e.district, "id" : index} });
+                    $scope.contractInformationsFE[$index].dictionary.cityList = _.uniqBy($scope.contractInformationsFE[$index].dictionary.filteredByOblast, 'city').map( (e, index) => { return {"name" : e.city, "id" : index} });
+                } else {
+                    $scope.contractInformationsFE[$index].dictionary.filteredDistricts = $scope.districtList;
+                    $scope.contractInformationsFE[$index].dictionary.cityList = _.uniqBy($scope.dictionary.addresses, 'city').map( (e, index) => { return {"name" : e.city, "id" : index} });
+                }
+            }
+
+            $scope.ContractInfoAddressCitySelected = function ($item, $index) {
+                const filtered = _.find($scope.dictionary.addresses, {'city': $item.name});
+                $scope.contractInformationsFE[$index].address.cn_addr_district = filtered.district;
+                $scope.contractInformationsFE[$index].address.cn_addr_oblast = filtered.oblast;
+            };
+
+            $scope.getContractInfoCity = function (val, $index) {
+                console.log($scope.contractInformationsFE[$index])
+                if (val.length < 2) {
+                    return []
+                }
+                if ($scope.contractInformationsFE[$index] && $scope.contractInformationsFE[$index].dictionary) {
+                    return _.filter($scope.contractInformationsFE[$index].dictionary.cityList, function(o) { return o.name.toLowerCase().includes(val.toLowerCase()); })
+                } else {
+                    return _.filter($scope.cityList, function(o) { return o.name.toLowerCase().includes(val.toLowerCase()); })
+                }
+
+            };
+
+            $scope.finallyRentSum = function (index, rentSum) {
+                if ($scope.contractInformationsFE[index].ct_checkvat === 'Yes') {
+                    let rent_all = rentSum/1.12
+                    $scope.contractInformationsFE[index].ct_rent_all = Math.round((rent_all)*100)/100;
+                } else {
+                    $scope.contractInformationsFE[index].ct_rent_all = rentSum;
+                }
+            }
+
+            $scope.clearFile = function (list, fileIndex) {
+                $scope[list].splice(fileIndex, 1);
+            }
+
+            $scope.setCtBic = function (bank, index) {
+                console.log(bank)
+                $scope.contractInformationsFE[index].ct_bic = bank.bic;
+                $scope.contractInformationsFE[index].ct_bankname = bank;
+            }
+
+            $scope.fileDownload = function (file) {
+                $http({
+                    method: 'GET',
+                    url: '/camunda/uploads/get/' + file.path,
+                    transformResponse: []
+                }).then(function (response) {
+                    document.getElementById('fileDownloadIframe').src = response.data;
+                }, function(error){
+                    console.log(error.data);
+                });
+            }
+
+            $scope.preSubmit = function() {
+                var deferred = $q.defer();
+                var currentDate = new Date();
+                if($scope.fillDetailsOfTheFarendContractTaskResult === 'refusal'){
+                    exModal.open({
+                        templateUrl: './js/partials/confirmModal.html',
+                        size: 'sm',
+                        scope : {
+                            message :'Confirm completion of the process without a contract',
+                            cancel : 'No',
+                            ok: 'Yes'
+                        }
+                    }).then(
+                        function () {
+                            deferred.resolve();
+                            return deferred.promise;
+                        },function (){
+                            deferred.reject();
+                            return deferred.promise;
+                        }
+                    );
+                } else {
+                    for (let i=0; i<$scope.contractInformationsFE.length; i++ ) {
+                        let cci = $scope.contractInformationsFE[i]
+                        cci.assignee = $scope.taskAssignee;
+                    }
+                    deferred.resolve();
+                    return deferred.promise;
+                }
+                return deferred.promise;
+            }
+
+            $scope.changeContractLegalType = function (index) {
+                if ($scope.contractInformationsFE && $scope.contractInformationsFE[index] && $scope.contractInformationsFE[index].legalType) {
+                    // $scope.contractInformationsFE[index].ct_legal_name = ''
+                    if ( $scope.contractInformationsFE[index].legalType.id === 'national_kazakhtelecom' ) {
+                        $scope.contractInformationsFE[index].ct_legal_name = 'АО "Казахтелеком"'
+                    } if ( $scope.contractInformationsFE[index].legalType.id === 'national_kazteleradio' ) {
+                        $scope.contractInformationsFE[index].ct_legal_name = 'АО "Казтелерадио'
+                    } else if ( $scope.contractInformationsFE[index].legalType.id === 'national_kazpost' ) {
+                        $scope.contractInformationsFE[index].ct_legal_name = 'АО "Казпочта"'
+                    }
+                }
+            }
+
+            $scope.removeContract = function($index) {
+                exModal.open({
+                    templateUrl: './js/partials/confirmModal.html',
+                    size: 'sm',
+                    scope : {
+                        message :'Confirm deletion of contract',
+                        cancel : 'No',
+                        ok: 'Yes'
+                    }
+                }).then(
+                    function () {
+                        $scope.contractInformationsFE.splice($index, 1);
+                    },
+                    function (){
+                    }
+                );
+            }
+
+            $scope.addContract = function() {
+                var temp = {};
+                angular.copy($scope.newContractInfo, temp);
+                $scope.contractInformationsFE.push(temp);
+                if ($scope.newContractInfo.legalType) {
+                    $scope.contractInformationsFE[$scope.contractInformationsFE.length-1].legalType = $scope.newContractInfo.legalType
+                }
+            }
+        }]);
+
+    </script>
+    <div class="form-group">
+        <label class="col-sm-12 control-label">
+            <p/> <b>Business key: </b>{{businessKey}}
+        </label>
+    </div>
+     <leasing-candidate ng-if="view.variablesFetched" leasing-candidate="leasingCandidate"></leasing-candidate>
+    <accordion class="content-visible-accordion background-yellow-accordion" ng-repeat="cci in contractInformationsFE track by $index">
+        <accordion-group is-open="true" style="background-color: #ffffcc; !important;" >
+            <accordion-heading>
+                {{contractInformationsFE.length > 1 ? $index+1 + '.' : ''}} Contract Information
+                <a style="padding: 0px" ng-click="$event.stopPropagation(); removeContract($index)" class="pull-right" ng-if="$index > 0"><i class="glyphicon glyphicon-remove"></i></a>
+                <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
+            </accordion-heading>
+            <div class="form-group">
+                <label class="col-sm-3 control-label">*Acquisition type</label>
+                <div class="col-sm-9">
+                    <label class="radio-inline">
+                        <input type="radio" name="{{$index}}ct_acquisitionType1" id="{{$index}}ct_acquisitionType1" ng-change="changeAcquisitionType($index)" ng-model="cci.ct_acquisitionType"
+                               value="newContract"> New Contract
+                    </label>
+                    <label class="radio-inline">
+                        <input type="radio" name="{{$index}}ct_acquisitionType2" id="{{$index}}ct_acquisitionType2" ng-model="cci.ct_acquisitionType" ng-change="changeAcquisitionType($index)"
+                               value="existingContract"> Existing Contract
+                    </label>
+                    <label class="radio-inline">
+                        <input type="radio" name="{{$index}}ct_acquisitionTyp3" id="{{$index}}ct_acquisitionType3" ng-model="cci.ct_acquisitionType" ng-change="changeAcquisitionType($index)"
+                               value="additionalAgreement"> Additional Agreement
+                    </label>
+                    <label class="error"
+                           ng-show="kcell_form['{{$index}}ct_acquisitionTyp3'].$error.required && ( kcell_form['{{$index}}ct_acquisitionTyp3'].$touched || view.submitted)">Required
+                        field</label>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-3 control-label">*Contract ID:</label>
+                <div class="col-sm-9">
+                    <input class="form-control" id="{{$index}}.ct_contractid" name="{{$index}}.ct_contractid" ng-model="cci.ct_contractid" disabled >
+                    <label class="error" ng-show="kcell_form['{{$index}}.ct_contractid'].$error.required && ( kcell_form['{{$index}}.ct_contractid'].$touched || view.submitted)">Required field</label>
+                </div>
+            </div>
+<!--                <div class="form-group">-->
+<!--                    <div class="col-sm-12">-->
+<!--                        <div class="form-check">-->
+<!--                            <input type="checkbox" ng-model="cci.ct_existing_contract" class="form-check-input" id="{{'cci.' + $index}}.ct_existing_contract">-->
+<!--                            <label class="form-check-label" for="{{'cci.' + $index}}.ct_existing_contract">Existing contract</label>-->
+<!--                        </div>-->
+<!--                    </div>-->
+<!--                </div>-->
+            <div class="form-group" ng-show="cci.ct_acquisitionType !== 'newContract'" >
+                <label class="col-sm-3 control-label"><span ng-if="cci.ct_acquisitionType === 'existingContract' && fillDetailsOfTheFarendContractTaskResult !== 'refusal'">*</span>Existing Contract ID:</label>
+                <div class="col-sm-7">
+                    <input class="form-control" id="{{$index}}_ct_contractid_old" name="{{$index}}_ct_contractid_old" ng-model="cci.ct_contractid_old" ng-required="cci.ct_acquisitionType === 'existingContract' && fillDetailsOfTheFarendContractTaskResult !== 'refusal'">
+                    <label class="error" ng-show="kcell_form['{{$index}}_ct_contractid_old'].$error.required && ( kcell_form['{{$index}}_ct_contractid_old'].$touched || view.submitted)">Required field</label>
+                </div>
+                <div class="col-sm-2">
+                    <input type="button" ng-click="getContract(cci.ct_contractid_old, $index)" value="Import Contract" class="btn btn-primary pull-right">
+                </div>
+            </div>
+
+            <div class="form-group" ng-hide="cci.ct_acquisitionType !== 'additionalAgreement'">
+                <label class="col-sm-3 control-label">*Additional Agreement Type:</label>
+                <div class="col-sm-9" class="form-check">
+                    <select
+                        class="form-control"
+                        placeholder="справочник Additional Agreement type"
+                        id="{{$index}}_ct_agreement_type"
+                        name="{{$index}}_ct_agreement_type"
+                        ng-model="cci.ct_agreement_type"
+                        ng-options="type.id as type.name for type in dictionary.additionalAgreementType"
+                        ng-required="cci.ct_acquisitionType === 'additionalAgreement' && fillDetailsOfTheFarendContractTaskResult !== 'refusal'">
+
+                    </select>
+                    <label class="error" ng-show="kcell_form['{{$index}}_ct_agreement_type'].$error.required && ( kcell_form['{{$index}}_ct_agreement_type'].$touched || view.submitted)">Required field</label>
+                </div>
+            </div>
+
+            <div class="form-group" ng-show="cci.ct_acquisitionType === 'additionalAgreement'">
+                <label class="col-sm-3 control-label">Additional Agreement Number:</label>
+                <div class="col-sm-9">
+                    <input class="form-control" id="{{$index}}_ct_agreement_number" name="{{$index}}_ct_agreement_number" ng-model="cci.ct_agreement_number">
+                    <label class="error" ng-show="kcell_form['{{$index}}_ct_agreement_number'].$error.required && ( kcell_form['{{$index}}_ct_agreement_number'].$touched || view.submitted)">Required field</label>
+                </div>
+            </div>
+
+            <div class="form-group" ng-show="cci.ct_acquisitionType === 'additionalAgreement'">
+                <label class="col-sm-3 control-label">Additional Agreement Reason:</label>
+                <div class="col-sm-9">
+                    <input class="form-control" id="{{'cci.' + $index}}.ct_agreement_reason" name="cci.ct_agreement_reason" ng-model="cci.ct_agreement_reason">
+                    <label class="error" ng-show="kcell_form.cci.ct_agreement_reason.$error.required && ( kcell_form.cci.ct_agreement_reason.$touched || view.submitted)">Required field</label>
+                </div>
+            </div>
+            <div class="form-group" ng-show="cci.ct_acquisitionType === 'additionalAgreement'">
+                <label class="col-sm-3 control-label">Additional Agreement Date:</label>
+                <div class="col-sm-9">
+                    <div class="input-group">
+                        <input type="text" ng-model="cci.ct_aa_date" name="{{$index}}_ct_aa_date" id="{{$index}}_ct_aa_date"
+                               class="form-control" datepicker-popup="dd.MM.yyyy"
+                               is-open="cci.aaDateFieldOpened"/>
+                        <span class="input-group-btn">
+                            <button type="button" class="btn btn-default" ng-click="cci.aaDateFieldOpened = true">
+                                <i class="glyphicon glyphicon-calendar"></i>
+                            </button>
+                        </span>
+                    </div>
+                    <label class="error"
+                           ng-show="kcell_form['{{$index}}_ct_aa_date'].$error.required && ( kcell_form['{{$index}}_ct_aa_date'].$touched || view.submitted)">Required
+                        field</label>
+                </div>
+            </div>
+
+            <div class="form-group" ng-show="cci.ct_acquisitionType === 'additionalAgreement'">
+                <label class="col-sm-3 control-label">*Additional Agreement Executor:</label>
+                <div class="col-sm-9" class="form-check">
+                    <select class="form-control"
+                            name="{{$index}}_agreementExecutor"
+                            id="{{$index}}_agreementExecutor"
+                            placeholder="Select Executor"
+                            ng-model="cci.ct_agreement_executor"
+                            ng-required="cci.ct_acquisitionType === 'additionalAgreement' && fillDetailsOfTheFarendContractTaskResult !== 'refusal'"
+                            ng-options="type.id as type.name for type in dictionary.contractExecuter">
+                    </select>
+                    <label class="error" ng-show="kcell_form['{{$index}}_agreementExecutor'].$error.required && ( kcell_form['{{$index}}_agreementExecutor'].$touched || view.submitted)">Required field</label>
+                </div>
+            </div>
+
+            <br>
+
+            <div class="form-group">
+                <label class="col-sm-3 control-label">*Sitename:</label>
+                <div class="col-sm-9">
+                    <input class="form-control" id="{{'cci.' + $index}}.ct_sitename" name="cci.ct_sitename" ng-model="cci.ct_sitename" disabled>
+                    <label class="error" ng-show="kcell_form.cci.ct_sitename.$error.required && ( kcell_form.cci.ct_sitename.$touched || view.submitted)">Required field</label>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-3 control-label">*Project type:</label>
+                <div class="col-sm-9" class="form-check">
+                    <select class="form-control"
+                        id="{{$index}}_ct_project_type"
+                        name="{{$index}}_ct_project_type"
+                        placeholder="Select Project type"
+                        ng-model="cci.ct_project_type"
+                        ng-options="type.name for type in dictionary.projectType"
+                        ng-required="fillDetailsOfTheFarendContractTaskResult !== 'refusal'">
+                    </select>
+                    <label class="error" ng-show="kcell_form['{{$index}}_ct_project_type'].$error.required && ( kcell_form['{{$index}}_ct_project_type'].$touched || view.submitted)">Required field</label>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-3 control-label">Contract Date:</label>
+                <div class="col-sm-9">
+                    <div class="input-group">
+                        <input type="text" ng-model="cci.ct_contract_date" name="{{$index}}_ct_contract_date" id="{{$index}}_ct_contract_date"
+                                class="form-control" datepicker-popup="dd.MM.yyyy"
+                                is-open="contractDateFieldOpened" id="ct_contract_date"/>
+                        <span class="input-group-btn">
+                            <button type="button" class="btn btn-default" ng-click="contractDateFieldOpened = true">
+                                <i class="glyphicon glyphicon-calendar"></i>
+                            </button>
+                        </span>
+                    </div>
+                    <label class="error"
+                            ng-show="kcell_form['{{$index}}_ct_contract_date'].$error.required && ( kcell_form['{{$index}}_ct_contract_date'].$touched || view.submitted)">Required
+                        field</label>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-3 control-label">*Contract Executor:</label>
+                <div class="col-sm-9" class="form-check">
+                    <select class="form-control"
+                        id="{{$index}}_ct_executor"
+                        name="{{$index}}_ct_executor"
+                        placeholder="Select Executor"
+                        ng-model="cci.ct_executor"
+                        ng-required="fillDetailsOfTheFarendContractTaskResult !== 'refusal'">
+                        <option ng-repeat="type in dictionary.contractExecuter" ng-selected="cci.ct_executor == type.id" ng-value="type.id">{{type.name}}</option>
+                    </select>
+                    <label class="error" ng-show="kcell_form['{{$index}}_ct_executor'].$error.required && ( kcell_form['{{$index}}_ct_executor'].$touched || view.submitted)">Required field</label>
+                </div>
+            </div>
+
+            <br>
+
+            <div class="form-group">
+                <label class="col-sm-3 control-label">Legal name:</label>
+                <div class="col-sm-9">
+                    <input class="form-control" id="{{$index}}_ct_legal_name" name="{{$index}}_ct_legal_name" ng-model="cci.ct_legal_name">
+                    <label class="error" ng-show="kcell_form['{{$index}}_ct_legal_name'].$error.required && ( kcell_form['{{$index}}_ct_legal_name'].$touched || view.submitted)">Required field</label>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-3 control-label">*Legal type:</label>
+                <div class="col-sm-9">
+                    <select class="form-control" id="{{$index}}_legalType" name="{{$index}}_legalType"
+                            ng-model="cci.legalType"
+                            ng-change="changeContractLegalType($index)"
+                            ng-required="fillDetailsOfTheFarendContractTaskResult !== 'refusal'"
+                            ng-options="type as type.desc for type in dictionary.legalType">
+<!--                        <option ng-repeat="type in dictionary.legalType" ng-value="type">{{type.desc}}</option>-->
+                    </select>
+                    <label class="error" for="{{$index}}_legalType" ng-show="kcell_form['{{$index}}_legalType'].$error.required && ( kcell_form['{{$index}}_legalType'].$touched || view.submitted)">Required field</label>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-3 control-label">Legal address:</label>
+                <div class="col-sm-9">
+                    <accordion class="content-visible-accordion background-yellow-accordion">
+                        <accordion-group is-open="false">
+                            <accordion-heading>
+                                Legal Address<i class="pull-right glyphicon"
+                                                            ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
+                            </accordion-heading>
+                            <div class="form-group">
+                                <label class="col-sm-3 control-label">Oblast:</label>
+                                <div class="col-sm-9" class="form-check">
+                                    <select class="form-control" id="ContractInfo_cn_addr{{$index}}_oblast" name="ContractInfo_cn_addr_oblast" ng-model="cci.address.cn_addr_oblast"
+                                            ng-change="filterDistrictAfterSelectContractInfoObl(cci.address.cn_addr_oblast, $index)">
+                                        <option ng-repeat="oblast in oblastList" ng-value="oblast.name">{{oblast.name}}</option>
+                                    </select>
+                                    <label class="error" ng-show="kcell_form.ContractInfo_cn_addr_oblast.$error.required && ( kcell_form.ContractInfo_cn_addr_oblast.$touched || view.submitted)">Required field</label>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-sm-3 control-label">District:</label>
+                                <div class="col-sm-9" class="form-check">
+                                    <select class="form-control" id="ContractInfo_cn_addr{{$index}}_district" name="ContractInfo_cn_addr_district" ng-model="cci.address.cn_addr_district" ng-disabled="!cci.address.cn_addr_oblast">
+                                        <option ng-repeat="district in cci.dictionary.filteredDistricts" ng-value="district.name">{{district.name}}</option>
+                                    </select>
+                                    <label class="error" ng-show="kcell_form.ContractInfo_cn_addr_district.$error.required && ( kcell_form.ContractInfo_cn_addr_district.$touched || view.submitted)">Required field</label>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="col-sm-3 control-label">City / Village:</label>
+                                <div class="col-sm-9">
+                                    <input type="text" id="ContractInfo_cn_addr{{$index}}_city" ng-model="cci.address.cn_addr_city" ng-value='city.name' name="ContractInfo_n_addr_city" typeahead="city.name for city in getContractInfoCity($viewValue, $index)" typeahead-on-select="ContractInfoAddressCitySelected($item, $index)" class="form-control" placeholder="Start typing...">
+                                    <label class="error" ng-show="kcell_form.ContractInfo_cn_addr_city.$error.required && ( kcell_form.ContractInfo_cn_addr_city.$touched || view.submitted)">Required field</label>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="col-sm-12">
+                                    <div class="form-check">
+                                        <input type="checkbox" ng-model="address.ca_not_full_addres" class="form-check-input" id="ca_not_full_addres">
+                                        <label class="form-check-label" for="ca_not_full_addres">Object without official address</label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-sm-3 control-label">Street:</label>
+                                <div class="col-sm-9">
+                                    <input class="form-control" id="ContractInfo_cn_addr{{$index}}_street" name="ContractInfo_cn_addr_street" ng-model="cci.address.cn_addr_street">
+                                    <label class="error" ng-show="kcell_form.ContractInfo_cn_addr_street.$error.required && ( kcell_form.ContractInfo_cn_addr_street.$touched || view.submitted)">Required field</label>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-sm-3 control-label">Building:</label>
+                                <div class="col-sm-9">
+                                    <input class="form-control" id="ContractInfo_cn_addr{{$index}}_building" name="ContractInfo_cn_addr_building" ng-model="cci.address.cn_addr_building">
+                                    <label class="error" ng-show="kcell_form.ContractInfo_cn_addr_building.$error.required && ( kcell_form.ContractInfo_cn_addr_building.$touched || view.submitted)">Required field</label>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-sm-3 control-label">Cadastral number:</label>
+                                <div class="col-sm-9">
+                                    <input class="form-control" id="ContractInfo_cn_addr{{$index}}_cadastral_number" name="ContractInfo_cn_addr_cadastral_number" ng-model="cci.address.cn_addr_cadastral_number">
+                                    <label class="error" ng-show="kcell_form.ContractInfo_cn_addr_cadastral_number.$error.required && ( kcell_form.ContractInfo_cn_addr_cadastral_number.$touched || view.submitted)">Required field</label>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-sm-3 control-label">Note to the address:</label>
+                                <div class="col-sm-9">
+                                    <input class="form-control" id="ContractInfo_cn_addr{{$index}}_note" name="ContractInfo_cn_addr_note" ng-model="cci.address.cn_addr_note">
+                                    <label class="error" ng-show="kcell_form.ContractInfo_cn_addr_note.$error.required && ( kcell_form.ContractInfo_cn_addr_note.$touched || view.submitted)">Required field</label>
+                                </div>
+                            </div>
+                        </accordion-group>
+                    </accordion>
+                </div>
+            </div>
+
+            <br>
+            <div class="form-group">
+                <label class="col-sm-3 control-label">Head of organization:</label>
+                <div class="col-sm-9">
+                    <input class="form-control" id="ct_head" name="ct_head" ng-model="cci.ct_head">
+                    <label class="error" ng-show="kcell_form.ct_head.$error.required && ( kcell_form.ct_head.$touched || view.submitted)">Required field</label>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-3 control-label">Contact Person:</label>
+                <div class="col-sm-9">
+                    <input class="form-control" id="ct_contact_person" name="ct_contact_person" ng-model="cci.ct_contact_person">
+                    <label class="error" ng-show="kcell_form.ct_contact_person.$error.required && ( kcell_form.ct_contact_person.$touched || view.submitted)">Required field</label>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-3 control-label">Contact Person phone:</label>
+                <div class="col-sm-9">
+                    <input class="form-control" id="{{$index}}_ct_contact_phone" name="{{$index}}_ct_contact_phone" ng-model="cci.ct_contact_phone">
+                    <label class="error" ng-show="kcell_form['{{$index}}_ct_contact_phone'].$error.required && ( kcell_form['{{$index}}_ct_contact_phone'].$touched || view.submitted)">Required field</label>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-3 control-label">BIN/IIN:</label>
+                <div class="col-sm-9">
+                    <input class="form-control" type="number" id="{{$index}}_ct_bin" name="{{$index}}_ct_bin" ng-model="cci.ct_bin">
+                    <label class="error" ng-show="kcell_form['{{$index}}_ct_bin'].$error.required && ( kcell_form['{{$index}}_ct_bin'].$touched || view.submitted)">Required field</label>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-3 control-label">IBAN:</label>
+                <div class="col-sm-9">
+                    <input class="form-control" id="{{$index}}_ct_iban " ng-pattern="ibanPattern" name="{{$index}}_ct_iban" ng-model="cci.ct_iban">
+                    <label class="error" ng-show="kcell_form['{{$index}}_ct_iban'].$error.required && ( kcell_form['{{$index}}_ct_iban'].$touched || view.submitted)">Required field</label>
+                    <label class="error" ng-show="kcell_form['{{$index}}_ct_iban'].$error.pattern && ( kcell_form['{{$index}}_ct_iban'].$touched || view.submitted)">Неверный формат</label>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-3 control-label">BIC:</label>
+                <div class="col-sm-9" class="form-check">
+                    <select class="form-control"
+                            id="{{$index}}ct_bic"
+                            name="{{$index}}ct_bic"
+                            ng-model="cci.temp_bank"
+                            ng-change="setCtBic(cci.temp_bank, $index)">
+                        <option ng-repeat="b in dictionary.banks" ng-value="b">{{b.bic}}</option>
+                    </select>
+                    <label class="error" ng-show="kcell_form['{{$index}}ct_bic'].$error.required && ( kcell_form['{{$index}}ct_bic'].$touched || view.submitted)">Required field</label>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-3 control-label">Bank Name:</label>
+                <div class="col-sm-9" class="form-check">
+                    <select class="form-control"
+                            id="{{$index}}ct_bankname"
+                            name="{{$index}}ct_bankname"
+                            ng-model="cci.temp_bank"
+                            ng-change="setCtBic(cci.temp_bank, $index)">
+                        <option ng-repeat="b in dictionary.banks" ng-value="b">{{b.bankName}}</option>
+                    </select>
+                    <label class="error" ng-show="kcell_form['{{$index}}ct_bankname'].$error.required && ( kcell_form['{{$index}}ct_bankname'].$touched || view.submitted)">Required field</label>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-3 control-label">*Contract type:</label>
+                <div class="col-sm-9" class="form-check">
+                    <select class="form-control"
+                            id="{{$index}}ct_contract_type"
+                            name="{{$index}}ct_contract_type"
+                            ng-model="cci.ct_contract_type"
+                            ng-required="fillDetailsOfTheFarendContractTaskResult !== 'refusal'">
+                        <option ng-repeat="type in dictionary.contract" ng-selected="cci.ct_contract_type == type.id" ng-value="type.id">{{type.name}}</option>
+                    </select>
+                    <label class="error" ng-show="kcell_form['{{$index}}ct_contract_type'].$error.required && ( kcell_form['{{$index}}ct_contract_type'].$touched || view.submitted)">Required field</label>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-3 control-label">Rent Sum:</label>
+                <div class="col-sm-9">
+                    <input class="form-control" type="number" id="{{$index}}ct_rent" ng-change="finallyRentSum($index, cci.ct_rent)" name="{{$index}}ct_rent" ng-model="cci.ct_rent">
+                    <label class="error" ng-show="kcell_form['{{$index}}ct_rent'].$error.required && ( kcell_form['{{$index}}ct_rent'].$touched || view.submitted)">Required field</label>
+                </div>
+                <!--                    <label class="col-sm-3 control-label">Finally: {{cci.ct_rent_all}}</label>-->
+            </div>
+            <div class="form-group">
+                <label class="col-sm-3 control-label">Rent Sum All:</label>
+                <div class="col-sm-9">
+                    <input class="form-control" type="number" disabled id="ct_rent_all"  name="ct_rent_all" ng-model="cci.ct_rent_all">
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-3 control-label">Need VAT</label>
+                <div class="col-sm-9">
+                    <label class="radio-inline">
+                        <input type="radio" name="{{$index}}ct_checkvatTrue" ng-change="finallyRentSum($index, cci.ct_rent)" id="{{$index}}ct_checkvatTrue" ng-model="cci.ct_checkvat"
+                               value="Yes"> Yes
+                    </label>
+                    <label class="radio-inline">
+                        <input type="radio" name="{{$index}}ct_checkvatFalse" ng-change="finallyRentSum($index, cci.ct_rent)" id="{{$index}}ct_checkvatFalse" ng-model="cci.ct_checkvat"
+                               value="No"> No
+                    </label>
+                    <label class="error"
+                           ng-show="kcell_form['{{$index}}ct_checkvatFalse'].$error.required && ( kcell_form['{{$index}}ct_checkvatFalse'].$touched || view.submitted)">Required
+                        field</label>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-3 control-label">Power in Rent Sum:</label>
+                <div class="col-sm-9">
+                    <input class="form-control" type="number" id="ct_rent_power" name="ct_rent_power" ng-model="cci.ct_rent_power">
+                    <label class="error" ng-show="kcell_form.ct_rent_power.$error.required && ( kcell_form.ct_rent_power.$touched || view.submitted)">Required field</label>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-3 control-label">Rent Area:</label>
+                <div class="col-sm-9">
+                    <input class="form-control" type="number" id="{{$index}}ct_rent_area" name="{{$index}}ct_rent_area" ng-model="cci.ct_rent_area">
+                    <label class="error" ng-show="kcell_form['{{$index}}ct_rent_area'].$error.required && ( kcell_form['{{$index}}ct_rent_area'].$touched || view.submitted)">Required field</label>
+                </div>
+            </div>
+<!--                <div class="form-group">-->
+<!--                    <label class="col-sm-3 control-label">VAT:</label>-->
+<!--                    <div class="col-sm-9">-->
+<!--                        <input class="form-control" ng-disabled="cci.ct_checkvat !== 'Yes'" type="number" id="ct_vat" name="ct_vat" ng-model="cci.ct_vat" ng-required="cci.ct_checkvat === 'Yes'">-->
+<!--                        <label class="error" ng-show="kcell_form.ct_vat.$error.required && ( kcell_form.ct_vat.$touched || view.submitted)">Required field</label>-->
+<!--                    </div>-->
+<!--                </div>-->
+
+            <br>
+
+            <div class="form-group">
+                <label class="col-sm-3 control-label">Contract SAP №:</label>
+                <div class="col-sm-9">
+                    <input class="form-control" type="number" id="ct_contract_sap" name="ct_contract_sap" ng-model="cci.ct_contract_sap">
+                    <label class="error" ng-show="kcell_form.ct_contract_sap.$error.required && ( kcell_form.ct_contract_sap.$touched || view.submitted)">Required field</label>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-3 control-label">Vendor SAP №:</label>
+                <div class="col-sm-9">
+                    <input class="form-control" type="number" id="ct_vendor_sap" name="ct_vendor_sap" ng-model="cci.ct_vendor_sap">
+                    <label class="error" ng-show="kcell_form.ct_vendor_sap.$error.required && ( kcell_form.ct_vendor_sap.$touched || view.submitted)">Required field</label>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-3 control-label">Access Status:</label>
+                <div class="col-sm-9" class="form-check">
+                    <select class="form-control"
+                        id="ct_access_status"
+                        name="ct_access_status"
+                        ng-model="cci.ct_access_status">
+                        <option ng-repeat="type in dictionary.accessStatus" ng-selected="cci.ct_access_status == type.id" ng-value="type.id">{{type.name}}</option>
+                    </select>
+                    <label class="error" ng-show="kcell_form.ct_access_status.$error.required && ( kcell_form.ct_access_status.$touched || view.submitted)">Required field</label>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-3 control-label">Payment Period:</label>
+                <div class="col-sm-9" class="form-check">
+                    <select class="form-control"
+                        id="ct_payment_period"
+                        name="ct_payment_period"
+                        ng-model="cci.ct_payment_period">
+                        <option ng-repeat="type in dictionary.paymentPeriod" ng-selected="cci.ct_payment_period == type.id" ng-value="type.id">{{type.name}}</option>
+                    </select>
+                    <label class="error" ng-show="kcell_form.ct_payment_period.$error.required && ( kcell_form.ct_payment_period.$touched || view.submitted)">Required field</label>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-3 control-label">Currency:</label>
+                <div class="col-sm-9" class="form-check">
+                    <select class="form-control"
+                        id="{{$index}}ct_currency_type"
+                        name="{{$index}}ct_currency_type"
+                        ng-model="cci.ct_currency_type">
+                        <option ng-repeat="type in dictionary.currency" ng-selected="cci.ct_currency_type == type.id" ng-value="type.id">{{type.name}}</option>
+                    </select>
+                    <label class="error" ng-show="kcell_form['{{$index}}ct_currency_type'].$error.required && ( kcell_form['{{$index}}ct_currency_type'].$touched || view.submitted)">Required field</label>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-3 control-label">Contract Start date:</label>
+                <div class="col-sm-9">
+                    <div class="input-group">
+                        <input type="text" ng-model="cci.ct_contract_start_date" name="{{$index}}ct_contract_start_date" id="{{$index}}ct_contract_start_date"
+                                class="form-control" datepicker-popup="dd.MM.yyyy"
+                                is-open="ct_contract_start_dateFieldOpened" id="ct_contract_start_date"/>
+                        <span class="input-group-btn">
+                            <button type="button" class="btn btn-default" ng-click="ct_contract_start_dateFieldOpened = true">
+                                <i class="glyphicon glyphicon-calendar"></i>
+                            </button>
+                        </span>
+                    </div>
+                    <label class="error"
+                            ng-show="kcell_form['{{$index}}ct_contract_start_date'].$error.required && ( kcell_form['{{$index}}ct_contract_start_date'].$touched || view.submitted)">Required
+                        field</label>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-3 control-label">Contract End date:</label>
+                <div class="col-sm-9">
+                    <div class="input-group">
+                        <input type="text" ng-model="cci.ct_contract_end_date" name="{{$index}}ct_contract_end_date" id="{{$index}}ct_contract_end_date"
+                                class="form-control" datepicker-popup="dd.MM.yyyy"
+                                is-open="ct_contract_end_dateFieldOpened" id="ct_contract_end_date"/>
+                        <span class="input-group-btn">
+                            <button type="button" class="btn btn-default" ng-click="ct_contract_end_dateFieldOpened = true">
+                                <i class="glyphicon glyphicon-calendar"></i>
+                            </button>
+                        </span>
+                    </div>
+                    <label class="error"
+                            ng-show="kcell_form['{{$index}}ct_contract_end_date'].$error.required && ( kcell_form['{{$index}}ct_contract_end_date'].$touched || view.submitted)">Required
+                        field</label>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-3 control-label">Area Act of Acceptance date:</label>
+                <div class="col-sm-9">
+                    <div class="input-group">
+                        <input type="text" ng-model="cci.ct_acceptance_act_date" id="{{$index}}ct_acceptance_act_date" name="{{$index}}ct_acceptance_act_date"
+                                class="form-control" datepicker-popup="dd.MM.yyyy"
+                                is-open="ct_acceptance_act_dateFieldOpened" id="ct_acceptance_act_date"/>
+                        <span class="input-group-btn">
+                            <button type="button" class="btn btn-default" ng-click="ct_acceptance_act_dateFieldOpened = true">
+                                <i class="glyphicon glyphicon-calendar"></i>
+                            </button>
+                        </span>
+                    </div>
+                    <label class="error"
+                            ng-show="kcell_form['{{$index}}ct_contract_date'].$error.required && ( kcell_form['{{$index}}ct_contract_date'].$touched || view.submitted)">Required
+                        field</label>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-3 control-label">Autoprolongation</label>
+                <div class="col-sm-9">
+                    <label class="radio-inline">
+                        <input type="radio" name="{{$index}}ct_autoprolongationTrue" id="{{$index}}ct_autoprolongationTrue" ng-model="cci.ct_autoprolongation"
+                                value="Yes"> Yes
+                    </label>
+                    <label class="radio-inline">
+                        <input type="radio" name="{{$index}}ct_autoprolongationTrue" id="{{$index}}ct_autoprolongationFalse" ng-model="cci.ct_autoprolongation"
+                                value="No"> No
+                    </label>
+                    <label class="error"
+                            ng-show="kcell_form['{{$index}}ct_autoprolongationTrue'].$error.required && ( kcell_form['{{$index}}ct_autoprolongationTrue'].$touched || view.submitted)">Required
+                        field</label>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-3 control-label">IFRS 16</label>
+                <div class="col-sm-9">
+                    <label class="radio-inline">
+                        <input type="radio" name="{{$index}}ct_ifrs16True" id="cci.{{$index}}ct_ifrs16True" ng-model="cci.ct_ifrs16"
+                                value="Yes"> Yes
+                    </label>
+                    <label class="radio-inline">
+                        <input type="radio" name="{{$index}}ct_ifrs16True" id="{{$index}}ct_ifrs16False" ng-model="cci.ct_ifrs16"
+                                value="No"> No
+                    </label>
+                    <label class="error"
+                            ng-show="kcell_form['{{$index}}ct_ifrs16True'].$error.required && ( kcell_form.ct_ifrs16.$touched || view.submitted)">Required
+                        field</label>
+                </div>
+            </div>
+        </accordion-group>
+    </accordion>
+
+<!--        <span class="input-group-btn">-->
+<!--            <button type="button" class="btn btn-default" >-->
+<!--                <i class="glyphicon glyphicon-plus">&nbsp;Add New Contract</i>-->
+<!--            </button>-->
+<!--        </span>-->
+    <div class="col-sm-12">
+        <input type="button" ng-click="addContract()" value="Add New Contract" class="btn btn-primary pull-right">
+    </div>
+
+    <leasing-attachments leasing-files="leasingFiles" deleted-files="deletedFiles" task-key="taskKey" modify="'true'"></leasing-attachments>
+    <iframe id="fileDownloadIframe" style="display:none;"></iframe>
+    <div class="form-group">
+        <label class="col-sm-3 control-label"></label>
+        <div class="col-sm-9">
+            <ng-form name="kcell_material_file_form">
+                <input type="file" class="form-control" id="fillDetailsOfTheFarendContractFiles"
+                       name="fillDetailsOfTheFarendContractFiles" ng-model="file.file"
+                       onchange="angular.element(this).scope().fileSelected(this, 'fillDetailsOfTheFarendContractFiles')"/>
+            </ng-form>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label class="col-sm-3 control-label">Resolution:</label>
+        <div class="col-sm-9">
+            <label class="radio-inline">
+                <input type="radio" name="fillDetailsOfTheFarendContractTaskResult" ng-model="fillDetailsOfTheFarendContractTaskResult" value="approve" required>Approve
+            </label>
+            <label class="radio-inline">
+                <input type="radio" name="fillDetailsOfTheFarendContractTaskResult" ng-model="fillDetailsOfTheFarendContractTaskResult" value="refusal" required>Contract not required (Finish process)
+            </label>
+            <label class="error" ng-show="kcell_form.fillDetailsOfTheFarendContractTaskResult.$error.required && ( kcell_form.fillDetailsOfTheFarendContractTaskResult.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label class="col-sm-3 control-label">Comments</label>
+        <div class="col-sm-9">
+            <textarea class="form-control" ng-model="fillDetailsOfTheFarendContractTaskComment" name="fillDetailsOfTheFarendContractTaskComment" placeholder="Comments..." maxlength="500" rows="4" style="resize:none"></textarea>
+        </div>
+    </div>
+</form>

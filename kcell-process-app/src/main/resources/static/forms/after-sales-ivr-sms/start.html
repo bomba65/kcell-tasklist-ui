@@ -1,0 +1,800 @@
+<form role="form" class="form-horizontal" name="kcell_form" novalidate>
+    <script cam-script type="text/form-script">
+        inject(['$scope', '$http', 'Uri', '$rootScope', '$q', '$timeout', 'SearchCurrentSelectedProcessService', 'disconnectSelectedProcessService', function ($scope, $http, Uri, $rootScope, $q, $timeout, SearchCurrentSelectedProcessService, disconnectSelectedProcessService) {
+            camForm.on('form-loaded', function () {
+                $scope.relatedProcessInstance = SearchCurrentSelectedProcessService();
+                $scope.isDisconnectProcess = disconnectSelectedProcessService();
+                $scope.baseUrl = '/camunda/api/engine/engine/default';
+                $scope.variableList = [
+                    'identifiers',
+                    'finalIDs',
+                    'previouslyBought',
+                    'operatorType',
+                    'connectionType',
+                    'clientBIN',
+                    'contractNumber',
+                    'clientCompanyLatName',
+                    'officialClientCompanyName',
+                    'description',
+                    'ipNumber',
+                    'startDate',
+                    'abonentTarif',
+                    'amdocsBilling',
+                    'orgaBilling',
+                    'techSpecFIO',
+                    'techSpecNumber',
+                    'techSpecEmail',
+                    'contractScanCopyFileName',
+                    'applicationScanCopyFileName',
+                    'responsibleB2BDelivery',
+                    'responsibleB2BSales',
+                    'channel',
+                    'region',
+                    'transmitNumber',
+                    'coordinates',
+                    'addressATS',
+                    'VPNchannel',
+                    'identifierType',
+                    'deliveryReport',
+                    'smsServiceType',
+                    'MSGGWaccount',
+                    'testNumber',
+                    'receivingServerAddress',
+                    'receivingServerLogin',
+                    'receivingServerPass',
+                    'addressServerMO',
+                    'tarifPlane',
+                    'provider',
+                    'saoResponse',
+                    'terminationPoint',
+                    'hopPoint',
+                    'siteName',
+                    'lastMilePort',
+                    'EXCHANGE',
+                    'MGW',
+                    'RTDMA',
+                    'channelKLM'
+                ];
+
+                $http({
+                    method: 'POST',
+					headers:{'Accept':'application/hal+json, application/json; q=0.5'},
+					data: {
+							sorting:[{sortBy: "startTime",sortOrder: "desc"}],
+							variables: [{"name": "relatedProcessInstanceId", "operator": "eq", "value": $scope.relatedProcessInstance.id}],
+							processDefinitionKey:  'after-sales-ivr-sms'
+					},
+					url: $scope.baseUrl+'/history/process-instance'
+				}).then(
+				    function(response){
+                        if (response && response.data) {
+                            $scope.processInstancesAftersales = angular.copy(response.data);
+                            if($scope.processInstancesAftersales.length>0){
+                                $scope.allowToStart = !$scope.processInstancesAftersales.filter(function(pi){return ['EXTERNALLY_TERMINATED','INTERNALLY_TERMINATED','COMPLETED'].indexOf(pi.state) === -1}).length > 0;
+
+                                if($scope.allowToStart) {
+                                    $scope.aftersalesInstance = $scope.processInstancesAftersales.find(function(pi){
+                                        if(pi.state === 'COMPLETED') {
+                                            return true;
+                                        }
+                                    });
+                                    if($scope.aftersalesInstance && $scope.aftersalesInstance.id){
+                                        $scope.relatedAftersalesProcess = true;
+                                        $http.get($scope.baseUrl+'/history/variable-instance?deserializeValues=false&processInstanceId='+$scope.aftersalesInstance.id).then(
+                                            function(result){
+                                                result.data.forEach(function(el){
+                                                    if($scope.variableList.indexOf(el.name)>-1){
+                                                        if(el.type === 'Json'){
+                                                            $scope[el.name] = JSON.parse(el.value);
+                                                        } else {
+                                                            $scope[el.name] = el.value;
+                                                        }
+                                                    }
+                                                });
+                                            },
+                                            function(error){
+                                                console.log(error.data);
+                                                $scope.allowToStart = false;
+                                            }
+                                        );
+                                    };
+
+                                }
+                            }
+                            if($scope.processInstancesAftersales.length = 0 || !$scope.aftersalesInstance) {
+
+                                console.log('aftersalesInstance', $scope.aftersalesInstance);
+
+                                $http.get($scope.baseUrl + '/history/variable-instance?deserializeValues=false&processInstanceId='+$scope.relatedProcessInstance.id).then(
+                                    function(result){
+                                        var relatedProcessInstanceVariables = angular.copy(result.data);
+
+                                        console.log('relatedProcessInstanceVariables', relatedProcessInstanceVariables);
+
+                                        angular.forEach(relatedProcessInstanceVariables, function(el, index){
+                                            try {
+                                                if($scope.variableList.indexOf(el.name)>-1){
+                                                    $scope[el.name] = el;
+                                                    if(el.type === 'File' || el.type === 'Bytes'){
+                                                        $scope[el.name].contentUrl = $scope.baseUrl+'/history/variable-instance/'+el.id+'/data';
+                                                    } else if(el.type === 'Json'){
+                                                        if(['contractScanCopyFileName', 'applicationScanCopyFileName', 'vpnQuestionnaireFileName'].indexOf(el.name) > -1) {
+                                                            if (!$scope.files) {
+                                                                $scope.files = [];
+                                                            }
+                                                            $scope.files.push(JSON.parse(el.value));
+                                                            $scope[el.name] = JSON.parse(el.value);
+                                                        } else {
+                                                            $scope[el.name] = JSON.parse(el.value);
+                                                        }
+                                                    } else if(el.type === 'Date' && (el.value || el.value === "")) {
+                                                        $scope[el.name] = new Date(el.value);
+                                                    } else if(el.value || el.value === "" || el.type === 'Boolean') {
+                                                        if(el.name === 'VPNchannel'){
+                                                            $scope.buildVPN = (el.value === 'build' ? true : false);
+                                                        } else {
+                                                            $scope[el.name] = el.value;
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                            catch(e) {
+                                                console.log(e);
+                                            }
+                                        });
+                                        $scope.allowToStart = true;
+                                    },
+                                    function(error){
+                                        console.log(error.data);
+                                        $scope.allowToStart = false;
+                                    }
+                                );
+                            }
+                        }
+                    },
+                    function(error){
+                        console.log(error.data);
+                        $scope.allowToStart = false;
+                    }
+                );
+
+                $scope.changeOfficialClientCompanyName = false;
+                $scope.changeContractNumber = false;
+                $scope.disconnectOperator = false;
+                $scope.connectOperator = false;
+                $scope.changeConnectionType = false;
+                $scope.changeIpNumber = false;
+                $scope.changeIdentifier = false;
+                $scope.changeSmsServiceType = false;
+                $scope.changeProvider = false;
+                $scope.changeTransmitNumber = false;
+
+                camForm.variableManager.createVariable({
+                    name: 'changeOfficialClientCompanyName',
+                    value: $scope.changeOfficialClientCompanyName,
+                    type: 'Boolean'
+                });
+                camForm.variableManager.createVariable({
+                    name: 'changeContractNumber',
+                    value: $scope.changeContractNumber,
+                    type: 'Boolean'
+                });
+                camForm.variableManager.createVariable({
+                    name: 'disconnectOperator',
+                    value: $scope.disconnectOperator,
+                    type: 'Boolean'
+                });
+                camForm.variableManager.createVariable({
+                    name: 'connectOperator',
+                    value: $scope.connectOperator,
+                    type: 'Boolean'
+                });
+                camForm.variableManager.createVariable({
+                    name: 'changeConnectionType',
+                    value: $scope.changeConnectionType,
+                    type: 'Boolean'
+                });
+                camForm.variableManager.createVariable({
+                    name: 'changeIpNumber',
+                    value: $scope.changeIpNumber,
+                    type: 'Boolean'
+                });
+                camForm.variableManager.createVariable({
+                    name: 'changeIdentifier',
+                    value: $scope.changeIdentifier,
+                    type: 'Boolean'
+                });
+                camForm.variableManager.createVariable({
+                    name: 'changeSmsServiceType',
+                    value: $scope.changeSmsServiceType,
+                    type: 'Boolean'
+                });
+                camForm.variableManager.createVariable({
+                    name: 'changeProvider',
+                    value: $scope.changeProvider,
+                    type: 'Boolean'
+                });
+                camForm.variableManager.createVariable({
+                    name: 'changeTransmitNumber',
+                    value: $scope.changeTransmitNumber,
+                    type: 'Boolean'
+                });
+                camForm.variableManager.createVariable({
+                    name: 'relatedProcessInstanceId',
+                    value: '',
+                    type: 'String'
+                });
+                camForm.variableManager.createVariable({
+                    name: 'relatedProcessDefinitionId',
+                    value: '',
+                    type: 'String'
+                });
+                camForm.variableManager.createVariable({
+                    name: 'relatedProcessDefinitionKey',
+                    value: '',
+                    type: 'String'
+                });
+                camForm.variableManager.createVariable({
+                    name: 'relatedProcessBusinessKey',
+                    value: '',
+                    type: 'String'
+                });
+                camForm.variableManager.createVariable({
+                    name: 'relatedProcessInstance',
+                    value: undefined,
+                    type: 'Json'
+                });
+                camForm.variableManager.createVariable({
+                    name: 'connectionType',
+                    value: '',
+                    type: 'String'
+                });
+                camForm.variableManager.createVariable({
+                    name: 'operatorType',
+                    value: '',
+                    type: 'String'
+                });
+                camForm.variableManager.createVariable({
+                    name: 'previouslyBought',
+                    value: undefined,
+                    type: 'Boolean'
+                });
+                camForm.variableManager.createVariable({
+                    name: 'identifiers',
+                    type: 'json',
+                    value: ''
+                });
+                camForm.variableManager.createVariable({
+                    name: 'finalIDs',
+                    value: '',
+                    type: 'String'
+                });
+                camForm.variableManager.createVariable({
+                    name: 'disconnectProcess',
+                    type: 'Boolean',
+                    value: false
+                });
+                camForm.variableManager.createVariable({
+                    name: 'startDate',
+                    value: '',
+                    type: 'Date'
+                });
+                camForm.variableManager.createVariable({
+                    name: 'contractScanCopyFileName',
+                    value: undefined,
+                    type: 'Json'
+                });
+                camForm.variableManager.createVariable({
+                    name: 'applicationScanCopyFileName',
+                    value: undefined,
+                    type: 'Json'
+                });
+                camForm.variableManager.createVariable({
+                    name: 'responsibleB2BSales',
+                    value: undefined,
+                    type: 'Json'
+                });
+                camForm.variableManager.createVariable({
+                    name: 'responsibleB2BDelivery',
+                    value: undefined,
+                    type: 'Json'
+                });
+                camForm.variableManager.createVariable({
+                    name: 'clientBIN',
+                    value: '',
+                    type: 'String'
+                });
+                camForm.variableManager.createVariable({
+                    name: 'contractNumber',
+                    value: '',
+                    type: 'String'
+                });
+                camForm.variableManager.createVariable({
+                    name: 'clientCompanyLatName',
+                    value: '',
+                    type: 'String'
+                });
+                camForm.variableManager.createVariable({
+                    name: 'officialClientCompanyName',
+                    value: '',
+                    type: 'String'
+                });
+                camForm.variableManager.createVariable({
+                    name: 'description',
+                    value: '',
+                    type: 'String'
+                });
+                camForm.variableManager.createVariable({
+                    name: 'ipNumber',
+                    value: '',
+                    type: 'String'
+                });
+                camForm.variableManager.createVariable({
+                    name: 'abonentTarif',
+                    value: '',
+                    type: 'String'
+                });
+                camForm.variableManager.createVariable({
+                    name: 'amdocsBilling',
+                    value: false,
+                    type: 'Boolean'
+                });
+                camForm.variableManager.createVariable({
+                    name: 'orgaBilling',
+                    value: false,
+                    type: 'Boolean'
+                });
+                camForm.variableManager.createVariable({
+                    name: 'techSpecFIO',
+                    value: '',
+                    type: 'String'
+                });
+                camForm.variableManager.createVariable({
+                    name: 'techSpecNumber',
+                    value: '',
+                    type: 'String'
+                });
+                camForm.variableManager.createVariable({
+                    name: 'techSpecEmail',
+                    value: '',
+                    type: 'String'
+                });
+                camForm.variableManager.createVariable({
+                    name: 'channel',
+                    value: '',
+                    type: 'String'
+                });
+                camForm.variableManager.createVariable({
+                    name: 'region',
+                    value: '',
+                    type: 'String'
+                });
+                camForm.variableManager.createVariable({
+                    name: 'provider',
+                    value: '',
+                    type: 'String'
+                });
+                camForm.variableManager.createVariable({
+                    name: 'isExistingClient',
+                    value: false,
+                    type: 'Boolean'
+                });
+                camForm.variableManager.createVariable({
+                    name: 'isPartnerChecked',
+                    value: false,
+                    type: 'Boolean'
+                });
+                if($scope.relatedProcessInstance.processDefinitionKey === 'freephone'){
+                    camForm.variableManager.createVariable({
+                        name: 'transmitNumber',
+                        value: '',
+                        type: 'String'
+                    });
+                    camForm.variableManager.createVariable({
+                        name: 'coordinates',
+                        value: '',
+                        type: 'String'
+                    });
+                    camForm.variableManager.createVariable({
+                        name: 'addressATS',
+                        value: '',
+                        type: 'String'
+                    });
+                    camForm.variableManager.createVariable({
+                        name: 'VPNchannel',
+                        value: '',
+                        type: 'String'
+                    });
+                    // There is no identifier type in Freephone, but we use "digital" since process diagramm transition the same as in BulkSMS with "digital" Identifier Type
+                    camForm.variableManager.createVariable({
+                        name: 'identifierType',
+                        value: '',
+                        type: 'String'
+                    });
+                    camForm.variableManager.createVariable({
+                        name: 'saoResponse',
+                        value: undefined,
+                        type: 'Json'
+                    });
+                    camForm.variableManager.createVariable({
+                        name: 'terminationPoint',
+                        value: '',
+                        type: 'String'
+                    });
+                    camForm.variableManager.createVariable({
+                        name: 'hopPoint',
+                        value: '',
+                        type: 'String'
+                    });
+                    camForm.variableManager.createVariable({
+                        name: 'siteName',
+                        value: '',
+                        type: 'String'
+                    });
+                    camForm.variableManager.createVariable({
+                        name: 'lastMilePort',
+                        value: '',
+                        type: 'String'
+                    });
+                    camForm.variableManager.createVariable({
+                        name: 'EXCHANGE',
+                        value: '',
+                        type: 'String'
+                    });
+                    camForm.variableManager.createVariable({
+                        name: 'MGW',
+                        value: '',
+                        type: 'String'
+                    });
+                    camForm.variableManager.createVariable({
+                        name: 'RTDMA',
+                        value: '',
+                        type: 'String'
+                    });
+                    camForm.variableManager.createVariable({
+                        name: 'channelKLM',
+                        value: '',
+                        type: 'String'
+                    });
+                } else if($scope.relatedProcessInstance.processDefinitionKey === 'bulksmsConnectionKAE') {
+                    camForm.variableManager.createVariable({
+                        name: 'identifierType',
+                        value: '',
+                        type: 'String'
+                    });
+                    camForm.variableManager.createVariable({
+                        name: 'deliveryReport',
+                        value: '',
+                        type: 'String'
+                    });
+                    camForm.variableManager.createVariable({
+                        name: 'smsServiceType',
+                        value: '',
+                        type: 'String'
+                    });
+                    camForm.variableManager.createVariable({
+                        name: 'MSGGWaccount',
+                        value: '',
+                        type: 'String'
+                    });
+                    camForm.variableManager.createVariable({
+                        name: 'testNumber',
+                        value: '',
+                        type: 'String'
+                    });
+                    camForm.variableManager.createVariable({
+                        name: 'receivingServerAddress',
+                        value: '',
+                        type: 'String'
+                    });
+                    camForm.variableManager.createVariable({
+                        name: 'receivingServerLogin',
+                        value: '',
+                        type: 'String'
+                    });
+                    camForm.variableManager.createVariable({
+                        name: 'receivingServerPass',
+                        value: '',
+                        type: 'String'
+                    });
+                    camForm.variableManager.createVariable({
+                        name: 'addressServerMO',
+                        value: '',
+                        type: 'String'
+                    });
+                    camForm.variableManager.createVariable({
+                        name: 'tarifPlane',
+                        value: '',
+                        type: 'String'
+                    });
+                };
+            });
+
+
+            $scope.disableProviderModification = false;
+            $scope.disableIdentifierModification = false;
+            $scope.restrictAddingOperator = false;
+            $scope.restrictRemovingOperator = false;
+            $scope.disableConnectionTypeModification = false;
+            $scope.disableIpNumberModification = false;
+            $scope.$watch("identifiers", function (newVal) {
+                var active_ops = 0;
+                if (newVal[0]) {
+                    _.forEach(newVal, function(identifier){
+                        _.forEach(identifier.operators, function(operator){
+                            if (operator.isAvailable===true) active_ops +=1;
+                        });
+                    });
+                 }
+                if (active_ops==4) $scope.restrictAddingOperator = true;
+                else if (active_ops===0) $scope.restrictRemovingOperator = true;
+            });
+            $scope.$watchGroup(['disconnectOperator', 'connectOperator', 'changeIdentifier', 'changeProvider', 'changeConnectionType', 'changeIpNumber'], function(newValues, oldValues, scope) {
+                if(newValues[0] || newValues[1] || newValues[2]){
+                    $scope.disableProviderModification = true;
+                } else {
+                    $scope.disableProviderModification = false;
+                }
+                if(newValues[3]){
+                    $scope.disableIdentifierModification = true;
+                } else {
+                    $scope.disableIdentifierModification = false;
+                }
+                if(newValues[4]){
+                    $scope.disableIpNumberModification = true;
+                } else {
+                    $scope.disableIpNumberModification = false;
+                }
+                if(newValues[5]){
+                    $scope.disableConnectionTypeModification = true;
+                } else {
+                    $scope.disableConnectionTypeModification = false;
+                }
+            }, true);
+
+            $scope.preSubmit = function() {
+                var checkForActiveAfterSalesProcessInstances = function() {
+                    var deferred = $q.defer();
+                    return $http({
+                                    method: 'POST',
+									headers:{'Accept':'application/hal+json, application/json; q=0.5'},
+									data: {
+										variables: [{"name": "relatedProcessInstanceId", "operator": "eq", "value": $scope.relatedProcessInstance.id}],
+										processDefinitionKey:  'after-sales-ivr-sms'
+									},
+									url: $scope.baseUrl+'/history/process-instance'
+					        }).then(function(response){
+					            if (response && response.data) {
+									$scope.processInstancesAftersales = angular.copy(response.data);
+									if($scope.processInstancesAftersales.length>0){
+										var allowToStart = !$scope.processInstancesAftersales.filter(function(pi){return ['EXTERNALLY_TERMINATED','INTERNALLY_TERMINATED','COMPLETED'].indexOf(pi.state) === -1}).length > 0;
+										if(allowToStart) {
+										    deferred.resolve('No active Aftersales instances');
+										} else {
+										    deferred.reject('Can not start Aftersales due to Active Aftersales instances');
+										}
+									} else {
+										deferred.resolve('No active Aftersales instances');
+									}
+								} else {
+								    deferred.resolve('Empty response for active aftersales process instances');
+								}
+								return deferred.promise;
+							},
+							function(error){
+								console.log(error.data);
+							}
+						);
+                };
+                return checkForActiveAfterSalesProcessInstances();
+            };
+
+            camForm.on('submit', function (evt) {
+                var date = new Date();
+                var businessKey = 'AFTERSALES_' + ($scope.relatedProcessInstance.processDefinitionKey === 'freephone' ? 'IVR_' : 'SMS_') + $scope.identifiers[0].title + '_' + ("0" + date.getDate().toString()).slice(-2) + ("0" + (date.getMonth() + 1)).toString().slice(-2) + date.getFullYear().toString();
+                camForm.businessKey = businessKey;
+                camForm.variableManager.destroyVariable('resolutions');
+                camForm.variableManager.variableValue('relatedProcessInstance', $scope.relatedProcessInstance);
+                camForm.variableManager.variableValue('relatedProcessInstanceId', $scope.relatedProcessInstance.id);
+                camForm.variableManager.variableValue('relatedProcessDefinitionId', $scope.relatedProcessInstance.processDefinitionId);
+                camForm.variableManager.variableValue('relatedProcessDefinitionKey', $scope.relatedProcessInstance.processDefinitionKey);
+                camForm.variableManager.variableValue('relatedProcessBusinessKey', $scope.relatedProcessInstance.businessKey);
+                camForm.variableManager.variableValue('disconnectProcess', $scope.isDisconnectProcess);
+                camForm.variableManager.variableValue('connectionType', $scope.connectionType);
+                camForm.variableManager.variableValue('finalIDs', $scope.finalIDs);
+                camForm.variableManager.variableValue('operatorType', $scope.operatorType);
+                camForm.variableManager.variableValue('previouslyBought', $scope.previouslyBought);
+
+                _.forEach($scope.identifiers, function(identifier){
+                    _.forEach(identifier.operators, function(operator){
+
+                        delete operator.wasAvailable;
+                        delete operator.oldPriceAP;
+                        delete operator.oldPriceEP;
+                        delete operator.oldTitle;
+                        delete operator.disconnected;
+                        delete operator.connected;
+                        delete operator.changed;
+                        delete operator.tmpPriceAP;
+                        delete operator.tmpPriceEP;
+                        delete operator.tmpTitle;
+
+                        delete operator.dateFieldOpened;
+                        delete operator.addedToNetwork;
+                        delete operator.addedToNetworkDate;
+                        delete operator.removedFromNetwork;
+                        delete operator.removedFromNetworkDate;
+                        delete operator.deletedDate;
+                        delete operator.deleted;
+
+                        if(!!operator.isAvailable) {
+                            if($scope.relatedProcessDefinitionKey === 'freephone'){
+                                operator.isAvailable = $scope.operatorType === 'offnet' ? operator.isAvailable && operator.checked : operator.isAvailable;
+                            }
+                            if($scope.relatedProcessDefinitionKey === 'bulksmsConnectionKAE'){
+                                operator.isAvailable = $scope.operatorType === 'offnet' && $scope.identifierType === 'digital' ? operator.isAvailable && operator.checked : operator.isAvailable;
+                            }
+
+                            operator.wasAvailable = operator.isAvailable;
+                            operator.oldPriceAP = operator.priceAP;
+
+                            // this is valid for BulkSMS
+                            // TODO: Add logic for freephone
+                            if($scope.identifierType === 'digital' || $scope.relatedProcessDefinitionKey === 'freephone'){
+                                operator.oldPriceEP = operator.priceEP;
+                            }
+                            if($scope.identifierType === 'alfanumeric'){
+                                operator.oldTitle = operator.title;
+                            }
+                        }
+                    });
+                });
+
+                camForm.variableManager.variableValue('identifiers', $scope.identifiers);
+                camForm.variableManager.variableValue('clientBIN', $scope.clientBIN);
+                camForm.variableManager.variableValue('contractNumber', $scope.contractNumber);
+                camForm.variableManager.variableValue('clientCompanyLatName', $scope.clientCompanyLatName);
+                camForm.variableManager.variableValue('officialClientCompanyName', $scope.officialClientCompanyName);
+                camForm.variableManager.variableValue('description', $scope.description);
+                camForm.variableManager.variableValue('ipNumber', $scope.ipNumber);
+                camForm.variableManager.variableValue('startDate', $scope.startDate instanceof Date ? $scope.startDate : new Date($scope.startDate));
+                camForm.variableManager.variableValue('abonentTarif', $scope.abonentTarif);
+                camForm.variableManager.variableValue('amdocsBilling', $scope.amdocsBilling);
+                camForm.variableManager.variableValue('orgaBilling', $scope.orgaBilling);
+                camForm.variableManager.variableValue('techSpecFIO', $scope.techSpecFIO);
+                camForm.variableManager.variableValue('techSpecNumber', $scope.techSpecNumber);
+                camForm.variableManager.variableValue('techSpecEmail', $scope.techSpecEmail);
+                camForm.variableManager.variableValue('contractScanCopyFileName', $scope.contractScanCopyFileName);
+                camForm.variableManager.variableValue('applicationScanCopyFileName', $scope.applicationScanCopyFileName);
+                camForm.variableManager.variableValue('responsibleB2BDelivery', $scope.responsibleB2BDelivery);
+                camForm.variableManager.variableValue('responsibleB2BSales', $scope.responsibleB2BSales);
+                camForm.variableManager.variableValue('channel', $scope.channel);
+                camForm.variableManager.variableValue('region', $scope.region);
+
+                camForm.variableManager.variableValue('changeOfficialClientCompanyName', $scope.changeOfficialClientCompanyName);
+                camForm.variableManager.variableValue('changeContractNumber', $scope.changeContractNumber);
+                camForm.variableManager.variableValue('disconnectOperator', $scope.disconnectOperator);
+                camForm.variableManager.variableValue('connectOperator', $scope.connectOperator);
+                camForm.variableManager.variableValue('changeConnectionType', $scope.changeConnectionType);
+                camForm.variableManager.variableValue('changeIpNumber', $scope.changeIpNumber);
+                camForm.variableManager.variableValue('changeIdentifier', $scope.changeIdentifier);
+                camForm.variableManager.variableValue('changeSmsServiceType', $scope.changeSmsServiceType);
+                camForm.variableManager.variableValue('changeProvider', $scope.changeProvider);
+                camForm.variableManager.variableValue('changeTransmitNumber', $scope.changeTransmitNumber);
+                camForm.variableManager.variableValue('provider', $scope.provider);
+
+                if($scope.relatedProcessInstance.processDefinitionKey === 'freephone'){
+                    camForm.variableManager.variableValue('transmitNumber', $scope.transmitNumber);
+                    camForm.variableManager.variableValue('coordinates', $scope.coordinates);
+                    camForm.variableManager.variableValue('addressATS', $scope.addressATS);
+                    camForm.variableManager.variableValue('VPNchannel', $scope.buildVPN?'build':'not-build');
+                    // For freephone there is no identifier type, USE "digital" just to have the same logic as in BulkSMS
+                    camForm.variableManager.variableValue('identifierType', 'digital');
+                    camForm.variableManager.variableValue('saoResponse', $scope.saoResponse);
+
+                    camForm.variableManager.variableValue('terminationPoint', $scope.terminationPoint);
+                    camForm.variableManager.variableValue('hopPoint', $scope.hopPoint);
+                    camForm.variableManager.variableValue('siteName', $scope.siteName);
+                    camForm.variableManager.variableValue('lastMilePort', $scope.lastMilePort);
+                    camForm.variableManager.variableValue('EXCHANGE', $scope.EXCHANGE);
+                    camForm.variableManager.variableValue('MGW', $scope.MGW);
+                    camForm.variableManager.variableValue('RTDMA', $scope.RTDMA);
+                    camForm.variableManager.variableValue('channelKLM', $scope.channelKLM);
+                } else if($scope.relatedProcessInstance.processDefinitionKey === 'bulksmsConnectionKAE') {
+                    camForm.variableManager.variableValue('identifierType', $scope.identifierType);
+                    if($scope.deliveryReport){
+                        camForm.variableManager.variableValue('deliveryReport', $scope.deliveryReport);
+                    }
+                    camForm.variableManager.variableValue('smsServiceType', $scope.smsServiceType);
+                    camForm.variableManager.variableValue('MSGGWaccount', $scope.MSGGWaccount);
+                    camForm.variableManager.variableValue('testNumber', $scope.testNumber);
+                    camForm.variableManager.variableValue('receivingServerAddress', $scope.receivingServerAddress);
+                    camForm.variableManager.variableValue('receivingServerLogin', $scope.receivingServerLogin);
+                    camForm.variableManager.variableValue('receivingServerPass', $scope.receivingServerPass);
+                    camForm.variableManager.variableValue('addressServerMO', $scope.addressServerMO);
+                    camForm.variableManager.variableValue('tarifPlane', $scope.tarifPlane);
+                };
+            });
+        }]);
+
+
+    </script>
+    <div ng-show="isDisconnectProcess" class="form-group">
+        <div class="col-md-12">
+            <h3>Start Disconnection Process</h3><br/>
+        </div>
+    </div>
+    <div ng-show="!isDisconnectProcess" class="form-group">
+        <div class="col-md-12">
+            <h3>Выберите доступные изменения:</h3><br/>
+        </div>
+        <div class="col-md-7">
+            <div class="form-check">
+                <div class="col-sm-12">
+                    <input type="checkbox" class="form-check-input" id="officialClientCompanyName"
+                           name="officialClientCompanyName" ng-model="changeOfficialClientCompanyName">
+                    <label class="form-check-label" for="officialClientCompanyName">Изменение Юридического наименования
+                        компании</label>
+                </div>
+                <div class="col-sm-12">
+                    <input type="checkbox" class="form-check-input" id="contractNumber" name="contractNumber"
+                           ng-model="changeContractNumber">
+                    <label class="form-check-label" for="contractNumber">Изменение номера договора</label>
+                </div>
+                <div class="col-sm-12">
+                    <input type="checkbox" class="form-check-input" id="disconnectOperator" name="disconnectOperator"
+                           ng-model="disconnectOperator"
+                           ng-disabled="operatorType === 'onnet' || disableIdentifierModification || restrictRemovingOperator || connectOperator">
+                    <label class="form-check-label" for="disconnectOperator">Отключение оператора</label>
+                </div>
+                <div class="col-sm-12">
+                    <input type="checkbox" class="form-check-input" id="connectOperator" name="connectOperator"
+                           ng-model="connectOperator"
+                           ng-disabled="disableIdentifierModification || restrictAddingOperator || disconnectOperator">
+                    <label class="form-check-label" for="connectOperator">Добавление оператора</label>
+                </div>
+                <div class="col-sm-12"
+                     ng-show="relatedProcessInstance.processDefinitionKey === 'freephone' || (relatedProcessInstance.processDefinitionKey === 'bulksmsConnectionKAE' && (connectionType === 'rest' || connectionType === 'smpp'))">
+                    <input type="checkbox" class="form-check-input" id="connectionType" name="connectionType"
+                           ng-model="changeConnectionType" ng-disabled="disableConnectionTypeModification">
+                    <label class="form-check-label" for="connectionType">Изменение типа подключения</label>
+                </div>
+                <div class="col-sm-12"
+                     ng-show="relatedProcessInstance.processDefinitionKey === 'freephone' && connectionType === 'SIP_SBC'">
+                    <input type="checkbox" class="form-check-input" id="ipNumber" name="ipNumber"
+                           ng-model="changeIpNumber" ng-disabled="disableIpNumberModification">
+                    <label class="form-check-label" for="ipNumber">Изменение IP адреса</label>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-5">
+            <div class="form-check">
+                <div class="col-sm-12"
+                     ng-show="relatedProcessInstance.processDefinitionKey === 'bulksmsConnectionKAE' && identifierType === 'alfanumeric'">
+                    <input type="checkbox" class="form-check-input" id="identifier" name="identifier"
+                           ng-model="changeIdentifier"
+                           ng-disabled="operatorType === 'onnet' || disableIdentifierModification">
+                    <label class="form-check-label" for="identifier">Изменение заголовка</label>
+                </div>
+                <div class="col-sm-12"
+                     ng-show="relatedProcessInstance.processDefinitionKey === 'bulksmsConnectionKAE' && connectionType !== 'web' && identifierType === 'digital'">
+                    <input type="checkbox" class="form-check-input" id="smsServiceType" name="smsServiceType"
+                           ng-model="changeSmsServiceType">
+                    <label class="form-check-label" for="smsServiceType">Подключение МО</label>
+                </div>
+                <div class="col-sm-12"
+                     ng-show="operatorType === 'offnet'">
+                    <input type="checkbox" class="form-check-input" id="provider" name="provider"
+                           ng-model="changeProvider"
+                           ng-disabled="operatorType === 'onnet' || disableProviderModification">
+                    <label class="form-check-label" for="provider">Смена провайдера</label>
+                </div>
+                <div class="col-sm-12" ng-show="relatedProcessInstance.processDefinitionKey === 'freephone'">
+                    <input type="checkbox" class="form-check-input" id="transmitNumber" name="transmitNumber"
+                           ng-model="changeTransmitNumber">
+                    <label class="form-check-label" for="transmitNumber">Смена номера переадресации</label>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>

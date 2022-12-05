@@ -1,0 +1,196 @@
+<style>
+    .material-box {
+        border: 1px solid #ccc;
+        border-radius: 10px;
+        padding-top: 5px;
+        margin-bottom: 10px;
+        /*background-color: #f5f5f5;*/
+    }
+    .material-box:hover {
+        background-color: #d2d6e0;
+    }
+    .no-padding-right {
+        padding-right: 0;
+    }
+    .ex-field-red {
+        color: #f44;
+    }
+
+    .panel-group {
+        margin-bottom: 10px;
+    }
+
+    .panel-group > .panel > .panel-collapse > .panel-body {
+        padding: 7px 15px 7px 15px;
+    }
+</style>
+
+<div ng-repeat="r in data track by $index" ng-if="!purchaserGroup || !r.purchaser || purchaserGroup === r.purchaser.groupId" class="col-sm-12 material-box" ng-click="toggleCollapse($event, $index)">
+    <div class="pull-right not-collapsable" style="margin-right: 10px;" ng-if="!disabled" ng-click="deleteItem($index)">
+        <div class="form-group not-collapsable">
+            <i class="pull-right glyphicon glyphicon-trash control-label glyphicon-clickable not-collapsable"></i>
+        </div>
+    </div>
+    <div class="col-sm-4 no-padding-right">
+        <div class="form-group">
+            <label class="col-sm-12 control-label"><span class="not-collapsable">Category L1</span></label>
+            <div class="col-sm-12 not-collapsable">
+                <demand-dropdown ng-model="r.cat1" options="options.levels._list" on-item-select="onCat1Change" index="$index" nowrap="true" search-field="true" field-name="'material_'+$index+'_l1'" is-required="!disabled" disabled="disabled" title-prop="true"></demand-dropdown>
+                <span class="has-error" ng-if="form['material_'+$index+'_l1'].$error.required && ( form['material_'+$index+'_l1'].$touched || view.submitted)">Required field</span>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-3 no-padding-right" style="width: 30%;">
+        <div class="form-group">
+            <label class="col-sm-12 control-label"><span class="not-collapsable">Category L2</span></label>
+            <div class="col-sm-12 not-collapsable">
+                <demand-dropdown ng-model="r.cat2" options="options.levels[r.cat1]._list" on-item-select="onCat2Change" index="$index" nowrap="true" search-field="true" field-name="'material_'+$index+'_l2'" is-required="!disabled" disabled="disabled" title-prop="true"></demand-dropdown>
+                <span class="has-error" ng-if="form['material_'+$index+'_l2'].$error.required && ( form['material_'+$index+'_l2'].$touched || view.submitted)">Required field</span>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-4 no-padding-right">
+        <div class="form-group">
+            <label class="col-sm-12 control-label"><span class="not-collapsable">Category L3 <span title='Если выпадающий список Cat. L3 не доступен или не заполнен, означает, что в справочнике отсутствует параметр L3, привязанный к текущему параметру L2' style="color: #682d86" class="glyphicon glyphicon-question-sign"></span></span></label>
+            <div class="col-sm-12 not-collapsable">
+                <demand-dropdown ng-model="r.cat3" options="options.levels[r.cat1][r.cat2]._list" on-item-select="onCat3Change" index="$index" nowrap="true" search-field="true" disabled="disabled || !options.levels[r.cat1][r.cat2]._list.length" title-prop="true"></demand-dropdown>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-sm-6"></div>
+
+    <div class="col-sm-12 no-padding-right" ng-if="!collapsed[$index]">
+
+        <div class="col-sm-12" style="padding: 0">
+            <div class="col-sm-2 no-padding-right">
+                <div class="form-group">
+                    <label class="col-sm-12 control-label"><span class="not-collapsable">Quantity</span></label>
+                </div>
+            </div>
+            <div class="col-sm-2 no-padding-right" ng-if="!disabled">
+                <div class="form-group">
+                    <label class="col-sm-12 control-label"><span class="not-collapsable">Measure</span></label>
+                </div>
+            </div>
+            <div class="col-sm-2 no-padding-right" ng-if="editprice">
+                <div class="form-group">
+                    <label class="col-sm-12 control-label"><span class="not-collapsable">Currency</span></label>
+                </div>
+            </div>
+            <div class="col-sm-2 no-padding-right">
+                <div class="form-group">
+                    <label class="col-sm-12 control-label"><span class="not-collapsable">Price, Without VAT</span></label>
+                </div>
+            </div>
+            <div class="col-sm-2 no-padding-right">
+                <div class="form-group">
+                    <label class="col-sm-12 control-label"><span class="not-collapsable">Amount, Without VAT</span></label>
+                </div>
+            </div>
+            <div class="col-sm-{{(disabled && !editprice)?'3':'2'}} no-padding-right">
+                <div class="form-group">
+                    <label class="col-sm-12 control-label" style="text-align: center !important;"><span class="not-collapsable" ng-class="{'ex-field-red': editexisting}">Exists on Warehouse?</span> <span title='Для актуализации данного поля необходимо запросить Supportive input - "Warehouse and Logistics section" в активности "Enrich Business case"' style="color: #682d86" class="glyphicon glyphicon-question-sign"></span></label>
+                </div>
+            </div>
+            <div class="col-sm-{{(disabled && !editprice)?'3':'2'}} no-padding-right">
+                <div class="form-group">
+                    <label class="col-sm-12 control-label"><span class="not-collapsable">Purchaser</span> <span title='Ответственный сотрудник CPD' style="color: #682d86" class="glyphicon glyphicon-question-sign"></span></label>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-sm-12" style="padding: 0">
+            <div class="col-sm-2 no-padding-right">
+                <div class="form-group">
+                    <div class="col-sm-12 not-collapsable" ng-if="!disabled">
+                        <input type="number" class="form-control" ng-model="r.quantity" name="materials_{{$index}}_quantity" ng-change="calcSumm($index)" required>
+                        <span class="has-error" ng-if="form['materials_'+$index+'_quantity'].$error.required && ( form['materials_'+$index+'_quantity'].$touched || view.submitted)">Required field</span>
+                    </div>
+                    <div class="col-sm-12 not-collapsable" ng-if="disabled">
+                        <div class="disabled-element">{{r.quantity}}<span ng-if="r.measure">, {{r.measure}}</span></div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-2 no-padding-right" ng-if="!disabled">
+                <div class="form-group">
+                    <div class="col-sm-12 not-collapsable">
+                        <select class="form-control" ng-model="r.measure" name="materials_{{$index}}_measure" required>
+                            <option value="Piece">Piece</option>
+                            <option value="Bundle">Bundle</option>
+                            <option value="Kit">Kit</option>
+                            <option value="Package">Package</option>
+                            <option value="Meter">Meter</option>
+                            <option value="Liter">Liter</option>
+                            <option value="Kilogram">Kilogram</option>
+                        </select>
+                        <span class="has-error" ng-if="form['materials_'+$index+'_measure'].$error.required && ( form['materials_'+$index+'_measure'].$touched || view.submitted)">Required field</span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-2 no-padding-right" ng-if="editprice">
+                <div class="form-group">
+                    <div class="col-sm-12 not-collapsable">
+                        <select class="form-control" ng-model="r.currency" name="materials_{{$index}}_currency" required>
+                            <option value="KZT">KZT</option>
+                            <option value="USD">USD</option>
+                            <option value="EUR">EUR</option>
+                            <option value="GBP">GBP</option>
+                            <option value="RUB">RUR</option>
+                        </select>
+                        <span class="has-error" ng-if="form['materials_'+$index+'_currency'].$error.required && ( form['materials_'+$index+'_currency'].$touched || view.submitted)">Required field</span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-2 no-padding-right">
+                <div class="form-group">
+                    <div class="col-sm-12 not-collapsable" ng-if="editprice">
+                        <input type="text" class="form-control" ng-model="r.pprice" name="materials_{{$index}}_pprice" ng-change="setPurchaser($index)" demand-number-format required>
+                        <span class="has-error" ng-if="form['materials_'+$index+'_pprice'].$error.required && ( form['materials_'+$index+'_pprice'].$touched || view.submitted)">Required field</span>
+                    </div>
+                    <div class="col-sm-12 not-collapsable" ng-if="!editprice">
+                        <div class="disabled-element">{{r.pprice}}<span ng-if="r.currency">, {{r.currency}}</span></div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-2 no-padding-right">
+                <div class="form-group">
+                    <div class="col-sm-12 not-collapsable">
+                        <div class="disabled-element">{{r.summ | number}}<span ng-if="r.summ != null && r.currency">, {{r.currency}}</span></div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-{{(disabled && !editprice)?'3':'2'}} no-padding-right">
+                <div class="form-group">
+                    <div class="col-sm-12 not-collapsable text-center">
+                        <input type="checkbox" ng-model="r.existing" ng-disabled="!editexisting">
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-{{(disabled && !editprice)?'3':'2'}} no-padding-right">
+                <div class="form-group">
+                    <div class="col-sm-12 not-collapsable">
+                        <div class="disabled-element">{{r.purchaser.fio}}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-12 no-padding-right" ng-if="!collapsed[$index]">
+        <div class="col-sm-12 no-padding-right">
+            <div class="form-group">
+                <label class="col-sm-12 control-label"><span class="not-collapsable">Specification</span></label>
+                <div class="col-sm-12 not-collapsable" ng-if="!disabled">
+                    <textarea rows="1" elastic-textarea class="form-control" ng-model="r.specification" name="materials_{{$index}}_specification" required></textarea>
+                    <span class="has-error" ng-if="form['materials_'+$index+'_specification'].$error.required && ( form['materials_'+$index+'_specification'].$touched || view.submitted)">Required field</span>
+                </div>
+                <div class="col-sm-12 not-collapsable" ng-if="disabled">
+                    <div class="disabled-element">{{r.specification}}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="col-sm-12 no-padding-right" ng-if="!disabled">
+    <button type="button" class="btn btn-default pull-right" style="min-width: 15%" ng-click="addItem()">Add new Material</button>
+</div>

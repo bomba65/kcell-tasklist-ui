@@ -1,0 +1,134 @@
+<form role="form" class="form-horizontal" name="kcell_form" novalidate>
+    <script cam-script type="text/form-script" type="text/javascript">
+        inject(['$scope', '$http', 'Uri', '$rootScope', '$q', '$timeout', function ($scope, $http, Uri, $rootScope, $q, $timeout) {
+            var variables = [
+                'resolutions',
+                'ncpID',
+                'siteType',
+                'regionName',
+                'latitude',
+                'longitude',
+                'initiator',
+                'project',
+                'reason',
+                'part',
+                'plannedCabinetType',
+                'targetCoverage',
+                'rbsType',
+                'bands',
+                'candidate',
+                'cellAntenna',
+                'renterCompany',
+                'transmissionAntenna',
+                'powerSource',
+                'farEndInformation',
+                'threeFarEndNotNecessary',
+                'ne_tr_parameters',
+                'ne_tr_rate',
+                'rejections',
+            ];
+
+            camForm.on('form-loaded', function () {
+                variables.forEach(function (el) {
+                    camForm.variableManager.fetchVariable(el);
+                });
+                $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
+                        function(result){
+                            $scope.processInstanceId = result.data.processInstanceId;
+                            $http.get('/camunda/api/engine/engine/default/process-instance/' + $scope.processInstanceId).then(
+                                function(result){
+                                    console.log('process-instance/')
+                                    console.log(result.data)
+                                    $scope.businessKey = result.data.businessKey;
+                                },
+                                function (error) {console.log(error.data);}
+                            );
+                        },
+                        function (error) {
+                            console.log(error.data);
+                        }
+                );
+                $scope.leasingInfo = [];
+                $scope.leasingInfo.files = [];
+            });
+
+            camForm.on('variables-fetched', function () {
+                variables.forEach(function (el) {
+                    if(camForm.variableManager.variables[el].value){
+                        $scope[el] = camForm.variableManager.variables[el].value;
+                        $scope.leasingInfo[el] = camForm.variableManager.variables[el].value;
+                    }
+                });
+                if ($scope.leasingInfo.candidate.dateOfVisit) {
+                    $scope.leasingInfo.candidate.dateOfVisit = new Date($scope.leasingInfo.candidate.dateOfVisit);
+                }
+                camForm.variableManager.createVariable({
+                    name: 'rejectedNCPTaskResult',
+                    type: 'String',
+                    value: ''
+                });
+                camForm.variableManager.createVariable({
+                    name: 'rejectedNCPTaskComment',
+                    type: 'String',
+                    value: ''
+                });
+
+                $scope.rejectedNCPTaskResult = '';
+                console.log(camForm);
+                $scope.view.variablesFetched = true;
+
+            });
+
+            camForm.on('submit', function () {
+                camForm.variableManager.variableValue('rejectedNCPTaskResult', 'Completed');
+                camForm.variableManager.variableValue('rejectedNCPTaskComment', $scope.rejectedNCPTaskComment);
+                camForm.variableManager.destroyVariable('resolutions');
+            });
+        }]);
+
+    </script>
+
+    <div ng-repeat="rejection in rejections">
+        <div class="form-group" >
+            <label class="col-sm-3 control-label" style="color: red">Was rejected by:</label>
+            <div class="col-sm-9">
+                <label style="padding-top: 5px">{{rejection.rejectedBy}}</label>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-3 control-label" style="color: red">Rejection reason:</label>
+            <div class="col-sm-9">
+                <textarea class="form-control"  style="resize: none" ng-model="rejection.rejectedReason" disabled> </textarea>
+            </div>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label class="col-sm-12 control-label">
+            <p/> <b>Business key: </b>{{businessKey}}
+        </label>
+    </div>
+    <leasing-detail leasing-info="leasingInfo"></leasing-detail>
+     <leasing-candidate ng-if="view.variablesFetched" leasing-candidate="leasingInfo"></leasing-candidate>
+
+    <!-- <div class="form-group">
+        <label class="col-sm-4 control-label">Resolution:</label>
+        <div class="col-sm-8">
+            <label class="radio-inline">
+                <input type="radio" name="rejectedNCPTaskResult" ng-model="rejectedNCPTaskResult" value="reject" required> Closing the process required
+            </label>
+            <label class="radio-inline">
+                <input type="radio" name="rejectedNCPTaskResult" ng-model="rejectedNCPTaskResult" value="repeat" required> New candidate site required
+            </label>
+            <label class="error" ng-show="kcell_form.rejectedNCPTaskResult.$error.required && ( kcell_form.rejectedNCPTaskResult.$touched || view.submitted)">Required field</label>
+        </div>
+    </div> -->
+
+    <div class="form-group">
+        <label class="col-sm-4 control-label">Comments:</label>
+        <div class="col-sm-8">
+            <textarea class="form-control" ng-model="rejectedNCPTaskComment" name="rejectedNCPTaskComment" placeholder="Comments..." maxlength="500" rows="4" style="resize:none"></textarea>
+            <label class="error" ng-show="kcell_form.rejectedNCPTaskComment.$error.required && ( kcell_form.rejectedNCPTaskComment.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+</form>

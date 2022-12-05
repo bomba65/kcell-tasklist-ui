@@ -1,0 +1,266 @@
+<style>
+    .well {
+        color: #333;
+    }
+</style>
+<form role="form" class="form-horizontal" name="kcell_form" novalidate>
+    <script cam-script type="text/form-script">
+        inject(['$scope', '$http', 'Uri', '$rootScope', '$q', function ($scope, $http, Uri, $rootScope, $q) {
+            var variables = [
+                'requestedDate',
+                'jrNumber',
+                'initiatorFull',
+                'validityDate',
+                'soaComplaintId',
+                'site',
+                'siteName',
+                'siteAddress',
+                'site_name',
+                'reason',
+                'contract',
+                'contractor',
+                'materialsRequired',
+                'leasingRequired',
+                'powerRequired',
+                'project',
+                'supplementaryFiles',
+                'explanation',
+                'jobWorks',
+                'sapPRFileXLS',
+                'sapPRNo',
+                'kcellWarehouseMaterialsList',
+                'sapTransferRequestFile',
+                'resolutions',
+                'contractorZIPWarehouseMaterialsList',
+                'kcellWarehouseMaterialsListName',
+                'kcellWarehouseMaterialsAdditionalList',
+                'contractorZIPWarehouseMaterialsListName',
+                'jrBlank',
+                'tssrssidFile',
+                'tssrssidFileName',
+                'trFilesName',
+                'trAdditionalFilesName',
+                'trFiles',
+                'priority',
+                'mlApprovalAdditionalInfoFile',
+                'contractorJobAssignedDate',
+                'mainContract'
+            ];
+            $scope.jobModel = {
+                hideSAPPRNO: true
+            };
+            $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
+                    function (result) {
+                        $scope.processInstanceId = result.data.processInstanceId;
+                    },
+                    function (error) {
+                        console.log(error.data);
+                    }
+            );
+            camForm.on('form-loaded', function () {
+                variables.forEach(function (el) {
+                    camForm.variableManager.fetchVariable(el);
+                });
+
+                $http.get($rootScope.getCatalogsHttpByName('catalogs')).then(
+                        function (result) {
+                            angular.extend($scope, result.data);
+                            angular.extend($scope.jobModel, result.data);
+                        },
+                        function (error) {
+                            console.log(error.data);
+                        }
+                );
+                camForm.variableManager.createVariable({
+                    name: 'checkTRMaterialsByInitiatorTaskResult',
+                    type: 'String',
+                    value: ''
+                });
+                camForm.variableManager.createVariable({
+                    name: 'modifyWorks',
+                    type: 'Boolean',
+                    value: undefined
+                });
+            });
+            camForm.on('variables-fetched', function () {
+                variables.forEach(function (el) {
+                    if (el == 'trFilesName') {
+                        $scope[el] = camForm.variableManager.variables[el];
+                        $scope.trFilesName.type = 'Json';
+                    }
+                    $scope.jobModel[el] = camForm.variableManager.variables[el];
+                    if (el === 'resolutions') {
+                        $scope[el] = camForm.variableManager.variables[el].value;
+                    }
+                });
+                $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name + "/profile").then(function (result) {
+                    $rootScope.authentication.assigneeName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
+                });
+                if(camForm.variableManager.variables['checkTRMaterialsByInitiatorComment']){
+                    camForm.variableManager.variableValue('checkTRMaterialsByInitiatorComment', '');
+                }
+            });
+
+            camForm.on('submit', function () {
+                camForm.variableManager.variableValue('checkTRMaterialsByInitiatorTaskResult', $scope.checkTRMaterialsByInitiatorTaskResult);
+                camForm.variableManager.createVariable({
+                    name: 'validate_trTaskResult',
+                    type: 'String',
+                    value: $scope.checkTRMaterialsByInitiatorTaskResult
+                });
+                if (camForm.variableManager.variables['trFilesName']) {
+                    camForm.variableManager.variableValue('trFilesName', $scope.trFilesName.value);
+                } else {
+                    camForm.variableManager.createVariable($scope.trFilesName);
+                }
+
+                var visibility = 'all';
+                if ($scope.checkTRMaterialsByInitiatorComment && $scope.checkTRMaterialsByInitiatorCommentVisibility) {
+                    visibility = $scope.checkTRMaterialsByInitiatorCommentVisibility;
+                    camForm.variableManager.createVariable({
+                        name: 'validate_trTaskCommentVisibility',
+                        type: 'String',
+                        value: visibility
+                    });
+                }
+                camForm.variableManager.createVariable({
+                    name: 'validate_trTaskComment',
+                    type: 'String',
+                    value: $scope.checkTRMaterialsByInitiatorComment
+                });
+                if ($scope.checkTRMaterialsByInitiatorTaskResult === 'match') {
+                    $scope.checkTRMaterialsResult = 'match';
+                    if (camForm.variableManager.variables['checkTRMaterialsResult'] && camForm.variableManager.variables['checkTRMaterialsResult'].type) {
+                        camForm.variableManager.variableValue('checkTRMaterialsResult', $scope.checkTRMaterialsResult);
+                    } else {
+                        if (camForm.variableManager.variables['checkTRMaterialsResult']){
+                            camForm.variableManager.destroyVariable('checkTRMaterialsResult');
+                        }
+                        camForm.variableManager.createVariable({
+                            name: 'checkTRMaterialsResult',
+                            type: 'String',
+                            value: $scope.checkTRMaterialsResult
+                        });
+                    }
+
+                    var warehouseRegions = [];
+                    if ($scope.trFilesName.value) {
+                        angular.forEach($scope.trFilesName.value, function (trFile) {
+                            var warehouse = _.find($scope.warehouses, function (warehouse) {
+                                return warehouse.id === trFile.warehouse;
+                            });
+                            if (warehouseRegions.indexOf(warehouse.region) === -1) {
+                                warehouseRegions.push(warehouse.region);
+                            }
+                        });
+                    }
+
+                    camForm.variableManager.createVariable({
+                        name: 'warehouseRegions',
+                        type: 'Json',
+                        value: warehouseRegions
+                    });
+                }
+                camForm.variableManager.destroyVariable('resolutions');
+            });
+
+            camForm.on('store', function () {
+                camForm.variableManager.variableValue('checkTRMaterialsByInitiatorTaskResult', $scope.checkTRMaterialsByInitiatorTaskResult);
+            });
+
+            camForm.on('variables-restored', function () {
+                $scope.checkTRMaterialsByInitiatorTaskResult = camForm.variableManager.variableValue('checkTRMaterialsByInitiatorTaskResult');
+            });
+
+            $scope.isVisible = function (resolution) {
+                return !resolution.visibility || resolution.visibility === 'all' || (resolution.visibility === 'kcell' && $rootScope.hasGroup('kcellUsers'));
+            }
+
+            $scope.hasComment = function () {
+                return $scope.checkTRMaterialsByInitiatorComment && $rootScope.hasGroup('kcellUsers');
+            }
+
+            $scope.download = function (file) {
+                $http({
+                    method: 'GET',
+                    url: '/camunda/uploads/get/' + file.path,
+                    transformResponse: []
+                }).then(function (response) {
+                    document.getElementById('fileDownloadIframe').src = response.data;
+                }, function (error) {
+                    console.log(error.data);
+                });
+            }
+        }]);
+    </script>
+    <job-request job-model="jobModel"></job-request>
+    <iframe id="fileDownloadIframe" style="display:none;"></iframe>
+    <div ng-repeat="trfile in trFilesName.value">
+        <div>
+            <div class="form-group">
+                <label class="col-sm-4 control-label">SAP Transport Request File # {{$index+1}}:</label>
+                <div class="col-sm-8">
+                    <a ng-click="download(trfile)">{{trfile.name}}</a>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-4 control-label">SAP Transport Request ID # {{$index+1}}:</label>
+                <div class="col-sm-8">
+                    <span>{{trfile.description}}</span>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-4 control-label">Warehouse # {{$index+1}}:</label>
+                <div class="col-sm-8">
+                    <select class="form-control" ng-model="trfile.warehouse" name="trfile_{{$index}}_warehouse" ng-required="trfile.name && !trfile.warehouse">
+                        <option value="">select warehouse</option>
+                        <option value="{{w.id}}" ng-repeat="w in warehouses" ng-selected="{{w.id == trfile.warehouse}}">{{w.id}}: {{w.name}}</option>
+                    </select>
+                    <label class="error" ng-show="kcell_form['trfile_'+$index+'_warehouse'].$error.required && ( kcell_form['trfile_'+$index+'_warehouse'].$touched || view.submitted)">Required field</label>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label class="col-sm-4 control-label">Resolution</label>
+        <div class="col-sm-8">
+            <label class="radio-inline">
+                <input type="radio" ng-model="checkTRMaterialsByInitiatorTaskResult" name="checkTRMaterialsByInitiatorTaskResult" value="match" required> TR match with material list
+            </label>
+            <label class="radio-inline">
+                <input type="radio" ng-model="checkTRMaterialsByInitiatorTaskResult" name="checkTRMaterialsByInitiatorTaskResult" value="doesNotMatch" required> TR doesn't match with material list
+            </label>
+            <label class="error" ng-show="kcell_form.checkTRMaterialsByInitiatorTaskResult.$error.required && ( kcell_form.checkTRMaterialsByInitiatorTaskResult.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-4 control-label">Comments</label>
+        <div class="col-sm-8">
+            <textarea class="form-control" rows="4" maxlength="500" cam-variable-name="checkTRMaterialsByInitiatorComment" name="checkTRMaterialsByInitiatorComment" ng-required="checkTRMaterialsByInitiatorTaskResult == 'rejected'" cam-variable-type="String"></textarea>
+            <label class="error" ng-show="kcell_form.checkTRMaterialsByInitiatorComment.$error.required && ( kcell_form.checkTRMaterialsByInitiatorComment.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+    <div class="form-group" ng-show="hasComment()">
+        <label class="col-sm-4 control-label">Comments visibility</label>
+        <div class="col-sm-8">
+            <label class="radio-inline">
+                <input type="radio" name="checkTRMaterialsByInitiatorCommentVisibility"
+                       ng-model="checkTRMaterialsByInitiatorCommentVisibility" value="all" ng-required="hasComment()"> Visible for all
+            </label>
+            <label class="radio-inline">
+                <input type="radio" name="checkTRMaterialsByInitiatorCommentVisibility"
+                       ng-model="checkTRMaterialsByInitiatorCommentVisibility" value="kcell" ng-required="hasComment()"> Kcell staff only
+            </label>
+            <label class="error" ng-show="kcell_form.checkTRMaterialsByInitiatorCommentVisibility.$error.required && ( kcell_form.checkTRMaterialsByInitiatorCommentVisibility.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+    <accordion>
+        <accordion-group is-open="isHistoryOpen">
+            <accordion-heading>
+                History <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
+            </accordion-heading>
+            <resolution-history resolutions="resolutions" procDef="Revision"></resolution-history>
+        </accordion-group>
+    </accordion>
+</form>

@@ -1,0 +1,367 @@
+<form role="form" class="form-horizontal" name="kcell_form" novalidate>
+    <script cam-script type="text/form-script" type="text/javascript">
+        inject(['$scope', '$http', 'Uri', '$rootScope', '$q', '$timeout', function ($scope, $http, Uri, $rootScope, $q, $timeout) {
+            var variables = [
+                'resolutions',
+                'ncpID',
+                'siteType',
+                'regionName',
+                'latitude',
+                'longitude',
+                'initiator',
+                'project',
+                'reason',
+                'part',
+                'plannedCabinetType',
+                'targetCoverage',
+                'rbsType',
+                'bands',
+                'rrFile',
+                'newCandidateRRFiles',
+                'candidate',
+                'cellAntenna',
+                'renterCompany',
+                'transmissionAntenna',
+                'powerSource',
+                'farEndInformation',
+                'receivingTSForCandiateSiteFiles',
+                'connectionPossibleFromLandlordNetwork',
+                'checkAndApproveFETaskResult',
+                'approveByCentralTRTaskResult',
+                'connectionPossibleFromRES',
+                'modifyCandidateRRFiles',
+                'address',
+                'ne_tr_parameters',
+                'ne_tr_rate',
+                'siteObjectType'
+            ];
+
+            var files = ['actOfPerformanceTechnicalConditionsFiles',
+            'uploadCopyOfOwnerSignedLeaseContractFiles',
+            'confirmApprovalLeaseContractInSAPCMFiles',
+            'confirmLoadingLeaseContractInSAPCMFiles',
+            'confirmSendMessageToStartPaymentKPFEFiles',
+            'approvalContractRentInSAPFiles',
+            'approvalPowerContractInSAPFiles',
+            'checkAndApproveFEFiles',
+            'commercialOnAirFiles',
+            'confirmActOfPerformanceTechnicalConditionsFiles',
+            'confirmPaymentDevelopmentOfTCKTFiles',
+            'confirmPaymentDevelopmentOfTCKTForFEFiles',
+            'confirmReceiptEstimateFiles',
+            'confirmReceiptEstimateForFEFiles',
+            'ConfirmReceiptOfTSfromRESforCandidateFiles',
+            'confirmReceiptResponseKPFiles',
+            'confirmReceiptResponseKPFEFiles',
+            'confirmSigningLeaseContractFiles',
+            'confirmStartLeasingFiles',
+            'confirmStartLeasingNOFiles',
+            'confirmTFOfConnectingToLandlordPowerGridForFEFiles',
+            'confirmTFOfConnectingToPowerGridForCandidateFiles',
+            'connectionFromOwnerNetworksFiles',
+            'contractRentLoadingSAPFiles',
+            'createNewCandidateSiteFiles',
+            'defineInstallationProblemFiles',
+            'estimateTechnicalCapabilityResFiles',
+            'installationWorksDoneFiles',
+            'modifyCandidateSiteFiles',
+            'powerContractLoadingInSAPFiles',
+            'powerProblemSolutionFiles',
+            'preparationSSIDandTSSRFiles',
+            'preperationSSIDorTSSRProjectFiles',
+            'receivingApprovalFromTheLandlordFiles',
+            'receivingContractDevDesignEstimateFiles',
+            'receivingContractDevDesignEstimateForFEFiles',
+            'receivingContractInstallationWorksFiles',
+            'receivingContractInstallationWorksForFEFiles',
+            'receivingContractPSDFiles',
+            'receivingTSFiles',
+            'receivingTSForFEFiles',
+            'registrationCommercialOfferFiles',
+            'registrationCommercialOfferForFEFiles',
+            'reqKZTRwithTechEquipmentParamsFiles',
+            'reqKZTRwithTechEquipmentParamsForFEFiles',
+            'requestForAdmissionForWorkOnTUFiles',
+            'requestTechnicalParametersKPFiles',
+            'requestTechnicalParametersKPFEFiles',
+            'requestTechnicalParametersKTFiles',
+            'requestTechnicalParametersKTForFEFiles',
+            'sendMessageToStartPaymentKPFiles',
+            'sendMessageToStartPaymentKPForFEFiles',
+            'sendMessageToStartPaymentKTFiles',
+            'sendMessageToStartPaymentKTForFEFiles',
+            'sendMessageToStartPaymentNationalFiles',
+            'sendMessageToStartPaymentSimpleFiles',
+            'signingLeaseContractAddAgreementFiles',
+            'signingLeaseContractAddAgreementForFEFiles',
+            'signingLeaseContractAddAgreementKPFiles',
+            'signingLeaseContractAddAgreementKPFEFiles',
+            'signingLeaseContractAddAgreementKTFiles',
+            'startingInstallationWorksFiles',
+            'transmissionProblemSolutionFiles',
+            'uploadSignedOwnerLeaseContractFiles'];
+
+            $scope.leasingFiles = [];
+
+            $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
+                function(result){
+                    $scope.taskAssignee = result.data.assignee;
+                },
+                function (error) {
+                    console.log(error.data);
+                }
+            );
+
+            camForm.on('form-loaded', function () {
+                variables.forEach(function (el) {
+                    camForm.variableManager.fetchVariable(el);
+                });
+                files.forEach(function (f) {
+                    camForm.variableManager.fetchVariable(f);
+                });
+                $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
+                        function(result){
+                            $scope.processInstanceId = result.data.processInstanceId;
+                            $scope.taskKey = result.data.taskDefinitionKey;
+                            $http.get('/camunda/api/engine/engine/default/process-instance/' + $scope.processInstanceId).then(
+                                function(result){
+                                    console.log('process-instance/')
+                                    console.log(result.data)
+                                    $scope.businessKey = result.data.businessKey;
+                                },
+                                function (error) {console.log(error.data);}
+                            );
+                        },
+                        function (error) {
+                            console.log(error.data);
+                        }
+                );
+                $scope.leasingCandidate = {};
+            });
+
+            camForm.on('variables-fetched', function () {
+                $scope.confirmStartLeasingFiles = [];
+                variables.forEach(function (el) {
+                    if(camForm.variableManager.variables[el].value){
+                        $scope[el] = camForm.variableManager.variables[el].value;
+                        $scope.leasingCandidate[el] = camForm.variableManager.variables[el].value;
+                    }
+                });
+                files.forEach(function (f) {
+                    if(camForm.variableManager.variables[f] && camForm.variableManager.variables[f].value){
+                        if ( f.toLowerCase().includes('file') ) {
+                            $scope.leasingFiles = $scope.leasingFiles.concat(camForm.variableManager.variables[f].value)
+                        }
+                    }
+                });
+                $scope.leasingCandidate['confirmStartLeasingTask'] = true;
+                camForm.variableManager.createVariable({
+                    name: 'confirmStartLeasingTaskResult',
+                    type: 'String',
+                    value: ''
+                });
+                camForm.variableManager.createVariable({
+                    name: 'confirmStartLeasingTaskComment',
+                    type: 'String',
+                    value: ''
+                });
+                camForm.variableManager.createVariable({
+                    name: 'leasingProblem',
+                    type: 'String',
+                    value: ''
+                });
+
+                $scope.confirmStartLeasingTaskResult = '';
+                $scope.view.variablesFetched = true;
+            });
+
+            camForm.on('submit', function () {
+                camForm.variableManager.variableValue('confirmStartLeasingTaskResult', $scope.confirmStartLeasingTaskResult);
+                camForm.variableManager.variableValue('leasingProblem', $scope.confirmStartLeasingTaskResult === 'Approve' ? 'No' : 'Yes');
+                camForm.variableManager.variableValue('confirmStartLeasingTaskComment', $scope.confirmStartLeasingTaskComment);
+
+                var thisTaskFiles = $scope.leasingFiles.filter(f => {return f.varName === 'confirmStartLeasingFiles'});
+                console.log('--thisTaskFiles--')
+                console.log(thisTaskFiles)
+                console.log('-----------------')
+                if(!camForm.variableManager.variables['confirmStartLeasingFiles'].type){
+                    camForm.variableManager.destroyVariable('confirmStartLeasingFiles');
+                    camForm.variableManager.createVariable({
+                        name: 'confirmStartLeasingFiles',
+                        type: 'Json',
+                        value: thisTaskFiles
+                    });
+                } else {
+                    camForm.variableManager.variableValue('confirmStartLeasingFiles', thisTaskFiles);
+                }
+
+                if($scope.confirmStartLeasingTaskResult == 'Reject') {
+                    camForm.variableManager.createVariable({
+                        name: 'rentApprovalResult',
+                        type: 'String',
+                        value: 'refused'
+                    });
+                } else {
+                    camForm.variableManager.createVariable({
+                        name: 'rentApprovalResult',
+                        type: 'String',
+                        value: 'approved'
+                    });
+                }
+                camForm.variableManager.variableValue('siteObjectType', $scope.leasingCandidate.siteObjectType);
+                camForm.variableManager.variableValue('renterCompany', $scope.leasingCandidate.renterCompany);
+
+                camForm.variableManager.destroyVariable('resolutions');
+            });
+
+            $scope.fileSelected = function (el, fileName) {
+                $timeout(function () {
+                    $scope.$apply(function () {
+                        uploadFileToMinio(el.files[0], fileName);
+                    });
+                })
+            };
+
+            function uploadFileToMinio(file, fileName) {
+                var fileIndex = $scope[fileName].length;
+
+                var fileToUpload = {
+                    date: new Date(),
+                    author:  $scope.taskAssignee,
+                    name: file.name.replace(/[/\\?%*:|"<>]/g, '-'),
+                    path: $scope.processInstanceId + '/' + camForm.taskId + '/' + file.name.replace(/[/\\?%*:|"<>]/g, '-')
+                };
+                $http({
+                    method: 'GET',
+                    url: '/camunda/uploads/put/' + fileToUpload.path,
+                    transformResponse: []
+                }).then(function (response) {
+                    $http.put(response.data, file, {headers: {'Content-Type': undefined}}).then(
+                            function () {
+                                fileToUpload.varName = 'confirmStartLeasingFiles';
+                                $scope.leasingFiles.push(fileToUpload);
+                                //$scope[fileName].push(fileToUpload);
+                                angular.element(document.querySelector('#' + fileName)).val(null);
+                                console.log($scope.leasingFiles)
+                            },
+                            function (error) {
+                                console.log(error.data);
+                            }
+                    );
+                }, function(error){
+                    console.log(error.data);
+                });
+            };
+
+            $scope.singleFileSelected = function (el, fileName) {
+                $timeout(function () {
+                    $scope.$apply(function () {
+                        uploadSingleFileToMinio(el.files[0], fileName);
+                    });
+                })
+            };
+
+            function uploadSingleFileToMinio(file, fileName) {
+                var fileToUpload = {
+                    name: file.name.replace(/[/\\?%*:|"<>]/g, '-'),
+                    path: $scope.processInstanceId + '/' + camForm.taskId + '/' + file.name.replace(/[/\\?%*:|"<>]/g, '-'),
+                    date: new Date(),
+                    author: $scope.taskAssignee
+                };
+                $http({
+                    method: 'GET',
+                    url: '/camunda/uploads/put/' + fileToUpload.path,
+                    transformResponse: []
+                }).then(function (response) {
+                    $http.put(response.data, file, {headers: {'Content-Type': undefined}}).then(
+                            function () {
+                                $scope[fileName] = fileToUpload;
+                                angular.element(document.querySelector('#' + fileName)).val(null);
+                            },
+                            function (error) {
+                                console.log(error.data);
+                            }
+                    );
+                }, function(error){
+                    console.log(error.data);
+                });
+            }
+
+            $scope.clearFile = function (list, fileIndex) {
+                $scope[list].splice(fileIndex, 1);
+            }
+
+            $scope.clearSingleFile = function (list) {
+                $scope[list] = undefined;
+            }
+
+            $scope.fileDownload = function (file) {
+                $http({
+                    method: 'GET',
+                    url: '/camunda/uploads/get/' + file.path,
+                    transformResponse: []
+                }).then(function (response) {
+                    document.getElementById('fileDownloadIframe').src = response.data;
+                }, function(error){
+                    console.log(error.data);
+                });
+            }
+        }]);
+
+    </script>
+    <div class="form-group">
+        <label class="col-sm-12 control-label">
+            <p/> <b>Business key: </b>{{businessKey}}
+        </label>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-12 control-label">
+            <p/> <b>Approval by Regional Power group: </b>{{connectionPossibleFromRES === 'yes' ? 'Сonnection possibility from RES' : connectionPossibleFromLandlordNetwork === 'yes' ? 'Сonnection possibility from landlord network' : connectionPossibleFromLandlordNetwork === 'no' ? 'Сonnection possibility is not available' : ''}}
+        </label>
+    </div>
+    <div class="form-group" ng-show="candidate.transmissionType==='Microwave' || candidate.transmissionType==='Microwave + Satellite or Provider'">
+        <label class="col-sm-12 control-label">
+            <p/> <b>Approval by Regional Transmission group: </b>{{checkAndApproveFETaskResult === 'approved' ? 'Approve' : checkAndApproveFETaskResult === 'rejected' ? 'FE does not fit' : checkAndApproveFETaskResult === 'priorityChange' ? 'Priority change required' : ''}}
+        </label>
+    </div>
+    <div class="form-group" ng-show="approveByCentralTRTaskResult !== null && (candidate.transmissionType==='Satellite' || candidate.transmissionType==='Provider' || candidate.transmissionType==='Microwave + Satellite or Provider')">
+        <label class="col-sm-12 control-label">
+            <p/> <b>Approval by Central Transmission group: </b>{{approveByCentralTRTaskResult === 'approve' ? 'Approve' : approveByCentralTRTaskResult === 'rejected' ? 'Reject (impossible to organize or unprofitable)' : ''}}
+        </label>
+    </div>
+     <leasing-candidate ng-if="view.variablesFetched" leasing-candidate="leasingCandidate"></leasing-candidate>
+
+    <leasing-attachments leasing-files="leasingFiles" task-key="taskKey" modify="'false'"></leasing-attachments>
+    <iframe id="fileDownloadIframe" style="display:none;"></iframe>
+    <div class="form-group">
+        <label class="col-sm-3 control-label"></label>
+        <div class="col-sm-9">
+            <ng-form name="kcell_material_file_form">
+                <input type="file" class="form-control" id="confirmStartLeasingFiles"
+                       name="confirmStartLeasingFiles" ng-model="file.file"
+                       onchange="angular.element(this).scope().fileSelected(this, 'confirmStartLeasingFiles')"/>
+            </ng-form>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label class="col-sm-3 control-label">Resolution</label>
+        <div class="col-sm-9">
+            <label class="radio-inline">
+                <input type="radio" name="confirmStartLeasingTaskResult" ng-model="confirmStartLeasingTaskResult" value="Approve" required> Approve
+            </label>
+            <label class="radio-inline">
+                <input type="radio" name="confirmStartLeasingTaskResult" ng-model="confirmStartLeasingTaskResult" value="Reject" required> Reject
+            </label>
+            <label class="error" ng-show="kcell_form.confirmStartLeasingTaskResult.$error.required && ( kcell_form.confirmStartLeasingTaskResult.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label class="col-sm-3 control-label">Comments</label>
+        <div class="col-sm-9">
+            <textarea class="form-control" ng-model="confirmStartLeasingTaskComment" name="confirmStartLeasingTaskComment" ng-required="confirmStartLeasingTaskResult === 'Reject'" placeholder="Comments..." maxlength="500" rows="4" style="resize:none"></textarea>
+            <label class="error" ng-show="kcell_form.confirmStartLeasingTaskComment.$error.required && ( kcell_form.confirmStartLeasingTaskComment.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+</form>

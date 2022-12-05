@@ -1,0 +1,193 @@
+<form role="form" class="form-horizontal" name="kcell_form" novalidate>
+    <script cam-script type="text/form-script">
+        inject(['$scope', '$http', 'Uri', '$rootScope', '$q', '$timeout', function ($scope, $http, Uri, $rootScope, $q, $timeout) {
+            var variables = [
+                'resolutions',
+                'changeOfficialClientCompanyName',
+                'changeContractNumber',
+                'disconnectOperator',
+                'connectOperator',
+                'changeConnectionType',
+                'changeIpNumber',
+                'changeIdentifier',
+                'changeSmsServiceType',
+                'changeProvider',
+                'changeTransmitNumber',
+                'relatedProcessDefinitionKey',
+                'relatedProcessInstanceId',
+                'identifiers',
+                'previouslyBought',
+                'operatorType',
+                'connectionType',
+                'clientBIN',
+                'contractNumber',
+                'clientCompanyLatName',
+                'officialClientCompanyName',
+                'description',
+                'ipNumber',
+                //'startDate',
+                'abonentTarif',
+                'amdocsBilling',
+                'orgaBilling',
+                'techSpecFIO',
+                'techSpecNumber',
+                'techSpecEmail',
+                'contractScanCopyFileName',
+                'applicationScanCopyFileName',
+                'responsibleB2BDelivery',
+                'responsibleB2BSales',
+                'channel',
+                'region',
+                'transmitNumber',
+                'coordinates',
+                'addressATS',
+                'VPNchannel',
+                'identifierType',
+                'deliveryReport',
+                'smsServiceType',
+                'MSGGWaccount',
+                'testNumber',
+                'receivingServerAddress',
+                'receivingServerLogin',
+                'receivingServerPass',
+                'addressServerMO',
+                'tarifPlane',
+                'provider',
+                'oldTransmitNumber',
+                'oldProvider',
+                'oldConnectionType',
+                'oldIpNumber',
+                'oldSmsServiceType',
+                'newProviderDate'
+            ];
+
+            camForm.on('form-loaded', function () {
+                variables.forEach(function (el) {
+                    camForm.variableManager.fetchVariable(el);
+                });
+                $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
+                        function(result){
+                            $scope.processInstanceId = result.data.processInstanceId;
+                        },
+                        function (error) {
+                            console.log(error.data);
+                        }
+                );
+                $scope.aftersalesInfo = {};
+                $scope.aftersalesInfo.files = [];
+            });
+
+            camForm.on('variables-fetched', function () {
+                variables.forEach(function (el) {
+                    if (el === 'resolutions') {
+                        if (camForm.variableManager.variables[el].value) {
+                            $scope.resolutions = angular.copy(camForm.variableManager.variables[el].value);
+                            $q.all($scope.resolutions.map(function (resolution) {
+                                if (resolution.assigneeName === undefined) {
+                                    return $http.get("/camunda/api/engine/engine/default/user/" + resolution.assignee + "/profile");
+                                } else {
+                                    return {data:{}};
+                                }
+                            })).then(function (profiles) {
+                                profiles.forEach(function (e, index) {
+                                    if ( $scope.resolutions[index].assigneeName === undefined) {
+                                        $scope.resolutions[index].assigneeName = (e.data.firstName ? e.data.firstName : "") + " " + (e.data.lastName ? e.data.lastName : "");
+                                    }
+                                });
+                            });
+                            $q.all($scope.resolutions.map(function (resolution) {
+                                return $http.get("/camunda/api/engine/engine/default/history/task?processInstanceId=" + resolution.processInstanceId + "&taskId=" + resolution.taskId);
+                            })).then(function (tasks) {
+                                tasks.forEach(function (e, index) {
+                                    if (e.data.length > 0) {
+                                        $scope.resolutions[index].taskName = e.data[0].name;
+                                        try {
+                                            $scope.resolutions[index].taskEndDate = new Date(e.data[0].endTime);
+                                            $scope.resolutions[index].assignDate = new Date(e.data[0].startTime);
+                                        } catch (e) {
+                                            console.log(e);
+                                        }
+                                    }
+                                });
+                            });
+                            $q.all($scope.resolutions.map(function (resolution) {
+                                return $http.get("/camunda/api/engine/engine/default/history/identity-link-log?type=assignee&taskId=" + resolution.taskId + "&operationType=add&sortBy=time&sortOrder=desc");
+                            })).then(function (logs) {
+                                logs.forEach(function (e, index) {
+                                    if(e.data.length > 0){
+                                        try {
+                                            $scope.resolutions[index].claimDate = new Date(e.data[0].time);
+                                        } catch(e){
+                                            console.log(e);
+                                        }
+                                    }
+                                });
+                            });
+                        }
+                    } else if (el === 'applicationScanCopyFileName' || el === 'contractScanCopyFileName') {
+                        $scope[el] = camForm.variableManager.variables[el].value;
+                        $scope.aftersalesInfo.files.push(camForm.variableManager.variables[el].value);
+                    } else {
+                        $scope[el] = camForm.variableManager.variables[el].value;
+                        $scope.aftersalesInfo[el] = camForm.variableManager.variables[el].value;
+                    }
+                });
+
+                $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name+ "/profile").then(function(result){
+                    $rootScope.authentication.assigneeName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
+                });
+
+                $scope.aftersalesInfo.showTarif = true;
+
+                camForm.variableManager.createVariable({
+                    name: 'correctAccessToFirewallTaskResult',
+                    type: 'String',
+                    value: ''
+                });
+
+                camForm.variableManager.createVariable({
+                    name: 'correctAccessToFirewallTaskComment',
+                    type: 'String',
+                    value: ''
+                });
+            });
+
+            camForm.on('submit', function () {
+                $scope.correctAccessToFirewallTaskResult = 'Completed';
+                camForm.variableManager.variableValue('ipNumber', $scope.ipNumber);
+                camForm.variableManager.variableValue('correctAccessToFirewallTaskResult', $scope.correctAccessToFirewallTaskResult);
+                camForm.variableManager.variableValue('correctAccessToFirewallTaskComment', $scope.correctAccessToFirewallTaskComment);
+                camForm.variableManager.destroyVariable('resolutions');
+            });
+        }]);
+
+    </script>
+    <info-aftersales aftersales-info="aftersalesInfo"></info-aftersales>
+    <div class="form-group">
+        <label class="col-sm-4 control-label">Откуда:</label>
+        <div class="col-sm-8">
+            <input type="text" name="buildingOwner" id='ipNumber' ng-model="ipNumber" class="form-control" required>
+            <label class="error" ng-show="kcell_form.ipNumber.$error.required && ( kcell_form.ipNumber.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-4 control-label">Куда:</label>
+        <div class="col-sm-8">
+            <input type="text" name="channelKLM" id='toIP' cam-variable-name="toIP" cam-variable-type="String" class="form-control" required placeholder="195.47.255.119">
+            <label class="error" ng-show="kcell_form.toIP.$error.required && ( kcell_form.toIP.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-4 control-label">Порт:</label>
+        <div class="col-sm-8">
+            <input type="text" name="channelKLM" id='toPort' cam-variable-name="toPort" cam-variable-type="String" class="form-control" required placeholder="5060 (SIP)">
+            <label class="error" ng-show="kcell_form.toPort.$error.required && ( kcell_form.toPort.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-3 control-label">Комментарии</label>
+        <div class="col-sm-9">
+            <textarea class="form-control" ng-model="correctAccessToFirewallTaskComment" name="correctAccessToFirewallTaskComment" placeholder="Comments..." maxlength="500" rows="4" style="resize:none"></textarea>
+        </div>
+    </div>
+</form>

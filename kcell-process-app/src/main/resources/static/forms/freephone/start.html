@@ -1,0 +1,329 @@
+<form role="form" class="form-horizontal" name="kcell_form" novalidate>
+    <script cam-script type="text/form-script">
+        inject(['$scope', '$http', 'Uri', '$rootScope', '$q', '$timeout', function ($scope, $http, Uri, $rootScope, $q, $timeout) {
+            $scope.isPartner = false;
+
+            camForm.on('form-loaded', function () {
+            /*
+                $http.get('/camunda/api/engine/engine/default/group?id=delivery_ivr_partner&member=' + $rootScope.authentication.name).then(function(response){
+                    if(response.data && response.data.length > 0){
+                        console.log('isPartner', response.data);
+                        $scope.operatorType = 'onnet';
+                        $scope.isPartner = true;
+                        console.log('isPartner');
+                    }
+                });
+                */
+                camForm.variableManager.createVariable({
+                    name: 'operatorType',
+                    value: '',
+                    type: 'String'
+                });
+                camForm.variableManager.createVariable({
+                    name: 'provider',
+                    value: '',
+                    type: 'String'
+                });
+
+                camForm.variableManager.createVariable({
+                    name: 'identifiers',
+                    type: 'json',
+                    value: ''
+                });
+                camForm.variableManager.createVariable({
+                    name: 'finalIDs',
+                    value: '',
+                    type: 'String'
+                });
+
+                camForm.variableManager.createVariable({
+                    name: 'operators',
+                    type: 'json',
+                    value: ''
+                });
+                camForm.variableManager.createVariable({
+                    name: 'isPartner',
+                    value: false,
+                    type: 'Boolean'
+                });
+                $scope.identifier = [];
+                $scope.id = [];
+                $scope.requestedDate = new Date();
+                $scope.offnetOperators = [
+                    {id: 'kcell', name: 'Kcell', isAvailable: true},
+                    {id: 'beeline', name: 'Beeline'},
+                    {id: 'tele2', name: 'Tele2'},
+                    {id: 'altel', name: 'Altel'}
+                ];
+                $scope.onnetOperators = [
+                    {id: 'kcell', name: 'Kcell'}
+                ];
+                camForm.variableManager.createVariable({
+                    name: 'shortNumberId',
+                    value: '',
+                    type: 'String'
+                });
+                camForm.variableManager.createVariable({
+                    name: 'offnetProviderName',
+                    value: undefined,
+                    type: 'String'
+                });
+                camForm.variableManager.createVariable({
+                    name: 'offnetProviderBin',
+                    value: undefined,
+                    type: 'String'
+                });
+            });
+
+            $scope.preSubmit = function() {
+                var getProductCatalogShortNumber = function() {
+                    var deferred = $q.defer();
+
+                    if($scope.identifier){
+                        return $http.get("/camunda/product-catalog/vas_short_numbers/short_number/" + $scope.identifier + "/service_type_id/177").then(
+                            function(response){
+                                console.log('vas_short_numbers', response.data);
+                                if(response.data) {
+                                    if (response.data.shortNumberState) {
+                                        $scope.shortNumberState = response.data.shortNumberState;
+                                        if($scope.shortNumberState === 'A' || $scope.shortNumberState === 'D') {
+                                            if (response.data.id) {
+                                                $scope.shortNumberId = response.data.id;
+
+                                                console.log('Identifier ' + $scope.identifier + ' already exists in Product Catalog and can be used for Freephone');
+                                                deferred.resolve('Identifier ' + $scope.identifier + ' already exists in Product Catalog and can be used for Freephone');
+
+                                            } else {
+                                                deferred.reject('Identifier ' + $scope.identifier + ' has no Id in Product Catalog');
+                                            }
+                                        } else {
+                                            deferred.reject('Unknown shortNumberState ' + $scope.shortNumberState);
+                                        }
+                                    } else {
+                                        if (response.data.status === 404) {
+                                            console.log('Identifier ' + $scope.identifier + ' DOES NOT exist in Product Catalog and can be used for Freephone');
+                                            deferred.resolve('Identifier ' + $scope.identifier + ' DOES NOT exist in Product Catalog and can be used for Freephone');
+                                        } else {
+                                            deferred.reject('Unknown shortNumberState ' + $scope.shortNumberState);
+                                        }
+                                    }
+                                } else {
+                                    deferred.reject('Undefined Response Data from Product Catalog Request');
+                                }
+                                return deferred.promise;
+                            },
+                            function (error) {
+                                console.log(error);
+                                deferred.reject('error:' + error.data.error + ', message:' + error.data.message + ', path:' + error.data.path + ', status:' + error.data.status);
+                                return deferred.promise;
+                            });
+                    } else {
+                        deferred.reject('Identifier is not defined ' + $scope.identifier);
+                        return deferred.promise;
+                    }
+                };
+
+                var getOffnetOperatorBin = function() {
+                    var deferredOffnet = $q.defer();
+
+                    console.log('provider', $scope.provider, 'operatorType', $scope.operatorType);
+
+                    if ($scope.provider && $scope.operatorType === 'offnet') {
+
+                        var clientBIN = $scope.provider === "SMS Consult" ? "090940007540" : ( $scope.provider === "MMS" ? "120140013485" : ($scope.provider === "KIT" ? "080240011284" : "") );
+
+                        console.log('clientBIN', clientBIN);
+
+                        if (clientBIN && clientBIN.length > 0) {
+
+                            return $http({method: 'GET', url: '/camunda/product-catalog/vas_content_providers/bin/'+clientBIN, transformResponse: [] }).then(
+                                function(response) {
+
+                                    console.log('response', response.data);
+
+                                    if (response.data) {
+
+                                        var clientCRM = JSON.parse(response.data);
+
+                                        if(clientCRM.id && clientCRM.bin) {
+                                            $scope.offnetProviderName = clientCRM.id;
+                                            $scope.offnetProviderBin = clientCRM.bin;
+
+                                            console.log('Successfully get Offnet Provider ID and BIN');
+
+                                            deferredOffnet.resolve('Successfully get Offnet Provider ID and BIN');
+                                        } else {
+                                            console.log('Could not get Offnet Provider ID or BIN');
+                                            deferredOffnet.reject('Could not get Offnet Provider ID or BIN');
+                                        }
+                                    } else {
+
+                                        console.log('Could not get response data');
+
+                                        deferredOffnet.reject('Could not get response data');
+                                    }
+                                    console.log('return promise');
+                                    return deferredOffnet.promise;
+
+                                },
+                                function (error) {
+                                    console.log(error);
+                                    deferredOffnet.reject('error:' + error.data.error + ', message:' + error.data.message + ', path:' + error.data.path + ', status:' + error.data.status);
+                                    return deferredOffnet.promise;
+                                }
+                            );
+                        } else {
+                            console.log('Offnet Provider BIN is not valid');
+
+                            deferredOffnet.reject('Offnet Provider BIN is not valid');
+                            return deferredOffnet.promise;
+                        }
+                    } else {
+                        console.log('Onnet Provider');
+
+                        deferredOffnet.resolve('Onnet Provider');
+                        return deferredOffnet.promise;
+                    }
+                }
+                var deferred = $q.defer();
+                return $q.all( [ getProductCatalogShortNumber(), getOffnetOperatorBin() ] );
+            }
+
+            camForm.on('submit', function (evt) {
+                // evt.submitPrevented = true;
+                var date = new Date();
+                //var businessKey = 'IVR_' + ("0" + date.getDate().toString()).slice(-2) + ("0" + (date.getMonth() + 1)).toString().slice(-2) + date.getFullYear().toString() + '_' + ("0" + date.getHours()).toString().slice(-2) + ("0" + date.getMinutes()).toString().slice(-2) + ("0" + date.getSeconds()).toString().slice(-2);
+
+                camForm.variableManager.variableValue('operatorType', $scope.operatorType);
+                if ($scope.identifier) {
+                    $scope.id.push({'title': $scope.identifier, 'operators': []});
+                }
+                var finalIDs = '';
+                _.forEach($scope.id, function(i) {
+                    finalIDs = finalIDs + (finalIDs ? ',' : '') + i.title
+                });
+                camForm.variableManager.variableValue('finalIDs', finalIDs);
+                if ($scope.operatorType === 'offnet') {
+                    if ($scope.provider) {
+                        camForm.variableManager.variableValue('provider', $scope.provider);
+                    } else {
+                        camForm.variableManager.destroyVariable('provider');
+                    }
+                    camForm.variableManager.variableValue('operators', $scope.offnetOperators);
+                    _.forEach($scope.id, function(id) {
+                        id.operators = $scope.offnetOperators;
+                    });
+                } else {
+                    camForm.variableManager.variableValue('operators', $scope.onnetOperators);
+                    _.forEach($scope.id, function(id) {
+                        id.operators = $scope.onnetOperators;
+                    });
+                }
+                var businessKey = 'IVR_' + $scope.id[0].title + '_' + ("0" + date.getDate().toString()).slice(-2) + ("0" + (date.getMonth() + 1)).toString().slice(-2) + date.getFullYear().toString();
+                camForm.businessKey = businessKey;
+                camForm.variableManager.variableValue('identifiers', $scope.id);
+                if ($scope.shortNumberId) {
+                    camForm.variableManager.variableValue('shortNumberId', $scope.shortNumberId);
+                }
+                if($scope.offnetProviderName){
+                    camForm.variableManager.variableValue('offnetProviderName', $scope.offnetProviderName);
+                }
+                if($scope.offnetProviderBin){
+                    camForm.variableManager.variableValue('offnetProviderBin', $scope.offnetProviderBin);
+                }
+                camForm.variableManager.createVariable({
+                    name: 'resolutions',
+                    type: 'Json',
+                    value: []
+                });
+                camForm.variableManager.variableValue('isPartner', $scope.isPartner);
+            });
+
+            $scope.addIdentifier = function(identifier) {
+                if (identifier) {
+                    if(!_.find($scope.identifier, function (id) { return id.title === identifier; })) {
+                        $scope.identifier.push({'title': identifier, 'operators': []});
+                   }
+                   $scope.newIdentifier = '';
+                }
+            }
+
+            $scope.deleteIdentifier = function(index) {
+                $scope.identifier.splice(index, 1);
+            }
+
+            // $scope.$watch('identifier', function (identifier) {
+            //     if (identifier && identifier.length) {
+            //         $scope.kcell_form.newIdentifier.$setValidity('length', true);
+            //     } else {
+            //         $scope.kcell_form.newIdentifier.$setValidity('length', false);
+            //     }
+            // }, true);
+
+
+        }]);
+
+    </script>
+    <div class="form-group">
+        <h4>Начните процесс подключения</h4>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-4 control-label">Тип трафика:</label>
+        <div class="col-sm-4">
+            <select class="form-control selectpicker" select-picker title="" id="operatorType" name="operatorType"
+                    ng-model="operatorType"
+                    ng-disabled="isPartner"
+                    placeholder="Укажите тип подключения" required>
+                <option style="display:none" value=""></option>
+                <option value="onnet">Onnet</option>
+                <option value="offnet">Offnet\Onnet</option>
+            </select>
+            <label class="error" ng-show="kcell_form.operatorType.$error.required && ( kcell_form.operatorType.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+    <!--<div class="form-group">-->
+        <!--<label class="col-sm-4 control-label">Идентификатор:</label>-->
+        <!--<div class="col-sm-4">-->
+            <!--<div  class="input-group" ng-submit="addIdentifier()">-->
+                <!--<input class="form-control" placeholder="Идентификатор" type="text" name="newIdentifier" ng-model="newIdentifier"/>-->
+                <!--<span class="input-group-btn">-->
+		        	<!--<button class="btn btn-secondary" type="button" ng-click="addIdentifier(newIdentifier)">Добавить</button>-->
+		      	<!--</span>-->
+            <!--</div>-->
+            <!--<label class="error" ng-show="kcell_form.newIdentifier.$error.length && (kcell_form.iin.$touched || view.submitted)">Добавьте хотя бы 1 идентификатор</label>-->
+        <!--</div>-->
+    <!--</div>-->
+
+    <!--<div class="form-group" ng-show="identifier">-->
+        <!--<label class="col-sm-4 control-label"></label>-->
+        <!--<div class="col-sm-8">-->
+			<!--<span class="label label-primary mr-1" ng-repeat="id in identifier">-->
+				<!--{{id.title}}-->
+			    <!--<span class="glyphicon glyphicon-remove" ng-click="deleteIdentifier($index)"></span>-->
+			<!--</span>-->
+        <!--</div>-->
+    <!--</div>-->
+    <div class="form-group">
+        <label class="col-sm-4 control-label">Идентификатор:</label>
+        <div class="col-sm-4">
+            <input class="form-control" id="identifier" name="identifier" required ng-model="identifier">
+            <label class="error" ng-show="kcell_form.identifier.$error.required && ( kcell_form.identifier.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+    <div class="form-group" ng-show="operatorType === 'offnet'">
+        <label class="col-sm-4 control-label">Провайдер:</label>
+        <div class="col-sm-4">
+            <select class="form-control selectpicker" select-picker title="" id="provider" name="provider" ng-required="operatorType === 'offnet'"
+                    ng-model="provider">
+                <option ng-class="operatorType === 'offnet'? 'hide-default-option' : ''" value=""></option>
+                <option value="SMS Consult">SMS Consult</option>
+                <option value="MMS">MMS</option>
+            </select>
+            <label class="error" ng-show="kcell_form.provider.$error.required && ( kcell_form.provider.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+    <div class="form-check">
+        <input type="checkbox" ng-model="previouslyBought" class="form-check-input" id="check1" cam-variable-type="Boolean" cam-variable-name="previouslyBought">
+        <label class="form-check-label" for="check1">Ранее выкуплен</label>
+    </div>
+</form>

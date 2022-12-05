@@ -1,0 +1,270 @@
+<style>
+	.card-modal-header {
+		background: transparent;
+		color: black;
+		padding: 0 15px 0 15px;
+	}
+</style>
+<div class="card-modal-header">
+	<button type="button" class="close" ng-click="$dismiss()" aria-hidden="true">
+		&times;
+	</button>
+	<h4 style="margin-top: 14px">{{businessKey}}</h4>
+</div>
+<div class="modal-body new-card-search" style="padding-top: 5px">
+	<div class="row">
+		<div class="col-md-4">
+			<div class="row">
+				<div class="col-md-8">
+					<span ng-if="jobModel.state" class="block-headers"
+						>Status: {{getStatus(jobModel.state,
+						jobModel.acceptPerformedJob.value)}}</span
+					>
+				</div>
+				<div class="col-md-4">
+					<div
+						class="dropdown"
+						style="position: absolute; right: 15px; top: -6px"
+					>
+						<button
+							class="btn btn-default dropdown-toggle"
+							type="button"
+							data-toggle="dropdown"
+						>
+							More <span class="caret"></span>
+						</button>
+						<ul class="dropdown-menu">
+							<li ng-if="hasGroup('kcellUsers')">
+								<a
+									href=""
+									ng-click="showDiagram(processDefinitionId, jobModel.tasks)"
+									class="ng-binding"
+									><span
+										class="glyphicon glyphicon-indent-left"
+										aria-hidden="true"
+									></span>
+									Diagram</a
+								>
+							</li>
+							<li>
+								<a
+									href=""
+									ng-click="showHistory(jobModel.resolutions.value, jobModel.processDefinitionKey)"
+									class="ng-binding"
+									><span
+										class="glyphicon glyphicon-list-alt"
+										aria-hidden="true"
+									></span>
+									History
+								</a>
+							</li>
+						</ul>
+					</div>
+				</div>
+			</div>
+			<div class="row">
+				<div class="col-md-12">
+					<div class="panel panel-default" style="margin: 18px 0 0 0">
+						<div class="panel-heading block-headers">Details</div>
+						<div
+							class="panel-body"
+							style="padding: 10px 0 10px 0; word-break: break-word"
+						>
+							<div class="form-group">
+								<div class="col-sm-12">
+									<b>Initiator</b>: {{jobModel.initiatorFull.value.firstName}}
+									{{jobModel.initiatorFull.value.lastName}}
+								</div>
+								<div class="col-sm-12">
+									<b>Contract</b>: {{jobModel.contract.value.name}}
+								</div>
+								<div class="col-sm-12">
+									<b>Contractor</b>: {{jobModel.contractor.value.name}}
+								</div>
+								<div class="col-sm-12">
+									<b>JR Type</b>: {{jobModel.jrType.value.name}}
+								</div>
+								<div class="col-sm-12">
+									<b>JR Reason</b>: {{jobModel.jrReason.value.name}}
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="row">
+				<div class="col-md-12">
+					<ul class="nav nav-stacked" id="accordion1">
+						<li class="panel panel-default" style="margin: 0">
+							<a
+								data-toggle="collapse"
+								data-parent="#accordion1"
+								href="#firstLink"
+								style="background-color: #f5f5f5"
+								class="block-headers"
+								>User Tasks</a
+							>
+
+							<ul id="firstLink" class="collapse in ul-padding">
+								<div ng-repeat="task in jobModel.tasks">
+									<div class="task">
+										<h5>
+											<a
+												ng-if="hasGroup('revision_managers') || hasGroup('revision_audit')"
+												ui-sref="tasks.task({id:task.id})"
+												target="_blank"
+												>{{ (task.name || task.id) }}</a
+											>
+										</h5>
+										<h5>
+											<span
+												ng-if="!(hasGroup('revision_managers') || hasGroup('revision_audit'))"
+												ui-sref="tasks.task({id:task.id})"
+												target="_blank"
+												>{{ (task.name || task.id) }}</span
+											>
+										</h5>
+										<div class="card-task-descr" ng-if="task.description">
+											{{ task.description }}
+										</div>
+										<small class="text-muted" ng-if="task.group">
+											Group:
+											<a ng-click="showGroupDetails(task.group)"
+												>{{task.group}}</a
+											>
+										</small>
+										<br />
+										<small class="text-muted" ng-if="task.assignee"
+											>{{ task.assigneeObject.firstName }} {{
+											task.assigneeObject.lastName }}
+										</small>
+										<small class="text-muted" ng-if="!task.assignee"
+											>Unassigned</small
+										>
+									</div>
+								</div>
+							</ul>
+						</li>
+					</ul>
+				</div>
+			</div>
+		</div>
+		<div class="col-md-8">
+			<div class="row">
+				<label class="col-sm-3">Site:</label>
+				<div class="col-sm-3">
+					<div>{{jobModel.Site_Name.value}}</div>
+				</div>
+			</div>
+			<div class="row">
+				<label class="col-sm-3">Region:</label>
+				<div class="col-sm-3">
+					<div>{{jobModel.siteRegionShow.value}}</div>
+				</div>
+			</div>
+			<div class="row">
+				<label class="col-sm-3">Site Address:</label>
+				<div class="col-sm-5">
+					<div style="height: auto">{{jobModel.address.value}}</div>
+				</div>
+			</div>
+			<div class="row">
+				<label class="col-sm-3">JR Ordered date:</label>
+				<div class="col-sm-5">
+					<div>{{jobModel.jrOrderedDate.value | date: 'dd/MM/yyyy'}}</div>
+				</div>
+			</div>
+			<div class="row">
+				<label class="col-sm-3">Validity date:</label>
+				<div class="col-sm-5">
+					<div>{{jobModel.validityDate.value | date: 'dd/MM/yyyy'}}</div>
+				</div>
+			</div>
+			<div class="row">
+				<label class="col-sm-3">Acceptance date:</label>
+				<div class="col-sm-5">
+					<div></div>
+				</div>
+			</div>
+
+			<h4>Work list</h4>
+			<div class="col-sm-12">
+				<div class="row">
+					<table class="table table-condensed">
+						<thead>
+							<tr>
+								<th width="5%">№</th>
+								<th width="42%">Type</th>
+								<th width="10%">Unit</th>
+								<th width="10%">Quantity</th>
+								<th width="10%">Price value</th>
+								<th width="8%">Sum</th>
+								<th width="15%">Refers to</th>
+							</tr>
+						</thead>
+						<tbody ng-repeat="job in jobModel.jobs.value">
+							<tr>
+								<td>
+									<span ng-if="job.title">{{job.num}}</span>
+								</td>
+								<td>
+									<span ng-if="job.title">{{job.title}}</span>
+								</td>
+								<td>
+									<span ng-if="job.title">{{job.materialUnit}}</span>
+								</td>
+								<td>
+									<span ng-if="job.title">{{job.quantity}}</span>
+								</td>
+								<td>
+									<span ng-if="job.title">{{job.materialPrice}}</span>
+								</td>
+								<td>
+									<span ng-if="job.title">{{job.materialSum}}</span>
+								</td>
+								<td>
+									<span ng-if="job.referedWorks != ''">{{job.refersTo}}</span>
+									<span ng-if="job.referedWorks == ''">-</span>
+								</td>
+							</tr>
+						</tbody>
+						<tfoot>
+							<tr>
+								<td colspan="5"></td>
+								<td colspan="3">
+									<label style="color: rebeccapurple"> Total: </label>
+									<span><b>{{jobModel.worksTotalSum.value}}</b></span>
+								</td>
+							</tr>
+						</tfoot>
+					</table>
+				</div>
+			</div>
+			<div class="row">
+				<label class="col-sm-5"> <b>Attachments:</b></label>
+			</div>
+			<div class="row">
+				<div class="col-sm-5">
+					<iframe id="fileDownloadIframe" style="display: none"></iframe>
+					<div
+						class="col-md-12"
+						ng-repeat="file in jobModel.attachedFiles.value"
+					>
+						<a ng-click="download(file)">{{file.name}}</a>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+<div class="modal-footer" id="modal-footer">
+	<button
+		type="button"
+		class="btn btn-default"
+		style="float: right"
+		ng-click="$dismiss()"
+	>
+		Close
+	</button>
+</div>

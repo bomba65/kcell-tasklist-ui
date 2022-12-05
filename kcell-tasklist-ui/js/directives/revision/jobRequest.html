@@ -1,0 +1,293 @@
+<div class="well" style="{{jobModel.priority.value == 'emergency'? 'background-color: #fb8784;':''}}">
+    <div class="row">
+        <div class="col-sm-12"><b>Site</b>: {{jobModel.site_name.value}}</div>
+        <div class="col-sm-12"><b>Site Address</b>: {{jobModel.siteAddress.value}}</div>
+    </div>
+    <div class="row">
+        <div class="col-xs-4 col-md-4"><b>Initiator</b>: {{jobModel.initiatorFull.value.firstName}} {{jobModel.initiatorFull.value.lastName}}</div>
+    	<div class="col-xs-4 col-md-4"><b>JR Number</b>: {{jobModel.jrNumber.value}}</div>
+        <div class="col-xs-4 col-md-4"><b>Priority</b>: {{jobModel.priority.value == 'emergency'?'Emergency':'Regular'}}</div>
+    </div>
+    <div class="row">
+        <div class="col-xs-4 col-md-4" ng-if="requestedDate < compareDate"><b>Requested date</b>: {{jobModel.requestedDate.value | date: 'dd.MM.yyyy HH:mm'}}</div>
+        <div class="col-xs-4 col-md-4" ng-if="requestedDate >= compareDate"><b>Job Request date</b>: {{jobModel.contractorJobAssignedDate.value | date: 'dd.MM.yyyy HH:mm'}}</div>
+        <div class="col-xs-4 col-md-4"><b>Reason</b>: {{jobModel.reasonsTitle[jobModel.reason.value]}}</div>
+        <div class="col-xs-4 col-md-4"><b>Materials required</b>: {{jobModel.materialsRequired.value}}</div>
+    </div>
+    <div class="row">
+        <div class="col-xs-4 col-md-4"><b>Validity date</b>: {{jobModel.validityDate.value | date: 'dd.MM.yyyy'}}</div>
+        <div class="col-xs-4 col-md-4"><b>Contract</b>: {{jobModel.mainContract.value === 'Roll-outRevision2020' ? 'Roll-out and Revision 2020' : jobModel.mainContract.value === 'emergencyRevision2022' ? 'Emergency Revision 2022': jobModel.mainContract.value === '2022Work-agreement' ? 'Договор Подряда на Выполнение Работ 2022':jobModel.mainContract.value}}</div>
+        <div class="col-xs-4 col-md-4"><b>Leasing required</b>: {{jobModel.leasingRequired.value}}</div>
+    </div>
+    <div class="row">
+        <div class="col-xs-4 col-md-4"><b>SA&O Complaint Id</b>: {{jobModel.soaComplaintId.value}}</div>
+        <div class="col-xs-4 col-md-4"><b>Contractor</b>: {{jobModel.contractorsTitle[jobModel.contractor.value]}}</div>
+        <div class="col-xs-4 col-md-4"><b>Site (near end)</b>: {{jobModel.siteName.value}}</div>
+    </div>
+    <div class="row">
+        <div class="col-xs-4 col-md-4"><b>Power engineering required</b>: {{jobModel.powerRequired.value}}</div>
+        <div class="col-xs-4 col-md-4"><b>Project</b>: {{jobModel.project.value}}</div>
+        <div class="col-xs-4 col-md-4"><b>Site Name</b>: {{jobModel.site_name.value}}</div>
+    </div>
+    <div class="row">
+        <div class="col-xs-4 col-md-4"><b>Perform date</b>: {{jobModel.performDate.value | date: 'dd.MM.yyyy'}}</div>
+        <div class="col-xs-4 col-md-4"><b>Acceptance date</b>: {{jobModel.acceptanceDate.value | date: 'dd.MM.yyyy'}}</div>
+    </div>
+    <div class="row" ng-if="jobModel.monthActNumber.value || jobModel.invoiceNumber.value">
+        <div class="col-xs-4 col-md-4" ng-if="jobModel.monthActNumber.value"><b>Monthly Act Number</b>: #{{jobModel.monthActNumber.value}}</div>
+        <div class="col-xs-4 col-md-4" ng-if="jobModel.invoiceNumber.value"><b>Invoice Number</b>: #{{jobModel.invoiceNumber.value}} dated {{jobModel.invoiceDate.value | date:'dd.MM.yyyy'}} </div>
+    </div>
+    <div class="row" ng-if="jobModel.processTechnicalUpdates.value && (hasGroup('revision_managers') || hasGroup('revision_audit'))">
+        <div class="col-md-12"><b>Technical updates</b>: {{jobModel.processTechnicalUpdates.value}}</div>
+    </div>
+    <div class="row" ng-if="jobModel.mainContract.value == 'Revision' && jobModel.delayInfo.value>= 0">
+        <div class="col-xs-4 col-md-4"><b>Delay</b>:
+            <span>{{jobModel.delayInfo.value}} (days)</span>
+            <a ng-show="jobModel.showDelayHint" role="button" data-toggle="collapse" href="#collapseDelayInfo" aria-expanded="false" aria-controls="collapseDelayInfo">
+                <i class="glyphicon glyphicon-question-sign"></i>
+            </a>
+        </div>
+    </div>
+    <div class="row" ng-if="jobModel.mainContract.value == 'Roll-out'">
+        <div class="col-xs-4 col-md-4" ng-if="!jobModel.contains13Work.value && jobModel.rolloutRO2Delay.value >= 0"><b>On-air Delay</b>: {{jobModel.rolloutRO2Delay.value}} (days)</div>
+        <div class="col-xs-4 col-md-4" ng-if="!jobModel.contains13Work.value && jobModel.rolloutRO3Delay.value >= 0"><b>Acceptance Delay</b>: {{jobModel.rolloutRO3Delay.value}} (days)</div>
+        <div class="col-xs-4 col-md-4" ng-if="jobModel.contains13Work.value && jobModel.rolloutRO4Delay.value >= 0"><b>Project preparation works Delay</b>: {{jobModel.rolloutRO4Delay.value}} (days)</div>
+    </div>
+
+    <br/>
+    <div class="row">
+        <div class="col-md-12"><b>Supplementary files</b>:</div>
+        <iframe id="fileDownloadIframe" style="display:none;"></iframe>
+        <div class="col-md-12" ng-repeat="file in jobModel.supplementaryFiles.value track by $index">&nbsp;&nbsp;&nbsp;&nbsp;<a ng-if="isFileVisible(file)" ng-click="download(file)">{{file.name}}</a></div>
+    </div>
+    <br/>
+    <div class="row">
+        <div class="col-md-12"><b>Works</b>:</div>
+        <div class="col-md-12" ng-repeat="work in jobModel.jobWorks.value track by $index">&nbsp;&nbsp;&nbsp;&nbsp;{{work.displayServiceName}}, works qty: {{work.quantity}}, materials qty: {{work.materialQuantity}} {{work.materialUnit}}<span ng-if="work.relatedSites.length > 0">, on sites: <ul class="site-list"><li ng-repeat="rs in work.relatedSites">{{rs.site_name}}</li></ul></span>
+        <span ng-if="work.reason">, work request reason: {{jobModel.jobReasonTitleShort[work.reason]}}</span>
+        <span >, materials from: {{work.materialsProvidedBy}}</span>
+            <div class="col-md-12" ng-repeat="file in work.files">
+                <div class="col-md-12" ng-if="file.valueInfo">&nbsp;&nbsp;&nbsp;&nbsp;{{$index+1}}.<a href="/camunda/api/engine/engine/default/{{jobModel.state && jobModel.state == 'COMPLETED'?'history/':''}}variable-instance/{{file.id}}/data">{{file.valueInfo.filename}} (Old version, read only)</a></div>
+                <div class="col-md-12" ng-if="file.value">&nbsp;&nbsp;&nbsp;&nbsp;{{$index+1}}.<a ng-click="download(file.value)">{{file.value.name}}</a></div>
+            </div>
+        </div>
+    </div>
+    <br/>
+    <div class="row">
+        <div class="col-md-12"><b>Explanation of works</b>: {{jobModel.explanation.value}}</div>
+    </div>
+    <div class="row" ng-if="jobModel.sapPRNo.value">
+        <div class="col-md-12"><b>SAP Purchase Request No</b>: {{jobModel.sapPRNo.value}} <a href="{{jobModel.sapPRFileXLS.contentUrl}}" ng-if="false">(Download PR)</a></div>
+    </div>
+    <div class="row" ng-if="jobModel.sapPONo.value">
+        <div class="col-md-12"><b>SAP PO No</b>: {{jobModel.sapPONo.value}}</div>
+    </div>
+    <div class="row" ng-if="jobModel.jrBlank.value.name">
+        <div class="col-md-12"><b>JR Blank:</b> <a ng-click="download(jobModel.jrBlank.value)">{{jobModel.jrBlank.value.name}}</a></div>
+    </div>
+    <div class="row" ng-if="jobModel.jrBlank.contentUrl">
+        <div class="col-md-12"><a href="{{jobModel.jrBlank.contentUrl}}">JR Blank (Old version, read only)</a></div>
+    </div>
+    <div class="row" ng-if="jobModel.kcellWarehouseMaterialsListName.value.name && isFileVisible(jobModel.kcellWarehouseMaterialsListName.value)">
+        <div class="col-md-12"><b>Kcell Warehouse Materials List:</b> <a ng-click="download(jobModel.kcellWarehouseMaterialsListName.value)">{{jobModel.kcellWarehouseMaterialsListName.value.name}}</a></div>
+    </div>
+    <div class="row" ng-if="jobModel.kcellWarehouseMaterialsListName.value && jobModel.kcellWarehouseMaterialsListName.value.length > 0">
+        <div class="col-md-12"><b>Kcell Warehouse Materials List:</b>
+            <a ng-if="isFileVisible(file)" ng-repeat="file in jobModel.kcellWarehouseMaterialsListName.value" ng-click="download(file)">{{file.name}}{{$last?'':', '}}</a>
+        </div>
+    </div>
+    <div class="row" ng-if="jobModel.kcellWarehouseMaterialsList.contentUrl">
+        <div class="col-md-12"><a href="{{jobModel.kcellWarehouseMaterialsList.contentUrl}}">Kcell Warehouse Materials List: <i>{{jobModel.kcellWarehouseMaterialsList.valueInfo.filename}}</i> (Old version, read only)</a></div>
+    </div>
+    <div class="row" ng-if="jobModel.kcellWarehouseMaterialsAdditionalList.value && jobModel.kcellWarehouseMaterialsAdditionalList.value.length>0">
+        <div class="col-md-12"><b>Kcell Warehouse Additional Materials List:</b>
+            <a ng-if="isFileVisible(file)" ng-repeat="file in jobModel.kcellWarehouseMaterialsAdditionalList.value" ng-click="download(file)">{{file.name}}{{$last?'':', '}}</a>
+        </div>
+    </div>
+    <div class="row" ng-if="jobModel.contractorZIPWarehouseMaterialsListName.value.name && isFileVisible(jobModel.contractorZIPWarehouseMaterialsListName.value)">
+        <div class="col-md-12"><b>Contractor ZIP Warehouse Materials List:</b> <a ng-click="download(jobModel.contractorZIPWarehouseMaterialsListName.value)">{{jobModel.contractorZIPWarehouseMaterialsListName.value.name}}</a></div>
+    </div>
+    <div class="row" ng-if="jobModel.contractorZIPWarehouseMaterialsList.contentUrl">
+        <div class="col-md-12"><a href="{{jobModel.contractorZIPWarehouseMaterialsList.contentUrl}}">Contractor ZIP Warehouse Materials List: <i>{{jobModel.contractorZIPWarehouseMaterialsList.valueInfo.filename}}</i>  (Old version, read only)</a></div>
+    </div>
+    <div class="row" ng-if="jobModel.mlApprovalAdditionalInfoFile.value.name && isFileVisible(jobModel.mlApprovalAdditionalInfoFile.value)">
+        <div class="col-md-12"><b>Additional files for ML approval:</b> <a ng-click="download(jobModel.mlApprovalAdditionalInfoFile.value)">{{jobModel.mlApprovalAdditionalInfoFile.value.name}}</a></div>
+    </div>
+    <div class="row" ng-if="jobModel.sapTransferRequestFile.contentUrl">
+        <div class="col-md-12"><a href="{{jobModel.sapTransferRequestFile.contentUrl}}">SAP Transport Request File</a></div>
+    </div>
+    <div class="row" ng-if="jobModel.eLicenseResolutionFile.contentUrl">
+        <div class="col-md-12"><a href="{{jobModel.eLicenseResolutionFile.contentUrl}}">E-License resolution file: <i>{{jobModel.eLicenseResolutionFile.valueInfo.filename}}</i> (Old version, read only)</a></div>
+    </div>
+    <div class="row" ng-if="jobModel.eLicenseResolutionFileName.value.name">
+        <div class="col-md-12"><b>E-License resolution file:</b> <a ng-click="download(jobModel.eLicenseResolutionFileName.value)">{{jobModel.eLicenseResolutionFileName.value.name}}</a></div>
+    </div>
+    <div class="row" ng-if="jobModel.tssrssidFile.contentUrl">
+        <div class="col-md-12"><a href="{{jobModel.tssrssidFile.contentUrl}}">TSSR/SSID: <i>{{jobModel.tssrssidFile.valueInfo.filename}}</i> (Old version, read only)</a></div>
+    </div>
+    <div class="row" ng-if="jobModel.tssrssidFileName.value.name && isFileVisible(jobModel.tssrssidFileName.value)">
+        <div class="col-md-12"><b>TSSR/SSID:</b> <a ng-click="download(jobModel.tssrssidFileName.value)">{{jobModel.tssrssidFileName.value.name}}</a></div>
+    </div>
+    <div class="row" ng-repeat="trFile in jobModel.trFiles.value">
+        <div class="col-md-12">
+            <a ng-if="jobModel.currentTask.id" href="/camunda/api/engine/engine/default/task/{{jobModel.currentTask.id}}/variables/{{'trFile'+$index}}/data">TR File # {{trFile.id}}: <i>{{jobModel['trFile'+$index].valueInfo.filename}}</i> (Old version, read only)</a>
+            <a ng-if="!jobModel.currentTask.id" href="/camunda/api/engine/engine/default/{{jobModel.state && jobModel.state == 'COMPLETED'?'history/':''}}variable-instance/{{jobModel['trFile'+$index].id}}/data">TR File # {{trFile.id}}: <i>{{jobModel['trFile'+$index].valueInfo.filename}}</i> (Old version, read only)</a>
+        </div>
+    </div>
+    <div ng-if="jobModel.trFilesName.value && jobModel.trFilesName.value.length > 0">
+        <div class="row" ng-repeat="trFile in jobModel.trFilesName.value">
+            <div class="col-md-12">
+                <b>TR File #{{trFile.description}}</b>
+                <a ng-if="isFileVisible(trFile)" ng-click="download(trFile)">{{trFile.name}}</a>
+                <b> Warehouse:</b> {{getDictNameById(jobModel.warehouses,trFile.warehouse).name}}
+            </div>
+        </div>
+    </div>
+    <div ng-if="jobModel.trAdditionalFilesName.value && jobModel.trAdditionalFilesName.value.length > 0">
+        <div class="row" ng-repeat="trFile in jobModel.trAdditionalFilesName.value">
+            <div class="col-md-12">
+                <b>TR Additional File #{{trFile.description}}</b>
+                <a ng-if="isFileVisible(trFile)" ng-click="download(trFile)">{{trFile.name}}</a>
+                <b> Warehouse:</b> {{getDictNameById(jobModel.warehouses,trFile.warehouse).name}}
+            </div>
+        </div>
+    </div>
+    <div class="row" ng-if="jobModel.actOfMaterialsDispatchingFile.contentUrl">
+        <div class="col-md-12"><a href="{{jobModel.actOfMaterialsDispatchingFile.contentUrl}}">Act of Materials Dispatching file: <i>{{jobModel.actOfMaterialsDispatchingFile.valueInfo.filename}}</i> (Old version, read only)</a></div>
+    </div>
+    <div class="row" ng-if="jobModel.actOfMaterialsDispatchingFileName.value.name && isFileVisible(jobModel.actOfMaterialsDispatchingFileName.value)">
+        <div class="col-md-12"><b>Act of Materials Dispatching file: </b><a ng-click="download(jobModel.actOfMaterialsDispatchingFileName.value)">{{jobModel.actOfMaterialsDispatchingFileName.value.name}}</a></div>
+    </div>
+    <div ng-if="jobModel.actOfMaterialsDispatchingFiles.value">
+        <div class="row" ng-repeat="file in jobModel.actOfMaterialsDispatchingFiles.value">
+            <div class="col-md-12">
+                <b>Act of Materials Dispatching file [{{file.uploader}}]: </b>
+                <a ng-if="isFileVisible(file)" ng-click="download(file)">
+                    {{file.name}}
+                </a>
+            </div>
+        </div>
+    </div>
+    <div class="row" ng-if="jobModel.initiatorFiles.value && jobModel.initiatorFiles.value.length>0">
+        <div class="col-md-12"><b>Initiator file(s):</b>
+            <a ng-if="isFileVisible(file.value)" ng-repeat="file in jobModel.initiatorFiles.value" ng-click="download(file.value)">{{file.value.name}}{{$last?'':', '}}</a>
+        </div>
+    </div>
+    <div class="row" ng-if="jobModel.maintananceFiles.value && jobModel.maintananceFiles.value.length>0">
+        <div class="col-md-12"><b>Maintanance file(s):</b>
+            <a ng-if="isFileVisible(file.value)" ng-repeat="file in jobModel.maintananceFiles.value" ng-click="download(file.value)">{{file.value.name}}{{$last?'':', '}}</a>
+        </div>
+    </div>
+    <div class="row" ng-if="jobModel.planningFiles.value && jobModel.planningFiles.value.length>0">
+        <div class="col-md-12"><b>Planning file(s):</b>
+            <a ng-if="isFileVisible(file.value)" ng-repeat="file in jobModel.planningFiles.value" ng-click="download(file.value)">{{file.value.name}}{{$last?'':', '}}</a>
+        </div>
+    </div>
+    <div class="row" ng-if="jobModel.scanCopyFile && jobModel.scanCopyFile.value">
+        <div class="col-md-12"><b>Attached scan copy:</b>
+            <a ng-click="download(jobModel.scanCopyFile.value.value)">{{jobModel.scanCopyFile.value.value.name}}</a>
+        </div>
+    </div>
+</div>
+
+<div class="collapse" id="collapseDelayInfo" ng-show="jobModel.showDelayHint">
+    <div class="well">
+        <h4>Delay Info Calculations</h4>
+        <table class="table ">
+            <tbody>
+                <tr>
+                    <td><b>Revision</b></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td><b>Region</b></td>
+                    <td><b>Calculation</b></td>
+                </tr>
+                <tr>
+                    <td><b>Conditions:</b></td>
+                    <td><b>Alarms elimination require</b></td>
+                </tr>
+                <tr>
+                    <td>Almaty</td>
+                    <td>Delay = Job Acceptance Date - Job Request Date - (8 business day + holidays)</td>
+                </tr>
+                <tr>
+                    <td>South</td>
+                    <td>Delay = Job Acceptance Date - Job Request Date - (8 business day + holidays)</td>
+                </tr>
+                <tr>
+                    <td>North</td>
+                    <td>Delay = Job Acceptance Date - Job Request Date - (8 business day + holidays)</td>
+                </tr>
+                <tr>
+                    <td>West</td>
+                    <td>Delay = Job Acceptance Date - Job Request Date - (8 business day + holidays)</td>
+                </tr>
+                <tr>
+                    <td></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td><b>Region</b></td>
+                    <td><b>Calculation</b></td>
+                </tr>
+                <tr>
+                    <td><b>Conditions:</b></td>
+                    <td><b>Alarms elimination not require + with Mterials from customer</b></td>
+                </tr>
+                <tr>
+                    <td>Almaty</td>
+                    <td>Delay = Job Acceptance Date - Material List signed Date - (7 business days + holidays)</td>
+                </tr>
+                <tr>
+                    <td>South</td>
+                    <td>Delay = Job Acceptance Date - Material List signed Date - (10 business days + holidays)</td>
+                </tr>
+                <tr>
+                    <td>North</td>
+                    <td>Delay = Job Acceptance Date - Material List signed Date - (10 business days + holidays)</td>
+                </tr>
+                <tr>
+                    <td>East</td>
+                    <td>Delay = Job Acceptance Date - Material List signed Date - (13 business days + holidays)</td>
+                </tr>
+                <tr>
+                    <td>West</td>
+                    <td>Delay = Job Acceptance Date - Material List signed Date - (15 business days + holidays)</td>
+                </tr>
+                <tr>
+                    <td></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td><b>Region</b></td>
+                    <td><b>Calculation</b></td>
+                </tr>
+                <tr>
+                    <td><b>Conditions:</b></td>
+                    <td><b>Alarms elimination not require + w/o Mterials from customer</b></td>
+                </tr>
+                <tr>
+                    <td>Almaty</td>
+                    <td>Delay = Job Acceptance Date - Job Request Date - (5 business days + holidays)</td>
+                </tr>
+                <tr>
+                    <td>South</td>
+                    <td>Delay = Job Acceptance Date - Job Request Date - (5 business days + holidays)</td>
+                </tr>
+                <tr>
+                    <td>North</td>
+                    <td>Delay = Job Acceptance Date - Job Request Date - (5 business days + holidays)</td>
+                </tr>
+                <tr>
+                    <td>East</td>
+                    <td>Delay = Job Acceptance Date - Job Request Date - (5 business days + holidays)</td>
+                </tr>
+                <tr>
+                    <td>West</td>
+                    <td>Delay = Job Acceptance Date - Job Request Date - (5 business days + holidays)</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>

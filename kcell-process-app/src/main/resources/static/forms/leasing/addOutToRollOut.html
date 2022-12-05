@@ -1,0 +1,111 @@
+<form role="form" class="form-horizontal" name="kcell_form" novalidate>
+    <script cam-script type="text/form-script" type="text/javascript">
+        inject(['$scope', '$http', 'Uri', '$rootScope', '$q', '$timeout', function ($scope, $http, Uri, $rootScope, $q, $timeout) {
+            var variables = [
+                'resolutions',
+                'ncpID',
+                'siteType',
+                'regionName',
+                'latitude',
+                'longitude',
+                'initiator',
+                'project',
+                'reason',
+                'part',
+                'plannedCabinetType',
+                'targetCoverage',
+                'rbsType',
+                'bands'
+            ];
+
+            camForm.on('form-loaded', function () {
+                variables.forEach(function (el) {
+                    camForm.variableManager.fetchVariable(el);
+                });
+                $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
+                        function(result){
+                            $scope.processInstanceId = result.data.processInstanceId;
+                            $http.get('/camunda/api/engine/engine/default/process-instance/' + $scope.processInstanceId).then(
+                                function(result){
+                                    console.log('process-instance/')
+                                    console.log(result.data)
+                                    $scope.businessKey = result.data.businessKey;
+                                },
+                                function (error) {console.log(error.data);}
+                            );
+                        },
+                        function (error) {
+                            console.log(error.data);
+                        }
+                );
+                $scope.leasingInfo = [];
+                $scope.leasingInfo.files = [];
+            });
+
+            camForm.on('variables-fetched', function () {
+                variables.forEach(function (el) {
+                    if(camForm.variableManager.variables[el].value){
+                        $scope[el] = camForm.variableManager.variables[el].value;
+                        $scope.leasingInfo[el] = camForm.variableManager.variables[el].value;
+                    }
+                });
+                camForm.variableManager.createVariable({
+                    name: 'addOutToRollOutTaskResult',
+                    type: 'String',
+                    value: ''
+                });
+
+                camForm.variableManager.createVariable({
+                    name: 'addOutToRollOutTaskComment',
+                    type: 'String',
+                    value: ''
+                });
+
+                $scope.addOutToRollOutTaskResult = '';
+            });
+
+            camForm.on('submit', function () {
+                camForm.variableManager.variableValue('addOutToRollOutTaskResult', $scope.addOutToRollOutTaskResult);
+                camForm.variableManager.variableValue('addOutToRollOutTaskComment', $scope.addOutToRollOutTaskComment);
+                camForm.variableManager.destroyVariable('resolutions');
+
+                if(camForm.variableManager.variables['planingInput']){
+                    camForm.variableManager.variableValue('planingInput', 'notFromStart');
+                } else {
+                    camForm.variableManager.createVariable({
+                        name: 'planingInput',
+                        type: 'String',
+                        value: 'notFromStart'
+                    });
+                }
+            });
+        }]);
+
+    </script>
+    <div class="form-group">
+        <label class="col-sm-12 control-label">
+            <p/> <b>Business key: </b>{{businessKey}}
+        </label>
+    </div>
+    <leasing-detail leasing-info="leasingInfo"></leasing-detail>
+    <div class="form-group">
+        <label class="col-sm-4 control-label">Resolution:</label>
+        <div class="col-sm-8">
+            <label class="radio-inline">
+                <input type="radio" name="addOutToRollOutTaskResult" ng-model="addOutToRollOutTaskResult" value="approved" required> Roll Out
+            </label>
+            <label class="radio-inline">
+                <input type="radio" name="addOutToRollOutTaskResult" ng-model="addOutToRollOutTaskResult" value="rejected" required> Out of Roll Out (Close process)
+            </label>
+            <label class="error" ng-show="kcell_form.addOutToRollOutTaskResult.$error.required && ( kcell_form.addOutToRollOutTaskResult.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label class="col-sm-4 control-label">Comments:</label>
+        <div class="col-sm-8">
+            <textarea ng-required="addOutToRollOutTaskResult==='rejected'" class="form-control" ng-model="addOutToRollOutTaskComment" name="addOutToRollOutTaskComment" placeholder="Comments..." maxlength="500" rows="4" style="resize:none"></textarea>
+            <label class="error" ng-show="kcell_form.addOutToRollOutTaskComment.$error.required && ( kcell_form.addOutToRollOutTaskComment.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+</form>

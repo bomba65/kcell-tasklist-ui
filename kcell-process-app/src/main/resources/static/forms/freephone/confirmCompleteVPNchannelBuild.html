@@ -1,0 +1,166 @@
+<form role="form" class="form-horizontal" name="kcell_form" novalidate>
+    <script cam-script type="text/form-script">
+        inject(['$scope', '$http', 'Uri', '$rootScope', '$q', '$timeout', function ($scope, $http, Uri, $rootScope, $q, $timeout) {
+            var variables = [
+                'resolutions',
+                'identifiers',
+                'connectionType',
+                'transmitNumber',
+                'ipNumber',
+                'applicationScanCopyFileName',
+                'vpnQuestionnaireFileName',
+                'abonentTarif',
+                'description',
+                'techSpecNumber',
+                'techSpecFIO',
+                'officialClientCompanyName',
+                'clientCompanyLatName',
+                'addressATS',
+                'coordinates',
+                'priority',
+                'provider',
+                'clientBIN',
+                'techSpecEmail',
+                'startDate',
+                'contractNumber',
+                'previouslyBought',
+                'finalIDs',
+                'buildingOwner',
+                'channelKLM',
+                'operatorType',
+                'responsibleB2BDelivery',
+                'responsibleB2BSales',
+                'ipNumberAlt',
+                'port'
+            ];
+
+            camForm.on('form-loaded', function () {
+                variables.forEach(function (el) {
+                    camForm.variableManager.fetchVariable(el);
+                });
+                $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
+                        function(result){
+                            $scope.processInstanceId = result.data.processInstanceId;
+                        },
+                        function (error) {
+                            console.log(error.data);
+                        }
+                );
+                $scope.freephoneInfo = {};
+                $scope.freephoneInfo.files = [];
+            });
+
+            camForm.on('variables-fetched', function () {
+                variables.forEach(function (el) {
+                    if (el === 'resolutions') {
+                        if (camForm.variableManager.variables[el].value) {
+                            $scope.resolutions = angular.copy(camForm.variableManager.variables[el].value);
+                            camForm.variableManager.destroyVariable(el);
+                        }
+                    } else if (el === 'applicationScanCopyFileName' || el === 'vpnQuestionnaireFileName') {
+                        $scope[el] = camForm.variableManager.variables[el].value;
+                        $scope.freephoneInfo.files.push(camForm.variableManager.variables[el].value);
+                    } else {
+                        $scope[el] = camForm.variableManager.variables[el].value;
+                        $scope.freephoneInfo[el] = camForm.variableManager.variables[el].value;
+                    }
+                });
+                $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name+ "/profile").then(function(result){
+                    $rootScope.authentication.assigneeName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
+                });
+                $scope.freephoneInfo.showTarif = true;
+                console.log($scope.freephoneInfo);
+                console.log($scope.freephoneInfo.files);
+
+                camForm.variableManager.createVariable({
+                    name: 'confirmCompleteVPNchannelBuildTaskResult',
+                    type: 'String',
+                    value: ''
+                });
+
+                camForm.variableManager.createVariable({
+                    name: 'confirmCompleteVPNchannelBuildTaskComment',
+                    type: 'String',
+                    value: ''
+                });
+
+                $scope.confirmCompleteVPNchannelBuildTaskResult = '';
+            });
+
+            camForm.on('submit', function () {
+                $scope.confirmCompleteVPNchannelBuildTaskResult = 'Completed';
+                camForm.variableManager.variableValue('confirmCompleteVPNchannelBuildTaskResult', $scope.confirmCompleteVPNchannelBuildTaskResult);
+                camForm.variableManager.variableValue('confirmCompleteVPNchannelBuildTaskComment', $scope.confirmCompleteVPNchannelBuildTaskComment);
+            });
+
+            $scope.download = function (file) {
+                console.log(file);
+                $http({method: 'GET', url: '/camunda/uploads/tmp/get/' + file.path, transformResponse: [] }).
+                then(function(response) {
+                    document.getElementById('fileDownloadIframe').src = response.data;
+                }, function(error){
+                    console.log(error.data);
+                });
+            }
+
+            $scope.fileSelected = function(el, fileName){
+                if(el.files[0]){
+                    $timeout(function () {
+                        $scope.$apply(function () {
+                            uploadFileToMinio(el.files[0], fileName);
+                        });
+                    })                } else {
+                    $scope.$apply(function(){
+                        $scope[fileName] = undefined;
+                    });
+                }
+            };
+
+            function uploadFileToMinio(file, fileName) {
+                var fileValue = {
+                    name: file.name.replace(/[/\\?%*:|"<>]/g, '-'),
+                    path: uuid + '/' + file.name.replace(/[/\\?%*:|"<>]/g, '-')
+                };
+                $http({method: 'GET', url: '/camunda/uploads/tmp/put/' + fileValue.path, transformResponse: [] }).
+                then(function(response) {
+                    $http.put(response.data, file, {headers: {'Content-Type': undefined}}).then(
+                            function () {
+                                $scope[fileName] = fileValue;
+                                angular.element(document.querySelector('#'+fileName)).val(null);
+                            },
+                            function (error) {
+                                console.log(error.data);
+                            }
+                    );
+                }, function(error){
+                    console.log(error.data);
+                });
+            }
+
+            $scope.clearFile = function(filename){
+                delete $scope[filename];
+            };
+
+        }]);
+
+    </script>
+    <info-freephone freephone-info="freephoneInfo"></info-freephone>
+    <!--<div class="form-group">-->
+        <!--<label class="col-sm-4 control-label">Опросник по VPN:</label>-->
+        <!--<div class="col-sm-8">-->
+            <!--<div ng-show="vpnQuestionnaireFileName.name">-->
+                <!--<a ng-click="download(vpnQuestionnaireFileName)">{{vpnQuestionnaireFileName.name}}</a> | <a ng-click="clearFile('vpnQuestionnaireFileName')"><i class="glyphicon glyphicon-trash"></i></a>-->
+            <!--</div>-->
+            <!--<input ng-hide="vpnQuestionnaireFileName.name" type="file" class="form-control" id="vpnQuestionnaireFileName" name="vpnQuestionnaireFileName" ng-model="vpnQuestionnaireFileName"-->
+                   <!--onchange="angular.element(this).scope().fileSelected(this, 'vpnQuestionnaireFileName')"/>-->
+            <!--<label class="has-error" ng-show="kcell_form.vpnQuestionnaireFileName.$error.validFile && ( kcell_form.vpnQuestionnaireFileName.$touched || view.submitted)">File is required</label>-->
+        <!--</div>-->
+    <!--</div>-->
+    <div class="form-group">
+        <label class="col-sm-3 control-label">Комментарии</label>
+        <div class="col-sm-9">
+            <textarea class="form-control" ng-model="confirmCompleteVPNchannelBuildTaskComment" name="confirmCompleteVPNchannelBuildTaskComment" placeholder="Comments..." maxlength="500" rows="4" style="resize:none"></textarea>
+            <label class="error" ng-show="kcell_form.confirmCompleteVPNchannelBuildTaskComment.$error.required && ( kcell_form.confirmCompleteVPNchannelBuildTaskComment.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+</form>

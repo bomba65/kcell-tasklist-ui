@@ -1,0 +1,193 @@
+<div class="row layout-row">
+	<style>
+		table.report {
+			border: 1px solid darkgray;
+			/*table-layout: fixed;*/
+			border-collapse: collapse;
+			font-size: smaller;
+		}
+
+		table.report th {
+			border: 1px solid darkgray;
+			border-collapse: collapse;
+			padding: 2px 4px;
+		}
+
+		table.report td {
+			border: 1px solid darkgray;
+			border-collapse: collapse;
+			padding: 2px 4px;
+		}
+
+		table.report tr.substatus {
+			background-color: #e4e4e4;
+		}
+
+		table.report td.center {
+			text-align: center;
+		}
+		table.report th.center {
+			text-align: center;
+		}
+		table.report thead {
+			background-color: #c2baf5;
+		}
+
+		table.report td.bold {
+			font-weight: bold;
+		}
+	</style>
+	<div class="col-md-12 no-float right left-wrapper" ng-show="currentView == 'statistics'">
+		<div class="currentTask" style="padding-top: 15px;">
+			<div class="scrollcontainer">
+				<div class="scrollable">
+					<div class="page-body container-fluid">
+						<h3>Rollout Works Statistics</h3>						
+						<h3> </h3>
+						<div class="form-group">
+            				<label class="col-sm-1 control-label">Project:</label>
+							<div class="col-sm-2">
+				                <select class="form-control" id="project" name="project" ng-model="project">
+				                	<option value="">All</option>
+				                    <option ng-repeat="pr in dictionary.projectList" ng-value="pr.id">{{pr.name}}</option>
+				                </select>
+							</div>
+							<div class="col-sm-9" pull-right>
+								<button type="button" class="btn btn-default pull-right" ng-click="getRolloutXlsx('rolloutMainStatistics')">Prepare Excell</button>
+							</div>
+				        </div>
+
+						<table class="report" id="rolloutMainStatistics">
+							<thead>
+								<tr>
+									<th>Rollout Process status</th>
+									<th class="center">Almaty</th>
+									<th class="center">Astana</th>
+									<th class="center">North &amp; Central</th>
+									<th class="center">East</th>
+									<th class="center">South</th>
+									<th class="center">West</th>
+									<th class="center">Ericsson</th>
+									<th class="center">ZTE</th>
+									<th class="center">Total</th>
+								</tr>
+							</thead>
+							<tbody>
+								<tr>
+									<td class="bold">Approved NCP</td>
+									<td class="center" ng-repeat="r in regions" ng-class="{bold: (fullPIDsByRegions[r.id] || onAirFullPIDsByRegions[r.id])}">
+										<a ng-click="showTable('Approved NCP', r.name, fullPIDsByRegions[r.id], onAirFullPIDsByRegions[r.id])">
+											{{(fullPIDsByRegions[r.id].length || 0) + (onAirFullPIDsByRegions[r.id].length || 0)}}
+										</a>
+								 	</td>
+								</tr>
+							</tbody>
+							<tbody ng-repeat="gs in generalStatuses">
+							<tr>
+								<td class="bold">{{gs.name}}</td>
+								<td class="center" ng-repeat="r in regions" ng-class="{bold: (gs.id === 'On-Air' &&  fullPIDsByRegions[r.id].generalStatuses[gs.id]) || (gs.id !== 'On-Air' && (fullPIDsByRegions[r.id].generalStatuses[gs.id] || onAirFullPIDsByRegions[r.id]))}">
+									<a ng-if="gs.id === 'On-Air'" ng-click="showTable(gs.name, r.name, fullPIDsByRegions[r.id].generalStatuses[gs.id], onAirFullPIDsByRegions[r.id])">
+										{{    (fullPIDsByRegions[r.id].generalStatuses[gs.id].length || 0) 
+											+ (onAirFullPIDsByRegions[r.id].length || 0)
+										}}
+									</a>
+									<a ng-if="gs.id !== 'On-Air'" ng-click="showTable(gs.name, r.name, fullPIDsByRegions[r.id].generalStatuses[gs.id])">
+										{{    
+											fullPIDsByRegions[r.id].generalStatuses[gs.id].length || 0
+										}}
+									</a>									
+								</td>
+							</tr>
+							<tr class="substatus" ng-repeat="ss in gs.substatuses">
+								<td>&nbsp;&nbsp;{{ss.name}}</td>
+								<td class="center" ng-repeat="r in regions" ng-class="{bold: fullPIDsByRegions[r.id].generalStatuses[gs.id].substatuses[ss.id]}">
+									<a ng-click="showTable(ss.name, r.name, fullPIDsByRegions[r.id].generalStatuses[gs.id].substatuses[ss.id])">
+										{{fullPIDsByRegions[r.id].generalStatuses[gs.id].substatuses[ss.id].length || 0}}
+									</a>
+								</td>
+							</tr>								
+							</tbody>
+							<tbody>
+								<tr>
+									<td class="bold">NCP Rejected</td>
+									<td class="center" ng-repeat="r in regions" ng-class="{bold: rejectedFullPIDsByRegions[r.id]}">
+										<a ng-click="showTable('NCP Rejected', r.name, rejectedFullPIDsByRegions[r.id])">
+											{{    
+												rejectedFullPIDsByRegions[r.id].length || 0
+											}}
+										</a>
+								 	</td>
+								</tr>
+							</tbody>							
+						</table>						
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="col-md-12 no-float right left-wrapper" ng-show="currentView == 'table'">
+		<div class="currentTask" style="padding-top: 15px;">
+			<div class="scrollcontainer">
+				<div class="scrollable">
+					<div class="page-body container-fluid">
+						<h3><a ng-click="currentView = 'statistics'">Rollout Works Statistics</a> ({{region}} - {{status}})</h3>
+						<div pull-right>
+							<button type="button" class="btn btn-default pull-right" ng-click="getRolloutXlsx('rolloutSecondStatistics')">Prepare Excell</button>
+						</div>	
+						<h3> </h3>
+						<table class="report" id="rolloutSecondStatistics">
+							<thead>
+								<tr>
+									<th></th>
+									<th>Region</th>
+									<th>NCP ID</th>
+									<th>Sitename</th>
+									<th>Site type</th>
+									<th>Project</th>
+									<th>Reason</th>
+									<th>RBS type</th>
+									<th>NCP insert date</th>
+									<th>Address</th>
+									<th>Process Number</th>
+									<th ng-if="['Approved NCP','Provisional approval', 'Leasing in progress', 'Installation in progress'].includes(status)">Substatus</th>
+									<th>Current Assignee</th>
+									<th>Current status date</th>
+								</tr>
+							</thead>
+							<tbody>
+								<tr ng-repeat="p in processIntancesList">
+									<td>{{$index+1}}</td>
+									<td>{{regionsMap[p.region]}}</td>
+									<td>{{ncpMap[p.id]}}</td>
+									<td>{{sitenameMap[p.id]}}</td>
+									<td>{{siteTypeMap[p.id]}}</td>
+									<td>{{projectMap[p.id]}}</td>
+									<td>{{reasonMap[p.id]}}</td>
+									<td>{{p.rbsType}}</td>
+									<td>{{ncpInsertDateMap[p.id] | date: 'dd.MM.yyyy'}}</td>
+									<td>{{addressMap[p.id]}}</td>
+									<td>{{businessKeyMap[p.id]}}</td>
+									<td ng-if="['Approved NCP','Provisional approval', 'Leasing in progress', 'Installation in progress'].includes(status)">
+										<span ng-if="p.generalSubStatus1 || generalSubStatus2 || instStatusFromUDB"
+											  ng-repeat="ss in [p.generalSubStatus1,p.generalSubStatus2,p.instStatusFromUDB] | filter:'!!'">
+											{{$index>0?', ':''}}{{ss}}
+										</span>
+										<span ng-if="!(p.generalSubStatus1 || generalSubStatus2 || instStatusFromUDB)">
+											{{status}}
+										</span>
+									</td>
+									<td>
+										<span ng-repeat="t in p.tasks">
+											{{$index>0?', ':''}}{{t.assignee ? t.assignee : t.groupId}}			
+										</span>
+									</td>
+									<td>{{generalStatusUpdatedDateMap[p.id] | date: 'dd.MM.yyyy'}}</td>
+								</tr>
+							</tbody>					
+						</table>						
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>

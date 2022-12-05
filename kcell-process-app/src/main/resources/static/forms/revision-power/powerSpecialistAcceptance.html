@@ -1,0 +1,289 @@
+<style>
+  .jobs-info {
+    border-style: solid;
+    border-width: medium;
+    border-color: navy;
+    padding: 25px;
+  }
+</style>
+<form role="form" class="form-horizontal" name="kcell_form" novalidate>
+  <script cam-script type="text/form-script">
+    inject(['$scope', '$http', 'Uri', '$rootScope', '$q', '$timeout', function ($scope, $http, Uri, $rootScope, $q, $timeout) {
+      var variables = [
+        'jrOrderedDate',
+        'jrNumber',
+        'initiatorFull',
+        'validityDate',
+        'site',
+        'address',
+        'Site_Name',
+        'siteRegionShow',
+        'jrReason',
+        'contract',
+        'contractor',
+        'attachments',
+        'explanation',
+        'jobs',
+        'jrType',
+        'worksTotalSum',
+        'job_to',
+        'resolutions',
+      ];
+
+
+
+      camForm.on('form-loaded', function () {
+        variables.forEach(function (el) {
+            camForm.variableManager.fetchVariable(el);
+        });
+      });
+
+      camForm.on('variables-fetched', function () {
+        variables.forEach(function (el) {
+          if(camForm.variableManager.variables[el].value){
+              $scope[el] = camForm.variableManager.variables[el].value;
+          }
+          if(el === 'resolutions'){
+            $scope.resolutions = angular.copy(camForm.variableManager.variables[el].value);
+          }
+        });
+        var jrOrderedDate = new Date($scope.jrOrderedDate)
+        if($scope.rejectedBy) {
+            camForm.variableManager.destroyVariable('rejectedBy');
+        }
+        if($scope.resolution) {
+          camForm.variableManager.destroyVariable('resolution');
+        }
+        if($scope.comment) {
+          camForm.variableManager.destroyVariable('comment');
+        }
+      });
+
+      camForm.on('submit', function (e) {
+        camForm.variableManager.createVariable({
+          name: 'resolution',
+          type: 'String',
+          value: $scope.resolution
+        });
+
+        camForm.variableManager.createVariable({
+          name: 'comment',
+          type: 'String',
+          value: $scope.comment
+        });
+        if ($scope.resolution === 'modify') {
+          camForm.variableManager.createVariable({
+            name: 'rejectedBy',
+            value: 'Acceptance by Power Specialist',
+            type: 'String'
+          });
+        }
+        camForm.variableManager.destroyVariable('resolutions');
+      });
+
+      $scope.download = function download (file) {
+          $http({method: 'GET', url: '/camunda/uploads/' + (file.path.split('/').length === 2 ? 'tmp/' : '') + 'get/' + file.path, transformResponse: [] }).then(
+              function(response) {
+                  document.getElementById('fileDownloadIframe').src = response.data;
+              },
+              function(response) {console.log(response.data);}
+          );
+      }
+    }]);
+  </script>
+  <div class="row">
+    <label class="col-sm-3">Process Number:</label>
+    <div class="col-sm-5" style="color: rebeccapurple">
+      <div>{{jrNumber}}</div>
+    </div>
+  </div>
+  <div class="jobs-info">
+    <div class="row" ng-if="job_to === 'contractor'">
+      <label class="col-sm-3">Contract:</label>
+      <div class="col-sm-5">
+        <div>{{contract.name}}</div>
+      </div>
+    </div>
+    <div class="row" ng-if="job_to === 'contractor'">
+      <label class="col-sm-3">Contractor:</label>
+      <div class="col-sm-5">
+        <div>{{contractor.name}}</div>
+      </div>
+    </div>
+    <div class="row" ng-if="job_to === 'kcell'">
+      <label class="col-sm-3">Inhouse works</label>
+    </div>
+
+    <div class="row">
+      <label class="col-sm-3">Site:</label>
+      <div class="col-sm-3">
+        <div>{{Site_Name}}</div>
+      </div>
+    </div>
+    <div class="row">
+      <label class="col-sm-3">Region:</label>
+      <div class="col-sm-3">
+        <div>{{siteRegionShow}}</div>
+      </div>
+    </div>
+    <div class="row">
+      <label class="col-sm-3">Site Address:</label>
+      <div class="col-sm-5">
+        <div style="height: auto">{{address}}</div>
+      </div>
+    </div>
+    <div class="row">
+      <label class="col-sm-3">JR reason:</label>
+      <div class="col-sm-5">
+        <div>{{jrReason.name}}</div>
+      </div>
+    </div>
+    <div class="row">
+      <label class="col-sm-3">JR type:</label>
+      <div class="col-sm-5">
+        <div>{{jrType.name}}</div>
+      </div>
+    </div>
+    <div class="row">
+      <label class="col-sm-3">JR Ordered date:</label>
+      <div class="col-sm-5">
+        <div>{{jrOrderedDate | date: 'dd/MM/yyyy'}}</div>
+      </div>
+    </div>
+    <div class="row">
+      <label class="col-sm-3">Validity date:</label>
+      <div class="col-sm-5">
+        <div>{{validityDate | date: 'dd/MM/yyyy'}}</div>
+      </div>
+    </div>
+
+    <h4>Works</h4>
+    <div class="col-sm-12">
+      <div class="row">
+        <table class="table table-condensed">
+          <thead>
+            <tr>
+              <th width="5%">№</th>
+              <th width="42%">Type</th>
+              <th width="10%">Unit</th>
+              <th width="10%">Quantity</th>
+              <th width="10%">Price value</th>
+              <th width="8%">Sum</th>
+              <th width="15%">Refers to</th>
+            </tr>
+          </thead>
+          <tbody ng-repeat="job in jobs">
+            <tr>
+              <td>
+                <span ng-if="job.title">{{job.num}}</span>
+              </td>
+              <td>
+                <span ng-if="job.title">{{job.title}}</span>
+              </td>
+              <td>
+                <span ng-if="job.title">{{job.materialUnit}}</span>
+              </td>
+              <td>
+                <span ng-if="job.title">{{job.quantity}}</span>
+              </td>
+              <td>
+                <span ng-if="job.title">{{job.materialPrice}}</span>
+              </td>
+              <td>
+                <span ng-if="job.title">{{job.materialSum}}</span>
+              </td>
+              <td>
+                <span ng-if="job.referedWorks != ''">{{job.refersTo}}</span>
+                <span ng-if="job.referedWorks == ''">-</span>
+              </td>
+            </tr>
+          </tbody>
+          <tfoot>
+            <tr>
+              <td colspan="5"></td>
+              <td colspan="3">
+                <label style="color: rebeccapurple"> Total: </label>
+                <span><b>{{worksTotalSum}}</b></span>
+              </td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    </div>
+    <div class="row">
+      <label class="col-sm-5"> <b>Attachments:</b></label>
+    </div>
+    <div class="row">
+      <div class="col-sm-5">
+        <iframe id="fileDownloadIframe" style="display: none"></iframe>
+        <div class="col-md-12" ng-repeat="file in attachments">
+          <a ng-click="download(file)">{{file.name}}</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      <label class="col-sm-5">
+        <label style="color: darkred">*</label>
+        <b>Comments by Regional Power Units:</b></label
+      >
+    </div>
+    <div class="row">
+      <div class="col-sm-5">
+        <div>{{explanation}}</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="form-group">
+    <label class="col-sm-3 control-label">Resolution:</label>
+    <div class="col-sm-8">
+      <label class="radio-inline">
+        <input
+          type="radio"
+          id="approve"
+          value="approve"
+          ng-model="resolution"
+          required
+        />
+        Approve
+      </label>
+      <label class="radio-inline">
+        <input
+          type="radio"
+          id="modify"
+          value="modify"
+          ng-model="resolution"
+          required
+        />
+        Modify JR
+      </label>
+      <label
+        class="error"
+        ng-if="kcell_form.resolution.$error.required && ( kcell_form.resolution.$touched || view.submitted)"
+        >Required field</label
+      >
+    </div>
+  </div>
+  <div class="form-group">
+    <label class="col-sm-3 control-label">
+      <label ng-if="resolution === 'modify'" style="color: darkred">*</label>
+      Comments:</label
+    >
+    <div class="col-sm-9">
+      <textarea
+        class="form-control"
+        name="comment"
+        ng-model="comment"
+        maxlength="1500"
+        rows="4"
+        ng-required="resolution === 'modify'"
+      ></textarea>
+      <label
+        class="error"
+        ng-if="kcell_form.comment.$error.required && ( kcell_form.comment.$touched || view.submitted)"
+        >Required field</label
+      >
+    </div>
+  </div>
+</form>

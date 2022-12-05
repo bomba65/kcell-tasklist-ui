@@ -1,0 +1,188 @@
+<form role="form" class="form-horizontal" name="kcell_form" novalidate>
+    <script cam-script type="text/form-script">
+        inject(['$scope', '$q', '$http', '$rootScope', '$timeout', function ($scope, $q, $http, $rootScope, $timeout) {
+            var variables = [
+                'sharingPlan',
+                'resolutions',
+                'acceptanceDocFiles',
+                'actOfAcceptanceDocument',
+                'signedAgreementListFileName',
+                'sharingPlanStatus'
+            ];
+
+            var fileActions = [];
+
+            camForm.on('form-loaded', function () {
+                variables.forEach(function (el) {
+                    camForm.variableManager.fetchVariable(el);
+                });
+                $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
+                        function (result) {
+                            $scope.processInstanceId = result.data.processInstanceId;
+                        },
+                        function (error) {
+                            console.log(error.data);
+                        }
+                );
+            });
+
+            camForm.on('variables-fetched', function () {
+                variables.forEach(function (el) {
+                    if (el === 'resolutions') {
+                        $scope.resolutions = angular.copy(camForm.variableManager.variables[el].value);
+                        $q.all($scope.resolutions.map(function (resolution) {
+                            return $http.get("/camunda/api/engine/engine/default/user/" + resolution.assignee + "/profile");
+                        })).then(function (profiles) {
+                            profiles.forEach(function (e, index) {
+                                $scope.resolutions[index].assigneeName = (e.data.firstName ? e.data.firstName : "") + " " + (e.data.lastName ? e.data.lastName : "");
+                            });
+                        });
+                        $q.all($scope.resolutions.map(function (resolution) {
+                            return $http.get("/camunda/api/engine/engine/default/history/task?processInstanceId=" + resolution.processInstanceId + "&taskId=" + resolution.taskId);
+                        })).then(function (tasks) {
+                            tasks.forEach(function (e, index) {
+                                if (e.data.length > 0) {
+                                    $scope.resolutions[index].taskName = e.data[0].name;
+                                    try {
+                                        $scope.resolutions[index].taskEndDate = new Date(e.data[0].endTime);
+                                        $scope.resolutions[index].assignDate = new Date(e.data[0].startTime);
+                                    } catch (e) {
+                                        console.log(e);
+                                    }
+                                }
+                            });
+                        });
+                        $q.all($scope.resolutions.map(function (resolution) {
+                            return $http.get("/camunda/api/engine/engine/default/history/identity-link-log?type=assignee&taskId=" + resolution.taskId + "&operationType=add&sortBy=time&sortOrder=desc");
+                        })).then(function (logs) {
+                            logs.forEach(function (e, index) {
+                                if(e.data.length > 0){
+                                    try {
+                                        $scope.resolutions[index].claimDate = new Date(e.data[0].time);
+                                    } catch(e){
+                                        console.log(e);
+                                    }
+                                }
+                            });
+                        });
+                    } else if (el === 'actOfAcceptanceDocument') {
+                        $scope[el] = camForm.variableManager.variables[el];
+                    } else {
+                        $scope[el] = camForm.variableManager.variables[el].value;
+                    }
+                });
+                if ($scope.acceptanceDocFiles) {
+                    $scope.acceptanceDocFiles.forEach(function (e, index) {
+                        $http.get('/camunda/uploads/get/' + e.path).then(
+                            function (result) {
+                                console.log(e);
+                                e.url = result.data;
+                            },
+                            function (error) {
+                                console.log(error);
+                            }
+                        );
+                    });
+                } else {
+                    $scope.acceptanceDocFiles = [];
+                    camForm.variableManager.destroyVariable('acceptanceDocFiles');
+                    camForm.variableManager.createVariable({
+                        name: 'acceptanceDocFiles',
+                        type: 'Json'
+                    });
+                }
+                if ($scope.sharingPlan) {
+                    $scope.sharingPlan.currentTask = {id: camForm.taskId};
+                    $scope.sharingPlan.acceptanceDocFiles = angular.copy($scope.acceptanceDocFiles);
+                }
+
+                camForm.variableManager.createVariable({
+                    name: 'checkingByGuestResult',
+                    type: 'String',
+                    value: ''
+                });
+
+                camForm.variableManager.createVariable({
+                    name: 'checkingByGuestComment',
+                    type: 'String',
+                    value: ''
+                });
+
+                camForm.variableManager.createVariable({
+                    name: 'replanStatus',
+                    type: 'String',
+                    value: ''
+                });
+            });
+
+            camForm.on('submit', function () {
+                camForm.variableManager.variableValue('checkingByGuestResult', $scope.checkingByGuestResult);
+                camForm.variableManager.variableValue('checkingByGuestComment', $scope.checkingByGuestComment);
+                if ($scope.checkingByGuestResult !== 'rejected') {
+                    camForm.variableManager.variableValue('replanStatus', 'notreplan');
+                } else {
+                    camForm.variableManager.variableValue('replanStatus', 'replan');
+                }
+                var acceptanceDocFiles = _.map($scope.acceptanceDocFiles, function(e){
+                   return _.pick(e, ['name','path']);
+                });
+                camForm.variableManager.variableValue('acceptanceDocFiles', acceptanceDocFiles);
+                camForm.variableManager.destroyVariable('resolutions');
+            });
+            $scope.download = function (file) {
+                console.log(file);
+                $http({method: 'GET', url: '/camunda/uploads/get/' + file.path, transformResponse: [] }).
+                then(function(response) {
+                    document.getElementById('fileDownloadIframe').src = response.data;
+                }, function(error){
+                    console.log(error.data);
+                });
+            }
+        }]);
+
+    </script>
+    <shared-site-plan plan-model="sharingPlan"></shared-site-plan>
+    <iframe id="fileDownloadIframe" style="display:none;"></iframe>
+    <div class="form-group">
+        <label class="col-sm-4 control-label">Uploaded signed agreement list:</label>
+        <div class="col-sm-8">
+            <div ng-show="signedAgreementListFileName.name">
+                <a ng-click="download(signedAgreementListFileName)">{{signedAgreementListFileName.name}}</a>
+            </div>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-4 control-label">Autogenerated Act of Acceptance:</label>
+        <div class="col-sm-8">
+            <a href="{{actOfAcceptanceDocument.contentUrl}}">{{actOfAcceptanceDocument.valueInfo.filename}}</a>
+        </div>
+    </div>
+    <div ng-repeat="acceptanceDocFile in acceptanceDocFiles" class="form-group">
+        <div class="col-sm-12">
+            <a href="{{acceptanceDocFile.url}}">{{acceptanceDocFile.name}}</a> | <a ng-click="clearFile($index)"><i class="glyphicon glyphicon-trash"></i></a>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-4 control-label">Approval Status:</label>
+        <div class="col-sm-8">
+            <label class="radio-inline">
+                <input type="radio" ng-model="checkingByGuestResult" name="checkingByGuestResult" value="approved" required> Approve
+            </label>
+            <label class="radio-inline">
+                <input type="radio" ng-model="checkingByGuestResult" name="checkingByGuestResult" value="rejected" required> Reject
+            </label>
+            <label class="error" ng-show="kcell_form.checkingByGuestResult.$error.required && ( kcell_form.checkingByGuestResult.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-4 control-label">Comments</label>
+        <div class="col-sm-8">
+            <textarea class="form-control" ng-model="checkingByGuestComment"
+                      name="checkingByGuestComment" placeholder="Comments..." maxlength="500" rows="4"
+                      ng-required="checkingByGuestResult !== 'documentedCompleted'"></textarea>
+            <label class="error"
+                   ng-show="kcell_form.checkingByGuestComment.$error.required && ( kcell_form.checkingByGuestComment.$touched || view.submitted)">Required
+                field</label>
+        </div>
+    </div>
+</form>

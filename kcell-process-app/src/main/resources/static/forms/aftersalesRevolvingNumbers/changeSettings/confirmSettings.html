@@ -1,0 +1,153 @@
+<form role="form" class="form-horizontal" name="kcell_form" novalidate>
+    <script cam-script type="text/form-script">
+        inject(['$scope', '$http', 'Uri', '$rootScope', '$q', 'toasty', '$timeout', function ($scope, $http, Uri, $rootScope, $q, toasty, $timeout) {
+            $scope.techSpecs = {};
+            $scope.legalInfo = {};
+            $scope.typeOfWork = '';
+            $scope.resolutions = [];
+            var history = null;
+            var processInstanceId = null;
+            var assigneeName = $rootScope.authentication.name;
+            var taskKey = camForm.taskId;
+            var createdDate = new Date();
+
+            $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name + "/profile").then(function(result){
+                    assigneeName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
+                });
+
+
+             $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
+                function(result){
+                    var processInstanceId = result.data.processInstanceId;
+                    $http.get('/camunda/api/engine/engine/default/process-instance/' + processInstanceId).then(
+                        function(result){
+                            $scope.businessKey = result.data.businessKey;
+                        },
+                        function (error) {console.log(error.data);}
+                    );
+                },
+                function (error) { console.log(error.data);}
+            );
+            $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
+                    function (result) {
+                        console.log(result.data);
+                        processInstanceId = result.data.processInstanceId;
+                        taskKey = result.data.taskDefinitionKey;
+                        history = historyVariablesManager(camForm, taskKey);
+                        history.createVariables(true);
+                        configureViews();
+                    },
+                    function (error) {
+                        console.log(error.data);
+                    }
+                );
+
+            camForm.on('form-loaded', function () {
+                camForm.variableManager.fetchVariable('techSpecs');
+                camForm.variableManager.fetchVariable('numberRequest');
+                camForm.variableManager.fetchVariable('clientPriority');
+                camForm.variableManager.fetchVariable('legalInfo');
+                camForm.variableManager.fetchVariable('workType');
+                camForm.variableManager.fetchVariable('resolutions');
+                camForm.variableManager.fetchVariable('numbersAmount');
+            });
+
+            camForm.on('variables-fetched', function () {
+                $scope.techSpecs = camForm.variableManager.variableValue('techSpecs');
+                $scope.li = camForm.variableManager.variableValue('legalInfo');
+                $scope.numberRequest = camForm.variableManager.variableValue('numberRequest');
+                $scope.numbersAmount = camForm.variableManager.variableValue('numbersAmount');
+                $scope.clientPriority = camForm.variableManager.variableValue('clientPriority');
+                $scope.resolutions = camForm.variableManager.variableValue('resolutions');
+                $scope.workType = camForm.variableManager.variableValue('workType');
+            });
+
+            camForm.on('submit', function(e) {
+              $scope.resolutions.push({
+                    assignee: assigneeName,
+                    resolution: $scope.resolution,
+                    comment: $scope.comment,
+                    taskEndDate: new Date(),
+                    taskName: 'Confirm completed settings to Firewall rules',
+                    assignDate: createdDate,
+                    claimDate: createdDate,
+              });
+              camForm.variableManager.variableValue('resolutions', $scope.resolutions);
+            });
+        }]);
+
+    </script>
+    <header-info number-request="numberRequest" legal-info="li" client-priority="clientPriority" work-type="workType"></header-info>
+
+    <div class="form-group">
+        <div class="col-sm-12 control-label">Request Firewall access rules: </div>
+        <div class="col-sm-12">
+            <table class="table table-bordered" style="background: #ffffcc; color: #333; border: 1px solid #b3b3b3">
+                <thead>
+                <tr>
+                    <th>Source (IP address or Network)</th>
+                    <th>Destination (IP address or Network)</th>
+                    <th>Service and ports</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr>
+                    <td>{{techSpecs.sip.newPublicVoiceIP}}</td>
+                    <td>
+                        <span ng-if="techSpecs.connectionPoint == 'SIP Proxy' && techSpecs.sip.authorizationType == 'SIP-транк(доступ по стат. IP)'">2.78.58.154</span>
+                        <span ng-if="techSpecs.connectionPoint == 'SIP Proxy' && techSpecs.sip.authorizationType == 'SIP-авторизация(доступ по стат. IP c лог/пар)'">2.78.58.167</span>
+                        <span ng-if="techSpecs.connectionPoint == 'SBC'">195.47.255.84, 195.47.255.119</span>
+                    </td>
+                    <td>
+                        {{techSpecs.sip.transProtocol}} ({{techSpecs.sip.signalingPort}}) <br />
+                        RTP ({{techSpecs.sip.voicePortStart}} - {{techSpecs.sip.voicePortEnd}})
+                    </td>
+                </tr>
+                <tr>
+                    <td>{{techSpecs.sip.newSignalingIP}}</td>
+                    <td></td>
+                    <td></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="col-sm-12">
+        <accordion>
+            <accordion-group is-open="isHistoryOpen">
+                <accordion-heading>
+                    History <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
+                </accordion-heading>
+                <table class="table">
+                    <thead>
+                    <tr>
+                        <th>Activity</th>
+                        <th>Assignee</th>
+                        <th>Date</th>
+                        <th>Resolution</th>
+                        <th>Comment</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr ng-repeat="resolution in resolutions | orderBy:'-' track by $index">
+                        <td>{{resolution.taskName}}</td>
+                        <td>{{resolution.assignee}}</td>
+                        <td>{{resolution.assignDate | date: 'dd.MM.yyyy HH:mm'}}</td>
+                        <td>{{resolution.resolution}}</td>
+                        <td>{{resolution.comment}}</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </accordion-group>
+        </accordion>
+    </div>
+
+    <div class="form-group">
+        <label class="col-sm-12 control-label">Comments: </label>
+        <div class="col-sm-12">
+            <textarea class="form-control" name="comment" ng-model="comment"></textarea>
+        </div>
+    </div>
+
+</form>

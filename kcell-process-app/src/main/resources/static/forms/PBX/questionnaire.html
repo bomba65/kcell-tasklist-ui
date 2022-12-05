@@ -1,0 +1,463 @@
+<!--
+  >>>>>>Prefixes:<<<<<<<
+  Customer Information -> ci
+  Technical Specifications -> ts
+  Connection via Internet channel by SIP protocol -> sip
+  Direct connection by E1 (30 channels) -> e1
+  Direct connection by SIP Direct Protocols -> dir
+-->
+
+
+<form role="form" class="form-horizontal" name="kcell_form" novalidate>
+  <script cam-script type="text/form-script">
+    inject(['$scope', '$http', 'Uri', '$rootScope', '$q', 'Upload', '$timeout', function ($scope, $http, Uri, $rootScope, $q, Upload, $timeout) {
+    
+    $scope.ci = {};
+    $scope.ts = {};
+    $scope.sip = {};
+    $scope.e1 = {};
+    $scope.dir = {};
+    $scope.attachments = [];
+    $scope.clientPriority = 'Normal';
+    $scope.description = '';
+    $scope.skipFWTimer = false;
+    var assigneeName = $rootScope.authentication.name;
+    var processInstanceId = null;
+    var fk_client = 0;
+    var numberRequest = '';
+    var createdDate = new Date();
+    
+    $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name+ "/profile").then(function(result){
+        assigneeName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
+    });
+
+    // $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
+    //   function (result) {
+    //     processInstanceId = result.data.processInstanceId;
+    //   },
+    //   function (error) {
+    //     console.log(error.data);
+    //   }
+    // );
+
+    $scope.downloadFile = function (file) {
+      $http({method: 'GET', url: '/camunda/uploads/' + (file.path.split('/').length === 2 ? 'tmp/' : '') + 'get/' + file.path, transformResponse: [] }).then(
+        function(response) {
+          document.getElementById('fileDownloadIframe').src = response.data;
+        },
+        function(response) { console.log(response.data); }
+      );
+    };
+
+    $scope.clearFile = function(fileIndex) {
+      $scope.attachments.splice(fileIndex, 1);
+    };
+    
+    $scope.fileSelected = function(el, bindedInput){
+      $timeout(function () {
+        $scope.$apply(function () {
+          uploadFileToMinio(el.files[0], bindedInput);
+        });
+      })
+    };
+
+    var uuid = new Date().getTime();
+
+    function uploadFileToMinio(file, bindedInput) {
+      var fileToUpload = {
+        name: file.name.replace(/[/\\?%*:|"<>]/g, '-'),
+        path: uuid + '/' + file.name.replace(/[/\\?%*:|"<>]/g, '-'),
+        created: new Date(),
+        createdBy: assigneeName
+      };
+      $http({method: 'GET', url: '/camunda/uploads/tmp/put/' + fileToUpload.path, transformResponse: [] }).then(
+        function(response) {
+          $http.put(response.data, file, {headers: {'Content-Type': undefined}}).then(
+            function () {
+              $scope.attachments.push(fileToUpload);
+              angular.element(document.querySelector('#attachments')).val(null);
+              $(bindedInput).val('');
+            },
+            function (error) {
+              console.log(error.data);
+            }
+          );
+        },
+        function(response) { console.log(response.data); }
+      );
+    }
+
+    camForm.on('submit', function(event) {
+
+      camForm.variableManager.createVariable({
+        name: 'customerInformation',
+        type: 'json',
+        value: $scope.ci,
+        store: true
+      });
+      camForm.variableManager.createVariable({
+        name: 'technicalSpecifications',
+        type: 'json',
+        value: $scope.ts,
+        store: true
+      });
+      camForm.variableManager.createVariable({
+        name: 'sipProtocol',
+        type: 'json',
+        value: $scope.sip,
+        store: true
+      });
+      camForm.variableManager.createVariable({
+        name: 'e1Protocol',
+        type: 'json',
+        value: $scope.e1,
+        store: true
+      });
+      camForm.variableManager.createVariable({
+        name: 'sipDirectProtocol',
+        type: 'json',
+        value: $scope.dir,
+        store: true
+      });
+      camForm.variableManager.createVariable({
+        name: 'attachments',
+        type: 'json',
+        value: $scope.attachments,
+        store: true
+      });
+      camForm.variableManager.createVariable({
+        name: 'clientPriority',
+        type: 'String',
+        value: $scope.clientPriority,
+        store: true
+      });
+      camForm.variableManager.createVariable({
+        name: 'clientBIN',
+        value: $scope.ci.bin,
+        type: 'String',
+        store: true
+      });
+
+      var attachmentsChanges = {added: [], removed: []};
+      for (var attachment of $scope.attachments) attachmentsChanges.added.push(attachment.name);
+      var resolutions = [{
+        assignee: assigneeName,
+        resolution: 'Started',
+        comment: $scope.comment,
+        taskEndDate: new Date(),
+        taskName: 'Start Form',
+        assignDate: createdDate,
+        claimDate: createdDate,
+        attachments: attachmentsChanges
+      }];
+      camForm.variableManager.createVariable({
+        name: 'resolutions',
+        type: 'json',
+        value: resolutions,
+        store: true
+      });
+
+      camForm.variableManager.createVariable({
+        name: 'numberRequest',
+        type: 'String',
+        value: numberRequest,
+        store: true
+      });
+
+      camForm.variableManager.createVariable({
+        name: 'description',
+        type: 'String',
+        value: $scope.description,
+        store: true
+      });
+
+      camForm.variableManager.createVariable({
+        name: 'skipFWTimer',
+        type: 'Boolean',
+        value: $scope.skipFWTimer,
+        store: true
+      });
+
+
+      if (fk_client) {
+        camForm.variableManager.createVariable({
+          name: 'fk_client',
+          type: 'String',
+          value: fk_client + "",
+          store: true
+        });
+      }
+    });
+
+    $scope.preSubmit = function(){
+      var getBusinessKey = function(){
+        var deferred = $q.defer();
+        return $http.get('/camunda/api/engine/engine/default/history/process-instance/count?processDefinitionKey=PBX').then(
+          function(result){
+            var countPID = result.data.count;
+            var date = new Date();
+            $scope.businessKey = 'PBX_' + ("0" + date.getDate().toString()).slice(-2) + ("0" + (date.getMonth() + 1)).toString().slice(-2) + date.getFullYear().toString() + '_' + $scope.ci.bin + '_' + $scope.ci.ticName + '_' + countPID;
+            console.log($scope.businessKey);
+            camForm.businessKey = $scope.businessKey;
+            numberRequest = 'PBX_' + $scope.ci.bin + '_' + $scope.ci.ticName + '_' + countPID;
+            deferred.resolve('Successfully created Business Key');
+            return deferred.promise;
+          }
+        );
+      };
+
+      var PBXClientData = {
+        id: 0,
+        fk_client: 0,
+        tic_name: $scope.ci.ticName,
+        comp_name: $scope.ci.legalName,
+        bin_client: $scope.ci.bin,
+        corp_city: $scope.ci.companyRegistrationCity,
+        conn_type: $scope.ts.connectionType
+
+        //status: ,
+        //fk_region: ,
+        //kase: ,
+        //region_head: ,
+        //reten: ,
+        //reten_super: ,
+        //channel: ,
+        //capacity: ,
+        //ter_point: ,
+        //hope_point: ,
+        //exchanges: ,
+        //mgw: ,
+        //rtdma: ,
+        //klm: ,
+        //ips: ,
+        //channel_type: ,
+        //voice_platform: ,
+        //clt_number:
+      };
+
+      var pbxClientUpdate = function(){
+        var deferred = $q.defer();
+
+        if(PBXClientData.tic_name){
+            console.log('PBXClientResponse', $scope.PBXClientResponse)
+            if($scope.PBXClientResponse && $scope.PBXClientResponse.id && $scope.PBXClientResponse.status) { //  && $scope.PBXClientResponse.fk_client > 0
+                deferred.resolve('PBX Client has already been created at SAO');
+                return deferred.promise;
+            } else {
+                return $http.post("/camunda/sao/apis/PbxClientUpdate", PBXClientData).then(
+                    function (response) {
+                        console.log('response.data', response.data);
+                        if (response.data) {
+                            if(response.data.id && response.data.status ){
+                                $scope.PBXClientResponse = response.data;
+                                fk_client = $scope.PBXClientResponse.id;
+                                deferred.resolve(response.data.status);
+                            } else {
+                                deferred.reject('SAO did not respond with id');
+                            }
+                        } else {
+                            deferred.reject('SAO response is empty');
+                        }
+                        return deferred.promise;
+                    },
+                    function (error) {
+                        console.log(error);
+                        deferred.reject('error:' + error.data.error + ', message:' + error.data.message + ', path:' + error.data.path + ', status:' + error.data.status);
+                        return deferred.promise;
+                    }
+                );
+            }
+        } else {
+            deferred.reject('No short number is selected!');
+            return deferred.promise;
+        }
+
+      }
+
+      var deferred = $q.defer();
+      return $q.all([getBusinessKey(), pbxClientUpdate()]);
+      // return getBusinessKey();
+    }
+
+    $scope.ci.foundClientCRM = false;
+    $scope.ci.foundSalesRepr = false;
+
+    $scope.$watch('ci.bin', function(clientBIN){
+      if (clientBIN && clientBIN.length === 12){
+        $http({method: 'GET', url: '/camunda/crm/client/bin/'+clientBIN, transformResponse: [] }).then(
+          function(response) {
+			//console.log(data);
+			var clientCRM = JSON.parse(response.data);
+            //console.log(clientCRM);
+
+            if (Object.keys(clientCRM).length > 0) {
+              if (clientCRM.accountName) {
+                $scope.ci.legalName = clientCRM.accountName;
+
+                if(clientCRM.salesExecutiveUser && clientCRM.salesExecutiveUser.username) {
+                  //var camundaUserID = clientCRM.salesExecutiveUser.username.split('.').map(val=>val.charAt(0).toUpperCase() + val.substr(1).toLowerCase()).join('.').concat('@kcell.kz');
+                  var camundaUserID = clientCRM.salesExecutiveUser.email.replace('[','').replace(']','').split('|')[0];
+                  $http.get("/camunda/api/engine/engine/default/user/" + camundaUserID + "/profile").then(function(response){
+                    //console.log('profile', response.data);
+                    //$scope.ci.salesRepresentative = response.data.firstName + ' ' + response.data.lastName;
+                    $scope.ci.salesRepresentative = response.data.firstName + ' ' + response.data.lastName;
+                    $scope.ci.salesRepresentativeEmail = response.data.email;
+                    $scope.ci.foundSalesRepr = true;
+                  }).catch(function(error){
+                    console.log('error',error);
+                    console.log(camundaUserID, clientCRM.salesExecutiveUser.username, clientCRM.salesExecutiveUser.email);
+                    //$scope.ci.salesRepresentative = clientCRM.salesExecutiveUser.username;
+                    $scope.ci.salesRepresentative = camundaUserID;
+                    $scope.ci.salesRepresentativeEmail = camundaUserID;
+                    $scope.ci.foundSalesRepr = false;
+                  });
+                }
+
+                if (clientCRM.city && clientCRM.city.nameEn) {
+                  $scope.ci.companyRegistrationCity = clientCRM.city.nameEn;
+                }
+
+                if (clientCRM.dicSectorEconomics && clientCRM.dicSectorEconomics.name) {
+                  $scope.ci.mainTypeActivityCustomer = clientCRM.dicSectorEconomics.name;
+                }
+
+                $scope.ci.foundClientCRM = true;
+              }
+            }
+	      },
+	      function(data) {
+	        console.log(response.data);
+	        $scope.ci.legalName = undefined;
+            $scope.ci.salesRepresentative = undefined;
+            $scope.ci.companyRegistrationCity = undefined;
+            $scope.ci.mainTypeActivityCustomer = undefined;
+            $scope.ci.foundClientCRM = false;
+            $scope.ci.foundSalesRepr = false;
+          }
+        );
+      } else {
+        $scope.ci.legalName = undefined;
+        $scope.ci.salesRepresentative = undefined;
+        $scope.ci.companyRegistrationCity = undefined;
+        $scope.ci.mainTypeActivityCustomer = undefined;
+        $scope.ci.foundClientCRM = false;
+        $scope.ci.foundSalesRepr = false;
+      }
+    }, true);
+  }]);
+
+  </script>
+
+  <div class="col-sm-12">
+    <customer-information ci="ci" form="kcell_form" view="view" readonly="false" legal="false" start="true"></customer-information>
+  </div>
+  <div class="col-sm-12">
+    <div class="col-sm-6">
+      <div class="form-group">
+        <label class="col-sm-5 control-label">Client priority:</label>
+        <div class="col-sm-7">
+          <label class="radio-inline"><input type="radio" name="clientPriority" value="Normal" ng-model="clientPriority"> Normal</label>
+          <label class="radio-inline"><input type="radio" name="clientPriority" value="High" ng-model="clientPriority"> High</label>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-sm-12"><hr /></div>
+ 
+  <div class="col-sm-12">
+    <technical-specifications ts="ts" form="kcell_form" view="view" readonly="false"></technical-specifications>
+  </div>
+
+  <sip-protocol sip="sip" form="kcell_form" view="view" readonly="false" ng-if="ts.connectionType == 'SIP over internet'"></sip-protocol>
+  <e1-protocol e1="e1" form="kcell_form" view="view" readonly="false" ng-if="ts.connectionType == 'E1'"></e1-protocol>
+  <sip-direct-protocol dir="dir" form="kcell_form" view="view" readonly="false" ng-if="ts.connectionType == 'SIP cable direct'"></sip-direct-protocol>
+
+  <div class="form-group">
+    <label class="col-sm-12 control-label">Description:</label>
+    <div class="col-sm-12">
+      <textarea class="form-control" ng-model="description"></textarea>
+    </div>
+  </div>
+  <div class="col-sm-12"><hr /></div>
+
+  <div ng-if="sip.vpnTuning === 'Yes'">
+    <vpn-tunnel></vpn-tunnel>
+    <div class="col-sm-12"><hr /></div>
+  </div>
+
+  <iframe id="fileDownloadIframe" style="display:none;"></iframe>
+  <div class="form-group">
+    <label class="col-sm-4 control-label">Attachments</label>
+    <div class="col-sm-8">
+      <!--<input type="file" class="form-control" id="attachments" name="attachments" onchange="angular.element(this).scope().fileSelected(this)"/>-->
+      <div class="input-group">
+        <label class="input-group-btn">
+                    <span class="btn btn-default">
+                        Choose File <input type="file" id="attachments" name="attachments" style="display: none;" onchange="angular.element(this).scope().fileSelected(this, '#supplementaryFilesName');$('#supplementaryFilesName').val(this.files[0].name)" >
+                    </span>
+        </label>
+        <input type="text" class="form-control upload-filename" id="supplementaryFilesName" placeholder="No File Chosen" readonly>
+      </div>
+      <div class="col-sm-12">
+        <table class="table ">
+            <thead>
+              <tr>
+                <th>File Name</th>
+                <th>Created</th>
+                <th>Created By</th>
+                <th>Delete</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr ng-repeat="file in attachments track by $index">
+                <td><a ng-click="downloadFile(file)">{{file.name}}</a></td>
+                <td>{{file.created | date: 'dd.MM.yyyy HH:mm'}}</td>
+                <td>{{file.createdBy}}</td>
+                <td><a ng-click="clearFile($index)"><i class="glyphicon glyphicon-trash"></i></a></td>
+              </tr>
+            </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="form-group">
+    <label class="col-sm-4 control-label">Tariff: <span class="text-danger glyphicon-asterisk"></span></label>
+    <div class="col-sm-8">
+      <select class="form-control selectpicker" select-picker title="" name="tariff" ng-model="tariffVal" cam-variable-name="tariff" cam-variable-type="String">
+        <option></option>
+        <option value="Стартовый 5">Стартовый 5</option>
+        <option value="Стартовый 10">Стартовый 10</option>
+        <option value="Бизнес стандарт">Бизнес стандарт</option>
+        <option value="Бизнес пакет 30">Бизнес пакет 30</option>
+        <option value="Бизнес пакет 50">Бизнес пакет 50</option>
+        <option value="Бизнес пакет 100">Бизнес пакет 100</option>
+        <option value="Бизнес пакет 150">Бизнес пакет 150</option>
+        <option value="Бизнес пакет 200">Бизнес пакет 200</option>
+        <option value="Бизнес пакет 300">Бизнес пакет 300</option>
+        <option value="Бизнес пакет 400">Бизнес пакет 400</option>
+        <option value="Бизнес пакет 600">Бизнес пакет 600</option>
+        <option value="Бизнес пакет 700 ">Бизнес пакет 700 </option>
+        <option value="Бизнес пакет 1 млн">Бизнес пакет 1 млн</option>
+        <option value="Бизнес пакет 1.5 млн">Бизнес пакет 1.5 млн</option>
+        <option value="Бизнес пакет 2.5 млн">Бизнес пакет 2.5 млн</option>
+        <option value="Бизнес пакет 3 млн">Бизнес пакет 3 млн</option>
+        <option value="Нестандартный пакет">Нестандартный пакет</option>
+        <option value="Бизнес универсальный">Бизнес универсальный</option>
+      </select>
+      <input type="text" name="tariffExtra" ng-show="tariffVal == 'Нестандартный пакет'" class="form-control" cam-variable-name="tariffExtra" cam-variable-type="String" placeholder="Укажите тариф">
+    </div>
+  </div>
+  <div class="form-group" ng-if="ts.connectionPoint == 'SBC' || ts.connectionPoint == 'SIP Proxy'">
+    <div class="col-sm-12">
+      <input type="checkbox" class="form-check-input" name="skipFWTimer" id="skipFWTimer" ng-model="$parent.skipFWTimer">
+      <label class="form-check-label" for="skipFWTimer">Skip FW Timer</label>
+    </div>
+  </div>
+  <div class="form-group">
+    <label class="col-sm-12 control-label">Comments:</label>
+    <div class="col-sm-12">
+      <textarea class="form-control" ng-model="comment"></textarea>
+    </div>
+  </div>
+</form>

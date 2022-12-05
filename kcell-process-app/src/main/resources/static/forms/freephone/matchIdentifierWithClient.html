@@ -1,0 +1,127 @@
+<form role="form" class="form-horizontal" name="kcell_form" novalidate>
+    <script cam-script type="text/form-script">
+        inject(['$scope', '$http', 'Uri', '$rootScope', '$q', '$timeout', function ($scope, $http, Uri, $rootScope, $q, $timeout) {
+            var variables = [
+                'identifiers',
+                'operatorType',
+                'operators',
+                'resolutions'
+            ];
+
+            camForm.on('form-loaded', function () {
+                variables.forEach(function (el) {
+                    camForm.variableManager.fetchVariable(el);
+                });
+                $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
+                        function(result){
+                            $scope.processInstanceId = result.data.processInstanceId;
+                        },
+                        function (error) {
+                            console.log(error.data);
+                        }
+                );
+                $scope.freephoneInfo = {};
+                $scope.freephoneInfo.files = [];
+            });
+
+            camForm.on('variables-fetched', function () {
+                variables.forEach(function (el) {
+                    if (el === 'resolutions') {
+                        if (camForm.variableManager.variables[el].value) {
+                            $scope.resolutions = angular.copy(camForm.variableManager.variables[el].value);
+                            camForm.variableManager.destroyVariable(el);
+                        }
+                    } else {
+                        $scope[el] = camForm.variableManager.variables[el].value;
+                    }
+                });
+
+                $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name+ "/profile").then(function(result){
+                    $rootScope.authentication.assigneeName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
+                });
+
+                camForm.variableManager.createVariable({
+                    name: 'matchIdentifierWithClientTaskResult',
+                    type: 'String',
+                    value: ''
+                });
+
+                camForm.variableManager.createVariable({
+                    name: 'matchIdentifierWithClientTaskComment',
+                    type: 'String',
+                    value: ''
+                });
+
+                $scope.matchIdentifierWithClientTaskResult = '';
+
+            });
+
+            camForm.on('submit', function (evt) {
+                // evt.submitPrevented = true;
+                camForm.variableManager.variableValue('matchIdentifierWithClientTaskResult', $scope.matchIdentifierWithClientTaskResult);
+                camForm.variableManager.variableValue('matchIdentifierWithClientTaskComment', $scope.matchIdentifierWithClientTaskComment);
+                camForm.variableManager.variableValue('identifiers', $scope.identifiers);
+            });
+        }]);
+
+    </script>
+    <p>Добавьте информацию по статусам и ценам за короткий номер</p>
+
+    <div class="form-group" ng-repeat="id in identifiers">
+        <label class="col-sm-12 control-label"/>Идентификатор - {{id.title}}
+        <div class="col-sm-12" style="border-left: solid; border-left-width: 1px; margin-left: 2vh">
+            <table class="table">
+                <thead>
+                <tr>
+                    <th scope="col">Оператор</th>
+                    <th scope="col">Статус</th>
+                    <th scope="col">Цена АП</th>
+                    <th scope="col">Цена ЕП</th>
+                    <th scope="col">Выбрать</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr ng-repeat="o in id.operators" ng-class="{ 'disabled': !o.isAvailable}">
+                    <th scope="row">{{o.name}}</th>
+                    <td>{{o.isAvailable?'Доступен':'Не доступен'}}</td>
+                    <td ng-if="o.id !== 'kcell'">{{o.priceAP}}</td>
+                    <td ng-if="o.id === 'kcell'">
+                        <input ng-model="o.priceAP" name="{{o.id + 'AP'}}" class="form-control"  placeholder="{{o.isAvailable?'Цена':'Не доступен'}}" ng-disabled="!o.checked" ng-required="o.isAvailable && o.checked"/>
+                        <label class="error" ng-show="kcell_form.{{o.id + 'AP'}}.$error.required && ( kcell_form.{{o.id + 'AP'}}.$touched || view.submitted)">Required field</label>
+                    </td>
+                    <td ng-if="o.id !== 'kcell'">{{o.priceEP}}</td>
+                    <td ng-if="o.id === 'kcell'">
+                        <input ng-model="o.priceEP" name="{{o.id + 'EP'}}" class="form-control"  placeholder="{{o.isAvailable?'Цена':'Не доступен'}}" ng-disabled="!o.checked" ng-required="o.isAvailable && o.checked"/>
+                        <label class="error" ng-show="kcell_form.{{o.id + 'EP'}}.$error.required && ( kcell_form.{{o.id + 'EP'}}.$touched || view.submitted)">Required field</label>
+                    </td>
+                    <td>
+                        <input type="checkbox" ng-show="o.isAvailable" ng-model="o.checked">
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label class="col-sm-3 control-label">Решение</label>
+        <div class="col-sm-9">
+            <label class="radio-inline">
+                <input type="radio" name="matchIdentifierWithClientTaskResult" ng-model="matchIdentifierWithClientTaskResult" value="approved" required> Approve
+            </label>
+            <label class="radio-inline">
+                <input type="radio" name="matchIdentifierWithClientTaskResult" ng-model="matchIdentifierWithClientTaskResult" value="rejected" required> Reject
+            </label>
+            <label class="error" ng-show="kcell_form.matchIdentifierWithClientTaskResult.$error.required && ( kcell_form.matchIdentifierWithClientTaskResult.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+
+    <!--<info-freephone freephone-info="freephoneInfo"></info-freephone>-->
+    <div class="form-group">
+        <label class="col-sm-3 control-label">Комментарии</label>
+        <div class="col-sm-9">
+            <textarea class="form-control" ng-model="matchIdentifierWithClientTaskComment" name="matchIdentifierWithClientTaskComment" placeholder="Comments..." ng-required="matchIdentifierWithClientTaskResult === 'rejected'" maxlength="500" rows="4" style="resize:none"></textarea>
+            <label class="error" ng-show="kcell_form.matchIdentifierWithClientTaskComment.$error.required && ( kcell_form.matchIdentifierWithClientTaskComment.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+</form>

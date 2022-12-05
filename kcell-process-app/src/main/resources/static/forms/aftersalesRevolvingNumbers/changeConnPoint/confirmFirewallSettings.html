@@ -1,0 +1,186 @@
+<form role="form" class="form-horizontal" name="kcell_form" novalidate>
+    <style>
+        .background-yellow-accordion .panel-body {
+            background-color: #ffffcc;
+            border: 1px solid #b3b3b3;
+            color: #333;
+        }
+    </style>
+    <script cam-script type="text/form-script">
+        inject(['$scope', '$http', 'Uri', '$rootScope', '$q', 'toasty', '$timeout', function ($scope, $http, Uri, $rootScope, $q, toasty, $timeout) {
+            $scope.legalInfo = {};
+            $scope.techSpecs = {};
+            $scope.resolutions = [];
+            $scope.sip = {};
+            $scope.newPublicVoiceIP = "";
+            $scope.newPublicSignalingIP = "";
+            $scope.portsVoiceTraffic = "";
+            $scope.connPointIP = "";
+
+            var assigneeName = $rootScope.authentication.name;
+            var createdDate = new Date();
+            var processInstanceId = null;
+
+            $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name + "/profile").then(function(result){
+              assigneeName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
+            });
+
+            $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
+                function(result){
+                    processInstanceId = result.data.processInstanceId;
+                    $http.get('/camunda/api/engine/engine/default/process-instance/' + processInstanceId).then(
+                        function(result){
+                            $scope.businessKey = result.data.businessKey;
+                        },
+                        function (error) {console.log(error.data);}
+                    );
+                },
+                function (error) { console.log(error.data);}
+            );
+
+            camForm.on('form-loaded', function () {
+                camForm.variableManager.fetchVariable('legalInfo');
+                camForm.variableManager.fetchVariable('techSpecs');
+                camForm.variableManager.fetchVariable('resolutions');
+                camForm.variableManager.fetchVariable('workType');
+                camForm.variableManager.fetchVariable('numberRequest');
+                camForm.variableManager.fetchVariable('clientPriority');
+                camForm.variableManager.fetchVariable('attachments');
+            });
+
+            camForm.on('variables-fetched', function () {
+                $scope.legalInfo = camForm.variableManager.variableValue('legalInfo');
+                $scope.techSpecs = camForm.variableManager.variableValue('techSpecs');
+                $scope.sip = $scope.techSpecs.sip;
+                $scope.newPublicVoiceIP = $scope.sip.newPublicVoiceIP;
+                $scope.newPublicSignalingIP = $scope.sip.newSignalingIP;
+
+                if ($scope.techSpecs.connectionPoint == "SIP Proxy" && $scope.sip.authorizationType == "SIP-транк(доступ по стат. IP)") {
+                    $scope.connPointIP = "2.78.58.154";
+                } else if($scope.techSpecs.connectionPoint == "SIP Proxy" && $scope.sip.authorizationType == "SIP-авторизация(доступ по стат. IP c лог/пар)") {
+                    $scope.connPointIP = "2.78.58.167";
+                } else if($scope.techSpecs.connectionPoint == "SBC"){
+                    <!--Required quantity of PBX = 10 - 99-->
+                    $scope.connPointIP = "195.47.255.119";
+                }
+<!--                else if($scope.techSpecs.connectionPoint == "SBC"){-->
+<!--                    Required quantity of PBX = 100 - 999-->
+<!--                    $scope.connPointIP = "195.47.255.84";-->
+<!--                } else if($scope.techSpecs.connectionPoint == "SBC"){-->
+<!--                    Required quantity of PBX > 1000-->
+<!--                    $scope.connPointIP = "195.47.255.97";-->
+<!--                }-->
+
+
+
+                $scope.ports = $scope.sip.transProtocol + " (" + $scope.sip.signalingPort + "); \nRTP (" + $scope.sip.voicePortStart + ", " + $scope.sip.voicePortEnd + ")"
+
+                $scope.resolutions = camForm.variableManager.variableValue('resolutions');
+                $scope.workType = camForm.variableManager.variableValue('workType');
+                $scope.numberRequest = camForm.variableManager.variableValue('numberRequest');
+                $scope.clientPriority = camForm.variableManager.variableValue('clientPriority');
+                $scope.attachments = camForm.variableManager.variableValue('attachments');
+                if (!$scope.legalInfo){
+                    $scope.legalInfo = {};
+                } else if($scope.legalInfo.companyDate){
+                    $scope.legalInfo.companyDate = new Date($scope.legalInfo.companyDate);
+                }
+            });
+
+            camForm.on('submit', function (event) {
+                $scope.resolutions.push({
+                        assignee: assigneeName,
+                        resolution: 'Complete',
+                        comment: $scope.comment,
+                        taskEndDate: new Date(),
+                        taskName: 'Confirm remove numbers on BGW',
+                        assignDate: createdDate,
+                        claimDate: createdDate,
+                });
+                camForm.variableManager.variableValue('resolutions', $scope.resolutions);
+            });
+        }]);
+    </script>
+
+    <header-info number-request="numberRequest" legal-info="legalInfo" client-priority="clientPriority" work-type="workType"></header-info>
+
+    <div class="col-sm-12"><hr /></div>
+
+    <div class="col-sm-12" style="background-color: #ffffcc; padding: 16px;border: 1px solid;">
+        <h4 style="text-align: center;margin: 0 0 10px 0;">Request Firewall rules: </h4>
+
+        <div class="row">
+            <div class="col-sm-4">
+                <div class="form-group">
+                    <label class="col-sm-12 control-label">Source (IP address or Network): </label>
+                    <div class="col-sm-12">
+                        <input type="text" class="form-control" placeholder="New public static ip for voice traffic" name="sipPublicVoiceIP" ng-model="newPublicVoiceIP" ng-disabled="true">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="col-sm-12">
+                        <input type="text" class="form-control" placeholder="New public static ip for signaling" name="sipPublicSignalingIP" ng-model="newPublicSignalingIP" ng-disabled="true">
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-4">
+                <div class="form-group">
+                    <label class="col-sm-12 control-label">Destination (IP address or network): </label>
+                    <div class="col-sm-12">
+                        <input type="text" class="form-control" placeholder="Connection point" name="connPointIP" ng-model="connPointIP" ng-disabled="true">
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-4">
+                <div class="form-group">
+                    <label class="col-sm-12 control-label">Service and ports: </label>
+                    <div class="col-sm-12">
+                        <textarea rows="2" type="text" class="form-control" placeholder="Ports for voice traffic" name="portsVoiceTraffic" ng-model="ports" ng-disabled="true"></textarea>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+    <div class="col-sm-12"><hr /></div>
+
+    <div class="col-sm-12">
+        <accordion>
+            <accordion-group is-open="isHistoryOpen">
+                <accordion-heading>
+                    History <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
+                </accordion-heading>
+                <table class="table">
+                    <thead>
+                    <tr>
+                        <th>Activity</th>
+                        <th>Assignee</th>
+                        <th>Date</th>
+                        <th>Resolution</th>
+                        <th>Comment</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr ng-repeat="resolution in resolutions | orderBy:'-' track by $index">
+                        <td>{{resolution.taskName}}</td>
+                        <td>{{resolution.assignee}}</td>
+                        <td>{{resolution.assignDate | date: 'dd.MM.yyyy HH:mm'}}</td>
+                        <td>{{resolution.resolution}}</td>
+                        <td>{{resolution.comment}}</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </accordion-group>
+        </accordion>
+
+    </div>
+
+    <div class="form-group">
+        <label class="col-sm-2 control-label">Comment</label>
+        <div class="col-sm-10">
+            <textarea elastic-textarea class="form-control" rows="4" ng-model="comment" name="comment"></textarea>
+        </div>
+    </div>
+</form>

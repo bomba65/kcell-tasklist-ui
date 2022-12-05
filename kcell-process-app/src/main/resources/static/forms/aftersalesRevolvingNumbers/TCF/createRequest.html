@@ -1,0 +1,297 @@
+<form role="form" class="form-horizontal" name="kcell_form" novalidate>
+    <script cam-script type="text/form-script">
+    inject([ '$scope', '$http', '$rootScope', '$q', '$timeout', 'historyVariablesManager', function($scope, $http, $rootScope, $q, $timeout, historyVariablesManager) {
+    var processInstanceId = null;
+    var assigneeName = $rootScope.authentication.name;
+    var taskKey = camForm.taskId;
+    var history = null;
+    var createdDate = new Date();
+<!--    $scope.deadline = new Date();-->
+    $scope.typeOfWork = '';
+
+    $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name + "/profile").then(function(result){
+      assigneeName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
+    });
+
+    $scope.downloadFile = function (file) {
+      $http({method: 'GET', url: '/camunda/uploads/' + (file.path.split('/').length === 2 ? 'tmp/' : '') + 'get/' + file.path, transformResponse: [] }).then(
+        function(response) {
+          document.getElementById('fileDownloadIframe').src = response.data;
+        },
+        function(response) { console.log(response.data); }
+      );
+    };
+
+    $scope.clearFile = function(fileIndex) {
+      $scope.attachments.splice(fileIndex, 1);
+    };
+
+    $scope.fileSelected = function(el ){
+      $timeout(function () {
+        $scope.$apply(function () {
+          uploadFileToMinio(el.files[0]);
+        });
+      })
+    };
+
+    function uploadFileToMinio(file) {
+      var fileToUpload = {
+        name: file.name.replace(/[/\\?%*:|"<>]/g, '-'),
+        path: processInstanceId + '/' + camForm.taskId + '/' + file.name.replace(/[/\\?%*:|"<>]/g, '-'),
+        created: new Date(),
+        createdBy: assigneeName
+      };
+      $http({method: 'GET', url: '/camunda/uploads/put/' + fileToUpload.path, transformResponse: [] }).then(
+        function(response) {
+          $http.put(response.data, file, {headers: {'Content-Type': undefined}}).then(
+            function () {
+              $scope.attachments.push(fileToUpload);
+              angular.element(document.querySelector('#attachments')).val(null);
+            },
+            function (error) {
+              console.log(error.data);
+            }
+          );
+        },
+        function(response) { console.log(response.data); }
+      );
+    }
+
+    $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
+        function (result) {
+            console.log(result.data);
+            processInstanceId = result.data.processInstanceId;
+            taskKey = result.data.taskDefinitionKey;
+            history = historyVariablesManager(camForm, taskKey);
+            history.createVariables(true);
+            configureViews();
+        },
+        function (error) {
+            console.log(error.data);
+        }
+    );
+
+    camForm.on('form-loaded', function () {
+      camForm.variableManager.fetchVariable('resolutions');
+      camForm.variableManager.fetchVariable('clientPriority');
+      camForm.variableManager.fetchVariable('legalInfo');
+      camForm.variableManager.fetchVariable('workType');
+      camForm.variableManager.fetchVariable('attachments');
+      camForm.variableManager.fetchVariable('action');
+      camForm.variableManager.fetchVariable('numberRequest');
+      camForm.variableManager.fetchVariable('numbersAmount');
+      camForm.variableManager.fetchVariable('deadline');
+      camForm.variableManager.fetchVariable('testResult');
+    });
+
+    camForm.on('variables-fetched', function () {
+      $scope.resolutions = camForm.variableManager.variableValue('resolutions');
+      $scope.clientPriority = camForm.variableManager.variableValue('clientPriority');
+      $scope.li = camForm.variableManager.variableValue('legalInfo');
+      $scope.workType = camForm.variableManager.variableValue('workType').forEach(x => {
+                                                                              $scope.typeOfWork += x + '; '
+                                                                            });
+      $scope.attachments = camForm.variableManager.variableValue('attachments');
+      $scope.action = camForm.variableManager.variableValue('action');
+      $scope.numberRequest = camForm.variableManager.variableValue('numberRequest');
+      $scope.numbersAmount = camForm.variableManager.variableValue('numbersAmount');
+      $scope.deadline = new Date(camForm.variableManager.variableValue('deadline').toString());
+      $scope.testResult = camForm.variableManager.variableValue('testResult');
+      if (!$scope.attachments) $scope.attachments = [];
+      if (!$scope.testResult) $scope.testResult = {html: ''};
+
+      $scope.lastAttachments = JSON.parse(JSON.stringify($scope.attachments));
+    });
+
+    camForm.on('submit', function(e) {
+      camForm.variableManager.variableValue('action', $scope.action);
+      camForm.variableManager.variableValue('numbersAmount', $scope.numbersAmount);
+
+      camForm.variableManager.destroyVariable('attachments');
+      camForm.variableManager.createVariable({
+        name: 'attachments',
+        type: 'json',
+        value: $scope.attachments,
+        store: true
+      });
+
+      camForm.variableManager.destroyVariable('testResult');
+      camForm.variableManager.createVariable({
+        name: 'testResult',
+        type: 'json',
+        value: $scope.testResult,
+        store: true
+      });
+
+<!--      camForm.variableManager.destroyVariable('numbersAmount');-->
+<!--      camForm.variableManager.createVariable({-->
+<!--        name: 'numbersAmount',-->
+<!--        type: 'Integer',-->
+<!--        value: $scope.numbersAmount,-->
+<!--        store: true-->
+<!--      });-->
+
+      camForm.variableManager.destroyVariable('deadline');
+      camForm.variableManager.createVariable({
+        name: 'deadline',
+        type: 'Date',
+        value: $scope.deadline,
+        store: true
+      });
+      $scope.resolutions.push({
+            assignee: assigneeName,
+            resolution: 'Created',
+            comment: $scope.comment,
+            taskEndDate: new Date(),
+            taskName: 'Create request in TCF',
+            assignDate: createdDate,
+            claimDate: createdDate,
+      });
+      camForm.variableManager.variableValue('resolutions', $scope.resolutions);
+      console.log($scope.resolutions);
+    });
+   }]);
+
+  </script>
+
+    <div class="col-sm-12">
+        <div class="form-group">
+            <label class="col-sm-4">Number request:</label>
+            <div class="col-sm-8"><span class="text-primary">{{numberRequest}}</span></div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-4">Client:</label>
+            <div class="col-sm-8">{{li.legalName}} {{li.BIN}}</div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-4">Service:</label>
+            <div class="col-sm-8">Revolving Numbers Aftersales</div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-4">Type of work:</label>
+            <div class="col-sm-8">{{typeOfWork}}</div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-4">Subject (TIC name):</label>
+            <div class="col-sm-8">{{li.ticName}}</div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-4">Priority:</label>
+            <div class="col-sm-8"><span class="{{clientPriority == 'High'?'text-danger':''}} ">{{clientPriority}}</span></div>
+        </div>
+
+        <div class="form-group">
+            <label class="col-sm-4">Deadline:</label>
+            <div class="col-sm-4">
+                <div class="input-group">
+                    <input type="text" ng-model="deadline" class="form-control" datepicker-popup="dd.MM.yyyy" is-open="DateFieldOpened"/>
+                    <span class="input-group-btn">
+            <button type="button" class="btn btn-default" ng-click="DateFieldOpened = true">
+                <i class="glyphicon glyphicon-calendar"></i>
+            </button>
+        </span>
+                </div>
+            </div>
+        </div>
+
+            <div class="form-group">
+                <label class="col-sm-4">Tariff:</label>
+                <div class="col-sm-8">
+                    <select class="form-control" ng-model="action.tariffPlan">
+                        <option value="Револьверный 11-15" selected>Револьверный 11-15</option>
+                        <option value="Нестандартный пакет">Нестандартный пакет</option>
+                    </select>
+                    <input type="text" ng-show="action.tariffPlan == 'Нестандартный пакет'" class="form-control" style="margin-top: 3px;" name="tariffExtra" ng-model="action.tariffExtra" placeholder="Укажите тариф" ng-required="action.tariffPlan == 'Нестандартный тариф'" ng-style="{'background-color': ((pbxData.fetched && pbxData.tariffExtra !== action.tariffExtra) ? 'orange' : null)}">
+                    <span class="has-error" ng-if="kcell_form.tariffExtra.$error.required && (kcell_form.tariffExtra.$touched || view.submitted)">Required field</span>
+                </div>
+            </div>
+
+        <div class="form-group">
+            <label class="col-sm-4 control-label">Amount of Revolving numbers:</label>
+            <div class="col-sm-8">
+                <label class="radio-inline"><input type="radio" ng-value="60" ng-model="numbersAmount"> 60</label>
+                <label class="radio-inline"><input type="radio" ng-value="100" ng-model="numbersAmount"> 100</label>
+                <label class="radio-inline"><input type="radio" ng-value="250" ng-model="numbersAmount"> 250</label>
+                <label class="radio-inline"><input type="radio" ng-value="500" ng-model="numbersAmount"> 500</label>
+            </div>
+        </div>
+
+        <div class="col-sm-12">&#8203;</div>
+    </div>
+    <div class="col-sm-12">
+        <accordion>
+            <accordion-group is-open="isHistoryOpen">
+                <accordion-heading>
+                    History <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
+                </accordion-heading>
+                <table class="table">
+                    <thead>
+                    <tr>
+                        <th>Activity</th>
+                        <th>Assignee</th>
+                        <th>Date</th>
+                        <th>Resolution</th>
+                        <th>Comment</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr ng-repeat="resolution in resolutions | orderBy:'-' track by $index">
+                        <td>{{resolution.taskName}}</td>
+                        <td>{{resolution.assignee}}</td>
+                        <td>{{resolution.assignDate | date: 'dd.MM.yyyy HH:mm'}}</td>
+                        <td>{{resolution.resolution}}</td>
+                        <td>{{resolution.comment}}</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </accordion-group>
+        </accordion>
+
+    </div>
+
+    <div class="form-group">
+        <label class="col-sm-12">TCF: <span class="has-error" ng-if="kcell_form.testResultHtml.$error.required && (kcell_form.testResultHtml.$touched || view.submitted)">(Required field)</span></label>
+        <div class="col-sm-12">
+            <pbx-rich-text data="testResult.html" min-height="100" process-id="processInstanceId" task-id="taskId" disabled="testResultReadOnly"></pbx-rich-text>
+            <input type="hidden" ng-model="testResult.html" name="testResultHtml">
+        </div>
+    </div>
+
+    <div class="col-sm-12">
+        <iframe id="fileDownloadIframe" style="display:none;"></iframe>
+        <div class="form-group">
+            <label class="col-sm-4 control-label">Attachments</label>
+            <div class="col-sm-8">
+                <input type="file" class="form-control" id="attachments" name="attachments" onchange="angular.element(this).scope().fileSelected(this)"/>
+                <div class="col-sm-12">
+                    <table class="table ">
+                        <thead>
+                        <tr>
+                            <th>File Name</th>
+                            <th>Created</th>
+                            <th>Created By</th>
+                            <th>Delete</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr ng-repeat="file in attachments track by $index">
+                            <td><a ng-click="downloadFile(file)">{{file.name}}</a></td>
+                            <td>{{file.created | date: 'dd.MM.yyyy HH:mm'}}</td>
+                            <td>{{file.createdBy}}</td>
+                            <td><a ng-click="clearFile($index)"><i class="glyphicon glyphicon-trash"></i></a></td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-12"><hr /></div>
+    </div>
+
+    <div class="form-group">
+        <label class="col-sm-12 control-label">Comments:</label>
+        <div class="col-sm-12">
+            <textarea class="form-control" name="comment" ng-model="comment"></textarea>
+        </div>
+    </div>
+</form>

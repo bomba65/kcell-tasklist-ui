@@ -1,0 +1,51 @@
+version: '2.2'
+services:
+  camundadb:
+    extends:
+      file: common-services.yml
+      service: camundadb
+    ports:
+      - "5432:5432"
+  assets:
+    extends:
+      file: common-services.yml
+      service: assets
+    depends_on:
+      assetsdb:
+        condition: service_healthy
+  assetsdb:
+    extends:
+      file: common-services.yml
+      service: assetsdb
+    ports:
+      - "5433:5432"
+  nginx:
+    extends:
+      file: common-services.yml
+      service: nginx
+    depends_on:
+      minio:
+        condition: service_healthy
+    links:
+      - assets
+      - maildev
+    extra_hosts:
+      - "camunda:192.168.99.2"
+  mail:
+    extends:
+      file: common-services.yml
+      service: mail
+    links:
+      - maildev
+    ports:
+      - "1025:25"
+  maildev:
+    extends:
+      file: common-services.yml
+      service: maildev
+  minio:
+    extends:
+      file: common-services.yml
+      service: minio
+    ports:
+      - "9000:9000"

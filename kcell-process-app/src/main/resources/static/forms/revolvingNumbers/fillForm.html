@@ -1,0 +1,370 @@
+<form role="form" class="form-horizontal" name="kcell_form" novalidate>
+  <style>
+    .background-yellow-accordion .panel-body {
+      background-color: #ffffcc;
+      border: 1px solid #b3b3b3;
+      color: #333;
+    }
+
+    .content-visible-accordion .panel {
+      overflow: visible;
+    }
+  </style>
+  <script cam-script type="text/form-script">
+        inject(['$scope', '$http', 'Uri', '$rootScope', '$q', 'toasty', '$timeout', '$filter', function ($scope, $http, Uri, $rootScope, $q, toasty, $timeout, $filter) {
+            var createDate = new Date();
+
+            $scope.legalInfo = {companyDate: new Date()};
+            $scope.techSpecs = {};
+            $scope.resolutions = [];
+            $scope.attachments = [];
+
+            $scope.legalAddition = {
+              existingChannel: false,
+              numbersAmount: 60,
+              callbackForwarding: false,
+              cpsRequired: false
+            };
+
+            var processInstanceId = null;
+            var taskName = null;
+            var assigneeName = $rootScope.authentication.name;
+
+            $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name+ "/profile").then(function(result){
+                assigneeName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
+            });
+
+            $scope.preSubmit = function() {
+                return $http.get('/camunda/api/engine/engine/default/history/process-instance/count?processDefinitionKey=revolvingNumbers').then(
+                    function(result) {
+                        var countPID = result.data.count + 1;
+                        var orderNumber = '';
+                        if (countPID >= 10000){
+                            countPID = countPID % 10000;
+                        }
+                        if (countPID < 1000) orderNumber += '0';
+                        if (countPID < 100) orderNumber += '0';
+                        if (countPID < 10) orderNumber += '0';
+                        orderNumber += countPID;
+                        camForm.businessKey = 'REVNUM_' + $filter('date')(new Date(), 'ddMMyyyy') + "_" + $scope.legalInfo.BIN + "_" + $scope.legalInfo.ticName + "_" + orderNumber;
+                    },
+                    function(error) {}
+                );
+            }
+
+            camForm.on('submit', function (event) {
+              if($scope.legalInfo.companyDate){
+                $scope.legalInfo.companyDate = new Date($scope.legalInfo.companyDate);
+              }
+                camForm.variableManager.createVariable({
+                    name: 'clientBIN',
+                    type: 'String',
+                    value: $scope.legalInfo.BIN
+                });
+                camForm.variableManager.createVariable({
+                    name: 'connectionPoint',
+                    type: 'String',
+                    value: ($scope.techSpecs.sip?$scope.techSpecs.sip.connectionPoint:'')
+                });
+                camForm.variableManager.createVariable({
+                    name: 'legalInfo',
+                    type: 'Json',
+                    value: $scope.legalInfo
+                });
+                camForm.variableManager.createVariable({
+                    name: 'techSpecs',
+                    type: 'Json',
+                    value: $scope.techSpecs
+                });
+                camForm.variableManager.createVariable({
+                    name: 'attachments',
+                    type: 'Json',
+                    value: $scope.attachments,
+                    store: true
+                });
+                camForm.variableManager.createVariable({
+                    name: 'existingChannel',
+                    type: 'Boolean',
+                    value: $scope.legalAddition.existingChannel,
+                    store: true
+                });
+                camForm.variableManager.createVariable({
+                    name: 'numbersAmount',
+                    type: 'Integer',
+                    value: $scope.legalAddition.numbersAmount,
+                    store: true
+                });
+                camForm.variableManager.createVariable({
+                    name: 'callbackForwarding',
+                    type: 'Boolean',
+                    value: $scope.legalAddition.callbackForwarding,
+                    store: true
+                });
+                camForm.variableManager.createVariable({
+                    name: 'callbackNumber',
+                    type: 'String',
+                    value: $scope.legalAddition.callbackNumber,
+                    store: true
+                });
+                camForm.variableManager.createVariable({
+                    name: 'cpsRequired',
+                    type: 'Boolean',
+                    value: $scope.legalAddition.cpsRequired,
+                    store: true
+                });
+                camForm.variableManager.createVariable({
+                    name: 'cpsCount',
+                    type: 'Integer',
+                    value: $scope.legalAddition.cpsCount,
+                    store: true
+                });
+
+                var submitDate = new Date ();
+                var attachmentsChanges = {added: [], removed: []}
+                for (var attachment of $scope.attachments) attachmentsChanges.added.push(attachment.name);
+                if(!$scope.resolutions) {
+                    $scope.resolutions = [];
+                }
+                $scope.resolutions.push({assignee: $rootScope.authentication.name, assigneeName: assigneeName, resolution: 'Complete', comment: $scope.comment, taskId: camForm.taskId, taskEndDate: submitDate, taskName: 'Filling of changes for Aftersales proccess', assignDate: createDate, claimDate: createDate, attachments: attachmentsChanges});
+                camForm.variableManager.createVariable({
+                    name: 'resolutions',
+                    type: 'Json',
+                    value: $scope.resolutions
+                });
+
+                // Fields for search page filters
+                camForm.variableManager.createVariable({
+                    name: 'searchSalesReprId',
+                    type: 'String',
+                    value: $scope.legalInfo.salesReprId,
+                    store: true
+                });
+                camForm.variableManager.createVariable({
+                    name: 'searchCallerID',
+                    type: 'String',
+                    value: $scope.legalInfo.callerID,
+                    store: true
+                });
+                camForm.variableManager.createVariable({
+                    name: 'searchPbxNumbers',
+                    type: 'String',
+                    value: $scope.techSpecs.pbxNumbers,
+                    store: true
+                });
+            });
+
+            $scope.downloadFile = function (file) {
+                $http({method: 'GET', url: '/camunda/uploads/' + (file.path.split('/').length === 2 ? 'tmp/' : '') + 'get/' + file.path, transformResponse: [] }).then(
+                    function(response) {
+                        document.getElementById('fileDownloadIframe').src = response.data;
+                    },
+                    function(response) {console.log(response.data);}
+                );
+            }
+
+            $scope.clearFile = function(fileIndex) {
+                $scope.attachments.splice(fileIndex, 1);
+            }
+
+            $scope.fileSelected = function(el) {
+                $timeout(function () {
+                    $scope.$apply(function () {
+                        uploadFileToMinio(el.files[0]);
+                    });
+                });
+            };
+
+            var uuid = new Date().getTime();
+
+            function uploadFileToMinio(file) {
+                var fileToUpload = {
+                    name: file.name.replace(/[/\\?%*:|"<>]/g, '-'),
+                    path: uuid + '/' + file.name.replace(/[/\\?%*:|"<>]/g, '-'),
+                    created: new Date(),
+                    createdBy: assigneeName
+                };
+                $http({method: 'GET', url: '/camunda/uploads/tmp/put/' + fileToUpload.path, transformResponse: [] }).then(
+                    function(response) {
+                        $http.put(response.data, file, {headers: {'Content-Type': undefined}}).then(
+                            function () {
+                                $scope.attachments.push(fileToUpload);
+                                angular.element(document.querySelector('#attachments')).val(null);
+                            },
+                            function (error) {
+                                console.log(error.data);
+                            }
+                        );
+                    },
+                    function(response) { console.log(response.data); }
+                );
+            }
+
+            $scope.onExistingChannelChange = function() {
+              if (!scope.legalAddition.existingChannel) $scope.techSpecs.connectionType = 'SIP over internet';
+            };
+
+        }]);
+    </script>
+  <tabset class="my-tab-head my-tab" justified="true">
+    <tab>
+      <tab-heading> Legal information </tab-heading>
+      <accordion class="content-visible-accordion">
+        <accordion-group is-open="true">
+          <accordion-heading>
+            Legal information <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
+          </accordion-heading>
+          <revolving-legal-information data="legalInfo" form="kcell_form" view="view" disabled="false"></revolving-legal-information>
+        </accordion-group>
+      </accordion>
+      <div class="col-sm-12">
+        <div class="form-group">
+          <label class="col-sm-4 control-label">Client priority:</label>
+          <div class="col-sm-8">
+            <label class="radio-inline"><input type="radio" value="Normal" ng-model="legalInfo.clientPriority"> Normal</label>
+            <label class="radio-inline"><input type="radio" value="High" ng-model="legalInfo.clientPriority"> High</label>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="col-sm-4 control-label">Existing Channel:</label>
+          <div class="col-sm-8">
+            <label class="radio-inline"><input type="radio" ng-value="false" ng-model="legalAddition.existingChannel" ng-change="onExistingChannelChange()"> No</label>
+            <label class="radio-inline"><input type="radio" ng-value="true" ng-model="legalAddition.existingChannel" ng-change="onExistingChannelChange()"> Yes</label>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="col-sm-4 control-label">Amount of Revolving numbers:</label>
+          <div class="col-sm-8">
+            <label class="radio-inline"><input type="radio" ng-value="60" ng-model="legalAddition.numbersAmount"> 60</label>
+            <label class="radio-inline"><input type="radio" ng-value="100" ng-model="legalAddition.numbersAmount"> 100</label>
+            <label class="radio-inline"><input type="radio" ng-value="250" ng-model="legalAddition.numbersAmount"> 250</label>
+            <label class="radio-inline"><input type="radio" ng-value="500" ng-model="legalAddition.numbersAmount"> 500</label>
+            <label class="radio-inline"><input type="radio" ng-value="0" ng-model="legalAddition.numbersAmount"> Custom</label>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="col-sm-4 control-label">Callback forwarding:</label>
+          <div class="col-sm-8">
+            <label class="radio-inline"><input type="radio" ng-value="false" ng-model="legalAddition.callbackForwarding"> No</label>
+            <label class="radio-inline"><input type="radio" ng-value="true" ng-model="legalAddition.callbackForwarding"> Yes</label>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="col-sm-4 control-label">Callback number: <span ng-if="legalAddition.callbackForwarding" class="text-danger glyphicon-asterisk"></span></label>
+          <div class="col-sm-8">
+            <input type="text" class="form-control" name="callbackNumber" ng-model="legalAddition.callbackNumber" ng-required="legalAddition.callbackForwarding" ng-disabled="!legalAddition.callbackForwarding" placeholder="Например 87271271188">
+            <span class="has-error" ng-if="kcell_form.callbackNumber.$error.required && (kcell_form.callbackNumber.$touched || view.submitted)">Required field</span>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="col-sm-4 control-label">Autodialer CPS required:</label>
+          <div class="col-sm-8">
+            <label class="radio-inline"><input type="radio" ng-value="false" ng-model="legalAddition.cpsRequired"> No</label>
+            <label class="radio-inline"><input type="radio" ng-value="true" ng-model="legalAddition.cpsRequired"> Yes</label>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="col-sm-4 control-label">Count of Autodialer CPS: <span ng-if="legalAddition.cpsRequired" class="text-danger glyphicon-asterisk"></span></label>
+          <div class="col-sm-8">
+            <input type="number" class="form-control" name="cpsCount" ng-model="legalAddition.cpsCount" ng-required="legalAddition.cpsRequired" ng-disabled="!legalAddition.cpsRequired" placeholder="Количество CPS (Например 1000)">
+            <span class="has-error" ng-if="kcell_form.cpsCount.$error.required && (kcell_form.cpsCount.$touched || view.submitted)">Required field</span>
+          </div>
+        </div>
+      </div>
+    </tab>
+    <tab select="$broadcast('tab-selected', 'techSpec')">
+      <tab-heading> Technical specification </tab-heading>
+      <accordion>
+        <accordion-group is-open="true">
+          <accordion-heading>
+            Technical specification <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
+          </accordion-heading>
+          <revolving-technical-specifications data="techSpecs" form="kcell_form" view="view" disabled="false" active-conn-type="legalAddition.existingChannel" callback-forwarding="legalAddition.callbackForwarding"></revolving-technical-specifications>
+        </accordion-group>
+      </accordion>
+      <accordion ng-if="techSpecs.connectionType" class="background-yellow-accordion">
+        <accordion-group is-open="true">
+          <accordion-heading>
+            {{techSpecs.connectionType === 'SIP over internet' ? 'Connection via Internet channel by SIP protocol' : 'Direct connection by SIP Direct Protocols'}} <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
+          </accordion-heading>
+          <revolving-sip-protocol ng-if="techSpecs.connectionType === 'SIP over internet'" data="techSpecs.sip" form="kcell_form" view="view" disabled="false"></revolving-sip-protocol>
+          <revolving-direct-protocol ng-if="techSpecs.connectionType === 'SIP direct'" data="techSpecs.direct" form="kcell_form" view="view" disabled="false"></revolving-direct-protocol>
+        </accordion-group>
+      </accordion>
+    </tab>
+  </tabset>
+  <div class="col-sm-12"><hr /></div>
+
+  <iframe id="fileDownloadIframe" style="display:none;"></iframe>
+  <div class="form-group">
+    <label class="col-sm-2 control-label">Attachments</label>
+    <div class="col-sm-10">
+      <input type="file" class="form-control" id="attachments" name="attachments" onchange="angular.element(this).scope().fileSelected(this)"/>
+      <div class="col-sm-12" style="padding: 0;">
+        <table class="table table-bordered">
+          <thead>
+          <tr>
+            <th>File Name</th>
+            <th>Created</th>
+            <th>Created By</th>
+            <th>Delete</th>
+          </tr>
+          </thead>
+          <tbody>
+          <tr ng-repeat="file in attachments track by $index">
+            <td><a ng-click="downloadFile(file)">{{file.name}}</a></td>
+            <td>{{file.created | date: 'dd.MM.yyyy HH:mm'}}</td>
+            <td>{{file.createdBy}}</td>
+            <td><a ng-click="clearFile($index)"><i class="glyphicon glyphicon-trash"></i></a></td>
+          </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-sm-12"><hr /></div>
+
+  <div class="form-group">
+    <label class="col-sm-2 control-label">Comment</label>
+    <div class="col-sm-10">
+      <textarea elastic-textarea class="form-control" rows="4" ng-model="comment" name="comment"></textarea>
+    </div>
+  </div>
+
+  <accordion>
+    <accordion-group is-open="isHistoryOpen">
+      <accordion-heading>
+        History <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
+      </accordion-heading>
+      <table class="table">
+        <thead>
+        <tr>
+          <th>Activity</th>
+          <th>Assignee</th>
+          <th>Assigned date</th>
+          <th>Claimed date</th>
+          <th>Resolution date</th>
+          <th>Resolution</th>
+          <th>Comment</th>
+          <th>Attachments</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr ng-repeat="resolution in resolutions | orderBy:'-' track by $index">
+          <td>{{resolution.taskName}}</td>
+          <td>{{resolution.assigneeName}}</td>
+          <td>{{resolution.assignDate | date: 'dd.MM.yyyy HH:mm'}}</td>
+          <td>{{resolution.claimDate | date: 'dd.MM.yyyy HH:mm'}}</td>
+          <td>{{resolution.taskEndDate | date: 'dd.MM.yyyy HH:mm'}}</td>
+          <td>{{resolution.resolution}}</td>
+          <td>{{resolution.comment}}</td>
+          <td>
+            <p ng-repeat="file in resolution.attachments.added">{{file}}</p>
+            <p ng-repeat="file in resolution.attachments.removed" class="text-danger">{{file}}</p>
+          </td>
+        </tr>
+        </tbody>
+      </table>
+    </accordion-group>
+  </accordion>
+</form>

@@ -1,0 +1,165 @@
+<form role="form" class="form-horizontal" name="kcell_form" novalidate>
+    <script cam-script type="text/form-script">
+        inject(['$scope', '$q', '$http', '$rootScope', function ($scope, $q, $http, $rootScope) {
+            var variables = [
+                'sharingPlan',
+                'resolutions',
+                'showSSID',
+                'ssidtssrFiles',
+                'sharingPlanStatus'
+            ];
+
+            camForm.on('form-loaded', function () {
+                variables.forEach(function (el) {
+                    camForm.variableManager.fetchVariable(el);
+                });
+                $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
+                    function(result){
+                        $scope.processInstanceId = result.data.processInstanceId;
+                    },
+                    function (error) {
+                        console.log(error.data);
+                    }
+                );
+            });
+
+            camForm.on('variables-fetched', function () {
+                variables.forEach(function (el) {
+                    if (el === 'resolutions') {
+                        if (camForm.variableManager.variables[el].value) {
+                            $scope.resolutions = angular.copy(camForm.variableManager.variables[el].value);
+                            $q.all($scope.resolutions.map(function (resolution) {
+                                return $http.get("/camunda/api/engine/engine/default/history/task?processInstanceId=" + resolution.processInstanceId + "&taskId=" + resolution.taskId);
+                            })).then(function (tasks) {
+                                tasks.forEach(function (e, index) {
+                                    if (e.data.length > 0) {
+                                        $scope.resolutions[index].taskName = e.data[0].name;
+                                        try {
+                                            $scope.resolutions[index].taskEndDate = new Date(e.data[0].endTime);
+                                            $scope.resolutions[index].assignDate = new Date(e.data[0].startTime);
+                                        } catch (e) {
+                                            console.log(e);
+                                        }
+                                    }
+                                });
+                            });
+                            $q.all($scope.resolutions.map(function (resolution) {
+                                return $http.get("/camunda/api/engine/engine/default/history/identity-link-log?type=assignee&taskId=" + resolution.taskId + "&operationType=add&sortBy=time&sortOrder=desc");
+                            })).then(function (logs) {
+                                logs.forEach(function (e, index) {
+                                    if(e.data.length > 0){
+                                        try {
+                                            $scope.resolutions[index].claimDate = new Date(e.data[0].time);
+                                        } catch(e){
+                                            console.log(e);
+                                        }
+                                    }
+                                });
+                            });
+                        }
+                    } else if (el === 'sharingPlanStatus') {
+                        $scope[el] = camForm.variableManager.variables[el].value;
+                        $scope.sharingPlan.status = camForm.variableManager.variables[el].value;
+                    } else {
+                        $scope[el] = camForm.variableManager.variables[el].value;
+                    }
+                });
+                $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name+ "/profile").then(function(result){
+                    $rootScope.authentication.assigneeName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
+                });
+                if($scope.sharingPlan){
+                    $scope.sharingPlan.ssidtssrFiles = angular.copy($scope.ssidtssrFiles);
+                    $scope.sharingPlan.currentTask = {id:camForm.taskId};
+                }
+
+                camForm.variableManager.createVariable({
+                    name: 'doLeasingProceduresAndUpdateLeasingStatusResult',
+                    type: 'String',
+                    value: ''
+                });
+
+                camForm.variableManager.createVariable({
+                    name: 'doLeasingProceduresAndUpdateLeasingStatusComment',
+                    type: 'String',
+                    value: ''
+                });
+
+                camForm.variableManager.createVariable({
+                    name: 'siteAccessGrantStatus',
+                    type: 'String',
+                    value: ''
+                });
+
+                camForm.variableManager.createVariable({
+                    name: 'replanStatus',
+                    type: 'String',
+                    value: ''
+                });
+            });
+
+            camForm.on('submit', function () {
+                camForm.variableManager.variableValue('doLeasingProceduresAndUpdateLeasingStatusResult', $scope.doLeasingProceduresAndUpdateLeasingStatusResult);
+                camForm.variableManager.variableValue('doLeasingProceduresAndUpdateLeasingStatusComment', $scope.doLeasingProceduresAndUpdateLeasingStatusComment);
+                camForm.variableManager.variableValue('siteAccessGrantStatus', $scope.siteAccessGrantStatus);
+                if ($scope.doLeasingProceduresAndUpdateLeasingStatusResult !== 'replan') {
+                    camForm.variableManager.variableValue('replanStatus', 'notreplan');
+                } else {
+                    camForm.variableManager.variableValue('replanStatus', 'replan');
+                    if ($scope.replanReason) {
+                        camForm.variableManager.createVariable({
+                            name: 'replanReason',
+                            type: 'String',
+                            value: $scope.replanReason
+                        });
+                    }
+                }
+                camForm.variableManager.destroyVariable('resolutions');
+            });
+        }]);
+
+    </script>
+    <shared-site-plan plan-model="sharingPlan"></shared-site-plan>
+    <div class="form-group">
+        <label class="col-sm-4 control-label">Initial Site Access Grant Status for TSSR/SSID Prepartion:</label>
+        <div class="col-sm-8">
+            <label class="radio-inline">
+                <input type="radio" ng-model="siteAccessGrantStatus" name="siteAccessGrantStatus" value="grant" required> Granted
+            </label>
+            <label class="radio-inline">
+                <input type="radio" ng-model="siteAccessGrantStatus" name="siteAccessGrantStatus" value="notgrant" required> Not Grant
+            </label>
+            <label class="error" ng-show="kcell_form.siteAccessGrantStatus.$error.required && ( kcell_form.siteAccessGrantStatus.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-4 control-label">Leasing Status:</label>
+        <div class="col-sm-8">
+            <label class="radio-inline">
+                <input type="radio" ng-model="doLeasingProceduresAndUpdateLeasingStatusResult" name="doLeasingProceduresAndUpdateLeasingStatusResult" value="done" required> Leasing done
+            </label>
+            <label class="radio-inline">
+                <input type="radio" ng-model="doLeasingProceduresAndUpdateLeasingStatusResult" name="doLeasingProceduresAndUpdateLeasingStatusResult" value="replan" required> Leasing impossible, need re-plan
+            </label>
+            <label class="error" ng-show="kcell_form.doLeasingProceduresAndUpdateLeasingStatusResult.$error.required && ( kcell_form.doLeasingProceduresAndUpdateLeasingStatusResult.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+    <div class="form-group" ng-show="doLeasingProceduresAndUpdateLeasingStatusResult === 'replan'">
+        <label class="col-sm-4 control-label">Replan Reason:</label>
+        <div class="col-sm-8">
+            <label class="radio-inline">
+                <input type="radio" ng-model="replanReason" name="replanReason" value="replanPosition" ng-required="doLeasingProceduresAndUpdateLeasingStatusResult === 'replan'"> Replan Position
+            </label>
+            <label class="radio-inline">
+                <input type="radio" ng-model="replanReason" name="replanReason" value="changeConfiguration" ng-required="doLeasingProceduresAndUpdateLeasingStatusResult === 'replan'"> Change Configuration
+            </label>
+            <label class="error" ng-show="kcell_form.replanReason.$error.required && ( kcell_form.replanReason.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-4 control-label">Comments</label>
+        <div class="col-sm-8">
+            <textarea class="form-control" ng-model="doLeasingProceduresAndUpdateLeasingStatusComment" name="doLeasingProceduresAndUpdateLeasingStatusComment" placeholder="Comments..." maxlength="500" rows="4" ng-required="doLeasingProceduresAndUpdateLeasingStatusResult !== 'done'"></textarea>
+            <label class="error" ng-show="kcell_form.doLeasingProceduresAndUpdateLeasingStatusComment.$error.required && ( kcell_form.doLeasingProceduresAndUpdateLeasingStatusComment.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+</form>

@@ -1,0 +1,702 @@
+<form role="form" class="form-horizontal" name="kcell_form" novalidate>
+  <style>
+    .well {
+      color: #333;
+    }
+
+    .demand-name {
+      width: 89%;
+      float: left;
+      padding: 0 5px;
+    }
+  </style>
+  <script cam-script type="text/form-script">
+    inject(['$scope', '$http', 'Uri', '$rootScope', '$q', 'toasty', '$timeout', 'exModal', 'historyVariablesManager', function ($scope, $http, Uri, $rootScope, $q, toasty, $timeout, exModal, historyVariablesManager) {
+      $scope.isStartForm = false;
+      $scope.generalData = {
+        general: {},
+        targetAudience: {},
+        demandDetails: {}
+      };
+      $scope.resolutions = [];
+      var processInstanceId = null;
+      var taskName = null;
+      var assigneeName = $rootScope.authentication.name;
+      var createdDate = new Date();
+      var claimDate = new Date();
+      var demandDetailsCopy = {};
+      var history = historyVariablesManager(camForm, 'fillForm');
+
+      var getDetailsCatalogs = function () {
+        var lastFillFormActivity = {
+          activityName: "Fill form",
+          processDefinitionKey: "Demand",
+          finished: true,
+          sorting: [
+            {
+              sortBy: "endTime",
+              sortOrder: "desc"
+            }
+          ]
+        };
+        return $http.post("/camunda/api/engine/engine/default/history/activity-instance?maxResults=1", lastFillFormActivity).then(function (response) {
+          if (response.data && response.data.length && response.data[0].processInstanceId) {
+            var pcVariable = {
+              variableName: "detailsCatalogs",
+              processInstanceId: response.data[0].processInstanceId
+            };
+            $http.post("/camunda/api/engine/engine/default/history/variable-instance?deserializeValues=false", pcVariable).then(function (result) {
+              if (result.data && result.data.length && result.data[0].value) {
+                $scope.detailsCatalogs = JSON.parse(result.data[0].value);
+                console.log("==> ", $scope.detailsCatalogs);
+              }
+            });
+          }
+        });
+      };
+      getDetailsCatalogs();
+
+      $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name + "/profile").then(function (result) {
+        assigneeName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
+      });
+
+
+      if (camForm.taskId) {
+        $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
+          function (result) {
+            processInstanceId = result.data.processInstanceId;
+            taskName = result.data.name;
+          },
+          function (error) {
+            console.log(error.data);
+          }
+        );
+      } else {
+        $scope.isStartForm = true;
+        taskName = 'Fill form';
+      }
+
+      camForm.on('form-loaded', function () {
+        camForm.variableManager.fetchVariable('resolutions');
+        camForm.variableManager.fetchVariable('generalData');
+        camForm.variableManager.fetchVariable('attachments');
+        camForm.variableManager.fetchVariable('detailsCatalogs');
+        camForm.variableManager.fetchVariable('businessKey');
+        camForm.variableManager.fetchVariable('cvpReviewGroup');
+        camForm.variableManager.fetchVariable('requirementCheckGroup');
+        camForm.variableManager.fetchVariable('assessCostsGroup');
+        camForm.variableManager.fetchVariable('status');
+        camForm.variableManager.fetchVariable('state');
+        camForm.variableManager.fetchVariable('oldStatus');
+        camForm.variableManager.fetchVariable('searchDemandDescription');
+        camForm.variableManager.fetchVariable('searchDemandName');
+        camForm.variableManager.fetchVariable('searchInitialDep');
+        camForm.variableManager.fetchVariable('searchPlannedLaunch');
+        camForm.variableManager.fetchVariable('searchActualLaunch');
+        camForm.variableManager.fetchVariable('searchTechnicalAnalysis');
+      });
+
+      camForm.on('variables-fetched', function () {
+        $scope.resolutions = camForm.variableManager.variableValue('resolutions');
+        camForm.variableManager.destroyVariable('resolutions');
+        $scope.generalData = camForm.variableManager.variableValue('generalData');
+        $scope.attachments = camForm.variableManager.variableValue('attachments');
+        $scope.businessKey = camForm.variableManager.variableValue('businessKey');
+        $scope.status = camForm.variableManager.variableValue('status');
+        $scope.state = camForm.variableManager.variableValue('state');
+        if (!$scope.resolutions) $scope.resolutions = [];
+        if (!$scope.attachments) $scope.attachments = [];
+        if (!$scope.generalData) {
+          $scope.generalData = {
+            general: {},
+            targetAudience: {},
+            demandDetails: {}
+          };
+        }
+        demandDetailsCopy = JSON.parse(JSON.stringify($scope.generalData.demandDetails));
+
+        $scope.lastAttachments = JSON.parse(JSON.stringify($scope.attachments));
+        history.createVariables(true);
+      });
+
+      $scope.preSubmit = function () {
+        if ($scope.isStartForm) {
+          return $http.get('/camunda/api/engine/engine/default/history/process-instance/count?processDefinitionKey=Demand').then(
+            function (result) {
+              var countPID = result.data.count + 1;
+              camForm.businessKey = 'DMAOP-' + countPID;
+              return getDetailsCatalogs();
+            },
+            function (error) {
+            }
+          );
+        } else return getDetailsCatalogs();
+      };
+
+      camForm.on('submit', function (event) {
+        if (!$scope.generalData.general.technicalAnalysis) {
+          $scope.generalData.general.plannedLaunch = null;
+          //$scope.generalData.general.description = '';
+        }
+
+        if ($scope.isStartForm) {
+          $scope.resolution = 'Submit';
+          var submitDate = new Date();
+          var attachmentsChanges = {added: [], removed: []};
+          for (var attachment of $scope.attachments) attachmentsChanges.added.push(attachment.name);
+          $scope.resolutions.unshift({
+            assignee: assigneeName,
+            resolution: $scope.resolution,
+            comment: $scope.comment,
+            taskEndDate: submitDate,
+            taskName: taskName,
+            assignDate: createdDate,
+            claimDate: claimDate,
+            attachments: attachmentsChanges
+          });
+          camForm.variableManager.createVariable({
+            name: 'resolutions',
+            type: 'Json',
+            value: $scope.resolutions,
+            store: true
+          });
+        } else {
+          history.setVariables($scope.resolution, $scope.comment, $scope.lastAttachments, $scope.attachments);
+        }
+
+        camForm.variableManager.destroyVariable('generalData');
+        camForm.variableManager.createVariable({
+          name: 'generalData',
+          type: 'Json',
+          value: $scope.generalData,
+          store: true
+        });
+        camForm.variableManager.destroyVariable('attachments');
+        camForm.variableManager.createVariable({
+          name: 'attachments',
+          type: 'json',
+          value: $scope.attachments,
+          store: true
+        });
+
+        if ($scope.generalData.demandDetails) {
+          if (!$scope.detailsCatalogs) $scope.detailsCatalogs = {products: [], offers: []};
+          if (!$scope.productOfferNames) $scope.productOfferNames = "";
+          if ($scope.generalData.demandDetails.productName && $scope.generalData.demandDetails.productName !== demandDetailsCopy.productName) {
+            var elt = $scope.detailsCatalogs.products.find(function (e) {
+              return e.name === $scope.generalData.demandDetails.productName;
+            });
+            if (elt) {
+              elt.version++;
+              $scope.generalData.demandDetails.productVersion = elt.version;
+            } else {
+              $scope.detailsCatalogs.products.push({
+                name: $scope.generalData.demandDetails.productName,
+                version: 1
+              });
+            }
+          }
+          if ($scope.generalData.demandDetails.productOffers) {
+            for (var offer of $scope.generalData.demandDetails.productOffers) {
+              $scope.productOfferNames = $scope.productOfferNames + " " + offer.name.toLowerCase();
+              var elt = null;
+              if (demandDetailsCopy.productOffers && demandDetailsCopy.productOffers.length)
+                elt = demandDetailsCopy.productOffers.find(function (e) {
+                  return e.name == offer.name;
+                });
+              if (!elt) {
+                elt = $scope.detailsCatalogs.offers.find(function (e) {
+                  return e.name === offer.name;
+                });
+                if (elt) {
+                  elt.version++;
+                  var version = elt.version + '';
+                  if ($scope.generalData.demandDetails.productVersion)
+                    version = $scope.generalData.demandDetails.productVersion + '.' + version;
+                  offer.version = version;
+                } else {
+                  $scope.detailsCatalogs.offers.push({
+                    name: offer.name,
+                    description: offer.description,
+                    version: 1
+                  });
+                }
+              }
+            }
+          }
+        }
+        if ($scope.productOfferNames) {
+          //camForm.variableManager.destroyVariable('productOfferNames');
+          camForm.variableManager.createVariable({
+            name: 'productOfferNames',
+            type: 'String',
+            value: $scope.productOfferNames,
+            store: true
+          });
+          console.log($scope.productOfferNames);
+        }
+        if ($scope.detailsCatalogs) {
+          camForm.variableManager.destroyVariable('detailsCatalogs');
+          camForm.variableManager.createVariable({
+            name: 'detailsCatalogs',
+            type: 'Json',
+            value: $scope.detailsCatalogs,
+            store: true
+          });
+        }
+
+        if ($scope.isStartForm) {
+          camForm.variableManager.destroyVariable('businessKey');
+          camForm.variableManager.createVariable({
+            name: 'businessKey',
+            type: 'String',
+            value: camForm.businessKey,
+            store: true
+          });
+        }
+
+        camForm.variableManager.destroyVariable('cvpReviewGroup');
+        camForm.variableManager.createVariable({
+          name: 'cvpReviewGroup',
+          type: 'String',
+          value: 'demand_cvp_council_' + $scope.generalData.general.responsibleDep.toLowerCase(),
+          store: true
+        });
+
+        var group = $scope.generalData.general.responsibleDep.toLowerCase();
+        if (group !== 'b2b' && group !== 'b2c') group = 'general';
+        camForm.variableManager.destroyVariable('requirementCheckGroup');
+        camForm.variableManager.createVariable({
+          name: 'requirementCheckGroup',
+          type: 'String',
+          value: 'demand_requirement_council_' + group,
+          store: true
+        });
+        camForm.variableManager.destroyVariable('assessCostsGroup');
+        camForm.variableManager.createVariable({
+          name: 'assessCostsGroup',
+          type: 'String',
+          value: 'demand_solution_council_' + group,
+          store: true
+        });
+
+        var oldStatus = $scope.status;
+        var status = 'Order modified';
+        var state = 'Active';
+        if ($scope.isStartForm) {
+          oldStatus = '';
+          status = 'New order';
+        }
+
+        if ($scope.resolution === 'Cancel') {
+          state = 'Closed';
+          status = 'Canceled on Fill form';
+        }
+
+        camForm.variableManager.destroyVariable('status');
+        camForm.variableManager.createVariable({
+          name: 'status',
+          type: 'String',
+          value: status,
+          store: true
+        });
+
+        camForm.variableManager.destroyVariable('state');
+        camForm.variableManager.createVariable({
+          name: 'state',
+          type: 'String',
+          value: state,
+          store: true
+        });
+
+        camForm.variableManager.destroyVariable('oldStatus');
+        camForm.variableManager.createVariable({
+          name: 'oldStatus',
+          type: 'String',
+          value: oldStatus,
+          store: true
+        });
+
+        // ----- variables for search page -----
+        camForm.variableManager.destroyVariable('searchDemandDescription');
+        camForm.variableManager.createVariable({
+          name: 'searchDemandDescription',
+          type: 'String',
+          value: $scope.generalData.general.description.toLowerCase(),
+          store: true
+        });
+        camForm.variableManager.destroyVariable('searchDemandName');
+        camForm.variableManager.createVariable({
+          name: 'searchDemandName',
+          type: 'String',
+          value: $scope.demandName.toLowerCase(),
+          store: true
+        });
+
+
+        camForm.variableManager.destroyVariable('searchInitialDep');
+        camForm.variableManager.createVariable({
+          name: 'searchInitialDep',
+          type: 'String',
+          value: $scope.generalData.general.responsibleDep,
+          store: true
+        });
+
+        if ($scope.generalData.demandDetails.productName) {
+          console.log($scope.generalData.demandDetails.productName);
+          camForm.variableManager.createVariable({
+            name: 'searchProductName',
+            type: 'String',
+            value: $scope.generalData.demandDetails.productName.toLowerCase(),
+            store: true
+          });
+        }
+
+        var tmpTime = 0;
+        if ($scope.generalData.general.plannedLaunch) tmpTime = $scope.generalData.general.plannedLaunch.getTime();
+        camForm.variableManager.destroyVariable('searchPlannedLaunch');
+        camForm.variableManager.createVariable({
+          name: 'searchPlannedLaunch',
+          type: 'Long',
+          value: tmpTime,
+          store: true
+        });
+        tmpTime = 0;
+        if ($scope.generalData.general.actualLaunch) tmpTime = $scope.generalData.general.actualLaunch.getTime();
+        camForm.variableManager.destroyVariable('searchActualLaunch');
+        camForm.variableManager.createVariable({
+          name: 'searchActualLaunch',
+          type: 'Long',
+          value: tmpTime,
+          store: true
+        });
+        camForm.variableManager.destroyVariable('searchTechnicalAnalysis');
+        camForm.variableManager.createVariable({
+          name: 'searchTechnicalAnalysis',
+          type: 'Boolean',
+          value: $scope.generalData.general.technicalAnalysis,
+          store: true
+        });
+      });
+
+      $scope.downloadFile = function (file) {
+        $http({
+          method: 'GET',
+          url: '/camunda/uploads/get/' + file.path,
+          transformResponse: []
+        }).then(function (response) {
+          document.getElementById('fileDownloadIframe').src = response.data;
+        }, function (error) {
+          console.log(error.data);
+        });
+      };
+
+      $scope.clearFile = function (fileIndex) {
+        exModal.open({
+          templateUrl: './js/partials/confirmModal.html',
+          size: 'sm'
+        }).then(function () {
+          $scope.attachments.splice(fileIndex, 1);
+        });
+      };
+
+      $scope.fileSelected = function (el) {
+        $timeout(function () {
+          $scope.$apply(function () {
+            uploadFileToMinio(el.files[0]);
+          });
+        })
+      };
+
+      function uploadFileToMinio(file) {
+        var fileToUpload = {
+          name: file.name,
+          path: processInstanceId + '/' + camForm.taskId + '/' + file.name,
+          created: new Date(),
+          createdBy: assigneeName
+        };
+        $http({
+          method: 'GET',
+          url: '/camunda/uploads/put/' + fileToUpload.path,
+          transformResponse: []
+        }).then(function (response) {
+          $http.put(response.data, file, {headers: {'Content-Type': undefined}}).then(
+            function () {
+              $scope.attachments.push(fileToUpload);
+              angular.element(document.querySelector('#attachments')).val(null);
+            },
+            function (error) {
+              console.log(error.data);
+            }
+          );
+        }, function (error) {
+          console.log(error.data);
+        });
+      }
+
+      $scope.saveFillForm = function () {
+        var success = 0;
+        var json = JSON.stringify($scope.generalData, function (key, value) {
+          if (key === "$$hashKey") return undefined;
+          return value;
+        });
+        $http.put('/camunda/api/engine/engine/default/process-instance/' + processInstanceId + '/variables/generalData', {
+          "type": "Json",
+          "value": json
+        }).then(
+          function () {
+            success++;
+            if (success == 3) toasty.success("Данные успешно сохранены!");
+          },
+          function (error) {
+            toasty.error(error.data.message);
+          }
+        );
+        $http.put('/camunda/api/engine/engine/default/process-instance/' + processInstanceId + '/variables/demandName', {
+          "type": "String",
+          "value": $scope.demandName
+        }).then(
+          function () {
+            success++;
+            if (success == 3) toasty.success("Данные успешно сохранены!");
+          },
+          function (error) {
+            toasty.error(error.data.message);
+          }
+        );
+        json = JSON.stringify($scope.attachments, function (key, value) {
+          if (key === "$$hashKey") return undefined;
+          return value;
+        });
+        $http.put('/camunda/api/engine/engine/default/process-instance/' + processInstanceId + '/variables/attachments', {
+          "type": "Json",
+          "value": json
+        }).then(
+          function () {
+            success++;
+            if (success == 3) toasty.success("Данные успешно сохранены!");
+          },
+          function (error) {
+            toasty.error(error.data.message);
+          }
+        );
+      };
+    }]);
+  </script>
+  <div class="form-group" ng-if="!isStartForm">
+    <label style="width: 11%; float: left; padding: 7px 5px 0 15px; font-weight: 500;"> Business Key:</label>
+    <div style="width: 10%; float: left; padding: 0 5px;">
+      <input class="form-control" cam-variable-name="businessKey" cam-variable-type="String" disabled>
+    </div>
+    <label style="width: 6%; float: left; padding: 7px 0px 0 10px; font-weight: 500;"> Status:</label>
+    <div style="width: 22%; float: left; padding: 0 5px;">
+      <div class="disabled-element">{{status}}</div>
+    </div>
+    <label style="width: 6%; float: left; padding: 7px 0px 0 10px; font-weight: 500;"> State:</label>
+    <div style="width: 10%; float: left; padding: 0 5px;">
+      <div class="disabled-element">{{state}}</div>
+    </div>
+    <label style="width: 6%; float: left; padding: 7px 0px 0 5px; font-weight: 500;"> Activity:</label>
+    <div style="width: 29%; float: left; padding: 0 5px;">
+      <div class="disabled-element"> Fill Form</div>
+    </div>
+  </div>
+  <div class="form-group">
+    <label ng-if="isStartForm" class="col-sm-2 control-label">Demand Name:<span
+      class="text-danger glyphicon-asterisk"></span></label>
+    <label ng-if="!isStartForm" style="width: 11%; float: left; padding: 7px 5px 0 15px; font-weight: 500;"> Demand
+      Name:</label>
+    <div ng-class="{'col-sm-10': isStartForm, 'demand-name': !isStartForm}">
+      <input class="form-control" name="demandName" ng-model="demandName" cam-variable-name="demandName"
+             cam-variable-type="String" required/>
+      <label class="error"
+             ng-show="kcell_form.demandName.$error.required && ( kcell_form.demandName.$touched || view.submitted)">Required
+        field</label>
+    </div>
+  </div>
+  <hr>
+  <tabset class="my-tab-head my-tab" justified="true" id="jobRequestId">
+    <tab>
+      <tab-heading> General</tab-heading>
+      <div style="margin-bottom: 20px; margin-top: 20px;">
+        <div class="col-sm-{{generalData.general.technicalAnalysis?'6':'12'}}" style="padding: 0;">
+          <div class="panel-group custom-panel">
+            <div class="panel panel-default">
+              <div class="panel-heading">
+                <h4 class="panel-title">General</h4>
+              </div>
+              <div class="panel-body">
+                <demand-general data="generalData.general" form="kcell_form" view="view" disabled="false"
+                                technical="generalData.general.technicalAnalysis"></demand-general>
+                <div class="form-group" ng-if="!generalData.general.technicalAnalysis">
+                  <label class="col-sm-12 control-label">Demand description<span
+                    class="text-danger glyphicon-asterisk"></span></label>
+                  <div class="col-sm-12">
+                    <textarea elastic-textarea style="resize:none" class="form-control" name="gDemandDescription"
+                              ng-model="generalData.general.description" required></textarea>
+                    <span class="has-error"
+                          ng-if="kcell_form.gDemandDescription.$error.required && (kcell_form.gDemandDescription.$touched || view.submitted)">Required field</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="col-sm-6" ng-if="generalData.general.technicalAnalysis" style="padding: 0; padding-left: 10px;">
+          <div class="panel-group custom-panel">
+            <div class="panel panel-default">
+              <div class="panel-heading">
+                <h4 class="panel-title">Target Audience</h4>
+              </div>
+              <div class="panel-body">
+                <demand-target-audience data="generalData.targetAudience" form="kcell_form" view="view"
+                                        disabled="false"></demand-target-audience>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="col-sm-12" ng-if="generalData.general.technicalAnalysis" style="padding: 0;">
+          <div class="panel-group custom-panel">
+            <div class="panel panel-default">
+              <div class="panel-heading">
+                <h4 class="panel-title">Demand details</h4>
+              </div>
+              <div class="panel-body">
+                <div class="form-group">
+                  <label class="col-sm-12 control-label">Demand description<span
+                    class="text-danger glyphicon-asterisk"></span></label>
+                  <div class="col-sm-12">
+                    <textarea elastic-textarea style="resize:none" class="form-control" name="gDemandDescription"
+                              ng-model="generalData.general.description" required></textarea>
+                    <span class="has-error"
+                          ng-if="kcell_form.gDemandDescription.$error.required && (kcell_form.gDemandDescription.$touched || view.submitted)">Required field</span>
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label class="col-sm-12 control-label">Customer benefits:<span
+                    class="text-danger glyphicon-asterisk"></span></label>
+                  <div class="col-sm-12">
+                    <textarea elastic-textarea class="form-control" name="gCustomerBenefits"
+                              ng-model="generalData.general.customerBenefits" required></textarea>
+                    <span class="has-error"
+                          ng-if="kcell_form.gCustomerBenefits.$error.required && (kcell_form.gCustomerBenefits.$touched || view.submitted)">Required field</span>
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label class="col-sm-12 control-label">Financial benefits:<span
+                    class="text-danger glyphicon-asterisk"></span></label>
+                  <div class="col-sm-12">
+                    <textarea elastic-textarea class="form-control" name="gFinancialBenefits"
+                              ng-model="generalData.general.financialBenefits" required></textarea>
+                    <span class="has-error"
+                          ng-if="kcell_form.gFinancialBenefits.$error.required && (kcell_form.gFinancialBenefits.$touched || view.submitted)">Required field</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="col-sm-12" ng-if="generalData.general.technicalAnalysis" style="padding: 0;">
+          <div class="panel-group custom-panel">
+            <div class="panel panel-default">
+              <div class="panel-heading">
+                <h4 class="panel-title">Product Details</h4>
+              </div>
+              <div class="panel-body">
+                <demand-details data="generalData.demandDetails" catalog="detailsCatalogs" form="kcell_form" view="view"
+                                disabled="false"></demand-details>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </tab>
+    <tab disabled="true">
+      <tab-heading> BRD</tab-heading>
+    </tab>
+    <tab disabled="true">
+      <tab-heading> Costs</tab-heading>
+    </tab>
+    <tab disabled="true">
+      <tab-heading> Business Case</tab-heading>
+    </tab>
+    <tab disabled="true">
+      <tab-heading> SDD</tab-heading>
+    </tab>
+  </tabset>
+
+  <div class="col-sm-12" style="margin-top: 20px;">
+    <hr style="border-top: 2px solid #aaa;"/>
+  </div>
+
+  <div class="col-sm-12" style="padding: 0;" ng-if="!isStartForm">
+    <div class="panel-group custom-panel">
+      <div class="panel panel-default">
+        <div class="panel-heading">
+          <h4 class="panel-title">Attachments</h4>
+        </div>
+        <div class="panel-body">
+          <iframe id="fileDownloadIframe" style="display:none;"></iframe>
+          <div class="form-group">
+            <div class="col-sm-12">
+              <div class="col-sm-12" style="margin-bottom: 10px;">
+                <input type="file" class="form-control" id="attachments" name="attachments"
+                       onchange="angular.element(this).scope().fileSelected(this)"/>
+              </div>
+              <div class="col-sm-12">
+                <table class="table table-bordered">
+                  <thead>
+                  <tr>
+                    <th>File Name</th>
+                    <th>Created</th>
+                    <th>Created By</th>
+                    <th>Delete</th>
+                  </tr>
+                  </thead>
+                  <tbody>
+                  <tr ng-repeat="file in attachments track by $index">
+                    <td><a ng-click="downloadFile(file)">{{file.name}}</a></td>
+                    <td>{{file.created | date: 'dd.MM.yyyy HH:mm'}}</td>
+                    <td>{{file.createdBy}}</td>
+                    <td><a ng-click="clearFile($index)"><i class="glyphicon glyphicon-trash"></i></a></td>
+                  </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-sm-12" style="margin-bottom: 20px;" ng-if="!isStartForm">
+    <button type="button" ng-click="saveFillForm()" class="btn btn-success" style="padding: 6px 28px">Save</button>
+  </div>
+
+  <div class="form-group" ng-show="!isStartForm">
+    <label class="col-sm-2 control-label">Resolution</label>
+    <div class="col-sm-10">
+      <label class="radio-inline">
+        <input type="radio" ng-model="resolution" name="resolution" value="Submit" ng-required="!isStartForm"> Submit
+      </label>
+      <label class="radio-inline">
+        <input type="radio" ng-model="resolution" name="resolution" value="Cancel" ng-required="!isStartForm"> Cancel
+        the order
+      </label>
+      <label class="error"
+             ng-show="kcell_form.resolution.$error.required && ( kcell_form.resolution.$touched || view.submitted)">Required
+        field</label>
+    </div>
+  </div>
+
+  <div class="form-group">
+    <label class="col-sm-2 control-label">Comment<span class="text-danger glyphicon-asterisk"></span></label>
+    <div class="col-sm-10">
+      <textarea class="form-control" rows="4" maxlength="500" ng-model="comment" name="comment" required></textarea>
+      <label class="error"
+             ng-show="kcell_form.comment.$error.required && ( kcell_form.comment.$touched || view.submitted)">Required
+        field</label>
+    </div>
+  </div>
+</form>

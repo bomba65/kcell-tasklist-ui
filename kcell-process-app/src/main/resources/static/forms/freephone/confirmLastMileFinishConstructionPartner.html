@@ -1,0 +1,139 @@
+<form role="form" class="form-horizontal" name="kcell_form" novalidate>
+    <script cam-script type="text/form-script">
+        inject(['$scope', '$http', 'Uri', '$rootScope', '$q', '$timeout', function ($scope, $http, Uri, $rootScope, $q, $timeout) {
+            var variables = [
+                'resolutions',
+                'identifiers',
+                'connectionType',
+                'transmitNumber',
+                'ipNumber',
+                'applicationScanCopyFileName',
+                'contractScanCopyFileName',
+                'abonentTarif',
+                'description',
+                'techSpecNumber',
+                'techSpecFIO',
+                'officialClientCompanyName',
+                'clientCompanyLatName',
+                'addressATS',
+                'coordinates',
+                'priority',
+                'provider',
+                'clientBIN',
+                'startDate',
+                'techSpecEmail',
+                'contractNumber',
+                'previouslyBought',
+                'finalIDs',
+                'buildingOwner',
+                'channelKLM',
+                'operatorType',
+                'responsibleB2BDelivery',
+                'responsibleB2BSales'
+            ];
+
+            camForm.on('form-loaded', function () {
+                variables.forEach(function (el) {
+                    camForm.variableManager.fetchVariable(el);
+                });
+                $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
+                        function(result){
+                            $scope.processInstanceId = result.data.processInstanceId;
+                        },
+                        function (error) {
+                            console.log(error.data);
+                        }
+                );
+                $scope.freephoneInfo = {};
+                $scope.freephoneInfo.files = [];
+            });
+
+            camForm.on('variables-fetched', function () {
+                variables.forEach(function (el) {
+                    if (el === 'resolutions') {
+                        if (camForm.variableManager.variables[el].value) {
+                            $scope.resolutions = angular.copy(camForm.variableManager.variables[el].value);
+                            camForm.variableManager.destroyVariable(el);
+                        }
+                    } else if (el === 'applicationScanCopyFileName' || el === 'contractScanCopyFileName') {
+                        $scope[el] = camForm.variableManager.variables[el].value;
+                        $scope.freephoneInfo.files.push(camForm.variableManager.variables[el].value);
+                    } else {
+                        $scope[el] = camForm.variableManager.variables[el].value;
+                        $scope.freephoneInfo[el] = camForm.variableManager.variables[el].value;
+                    }
+                });
+                $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name+ "/profile").then(function(result){
+                    $rootScope.authentication.assigneeName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
+                });
+                $scope.freephoneInfo.showTarif = true;
+                console.log($scope.freephoneInfo);
+                console.log($scope.freephoneInfo.files);
+
+                camForm.variableManager.createVariable({
+                    name: 'confirmLastMileFinishConstructionPartnerTaskResult',
+                    type: 'String',
+                    value: ''
+                });
+
+                camForm.variableManager.createVariable({
+                    name: 'confirmLastMileFinishConstructionPartnerTaskComment',
+                    type: 'String',
+                    value: ''
+                });
+
+                $scope.confirmLastMileFinishConstructionPartnerTaskResult = '';
+            });
+
+            camForm.on('submit', function () {
+                $scope.confirmLastMileFinishConstructionPartnerTaskResult = 'Completed';
+                camForm.variableManager.variableValue('confirmLastMileFinishConstructionPartnerTaskResult', $scope.confirmLastMileFinishConstructionPartnerTaskResult);
+                camForm.variableManager.variableValue('confirmLastMileFinishConstructionPartnerTaskComment', $scope.confirmLastMileFinishConstructionPartnerTaskComment);
+            });
+        }]);
+
+    </script>
+    <info-freephone freephone-info="freephoneInfo"></info-freephone>
+    <div class="form-group">
+        <label class="col-sm-4 control-label">Наименование сайта:</label>
+        <div class="col-sm-8">
+            <input type="text" name="siteName" id='siteName' cam-variable-name="siteName" cam-variable-type="String" class="form-control" required>
+            <label class="error" ng-show="kcell_form.siteName.$error.required && ( kcell_form.siteName.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-4 control-label">IP OF TR NODE:</label>
+        <div class="col-sm-8">
+            <input type="text" name="trNodeIP" id='trNodeIP' cam-variable-name="trNodeIP" cam-variable-type="String" class="form-control" required>
+            <label class="error" ng-show="kcell_form.trNodeIP.$error.required && ( kcell_form.trNodeIP.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-4 control-label">Port:</label>
+        <div class="col-sm-8">
+            <input type="text" name="lastMilePort" id='lastMilePort' cam-variable-name="lastMilePort" cam-variable-type="String" class="form-control" required>
+            <label class="error" ng-show="kcell_form.lastMilePort.$error.required && ( kcell_form.lastMilePort.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-4 control-label">Termination point:</label>
+        <div class="col-sm-8">
+            <input type="text" name="terminationPoint" id='terminationPoint' cam-variable-name="terminationPoint" cam-variable-type="String" class="form-control" required>
+            <label class="error" ng-show="kcell_form.terminationPoint.$error.required && ( kcell_form.terminationPoint.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-4 control-label">HOP Point:</label>
+        <div class="col-sm-8">
+            <input type="text" name="hopPoint" id='hopPoint' cam-variable-name="hopPoint" cam-variable-type="String" class="form-control" required>
+            <label class="error" ng-show="kcell_form.hopPoint.$error.required && ( kcell_form.hopPoint.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-3 control-label">Комментарии</label>
+        <div class="col-sm-9">
+            <textarea class="form-control" ng-model="confirmLastMileFinishConstructionPartnerTaskComment" name="confirmLastMileFinishConstructionPartnerTaskComment" placeholder="Comments..." maxlength="500" rows="4" style="resize:none"></textarea>
+            <label class="error" ng-show="kcell_form.confirmLastMileFinishConstructionPartnerTaskComment.$error.required && ( kcell_form.confirmLastMileFinishConstructionPartnerTaskComment.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+</form>

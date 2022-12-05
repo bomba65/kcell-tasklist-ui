@@ -1,0 +1,313 @@
+<style>
+    .well {
+        color: #333;
+    }
+</style>
+<form role="form" class="form-horizontal" name="kcell_form" novalidate>
+    <script cam-script type="text/form-script">
+        inject(['$scope', '$http', 'Uri', '$rootScope', '$q', function ($scope, $http, Uri, $rootScope, $q) {
+            var variables = [
+                'requestedDate',
+                'jrNumber',
+                'initiatorFull',
+                'validityDate',
+                'soaComplaintId',
+                'site',
+                'siteName',
+                'siteAddress',
+                'site_name',
+                'reason',
+                'contract',
+                'contractor',
+                'materialsRequired',
+                'leasingRequired',
+                'powerRequired',
+                'project',
+                'supplementaryFiles',
+                'explanation',
+                'resolutions',
+                'jobWorks',
+                'jrBlank',
+                'tssrssidFile',
+                'tssrssidFileName',
+                'priority',
+                'contractorJobAssignedDate',
+                'mainContract'
+            ];
+
+            $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
+                    function(result){
+                        $scope.processInstanceId = result.data.processInstanceId;
+                    },
+                    function (error) {
+                        console.log(error.data);
+                    }
+            );
+
+            $scope.changeResult = changeResult;
+            function changeResult(){
+                camForm.variableManager.variableValue('regionGroupHeadApprovalTaskResult', $scope.regionGroupHeadApprovalTaskResult);
+            }
+
+            $scope.jobWorkReasons = [
+                {id: 'installation', expenseType: 'CAPEX', name: 'Installation', detail: 'Монтаж - установка нового оборудования'},
+                {id: 'modernization', expenseType: 'CAPEX', name: 'Modernization', detail: 'Модернизация - замена оборудования на более производительное'},
+                {id: 'change_support', expenseType: 'OPEX', name: 'Change for support', detail: 'Замена - восстановление вышедшего из строя оборудования/OC для поддержания их в рабочем состоянии  с целью их профилактики'},
+                {id: 'change_improvement', expenseType: 'CAPEX', name: 'Change for improvement', detail: 'Замена - восстановление вышедшего из строя оборудования/ОС для улучшения состояния объекта, повышающего его первоначально оцененные нормативные показатели: срок службы, производственную мощность и т. д'},
+                {id: 'replacement', expenseType: 'OPEX', name: 'Replacement', detail: 'Перемещение - в пределах одного сайта'},
+                {id: 'removal', expenseType: 'OPEX', name: 'Removal', detail: 'Демонтаж - снятие оборудования'}
+            ];
+
+            $scope.jobModel = {};
+            camForm.on('form-loaded', function () {
+                variables.forEach(function (el) {
+                    camForm.variableManager.fetchVariable(el);
+                });
+
+                $http.get($rootScope.getCatalogsHttpByName('catalogs')).then(
+                    function (result) {
+                        angular.extend($scope, result.data);
+                        angular.extend($scope.jobModel, result.data);
+                    },
+                    function (error) {
+                        console.log(error.data);
+                    }
+                );
+                $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name + "/profile").then(
+                    function(result){
+                        $scope.regionApproval = result.data.firstName + " " +result.data.lastName;
+                    },
+                    function(error){
+                        console.log(error);
+                    }
+                );
+                camForm.variableManager.createVariable({
+                    name: 'regionGroupHeadApprovalTaskResult',
+                    type: 'String',
+                    value: ''
+                });
+                camForm.variableManager.createVariable({
+                    name: 'createJRResult',
+                    type: 'String',
+                    value: undefined
+                });
+                camForm.variableManager.createVariable({
+                    name: 'regionApproval',
+                    type: 'String',
+                    value: ''
+                });
+                camForm.variableManager.createVariable({
+                    name: 'cancelPrComment',
+                    type: 'String',
+                    value: ''
+                });
+            });
+            camForm.on('variables-fetched', function () {
+                variables.forEach(function (el) {
+                    $scope.jobModel[el] = angular.copy(camForm.variableManager.variables[el]);
+                    if (el === 'resolutions') {
+                        $scope[el] = camForm.variableManager.variables[el].value;
+                    } else {
+                        $scope[el] = angular.copy(camForm.variableManager.variables[el].value);
+                    }
+                });
+                $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name+ "/profile").then(function(result){
+                    $rootScope.authentication.assigneeName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
+                });
+                $(function () {
+                    $('[data-toggle="tooltip"]').tooltip('fixTitle');
+                });
+                if(camForm.variableManager.variables['regionGroupHeadApprovalComment']){
+                    camForm.variableManager.variableValue('regionGroupHeadApprovalComment', '');
+                }
+            });
+
+            camForm.on('submit', function(){
+                camForm.variableManager.variableValue('regionGroupHeadApprovalTaskResult', $scope.regionGroupHeadApprovalTaskResult);
+                camForm.variableManager.createVariable({
+                    name: 'approve_jr_regionsTaskResult',
+                    type: 'String',
+                    value: $scope.regionGroupHeadApprovalTaskResult
+                });
+                if ($scope.regionGroupHeadApprovalTaskResult === 'approved') {
+                    camForm.variableManager.variableValue('createJRResult', 'approved');
+                } else {
+                    camForm.variableManager.variableValue('createJRResult', 'rejected');
+                }
+
+                if(camForm.variableManager.variables['priority'].value){
+                    camForm.variableManager.variableValue('priority', $scope.priority);
+                } else {
+                    camForm.variableManager.destroyVariable('priority');
+                    camForm.variableManager.createVariable({
+                        name: 'priority',
+                        type: 'String',
+                        value: $scope.priority
+                    });
+                }
+                var visibility = 'all';
+                if($scope.regionGroupHeadApprovalComment && $scope.regionGroupHeadApprovalCommentVisibility){
+                    visibility = $scope.regionGroupHeadApprovalCommentVisibility;
+                    camForm.variableManager.createVariable({
+                        name: 'approve_jr_regionsTaskCommentVisibility',
+                        type: 'String',
+                        value: visibility
+                    });
+                }
+                camForm.variableManager.createVariable({
+                    name: 'approve_jr_regionsTaskComment',
+                    type: 'String',
+                    value: $scope.regionGroupHeadApprovalComment
+                });
+                camForm.variableManager.variableValue('regionApproval', $scope.regionApproval);
+                camForm.variableManager.variableValue('cancelPrComment', $scope.regionGroupHeadApprovalComment);
+                camForm.variableManager.variableValue('jobWorks', $scope.jobWorks);
+                camForm.variableManager.destroyVariable('resolutions');
+            });
+
+            camForm.on('store', function() {
+                camForm.variableManager.variableValue('regionGroupHeadApprovalTaskResult', $scope.regionGroupHeadApprovalTaskResult);
+            });
+
+            camForm.on('variables-restored', function() {
+                $scope.regionGroupHeadApprovalTaskResult = camForm.variableManager.variableValue('regionGroupHeadApprovalTaskResult');
+            });
+
+            $scope.isVisible = function (resolution) {
+               return !resolution.visibility || resolution.visibility === 'all' || (resolution.visibility === 'kcell' && $rootScope.hasGroup('kcellUsers'));
+            }
+
+            $scope.hasComment = function () {
+                return $scope.regionGroupHeadApprovalComment && $rootScope.hasGroup('kcellUsers');
+            }
+
+            $scope.defineExpenseType = function(index){
+                for(var i=0;i<$scope.jobWorkReasons.length;i++){
+                    if($scope.jobWorks[index].reason === $scope.jobWorkReasons[i].id){
+                        $scope.jobWorks[index].expenseType = $scope.jobWorkReasons[i].expenseType;
+                        $scope.jobWorks[index].reasonDetail = $scope.jobWorkReasons[i].detail;
+                    }
+                }
+                $(function () {
+                    $('[data-toggle="tooltip"]').tooltip('fixTitle');
+                });
+            };
+        }]);
+    </script>
+    <job-request job-model="jobModel"></job-request>
+
+    <div ng-if="mainContract !== '2022Work-agreement'">
+        <button class="btn btn-default" type="button" data-toggle="collapse" data-target="#collapseWorksTable" aria-expanded="false" aria-controls="collapseWorksTable">
+            Change works reason
+        </button>
+
+        <div class="collapse" id="collapseWorksTable">
+            <div>
+                <div class="collapse" id="collapseReasonGeneralInfo">
+                    <div class="well">
+                        <b>Installation</b> Монтаж - установка нового оборудования <br />
+                        <b>Modernization</b> Модернизация - замена оборудования на более производительное <br />
+                        <b>Change for support</b> Замена - восстановление вышедшего из строя оборудования/OC для поддержания их в рабочем состоянии  с целью их профилактики <br />
+                        <b>Change for improvement</b> Замена - восстановление вышедшего из строя оборудования/ОС для улучшения состояния объекта, повышающего его первоначально оцененные нормативные показатели: срок службы, производственную мощность и т. д<br />
+                        <b>Replacement</b> Перемещение - в пределах одного сайта<br />
+                        <b>Removal</b> Демонтаж - снятие оборудования
+                    </div>
+                </div>
+
+                <table class="table table-condensed">
+                    <thead>
+                    <tr>
+                        <th width="25%">Works</th>
+                        <th width="7%">Works Qty</th>
+                        <th width="13%">Materials Qty</th>
+                        <th width="19%">Request reason
+                            <a role="button" data-toggle="collapse" href="#collapseReasonGeneralInfo" aria-expanded="false" aria-controls="collapseReasonGeneralInfo">
+                                <i class="glyphicon glyphicon-question-sign"></i>
+                            </a>
+                        </th>
+                        <th></th>
+                        <th width="25%">Sites involved</th>
+                    </tr>
+                    </thead>
+                    <tbody ng-repeat="jobWork in jobWorks">
+                    <tr>
+                        <td>{{worksTitle[jobWork.sapServiceNumber]}}</td>
+                        <td>{{jobWork.quantity}}</td>
+                        <td>{{jobWork.materialQuantity}}</td>
+                        <td>
+                            <select ng-model="jobWork.reason" name="reason{{$index}}" required class="form-control" ng-change="defineExpenseType($index)">
+                                <option value="">Select work request reason</option>
+                                <option ng-repeat="reason in jobWorkReasons" ng-selected="{{reason.id == jobWork.reason}}" value="{{reason.id}}">{{reason.name}}</option>
+                            </select>
+                            <label class="error" ng-if="kcell_form['reason'+$index].$error.required && ( kcell_form['reason'+$index].$touched || view.submitted)">Required field</label>
+                        </td>
+                        <td>
+                            <i ng-show="jobWork.reasonDetail" class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="right" title="{{jobWork.reasonDetail}}"></i>
+                        </td>
+                        <td>
+                            <span ng-repeat="rs in jobWork.relatedSites" class="my-tag" ng-class="{'main-site':rs.site_name===site_name}"><span ng-if="rs.site_name===site_name">Main Site: </span>{{rs.site_name}}</span>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-4 control-label">Priority:</label>
+        <div class="col-sm-8">
+            <label class="radio-inline">
+                <input type="radio" name="priority" ng-model="priority" value="regular" required ng-disabled="reason !== '4'"> Regular
+            </label>
+            <label class="radio-inline">
+                <input type="radio" name="priority" ng-model="priority" value="emergency" required ng-disabled="reason !== '4'"> Emergency
+            </label>
+            <label class="error" ng-show="kcell_form.priority.$error.required && ( kcell_form.priority.$touched || view.submitted)">Required field</label>
+            <label ng-if="priority === 'emergency'"> «только для работ согласно пункту контракта 12.6.Внеплановые работы по заявкам (KPIвпр)»– цена работ увеличивается на новая цена = цена * 1.2</label>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-4 control-label">Resolution:</label>
+        <div class="col-sm-8">
+            <label class="radio-inline">
+                <input type="radio" name="regionGroupHeadApprovalTaskResult" ng-model="regionGroupHeadApprovalTaskResult" value="approved" required> Approve
+            </label>
+            <label class="radio-inline">
+                <input type="radio" name="regionGroupHeadApprovalTaskResult" ng-model="regionGroupHeadApprovalTaskResult" value="rejected" required> Возврат на исправление JR
+            </label>
+            <label class="radio-inline">
+                <input type="radio" name="regionGroupHeadApprovalTaskResult" ng-model="regionGroupHeadApprovalTaskResult" value="cantFix" required> Работа не выполнима, отмена JR
+            </label>
+            <label class="error" ng-show="kcell_form.regionGroupHeadApprovalTaskResult.$error.required && ( kcell_form.regionGroupHeadApprovalTaskResult.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-4 control-label">Сomments:</label>
+        <div class="col-sm-8">
+            <textarea class="form-control" cam-variable-name="regionGroupHeadApprovalComment" name="regionGroupHeadApprovalComment" cam-variable-type="String" placeholder="Comments..." maxlength="500" rows="4" ng-required="regionGroupHeadApprovalTaskResult === 'rejected' || regionGroupHeadApprovalTaskResult === 'cantFix'"></textarea>
+            <label class="error" ng-show="kcell_form.regionGroupHeadApprovalComment.$error.required && ( kcell_form.regionGroupHeadApprovalComment.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+    <div class="form-group" ng-show="hasComment()">
+        <label class="col-sm-4 control-label">Comments visibility</label>
+        <div class="col-sm-8">
+            <label class="radio-inline">
+                <input type="radio" name="regionGroupHeadApprovalCommentVisibility"
+                       ng-model="regionGroupHeadApprovalCommentVisibility" value="all" ng-required="hasComment()"> Visible for all
+            </label>
+            <label class="radio-inline">
+                <input type="radio" name="regionGroupHeadApprovalCommentVisibility"
+                       ng-model="regionGroupHeadApprovalCommentVisibility" value="kcell" ng-required="hasComment()"> Kcell staff only
+            </label>
+            <label class="error" ng-show="kcell_form.regionGroupHeadApprovalCommentVisibility.$error.required && ( kcell_form.regionGroupHeadApprovalCommentVisibility.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+    <accordion>
+        <accordion-group is-open="isHistoryOpen">
+            <accordion-heading>
+                History <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
+            </accordion-heading>
+            <resolution-history resolutions="resolutions" procDef="Revision"></resolution-history>
+        </accordion-group>
+    </accordion>
+</form>

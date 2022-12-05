@@ -1,0 +1,146 @@
+<form role="form" class="form-horizontal" name="kcell_form" novalidate>
+    <script cam-script type="text/form-script">
+        inject(['$scope', '$http', 'Uri', '$rootScope', '$q', '$timeout', function ($scope, $http, Uri, $rootScope, $q, $timeout) {
+            var variables = [
+                'clientBIN',
+                'officialClientCompanyName',
+                'clientCompanyLatName',
+                'description',
+                'connectionType',
+                'smsServiceType',
+                'MSGGWaccount',
+
+                'startDate',
+                'ipNumber',
+                'applicationScanCopyFileName',
+                'contractScanCopyFileName',
+                'abonentTarif',
+                'techSpecNumber',
+                'techSpecFIO',
+                'techSpecEmail',
+                'tarifPlane',
+                'provider',
+                'contractNumber',
+
+                'shortNumberId',
+                'productCatalogShortNumber',
+                'productCatalogResponse',
+                'identifiers',
+                'identifierType',
+                'operatorType',
+                //'operators',
+                'resolutions',
+                'previouslyBought',
+                'finalIDs',
+                'offnetProviderName',
+                'offnetProviderBin',
+                'isGMSFW',
+                'isNewIP',
+                'isNewMSGGWaccount',
+                'isPartner',
+                'partner',
+                'partnerEmail'
+
+            ];
+
+            $scope.taskId = camForm.taskId;
+            $scope.richTextChecker = null;
+            camForm.on('form-loaded', function () {
+                variables.forEach(function (el) {
+                    camForm.variableManager.fetchVariable(el);
+                });
+                $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
+                        function(result){
+                            $scope.processInstanceId = result.data.processInstanceId;
+                        },
+                        function (error) {
+                            console.log(error.data);
+                        }
+                );
+                $scope.bulksmsInfo = {};
+                $scope.bulksmsInfo.files = [];
+            });
+
+            camForm.on('variables-fetched', function () {
+                variables.forEach(function (el) {
+
+                    if (el === 'resolutions') {
+                        if (camForm.variableManager.variables[el].value) {
+                            $scope.resolutions = angular.copy(camForm.variableManager.variables[el].value);
+                            camForm.variableManager.destroyVariable(el);
+                        }
+                    } else if (el === 'starter') {
+                        $scope[el] = camForm.variableManager.variables[el].value;
+                        $http.get("/camunda/api/engine/engine/default/user/" + $scope[el] + "/profile").then(function (e) {
+                            $scope.bulksmsInfo[el] = (e.data.firstName ? e.data.firstName : "") + " " + (e.data.lastName ? e.data.lastName : "");
+                            //console.log($scope.bulksmsInfo[el]);
+                        });
+                        //console.log($scope[el]);
+                    } else if (el === 'applicationScanCopyFileName' || el === 'contractScanCopyFileName') {
+                        $scope[el] = camForm.variableManager.variables[el].value;
+                        $scope.bulksmsInfo.files.push(camForm.variableManager.variables[el].value);
+                    } else {
+                        $scope[el] = camForm.variableManager.variables[el].value;
+                        $scope.bulksmsInfo[el] = camForm.variableManager.variables[el].value;
+                    }
+                });
+                $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name+ "/profile").then(function(result){
+                    $rootScope.authentication.assigneeName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
+                });
+                $scope.bulksmsInfo.showTarif = true;
+                $scope.connectionConfigParams = undefined;
+                if ($scope.bulksmsInfo.isGMSFW && $scope.bulksmsInfo.isGMSFW.value===true) {
+                    $scope.bulksmsInfo.showGMSCheckBox = true;
+                }
+
+                camForm.variableManager.createVariable({
+                    name: 'connectionConfigParams',
+                    type: 'String',
+                    value: ''
+                });
+
+                camForm.variableManager.createVariable({
+                    name: 'createConnectionFormPartnerSIGTRANTaskResult',
+                    type: 'String',
+                    value: ''
+                });
+
+                camForm.variableManager.createVariable({
+                    name: 'createConnectionFormPartnerSIGTRANTaskComment',
+                    type: 'String',
+                    value: ''
+                });
+
+                $scope.createConnectionFormPartnerSIGTRANTaskResult = '';
+            });
+
+            camForm.on('submit', function () {
+                $scope.createConnectionFormPartnerSIGTRANTaskResult = 'Completed';
+                camForm.variableManager.variableValue('connectionConfigParams', $scope.connectionConfigParams);
+                camForm.variableManager.variableValue('createConnectionFormPartnerSIGTRANTaskResult', $scope.createConnectionFormPartnerSIGTRANTaskResult);
+                camForm.variableManager.variableValue('createConnectionFormPartnerSIGTRANTaskComment', $scope.createConnectionFormPartnerSIGTRANTaskComment);
+            });
+
+            $scope.$watch('connectionConfigParams', function(v) {
+                $scope.richTextChecker = $scope.connectionConfigParams;
+                if ($scope.connectionConfigParams === '<p><br></p>') $scope.richTextChecker = null;
+            }, true);
+        }]);
+
+    </script>
+    <info-bulksms bulksms-info="bulksmsInfo"></info-bulksms>
+    <div class="form-group" ng-show="isNewMSGGWaccount">
+        <label class="col-sm-12 control-label">Параметры настройки: <span class="has-error" ng-if="isNewMSGGWaccount && kcell_form.configParamsRichText.$error.required && (kcell_form.configParamsRichText.$touched || view.submitted)">(Required field)</span></label>
+        <div class="col-sm-12">
+            <bulksms-rich-text data="connectionConfigParams" min-height="100" disabled="false" process-id="processInstanceId" task-id="taskId"></bulksms-rich-text>
+            <input type="hidden" name="configParamsRichText" style="width: 0; height: 0" ng-model="richTextChecker" ng-required="isNewMSGGWaccount" />
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-3 control-label">Комментарии</label>
+        <div class="col-sm-9">
+            <textarea class="form-control" ng-model="createConnectionFormPartnerSIGTRANTaskComment" name="createConnectionFormPartnerSIGTRANTaskComment" placeholder="Comments..." maxlength="500" rows="4" style="resize:none"></textarea>
+            <label class="error" ng-show="kcell_form.createConnectionFormPartnerSIGTRANTaskComment.$error.required && ( kcell_form.createConnectionFormPartnerSIGTRANTaskComment.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+</form>

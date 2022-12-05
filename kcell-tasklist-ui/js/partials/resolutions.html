@@ -1,0 +1,59 @@
+<table class="table table-condensed table-hover">
+    <thead class="fixed-header">
+    <tr>
+        <th>Activity</th>
+        <th>Assignee</th>
+		<th>Assigned date</th>
+		<th>Claimed date</th>
+		<th>Resolution date</th>
+        <th>Resolution</th>
+		<th>Comment</th>
+		<th>Attachments</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr ng-repeat="resolution in resolutions" ng-click="showDetailHistory(resolution, resolutions)">
+        <td>{{resolution.taskName}}</td>
+        <td>{{resolution.assigneeName || resolution.assignee}}</td>
+		<td style="white-space: nowrap;">{{(resolution.assignDate?resolution.assignDate:resolution.dateOfAssign) | date: 'dd.MM.yyyy [HH.mm]'}}</td>
+		<td style="white-space: nowrap;">{{resolution.claimDate | date: 'dd.MM.yyyy [HH.mm]'}}</td>
+		<td style="white-space: nowrap;">{{resolution.taskEndDate | date: 'dd.MM.yyyy [HH.mm]'}}</td>
+		<td ng-if="['AftersalesPBX','UAT','Demand','PBX', 'revolvingNumbers'].indexOf(procDef) !== -1">{{resolution.resolution}}</td>
+		<td ng-if="['AftersalesPBX','UAT','Demand','PBX', 'revolvingNumbers'].indexOf(procDef) === -1">{{'task.resolution.'+resolution.resolution | translate}}</td>
+		<td>{{(!resolution.visibility || resolution.visibility === 'all' || (resolution.visibility === 'kcell' && isKcellStaff))? resolution.comment : ''}}</td>
+		<td ng-if="['AftersalesPBX','revolvingNumbers','Demand','UAT', 'PBX', 'sdr_srr_request', 'Replacement', 'Dismantle', 'leasing'].indexOf(procDef) === -1">
+			<span ng-show="resolution.files" ng-repeat="file in resolution.files" ng-if="isFileVisible(file)">
+				<a ng-show="file.name" ng-click="download(file.path)">{{file.name}}<br /></a>
+				<span ng-hide="file.name">{{file}}<br /></span>
+			</span>
+		</td>
+		<td ng-if="['AftersalesPBX','revolvingNumbers','Demand','UAT', 'PBX', 'sdr_srr_request', 'Replacement', 'Dismantle'].indexOf(procDef) !== -1">
+			<p ng-show="resolution.attachments.added.length>0" > <b>Added: </b>
+			<p ng-repeat="file in resolution.attachments.added" ng-if="isFileVisible(file)">
+				<span ng-if="!file.path">{{file}}<br /></span>
+				<a ng-if="file.path" ng-click="download(file.path)">{{file.name}}<br /></a>
+			</p>
+			<p ng-show="resolution.attachments.removed.length>0" > <b>Removed:</b>
+			</p>
+			<p ng-repeat="file in resolution.attachments.removed" class="text-danger" ng-if="isFileVisible(file)">
+				<span ng-if="!file.name">{{file}}<br /></span>
+				<span ng-if="file.name">{{file.name}}<br /></span>
+			</p>
+		</td>
+		<td ng-if="['leasing'].indexOf(procDef) !== -1">
+			<p ng-repeat="file in resolution.files" ng-show="resolution.files" ng-if="isFileVisible(file)">
+				<span ng-if="!file.path">{{file}}<br /></span>
+				<a ng-if="file.path" ng-click="download(file.path)">{{file.name}}<br /></a>
+			</p>
+			<p ng-repeat="file in resolution.attachments.added" ng-show="resolution.attachments" ng-if="isFileVisible(file)">
+				<span ng-if="!file.path">{{file}}<br /></span>
+				<a ng-if="file.path" ng-click="download(file.path)">{{file.name}}<br /></a>
+			</p>
+			<p ng-repeat="file in resolution.attachments.deleted" ng-show="resolution.attachments" class="text-danger" >
+				<span ng-if="!file.name">{{file}}<br /></span>
+				<span ng-if="file.name">{{file.name}}<br /></span>
+			</p>
+		</td>
+    </tr>
+    </tbody>
+</table>

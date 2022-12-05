@@ -1,0 +1,316 @@
+<form role="form" class="form-horizontal" name="kcell_form" novalidate>
+  <script cam-script type="text/form-script">
+    inject(['$scope', '$http', 'Uri', '$rootScope', '$q', 'Upload', '$timeout', 'historyVariablesManager', function ($scope, $http, Uri, $rootScope, $q, Upload, $timeout, historyVariablesManager) {
+    
+    $scope.deliveryTestData = {};
+    $scope.processInstanceId = null;
+    $scope.taskId = camForm.taskId;
+    var assigneeName = $rootScope.authentication.name;
+    var taskKey = camForm.taskId;
+    var history = null;
+    
+    $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name+ "/profile").then(function(result){
+        assigneeName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
+    });
+
+    $scope.downloadFile = function (file) {
+      $http({method: 'GET', url: '/camunda/uploads/' + (file.path.split('/').length === 2 ? 'tmp/' : '') + 'get/' + file.path, transformResponse: [] }).then(
+        function(response) {
+          document.getElementById('fileDownloadIframe').src = response.data;
+        },
+        function(response) { console.log(response.data); }
+      );
+    };
+
+    $scope.clearFile = function(fileIndex) {
+      $scope.attachments.splice(fileIndex, 1);
+    };
+    
+    $scope.fileSelected = function(el ){
+      $timeout(function () {
+        $scope.$apply(function () {
+          uploadFileToMinio(el.files[0]);
+        });
+      })
+    };
+
+    function uploadFileToMinio(file) {
+      var fileToUpload = {
+        name: file.name.replace(/[/\\?%*:|"<>]/g, '-'),
+        path: $scope.processInstanceId + '/' + camForm.taskId + '/' + file.name.replace(/[/\\?%*:|"<>]/g, '-'),
+        created: new Date(),
+        createdBy: assigneeName
+      };
+      $http({method: 'GET', url: '/camunda/uploads/put/' + fileToUpload.path, transformResponse: [] }).then(
+        function(response) {
+          $http.put(response.data, file, {headers: {'Content-Type': undefined}}).then(
+            function () {
+              $scope.attachments.push(fileToUpload);
+              angular.element(document.querySelector('#attachments')).val(null);
+            },
+            function (error) {
+              console.log(error.data);
+            }
+          );
+        },
+        function(response) { console.log(response.data); }
+      );
+    }
+
+
+    scope.openCalendar = function() {
+        scope.dateFieldOpened = true;
+    };
+
+    $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
+      function (result) {
+        $scope.processInstanceId = result.data.processInstanceId;
+        taskKey = result.data.taskDefinitionKey;
+        history = historyVariablesManager(camForm, taskKey);
+        history.createVariables(true);
+        configureViews();
+      },
+      function (error) {
+        console.log(error.data);
+      }
+    );
+
+    camForm.on('form-loaded', function () {
+      camForm.variableManager.fetchVariable('resolutions');
+      camForm.variableManager.fetchVariable('clientPriority');
+      camForm.variableManager.fetchVariable('customerInformation');
+      camForm.variableManager.fetchVariable('technicalSpecifications');
+      camForm.variableManager.fetchVariable('deliveryTestData');
+      camForm.variableManager.fetchVariable('testResult');
+      camForm.variableManager.fetchVariable('importDataResolution');
+      camForm.variableManager.fetchVariable('importDataAttachment');
+      camForm.variableManager.fetchVariable('numberRequest');
+    });
+
+
+    camForm.on('variables-fetched', function () {
+      $scope.resolutions = camForm.variableManager.variableValue('resolutions');
+      camForm.variableManager.destroyVariable('resolutions');
+      $scope.clientPriority = camForm.variableManager.variableValue('clientPriority');
+      $scope.ci = camForm.variableManager.variableValue('customerInformation');
+      $scope.ts = camForm.variableManager.variableValue('technicalSpecifications');
+      $scope.deliveryTestData = camForm.variableManager.variableValue('deliveryTestData');
+      $scope.testResult = camForm.variableManager.variableValue('testResult');
+      $scope.attachments = camForm.variableManager.variableValue('importDataAttachment');
+      $scope.numberRequest = camForm.variableManager.variableValue('numberRequest');
+      $scope.resolution = 'Accepted';
+      if ($scope.deliveryTestData && $scope.deliveryTestData.date) {
+          $scope.deliveryTestData.date = new Date($scope.deliveryTestData.date);
+      } else {
+        $scope.deliveryTestData = {
+          date: new Date(),
+          time:'',
+          numberA: '',
+          numberB: '',
+          duration: ''
+        };
+      }
+      if (!$scope.attachments) {
+        $scope.attachments = [];
+      } else {
+        $scope.attachments = [$scope.attachments];
+      }
+      if (!$scope.testResult) $scope.testResult = {html: ''};
+
+      $scope.lastAttachments = JSON.parse(JSON.stringify($scope.attachments));
+    });
+
+    camForm.on('submit', function(event) {
+      if ($scope.showView.resolution) {
+        history.setVariables($scope.resolution, $scope.comment, $scope.lastAttachments, $scope.attachments);
+      } else {
+        history.setVariables('Completed', $scope.comment, $scope.lastAttachments, $scope.attachments);
+      }
+      if (!$scope.deliveryReadOnly) {
+          camForm.variableManager.destroyVariable('deliveryTestData');
+          camForm.variableManager.createVariable({
+              name: 'deliveryTestData',
+              type: 'json',
+              value: $scope.deliveryTestData,
+              store: true
+          });
+      }
+      if (!$scope.testResultReadOnly) {
+          camForm.variableManager.destroyVariable('testResult');
+          camForm.variableManager.createVariable({
+              name: 'testResult',
+              type: 'json',
+              value: $scope.testResult,
+              store: true
+          });
+      }
+      camForm.variableManager.destroyVariable('importDataAttachment');
+      camForm.variableManager.createVariable({
+          name: 'importDataAttachment',
+          type: 'json',
+          value: $scope.attachments[0],
+          store: true
+      });
+
+      camForm.variableManager.destroyVariable('importDataResolution');
+      camForm.variableManager.createVariable({
+        name: 'importDataResolution',
+        type: 'String',
+        value: $scope.resolution,
+        store: true
+      });
+    });
+
+    $scope.showView = {
+      deliveryTestData: false,
+      testResult: false,
+      cmmBgw: false,
+      resolution: false,
+      attachments: false
+    };
+
+    $scope.deliveryReadOnly = false;
+    $scope.testResultReadOnly = false;
+
+    function configureViews() {
+      switch(taskKey) {
+        case 'importClientTestCallData':
+          $scope.showView = {deliveryTestData: true};
+          $scope.testResultReadOnly = true;
+          break;
+        case 'importBillingTestCallData':
+          $scope.showView = {deliveryTestData: true, testResult: true, cmmBgw: true};
+          $scope.deliveryReadOnly = true;
+          break;
+        case 'confirmTestingBilling':
+          $scope.showView = {deliveryTestData: true, testResult: true, cmmBgw: true, resolution: true};
+          $scope.deliveryReadOnly = $scope.testResultReadOnly = true;
+          break;
+      }
+    }
+    
+    }]);
+
+  </script>
+
+  <div class="col-sm-12">
+    <div class="form-group">
+      <label class="col-sm-4">Number request:</label>
+      <div class="col-sm-8"><span class="text-primary">{{numberRequest}}</span></div>
+    </div>
+    <div class="form-group">
+      <label class="col-sm-4">Client:</label>
+      <div class="col-sm-8">{{ci.legalName}} {{ci.bin}}</div>
+    </div>
+    <div class="form-group">
+      <label class="col-sm-4">Priority:</label>
+      <div class="col-sm-8"><span class="{{clientPriority == 'High'?'text-danger':''}} ">{{clientPriority}}</span></div>
+    </div>
+    <div class="form-group">
+      <label class="col-sm-4">Labels:</label>
+      <div class="col-sm-6">
+        <span ng-if="ci != null">{{ci.companyRegistrationCity}}</span> <span ng-if="ts != null">{{ts.connectionType}} {{ts.connectionPoint}}</span>
+      </div>
+      <div class="col-sm-2 pull-right" ng-if="ci && ci.salesRepresentative"><b>KAE:</b> {{ci.salesRepresentative}}</div>
+    </div>
+
+    <div class="col-sm-12">&#8203;</div>
+  </div>
+
+  <div class="col-sm-12" ng-if="showView.deliveryTestData">
+    <div class="form-group">
+      <label class="col-sm-12">Test call data:</label>
+      <div class="col-sm-12">
+        <table class="table ">
+          <thead>
+          <tr>
+            <th>Дата</th>
+            <th>Время</th>
+            <th>Номер А</th>
+            <th>Номер B</th>
+            <th>Длительность звонка</th>
+          </tr>
+          </thead>
+          <tbody>
+          <tr>
+            <td ng-if="deliveryReadOnly">{{deliveryTestData.date | date: 'dd.MM.yyyy'}}</td>
+            <td ng-if="!deliveryReadOnly">
+              <div class="input-group">
+                <input type="text" name="deliveryTestDataDate" ng-model="deliveryTestData.date" class="form-control" datepicker-popup="dd.MM.yyyy" is-open="dateFieldOpened"/>
+                <span class="input-group-btn">
+                  <button type="button" class="btn btn-default" ng-click="openCalendar()">
+                    <i class="glyphicon glyphicon-calendar"></i>
+                  </button>
+                </span>
+              </div>
+            </td>
+            <td ng-if="deliveryReadOnly">{{deliveryTestData.time}}</td>
+            <td ng-if="!deliveryReadOnly"><input type="text" class="form-control" ng-model="deliveryTestData.time"></td>
+            <td ng-if="deliveryReadOnly">{{deliveryTestData.numberA}}</td>
+            <td ng-if="!deliveryReadOnly"><input type="text" class="form-control" ng-model="deliveryTestData.numberA"></td>
+            <td ng-if="deliveryReadOnly">{{deliveryTestData.numberB}}</td>
+            <td ng-if="!deliveryReadOnly"><input type="text" class="form-control" ng-model="deliveryTestData.numberB"></td>
+            <td ng-if="deliveryReadOnly">{{deliveryTestData.duration}}</td>
+            <td ng-if="!deliveryReadOnly"><input type="text" class="form-control" ng-model="deliveryTestData.duration"></td>
+          </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-sm-12" ng-show="showView.cmmBgw">
+    <div class="form-group">
+      <label class="col-sm-4">Root for CMM/BGW:</label>
+      <div class="col-sm-8">
+        <input type="text" class="form-control" cam-variable-name="rootForCMMBGW" cam-variable-type="String" disabled>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-sm-12" ng-if="showView.testResult">
+    <div class="form-group">
+      <label class="col-sm-12">Result of test: <span class="has-error" ng-if="kcell_form.testResultHtml.$error.required && (kcell_form.testResultHtml.$touched || view.submitted)">(Required field)</span></label>
+      <div class="col-sm-12">
+        <pbx-rich-text data="testResult.html" min-height="100" process-id="processInstanceId" task-id="taskId" disabled="testResultReadOnly"></pbx-rich-text>
+        <input type="hidden" ng-model="testResult.html" name="testResultHtml" ng-required="!testResultReadOnly">
+      </div>
+    </div>
+  </div>
+
+  <div class="col-sm-12" ng-show="showView.attachments">
+    <iframe id="fileDownloadIframe" style="display:none;"></iframe>
+    <div class="form-group">
+      <label class="col-sm-4 control-label">Attach file:</label>
+      <div class="col-sm-8">
+        <input type="file" ng-if="!attachments.length && !showView.resolution" class="form-control" id="attachments" name="attachments" onchange="angular.element(this).scope().fileSelected(this)"/>
+        <span ng-if="attachments.length == 1"><a ng-click="downloadFile(attachments[0])">{{attachments[0].name}}</a><a ng-if="!showView.resolution" ng-click="clearFile(0)"><i class="glyphicon glyphicon-trash"></i></a></span>
+      </div>
+    </div>
+    <div class="col-sm-12"><hr /></div>
+  </div>
+
+  <div class="col-sm-12">
+    <div class="form-group">
+      <label class="col-sm-12">Numbers PBX:</label>
+      <div class="col-sm-12">
+        <textarea class="form-control" ng-model="ts.pbxNumbers" disabled></textarea>
+      </div>
+    </div>
+  </div>
+
+  <div class="form-group" ng-show="showView.resolution">
+    <label class="col-sm-4 control-label">Confirm success billing:</label>
+    <div class="col-sm-8">
+      <label class="radio-inline"><input type="radio" name="resolution" value="Accepted" ng-model="resolution"> Yes </label>
+      <label class="radio-inline"><input type="radio" name="resolution" value="Rejected" ng-model="resolution"> No </label>
+    </div>
+  </div>
+  <div class="form-group">
+    <label class="col-sm-12 control-label">Comments: <span class="text-danger glyphicon-asterisk" ng-show="showView.resolution && resolution == 'Rejected'"></span></label>
+    <div class="col-sm-12">
+      <textarea class="form-control" name="comment" ng-model="comment" ng-required="showView.resolution && resolution == 'Rejected'"></textarea>
+      <span class="has-error" ng-if="kcell_form.comment.$error.required && (kcell_form.comment.$touched || view.submitted)">Required field</span>
+    </div>
+  </div>
+</form>

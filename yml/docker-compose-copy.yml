@@ -1,0 +1,54 @@
+version: '2.2'
+services:
+  camunda:
+    extends:
+      file: ../common-services.yml
+      service: camunda
+    links:
+      - mail
+    depends_on:
+      camundadb:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+    # command: ["--kcell.ldap.enabled=true", "--kcell.ldap.managerPassword=*****"]
+  camundadb:
+    extends:
+      file: ../common-services.yml
+      service: camundadb
+  assets:
+    extends:
+      file: ../common-services.yml
+      service: assets
+    depends_on:
+      assetsdb:
+        condition: service_healthy
+  assetsdb:
+    extends:
+      file: ../common-services.yml
+      service: assetsdb
+  nginx:
+    extends:
+      file: ../common-services.yml
+      service: nginx
+    depends_on:
+      minio:
+        condition: service_healthy
+    links:
+      - camunda
+      - assets
+      - maildev
+  mail:
+    extends:
+      file: ../common-services.yml
+      service: mail
+    links:
+      - maildev
+  maildev:
+    extends:
+      file: ../common-services.yml
+      service: maildev
+  minio:
+    extends:
+      file: ../common-services.yml
+      service: minio

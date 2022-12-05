@@ -1,0 +1,111 @@
+buildscript {
+
+    repositories {
+        mavenLocal()
+        maven {
+            url "https://artifactory.kcell.kz:443/maven-central"
+        }
+    }
+    dependencies {
+        classpath "org.springframework.boot:spring-boot-gradle-plugin:2.0.2.RELEASE"
+    }
+}
+
+allprojects {
+    apply plugin: 'java'
+    apply plugin: 'groovy'
+    apply plugin: 'io.spring.dependency-management'
+
+    sourceCompatibility = 1.8
+    targetCompatibility = 1.8
+
+    repositories {
+        mavenLocal()
+        maven {
+            url "https://artifactory.kcell.kz:443/maven-central"
+        }
+    }
+
+    dependencyManagement {
+        imports {
+            mavenBom 'org.camunda.bpm:camunda-bom:7.10.0'
+        }
+    }
+
+    tasks.withType(JavaCompile) {
+        options.compilerArgs << "-Xlint:unchecked" << "-Xlint:deprecation"
+    }
+}
+
+subprojects {
+    jar {enabled = true}
+}
+
+apply plugin: 'org.springframework.boot'
+
+bootJar {
+    mainClassName = 'kz.kcell.flow.CamundaApplication'
+    excludeDevtools = true
+}
+
+dependencies {
+    compile("org.springframework.boot:spring-boot-starter-web")
+    compile 'org.springframework.boot:spring-boot-starter-mail'
+    compile("org.postgresql:postgresql")
+    compile("org.projectlombok:lombok")
+    compile("com.oracle.ojdbc:ojdbc8:19.3.0.0")
+//    compile("com.oracle:ojdbc6:11.2.0.4")
+
+    compile 'org.camunda.bpm.springboot:camunda-bpm-spring-boot-starter:3.1.0'
+    compile 'org.camunda.bpm.springboot:camunda-bpm-spring-boot-starter-webapp:3.1.0'
+    compile 'org.camunda.bpm.springboot:camunda-bpm-spring-boot-starter-rest:3.1.0'
+    compile 'org.camunda.bpm:camunda-engine-plugin-connect'
+    compile 'org.camunda.bpm:camunda-engine-plugin-spin'
+    compile project(':ldap-authentication')
+    compile 'org.camunda.spin:camunda-spin-dataformat-all'
+    compile 'org.camunda.template-engines:camunda-template-engines-freemarker'
+    compile 'org.codehaus.groovy:groovy-all'
+    compile 'org.apache.poi:poi:4.1.0'
+    compile 'org.apache.poi:poi-ooxml:4.1.0'
+    compile 'org.apache.poi:poi-ooxml-schemas:4.1.0'
+    compile 'org.apache.poi:ooxml-schemas:1.3'
+    compile 'org.apache.poi:poi-scratchpad:4.1.0'
+    compile 'org.apache.httpcomponents:httpclient:4.5.3'
+    compile 'io.minio:minio:3.0.12'
+    testCompile 'com.icegreen:greenmail:1.5.4'
+    testCompile 'org.mockito:mockito-core:2.7.22'
+
+    compile 'com.sndyuk:logback-more-appenders:1.4.2'
+    compile 'org.fluentd:fluent-logger:0.3.3'
+    compile 'biz.paluch.logging:logstash-gelf:1.11.1'
+
+    // sftp feature
+    compile 'org.springframework.integration:spring-integration-sftp:5.0.9.RELEASE'
+    compile 'org.apache.sshd:sshd-core:1.7.0'
+    compile 'com.jcraft:jsch:0.1.53'
+
+    //ftp
+    compile group: 'commons-net', name: 'commons-net', version: '3.6'
+
+    // aws feature
+    compile 'org.springframework.integration:spring-integration-aws:2.0.0.RELEASE'
+
+    // html parse
+    compile 'org.jsoup:jsoup:1.11.3'
+
+    // development tools
+//    compile("org.springframework.boot:spring-boot-starter-actuator")
+    compile("org.springframework.boot:spring-boot-starter-data-jpa")
+    compile("org.springframework.boot:spring-boot-devtools")
+    compile 'org.springframework.boot:spring-boot-starter-mail'
+
+    testCompile("org.springframework.boot:spring-boot-starter-test")
+    testCompile("com.h2database:h2")
+}
+
+project(':ldap-authentication') {
+    dependencies {
+        compile 'org.camunda.bpm:camunda-engine'
+        compile 'org.camunda.bpm.identity:camunda-identity-ldap'
+    }
+}

@@ -1,0 +1,168 @@
+<form role="form" class="form-horizontal" name="kcell_form" novalidate>
+    <style>
+        .background-yellow-accordion .panel-body {
+            background-color: #ffffcc;
+            border: 1px solid #b3b3b3;
+            color: #333;
+        }
+    </style>
+    <script cam-script type="text/form-script">
+        inject(['$scope', '$http', 'Uri', '$rootScope', '$q', 'toasty', '$timeout', function ($scope, $http, Uri, $rootScope, $q, toasty, $timeout) {
+            // var tableTemplate = '<p><br></p><table class="table "><thead><tr><th>ANSWER_TM</th><th>SEQUENCE_NO</th><th>RECORD_CODE</th><th>ROUND (DURATION,0)</th><th>CALLING_NUM</th><th>CALLED_NUM</th><th>IN_TRK_GRP</th><th>OUT_TRK_GRP</th><th>SWITCH_CD</th></tr></thead><tbody><tr><td><br></td><td><br></td><td><br></td><td><br></td><td><br></td><td><br></td><td><br></td><td><br></td><td><br></td></tr><tr><td><br></td><td><br></td><td><br></td><td><br></td><td><br></td><td><br></td><td><br></td><td><br></td><td><br></td></tr></tbody></table><p><br></p>';
+            $scope.legalInfo = {};
+            $scope.techSpecs = {connectionType:'SIP over internet', sip: {}};
+            $scope.resolutions = [];
+            $scope.callData = {};
+            $scope.pbxData = {};
+
+            $scope.processInstanceId = null;
+            $scope.taskId = camForm.taskId;
+
+            $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
+                function(result){
+                    $scope.processInstanceId = result.data.processInstanceId;
+                    $http.get('/camunda/api/engine/engine/default/process-instance/' + $scope.processInstanceId).then(
+                        function(result){
+                            $scope.businessKey = result.data.businessKey;
+                        },
+                        function (error) {console.log(error.data);}
+                    );
+                },
+                function (error) { console.log(error.data);}
+            );
+
+            camForm.on('form-loaded', function () {
+                camForm.variableManager.fetchVariable('legalInfo');
+                camForm.variableManager.fetchVariable('techSpecs');
+                camForm.variableManager.fetchVariable('resolutions');
+                camForm.variableManager.fetchVariable('callData');
+                camForm.variableManager.fetchVariable('rootForCMMBGW');
+                camForm.variableManager.fetchVariable('pbxData');
+                camForm.variableManager.fetchVariable('workType');
+            });
+
+            camForm.on('variables-fetched', function () {
+                $scope.legalInfo = camForm.variableManager.variableValue('legalInfo');
+                $scope.techSpecs = camForm.variableManager.variableValue('techSpecs');
+                $scope.resolutions = camForm.variableManager.variableValue('resolutions');
+                $scope.callData = camForm.variableManager.variableValue('callData');
+                $scope.rootForCMMBGW = camForm.variableManager.variableValue('rootForCMMBGW');
+                $scope.pbxData = camForm.variableManager.variableValue('pbxData');
+                $scope.workType = camForm.variableManager.variableValue('workType');
+                if (!$scope.legalInfo){
+                    $scope.legalInfo = {};
+                } else if($scope.legalInfo.companyDate){
+                    $scope.legalInfo.companyDate = new Date($scope.legalInfo.companyDate);
+                }
+                if (!$scope.techSpecs) $scope.techSpecs = {connectionType:'SIP over internet', sip: {}};
+                if (!$scope.callData) $scope.callData = {};
+                $scope.callData.result = null;
+                // if (!$scope.callData.result) $scope.callData.result = tableTemplate;
+                if (!$scope.callData.date) $scope.callData.date = new Date();
+                else $scope.callData.date = new Date($scope.callData.date);
+
+                camForm.variableManager.createVariable({
+                    name: 'billingImportBillingTaskResult',
+                    type: 'String',
+                    value: ''
+                });
+
+                camForm.variableManager.createVariable({
+                    name: 'billingImportBillingTaskComment',
+                    type: 'String',
+                    value: ''
+                });
+            });
+
+            camForm.on('submit', function (event) {
+                camForm.variableManager.destroyVariable('callData');
+                camForm.variableManager.createVariable({
+                    name: 'callData',
+                    type: 'Json',
+                    value: $scope.callData
+                });
+                camForm.variableManager.variableValue('billingImportBillingTaskResult', 'Complete');
+                camForm.variableManager.variableValue('billingImportBillingTaskComment', $scope.comment);
+            });
+        }]);
+    </script>
+
+    <div class="form-group">
+        <label class="col-sm-3 control-label" style="padding-top: 0">Number request:</label>
+        <div class="col-sm-9">{{businessKey}}</div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-3 control-label" style="padding-top: 0">Client:</label>
+        <div class="col-sm-9">{{legalInfo.legalName}} {{legalInfo.BIN}}</div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-3 control-label" style="padding-top: 0">Priority:</label>
+        <div class="col-sm-9">{{legalInfo.clientPriority}}</div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-3 control-label" style="padding-top: 0">Service:</label>
+        <div class="col-sm-9">PBX</div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-3 control-label" style="padding-top: 0">Type of work:</label>
+        <div class="col-sm-9"><div ng-repeat="wt in workType track by $index">{{wt}}</div></div>
+    </div>
+
+    <div class="col-sm-12"><hr /></div>
+
+    <div class="form-group">
+        <div class="col-sm-12 control-label">Test call data:</div>
+        <div class="col-sm-12">
+            <table class="table " style="background: #ffffcc; color: #333; border: 1px solid #b3b3b3">
+                <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Time</th>
+                    <th>Duration</th>
+                    <th>A number:</th>
+                    <th>B number:</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr>
+                    <td>{{callData.date | date: 'dd.MM.yyyy'}}</td>
+                    <td>{{callData.time}}</td>
+                    <td>{{callData.duration}}</td>
+                    <td>{{callData.numberA}}</td>
+                    <td>{{callData.numberB}}<span class="error" ng-show="kcell_form['call_numberB_' + $index].$error.required && ( kcell_form['call_numberB_' + $index].$touched || view.submitted)">Required field</span>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label class="col-sm-3 control-label">Root for CMM/BGW:</label>
+        <div class="col-sm-9"><div class="disabled-element">{{rootForCMMBGW && rootForCMMBGW.length?rootForCMMBGW:'&nbsp;'}}</div></div>
+    </div>
+
+    <div class="form-group">
+        <label class="col-sm-12 control-label">Result of test: <span class="has-error" ng-if="kcell_form.callDataResult.$error.required && (kcell_form.callDataResult.$touched || view.submitted)">(Required field)</span></label>
+        <div class="col-sm-12">
+            <aftersales-rich-text data="callData.result" min-height="100" disabled="false" process-id="processInstanceId" task-id="taskId"></aftersales-rich-text>
+            <input type="hidden" name="callDataResult" style="width: 0; height: 0" ng-model="callData.result" required />
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label class="col-sm-12 control-label">Numbers PBX:</label>
+        <div class="col-sm-12">
+            <div class="disabled-element" ng-style="{'background-color': ((pbxData.techSpecs.fetched && pbxData.techSpecs.pbxNumbers !== techSpecs.pbxNumbers) ? 'orange' : null)}">{{techSpecs.pbxNumbers}}</div>
+        </div>
+    </div>
+
+    <div class="col-sm-12"><hr /></div>
+
+    <div class="form-group">
+        <label class="col-sm-2 control-label">Comment</label>
+        <div class="col-sm-10">
+            <textarea elastic-textarea class="form-control" rows="4" ng-model="comment"></textarea>
+        </div>
+    </div>
+</form>

@@ -1,0 +1,134 @@
+<form role="form" class="form-horizontal" name="kcell_form" novalidate>
+    <script cam-script type="text/form-script">
+        inject(['$scope', '$http', 'Uri', '$rootScope', '$q', '$timeout', function ($scope, $http, Uri, $rootScope, $q, $timeout) {
+            var variables = [
+                'resolutions',
+                'identifier',
+                'MultiProcess'
+            ];
+
+            camForm.on('form-loaded', function () {
+                variables.forEach(function (el) {
+                    camForm.variableManager.fetchVariable(el);
+                });
+                $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
+                        function(result){
+                            console.log('result.data')
+                            console.log(result.data)
+                            $scope.processInstanceId = result.data.processInstanceId;
+                            $scope.taskDefinitionKey = result.data.taskDefinitionKey;
+                            
+                        },
+                        function (error) {
+                            console.log(error.data);
+                        }
+                );
+                $scope.bulksmsInfo = {};
+                $scope.bulksmsInfo.files = [];
+            });
+
+            camForm.on('variables-fetched', function () {
+                variables.forEach(function (el) {
+                    if (el === 'resolutions') {
+                        if (camForm.variableManager.variables[el].value) {
+                            $scope.resolutions = angular.copy(camForm.variableManager.variables[el].value);
+                            camForm.variableManager.destroyVariable(el);
+                        }
+                    } else if (el === 'applicationScanCopyFileName' || el === 'contractScanCopyFileName') {
+                        $scope[el] = camForm.variableManager.variables[el].value;
+                        $scope.bulksmsInfo.files.push(camForm.variableManager.variables[el].value);
+                    } else {
+                        $scope[el] = camForm.variableManager.variables[el].value;
+                        $scope.bulksmsInfo[el] = camForm.variableManager.variables[el].value;
+                    }
+                });
+                $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name+ "/profile").then(function(result){
+                    $rootScope.authentication.assigneeName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
+                });
+                $scope.bulksmsInfo.showTarif = true;
+                camForm.variableManager.createVariable({
+                    name: $scope.taskDefinitionKey + 'TaskCloseDate',
+                    value: '',
+                    type: 'String'
+                });
+                camForm.variableManager.createVariable({
+                    name: $scope.taskDefinitionKey + 'TaskResult',
+                    type: 'String',
+                    value: ''
+                });
+
+                camForm.variableManager.createVariable({
+                    name: $scope.taskDefinitionKey + 'TaskComment',
+                    type: 'String',
+                    value: ''
+                });
+
+                $scope.taskResult = '';
+            });
+
+            camForm.on('submit', function (evt) {
+                $scope.taskResult = 'Completed';
+                camForm.variableManager.variableValue($scope.taskDefinitionKey + 'TaskResult', $scope.taskResult);
+                camForm.variableManager.variableValue($scope.taskDefinitionKey + 'TaskComment', $scope.taskComment);
+                camForm.variableManager.variableValue($scope.taskDefinitionKey + 'TaskCloseDate', $scope.closeDate);
+            });
+        }]);
+
+    </script>
+
+    <div class="well">
+        <div class="row">
+            <div class="col-sm-6">
+                <h4>Данные TCF:</h4>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-6"><b>Short Number</b>: {{identifier.title}}</div>
+            <!--<div class="col-sm-6">-->
+                <!--<b>Service Name</b>: {{identifier.serviceName}}-->
+            <!--</div>-->
+            <!--<div class="col-md-6"><b>Counter</b>: {{identifier.counter}}</div>-->
+            <!--<div class="col-md-6"><b>Price per counter</b>: {{identifier.pricePerCounter}}</div>-->
+            <!--<div class="col-md-6" ng-if="identifier.amdocsID"><b>Amdocs ID</b>: {{identifier.amdocsID}}</div>-->
+            <!--<div class="col-md-6" ng-if="identifier.orgaID"><b>Orga ID</b>: {{identifier.orgaID}}</div>-->
+            <!--<div class="col-md-6" ng-if="identifier.CommentsForICTD"><b>Comments For ICTD</b>: {{identifier.CommentsForICTD}}</div>-->
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-3 control-label">* Service Name:</label>
+        <div class="col-sm-4">
+            <input type="text" name="identifierServiceName" id='identifierServiceName' ng-model="identifierServiceName" cam-variable-name="identifierServiceName" cam-variable-type="String" class="form-control" placeholder="Service Name" required>
+            <label class="error" ng-show="kcell_form.identifierServiceName.$error.required && ( kcell_form.identifierServiceName.$touched || view.submitted)">Required field</label>
+        </div>
+        <label class="col-sm-2 control-label">* Counter:</label>
+        <div class="col-sm-3">
+            <input type="text" name="identifierCounter" id='identifierCounter' ng-model="identifierCounter" cam-variable-name="identifierCounter" cam-variable-type="String" class="form-control" placeholder="Counter" required>
+            <label class="error" ng-show="kcell_form.identifierCounter.$error.required && ( kcell_form.identifierCounter.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-3 control-label">* Price per counter:</label>
+        <div class="col-sm-4">
+            <input type="text" name="abonentTarif" id='abonentTarif' ng-model="abonentTarif" cam-variable-name="abonentTarif" cam-variable-type="String" class="form-control" placeholder="Price per counter" required>
+            <label class="error" ng-show="kcell_form.abonentTarif.$error.required && ( kcell_form.abonentTarif.$touched || view.submitted)">Required field</label>
+        </div>
+        <label class="col-sm-2 control-label">* Дата поставки:</label>
+        <div class="col-sm-3">
+            <div class="input-group">
+                <input type="text" ng-model="closeDate" name="closeDate" required class="form-control" datepicker-popup="dd.MM.yyyy" is-open="dateFieldOpened"/>
+                <span class="input-group-btn">
+                    <button type="button" class="btn btn-default" ng-click="dateFieldOpened = true">
+                        <i class="glyphicon glyphicon-calendar"></i>
+                    </button>
+                </span>
+            </div>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-3 control-label">Комментарии</label>
+        <div class="col-sm-9">
+            <textarea class="form-control" ng-model="taskComment" name="taskComment" placeholder="Comments..." maxlength="500" rows="4" style="resize:none"></textarea>
+            <label class="error" ng-show="kcell_form.taskComment.$error.required && ( kcell_form.taskComment.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+</form>

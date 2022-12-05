@@ -1,0 +1,103 @@
+<form role="form" class="form-horizontal" name="kcell_form" novalidate>
+    <script cam-script type="text/form-script">
+        inject(['$scope', '$http', 'Uri', '$rootScope', '$q', '$timeout', function ($scope, $http, Uri, $rootScope, $q, $timeout) {
+            var variables = [
+                'resolutions',
+                'identifier',
+                'MultiProcess',
+                'identifierCounter',
+                'identifierServiceName',
+                'abonentTarif',
+                'identifierAmdocsID',
+                'identifierOrgaID'
+            ];
+
+            camForm.on('form-loaded', function () {
+                variables.forEach(function (el) {
+                    camForm.variableManager.fetchVariable(el);
+                });
+                $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
+                        function(result){
+                            console.log('result.data')
+                            console.log(result.data)
+                            $scope.processInstanceId = result.data.processInstanceId;
+                            $scope.taskDefinitionKey = result.data.taskDefinitionKey;
+                            
+                        },
+                        function (error) {
+                            console.log(error.data);
+                        }
+                );
+                $scope.bulksmsInfo = {};
+                $scope.bulksmsInfo.files = [];
+            });
+
+            camForm.on('variables-fetched', function () {
+                variables.forEach(function (el) {
+                    if (el === 'resolutions') {
+                        if (camForm.variableManager.variables[el].value) {
+                            $scope.resolutions = angular.copy(camForm.variableManager.variables[el].value);
+                            camForm.variableManager.destroyVariable(el);
+                        }
+                    } else if (el === 'applicationScanCopyFileName' || el === 'contractScanCopyFileName') {
+                        $scope[el] = camForm.variableManager.variables[el].value;
+                        $scope.bulksmsInfo.files.push(camForm.variableManager.variables[el].value);
+                    } else {
+                        $scope[el] = camForm.variableManager.variables[el].value;
+                        $scope.bulksmsInfo[el] = camForm.variableManager.variables[el].value;
+                    }
+                });
+                $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name+ "/profile").then(function(result){
+                    $rootScope.authentication.assigneeName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
+                });
+                $scope.bulksmsInfo.showTarif = true;
+                camForm.variableManager.createVariable({
+                    name: $scope.taskDefinitionKey + 'TaskResult',
+                    type: 'String',
+                    value: ''
+                });
+
+                camForm.variableManager.createVariable({
+                    name: $scope.taskDefinitionKey + 'TaskComment',
+                    type: 'String',
+                    value: ''
+                });
+
+                $scope.taskResult = '';
+            });
+
+            camForm.on('submit', function (evt) {
+                //evt.submitPrevented = true;
+                $scope.taskResult = 'Completed';
+                camForm.variableManager.variableValue($scope.taskDefinitionKey + 'TaskResult', $scope.taskResult);
+                camForm.variableManager.variableValue($scope.taskDefinitionKey + 'TaskComment', $scope.taskComment);
+            });
+        }]);
+
+    </script>
+
+    <div class="well">
+        <div class="row">
+            <div class="col-sm-6">
+                <h4>Данные TCF:</h4>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-6"><b>Short Number</b>: {{identifier.title}}</div>
+            <div class="col-sm-6">
+                <b>Service Name</b>: {{identifierServiceName}}
+            </div>
+            <div class="col-md-6"><b>Counter</b>: {{identifierCounter}}</div>
+            <div class="col-md-6"><b>Price per counter</b>: {{abonentTarif}}</div>
+            <div class="col-md-6" ng-if="identifierAmdocsID"><b>Amdocs ID</b>: {{identifierAmdocsID}}</div>
+            <div class="col-md-6" ng-if="identifierOrgaID"><b>Orga ID</b>: {{identifierOrgaID}}</div>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-3 control-label">Комментарии</label>
+        <div class="col-sm-9">
+            <textarea class="form-control" ng-model="taskComment" name="taskComment" placeholder="Comments..." maxlength="500" rows="4" style="resize:none"></textarea>
+            <label class="error" ng-show="kcell_form.taskComment.$error.required && ( kcell_form.taskComment.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+</form>

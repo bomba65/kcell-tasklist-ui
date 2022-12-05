@@ -1,0 +1,153 @@
+<form role="form" class="form-horizontal" name="kcell_form" novalidate>
+    <style>
+        .background-yellow-accordion .panel-body {
+            background-color: #ffffcc;
+            border: 1px solid #b3b3b3;
+            color: #333;
+        }
+    </style>
+    <script cam-script type="text/form-script">
+        inject(['$scope', '$http', 'Uri', '$rootScope', '$q', 'toasty', '$timeout', function ($scope, $http, Uri, $rootScope, $q, toasty, $timeout) {
+            $scope.legalInfo = {};
+            $scope.techSpecs = {connectionType:'SIP over internet', sip: {}};
+            $scope.resolutions = [];
+            $scope.action = {};
+            $scope.pbxData = {};
+
+            $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
+                function(result){
+                    var processInstanceId = result.data.processInstanceId;
+                    $http.get('/camunda/api/engine/engine/default/process-instance/' + processInstanceId).then(
+                        function(result){
+                            $scope.businessKey = result.data.businessKey;
+                        },
+                        function (error) {console.log(error.data);}
+                    );
+                },
+                function (error) { console.log(error.data);}
+            );
+
+            camForm.on('form-loaded', function () {
+                camForm.variableManager.fetchVariable('legalInfo');
+                camForm.variableManager.fetchVariable('techSpecs');
+                camForm.variableManager.fetchVariable('resolutions');
+                camForm.variableManager.fetchVariable('action');
+                camForm.variableManager.fetchVariable('pbxData');
+                camForm.variableManager.fetchVariable('workType');
+            });
+
+            camForm.on('variables-fetched', function () {
+                $scope.legalInfo = camForm.variableManager.variableValue('legalInfo');
+                $scope.techSpecs = camForm.variableManager.variableValue('techSpecs');
+                $scope.resolutions = camForm.variableManager.variableValue('resolutions');
+                $scope.action = camForm.variableManager.variableValue('action');
+                $scope.pbxData = camForm.variableManager.variableValue('pbxData');
+                $scope.workType = camForm.variableManager.variableValue('workType');
+                if (!$scope.legalInfo){
+                    $scope.legalInfo = {};
+                } else if($scope.legalInfo.companyDate){
+                    $scope.legalInfo.companyDate = new Date($scope.legalInfo.companyDate);
+                }
+                if (!$scope.techSpecs) $scope.techSpecs = {connectionType:'SIP over internet', sip: {}};
+
+                camForm.variableManager.createVariable({
+                    name: 'removeTrunkTaskResult',
+                    type: 'String',
+                    value: ''
+                });
+
+                camForm.variableManager.createVariable({
+                    name: 'removeTrunkTaskComment',
+                    type: 'String',
+                    value: ''
+                });
+            });
+
+            camForm.on('submit', function (event) {
+                camForm.variableManager.variableValue('removeTrunkTaskResult', 'Complete');
+                camForm.variableManager.variableValue('removeTrunkTaskComment', $scope.comment);
+            });
+        }]);
+    </script>
+
+    <div class="form-group">
+        <label class="col-sm-3 control-label" style="padding-top: 0">Number request:</label>
+        <div class="col-sm-9">{{businessKey}}</div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-3 control-label" style="padding-top: 0">Client:</label>
+        <div class="col-sm-9">{{legalInfo.legalName}} {{legalInfo.BIN}}</div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-3 control-label" style="padding-top: 0">Priority:</label>
+        <div class="col-sm-9">{{legalInfo.clientPriority}}</div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-3 control-label" style="padding-top: 0">Service:</label>
+        <div class="col-sm-9">PBX</div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-3 control-label" style="padding-top: 0">Type of work:</label>
+        <div class="col-sm-9"><div ng-repeat="wt in workType track by $index">{{wt}}</div></div>
+    </div>
+
+    <div class="col-sm-12"><hr /></div>
+
+    <accordion class="background-yellow-accordion">
+        <accordion-group is-open="true">
+            <accordion-heading>
+                Technical specification <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
+            </accordion-heading>
+            <div class="col-sm-12">
+                <div class="form-group">
+                    <label class="col-sm-4 control-label">Connection type: </label>
+                    <div class="col-sm-8">
+                        <div class="disabled-element">{{techSpecs.connectionType}}</div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-sm-4 control-label">Authorization type: </label>
+                    <div class="col-sm-8">
+                        <div class="disabled-element" ng-style="{'background-color': ((pbxData.fetched && pbxData.sip.authorizationType !== techSpecs.sip.authorizationType) ? 'orange' : null)}">{{techSpecs.sip.authorizationType}}</div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-sm-4 control-label">Access to international calls: </label>
+                    <div class="col-sm-8">
+                        <div style="border-radius: 5px; padding: 0 5px;" ng-style="{'background-color': ((pbxData.fetched && pbxData.techSpecs.iCallAccess !== techSpecs.iCallAccess) ? 'orange' : null)}">
+                            <label class="radio-inline"><input type="radio"  value="Yes" ng-model="techSpecs.iCallAccess" disabled> Yes</label>
+                            <label class="radio-inline"><input type="radio" value="No" ng-model="techSpecs.iCallAccess" disabled> No</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-sm-4 control-label">Current public static IP for voice traffic: </label>
+                    <div class="col-sm-8">
+                        <div class="disabled-element" ng-style="{'background-color': ((pbxData.fetched && pbxData.sip.curPublicVoiceIP !== techSpecs.sip.curPublicVoiceIP) ? 'orange' : null)}">{{techSpecs.sip.curPublicVoiceIP}}</div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-sm-4 control-label">Current public static IP for signaling: </label>
+                    <div class="col-sm-8">
+                        <div class="disabled-element" ng-style="{'background-color': ((pbxData.fetched && pbxData.sip.curSignalingIP !== techSpecs.sip.curSignalingIP) ? 'orange' : null)}">{{techSpecs.sip.curSignalingIP}}</div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-sm-12 control-label">Numbers PBX: </label>
+                    <div class="col-sm-12">
+                        <div class="disabled-element" ng-style="{'background-color': ((pbxData.fetched && pbxData.techSpecs.pbxNumbers !== techSpecs.pbxNumbers) ? 'orange' : null)}">{{techSpecs.pbxNumbers}}</div>
+                    </div>
+                </div>
+            </div>
+        </accordion-group>
+    </accordion>
+
+    <div class="col-sm-12"><hr /></div>
+
+    <div class="form-group">
+        <label class="col-sm-2 control-label">Comment</label>
+        <div class="col-sm-10">
+            <textarea elastic-textarea class="form-control" rows="4" ng-model="comment"></textarea>
+        </div>
+    </div>
+</form>

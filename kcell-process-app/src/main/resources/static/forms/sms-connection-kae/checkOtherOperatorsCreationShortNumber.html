@@ -1,0 +1,125 @@
+<form role="form" class="form-horizontal" name="kcell_form" novalidate>
+    <script cam-script type="text/form-script">
+        inject(['$scope', '$http', 'Uri', '$rootScope', '$q', '$timeout', function ($scope, $http, Uri, $rootScope, $q, $timeout) {
+            var variables = [
+                'resolutions',
+                'identifiers',
+                'connectionType',
+                'transmitNumber',
+                'ipNumber',
+                'applicationScanCopyFileName',
+                'contractScanCopyFileName',
+                'abonentTarif',
+                'description',
+                'techSpecNumber',
+                'techSpecFIO',
+                'officialClientCompanyName',
+                'clientCompanyLatName',
+                'addressATS',
+                'coordinates',
+                'startDate',
+                'priority',
+                'provider',
+                'clientBIN',
+                'techSpecEmail',
+                'contractNumber',
+                'finalIDs',
+                'operatorType',
+                'responsibleB2BDelivery',
+                'responsibleB2BSales',
+                'identifierType'
+            ];
+
+            camForm.on('form-loaded', function () {
+                variables.forEach(function (el) {
+                    camForm.variableManager.fetchVariable(el);
+                });
+                $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
+                        function(result){
+                            $scope.processInstanceId = result.data.processInstanceId;
+                        },
+                        function (error) {
+                            console.log(error.data);
+                        }
+                );
+                $scope.bulksmsInfo = {};
+                $scope.bulksmsInfo.files = [];
+            });
+
+            camForm.on('variables-fetched', function () {
+                variables.forEach(function (el) {
+                    if (el === 'resolutions') {
+                        if (camForm.variableManager.variables[el].value) {
+                            $scope.resolutions = angular.copy(camForm.variableManager.variables[el].value);
+                            camForm.variableManager.destroyVariable(el);
+                        }
+                    } else if (el === 'applicationScanCopyFileName' || el === 'contractScanCopyFileName') {
+                        $scope[el] = camForm.variableManager.variables[el].value;
+                        $scope.bulksmsInfo.files.push(camForm.variableManager.variables[el].value);
+                    } else {
+                        $scope[el] = camForm.variableManager.variables[el].value;
+                        $scope.bulksmsInfo[el] = camForm.variableManager.variables[el].value;
+                    }
+                });
+                $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name+ "/profile").then(function(result){
+                    $rootScope.authentication.assigneeName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
+                });
+                $scope.bulksmsInfo.showTarif = true;
+                console.log($scope.bulksmsInfo);
+                console.log($scope.bulksmsInfo.files);
+
+                camForm.variableManager.createVariable({
+                    name: 'checkOtherOperatorsCreationShortNumberTaskResult',
+                    type: 'String',
+                    value: ''
+                });
+
+                camForm.variableManager.createVariable({
+                    name: 'checkOtherOperatorsCreationShortNumberTaskComment',
+                    type: 'String',
+                    value: ''
+                });
+
+                $scope.checkOtherOperatorsCreationShortNumberTaskResult = '';
+            });
+
+            camForm.on('submit', function () {
+                $scope.checkOtherOperatorsCreationShortNumberTaskResult = 'Completed';
+
+                camForm.variableManager.variableValue('checkOtherOperatorsCreationShortNumberTaskResult', $scope.checkOtherOperatorsCreationShortNumberTaskResult);
+                camForm.variableManager.variableValue('checkOtherOperatorsCreationShortNumberTaskComment', $scope.checkOtherOperatorsCreationShortNumberTaskComment);
+                camForm.variableManager.variableValue('identifiers', $scope.identifiers);
+            });
+        }]);
+
+    </script>
+    <info-bulksms bulksms-info="bulksmsInfo"></info-bulksms>
+    <div class="form-group" ng-repeat="id in identifiers">
+        <label class="col-sm-12 control-label"/>Идентификатор - {{id.title}}
+        <div class="col-sm-12" style="border-left: solid; border-left-width: 1px; margin-left: 2vh">
+            <table class="table">
+                <thead>
+                <tr>
+                    <th scope="col">Оператор</th>
+                    <th scope="col">Дата заведения короткого номера</th>
+                    <th scope="col">Статус</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr ng-repeat="o in id.operators" ng-if="o.isAvailable && o.checked && o.id !== 'kcell'">
+                    <td scope="row">{{o.name}}</td>
+                    <td scope="row">{{o.addedToNetworkDate | date: 'dd.MM.yyyy'}}</td>
+                    <td scope="row">{{o.addedToNetwork?'Добавлен':'Не добавлен'}}</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-3 control-label">Комментарии</label>
+        <div class="col-sm-9">
+            <textarea class="form-control" ng-model="checkOtherOperatorsCreationShortNumberTaskComment" name="checkOtherOperatorsCreationShortNumberTaskComment" placeholder="Comments..." maxlength="500" rows="4" style="resize:none"></textarea>
+            <label class="error" ng-show="kcell_form.checkOtherOperatorsCreationShortNumberTaskComment.$error.required && ( kcell_form.checkOtherOperatorsCreationShortNumberTaskComment.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+</form>

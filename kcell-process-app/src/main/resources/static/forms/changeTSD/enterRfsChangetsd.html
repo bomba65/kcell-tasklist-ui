@@ -1,0 +1,2564 @@
+<style>
+  .resolution .bolder {
+    font-size: 16px;
+    font-weight: bold;
+    color: #000000;
+    min-width: 200px;
+  }
+  .input-group-btn {
+    vertical-align: top !important;
+  }
+  .resolution .input-group span {
+    display: table-cell;
+    vertical-align: top;
+  }
+  .elicense {
+    line-height: 2;
+    margin: 20px 0;
+  }
+  .custom-like-input {
+    display: inline-block;
+    border: 1px solid rgba(118, 118, 118, 0.3);
+    color: rgb(51, 51, 51);
+    background-color: rgba(239, 239, 239, 0.3);
+    padding-left: 15px;
+    padding-top: 8px;
+    min-width: 264px;
+    height: 31px;
+  }
+</style>
+<form
+  role="form"
+  class="form-horizontal"
+  name="kcell_form"
+  novalidate
+  style="width: 965px"
+>
+  <script cam-script type="text/form-script">
+    inject(['$scope', '$http', 'Uri', '$rootScope', '$q', '$timeout', function ($scope, $http, Uri, $rootScope, $q, $timeout) {
+        var variables = [
+            'oldTsd',
+            'selectedTsd',
+            'eLicenseNumber',
+            'eLicenseDate',
+            'resolutions'
+        ];
+
+        camForm.on('form-loaded', function () {
+            variables.forEach(function (el) {
+                camForm.variableManager.fetchVariable(el);
+            });
+        });
+
+        $scope.titles = {};
+        $scope.regionsTitle = {
+            'alm': 'Alm',
+            'astana': 'Astana',
+            'nc': 'N&C',
+            'east': 'East',
+            'south': 'South',
+            'west': 'West'
+        };
+
+        $scope.protectionModeSetted = false;
+        $scope.antenaSetted = false;
+        $scope.linkCapacitySetted = false;
+        $scope.variablesFetched = false;
+        $scope.suspensionPattern = '([1-9]|[1-9][0-9]|[1-9][0-9][0-9])';
+        $scope.heightPattern = '[-]?[0-9]+';
+        $scope.altitudePattern = '(-[1-9]{1}[0-9]{0,1}[0-9]{0,1}|-[1-9]{1}[0-9]{0,1}[0-9]{0,1}\\.[0-9]{1}|[1-9]{1}[0-9]?[0-9]{0,1}[0-9]{0,1}|[1-9]{1}[0-9]?[0-9]{0,1}[0-9]{0,1}\\.[0-9]{1}|0)';
+        $scope.latitudePattern = '(4([1-9]{1}.[0-9]{6}|0.([6-9]{1}[0-9]{5}|5([7-9]{1}[0-9]{4}|6(9[0-9]{3}|8[0-9]{3}))))|5([0-4]{1}.[0-9]{6}|5.([0-3]{1}[0-9]{5}|4([0-3]{1}[0-9]{4}|40000))))';
+        $scope.longitudePattern = '([5-7]{1}[0-9]{1}.[0-9]{6}|4([7-9]{1}.[0-9]{6}|6.([5-9]{1}[0-9]{5}|49([4-9]{1}|3)[0-9]{3}))|8([0-6]{1}.[0-9]{6}|7.([0-2]{1}[0-9]{5}|3(0[0-9]{4}|1([0-4]{1}[0-9]{3}|5000)))))';
+        $scope.linkNxePattern = '([0-9]{1}|[1-9]{1}[0-9]{1}|1[0-4]{1}[0-9]{1}|15[0-5]{1})';
+        $scope.enterRfsChangetsdTaskResult = null;
+
+        $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
+                function (result) {
+                    $scope.processInstanceId = result.data.processInstanceId;
+                },
+                function (error) {
+                    console.log(error.data);
+                }
+        );
+
+        $scope.ne_power_level_txPattern = '(-)?[0-9]{1,2}';
+        $scope.ne_power_level_rxPattern = '(-){1}[0-9]{1,2}';
+        $scope.protection_mode_fetched = false;
+        $scope.hop_link_type = 3;
+        $scope.permitResolution = null;
+        $scope.eLicenseNumber = null;
+        $scope.eLicenseDate = null;
+        $scope.rfsPermitionNumber = null;
+        $scope.rfsPermitionDate = new Date();
+        $scope.enterRfsChangetsdTaskComment = null;
+
+        $scope.antennaDiameter = function () {
+            $scope.fe_diameter = $scope.ne_diameter
+        };
+
+        $scope.setValues = function () {
+            if (!$scope.protectionModeSetted && $scope.variablesFetched && $scope.protectionModeList) {
+                var i = $scope.protectionModeList.findIndex(function (e) {
+                    $scope.protectionModeSetted = true;
+                    return e.id.toString() === $scope.protection_mode
+                });
+
+                if (i > -1) {
+                    $scope.protection_mode = $scope.protectionModeList[i].id;
+                    $scope.protectionMode();
+                    if ($scope.protection_mode === 2) {
+                        $scope.hop_polarization = 3;
+                    }
+                }
+            }
+
+            if (!$scope.linkCapacitySetted && $scope.variablesFetched && $scope.linkCapacityList) {
+                var i = $scope.linkCapacityList.findIndex(function (e) {
+                    $scope.linkCapacitySetted = true;
+                    return e.id.toString() === $scope.hop_link_capacity
+                });
+
+                if (i > -1) {
+                    $scope.hop_link_capacity = $scope.linkCapacityList[i].id;
+                }
+            }
+
+            if (!$scope.antenaSetted && $scope.variablesFetched && $scope.trAntennasTypeList) {
+                var neI = $scope.trAntennasTypeList.findIndex(function (e) {
+                    $scope.antenaSetted = true;
+                    return e.id.toString() === $scope.ne_diameter
+                });
+                var feI = $scope.trAntennasTypeList.findIndex(function (e) {
+                    $scope.antenaSetted = true;
+                    return e.id.toString() === $scope.fe_diameter
+                });
+
+                if (neI > -1) {
+                    $scope.ne_diameter = $scope.trAntennasTypeList[neI].id
+                }
+                if (feI > -1) {
+                    $scope.fe_diameter = $scope.trAntennasTypeList[feI].id
+                }
+
+                var nePI = $scope.trAntennasTypeList.findIndex(function (e) {
+                    $scope.antenaSetted = true;
+                    return e.id.toString() === $scope.ne_protection_antenna_diameter
+                });
+                var fePI = $scope.trAntennasTypeList.findIndex(function (e) {
+                    $scope.antenaSetted = true;
+                    return e.id.toString() === $scope.fe_protection_antenna_diameter
+                });
+
+                if (nePI > -1) {
+                    $scope.ne_protection_antenna_diameter = $scope.trAntennasTypeList[nePI].id
+                }
+                if (fePI > -1) {
+                    $scope.fe_protection_antenna_diameter = $scope.trAntennasTypeList[fePI].id
+                }
+            }
+
+        };
+
+        $scope.protectionMode = function () {
+            if ($scope.protection_mode === 1 || $scope.protection_mode === 2 || $scope.protection_mode === 3 || $scope.protection_mode === 4) {
+                $scope.protection_mode_fetched = true
+                $scope.ne_protection_antenna_diameter = undefined
+                $scope.fe_protection_antenna_diameter = undefined
+                $scope.ne_protection_suspension_height = undefined
+                $scope.fe_protection_suspension_height = undefined
+            } else {
+                $scope.protection_mode_fetched = false
+            }
+        };
+
+        camForm.on('variables-fetched', function () {
+            variables.forEach(function (el) {
+                if (camForm.variableManager.variables[el].type === 'Date') {
+                    $scope[el] = new Date(camForm.variableManager.variables[el].value);
+                } else {
+                    $scope[el] = camForm.variableManager.variables[el].value;
+                }
+            });
+            $scope.variablesFetched = true;
+            $scope.setValues();
+
+            $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name + "/profile").then(function (result) {
+                $rootScope.authentication.assigneeName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
+            });
+
+            $scope.startTsd = angular.copy($scope.selectedTsd);
+              console.log($scope);
+              $scope.calculateAllDMS();
+        });
+
+        $scope.populateSelectFromCatalog = function (containers, id) {
+            $http.get('/camunda/catalogs/api/get/id/' + id).then(function (result) {
+                if (result && result.data && result.data.data && result.data.data.$list) {
+                    angular.forEach(containers, function (container) {
+                        $scope[container] = result.data.data.$list;
+                    });
+                    angular.forEach(result.data.data.$list, function (item) {
+                        if (!$scope.titles[containers[0]]) {
+                            $scope.titles[containers[0]] = {};
+                        }
+                        $scope.titles[containers[0]][item.id] = item.value;
+                    });
+                }
+                if ($scope.protectionModeList && !$scope.protectionModeSetted) {
+                    $scope.setValues()
+                }
+                if ($scope.trAntennasTypeList && !$scope.antenaSetted) {
+                    $scope.setValues()
+                }
+
+                if ($scope.linkCapacityList && !$scope.linkCapacitySetted) {
+                    $scope.setValues()
+                }
+            });
+        };
+
+        $scope.populateSelectFromCatalog(['protectionModeList'], 44); // Protection mode
+        $scope.populateSelectFromCatalog(['trAntennasTypeList'], 20); // TR Antennas Type
+        $scope.populateSelectFromCatalog(['constructionTypeList'], 14); // Construction_type
+        $scope.populateSelectFromCatalog(['linkCapacityList'], 45);   // Link capacity
+        $scope.populateSelectFromCatalog(['polarizationList'], 48);   // Polarization
+        $scope.populateSelectFromCatalog(['linkTypeList'], 47);       // Link type
+        $scope.populateSelectFromCatalog(['rauSubbandList'], 46);     // Rau subband
+
+
+        $scope.ne_power_level_txChanged = function () {
+            $scope.fe_power_level_tx = $scope.ne_power_level_tx;
+        };
+        $scope.ne_power_level_rxChanged = function () {
+            $scope.fe_power_level_rx = $scope.ne_power_level_rx;
+        };
+        $scope.ne_protection_power_level_txChanged = function () {
+            $scope.fe_protection_power_level_tx = $scope.ne_protection_power_level_tx;
+        };
+        $scope.ne_protection_power_level_rxChanged = function () {
+            $scope.fe_protection_power_level_rx = $scope.ne_protection_power_level_rx;
+        };
+
+        $scope.hopLinkCapacitySelected = function () {
+            var obj = _.filter($scope.linkCapacityList, function (c) {
+                return c.id === $scope.hop_link_capacity;
+            });
+            if (obj && obj.length > 0) {
+                $scope.hop_modulation_type = obj[0]['Modulation'].value;
+                $scope.hop_channel_bandwidth = obj[0]['Channel Bandwidth'].value;
+            }
+        };
+
+        $scope.rauRelations = {
+            39: {related: 40, minFrequency: 21784, maxFrequency: 22600}, // 6363 23/02L -> 6363 23/02H
+            40: {related: 39, minFrequency: 22996.25, maxFrequency: 23600}, // 6363 23/02H -> 6363 23/02L
+            41: {related: 42, minFrequency: 14495.75, maxFrequency: 14774}, // 6363 15/01L -> 6363 15/01H
+            42: {related: 41, minFrequency: 15055.75, maxFrequency: 15348}, // 6363 15/01H -> 6363 15/01L
+            43: {related: 44, minFrequency: 7905, maxFrequency: 8017}, // 6363 8/61L -> 6363 8/61H
+            44: {related: 43, minFrequency: 8171, maxFrequency: 8327}, // 6363 8/61H -> 6363 8/61L
+            45: {related: 46, minFrequency: 7498, maxFrequency: 7568}, // 6363 7/14L -> 6363 7/14H
+            46: {related: 45, minFrequency: 7665, maxFrequency: 7729}, // 6363 7/14H -> 6363 7/14L
+            47: {related: 48, minFrequency: 7107, maxFrequency: 7184}, // 6363 7/31L -> 6363 7/31H
+            48: {related: 47, minFrequency: 7275, maxFrequency: 7345}, // 6363 7/31H -> 6363 7/31L
+            1: {related: 2, minFrequency: 21784, maxFrequency: 22600},   // 23/A02 -> 23/A06
+            2: {related: 1, minFrequency: 22996.25, maxFrequency: 23600},   // 23/A06 -> 23/A02
+            27: {related: 29, minFrequency: 22002.75, maxFrequency: 22316.25}, // 23/76 -> 23/78
+            29: {related: 27, minFrequency: 23010.75, maxFrequency: 23324.25}, // 23/78	-> 23/76
+            28: {related: 30, minFrequency: 22274, maxFrequency: 22590.75}, // 23/77 ->	23/79
+            30: {related: 28, minFrequency: 23282, maxFrequency: 23598.75}, // 23/79 ->	23/77
+            3: {related: 4, minFrequency: 24549, maxFrequency: 24857},   // 26/A01 -> 26/A05
+            4: {related: 3, minFrequency: 25557, maxFrequency: 25865},   // 26/A05 -> 26/A01
+            31: {related: 32, minFrequency: 24549, maxFrequency: 24857}, // 26/51 -> 26/55
+            32: {related: 31, minFrequency: 25557, maxFrequency: 25865}, // 26/55 -> 26/51
+            5: {related: 6, minFrequency: 7498, maxFrequency: 7568},   // 7/A14 -> 7/A18
+            6: {related: 5, minFrequency: 7665, maxFrequency: 7729},   // 7/A18 -> 7/A14
+            7: {related: 8, minFrequency: 7107, maxFrequency: 7184},   // 7/A31 -> 7/A35
+            8: {related: 7, minFrequency: 7275, maxFrequency: 7345},   // 7/A35 -> 7/A31
+            9: {related: 10, minFrequency: 8031, maxFrequency: 8136},  // 8/A63 -> 8/A67
+            10: {related: 9, minFrequency: 8297, maxFrequency: 8402},  // 8/A67 -> 8/A63
+            11: {related: 12, minFrequency: 7905, maxFrequency: 8010}, // 8/A61 -> 8/A65
+            12: {related: 11, minFrequency: 8171, maxFrequency: 8276}, // 8/A65 -> 8/A61
+            13: {related: 13, minFrequency: 7505.5, maxFrequency: 7568}, // 7/44 -> 7/48
+            14: {related: 14, minFrequency: 7666.5, maxFrequency: 7729}, // 7/48 -> 7/44
+            15: {related: 16, minFrequency: 7107, maxFrequency: 7163}, // 7/51 -> 7/55
+            16: {related: 15, minFrequency: 7275, maxFrequency: 7331}, // 7/55 -> 7/51
+            17: {related: 18, minFrequency: 7905, maxFrequency: 8010}, // 8/61 -> 8/63
+            18: {related: 17, minFrequency: 8031, maxFrequency: 8136}, // 8/63 -> 8/61
+            19: {related: 20, minFrequency: 8171, maxFrequency: 8276}, // 8/65 -> 8/67
+            20: {related: 19, minFrequency: 8297, maxFrequency: 8402}, // 8/67 -> 8/65
+            21: {related: 22, minFrequency: 14495.75, maxFrequency: 14700.5}, // 15/43 -> 15/49
+            22: {related: 21, minFrequency: 15139.75, maxFrequency: 15344.5}, // 15/49 -> 15/43
+            25: {related: 26, minFrequency: 22002.75, maxFrequency: 22513.75}, // 23/56 -> 23/58
+            26: {related: 25, minFrequency: 23010.75, maxFrequency: 23521.75}, // 23/58 -> 23/56
+            33: {related: 34, minFrequency: 71000, maxFrequency: 76000}, // 80/11 -> 80/15
+            34: {related: 33, minFrequency: 81000, maxFrequency: 86000}, // 80/15 -> 80/11
+            37: {related: 38, minFrequency: 24549, maxFrequency: 25165}, // 6363 26/01L -> 6363 26/01H
+            38: {related: 37, minFrequency: 25557, maxFrequency: 26173}, // 6363 26/01H -> 6363 26/01L
+            23: {related: 24, minFrequency: 14495.75, maxFrequency: 14700.5}, // 15/A01 -> 15/A05
+            24: {related: 23, minFrequency: 15139.75, maxFrequency: 15344.5}, // 15/A05 -> 15/A01
+            35: {related: 36, minFrequency: 71000, maxFrequency: 76000}, // 80/11L -> 80/11H
+            36: {related: 35, minFrequency: 81000, maxFrequency: 86000}, // 80/11H -> 80/11L
+            49: {related: 50, minFrequency: 22996.25, maxFrequency: 23600}, // 6365 23/A02H -> 6365 23/A02L
+            50: {related: 49, minFrequency: 21784, maxFrequency: 22600}, // 6365 23/A02L -> 6365 23/A02H
+            51: {related: 52, minFrequency: 15055.75, maxFrequency: 15348}, // 6365 15/A01H -> 6365 15/A01L
+            52: {related: 51, minFrequency: 14495.75, maxFrequency: 14774}, // 6365 15/A01L -> 6365 15/A01H
+        }
+
+        $scope.rauSubbandSelected = function () {
+            if($scope.ne_rau_subband && $scope.rauRelations[$scope.ne_rau_subband]){
+                $scope.fe_rau_subband = $scope.rauRelations[$scope.ne_rau_subband].related;
+            }
+        };
+        $scope.protectRauSubbandSelected = function () {
+            if($scope.ne_protection_rau_subband && $scope.rauRelations[$scope.ne_protection_rau_subband]){
+                $scope.fe_protection_rau_subband = $scope.rauRelations[$scope.ne_protection_rau_subband].related;
+            }
+        };
+
+        $scope.ne_txrx_frequinciesValuesCheck = function () {
+            if ($scope.ne_txrx_frequincies && !isNaN($scope.ne_txrx_frequincies) && $scope.rauRelations[$scope.ne_rau_subband].minFrequency <= $scope.ne_txrx_frequincies && $scope.rauRelations[$scope.ne_rau_subband].maxFrequency >= $scope.ne_txrx_frequincies) {
+                $scope.ne_txrx_frequinciesInvalid = false;
+            } else {
+                $scope.ne_txrx_frequinciesInvalid = true;
+            }
+        }
+
+        $scope.fe_txrx_frequinciesValuesCheck = function () {
+            if ($scope.fe_txrx_frequincies && !isNaN($scope.fe_txrx_frequincies) && $scope.rauRelations[$scope.fe_rau_subband].minFrequency <= $scope.fe_txrx_frequincies && $scope.rauRelations[$scope.fe_rau_subband].maxFrequency >= $scope.fe_txrx_frequincies) {
+                $scope.fe_txrx_frequinciesInvalid = false;
+            } else {
+                $scope.fe_txrx_frequinciesInvalid = true;
+            }
+        }
+
+        $scope.ne_protection_txrx_frequinciesValuesCheck = function () {
+            if ($scope.ne_protection_txrx_frequincies && !isNaN($scope.ne_protection_txrx_frequincies) && $scope.rauRelations[$scope.ne_protection_rau_subband].minFrequency <= $scope.ne_protection_txrx_frequincies && $scope.rauRelations[$scope.ne_protection_rau_subband].maxFrequency >= $scope.ne_protection_txrx_frequincies) {
+                $scope.ne_protection_txrx_frequinciesInvalid = false;
+            } else {
+                $scope.ne_protection_txrx_frequinciesInvalid = true;
+            }
+        }
+
+        $scope.fe_protection_txrx_frequinciesValuesCheck = function () {
+            if ($scope.fe_protection_txrx_frequincies && !isNaN($scope.fe_protection_txrx_frequincies) && $scope.rauRelations[$scope.fe_protection_rau_subband].minFrequency <= $scope.fe_protection_txrx_frequincies && $scope.rauRelations[$scope.fe_protection_rau_subband].maxFrequency >= $scope.fe_protection_txrx_frequincies) {
+                $scope.fe_protection_txrx_frequinciesInvalid = false;
+            } else {
+                $scope.fe_protection_txrx_frequinciesInvalid = true;
+            }
+        }
+
+        /*$scope.preSubmit = function () {
+            var deferred = $q.defer();
+
+            if ($scope.ne_rau_subband && $scope.ne_txrx_frequincies && (isNaN($scope.ne_txrx_frequincies) || $scope.rauRelations[$scope.ne_rau_subband].minFrequency > $scope.ne_txrx_frequincies || $scope.rauRelations[$scope.ne_rau_subband].maxFrequency < $scope.ne_txrx_frequincies)) {
+                deferred.reject('Please correct Tx/Rx frequencies, Mhz for Near End');
+            } else if ($scope.fe_rau_subband && $scope.fe_txrx_frequincies && (isNaN($scope.fe_txrx_frequincies) || $scope.rauRelations[$scope.fe_rau_subband].minFrequency > $scope.fe_txrx_frequincies || $scope.rauRelations[$scope.fe_rau_subband].maxFrequency < $scope.fe_txrx_frequincies)) {
+                deferred.reject('Please correct Tx/Rx frequencies, Mhz for Far End');
+            } else if ($scope.ne_protection_rau_subband && $scope.ne_protection_txrx_frequincies && (isNaN($scope.ne_protection_txrx_frequincies) || $scope.rauRelations[$scope.ne_protection_rau_subband].minFrequency > $scope.ne_protection_txrx_frequincies || $scope.rauRelations[$scope.ne_protection_rau_subband].maxFrequency < $scope.ne_protection_txrx_frequincies)) {
+                deferred.reject('Please correct Protection Tx/Rx frequencies, Mhz, Mhz for Near End');
+            } else if ($scope.fe_protection_rau_subband && $scope.fe_protection_txrx_frequincies && (isNaN($scope.fe_protection_txrx_frequincies) || $scope.rauRelations[$scope.fe_protection_rau_subband].minFrequency > $scope.fe_protection_txrx_frequincies || $scope.rauRelations[$scope.fe_protection_rau_subband].maxFrequency < $scope.fe_protection_txrx_frequincies)) {
+                deferred.reject('Please correct Protection Tx/Rx frequencies, Mhz, Mhz for Far End');
+            } else {
+                deferred.resolve();
+            }
+            return deferred.promise;
+        } */
+
+
+        camForm.on('submit', function (e) {
+            if ($scope.enterRfsChangetsdTaskResult === 'approved') {
+                camForm.variableManager.createVariable({
+                    name: 'rfsPermitionNumber',
+                    type: 'String',
+                    value: $scope.rfsPermitionNumber
+                });
+                camForm.variableManager.createVariable({
+                    name: 'rfsPermitionDate',
+                    type: 'String',
+                    value: $scope.rfsPermitionDate
+                });
+            }
+
+            camForm.variableManager.createVariable({
+                name: 'enterRfsChangetsdTaskComment',
+                type: 'String',
+                value: $scope.enterRfsChangetsdTaskComment
+            });
+
+            camForm.variableManager.createVariable({
+                name: 'enterRfsChangetsdTaskResult',
+                type: 'String',
+                value: $scope.enterRfsChangetsdTaskResult
+            });
+
+        });
+
+        $scope.calculateAllDMS = function (){
+            if($scope.selectedTsd && ($scope.selectedTsd.nearend_id.facility_id.latitude)){
+                $scope.ne_latitude_dms = $scope.calculateDMS($scope.selectedTsd.nearend_id.facility_id.latitude);
+            }
+            if($scope.selectedTsd && ($scope.selectedTsd.nearend_id.facility_id.longitude)){
+                $scope.ne_longitude_dms = $scope.calculateDMS($scope.selectedTsd.nearend_id.facility_id.longitude);
+            }
+
+            if($scope.selectedTsd && ($scope.selectedTsd.farend_id.facility_id.latitude)){
+                $scope.fe_latitude_dms = $scope.calculateDMS($scope.selectedTsd.farend_id.facility_id.latitude);
+            }
+            if($scope.selectedTsd && ($scope.selectedTsd.farend_id.facility_id.longitude)){
+                $scope.fe_longitude_dms = $scope.calculateDMS($scope.selectedTsd.farend_id.facility_id.longitude);
+            }
+        }
+
+        $scope.calculateDMS = function(degree) {
+            let deg = degree.replace(/,/g, '.')
+            var totalSeconds = deg * 3600;
+            var degrees = Math.floor(deg);
+            totalSeconds -= degrees * 3600;
+            var minutes = Math.floor(totalSeconds / 60);
+            totalSeconds -= (minutes * 60);
+            return degrees+"-"+minutes+"-"+totalSeconds.toFixed(2);
+        }
+
+        $scope.calculatePower = function(dbm) {
+            if(dbm !== undefined && dbm !== null && dbm !== ''){
+                var power = (dbm - 30) / 10;
+                return Number(Math.pow(10, power).toFixed(4)).toString();
+            }
+        }
+    }]);
+  </script>
+
+  <iframe id="fileDownloadIframe" style="display: none"></iframe>
+
+  <div class="form-group">
+    <div class="col-sm-6">
+      <h4>RFS permission result</h4>
+    </div>
+  </div>
+  <div class="form-group">
+    <label class="col-sm-2 control-label"><b>TSD number:</b></label>
+    <label class="col-sm-6 control-label">{{selectedTsd.business_key}}</label>
+    <label class="col-sm-2 control-label"><b>Version:</b></label>
+    <label class="col-sm-2 control-label">{{selectedTsd.version}}</label>
+  </div>
+
+  <div class="form-group">
+    <label class="col-sm-2 control-label"><b>Region name:</b></label>
+    <label class="col-sm-6 control-label"
+      >{{selectedTsd.nearend_id.facility_id.address_id.city_id.district_id.oblast_id.region_id.name}}</label
+    >
+    <label class="col-sm-2 control-label"><b>Date:</b></label>
+    <div class="col-sm-2">
+      <div class="input-group">
+        <input
+          type="text"
+          ng-model="date_of_visit"
+          ng-value="selectedTsd.date | date: 'dd.MM.yyyy'"
+          name="dateOfVisit"
+          class="form-control"
+          datepicker-popup="dd.MM.yyyy"
+          id="dateOfVisit"
+          disabled
+        />
+      </div>
+      <label
+        class="error"
+        ng-if="kcell_form.dateOfVisit.$error.required && ( kcell_form.dateOfVisit.$touched || view.submitted)"
+        >Required field</label
+      >
+    </div>
+  </div>
+
+  <div class="form-group">
+    <label class="col-sm-2 control-label">Sitename:</label>
+    <label class="col-sm-3 control-label"
+      >{{selectedTsd.nearend_id.site_name}}</label
+    >
+  </div>
+  <div class="form-group">
+    <label class="col-sm-2 control-label">Site Address:</label>
+    <div class="col-sm-10">
+      <div
+        class="form-control"
+        style="background-color: #eee; width: 100%; height: 54px"
+      >
+        {{
+        (selectedTsd.nearend_id.facility_id.address_id.city_id.district_id.oblast_id.region_id.name
+        ?
+        selectedTsd.nearend_id.facility_id.address_id.city_id.district_id.oblast_id.region_id.name:
+        '') +
+        (selectedTsd.nearend_id.facility_id.address_id.city_id.district_id.oblast_id.name
+        ? ', ' +
+        selectedTsd.nearend_id.facility_id.address_id.city_id.district_id.oblast_id.name
+        : '') +
+        (selectedTsd.nearend_id.facility_id.address_id.city_id.district_id.name
+        ? ', ' +
+        selectedTsd.nearend_id.facility_id.address_id.city_id.district_id.name :
+        '') + (selectedTsd.nearend_id.facility_id.address_id.city_id.name ? ', '
+        + selectedTsd.nearend_id.facility_id.address_id.city_id.name : '') +
+        (selectedTsd.nearend_id.facility_id.address_id.city_id.city_type_id.name
+        ? ' (' +
+        selectedTsd.nearend_id.facility_id.address_id.city_id.city_type_id.name
+        + ')' : '') + (selectedTsd.nearend_id.facility_id.address_id.street ? ',
+        ' + selectedTsd.nearend_id.facility_id.address_id.street : '') +
+        (selectedTsd.nearend_id.facility_id.address_id.building ? ', ' +
+        selectedTsd.nearend_id.facility_id.address_id.building : '')+
+        (selectedTsd.nearend_id.facility_id.address_id.note ? ', ' +
+        selectedTsd.nearend_id.facility_id.address_id.note : '')+
+        (selectedTsd.nearend_id.facility_id.address_id.cadastral_number ? ', ' +
+        selectedTsd.nearend_id.facility_id.address_id.cadastral_number : '') }}
+      </div>
+    </div>
+  </div>
+
+  <div class="form-group">
+    <label class="col-sm-2 control-label">Farend name:</label>
+    <label class="col-sm-3 control-label"
+      >{{selectedTsd.farend_id.site_name}}</label
+    >
+  </div>
+  <div class="form-group">
+    <label class="col-sm-2 control-label">Farend Address:</label>
+    <div class="col-sm-10">
+      <div
+        class="form-control"
+        style="background-color: #eee; width: 100%; height: 54px"
+      >
+        {{
+        (selectedTsd.farend_id.facility_id.address_id.city_id.district_id.oblast_id.region_id.name
+        ?
+        selectedTsd.farend_id.facility_id.address_id.city_id.district_id.oblast_id.region_id.name
+        : '') +
+        (selectedTsd.farend_id.facility_id.address_id.city_id.district_id.oblast_id.name
+        ? ', ' +
+        selectedTsd.farend_id.facility_id.address_id.city_id.district_id.oblast_id.name
+        : '') +
+        (selectedTsd.farend_id.facility_id.address_id.city_id.district_id.name ?
+        ', ' +
+        selectedTsd.farend_id.facility_id.address_id.city_id.district_id.name :
+        '') + (selectedTsd.farend_id.facility_id.address_id.city_id.name ? ', '
+        + selectedTsd.farend_id.facility_id.address_id.city_id.name : '') +
+        (selectedTsd.farend_id.facility_id.address_id.city_id.city_type_id.name
+        ? ' (' +
+        selectedTsd.farend_id.facility_id.address_id.city_id.city_type_id.name +
+        ')' : '') + (selectedTsd.farend_id.facility_id.address_id.street ? ', '
+        + selectedTsd.farend_id.facility_id.address_id.street : '') +
+        (selectedTsd.farend_id.facility_id.address_id.building ? ', ' +
+        selectedTsd.farend_id.facility_id.address_id.building : '') +
+        (selectedTsd.farend_id.facility_id.address_id.note ? ', ' +
+        selectedTsd.farend_id.facility_id.address_id.note : '') +
+        (selectedTsd.farend_id.facility_id.address_id.cadastral_number ? ', ' +
+        selectedTsd.farend_id.facility_id.address_id.cadastral_number : '') }}
+      </div>
+    </div>
+  </div>
+
+  <div class="form-group">
+    <div class="col-sm-12">
+      <table class="table table-bordered">
+        <thead>
+          <tr align="center">
+            <td colspan="2">Position</td>
+            <td colspan="4">Near End</td>
+            <td colspan="4">Far End</td>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td align="right" colspan="2">Basic information</td>
+            <td align="center" colspan="4">
+              {{selectedTsd.nearend_id.site_name}}
+            </td>
+            <td align="center" colspan="4">
+              {{selectedTsd.farend_id.site_name}}
+            </td>
+          </tr>
+          <tr>
+            <td align="right" colspan="2">Coordinates (degree):</td>
+            <td>N</td>
+            <td align="center">
+              <input
+                type="text"
+                class="form-control"
+                ng-if="startTsd.nearend_id.facility_id.latitude === oldTsd.nearend_id.facility_id.latitude"
+                ng-model="selectedTsd.nearend_id.facility_id.latitude"
+                name="ne_latitude"
+                required
+                ng-pattern="latitudePattern"
+                disabled
+              />
+              <div
+                class="input-group"
+                style="width: 100%"
+                ng-show="startTsd.nearend_id.facility_id.latitude !== oldTsd.nearend_id.facility_id.latitude"
+              >
+                <input
+                  type="text"
+                  class="form-control"
+                  name="ne_latitude"
+                  ng-model="selectedTsd.nearend_id.facility_id.latitude"
+                  required
+                  disabled
+                />
+                <span class="input-group-addon"
+                  >{{oldTsd.nearend_id.facility_id.latitude}}</span
+                >
+              </div>
+              <label
+                class="error"
+                ng-if="kcell_form.ne_latitude.$error.required && ( kcell_form.ne_latitude.$touched || view.submitted)"
+                >Required field</label
+              >
+            </td>
+            <td>E</td>
+            <td align="center">
+              <input
+                type="text"
+                class="form-control"
+                ng-if="startTsd.nearend_id.facility_id.longitude === oldTsd.nearend_id.facility_id.longitude"
+                ng-model="selectedTsd.nearend_id.facility_id.longitude"
+                name="ne_longitude"
+                required
+                ng-pattern="longitudePattern"
+                disabled
+              />
+              <div
+                class="input-group"
+                style="width: 100%"
+                ng-show="startTsd.nearend_id.facility_id.longitude !== oldTsd.nearend_id.facility_id.longitude"
+              >
+                <input
+                  type="text"
+                  class="form-control"
+                  name="ne_longitude"
+                  ng-model="selectedTsd.nearend_id.facility_id.longitude"
+                  required
+                  disabled
+                />
+                <span class="input-group-addon"
+                  >{{oldTsd.nearend_id.facility_id.longitude}}</span
+                >
+              </div>
+              <label
+                class="error"
+                ng-if="kcell_form.ne_longitude.$error.required && ( kcell_form.ne_longitude.$touched || view.submitted)"
+                >Required field</label
+              >
+            </td>
+            <td>N</td>
+            <td align="center">
+              <input
+                type="text"
+                class="form-control"
+                ng-if="startTsd.farend_id.facility_id.latitude === oldTsd.farend_id.facility_id.latitude"
+                ng-model="selectedTsd.farend_id.facility_id.latitude"
+                name="fe_latitude"
+                required
+                ng-pattern="latitudePattern"
+                disabled
+              />
+              <div
+                class="input-group"
+                style="width: 100%"
+                ng-show="startTsd.farend_id.facility_id.latitude !== oldTsd.farend_id.facility_id.latitude"
+              >
+                <input
+                  type="text"
+                  class="form-control"
+                  name="fe_latitude"
+                  ng-model="selectedTsd.farend_id.facility_id.latitude"
+                  required
+                  disabled
+                />
+                <span class="input-group-addon"
+                  >{{oldTsd.farend_id.facility_id.latitude.replace(",",
+                  '.')}}</span
+                >
+              </div>
+              <label
+                class="error"
+                ng-if="kcell_form.fe_latitude.$error.required && ( kcell_form.fe_latitude.$touched || view.submitted)"
+                >Required field</label
+              >
+            </td>
+            <td>E</td>
+            <td align="center">
+              <input
+                type="text"
+                class="form-control"
+                ng-if="startTsd.farend_id.facility_id.longitude === oldTsd.farend_id.facility_id.longitude"
+                ng-model="selectedTsd.farend_id.facility_id.longitude"
+                name="fe_longitude"
+                required
+                ng-pattern="longitudePattern"
+                disabled
+              />
+              <div
+                class="input-group"
+                style="width: 100%"
+                ng-show="startTsd.farend_id.facility_id.longitude !== oldTsd.farend_id.facility_id.longitude"
+              >
+                <input
+                  type="text"
+                  class="form-control"
+                  name="fe_longitude"
+                  ng-model="selectedTsd.farend_id.facility_id.longitude"
+                  required
+                  disabled
+                />
+                <span class="input-group-addon"
+                  >{{oldTsd.farend_id.facility_id.longitude.replace(",",
+                  '.')}}</span
+                >
+              </div>
+              <label
+                class="error"
+                ng-if="kcell_form.fe_longitude.$error.required && ( kcell_form.fe_longitude.$touched || view.submitted)"
+                >Required field</label
+              >
+            </td>
+          </tr>
+
+          <!--                <tr>-->
+          <!--                    <td align="right" colspan="2">Coordinates (Deg Min Sec):</td>-->
+          <!--                    <td>N</td>-->
+          <!--                    <td align="center">-->
+          <!--                        &lt;!&ndash; <input type="text" class="form-control" ng-model="ne_latitude_dms" readonly /> &ndash;&gt;-->
+          <!--                    </td>-->
+          <!--                    <td>E</td>-->
+          <!--                    <td align="center">-->
+          <!--                        &lt;!&ndash; <input type="text" class="form-control" ng-model="ne_longitude_dms" readonly /> &ndash;&gt;-->
+          <!--                    </td>-->
+          <!--                    <td>N</td>-->
+          <!--                    <td align="center">-->
+          <!--                        &lt;!&ndash; <input type="text" class="form-control" ng-model="fe_latitude_dms" readonly /> &ndash;&gt;-->
+          <!--                    </td>-->
+          <!--                    <td>E</td>-->
+          <!--                    <td align="center">-->
+          <!--                        &lt;!&ndash; <input type="text" class="form-control" ng-model="fe_longitude_dms" readonly /> &ndash;&gt;-->
+          <!--                    </td>-->
+          <!--                </tr>-->
+          <tr>
+            <td align="right" colspan="2">Altitude (m):</td>
+            <td align="center" colspan="4">
+              <input
+                type="number"
+                class="form-control"
+                ng-if="startTsd.nearend_id.facility_id.altitude === oldTsd.nearend_id.facility_id.altitude"
+                ng-model="selectedTsd.nearend_id.facility_id.altitude"
+                name="ne_altitude"
+                ng-pattern="altitudePattern"
+                required
+                disabled
+              />
+              <div
+                class="input-group"
+                style="width: 100%"
+                ng-show="startTsd.nearend_id.facility_id.altitude !== oldTsd.nearend_id.facility_id.altitude"
+              >
+                <input
+                  type="text"
+                  class="form-control"
+                  name="ne_altitude"
+                  ng-model="selectedTsd.nearend_id.facility_id.altitude"
+                  required
+                  disabled
+                />
+                <span class="input-group-addon"
+                  >{{oldTsd.nearend_id.facility_id.latitude}}</span
+                >
+              </div>
+              <label
+                class="error"
+                ng-if="kcell_form.ne_altitude.$error.required && ( kcell_form.ne_altitude.$touched || view.submitted)"
+                >Required field(-xxx.y to +xxxx.y)</label
+              >
+              <label
+                class="error"
+                ng-if="kcell_form.ne_altitude.$error.pattern && ( kcell_form.ne_altitude.$touched || view.submitted)"
+                >Uncorrect format(-xxx.y to +xxxx.y)</label
+              >
+              <label
+                class="error"
+                ng-if="kcell_form.ne_altitude.$error.number && ( kcell_form.ne_altitude.$touched || view.submitted)"
+                >Uncorrect format(-xxx.y to +xxxx.y)</label
+              >
+            </td>
+            <td align="center" colspan="4">
+              <input
+                type="number"
+                class="form-control"
+                ng-if="startTsd.farend_id.facility_id.altitude === oldTsd.farend_id.facility_id.altitude"
+                ng-model="selectedTsd.farend_id.facility_id.altitude"
+                name="fe_altitude"
+                ng-pattern="altitudePattern"
+                required
+                disabled
+              />
+              <div
+                class="input-group"
+                style="width: 100%"
+                ng-show="startTsd.farend_id.facility_id.altitude !== oldTsd.farend_id.facility_id.altitude"
+              >
+                <input
+                  type="text"
+                  class="form-control"
+                  name="fe_altitude"
+                  ng-model="selectedTsd.farend_id.facility_id.altitude"
+                  required
+                  disabled
+                />
+                <span class="input-group-addon"
+                  >original: {{oldTsd.farend_id.facility_id.altitude}}</span
+                >
+              </div>
+              <label
+                class="error"
+                ng-if="kcell_form.fe_altitude.$error.required && ( kcell_form.fe_altitude.$touched || view.submitted)"
+                >Required field(-xxx.y to +xxxx.y)</label
+              >
+              <label
+                class="error"
+                ng-if="kcell_form.fe_altitude.$error.pattern && ( kcell_form.fe_altitude.$touched || view.submitted)"
+                >Uncorrect format(-xxx.y to +xxxx.y)</label
+              >
+              <label
+                class="error"
+                ng-if="kcell_form.fe_altitude.$error.number && ( kcell_form.fe_altitude.$touched || view.submitted)"
+                >Uncorrect format(-xxx.y to +xxxx.y)</label
+              >
+            </td>
+          </tr>
+
+          <tr>
+            <td align="right" colspan="2">Azimuth (degree):</td>
+            <td align="center" colspan="4">
+              <input
+                type="number"
+                class="form-control"
+                ng-if="startTsd.ne_azimuth === oldTsd.ne_azimuth"
+                ng-model="selectedTsd.ne_azimuth"
+                name="ne_azimuth"
+                ng-pattern="azimuthPattern"
+                required
+                disabled
+              />
+              <div
+                class="input-group"
+                style="width: 100%"
+                ng-show="startTsd.ne_azimuth !== oldTsd.ne_azimuth"
+              >
+                <input
+                  type="text"
+                  class="form-control"
+                  name="ne_azimuth"
+                  ng-model="selectedTsd.ne_azimuth"
+                  required
+                  disabled
+                />
+                <span class="input-group-addon"
+                  >original: {{oldTsd.ne_azimuth}}</span
+                >
+              </div>
+              <label
+                class="error"
+                ng-if="kcell_form.ne_azimuth.$error.required && ( kcell_form.ne_azimuth.$touched || view.submitted)"
+                >Required field</label
+              >
+              <label
+                class="error"
+                ng-if="kcell_form.ne_azimuth.$error.pattern && ( kcell_form.ne_azimuth.$touched || view.submitted)"
+                >Expected: 0 <- Azimuth(XXX.YY) <- 360</label
+              >
+            </td>
+            <td align="center" colspan="4">
+              <input
+                type="number"
+                class="form-control"
+                ng-if="startTsd.fe_azimuth === oldTsd.fe_azimuth"
+                ng-model="selectedTsd.fe_azimuth"
+                name="fe_azimuth"
+                ng-pattern="azimuthPattern"
+                required
+                disabled
+              />
+              <div
+                class="input-group"
+                style="width: 100%"
+                ng-show="startTsd.fe_azimuth !== oldTsd.fe_azimuth"
+              >
+                <input
+                  type="text"
+                  class="form-control"
+                  name="fe_azimuth"
+                  ng-model="selectedTsd.fe_azimuth"
+                  required
+                  disabled
+                />
+                <span class="input-group-addon"
+                  >original: {{oldTsd.fe_azimuth}}</span
+                >
+              </div>
+              <label
+                class="error"
+                ng-if="kcell_form.fe_azimuth.$error.required && ( kcell_form.fe_azimuth.$touched || view.submitted)"
+                >Required field</label
+              >
+              <label
+                class="error"
+                ng-if="kcell_form.fe_azimuth.$error.pattern && ( kcell_form.fe_azimuth.$touched || view.submitted)"
+                >Expected: 0 <- Azimuth(XXX.YY) <- 360</label
+              >
+            </td>
+          </tr>
+          <tr>
+            <td align="right" colspan="2">Path distance (km):</td>
+            <td align="center" colspan="8">
+              <input
+                type="number"
+                class="form-control"
+                ng-if="startTsd.path_distance === oldTsd.path_distance"
+                ng-model="selectedTsd.path_distance"
+                name="path_distance"
+                required
+                disabled
+              />
+              <div
+                class="input-group"
+                style="width: 100%"
+                ng-show="startTsd.path_distance !== oldTsd.path_distance"
+              >
+                <input
+                  type="text"
+                  class="form-control"
+                  name="path_distance"
+                  ng-model="selectedTsd.path_distance"
+                  required
+                  disabled
+                />
+                <span class="input-group-addon"
+                  >original: {{oldTsd.path_distance}}</span
+                >
+              </div>
+              <label
+                class="error"
+                ng-if="kcell_form.path_distance.$error.required && ( kcell_form.path_distance.$touched || view.submitted)"
+                >Required field</label
+              >
+            </td>
+          </tr>
+
+          <tr>
+            <td align="right" colspan="2">Type of construction:</td>
+            <td align="center" colspan="4">
+              <select
+                class="form-control"
+                id="ne_construction_type"
+                ng-if="startTsd.nearend_id.facility_id.construction_type_id.id === oldTsd.nearend_id.facility_id.construction_type_id.id"
+                name="ne_construction_type"
+                ng-model="selectedTsd.nearend_id.facility_id.construction_type_id.id"
+                disabled
+              >
+                <option
+                  ng-repeat="ct in constructionTypeList"
+                  ng-selected="ct.id.toString() === ne_construction_type"
+                  ng-value="ct.id"
+                >
+                  {{ct.value}}
+                </option>
+              </select>
+              <div
+                class="input-group"
+                style="width: 100%"
+                ng-show="startTsd.nearend_id.facility_id.construction_type_id.id !== oldTsd.nearend_id.facility_id.construction_type_id.id"
+              >
+                <select
+                  class="form-control"
+                  name="ne_construction_type"
+                  ng-model="selectedTsd.nearend_id.facility_id.construction_type_id.id"
+                  disabled
+                >
+                  <option
+                    ng-repeat="ct in constructionTypeList"
+                    ng-selected="ct.id.toString() === ne_construction_type"
+                    ng-value="ct.id"
+                  >
+                    {{ct.value}}
+                  </option>
+                </select>
+                <span class="input-group-addon"
+                  >original:
+                  {{oldTsd.nearend_id.facility_id.construction_type_id.name}}</span
+                >
+              </div>
+              <label
+                class="error"
+                ng-if="kcell_form.ne_construction_type.$error.required && ( kcell_form.ne_construction_type.$touched || view.submitted)"
+                >Required field</label
+              >
+            </td>
+            <td align="center" colspan="4">
+              <select
+                class="form-control"
+                id="fe_construction_type"
+                ng-if="startTsd.farend_id.facility_id.construction_type_id.id === oldTsd.farend_id.facility_id.construction_type_id.id"
+                name="fe_construction_type"
+                ng-model="selectedTsd.farend_id.facility_id.construction_type_id.id"
+                disabled
+              >
+                <option
+                  ng-repeat="ct in constructionTypeList"
+                  ng-selected="ct.id.toString() === fe_construction_type"
+                  ng-value="ct.id"
+                >
+                  {{ct.value}}
+                </option>
+              </select>
+              <div
+                class="input-group"
+                style="width: 100%"
+                ng-show="startTsd.farend_id.facility_id.construction_type_id.id !== oldTsd.farend_id.facility_id.construction_type_id.id"
+              >
+                <select
+                  class="form-control"
+                  name="fe_construction_type"
+                  ng-model="selectedTsd.farend_id.facility_id.construction_type_id.id"
+                  disabled
+                >
+                  <option
+                    ng-repeat="ct in constructionTypeList"
+                    ng-selected="ct.id.toString() === fe_construction_type"
+                    ng-value="ct.id"
+                  >
+                    {{ct.value}}
+                  </option>
+                </select>
+                <span class="input-group-addon"
+                  >original:
+                  {{oldTsd.farend_id.facility_id.construction_type_id.name}}</span
+                >
+              </div>
+              <label
+                class="error"
+                ng-if="kcell_form.fe_construction_type.$error.required && ( kcell_form.fe_construction_type.$touched || view.submitted)"
+                >Required field</label
+              >
+            </td>
+          </tr>
+          <tr>
+            <td align="right" colspan="2">Height of construction (m):</td>
+            <td align="center" colspan="4">
+              <input
+                type="text"
+                class="form-control"
+                ng-if="startTsd.nearend_id.facility_id.construction_height === oldTsd.nearend_id.facility_id.construction_height"
+                ng-model="selectedTsd.nearend_id.facility_id.construction_height"
+                name="ne_construction_height"
+                ng-pattern="heightPattern"
+                disabled
+              />
+              <div
+                class="input-group"
+                style="width: 100%"
+                ng-show="startTsd.nearend_id.facility_id.construction_height !== oldTsd.nearend_id.facility_id.construction_height"
+              >
+                <input
+                  type="text"
+                  class="form-control"
+                  name="ne_construction_height"
+                  ng-model="selectedTsd.nearend_id.facility_id.construction_height"
+                  disabled
+                />
+                <span class="input-group-addon"
+                  >original:
+                  {{oldTsd.nearend_id.facility_id.construction_height}}</span
+                >
+              </div>
+              <label
+                class="error"
+                ng-if="kcell_form.ne_construction_height.$error.required && ( kcell_form.ne_construction_height.$touched || view.submitted)"
+                >Required field</label
+              >
+              <label
+                class="error"
+                ng-if="kcell_form.ne_construction_height.$error.pattern && ( kcell_form.ne_construction_height.$touched || view.submitted)"
+                >Uncorrect format</label
+              >
+            </td>
+            <td align="center" colspan="4">
+              <input
+                type="text"
+                class="form-control"
+                ng-if="startTsd.farend_id.facility_id.construction_height === oldTsd.farend_id.facility_id.construction_height"
+                ng-model="selectedTsd.farend_id.facility_id.construction_height"
+                name="fe_construction_height"
+                disabled
+                ng-pattern="heightPattern"
+              />
+              <div
+                class="input-group"
+                style="width: 100%"
+                ng-show="startTsd.farend_id.facility_id.construction_height !== oldTsd.farend_id.facility_id.construction_height"
+              >
+                <input
+                  type="text"
+                  class="form-control"
+                  name="fe_construction_height"
+                  ng-model="selectedTsd.farend_id.facility_id.construction_height"
+                  disabled
+                />
+                <span class="input-group-addon"
+                  >original:
+                  {{oldTsd.farend_id.facility_id.construction_height}}</span
+                >
+              </div>
+              <label
+                class="error"
+                ng-if="kcell_form.fe_construction_height.$error.required && ( kcell_form.fe_construction_height.$touched || view.submitted)"
+                >Required field</label
+              >
+              <label
+                class="error"
+                ng-if="kcell_form.fe_construction_height.$error.pattern && ( kcell_form.fe_construction_height.$touched || view.submitted)"
+                >Uncorrect format</label
+              >
+            </td>
+          </tr>
+          <tr>
+            <td align="right" colspan="2">Protection mode:</td>
+            <td align="center" colspan="8">
+              <select
+                class="form-control"
+                ng-if="startTsd.protection_mode_id.id !== oldTsd.protection_mode_id.id"
+                id="protection_mode"
+                name="protection_mode"
+                ng-model="selectedTsd.protection_mode_id.id"
+                required
+                ng-change="protectionMode()"
+                disabled
+              >
+                <option
+                  ng-repeat="ct in protectionModeList"
+                  ng-selected="ct.id.toString() === protection_mode"
+                  value="{{ct.id}}"
+                  ng-value="ct.id"
+                >
+                  {{ct.value}}
+                </option>
+              </select>
+              <div
+                class="input-group"
+                style="width: 100%"
+                ng-show="startTsd.protection_mode_id.id === oldTsd.protection_mode_id.id"
+              >
+                <select
+                  class="form-control"
+                  id="protection_mode"
+                  name="protection_mode"
+                  ng-model="selectedTsd.protection_mode_id.id"
+                  required
+                  ng-change="protectionMode()"
+                  disabled
+                >
+                  <option
+                    ng-repeat="ct in protectionModeList"
+                    ng-selected="ct.id.toString() === protection_mode"
+                    value="{{ct.id}}"
+                    ng-value="ct.id"
+                  >
+                    {{ct.value}}
+                  </option>
+                </select>
+                <span class="input-group-addon"
+                  >original: {{oldTsd.protection_mode_id.name}}</span
+                >
+              </div>
+              <label
+                class="error"
+                ng-if="kcell_form.protection_mode.$error.required && ( kcell_form.protection_mode.$touched || view.submitted)"
+                >Required field</label
+              >
+            </td>
+          </tr>
+          <tr>
+            <td align="right" colspan="2">Antenna diameter:</td>
+            <td align="center" colspan="4">
+              <select
+                class="form-control"
+                id="ne_diameter"
+                name="ne_diameter"
+                ng-if="startTsd.ne_antenna_diameter_id.id=== oldTsd.ne_antenna_diameter_id.id"
+                ng-model="selectedTsd.ne_antenna_diameter_id.id"
+                required
+                disabled
+                ng-change="antennaDiameter()"
+              >
+                <option
+                  ng-repeat="ct in trAntennasTypeList"
+                  ng-selected="ct.id.toString() === ne_diameter"
+                  ng-value="ct.id"
+                >
+                  {{ct.value}}
+                </option>
+              </select>
+              <div
+                class="input-group"
+                style="width: 100%"
+                ng-show="startTsd.ne_antenna_diameter_id.id !== oldTsd.ne_antenna_diameter_id.id"
+              >
+                <select
+                  class="form-control"
+                  id="ne_diameter"
+                  name="ne_diameter"
+                  ng-model="selectedTsd.ne_antenna_diameter_id.id"
+                  required
+                  disabled
+                  ng-change="antennaDiameter()"
+                >
+                  <option
+                    ng-repeat="ct in trAntennasTypeList"
+                    ng-selected="ct.id.toString() === ne_diameter"
+                    ng-value="ct.id"
+                  >
+                    {{ct.value}}
+                  </option>
+                </select>
+                <span class="input-group-addon"
+                  >original: {{oldTsd.ne_antenna_diameter_id.name}}</span
+                >
+              </div>
+              <label
+                class="error"
+                ng-if="kcell_form.ne_diameter.$error.required && ( kcell_form.ne_diameter.$touched || view.submitted)"
+                >Required field</label
+              >
+            </td>
+            <td align="center" colspan="4">
+              <select
+                class="form-control"
+                id="fe_diameter"
+                ng-if="startTsd.fe_antenna_diameter_id.id === oldTsd.fe_antenna_diameter_id.id"
+                name="fe_diameter"
+                ng-model="selectedTsd.fe_antenna_diameter_id.id"
+                required
+                disabled
+              >
+                <option
+                  ng-repeat="ct in trAntennasTypeList"
+                  ng-selected="ct.id.toString() === fe_diameter"
+                  ng-value="ct.id"
+                >
+                  {{ct.value}}
+                </option>
+              </select>
+              <div
+                class="input-group"
+                style="width: 100%"
+                ng-show="startTsd.fe_antenna_diameter_id.id !== oldTsd.fe_antenna_diameter_id.id"
+              >
+                <select
+                  class="form-control"
+                  id="fe_diameter"
+                  name="fe_diameter"
+                  ng-model="selectedTsd.fe_antenna_diameter_id.id"
+                  required
+                  disabled
+                  ng-change="antennaDiameter()"
+                  disabled
+                >
+                  <option
+                    ng-repeat="ct in trAntennasTypeList"
+                    ng-selected="ct.id.toString() === fe_diameter"
+                    ng-value="ct.id"
+                  >
+                    {{ct.value}}
+                  </option>
+                </select>
+                <span class="input-group-addon"
+                  >original: {{oldTsd.fe_antenna_diameter_id.name}}</span
+                >
+              </div>
+              <label
+                class="error"
+                ng-if="kcell_form.fe_diameter.$error.required && ( kcell_form.fe_diameter.$touched || view.submitted)"
+                >Required field</label
+              >
+            </td>
+          </tr>
+          <tr>
+            <td align="right" colspan="2">Protection antenna diameter:</td>
+            <td align="center" colspan="4">
+              <select
+                class="form-control"
+                id="ne_protection_antenna_diameter"
+                ng-if="startTsd.ne_antenna_diameter_protect_id.id === oldTsd.ne_antenna_diameter_protect_id.id"
+                name="ne_protection_antenna_diameter"
+                ng-model="selectedTsd.ne_antenna_diameter_protect_id.id"
+                ng-change="protectionAntennaDiameter()"
+                disabled
+              >
+                <option ng-repeat="ct in trAntennasTypeList" ng-value="ct.id">
+                  {{ct.value}}
+                </option>
+              </select>
+              <div
+                class="input-group"
+                style="width: 100%"
+                ng-show="startTsd.ne_antenna_diameter_protect_id.id !== oldTsd.ne_antenna_diameter_protect_id.id"
+              >
+                <select
+                  class="form-control"
+                  id="ne_protection_antenna_diameter"
+                  name="ne_protection_antenna_diameter"
+                  ng-model="selectedTsd.ne_antenna_diameter_protect_id.id"
+                  ng-change="protectionAntennaDiameter()"
+                  disabled
+                >
+                  <option ng-repeat="ct in trAntennasTypeList" ng-value="ct.id">
+                    {{ct.value}}
+                  </option>
+                </select>
+                <span class="input-group-addon"
+                  >original:
+                  {{oldTsd.ne_antenna_diameter_protect_id.name}}</span
+                >
+              </div>
+              <label
+                class="error"
+                ng-if="kcell_form.ne_protection_antenna_diameter.$error.required && ( kcell_form.ne_protection_antenna_diameter.$touched || view.submitted)"
+                >Required field</label
+              >
+            </td>
+            <td align="center" colspan="4">
+              <select
+                class="form-control"
+                id="fe_protection_antenna_diameter"
+                ng-if="startTsd.fe_antenna_diameter_protect_id.id === oldTsd.fe_antenna_diameter_protect_id.id"
+                name="fe_protection_antenna_diameter"
+                ng-model="selectedTsd.fe_antenna_diameter_id.id"
+                disabled
+              >
+                <option ng-repeat="ct in trAntennasTypeList" ng-value="ct.id">
+                  {{ct.value}}
+                </option>
+              </select>
+              <div
+                class="input-group"
+                style="width: 100%"
+                ng-show="startTsd.fe_antenna_diameter_protect_id.id !== oldTsd.fe_antenna_diameter_protect_id.id"
+              >
+                <select
+                  class="form-control"
+                  id="ne_protection_antenna_diameter"
+                  name="fe_protection_antenna_diameter"
+                  ng-model="selectedTsd.fe_antenna_diameter_protect_id.id"
+                  ng-change="protectionAntennaDiameter()"
+                  disabled
+                >
+                  <option ng-repeat="ct in trAntennasTypeList" ng-value="ct.id">
+                    {{ct.value}}
+                  </option>
+                </select>
+                <span class="input-group-addon"
+                  >original:
+                  {{oldTsd.fe_antenna_diameter_protect_id.name}}</span
+                >
+              </div>
+              <label
+                class="error"
+                ng-if="kcell_form.fe_protection_antenna_diameter.$error.required && ( kcell_form.fe_protection_antenna_diameter.$touched || view.submitted)"
+                >Required field</label
+              >
+            </td>
+          </tr>
+          <tr>
+            <td align="right" colspan="2">
+              Height of suspension of MW ant (m):
+            </td>
+            <td align="center" colspan="4">
+              <input
+                type="number"
+                class="form-control"
+                ng-if="startTsd.ne_height_susp_antenna === oldTsd.ne_height_susp_antenna"
+                ng-model="selectedTsd.ne_height_susp_antenna"
+                name="ne_suspension_height_antennas"
+                ng-pattern="suspensionPattern"
+                required
+                disabled
+              />
+
+              <div
+                class="input-group"
+                style="width: 100%"
+                ng-show="startTsd.ne_height_susp_antenna !== oldTsd.ne_height_susp_antenna"
+              >
+                <input
+                  type="number"
+                  class="form-control"
+                  ng-model="selectedTsd.ne_height_susp_antenna"
+                  name="ne_suspension_height_antennas"
+                  ng-pattern="suspensionPattern"
+                  required
+                  disabled
+                />
+                <span class="input-group-addon"
+                  >original: {{oldTsd.ne_height_susp_antenna}}</span
+                >
+              </div>
+              <label
+                class="error"
+                ng-if="kcell_form.ne_suspension_height_antennas.$error.required && ( kcell_form.ne_suspension_height_antennas.$touched || view.submitted)"
+                >Required field</label
+              >
+              <label
+                class="error"
+                ng-if="kcell_form.ne_suspension_height_antennas.$error.pattern && ( kcell_form.ne_suspension_height_antennas.$touched || view.submitted)"
+                >Expected: 1 <- Height of suspension of MW ant <- 999</label
+              >
+            </td>
+            <td align="center" colspan="4">
+              <input
+                type="number"
+                class="form-control"
+                ng-if="startTsd.fe_height_susp_antenna === oldTsd.fe_height_susp_antenna"
+                ng-model="selectedTsd.fe_height_susp_antenna"
+                name="fe_suspension_height"
+                ng-pattern="suspensionPattern"
+                required
+                disabled
+              />
+              <div
+                class="input-group"
+                style="width: 100%"
+                ng-show="startTsd.fe_height_susp_antenna !== oldTsd.fe_height_susp_antenna"
+              >
+                <input
+                  type="number"
+                  class="form-control"
+                  ng-model="selectedTsd.fe_height_susp_antenna"
+                  name="fe_suspension_height"
+                  ng-pattern="suspensionPattern"
+                  required
+                  disabled
+                />
+                <span class="input-group-addon"
+                  >original: {{oldTsd.fe_height_susp_antenna}}</span
+                >
+              </div>
+              <label
+                class="error"
+                ng-if="kcell_form.fe_suspension_height.$error.required && ( kcell_form.fe_suspension_height.$touched || view.submitted)"
+                >Required field</label
+              >
+              <label
+                class="error"
+                ng-if="kcell_form.fe_suspension_height.$error.pattern && ( kcell_form.fe_suspension_height.$touched || view.submitted)"
+                >Expected: 1 <- Height of suspension of MW ant <- 999</label
+              >
+            </td>
+          </tr>
+          <tr>
+            <td align="right" colspan="2">
+              Height of suspension of prot. MW ant (m).:
+            </td>
+            <td align="center" colspan="4">
+              <input
+                type="number"
+                class="form-control"
+                ng-if="startTsd.ne_height_susp_antenna_protect === oldTsd.ne_height_susp_antenna_protect"
+                ng-model="selectedTsd.ne_height_susp_antenna_protect"
+                name="ne_protection_suspension_height"
+                ng-pattern="suspensionPattern"
+                disabled
+              />
+              <div
+                class="input-group"
+                style="width: 100%"
+                ng-show="startTsd.ne_height_susp_antenna_protect !== oldTsd.ne_height_susp_antenna_protect"
+              >
+                <input
+                  type="number"
+                  class="form-control"
+                  ng-model="selectedTsd.ne_height_susp_antenna_protect"
+                  name="ne_protection_suspension_height"
+                  ng-pattern="suspensionPattern"
+                  disabled
+                />
+                <span class="input-group-addon"
+                  >original: {{oldTsd.ne_height_susp_antenna_protect}}</span
+                >
+              </div>
+              <label
+                class="error"
+                ng-if="kcell_form.ne_protection_suspension_height.$error.required && ( kcell_form.ne_protection_suspension_height.$touched || view.submitted)"
+                >Required field</label
+              >
+              <label
+                class="error"
+                ng-if="kcell_form.ne_protection_suspension_height.$error.pattern && ( kcell_form.ne_protection_suspension_height.$touched || view.submitted)"
+                >Expected: 1 <- Height of suspension of prot. MW ant. <-
+                999</label
+              >
+            </td>
+            <td align="center" colspan="4">
+              <input
+                type="number"
+                class="form-control"
+                ng-if="startTsd.fe_height_susp_antenna_protect === oldTsd.fe_height_susp_antenna_protect"
+                ng-model="selectedTsd.fe_height_susp_antenna_protect"
+                name="fe_protection_suspension_height"
+                ng-pattern="suspensionPattern"
+                disabled
+              />
+              <div
+                class="input-group"
+                style="width: 100%"
+                ng-show="startTsd.fe_height_susp_antenna_protect !== oldTsd.fe_height_susp_antenna_protect"
+              >
+                <input
+                  type="number"
+                  class="form-control"
+                  ng-model="selectedTsd.fe_height_susp_antenna_protect"
+                  name="fe_protection_suspension_height"
+                  ng-pattern="suspensionPattern"
+                  disabled
+                />
+                <span class="input-group-addon"
+                  >original: {{oldTsd.fe_height_susp_antenna_protect}}</span
+                >
+              </div>
+              <label
+                class="error"
+                ng-if="kcell_form.fe_protection_suspension_height.$error.required && ( kcell_form.fe_protection_suspension_height.$touched || view.submitted)"
+                >Required field</label
+              >
+              <label
+                class="error"
+                ng-if="kcell_form.fe_protection_suspension_height.$error.pattern && ( kcell_form.fe_protection_suspension_height.$touched || view.submitted)"
+                >Expected: 1 <- Height of suspension of prot. MW ant. <-
+                999</label
+              >
+            </td>
+          </tr>
+          <tr>
+            <td align="right" colspan="2">Polarization:</td>
+            <td align="center" colspan="8">
+              <select
+                class="form-control"
+                ng-if="startTsd.polarization_id.id === oldTsd.polarization_id.id"
+                id="hop_polarization"
+                name="hop_polarization"
+                ng-model="selectedTsd.polarization_id.id"
+                required
+                disabled
+              >
+                <option ng-repeat="ct in polarizationList" ng-value="ct.id">
+                  {{ct.value}}
+                </option>
+              </select>
+              <div
+                class="input-group"
+                style="width: 100%"
+                ng-show="startTsd.polarization_id.id !== oldTsd.polarization_id.id"
+              >
+                <select
+                  class="form-control"
+                  id="hop_polarization"
+                  name="hop_polarization"
+                  ng-model="selectedTsd.polarization_id.id"
+                  required
+                  disabled
+                >
+                  <option ng-repeat="ct in polarizationList" ng-value="ct.id">
+                    {{ct.value}}
+                  </option>
+                </select>
+                <span class="input-group-addon"
+                  >original: {{oldTsd.polarization_id.name}}</span
+                >
+              </div>
+              <label
+                class="error"
+                ng-if="kcell_form.hop_polarization.$error.required && ( kcell_form.hop_polarization.$touched || view.submitted)"
+                >Required field</label
+              >
+            </td>
+          </tr>
+          <tr>
+            <td align="right" colspan="2">Link type:</td>
+            <td align="center" colspan="8">
+              <select
+                class="form-control"
+                id="hop_link_type"
+                ng-if="startTsd.link_type_id.id === oldTsd.link_type_id.id"
+                name="hop_link_type"
+                ng-model="selectedTsd.link_type_id.id"
+                required
+                disabled
+              >
+                <option ng-repeat="ct in linkTypeList" ng-value="ct.id">
+                  {{ct.value}}
+                </option>
+              </select>
+              <div
+                class="input-group"
+                style="width: 100%"
+                ng-show="startTsd.link_type_id.id !== oldTsd.link_type_id.id"
+              >
+                <select
+                  class="form-control"
+                  id="hop_link_type"
+                  name="hop_link_type"
+                  ng-model="selectedTsd.link_type_id.id"
+                  required
+                  disabled
+                >
+                  <option ng-repeat="ct in linkTypeList" ng-value="ct.id">
+                    {{ct.value}}
+                  </option>
+                </select>
+                <span class="input-group-addon"
+                  >original: {{oldTsd.link_type_id.name}}</span
+                >
+              </div>
+              <label
+                class="error"
+                ng-if="kcell_form.hop_link_type.$error.required && ( kcell_form.hop_link_type.$touched || view.submitted)"
+                >Required field</label
+              >
+            </td>
+          </tr>
+          <tr>
+            <td align="right" rowspan="2">Link capacity :</td>
+            <td align="right">Capacity</td>
+            <td align="center" colspan="8">
+              <select
+                class="form-control"
+                ng-if="startTsd.capacity_id.id === oldTsd.capacity_id.id"
+                id="hop_link_capacity"
+                name="hop_link_capacity"
+                ng-model="selectedTsd.capacity_id.id"
+                required
+                ng-change="hopLinkCapacitySelected()"
+                disabled
+              >
+                <option ng-repeat="ct in linkCapacityList" ng-value="ct.id">
+                  {{ct.value}}
+                </option>
+              </select>
+              <div
+                class="input-group"
+                style="width: 100%"
+                ng-show="startTsd.capacity_id.id !== oldTsd.capacity_id.id"
+              >
+                <select
+                  class="form-control"
+                  name="hop_link_capacity"
+                  ng-model="selectedTsd.capacity_id.id"
+                  required
+                  ng-change="hopLinkCapacitySelected()"
+                  disabled
+                >
+                  <option ng-repeat="ct in linkCapacityList" ng-value="ct.id">
+                    {{ct.value}}
+                  </option>
+                </select>
+                <span class="input-group-addon"
+                  >original: {{oldTsd.capacity_id.name}}</span
+                >
+              </div>
+              <label
+                class="error"
+                ng-if="kcell_form.hop_link_capacity.$error.required && ( kcell_form.hop_link_capacity.$touched || view.submitted)"
+                >Required field</label
+              >
+            </td>
+          </tr>
+          <tr>
+            <td align="right">nxE1</td>
+            <td align="center" colspan="8">
+              <input
+                type="text"
+                class="form-control"
+                ng-if="startTsd.nxe1 === oldTsd.nxe1"
+                name="hop_link_nxe1"
+                ng-model="selectedTsd.nxe1"
+                ng-pattern="linkNxePattern"
+                disabled
+              />
+              <div
+                class="input-group"
+                style="width: 100%"
+                ng-show="startTsd.nxe1 !== oldTsd.nxe1"
+              >
+                <input
+                  type="text"
+                  class="form-control"
+                  name="hop_link_nxe1"
+                  ng-model="selectedTsd.nxe1"
+                  ng-pattern="linkNxePattern"
+                  disabled
+                />
+                <span class="input-group-addon">original: {{oldTsd.nxe1}}</span>
+              </div>
+              <label
+                class="error"
+                ng-if="kcell_form.hop_link_nxe1.$error.pattern && ( kcell_form.hop_link_nxe1.$touched || view.submitted)"
+                >Expected: 0 <- nxE1 <- 99</label
+              >
+            </td>
+          </tr>
+          <tr>
+            <td align="right" colspan="2">Modulation type:</td>
+            <td align="center" colspan="8">
+              <input
+                type="text"
+                class="form-control"
+                ng-if="startTsd.capacity_id.modulation === oldTsd.capacity_id.modulation"
+                name="hop_modulation_type"
+                ng-model="selectedTsd.capacity_id.modulation"
+                disabled
+              />
+              <div
+                class="input-group"
+                style="width: 100%"
+                ng-show="startTsd.capacity_id.modulation !== oldTsd.capacity_id.modulation"
+              >
+                <input
+                  type="text"
+                  class="form-control"
+                  name="hop_modulation_type"
+                  ng-model="selectedTsd.capacity_id.modulation"
+                  disabled
+                />
+                <span class="input-group-addon"
+                  >original: {{oldTsd.capacity_id.modulation}}</span
+                >
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td align="right" colspan="2">Channel bandwidth:</td>
+            <td align="center" colspan="8">
+              <input
+                type="text"
+                class="form-control"
+                ng-if="startTsd.capacity_id['channel bandwidth'] === oldTsd.capacity_id['channel bandwidth']"
+                name="hop_channel_bandwidth"
+                ng-model="selectedTsd.capacity_id['channel bandwidth']"
+                disabled
+              />
+              <div
+                class="input-group"
+                style="width: 100%"
+                ng-show="startTsd.capacity_id['channel bandwidth'] !== oldTsd.capacity_id['channel bandwidth']"
+              >
+                <input
+                  type="text"
+                  class="form-control"
+                  name="hop_channel_bandwidth"
+                  ng-model="selectedTsd.capacity_id['channel bandwidth']"
+                  disabled
+                />
+                <span class="input-group-addon"
+                  >original: {{oldTsd.capacity_id['channel bandwidth']}}</span
+                >
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td align="right" colspan="2">RAU subband:</td>
+            <td align="center" colspan="4">
+              <select
+                class="form-control"
+                id="ne_rau_subband"
+                ng-if="startTsd.ne_rau_subband_id.id === oldTsd.ne_rau_subband_id.id"
+                name="ne_rau_subband"
+                ng-model="selectedTsd.ne_rau_subband_id.id"
+                ng-change="rauSubbandSelected()"
+                disabled
+              >
+                <option ng-repeat="ct in rauSubbandList" ng-value="ct.id">
+                  {{ct.value}}
+                </option>
+              </select>
+              <div
+                class="input-group"
+                style="width: 100%"
+                ng-show="startTsd.ne_rau_subband_id.id !== oldTsd.ne_rau_subband_id.id"
+              >
+                <select
+                  class="form-control"
+                  name="ne_rau_subband"
+                  ng-model="selectedTsd.ne_rau_subband_id.id"
+                  ng-change="rauSubbandSelected()"
+                  disabled
+                >
+                  <option ng-repeat="ct in rauSubbandList" ng-value="ct.id">
+                    {{ct.value}}
+                  </option>
+                </select>
+                <span class="input-group-addon"
+                  >original: {{oldTsd.ne_rau_subband_id.name}}</span
+                >
+              </div>
+              <label
+                class="error"
+                ng-if="kcell_form.ne_rau_subband.$error.required && ( kcell_form.ne_rau_subband.$touched || view.submitted)"
+                >Required field</label
+              >
+            </td>
+            <td align="center" colspan="4">
+              <select
+                class="form-control"
+                id="fe_rau_subband"
+                ng-if="startTsd.fe_rau_subband_id.id === oldTsd.fe_rau_subband_id.id"
+                name="fe_rau_subband"
+                ng-model="selectedTsd.fe_rau_subband_id.id"
+                disabled
+              >
+                <option ng-repeat="ct in rauSubbandList" ng-value="ct.id">
+                  {{ct.value}}
+                </option>
+              </select>
+              <div
+                class="input-group"
+                style="width: 100%"
+                ng-show="startTsd.fe_rau_subband_id.id !== oldTsd.fe_rau_subband_id.id"
+              >
+                <select
+                  class="form-control"
+                  name="fe_rau_subband"
+                  ng-model="selectedTsd.fe_rau_subband_id.id"
+                  disabled
+                >
+                  <option ng-repeat="ct in rauSubbandList" ng-value="ct.id">
+                    {{ct.value}}
+                  </option>
+                </select>
+                <span class="input-group-addon"
+                  >original: {{oldTsd.fe_rau_subband_id.name}}</span
+                >
+              </div>
+              <label
+                class="error"
+                ng-if="kcell_form.fe_rau_subband.$error.required && ( kcell_form.fe_rau_subband.$touched || view.submitted)"
+                >Required field</label
+              >
+            </td>
+          </tr>
+          <tr>
+            <td align="right" colspan="2">protection RAU subband:</td>
+            <td align="center" colspan="4">
+              <select
+                class="form-control"
+                id="ne_protection_rau_subband"
+                ng-if="startTsd.ne_rau_subband_protect_id.id === oldTsd.ne_rau_subband_protect_id.id"
+                name="ne_protection_rau_subband"
+                ng-model="selectedTsd.ne_rau_subband_protect_id.id"
+                ng-change="protectRauSubbandSelected()"
+                disabled
+              >
+                <option ng-repeat="ct in rauSubbandList" ng-value="ct.id">
+                  {{ct.value}}
+                </option>
+              </select>
+              <div
+                class="input-group"
+                style="width: 100%"
+                ng-show="startTsd.ne_rau_subband_protect_id.id !== oldTsd.ne_rau_subband_protect_id.id"
+              >
+                <select
+                  class="form-control"
+                  name="ne_protection_rau_subband"
+                  ng-model="selectedTsd.ne_rau_subband_protect_id.id"
+                  ng-change="protectRauSubbandSelected()"
+                  disabled
+                >
+                  <option ng-repeat="ct in rauSubbandList" ng-value="ct.id">
+                    {{ct.value}}
+                  </option>
+                </select>
+                <span class="input-group-addon"
+                  >original: {{oldTsd.ne_rau_subband_protect_id.name}}</span
+                >
+              </div>
+            </td>
+            <td align="center" colspan="4">
+              <select
+                class="form-control"
+                id="fe_protection_rau_subband"
+                ng-if="startTsd.fe_rau_subband_protect_id.id === oldTsd.fe_rau_subband_protect_id.id"
+                name="fe_protection_rau_subband"
+                ng-model="selectedTsd.fe_rau_subband_protect_id.id"
+                disabled
+              >
+                <option ng-repeat="ct in rauSubbandList" ng-value="ct.id">
+                  {{ct.value}}
+                </option>
+              </select>
+              <div
+                class="input-group"
+                style="width: 100%"
+                ng-show="startTsd.fe_rau_subband_protect_id.id !== oldTsd.fe_rau_subband_protect_id.id"
+              >
+                <select
+                  class="form-control"
+                  name="fe_protection_rau_subband"
+                  ng-model="selectedTsd.fe_rau_subband_protect_id.id"
+                  disabled
+                >
+                  <option ng-repeat="ct in rauSubbandList" ng-value="ct.id">
+                    {{ct.value}}
+                  </option>
+                </select>
+                <span class="input-group-addon"
+                  >original: {{oldTsd.fe_rau_subband_protect_id.name}}</span
+                >
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td align="right" colspan="2">Tx/Rx frequencies, Mhz:</td>
+            <td align="center" colspan="4">
+              <input
+                type="number"
+                class="form-control"
+                ng-if="startTsd.ne_txrx_frequencies === oldTsd.ne_txrx_frequencies"
+                name="ne_txrx_frequincies"
+                ng-model="selectedTsd.ne_txrx_frequencies"
+                required
+                ng-blur="ne_txrx_frequinciesValuesCheck()"
+                disabled
+              />
+              <div
+                class="input-group"
+                style="width: 100%"
+                ng-show="startTsd.ne_txrx_frequencies !== oldTsd.ne_txrx_frequencies"
+              >
+                <input
+                  type="number"
+                  class="form-control"
+                  name="ne_txrx_frequincies"
+                  ng-model="selectedTsd.ne_txrx_frequencies"
+                  required
+                  ng-blur="ne_txrx_frequinciesValuesCheck()"
+                  disabled
+                />
+                <span class="input-group-addon"
+                  >original: {{oldTsd.ne_txrx_frequencies}}</span
+                >
+              </div>
+              <label
+                class="error"
+                ng-if="kcell_form.ne_txrx_frequincies.$error.required && ( kcell_form.ne_txrx_frequincies.$touched || view.submitted)"
+                >Required field</label
+              >
+              <label
+                class="error"
+                ng-if="ne_rau_subband && ne_txrx_frequinciesInvalid"
+                >Expected between {{rauRelations[ne_rau_subband].minFrequency}}
+                and {{rauRelations[ne_rau_subband].maxFrequency}}</label
+              >
+            </td>
+            <td align="center" colspan="4">
+              <input
+                type="number"
+                class="form-control"
+                ng-if="startTsd.fe_txrx_frequencies === oldTsd.fe_txrx_frequencies"
+                name="fe_txrx_frequincies"
+                ng-model="selectedTsd.fe_txrx_frequencies"
+                required
+                ng-blur="fe_txrx_frequinciesValuesCheck()"
+                disabled
+              />
+              <div
+                class="input-group"
+                style="width: 100%"
+                ng-show="startTsd.fe_txrx_frequencies !== oldTsd.fe_txrx_frequencies"
+              >
+                <input
+                  type="number"
+                  class="form-control"
+                  name="fe_txrx_frequincies"
+                  ng-model="selectedTsd.fe_txrx_frequencies"
+                  required
+                  ng-blur="fe_txrx_frequinciesValuesCheck()"
+                  disabled
+                />
+                <span class="input-group-addon"
+                  >original: {{oldTsd.fe_txrx_frequencies}}</span
+                >
+              </div>
+              <label
+                class="error"
+                ng-if="kcell_form.fe_txrx_frequincies.$error.required && ( kcell_form.fe_txrx_frequincies.$touched || view.submitted)"
+                >Required field</label
+              >
+              <label
+                class="error"
+                ng-if="fe_rau_subband && fe_txrx_frequinciesInvalid"
+                >Expected between {{rauRelations[fe_rau_subband].minFrequency}}
+                and {{rauRelations[fe_rau_subband].maxFrequency}}</label
+              >
+            </td>
+          </tr>
+          <tr>
+            <td align="right" colspan="2">
+              Protection Tx/Rx frequencies, Mhz:
+            </td>
+            <td align="center" colspan="4">
+              <input
+                type="number"
+                class="form-control"
+                ng-if="startTsd.ne_txrx_frequencies_protect === oldTsd.ne_txrx_frequencies_protect"
+                name="ne_protection_txrx_frequincies"
+                ng-model="selectedTsd.ne_txrx_frequencies_protect"
+                ng-blur="ne_protection_txrx_frequinciesValuesCheck()"
+                disabled
+              />
+              <div
+                class="input-group"
+                style="width: 100%"
+                ng-show="startTsd.ne_txrx_frequencies_protect !== oldTsd.ne_txrx_frequencies_protect"
+              >
+                <input
+                  type="number"
+                  class="form-control"
+                  name="ne_protection_txrx_frequincies"
+                  ng-model="selectedTsd.ne_txrx_frequencies_protect"
+                  ng-blur="ne_protection_txrx_frequinciesValuesCheck()"
+                  disabled
+                />
+                <span class="input-group-addon"
+                  >original: {{oldTsd.ne_txrx_frequencies_protect}}</span
+                >
+              </div>
+              <label
+                class="error"
+                ng-if="ne_protection_rau_subband && ne_protection_txrx_frequincies && ne_protection_txrx_frequinciesInvalid"
+                >Expected between
+                {{rauRelations[ne_protection_rau_subband].minFrequency}} and
+                {{rauRelations[ne_protection_rau_subband].maxFrequency}}</label
+              >
+            </td>
+            <td align="center" colspan="4">
+              <input
+                type="number"
+                class="form-control"
+                ng-if="startTsd.fe_txrx_frequencies_protect === oldTsd.fe_txrx_frequencies_protect"
+                name="fe_protection_txrx_frequincies"
+                ng-model="selectedTsd.fe_txrx_frequencies_protect"
+                ng-blur="fe_protection_txrx_frequinciesValuesCheck()"
+                disabled
+              />
+              <div
+                class="input-group"
+                style="width: 100%"
+                ng-show="startTsd.fe_txrx_frequencies_protect !== oldTsd.fe_txrx_frequencies_protect"
+              >
+                <input
+                  type="number"
+                  class="form-control"
+                  name="fe_protection_txrx_frequincies"
+                  ng-model="selectedTsd.fe_txrx_frequencies_protect"
+                  ng-blur="fe_protection_txrx_frequinciesValuesCheck()"
+                  disabled
+                />
+                <span class="input-group-addon"
+                  >original: {{oldTsd.fe_txrx_frequencies_protect}}</span
+                >
+              </div>
+              <label
+                class="error"
+                ng-if="fe_protection_rau_subband && fe_protection_txrx_frequincies && fe_protection_txrx_frequinciesInvalid"
+                >Expected between
+                {{rauRelations[fe_protection_rau_subband].minFrequency}} and
+                {{rauRelations[fe_protection_rau_subband].maxFrequency}}</label
+              >
+            </td>
+          </tr>
+          <tr>
+            <td align="right" colspan="2">Terminal ID:</td>
+            <td align="center" colspan="4">
+              <input
+                type="text"
+                class="form-control"
+                ng-if="startTsd.ne_terminalid === oldTsd.ne_terminalid"
+                name="ne_terminal_id"
+                ng-model="selectedTsd.ne_terminalid"
+                disabled
+              />
+              <div
+                class="input-group"
+                style="width: 100%"
+                ng-show="startTsd.ne_terminalid !== oldTsd.ne_terminalid"
+              >
+                <input
+                  type="text"
+                  class="form-control"
+                  name="ne_terminal_id"
+                  ng-model="selectedTsd.ne_terminalid"
+                  disabled
+                />
+                <span class="input-group-addon"
+                  >original: {{oldTsd.ne_terminalid}}</span
+                >
+              </div>
+            </td>
+            <td align="center" colspan="4">
+              <input
+                type="text"
+                class="form-control"
+                ng-if="startTsd.fe_terminalid === oldTsd.fe_terminalid"
+                name="fe_terminal_id"
+                ng-model="selectedTsd.fe_terminalid"
+                disabled
+              />
+              <div
+                class="input-group"
+                style="width: 100%"
+                ng-show="startTsd.fe_terminalid !== oldTsd.fe_terminalid"
+              >
+                <input
+                  type="text"
+                  class="form-control"
+                  name="fe_terminal_id"
+                  ng-model="selectedTsd.fe_terminalid"
+                  disabled
+                />
+                <span class="input-group-addon"
+                  >original: {{oldTsd.fe_terminalid}}</span
+                >
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td align="right" colspan="2">Power levels:</td>
+            <td>Tx</td>
+            <td align="center">
+              <input
+                type="number"
+                class="form-control"
+                name="ne_power_level_tx"
+                ng-if="startTsd.ne_power_levels_tx === oldTsd.ne_power_levels_tx"
+                ng-model="selectedTsd.ne_power_levels_tx"
+                required
+                ng-pattern="ne_power_level_txPattern"
+                ng-change="ne_power_level_txChanged()"
+                disabled
+              />
+              <div
+                class="input-group"
+                style="width: 100%"
+                ng-show="startTsd.ne_power_levels_tx !== oldTsd.ne_power_levels_tx"
+              >
+                <input
+                  type="number"
+                  class="form-control"
+                  name="ne_power_level_tx"
+                  ng-model="selectedTsd.ne_power_levels_tx"
+                  required
+                  ng-pattern="ne_power_level_txPattern"
+                  ng-change="ne_power_level_txChanged()"
+                  disabled
+                />
+                <span class="input-group-addon"
+                  >original: {{oldTsd.ne_power_levels_tx}}</span
+                >
+              </div>
+              <label
+                class="error"
+                ng-if="kcell_form.ne_power_level_tx.$error.required && ( kcell_form.ne_power_level_tx.$touched || view.submitted)"
+                >Required field</label
+              >
+              <label
+                class="error"
+                ng-if="kcell_form.ne_power_level_tx.$error.pattern && ( kcell_form.ne_power_level_tx.$touched || view.submitted)"
+                >Invalid format (XX or -XX required)</label
+              >
+            </td>
+            <td>Rx</td>
+            <td align="center">
+              <input
+                type="number"
+                class="form-control"
+                ng-if="startTsd.ne_power_levels_rx === oldTsd.ne_power_levels_rx"
+                name="ne_power_level_rx"
+                ng-model="selectedTsd.ne_power_levels_rx"
+                required
+                ng-pattern="ne_power_level_rxPattern"
+                ng-change="ne_power_level_rxChanged()"
+                disabled
+              />
+              <div
+                class="input-group"
+                style="width: 100%"
+                ng-show="startTsd.ne_power_levels_rx !== oldTsd.ne_power_levels_rx"
+              >
+                <input
+                  type="number"
+                  class="form-control"
+                  name="ne_power_level_rx"
+                  ng-model="selectedTsd.ne_power_levels_rx"
+                  required
+                  ng-pattern="ne_power_level_rxPattern"
+                  ng-change="ne_power_level_rxChanged()"
+                  disabled
+                />
+                <span class="input-group-addon"
+                  >original: {{oldTsd.ne_power_levels_rx}}</span
+                >
+              </div>
+              <label
+                class="error"
+                ng-if="kcell_form.ne_power_level_rx.$error.required && ( kcell_form.ne_power_level_rx.$touched || view.submitted)"
+                >Required field</label
+              >
+              <label
+                class="error"
+                ng-if="kcell_form.ne_power_level_rx.$error.pattern && ( kcell_form.ne_power_level_rx.$touched || view.submitted)"
+                >Invalid format (format -XX required)</label
+              >
+            </td>
+            <td>Tx</td>
+            <td align="center">
+              <input
+                type="number"
+                class="form-control"
+                ng-if="startTsd.fe_power_levels_tx === oldTsd.fe_power_levels_tx"
+                name="fe_power_level_tx"
+                ng-model="selectedTsd.fe_power_levels_tx"
+                disabled
+              />
+              <div
+                class="input-group"
+                style="width: 100%"
+                ng-show="startTsd.fe_power_levels_tx !== oldTsd.fe_power_levels_tx"
+              >
+                <input
+                  type="number"
+                  class="form-control"
+                  name="fe_power_level_tx"
+                  ng-model="selectedTsd.fe_power_levels_tx"
+                  disabled
+                />
+                <span class="input-group-addon"
+                  >original: {{oldTsd.fe_power_levels_tx}}</span
+                >
+              </div>
+            </td>
+            <td>Rx</td>
+            <td align="center">
+              <input
+                type="number"
+                class="form-control"
+                ng-if="startTsd.fe_power_levels_rx === oldTsd.fe_power_levels_rx"
+                name="fe_power_level_rx"
+                ng-model="selectedTsd.fe_power_levels_rx"
+                disabled
+              />
+              <div
+                class="input-group"
+                style="width: 100%"
+                ng-show="startTsd.fe_power_levels_rx !== oldTsd.fe_power_levels_rx"
+              >
+                <input
+                  type="number"
+                  class="form-control"
+                  name="fe_power_level_rx"
+                  ng-model="selectedTsd.fe_power_levels_rx"
+                  disabled
+                />
+                <span class="input-group-addon"
+                  >original: {{oldTsd.fe_power_levels_rx}}</span
+                >
+              </div>
+            </td>
+          </tr>
+          <!--                <tr>-->
+          <!--                    <td align="right" colspan="2">Power levels (W):</td>-->
+          <!--                    <td>Tx</td>-->
+          <!--                    <td align="center">-->
+          <!--                        &lt;!&ndash; <div class="form-control disabled">{{calculatePower(selectedTsd.ne_power_levels_tx)}}</div> &ndash;&gt;-->
+          <!--                    </td>-->
+          <!--                    <td>Rx</td>-->
+          <!--                    <td align="center">-->
+          <!--                        &lt;!&ndash; <div class="form-control disabled">{{calculatePower(selectedTsd.ne_power_levels_rx)}}</div> &ndash;&gt;-->
+          <!--                    </td>-->
+          <!--                    <td>Tx</td>-->
+          <!--                    <td align="center">-->
+          <!--                        &lt;!&ndash; <div class="form-control disabled">{{calculatePower(selectedTsd.fe_power_levels_tx)}}</div> &ndash;&gt;-->
+          <!--                    </td>-->
+          <!--                    <td>Rx</td>-->
+          <!--                    <td align="center">-->
+          <!--                        &lt;!&ndash; <div class="form-control disabled">{{calculatePower(selectedTsd.fe_power_levels_rx)}}</div> &ndash;&gt;-->
+          <!--                    </td>-->
+          <!--                </tr>-->
+          <tr>
+            <td align="right" colspan="2">Protection line power levels:</td>
+            <td>Tx</td>
+            <td align="center">
+              <input
+                type="number"
+                class="form-control"
+                ng-if="startTsd.ne_power_levels_tx_protect === oldTsd.ne_power_levels_tx_protect"
+                name="ne_protection_power_level_tx"
+                ng-model="selectedTsd.ne_power_levels_tx_protect"
+                ng-pattern="ne_power_level_txPattern"
+                ng-change="ne_protection_power_level_txChanged()"
+                disabled
+              />
+              <div
+                class="input-group"
+                style="width: 100%"
+                ng-show="startTsd.ne_power_levels_tx_protect !== oldTsd.ne_power_levels_tx_protect"
+              >
+                <input
+                  type="number"
+                  class="form-control"
+                  name="ne_protection_power_level_tx"
+                  ng-model="selectedTsd.ne_power_levels_tx_protect"
+                  ng-pattern="ne_power_level_txPattern"
+                  ng-change="ne_protection_power_level_txChanged()"
+                  disabled
+                />
+                <span class="input-group-addon"
+                  >original: {{oldTsd.ne_power_levels_tx_protect}}</span
+                >
+              </div>
+              <label
+                class="error"
+                ng-if="kcell_form.ne_protection_power_level_tx.$error.pattern && ( kcell_form.ne_protection_power_level_tx.$touched || view.submitted)"
+                >Invalid format (XX or -XX required)</label
+              >
+            </td>
+            <td>Rx</td>
+            <td align="center">
+              <input
+                type="number"
+                class="form-control"
+                ng-if="startTsd.ne_power_levels_rx_protect === oldTsd.ne_power_levels_rx_protect"
+                name="ne_protection_power_level_rx"
+                ng-model="selectedTsd.ne_power_levels_rx_protect"
+                ng-pattern="ne_power_level_rxPattern"
+                ng-change="ne_protection_power_level_rxChanged()"
+                disabled
+              />
+              <div
+                class="input-group"
+                style="width: 100%"
+                ng-show="startTsd.ne_power_levels_rx_protect !== oldTsd.ne_power_levels_rx_protect"
+              >
+                <input
+                  type="number"
+                  class="form-control"
+                  name="ne_protection_power_level_rx"
+                  ng-model="selectedTsd.ne_power_levels_rx_protect"
+                  ng-pattern="ne_power_level_rxPattern"
+                  ng-change="ne_protection_power_level_rxChanged()"
+                  disabled
+                />
+                <span class="input-group-addon"
+                  >original: {{oldTsd.ne_power_levels_rx_protect}}</span
+                >
+              </div>
+              <label
+                class="error"
+                ng-if="kcell_form.ne_protection_power_level_rx.$error.pattern && ( kcell_form.ne_protection_power_level_rx.$touched || view.submitted)"
+                >Invalid format (format -XX required)</label
+              >
+            </td>
+            <td>Tx</td>
+            <td align="center">
+              <input
+                type="number"
+                class="form-control"
+                ng-if="startTsd.fe_power_levels_tx_protect === oldTsd.fe_power_levels_tx_protect"
+                name="fe_protection_power_level_tx"
+                ng-model="selectedTsd.fe_power_levels_tx_protect"
+                disabled
+              />
+              <div
+                class="input-group"
+                style="width: 100%"
+                ng-show="startTsd.fe_power_levels_tx_protect !== oldTsd.fe_power_levels_tx_protect"
+              >
+                <input
+                  type="number"
+                  class="form-control"
+                  name="fe_protection_power_level_tx"
+                  ng-model="selectedTsd.fe_power_levels_tx_protect"
+                />
+                <span class="input-group-addon"
+                  >original: {{oldTsd.fe_power_levels_tx_protect}}</span
+                >
+              </div>
+            </td>
+            <td>Rx</td>
+            <td align="center">
+              <input
+                type="number"
+                class="form-control"
+                ng-if="startTsd.fe_power_levels_rx_protect === oldTsd.fe_power_levels_rx_protect"
+                name="fe_protection_power_level_rx"
+                ng-model="selectedTsd.fe_power_levels_rx_protect"
+                disabled
+              />
+              <div
+                class="input-group"
+                style="width: 100%"
+                ng-show="startTsd.fe_power_levels_rx_protect !== oldTsd.fe_power_levels_rx_protect"
+              >
+                <input
+                  type="number"
+                  class="form-control"
+                  name="fe_protection_power_level_rx"
+                  ng-model="selectedTsd.fe_power_levels_rx_protect"
+                  disabled
+                />
+                <span class="input-group-addon"
+                  >original: {{oldTsd.fe_power_levels_rx_protect}}</span
+                >
+              </div>
+            </td>
+          </tr>
+          <!--                <tr>-->
+          <!--                    <td align="right" colspan="2">Protection line power levels (W):</td>-->
+          <!--                    <td>Tx</td>-->
+          <!--                    <td align="center">-->
+          <!--                        &lt;!&ndash; <div class="form-control disabled">{{calculatePower(selectedTsd.ne_power_levels_tx_protect)}}</div> &ndash;&gt;-->
+          <!--                    </td>-->
+          <!--                    <td>Rx</td>-->
+          <!--                    <td align="center">-->
+          <!--                        &lt;!&ndash; <div class="form-control disabled">{{calculatePower(selectedTsd.ne_power_levels_rx_protect)}}</div> &ndash;&gt;-->
+          <!--                    </td>-->
+          <!--                    <td>Tx</td>-->
+          <!--                    <td align="center">-->
+          <!--                        &lt;!&ndash; <div class="form-control disabled">{{calculatePower(selectedTsd.fe_power_levels_tx_protect)}}</div> &ndash;&gt;-->
+          <!--                    </td>-->
+          <!--                    <td>Rx</td>-->
+          <!--                    <td align="center">-->
+          <!--                        &lt;!&ndash; <div class="form-control disabled">{{calculatePower(selectedTsd.fe_power_levels_rx_protect)}}</div> &ndash;&gt;-->
+          <!--                    </td>-->
+          <!--                </tr>-->
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <div class="form-group resolution">
+    <label class="col-sm-2 control-label bolder"
+      ><b>e-license request number:</b></label
+    >
+    <div class="col-sm-3">
+      <input class="form-control" ng-model="eLicenseNumber" disabled />
+    </div>
+    <label class="col-sm-2 col-sm-offset-2 control-label"><b>Date:</b></label>
+    <div class="col-sm-2">
+      <div class="form-control" style="background-color: #eee; width: 100%">
+        {{eLicenseDate | date: 'dd.MM.yyyy'}}
+      </div>
+    </div>
+  </div>
+
+  <div class="form-group resolution">
+    <label class="col-sm-2 control-label bolder">Resolution:</label>
+    <div class="col-sm-8">
+      <label class="radio-inline">
+        <input
+          type="radio"
+          ng-model="enterRfsChangetsdTaskResult"
+          name="enterRfsChangetsdTaskResult"
+          value="approved"
+          required
+        />
+        RFS approved
+      </label>
+      <label class="radio-inline">
+        <input
+          type="radio"
+          ng-model="enterRfsChangetsdTaskResult"
+          name="enterRfsChangetsdTaskResult"
+          value="rejected"
+          required
+        />
+        RFS rejected
+      </label>
+      <label
+        class="error"
+        ng-show="kcell_form.enterRfsChangetsdTaskResult.$error.required && ( kcell_form.enterRfsChangetsdTaskResult.$touched || view.submitted)"
+        >Required field</label
+      >
+    </div>
+  </div>
+
+  <div
+    class="form-group resolution"
+    ng-if="enterRfsChangetsdTaskResult==='approved'"
+  >
+    <div class="col-sm-2">
+      <label class="bolder">RFS permission number:</label>
+    </div>
+    <div class="col-sm-3">
+      <input
+        class="form-control"
+        type="number"
+        name="rfsPermitionNumber"
+        ng-model="$parent.rfsPermitionNumber"
+        ng-required="enterRfsChangetsdTaskResult === 'approved'"
+      />
+      <label
+        class="error"
+        ng-show="kcell_form.rfsPermitionNumber.$error.required && ( kcell_form.rfsPermitionNumber.$touched || view.submitted)"
+        >Required field</label
+      >
+    </div>
+    <label class="col-sm-2 col-sm-offset-2">Date:</label>
+    <div class="col-sm-2">
+      <div class="input-group">
+        <input
+          type="text"
+          ng-model="$parent.rfsPermitionDate"
+          name="rfsPermitionDate"
+          ng-required="enterRfsChangetsdTaskResult === 'approved'"
+          class="form-control"
+          datepicker-popup="dd.MM.yyyy"
+          is-open="dateOpened"
+          id="rfsPermitionDate"
+        />
+        <label
+          class="error"
+          ng-show="kcell_form.rfsPermitionDate.$error.required && ( kcell_form.rfsPermitionDate.$touched || view.submitted)"
+          >Required field</label
+        >
+        <span class="input-group-btn">
+          <button
+            type="button"
+            class="btn btn-default"
+            ng-click="dateOpened = true"
+          >
+            <i class="glyphicon glyphicon-calendar"></i>
+          </button>
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <div class="form-group">
+    <label class="col-sm-2 control-label">Comments</label>
+    <div class="col-sm-10">
+      <textarea
+        class="form-control"
+        rows="4"
+        maxlength="500"
+        name="enterRfsChangetsdTaskComment"
+        ng-model="enterRfsChangetsdTaskComment"
+      ></textarea>
+      <label
+        class="error"
+        ng-show="kcell_form.enterRfsChangetsdTaskComment.$error.required && ( kcell_form.enterRfsChangetsdTaskComment.$touched || view.submitted)"
+        >Required field</label
+      >
+    </div>
+  </div>
+</form>

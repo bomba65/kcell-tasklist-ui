@@ -1,0 +1,280 @@
+<form role="form" class="form-horizontal" name="kcell_form" novalidate>
+    <script cam-script type="text/form-script" type="text/javascript">
+        inject(['$scope', '$http', 'Uri', '$rootScope', '$q', '$timeout', function ($scope, $http, Uri, $rootScope, $q, $timeout) {
+            var variables = [
+                'resolutions',
+                'ncpID',
+                'siteType',
+                'regionName',
+                'latitude',
+                'longitude',
+                'initiator',
+                'project',
+                'reason',
+                'part',
+                'plannedCabinetType',
+                'targetCoverage',
+                'rbsType',
+                'bands',
+                'rrFile',
+                'newCandidateRRFiles',
+                'candidate',
+                'cellAntenna',
+                'renterCompany',
+                'transmissionAntenna',
+                'powerSource',
+                'farEndInformation',
+                'receivingTSForCandiateSiteFiles',
+                'receivingContractPSDFiles',
+                'receivingApprovalFromTheLandlordFiles',
+                'modifyCandidateRRFiles',
+                'estimateTechnicalCapabilityResFiles',
+                'registrationCommercialOfferFiles',
+                'preparationSSIDandTSSRFiles',
+                'requestTechnicalParametersKTFiles',
+                'confirmPaymentDevelopmentOfTCKTFiles',
+                'receivingTSFiles',
+                'signingLeaseContractAddAgreementKTFiles',
+                'sendMessageToStartPaymentKTFiles',
+                'reqKZTRwithTechEquipmentParamsFiles',
+                'receivingContractDevDesignEstimateFiles',
+                'confirmReceiptEstimateFiles',
+                'receivingContractInstallationWorksFiles',
+                'requestTechnicalParametersKPFiles',
+                'confirmReceiptResponseKPFiles',
+                'signingLeaseContractAddAgreementKPFiles',
+                'sendMessageToStartPaymentKPFiles',
+                'requestTechnicalParametersKTForFEFiles',
+                'confirmPaymentDevelopmentOfTCKTForFEFiles',
+                'receivingTSForFEFiles',
+                'signingLeaseContractAddAgreementForFEFiles',
+                'sendMessageToStartPaymentKTForFEFiles',
+                'reqKZTRwithTechEquipmentParamsForFEFiles',
+                'receivingContractDevDesignEstimateForFEFiles',
+                'registrationCommercialOfferForFEFiles',
+                'confirmReceiptEstimateForFEFiles',
+                'receivingContractInstallationWorksForFEFiles',
+                'requestTechnicalParametersKPForFEFiles',
+                'confirmReceiptResponseKPForFEFiles',
+                'signingLeaseContractAddAgreementKPForFEFiles',
+                'sendMessageToStartPaymentKPForFEFiles',
+                'contractRentLoadingSAPFiles',
+                'approvalContractRentInSAPFiles',
+                'powerContractLoadingInSAPFiles',
+                'approvalPowerContractInSAPFiles',
+                'uploadSignedOwnerLeaseContractFiles',
+                'confirmReceiptOfTSfromRESforCandidateFiles',
+                'connectionFromOwnerNetworksFiles',
+                'requestForAdmissionForWorkOnTUFiles',
+                'address',
+                'ne_tr_parameters',
+                'ne_tr_rate',
+            ];
+
+            camForm.on('form-loaded', function () {
+                variables.forEach(function (el) {
+                    camForm.variableManager.fetchVariable(el);
+                });
+                $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
+                        function(result){
+                            $scope.processInstanceId = result.data.processInstanceId;
+                            $http.get('/camunda/api/engine/engine/default/process-instance/' + $scope.processInstanceId).then(
+                                function(result){
+                                    console.log('process-instance/')
+                                    console.log(result.data)
+                                    $scope.businessKey = result.data.businessKey;
+                                },
+                                function (error) {console.log(error.data);}
+                            );
+                        },
+                        function (error) {
+                            console.log(error.data);
+                        }
+                );
+                $scope.leasingCandidate = {};
+            });
+
+            camForm.on('variables-fetched', function () {
+                $scope.requestForAdmissionForWorkOnTUFiles = [];
+                variables.forEach(function (el) {
+                    if(camForm.variableManager.variables[el].value){
+                        $scope[el] = camForm.variableManager.variables[el].value;
+                        $scope.leasingCandidate[el] = camForm.variableManager.variables[el].value;
+                    }
+                });
+                camForm.variableManager.createVariable({
+                    name: 'requestForAdmissionForWorkOnTUTaskResult',
+                    type: 'String',
+                    value: ''
+                });
+                camForm.variableManager.createVariable({
+                    name: 'requestForAdmissionForWorkOnTUTaskComment',
+                    type: 'String',
+                    value: ''
+                });
+
+                $scope.requestForAdmissionForWorkOnTUTaskResult = '';
+                $scope.view.variablesFetched = true;
+            });
+
+            camForm.on('submit', function () {
+                camForm.variableManager.variableValue('requestForAdmissionForWorkOnTUTaskResult', $scope.requestForAdmissionForWorkOnTUTaskResult);
+                camForm.variableManager.variableValue('requestForAdmissionForWorkOnTUTaskComment', $scope.requestForAdmissionForWorkOnTUTaskComment);
+
+                if(!camForm.variableManager.variables['requestForAdmissionForWorkOnTUFiles'].type){
+                    camForm.variableManager.destroyVariable('requestForAdmissionForWorkOnTUFiles');
+                    camForm.variableManager.createVariable({
+                        name: 'requestForAdmissionForWorkOnTUFiles',
+                        type: 'Json',
+                        value: $scope.requestForAdmissionForWorkOnTUFiles
+                    });
+                } else {
+                    camForm.variableManager.variableValue('requestForAdmissionForWorkOnTUFiles', $scope.requestForAdmissionForWorkOnTUFiles);
+                }
+                camForm.variableManager.destroyVariable('resolutions');
+            });
+
+            $scope.fileSelected = function (el, fileName) {
+                $timeout(function () {
+                    $scope.$apply(function () {
+                        uploadFileToMinio(el.files[0], fileName);
+                    });
+                })
+            };
+
+            function uploadFileToMinio(file, fileName) {
+                var fileIndex = $scope[fileName].length;
+
+                var fileToUpload = {
+                    name: file.name.replace(/[/\\?%*:|"<>]/g, '-'),
+                    path: $scope.processInstanceId + '/' + camForm.taskId + '/' + file.name.replace(/[/\\?%*:|"<>]/g, '-')
+                };
+                $http({
+                    method: 'GET',
+                    url: '/camunda/uploads/put/' + fileToUpload.path,
+                    transformResponse: []
+                }).then(function (response) {
+                    $http.put(response.data, file, {headers: {'Content-Type': undefined}}).then(
+                            function () {
+                                $scope[fileName].push(fileToUpload);
+                                angular.element(document.querySelector('#' + fileName)).val(null);
+                            },
+                            function (error) {
+                                console.log(error.data);
+                            }
+                    );
+                }, function(error){
+                    console.log(error.data);
+                });
+            }
+
+            $scope.singleFileSelected = function (el, fileName) {
+                $timeout(function () {
+                    $scope.$apply(function () {
+                        uploadSingleFileToMinio(el.files[0], fileName);
+                    });
+                })
+            };
+
+            function uploadSingleFileToMinio(file, fileName) {
+                var fileToUpload = {
+                    name: file.name.replace(/[/\\?%*:|"<>]/g, '-'),
+                    path: $scope.processInstanceId + '/' + camForm.taskId + '/' + file.name.replace(/[/\\?%*:|"<>]/g, '-')
+                };
+                $http({
+                    method: 'GET',
+                    url: '/camunda/uploads/put/' + fileToUpload.path,
+                    transformResponse: []
+                }).then(function (response) {
+                    $http.put(response.data, file, {headers: {'Content-Type': undefined}}).then(
+                            function () {
+                                $scope[fileName] = fileToUpload;
+                                angular.element(document.querySelector('#' + fileName)).val(null);
+                            },
+                            function (error) {
+                                console.log(error.data);
+                            }
+                    );
+                }, function(error){
+                    console.log(error.data);
+                });
+            }
+
+            $scope.clearFile = function (list, fileIndex) {
+                $scope[list].splice(fileIndex, 1);
+            }
+
+            $scope.clearSingleFile = function (list) {
+                $scope[list] = undefined;
+            }
+
+            $scope.fileDownload = function (file) {
+                $http({
+                    method: 'GET',
+                    url: '/camunda/uploads/get/' + file.path,
+                    transformResponse: []
+                }).then(function (response) {
+                    document.getElementById('fileDownloadIframe').src = response.data;
+                }, function(error){
+                    console.log(error.data);
+                });
+            }
+        }]);
+
+    </script>
+    <div class="form-group">
+        <label class="col-sm-12 control-label">
+            <p/> <b>Business key: </b>{{businessKey}}
+        </label>
+    </div>
+     <leasing-candidate ng-if="view.variablesFetched" leasing-candidate="leasingCandidate"></leasing-candidate>
+
+    <iframe id="fileDownloadIframe" style="display:none;"></iframe>
+
+    <div class="form-group">
+        <label class="col-md-4 control-label">Download RR:</label>
+        <div class="col-sm-8">
+            <a ng-click="fileDownload(rrFile)">{{rrFile.name}}</a>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-md-4 control-label">RR files:</label>
+        <div class="col-sm-8">
+            <div ng-show="newCandidateRRFiles.length > 0" class="input-group" ng-repeat="file in newCandidateRRFiles">
+                {{$index + 1}}.
+                <a ng-click="fileDownload(file)">{{file.name}}</a>
+            </div>
+        </div>
+    </div>
+
+    <leasing-files leasing-files="leasingCandidate"></leasing-files>
+
+    <div class="form-group">
+        <label class="col-md-4 control-label">Signed contract:</label>
+        <div class="col-sm-8">
+            <div ng-show="uploadSignedOwnerLeaseContractFiles.length > 0" class="input-group" ng-repeat="file in uploadSignedOwnerLeaseContractFiles">
+                <a ng-click="fileDownload(file)">{{file.name}}</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label class="col-md-4 control-label">Upload files:</label>
+        <div class="col-sm-8">
+            <div ng-show="requestForAdmissionForWorkOnTUFiles.length > 0" class="input-group" ng-repeat="file in requestForAdmissionForWorkOnTUFiles">
+                {{$index + 1}}.
+                <a ng-click="fileDownload(file)">{{file.name}}</a> | <a ng-click="clearFile('requestForAdmissionForWorkOnTUFiles', $index)"><i class="glyphicon glyphicon-trash"></i></a>
+            </div>
+            <ng-form name="kcell_material_file_form">
+                <input type="file" class="form-control" id="requestForAdmissionForWorkOnTUFiles" name="requestForAdmissionForWorkOnTUFiles" ng-model="file.file" onchange="angular.element(this).scope().fileSelected(this, 'requestForAdmissionForWorkOnTUFiles')"/>
+            </ng-form>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label class="col-sm-4 control-label">Comments</label>
+        <div class="col-sm-8">
+            <textarea class="form-control" ng-model="requestForAdmissionForWorkOnTUTaskComment" name="requestForAdmissionForWorkOnTUTaskComment" placeholder="Comments..." maxlength="500" rows="4" style="resize:none"></textarea>
+        </div>
+    </div>
+</form>

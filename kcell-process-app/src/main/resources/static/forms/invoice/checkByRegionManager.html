@@ -1,0 +1,170 @@
+<form role="form" class="form-horizontal" name="kcell_form" novalidate>
+    <script cam-script type="text/form-script">
+        inject(['$scope', '$http', 'Uri', '$rootScope', '$q', 'Upload', '$timeout', function ($scope, $http, Uri, $rootScope, $q, Upload, $timeout) {
+            var variables = [
+                'initiatorFull',
+                'region',
+                'workType',
+                'regionLabel',
+                'workTypeLabel',
+                'periodDate',
+                'jobRequests',
+                'resolutions',
+                'selectedRevisions',
+                'regularDelay',
+                'emergencyDelay',
+                'monthActNumber',
+                'formalPeriod',
+                'monthOfFormalPeriod',
+                'yearOfFormalPeriod',
+                'mainContract',
+                'rolloutActType',
+                'invoiceNumber',
+                'delayChanges'
+            ];
+
+            $scope.invoice = {};
+            $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
+                    function (result) {
+                        $scope.processInstanceId = result.data.processInstanceId;
+                    },
+                    function (error) {
+                        console.log(error.data);
+                    }
+            );
+            camForm.on('form-loaded', function () {
+                variables.forEach(function (el) {
+                    camForm.variableManager.fetchVariable(el);
+                });
+                camForm.variableManager.createVariable({
+                    name: 'regionManagerTaskResult',
+                    type: 'String',
+                    value: ''
+                });
+                camForm.variableManager.createVariable({
+                    name: 'regionManagerCommentVisibility',
+                    type: 'String',
+                    value: ''
+                });
+                $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name + "/profile").then(function (result) {
+                    $rootScope.authentication.assigneeName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
+                });
+            });
+            camForm.on('variables-fetched', function () {
+                variables.forEach(function (el) {
+                    if (el === 'resolutions') {
+                        $scope.resolutions = angular.copy(camForm.variableManager.variables[el].value);
+                    } else {
+                        $scope.invoice[el] = camForm.variableManager.variables[el];
+                    }
+                    $scope[el] = camForm.variableManager.variables[el].value;
+                });
+                angular.forEach($scope.selectedRevisions, function (value, key) {
+                    if (!value.workPrices) {
+                        $http.get("/camunda/api/engine/engine/default/process-instance/" + key + "/variables/workPrices?deserializeValue=false").then(function (result) {
+                            $scope.selectedRevisions[key].workPrices = JSON.parse(result.data.value);
+                            console.log($scope.selectedRevisions);
+                        }, function (error) {
+                            console.log(error.data);
+                        });
+                    }
+                    if (!value.sapPRNo) {
+                        $http.get("/camunda/api/engine/engine/default/process-instance/" + key + "/variables/sapPRNo?deserializeValue=false").then(function (result) {
+                            $scope.selectedRevisions[key].sapPRNo = result.data.value;
+                        }, function (error) {
+                            console.log(error.data);
+                        });
+                    }
+                    if (!value.sapPONo) {
+                        $http.get("/camunda/api/engine/engine/default/process-instance/" + key + "/variables/sapPONo?deserializeValue=false").then(function (result) {
+                            $scope.selectedRevisions[key].sapPONo = result.data.value;
+                        }, function (error) {
+                            console.log(error.data);
+                        });
+                    }
+                });
+                $timeout(function(){
+                    $scope.invoice.selectedRevisions.value = $scope.selectedRevisions;
+                }, 1000);
+            });
+
+            camForm.on('submit', function (event) {
+                camForm.variableManager.variableValue('regionManagerTaskResult', $scope.regionManagerTaskResult);
+                camForm.variableManager.createVariable({
+                    name: 'ma_sign_region_managerTaskResult',
+                    type: 'String',
+                    value: $scope.regionManagerTaskResult
+                });
+                if ($scope.regionManagerComment) {
+                    camForm.variableManager.variableValue('regionManagerComment', $scope.regionManagerComment);
+                    camForm.variableManager.createVariable({
+                        name: 'ma_sign_region_managerTaskComment',
+                        type: 'String',
+                        value: $scope.regionManagerComment
+                    });
+                }
+                if ($scope.regionManagerCommentVisibility) {
+                    camForm.variableManager.variableValue('regionManagerCommentVisibility', $scope.regionManagerCommentVisibility);
+                    camForm.variableManager.createVariable({
+                        name: 'ma_sign_region_managerTaskCommentVisibility',
+                        type: 'String',
+                        value: $scope.regionManagerCommentVisibility
+                    });
+                }
+                camForm.variableManager.destroyVariable('resolutions');
+
+                camForm.variableManager.variableValue('selectedRevisions', angular.copy($scope.selectedRevisions));
+            });
+
+            camForm.on('store', function () {
+                camForm.variableManager.variableValue('regionManagerTaskResult', $scope.regionManagerTaskResult);
+            });
+
+            $scope.isVisible = function (resolution) {
+                return !resolution.visibility || resolution.visibility === 'all' || (resolution.visibility === 'kcell' && $rootScope.hasGroup('kcellUsers'));
+            }
+
+            $scope.hasComment = function () {
+                return $scope.regionManagerComment && $rootScope.hasGroup('kcellUsers');
+            }
+        }]);
+    </script>
+
+    <h4>Monthly Act #{{monthActNumber}} of accepted {{invoice.workTypeLabel.value}} according to "Contract Agreement for Revision Works Performing" between АО "Кселл"/Kcell JSC and "Line System Engineering" LLP/ТОО "Line System Engineering" for {{formalPeriod}}. </h4>
+
+    <invoice-detail invoice="invoice"></invoice-detail>
+
+    <div class="form-group">
+        <label class="col-sm-4 control-label">Resolution</label>
+        <div class="col-sm-8">
+            <label class="radio-inline">
+                <input type="radio" name="regionManagerTaskResult" ng-model="regionManagerTaskResult" value="accept" required> Accept and sign
+            </label>
+            <label class="radio-inline">
+                <input type="radio" name="regionManagerTaskResult" ng-model="regionManagerTaskResult" value="returnForCorrection" required> Return for correction
+            </label>
+            <label class="error" ng-show="kcell_form.regionManagerTaskResult.$error.required && ( kcell_form.regionManagerTaskResult.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-4 control-label">Comments</label>
+        <div class="col-sm-8">
+            <textarea class="form-control" rows="4" maxlength="500" cam-variable-name="regionManagerComment" name="regionManagerComment" ng-required="regionManagerTaskResult == 'returnForCorrection'" cam-variable-type="String"></textarea>
+            <label class="error" ng-show="kcell_form.regionManagerComment.$error.required && ( kcell_form.regionManagerComment.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+    <div class="form-group" ng-show="hasComment()">
+        <label class="col-sm-4 control-label">Comments visibility</label>
+        <div class="col-sm-8">
+            <label class="radio-inline">
+                <input type="radio" name="regionManagerCommentVisibility"
+                       ng-model="regionManagerCommentVisibility" value="all" ng-required="hasComment()"> Visible for all
+            </label>
+            <label class="radio-inline">
+                <input type="radio" name="regionManagerCommentVisibility"
+                       ng-model="regionManagerCommentVisibility" value="kcell" ng-required="hasComment()"> Kcell staff only
+            </label>
+            <label class="error" ng-show="kcell_form.regionManagerCommentVisibility.$error.required && ( kcell_form.regionManagerCommentVisibility.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+</form>

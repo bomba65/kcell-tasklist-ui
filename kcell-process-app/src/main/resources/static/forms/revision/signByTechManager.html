@@ -1,0 +1,246 @@
+<style>
+    .well {
+        color: #333;
+    }
+</style>
+<form role="form" class="form-horizontal" name="kcell_form" novalidate>
+    <script cam-script type="text/form-script">
+        inject(['$scope', '$http', 'Uri', '$rootScope', '$q', '$timeout', function ($scope, $http, Uri, $rootScope, $q, $timeout) {
+            var variables = [
+                'requestedDate',
+                'jrNumber',
+                'initiatorFull',
+                'validityDate',
+                'soaComplaintId',
+                'site',
+                'siteName',
+                'siteAddress',
+                'site_name',
+                'reason',
+                'contract',
+                'contractor',
+                'materialsRequired',
+                'leasingRequired',
+                'powerRequired',
+                'project',
+                'supplementaryFiles',
+                'explanation',
+                'resolutions',
+                'workPrices',
+                'jobWorksTotal',
+                'jobWorks',
+                'jrBlank',
+                'tssrssidFile',
+                'tssrssidFileName',
+                'kcellWarehouseMaterialsList',
+                'contractorZIPWarehouseMaterialsList',
+                'kcellWarehouseMaterialsListName',
+                'kcellWarehouseMaterialsAdditionalList',
+                'contractorZIPWarehouseMaterialsListName',
+                'priority',
+                'mlApprovalAdditionalInfoFile',
+                'contractorJobAssignedDate',
+                'mainContract'
+            ];
+
+            $scope.jobModel = {};
+
+            var Big;
+            if(window.require){
+                $scope.Big = require('big-js')
+                Big = require('big-js')
+            }
+            $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
+                    function(result){
+                        $scope.processInstanceId = result.data.processInstanceId;
+                    },
+                    function (error) {
+                        console.log(error.data);
+                    }
+            );
+            camForm.on('form-loaded', function () {
+                variables.forEach(function (el) {
+                    camForm.variableManager.fetchVariable(el);
+                });
+
+                $http.get($rootScope.getCatalogsHttpByName('catalogs')).then(
+                        function (result) {
+                            angular.extend($scope, result.data);
+                            angular.extend($scope.jobModel, result.data);
+                        },
+                        function (error) {
+                            console.log(error.data);
+                        }
+                );
+                camForm.variableManager.createVariable({
+                    name: 'signByTechManagerTaskResult',
+                    type: 'String',
+                    value: ''
+                });
+                $scope.signByTechManagerTaskResult = '';
+                camForm.variableManager.variableValue('signByTechManagerTaskResult', $scope.signByTechManagerTaskResult);
+            });
+            camForm.on('variables-fetched', function () {
+                variables.forEach(function (el) {
+                    if(el === 'workPrices'){
+                        $scope.jobModel[el] = JSON.parse(camForm.variableManager.variables[el].originalValue);
+                    } else if(el === 'sapPRFileXLSName'){
+                        $scope[el] = camForm.variableManager.variables[el];
+                    } else {
+                        $scope.jobModel[el] = camForm.variableManager.variables[el];
+                    }
+                    if (el === 'resolutions') {
+                        $scope[el] = camForm.variableManager.variables[el].value;
+                    }
+                });
+                $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name+ "/profile").then(function(result){
+                    $rootScope.authentication.assigneeName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
+                });
+                if(camForm.variableManager.variables['signByTechManagerComment']){
+                    camForm.variableManager.variableValue('signByTechManagerComment', '');
+                }
+            });
+            camForm.on('submit', function (e) {
+                camForm.variableManager.variableValue('signByTechManagerTaskResult', $scope.signByTechManagerTaskResult);
+                camForm.variableManager.createVariable({
+                    name: 'signpr_by_managerTaskResult',
+                    type: 'String',
+                    value: $scope.signByTechManagerTaskResult
+                });
+                var visibility = 'all';
+                if($scope.signByTechManagerComment && $scope.signByTechManagerCommentVisibility){
+                    visibility = $scope.signByTechManagerCommentVisibility;
+                    camForm.variableManager.createVariable({
+                        name: 'signpr_by_managerTaskCommentVisibility',
+                        type: 'String',
+                        value: visibility
+                    });
+                }
+                camForm.variableManager.createVariable({
+                    name: 'signpr_by_managerTaskComment',
+                    type: 'String',
+                    value: $scope.signByTechManagerComment
+                });
+                camForm.variableManager.destroyVariable('resolutions');
+            });
+
+            camForm.on('store', function() {
+                camForm.variableManager.variableValue('signByTechManagerTaskResult', $scope.signByTechManagerTaskResult);
+            });
+
+            camForm.on('variables-restored', function() {
+                $scope.signByTechManagerTaskResult = camForm.variableManager.variableValue('signByTechManagerTaskResult');
+            });
+
+            $scope.isVisible = function (resolution) {
+                return !resolution.visibility || resolution.visibility === 'all' || (resolution.visibility === 'kcell' && $rootScope.hasGroup('kcellUsers'));
+            }
+
+            $scope.hasComment = function () {
+                return $scope.signByTechManagerComment && $rootScope.hasGroup('kcellUsers');
+            }
+
+            $scope.calculateBasePriceByQuantity = function(work){
+                var unitWorkPrice = Big(work.unitWorkPrice);
+                var quantity = Big(work.quantity);
+                var result = unitWorkPrice.times(quantity);
+                return result.toFixed(2).replace('.',',');
+            }
+
+            $scope.calculateBasePriceTotal = function(){
+                var total = Big(0.0);
+                angular.forEach($scope.jobModel.workPrices, function(work){
+                    total = total.plus((work.basePriceByQuantity? Big(work.basePriceByQuantity) : Big(work.unitWorkPrice).times(Big(work.quantity))));
+                });
+                return total.toFixed(2).replace('.',',');
+            }
+        }]);
+    </script>
+    <job-request job-model="jobModel"></job-request>
+    <div class="row">
+        <table class="table table-condensed">
+            <thead>
+            <tr>
+                <th width="30%">Works</th>
+                <th>Works Qty</th>
+                <th>Materials Qty</th>
+                <th>Sites</th>
+                <th>Base Price</th>
+                <th>Base + Transportation +8%</th>
+                <th>Base Price * works q-ty</th>
+                <th>1 work price per site Sum/site q-ty</th>
+                <th>Sum * works q-ty</th>
+                <th style="text-align:right;font-weight: bold;font-size: 16px;background-color: lightpink;">Total</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr ng-repeat="work in jobModel.workPrices">
+                <td>{{work.displayServiceName}}</td>
+                <td>{{work.quantity}}</td>
+                <td>{{work.materialQuantity}}</td>
+                <td><span ng-repeat="rs in work.relatedSites" class="my-tag" ng-class="{'main-site':rs.site_name===jobModel.site_name.value}"><span ng-if="rs.site_name===jobModel.site_name.value">Main Site: </span>{{rs.site_name}}</span></td>
+                <td>{{work.unitWorkPrice.replace('.',',')}}&nbsp;&#8376;</td>
+                <td>{{work.unitWorkPricePlusTx.replace('.',',')}}&nbsp;&#8376;</td>
+                <td>{{work.basePriceByQuantity ? work.basePriceByQuantity.replace('.',',') : calculateBasePriceByQuantity(work)}}&nbsp;&#8376;</td>
+                <td><span ng-if="work.unitWorkPricePerSite >= 0">{{work.unitWorkPricePerSite.replace('.',',')}}&nbsp;&#8376;</span></td>
+                <td><span ng-if="work.netWorkPricePerSite >= 0">{{work.netWorkPricePerSite.replace('.',',')}}&nbsp;&#8376;</span></td>
+                <td style="text-align:right;font-weight: bold;font-size: 16px;background-color: lightpink;"><span style="padding: 6px 0px;display: inline-block;">{{work.total.replace('.',',')}}</span></td>
+            </tr>
+            <tr>
+                <th colspan="6">Total</th>
+                <th>{{calculateBasePriceTotal()}}</th>
+                <th></th>
+                <th>{{jobModel.jobWorksTransportationTotal.replace('.',',')}}</th>
+                <th style="text-align:right;font-weight: bold;font-size: 16px;background-color: lightpink;">{{jobModel.jobWorksTotal.value.replace('.',',')}}</th>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-4 control-label">Resolution</label>
+        <div class="col-sm-8">
+            <label class="radio-inline">
+                <input type="radio" name="signByTechManagerTaskResult" ng-model="signByTechManagerTaskResult" value="approve" required> Approve
+            </label>
+            <label class="radio-inline">
+                <input type="radio" name="signByTechManagerTaskResult" ng-model="signByTechManagerTaskResult" value="reject" required> Reject
+            </label>
+            <label class="radio-inline">
+                <input type="radio" name="signByTechManagerTaskResult" ng-model="signByTechManagerTaskResult" value="suspend" required> Suspend
+            </label>
+            <label class="radio-inline">
+                <input type="radio" name="signByTechManagerTaskResult" ng-model="signByTechManagerTaskResult" value="unsuspend" required> Unsuspend
+            </label>
+            <label class="error" ng-show="kcell_form.signByTechManagerTaskResult.$error.required && ( kcell_form.signByTechManagerTaskResult.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-4 control-label">Comments:</label>
+        <div class="col-sm-8">
+            <textarea class="form-control" rows="4" maxlength="500" cam-variable-name="signByTechManagerComment" name="signByTechManagerComment" ng-required="signByTechManagerTaskResult === 'reject'" cam-variable-type="String"></textarea>
+            <label class="error" ng-show="kcell_form.signByTechManagerComment.$error.required && ( kcell_form.signByTechManagerComment.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+    <div class="form-group" ng-show="hasComment()">
+        <label class="col-sm-4 control-label">Comments visibility</label>
+        <div class="col-sm-8">
+            <label class="radio-inline">
+                <input type="radio" name="signByTechManagerCommentVisibility"
+                       ng-model="signByTechManagerCommentVisibility" value="all" ng-required="hasComment()"> Visible for all
+            </label>
+            <label class="radio-inline">
+                <input type="radio" name="signByTechManagerCommentVisibility"
+                       ng-model="signByTechManagerCommentVisibility" value="kcell" ng-required="hasComment()"> Kcell staff only
+            </label>
+            <label class="error" ng-show="kcell_form.signByTechManagerCommentVisibility.$error.required && ( kcell_form.signByTechManagerCommentVisibility.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+    <accordion>
+        <accordion-group is-open="isHistoryOpen">
+            <accordion-heading>
+                History <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
+            </accordion-heading>
+            <resolution-history resolutions="resolutions" procDef="Revision"></resolution-history>
+        </accordion-group>
+    </accordion>
+</form>

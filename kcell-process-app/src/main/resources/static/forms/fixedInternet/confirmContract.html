@@ -1,0 +1,479 @@
+<form role="form" class="form-horizontal" name="kcell_form" novalidate>
+    <style>
+        .background-yellow-accordion .panel-body {
+            background-color: #ffffcc;
+            border: 1px solid #b3b3b3;
+            color: #333;
+        }
+
+        .content-visible-accordion .panel {
+            overflow: visible;
+        }
+    </style>
+    <script cam-script type="text/form-script">
+        inject(['$scope', '$http', 'Uri', '$rootScope', '$q', 'toasty', '$timeout', '$filter', function ($scope, $http, Uri, $rootScope, $q, toasty, $timeout, $filter) {
+            var createDate = new Date();
+            var processInstanceId = null;
+            var assigneeName = $rootScope.authentication.name;
+            var history = null;
+            var taskKey = camForm.taskId;
+
+            $scope.legalInfo = {date: new Date()};
+            $scope.resolutions = [];
+
+            $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name+ "/profile").then(function(result){
+                assigneeName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
+            });
+
+            $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
+                function(result){
+                    var processInstanceId = result.data.processInstanceId;
+                    $http.get('/camunda/api/engine/engine/default/process-instance/' + processInstanceId).then(
+                        function(result){
+                            $scope.businessKey = result.data.businessKey;
+                        },
+                        function (error) {console.log(error.data);}
+                    );
+                },
+                function (error) { console.log(error.data);}
+            );
+
+            $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
+                function (result) {
+                    processInstanceId = result.data.processInstanceId;
+                    taskKey = result.data.taskDefinitionKey;
+                    history = historyVariablesManager(camForm, taskKey);
+                    history.createVariables(true);
+                    configureViews();
+                },
+                function (error) {
+                    console.log(error.data);
+                }
+            );
+
+            $scope.downloadFile = function (file) {
+              $http({method: 'GET', url: '/camunda/uploads/' + (file.path.split('/').length === 2 ? 'tmp/' : '') + 'get/' + file.path, transformResponse: [] }).then(
+                function(response) {
+                  document.getElementById('fileDownloadIframe').src = response.data;
+                },
+                function(response) { console.log(response.data); }
+              );
+            };
+            $scope.clearFile = function(fileIndex) {
+              $scope.attachments.splice(fileIndex, 1);
+            };
+
+            $scope.fileSelected = function(el ){
+              $timeout(function () {
+                $scope.$apply(function () {
+                  uploadFileToMinio(el.files[0]);
+                });
+              })
+            };
+
+            function uploadFileToMinio(file) {
+              var fileToUpload = {
+                name: file.name.replace(/[/\\?%*:|"<>]/g, '-'),
+                path: processInstanceId + '/' + camForm.taskId + '/' + file.name.replace(/[/\\?%*:|"<>]/g, '-'),
+                created: new Date(),
+                createdBy: assigneeName
+              };
+              $http({method: 'GET', url: '/camunda/uploads/put/' + fileToUpload.path, transformResponse: [] }).then(
+                function(response) {
+                  $http.put(response.data, file, {headers: {'Content-Type': undefined}}).then(
+                    function () {
+                      $scope.attachments.push(fileToUpload);
+                      angular.element(document.querySelector('#attachments')).val(null);
+                    },
+                    function (error) {
+                      console.log(error.data);
+                    }
+                  );
+                },
+                function(response) { console.log(response.data); }
+              );
+            }
+
+            camForm.on('form-loaded', function () {
+                camForm.variableManager.fetchVariable('legalInfo');
+                camForm.variableManager.fetchVariable('attachments');
+                camForm.variableManager.fetchVariable('connectionInfo');
+                camForm.variableManager.fetchVariable('extraConnectionInfo');
+                camForm.variableManager.fetchVariable('landlordInfo');
+                camForm.variableManager.fetchVariable('extraLandlordInfo');
+                camForm.variableManager.fetchVariable('kaseInfo');
+                camForm.variableManager.fetchVariable('officeInfo');
+                camForm.variableManager.fetchVariable('officeLandlordInfo');
+                camForm.variableManager.fetchVariable('responsiblePersonsInfo');
+                camForm.variableManager.fetchVariable('action');
+                camForm.variableManager.fetchVariable('isActiveConnectionPoint');
+                camForm.variableManager.fetchVariable('contractInfo');
+
+                camForm.variableManager.fetchVariable('numberRequest');
+                camForm.variableManager.fetchVariable('resolutions');
+            });
+
+            camForm.on('variables-fetched', function () {
+                $scope.legalInfo = camForm.variableManager.variableValue('legalInfo');
+
+                $scope.legalInfo.date = new Date($scope.legalInfo.date);
+
+                $scope.attachments = camForm.variableManager.variableValue('attachments');
+                $scope.connectionInfo = camForm.variableManager.variableValue('connectionInfo');
+                $scope.extraConnectionInfo = camForm.variableManager.variableValue('extraConnectionInfo');
+                $scope.landlordInfo = camForm.variableManager.variableValue('landlordInfo');
+                $scope.extraLandlordInfo = camForm.variableManager.variableValue('extraLandlordInfo');
+                $scope.kaseInfo = camForm.variableManager.variableValue('kaseInfo');
+                $scope.officeInfo = camForm.variableManager.variableValue('officeInfo');
+                $scope.officeLandlordInfo = camForm.variableManager.variableValue('officeLandlordInfo');
+                $scope.responsiblePersonsInfo = camForm.variableManager.variableValue('responsiblePersonsInfo');
+                $scope.action = camForm.variableManager.variableValue('action');
+                $scope.isActiveConnectionPoint = camForm.variableManager.variableValue('isActiveConnectionPoint');
+                $scope.contractInfo = camForm.variableManager.variableValue('contractInfo');
+
+                $scope.contractInfo.contract_date = new Date($scope.contractInfo.contract_date);
+
+                $scope.numberRequest = camForm.variableManager.variableValue('numberRequest');
+                $scope.resolutions = camForm.variableManager.variableValue('resolutions');
+
+                camForm.variableManager.createVariable({
+                    name: 'confirmContractTaskResult',
+                    type: 'String',
+                    value: ''
+                });
+
+                camForm.variableManager.createVariable({
+                    name: 'confirmContractTaskComment',
+                    type: 'String',
+                    value: ''
+                });
+
+            });
+
+
+
+            camForm.on('submit', function (event) {
+                camForm.variableManager.variableValue('contractInfo', $scope.contractInfo);
+                camForm.variableManager.variableValue('confirmContractTaskResult', $scope.resolution);
+                camForm.variableManager.variableValue('confirmContractTaskComment', $scope.comment);
+            });
+
+        }]);
+    </script>
+
+    <div class="form-group">
+        <label class="col-sm-3 control-label" style="padding-top: 0">Номер заявки: </label>
+        <div class="col-sm-9 text-primary">{{numberRequest}}</div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-3 control-label" style="padding-top: 0">Клиент: </label>
+        <div class="col-sm-9">{{legalInfo.comp_name}} {{legalInfo.BIN}}</div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-3 control-label" style="padding-top: 0">Тип услуги:</label>
+        <div class="col-sm-9">{{legalInfo.type}}</div>
+    </div>
+
+    <accordion>
+        <accordion-group>
+            <accordion-heading>
+                Данные клиента <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
+            </accordion-heading>
+            <table class="table">
+                <fixed-internet-legal-info form="kcell_form" view="view" data="legalInfo" disabled="true"></fixed-internet-legal-info>
+            </table>
+        </accordion-group>
+    </accordion>
+
+    <accordion>
+        <accordion-group>
+            <accordion-heading>
+                Адрес точки подключения <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
+            </accordion-heading>
+            <table class="table">
+                <fixed-internet-connection-info form="kcell_form" extra="false" view="view" data="connectionInfo" disabled="true"></fixed-internet-connection-info>
+            </table>
+        </accordion-group>
+    </accordion>
+
+    <accordion>
+        <accordion-group>
+            <accordion-heading>
+                Заполняется, если клиент не является собственником здания <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
+            </accordion-heading>
+            <fixed-internet-landlord-info form="kcell_form" view="view" data="landlordInfo" disabled="true" connection="connectionInfo"></fixed-internet-landlord-info>
+        </accordion-group>
+    </accordion>
+
+    <accordion>
+        <accordion-group>
+            <accordion-heading>
+                Ответственные лица со стороны клиента, с контактами <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
+            </accordion-heading>
+            <table class="table">
+                <fixed-internet-responsible-persons-info form="kcell_form" view="view" data="responsiblePersonsInfo" disabled="true"></fixed-internet-responsible-persons-info>
+            </table>
+        </accordion-group>
+    </accordion>
+
+    <accordion>
+        <accordion-group>
+            <accordion-heading>
+                Заполняется KASE <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
+            </accordion-heading>
+            <table class="table">
+                <fixed-internet-kase-info form="kcell_form" view="view" data="kaseInfo" disabled="true"></fixed-internet-kase-info>
+            </table>
+        </accordion-group>
+    </accordion>
+
+    <accordion ng-if="legalInfo.type == 'VPN'">
+        <accordion-group>
+            <accordion-heading>
+                Адрес головного офиса <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
+            </accordion-heading>
+            <table class="table">
+                <fixed-internet-office-info form="kcell_form" view="view" data="officeInfo" disabled="true"></fixed-internet-office-info>
+            </table>
+        </accordion-group>
+    </accordion>
+
+    <accordion ng-if="legalInfo.type == 'VPN'">
+        <accordion-group>
+            <accordion-heading>
+                Заполняется, если клиент не является собственником здания <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
+            </accordion-heading>
+            <fixed-internet-landlord-info form="kcell_form" view="view" data="officeLandlordInfo" disabled="true" connection="officeInfo"></fixed-internet-landlord-info>
+        </accordion-group>
+    </accordion>
+
+    <accordion ng-if="isActiveConnectionPoint">
+        <accordion-group>
+            <accordion-heading>
+                Адрес точки подключения <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
+            </accordion-heading>
+            <table class="table">
+                <fixed-internet-connection-info form="kcell_form" extra="true" view="view" data="extraConnectionInfo" disabled="true"></fixed-internet-connection-info>
+            </table>
+        </accordion-group>
+    </accordion>
+
+    <accordion ng-if="isActiveConnectionPoint">
+        <accordion-group>
+            <accordion-heading>
+                Заполняется, если клиент не является собственником здания <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
+            </accordion-heading>
+            <fixed-internet-landlord-info form="kcell_form" view="view" data="extraLandlordInfo" disabled="true" connection="extraConnectionInfo"></fixed-internet-landlord-info>
+        </accordion-group>
+    </accordion>
+
+    <accordion >
+        <accordion-group is-open="true">
+            <accordion-heading>
+                Информация по договору
+            </accordion-heading>
+            <div>
+                <div class="col-sm-6">
+                    <div class="form-group">
+                        <label class="col-sm-4 control-label">Номер договора:</label>
+                        <div class="col-sm-8">
+                            <input type="text" class="form-control" placeholder="1234" ng-model="contractInfo.contract">
+                        </div>
+                    </div>
+                    <div class="form-group" style="display: flex; align-items: center;">
+                        <label class="col-sm-4 control-label">Дата договора: <span class="text-danger glyphicon-asterisk"></span></label>
+                        <div class="col-sm-8">
+                            <div class="input-group">
+                                <input ng-model="contractInfo.contract_date" class="form-control" datepicker-popup="dd.MM.yyyy" is-open="registrDateFieldOpened"/>
+                                <span class="input-group-btn">
+                                    <button type="button" class="btn btn-default" ng-click="registrDateFieldOpened = true" ng-disabled="disabled">
+                                        <i class="glyphicon glyphicon-calendar"></i>
+                                    </button>
+                                </span>
+                            </div>
+                            <span class="has-error" ng-if="form.cityCompanyRegistrationName.$error.required && (form.cityCompanyRegistrationName.$touched || view.submitted)">Required field</span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-sm-4 control-label">Ссылка на договор:</label>
+                        <div class="col-sm-8">
+                            <input type="text" class="form-control" ng-model="contractInfo.contract_link">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-sm-4 control-label">Юридический адрес:</label>
+                        <div class="col-sm-8">
+                            <input type="text" placeholder="г.Алматы, Медеуский район" class="form-control" ng-model="contractInfo.yur_add">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-sm-4 control-label">Почтовый адрес:</label>
+                        <div class="col-sm-8">
+                            <input type="text" class="form-control" placeholder="г.Алматы, Медеуский район" ng-model="contractInfo.post_add">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-sm-4 control-label">email:</label>
+                        <div class="col-sm-8">
+                            <input type="text" class="form-control" placeholder="madina@asiaretail.kz" ng-model="contractInfo.email">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-sm-4 control-label">ФИО контактного лица:</label>
+                        <div class="col-sm-8">
+                            <input type="text" class="form-control" placeholder="Касымбек Мадина" ng-model="contractInfo.fio_person">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-sm-4 control-label">Телефон контактного лица:</label>
+                        <div class="col-sm-8">
+                            <input type="text" class="form-control" placeholder="7479454545" ng-model="contractInfo.phone_person">
+                        </div>
+                    </div>
+
+                </div>
+                <div class="col-sm-6">
+                    <div class="form-group">
+                        <label class="col-sm-4 control-label">IBAN:</label>
+                        <div class="col-sm-8">
+                            <input type="text" class="form-control" ng-model="contractInfo.IBAN">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-sm-4 control-label">Название банка:</label>
+                        <div class="col-sm-8">
+                            <input type="text" class="form-control" ng-model="contractInfo.bank_name">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-sm-4 control-label">SWIFT:</label>
+                        <div class="col-sm-8">
+                            <input type="text" class="form-control" ng-model="contractInfo.SWIFT">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-sm-4 control-label">Банковские реквизиты (БИК):</label>
+                        <div class="col-sm-8">
+                            <input type="text" class="form-control" ng-model="contractInfo.bik">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-sm-4 control-label">Телефоны компании:</label>
+                        <div class="col-sm-8">
+                            <input type="text" class="form-control" ng-model="contractInfo.phone_comp">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-sm-4 control-label">Торговый представитель:</label>
+                        <div class="col-sm-8">
+                            <input type="text" class="form-control" placeholder="Zhazira Tazabek" ng-model="contractInfo.torg">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-sm-4 control-label">Сегмент:</label>
+                        <div class="col-sm-8">
+                            <input type="text" class="form-control" placeholder="0" ng-model="contractInfo.segment">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-sm-4 control-label">Кол-во точек:</label>
+                        <div class="col-sm-8">
+                            <input type="number" min="0" placeholder="1" class="form-control" ng-model="contractInfo.kol_tk">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </accordion-group>
+    </accordion>
+
+    <iframe id="fileDownloadIframe" style="display:none;"></iframe>
+    <div class="form-group">
+        <label class="col-sm-2 control-label">Attachments</label>
+        <div class="col-sm-10">
+            <input type="file" class="form-control" id="attachments" name="attachments" onchange="angular.element(this).scope().fileSelected(this)"/>
+            <div class="col-sm-12" style="padding: 0;">
+                <table class="table table-bordered">
+                    <thead>
+                    <tr>
+                        <th>File Name</th>
+                        <th>Created</th>
+                        <th>Created By</th>
+                        <th>Delete</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr ng-repeat="file in attachments track by $index">
+                        <td><a ng-click="downloadFile(file)">{{file.name}}</a></td>
+                        <td>{{file.created | date: 'dd.MM.yyyy HH:mm'}}</td>
+                        <td>{{file.createdBy}}</td>
+                        <td><a ng-click="clearFile($index)"><i class="glyphicon glyphicon-trash"></i></a></td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-4 control-label">Tariff: <span class="text-danger glyphicon-asterisk"></span></label>
+        <div class="col-sm-8">
+            <select class="form-control selectpicker" select-picker title="" name="tariffPlan" ng-model="action.tariffPlan" disabled ng-style="{'background-color': ((pbxData.fetched && pbxData.tariffPlan !== action.tariffPlan) ? 'orange' : null)}">
+                <option value="Стандартный" selected>Стандартный</option>
+            </select>
+            <input type="text" ng-show="action.tariffPlan == 'Нестандартный пакет'" class="form-control" style="margin-top: 3px;" name="tariffExtra" ng-model="action.tariffExtra" placeholder="Укажите тариф" ng-required="action.tariffPlan == 'Нестандартный тариф'" ng-style="{'background-color': ((pbxData.fetched && pbxData.tariffExtra !== action.tariffExtra) ? 'orange' : null)}">
+            <span class="has-error" ng-if="kcell_form.tariffExtra.$error.required && (kcell_form.tariffExtra.$touched || view.submitted)">Required field</span>
+        </div>
+    </div>
+    <div class="col-sm-12"><hr /></div>
+    <div class="form-group">
+        <label class="col-sm-4 control-label">Resolution:</label>
+        <div class="col-sm-8">
+            <label class="radio-inline"><input type="radio" value="Approve" ng-model="resolution" required> Approve</label>
+            <label class="radio-inline"><input type="radio" value="Cancel task" ng-model="resolution" required> Cancel task</label>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-2 control-label">Comment: <span class="text-danger glyphicon-asterisk" ng-if="resolution == 'Cancel task'"></span></label>
+        <div class="col-sm-10">
+            <textarea elastic-textarea class="form-control" rows="4" ng-model="comment" name="comment" ng-required="resolution == 'Cancel task'"></textarea>
+            <label class="error" ng-show="kcell_form.comment.$error.required && ( kcell_form.comment.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+
+    <accordion>
+        <accordion-group is-open="isHistoryOpen">
+            <accordion-heading>
+                History <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
+            </accordion-heading>
+            <table class="table">
+                <thead>
+                <tr>
+                    <th>Activity</th>
+                    <th>Assignee</th>
+                    <th>Assigned date</th>
+                    <th>Claimed date</th>
+                    <th>Resolution date</th>
+                    <th>Resolution</th>
+                    <th>Comment</th>
+                    <th>Attachments</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr ng-repeat="resolution in resolutions | orderBy:'-' track by $index">
+                    <td>{{resolution.taskName}}</td>
+                    <td>{{resolution.assigneeName}}</td>
+                    <td>{{resolution.assignDate | date: 'dd.MM.yyyy HH:mm'}}</td>
+                    <td>{{resolution.claimDate | date: 'dd.MM.yyyy HH:mm'}}</td>
+                    <td>{{resolution.taskEndDate | date: 'dd.MM.yyyy HH:mm'}}</td>
+                    <td>{{resolution.resolution}}</td>
+                    <td>{{resolution.comment}}</td>
+                    <td>
+                        <p ng-repeat="file in resolution.attachments.added">{{file}}</p>
+                        <p ng-repeat="file in resolution.attachments.removed" class="text-danger">{{file}}</p>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </accordion-group>
+    </accordion>
+
+</form>

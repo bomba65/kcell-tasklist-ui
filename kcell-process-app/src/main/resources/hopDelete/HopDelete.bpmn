@@ -1,0 +1,276 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:bioc="http://bpmn.io/schema/bpmn/biocolor/1.0" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" id="Definitions_1n91srd" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="4.3.0">
+  <bpmn:collaboration id="Collaboration_hop_delete">
+    <bpmn:participant id="cancel-tsd-process" name="Cancel TSD" processRef="cancel-tsd" />
+    <bpmn:textAnnotation id="TextAnnotation_1hfcwyx">
+      <bpmn:text>Инициация удаления хопа</bpmn:text>
+    </bpmn:textAnnotation>
+    <bpmn:textAnnotation id="TextAnnotation_1spc7bv">
+      <bpmn:text>при инициации регионом попадает на проверку центру</bpmn:text>
+    </bpmn:textAnnotation>
+    <bpmn:textAnnotation id="TextAnnotation_0lkn9va">
+      <bpmn:text>при инициации центром отправляется уведомление региону</bpmn:text>
+    </bpmn:textAnnotation>
+    <bpmn:textAnnotation id="TextAnnotation_12z6f08">
+      <bpmn:text>отмена РЧС группой Permit</bpmn:text>
+    </bpmn:textAnnotation>
+    <bpmn:textAnnotation id="TextAnnotation_14vz5qu">
+      <bpmn:text>запись статуса RFS Cancelled и TSD Dismantled</bpmn:text>
+    </bpmn:textAnnotation>
+    <bpmn:textAnnotation id="TextAnnotation_08gfaw0">
+      <bpmn:text>1</bpmn:text>
+    </bpmn:textAnnotation>
+    <bpmn:textAnnotation id="TextAnnotation_0deyjvs">
+      <bpmn:text>2</bpmn:text>
+    </bpmn:textAnnotation>
+    <bpmn:textAnnotation id="TextAnnotation_0p1emqj">
+      <bpmn:text>3</bpmn:text>
+    </bpmn:textAnnotation>
+    <bpmn:textAnnotation id="TextAnnotation_0t58uac">
+      <bpmn:text>4</bpmn:text>
+    </bpmn:textAnnotation>
+    <bpmn:textAnnotation id="TextAnnotation_068dnqj">
+      <bpmn:text>5</bpmn:text>
+    </bpmn:textAnnotation>
+    <bpmn:association id="Association_1cbl86h" sourceRef="startevt_hop_delete" targetRef="TextAnnotation_1hfcwyx" />
+    <bpmn:association id="Association_1e1dij4" sourceRef="check_by_center_hop_delete" targetRef="TextAnnotation_1spc7bv" />
+    <bpmn:association id="Association_1o9bck2" sourceRef="send_notification_hop_delete" targetRef="TextAnnotation_0lkn9va" />
+    <bpmn:association id="Association_0c830ze" sourceRef="freq_cancellation_by_Permit_hop_delete" targetRef="TextAnnotation_12z6f08" />
+    <bpmn:association id="Association_1qmpu8u" sourceRef="add_data_hop_delete" targetRef="TextAnnotation_14vz5qu" />
+    <bpmn:association id="Association_0v9eenh" sourceRef="startevt_hop_delete" targetRef="TextAnnotation_08gfaw0" />
+    <bpmn:association id="Association_1ajc2rx" sourceRef="check_by_center_hop_delete" targetRef="TextAnnotation_0deyjvs" />
+    <bpmn:association id="Association_098hckm" sourceRef="send_notification_hop_delete" targetRef="TextAnnotation_0p1emqj" />
+    <bpmn:association id="Association_0uhyffi" sourceRef="freq_cancellation_by_Permit_hop_delete" targetRef="TextAnnotation_0t58uac" />
+    <bpmn:association id="Association_0uy08q8" sourceRef="add_data_hop_delete" targetRef="TextAnnotation_068dnqj" />
+  </bpmn:collaboration>
+  <bpmn:process id="cancel-tsd" name="Cancel TSD" isExecutable="true">
+    <bpmn:dataStoreReference id="assets_db" name="Assets DB" />
+    <bpmn:startEvent id="startevt_hop_delete" name="Start" camunda:formKey="embedded:app:forms/hopDelete/start.html" camunda:initiator="starter">
+      <bpmn:extensionElements>
+        <camunda:executionListener delegateExpression="${setBusinessKeys}" event="end" />
+      </bpmn:extensionElements>
+      <bpmn:outgoing>Flow_1ny67fd</bpmn:outgoing>
+      <bpmn:dataOutputAssociation id="DataOutputAssociation_08jds9w">
+        <bpmn:targetRef>assets_db</bpmn:targetRef>
+      </bpmn:dataOutputAssociation>
+    </bpmn:startEvent>
+    <bpmn:exclusiveGateway id="Gateway_1lifatb" default="Flow_0s3h5o6">
+      <bpmn:incoming>Flow_1ny67fd</bpmn:incoming>
+      <bpmn:outgoing>Flow_1fsseie</bpmn:outgoing>
+      <bpmn:outgoing>Flow_0s3h5o6</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:exclusiveGateway id="Gateway_0ryvryl">
+      <bpmn:incoming>Flow_0pnwxx7</bpmn:incoming>
+      <bpmn:incoming>Flow_0tbnnmw</bpmn:incoming>
+      <bpmn:outgoing>Flow_1gen6ic</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:serviceTask id="add_data_hop_delete" name="add data to Assets" camunda:delegateExpression="${sendHopDeleteDataToAssets}">
+      <bpmn:incoming>Flow_0nx5q50</bpmn:incoming>
+      <bpmn:outgoing>Flow_187z6z7</bpmn:outgoing>
+      <bpmn:dataOutputAssociation id="DataOutputAssociation_1kabefz">
+        <bpmn:targetRef>assets_db</bpmn:targetRef>
+      </bpmn:dataOutputAssociation>
+    </bpmn:serviceTask>
+    <bpmn:endEvent id="endevt_hop_delete" name="End">
+      <bpmn:incoming>Flow_187z6z7</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:userTask id="check_by_center_hop_delete" name="Check by Center engineer" camunda:formKey="embedded:app:forms/hopDelete/checkByCenter.html" camunda:candidateGroups="hq_tn_engineer">
+      <bpmn:documentation>Check by Center engineer (Delete Hop Approval)</bpmn:documentation>
+      <bpmn:incoming>Flow_1fsseie</bpmn:incoming>
+      <bpmn:outgoing>Flow_0pnwxx7</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:serviceTask id="send_notification_hop_delete" name="send notification to region" camunda:delegateExpression="${camundaMailer}">
+      <bpmn:extensionElements>
+        <camunda:inputOutput>
+          <camunda:inputParameter name="to">
+            <camunda:script scriptFormat="groovy" resource="hopDelete/GetRegionEmailTo.groovy" />
+          </camunda:inputParameter>
+          <camunda:inputParameter name="subject">Уведомление</camunda:inputParameter>
+          <camunda:inputParameter name="html">
+            <camunda:script scriptFormat="groovy" resource="hopDelete/SendNotificationText.groovy" />
+          </camunda:inputParameter>
+        </camunda:inputOutput>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_0s3h5o6</bpmn:incoming>
+      <bpmn:outgoing>Flow_0tbnnmw</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:userTask id="freq_cancellation_by_Permit_hop_delete" name="Freq cancellation by Permit Group" camunda:formKey="embedded:app:forms/hopDelete/freqCancellationByPermitGroup.html" camunda:candidateGroups="hq_permission">
+      <bpmn:documentation>Freq cancellation by Permit Group</bpmn:documentation>
+      <bpmn:incoming>Flow_1gen6ic</bpmn:incoming>
+      <bpmn:outgoing>Flow_0nx5q50</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:sequenceFlow id="Flow_1ny67fd" sourceRef="startevt_hop_delete" targetRef="Gateway_1lifatb" />
+    <bpmn:sequenceFlow id="Flow_1fsseie" name="if region initiated" sourceRef="Gateway_1lifatb" targetRef="check_by_center_hop_delete">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${isRegion}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_0pnwxx7" sourceRef="check_by_center_hop_delete" targetRef="Gateway_0ryvryl" />
+    <bpmn:sequenceFlow id="Flow_0s3h5o6" name="if center initiated" sourceRef="Gateway_1lifatb" targetRef="send_notification_hop_delete" />
+    <bpmn:sequenceFlow id="Flow_0tbnnmw" sourceRef="send_notification_hop_delete" targetRef="Gateway_0ryvryl" />
+    <bpmn:sequenceFlow id="Flow_1gen6ic" sourceRef="Gateway_0ryvryl" targetRef="freq_cancellation_by_Permit_hop_delete" />
+    <bpmn:sequenceFlow id="Flow_0nx5q50" sourceRef="freq_cancellation_by_Permit_hop_delete" targetRef="add_data_hop_delete" />
+    <bpmn:sequenceFlow id="Flow_187z6z7" sourceRef="add_data_hop_delete" targetRef="endevt_hop_delete" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Collaboration_hop_delete">
+      <bpmndi:BPMNShape id="Participant_1lhyzl8_di" bpmnElement="cancel-tsd-process" isHorizontal="true">
+        <dc:Bounds x="120" y="230" width="1140" height="340" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_187z6z7_di" bpmnElement="Flow_187z6z7">
+        <di:waypoint x="980" y="400" />
+        <di:waypoint x="1072" y="400" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0nx5q50_di" bpmnElement="Flow_0nx5q50">
+        <di:waypoint x="810" y="400" />
+        <di:waypoint x="880" y="400" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1gen6ic_di" bpmnElement="Flow_1gen6ic">
+        <di:waypoint x="615" y="400" />
+        <di:waypoint x="710" y="400" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0tbnnmw_di" bpmnElement="Flow_0tbnnmw">
+        <di:waypoint x="510" y="500" />
+        <di:waypoint x="590" y="500" />
+        <di:waypoint x="590" y="425" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0s3h5o6_di" bpmnElement="Flow_0s3h5o6">
+        <di:waypoint x="330" y="425" />
+        <di:waypoint x="330" y="500" />
+        <di:waypoint x="410" y="500" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="305" y="460" width="81" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0pnwxx7_di" bpmnElement="Flow_0pnwxx7">
+        <di:waypoint x="510" y="300" />
+        <di:waypoint x="590" y="300" />
+        <di:waypoint x="590" y="375" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1fsseie_di" bpmnElement="Flow_1fsseie">
+        <di:waypoint x="330" y="375" />
+        <di:waypoint x="330" y="300" />
+        <di:waypoint x="410" y="300" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="305" y="283" width="81" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1ny67fd_di" bpmnElement="Flow_1ny67fd">
+        <di:waypoint x="228" y="400" />
+        <di:waypoint x="305" y="400" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="_BPMNShape_StartEvent_2" bpmnElement="startevt_hop_delete">
+        <dc:Bounds x="192" y="382" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="198" y="425" width="24" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_1lifatb_di" bpmnElement="Gateway_1lifatb" isMarkerVisible="true">
+        <dc:Bounds x="305" y="375" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_0ryvryl_di" bpmnElement="Gateway_0ryvryl" isMarkerVisible="true">
+        <dc:Bounds x="565" y="375" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_17eozsx_di" bpmnElement="add_data_hop_delete">
+        <dc:Bounds x="880" y="360" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_0z1i739_di" bpmnElement="endevt_hop_delete">
+        <dc:Bounds x="1072" y="382" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1080" y="425" width="20" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1nj0n1k_di" bpmnElement="check_by_center_hop_delete">
+        <dc:Bounds x="410" y="260" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1wnp8ot_di" bpmnElement="send_notification_hop_delete">
+        <dc:Bounds x="410" y="460" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_11zaasz_di" bpmnElement="freq_cancellation_by_Permit_hop_delete">
+        <dc:Bounds x="710" y="360" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="DataStoreReference_1bc9cgl_di" bpmnElement="assets_db">
+        <dc:Bounds x="405" y="745" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="404" y="802" width="52" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="TextAnnotation_1hfcwyx_di" bpmnElement="TextAnnotation_1hfcwyx" bioc:stroke="rgb(67, 160, 71)" bioc:fill="rgb(200, 230, 201)">
+        <dc:Bounds x="150" y="180" width="100" height="40" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="TextAnnotation_1spc7bv_di" bpmnElement="TextAnnotation_1spc7bv" bioc:stroke="rgb(67, 160, 71)" bioc:fill="rgb(200, 230, 201)">
+        <dc:Bounds x="290" y="138" width="100" height="82" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="TextAnnotation_0lkn9va_di" bpmnElement="TextAnnotation_0lkn9va" bioc:stroke="rgb(67, 160, 71)" bioc:fill="rgb(200, 230, 201)">
+        <dc:Bounds x="350" y="590" width="100" height="82" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="TextAnnotation_12z6f08_di" bpmnElement="TextAnnotation_12z6f08" bioc:stroke="rgb(67, 160, 71)" bioc:fill="rgb(200, 230, 201)">
+        <dc:Bounds x="700" y="185" width="100" height="40" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="TextAnnotation_14vz5qu_di" bpmnElement="TextAnnotation_14vz5qu" bioc:stroke="rgb(67, 160, 71)" bioc:fill="rgb(200, 230, 201)">
+        <dc:Bounds x="890" y="152" width="100" height="68" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="TextAnnotation_08gfaw0_di" bpmnElement="TextAnnotation_08gfaw0" bioc:stroke="rgb(30, 136, 229)" bioc:fill="rgb(187, 222, 251)">
+        <dc:Bounds x="160" y="80" width="100" height="30" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="TextAnnotation_0deyjvs_di" bpmnElement="TextAnnotation_0deyjvs" bioc:stroke="rgb(30, 136, 229)" bioc:fill="rgb(187, 222, 251)">
+        <dc:Bounds x="430" y="80" width="100" height="30" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="TextAnnotation_0p1emqj_di" bpmnElement="TextAnnotation_0p1emqj" bioc:stroke="rgb(30, 136, 229)" bioc:fill="rgb(187, 222, 251)">
+        <dc:Bounds x="480" y="590" width="100" height="30" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="TextAnnotation_0t58uac_di" bpmnElement="TextAnnotation_0t58uac" bioc:stroke="rgb(30, 136, 229)" bioc:fill="rgb(187, 222, 251)">
+        <dc:Bounds x="730" y="80" width="100" height="30" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="TextAnnotation_068dnqj_di" bpmnElement="TextAnnotation_068dnqj" bioc:stroke="rgb(30, 136, 229)" bioc:fill="rgb(187, 222, 251)">
+        <dc:Bounds x="910" y="80" width="100" height="30" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="DataOutputAssociation_08jds9w_di" bpmnElement="DataOutputAssociation_08jds9w">
+        <di:waypoint x="219" y="415" />
+        <di:waypoint x="412" y="745" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="DataOutputAssociation_1kabefz_di" bpmnElement="DataOutputAssociation_1kabefz">
+        <di:waypoint x="882" y="436" />
+        <di:waypoint x="455" y="760" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Association_1cbl86h_di" bpmnElement="Association_1cbl86h">
+        <di:waypoint x="209" y="382" />
+        <di:waypoint x="201" y="220" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Association_1e1dij4_di" bpmnElement="Association_1e1dij4">
+        <di:waypoint x="427" y="260" />
+        <di:waypoint x="390" y="214" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Association_1o9bck2_di" bpmnElement="Association_1o9bck2">
+        <di:waypoint x="437" y="540" />
+        <di:waypoint x="409" y="590" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Association_0c830ze_di" bpmnElement="Association_0c830ze">
+        <di:waypoint x="758" y="360" />
+        <di:waypoint x="751" y="225" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Association_1qmpu8u_di" bpmnElement="Association_1qmpu8u">
+        <di:waypoint x="932" y="360" />
+        <di:waypoint x="938" y="220" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Association_0v9eenh_di" bpmnElement="Association_0v9eenh">
+        <di:waypoint x="210" y="382" />
+        <di:waypoint x="210" y="110" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Association_1ajc2rx_di" bpmnElement="Association_1ajc2rx">
+        <di:waypoint x="464" y="260" />
+        <di:waypoint x="479" y="110" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Association_098hckm_di" bpmnElement="Association_098hckm">
+        <di:waypoint x="487" y="540" />
+        <di:waypoint x="520" y="590" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Association_0uhyffi_di" bpmnElement="Association_0uhyffi">
+        <di:waypoint x="763" y="360" />
+        <di:waypoint x="779" y="110" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Association_0uy08q8_di" bpmnElement="Association_0uy08q8">
+        <di:waypoint x="934" y="360" />
+        <di:waypoint x="959" y="110" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

@@ -1,0 +1,466 @@
+<form role="form" class="form-horizontal" name="kcell_form" novalidate>
+    <script cam-script type="text/form-script">
+        inject(['$scope', '$q', '$http', '$rootScope', '$timeout', function ($scope, $q, $http, $rootScope, $timeout) {
+            var variables = [
+                'sharingPlan',
+                'resolutions',
+                'ssidtssrFiles',
+                'revisionJrStatus',
+                'sharingPlanStatus'
+            ];
+
+            camForm.on('form-loaded', function () {
+                variables.forEach(function (el) {
+                    camForm.variableManager.fetchVariable(el);
+                });
+                $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
+                    function(result){
+                        $scope.processInstanceId = result.data.processInstanceId;
+                    },
+                    function (error) {
+                        console.log(error.data);
+                    }
+                );
+            });
+
+            camForm.on('variables-fetched', function () {
+                variables.forEach(function (el) {
+                    if (el === 'resolutions') {
+                        if (camForm.variableManager.variables[el].value) {
+                            $scope.resolutions = angular.copy(camForm.variableManager.variables[el].value);
+                            $q.all($scope.resolutions.map(function (resolution) {
+                                return $http.get("/camunda/api/engine/engine/default/history/task?processInstanceId=" + resolution.processInstanceId + "&taskId=" + resolution.taskId);
+                            })).then(function (tasks) {
+                                tasks.forEach(function (e, index) {
+                                    if (e.data.length > 0) {
+                                        $scope.resolutions[index].taskName = e.data[0].name;
+                                        try {
+                                            $scope.resolutions[index].taskEndDate = new Date(e.data[0].endTime);
+                                            $scope.resolutions[index].assignDate = new Date(e.data[0].startTime);
+                                        } catch (e) {
+                                            console.log(e);
+                                        }
+                                    }
+                                });
+                            });
+                            $q.all($scope.resolutions.map(function (resolution) {
+                                return $http.get("/camunda/api/engine/engine/default/history/identity-link-log?type=assignee&taskId=" + resolution.taskId + "&operationType=add&sortBy=time&sortOrder=desc");
+                            })).then(function (logs) {
+                                logs.forEach(function (e, index) {
+                                    if(e.data.length > 0){
+                                        try {
+                                            $scope.resolutions[index].claimDate = new Date(e.data[0].time);
+                                        } catch(e){
+                                            console.log(e);
+                                        }
+                                    }
+                                });
+                            });
+                        }
+                    } else if (el === 'sharingPlanStatus') {
+                        $scope[el] = camForm.variableManager.variables[el].value;
+                        $scope.sharingPlan.status = camForm.variableManager.variables[el].value;
+                    } else if (el === 'ssidtssrFiles') {
+                        $scope[el] = camForm.variableManager.variables[el];
+                        $scope[el].type = 'Json';
+                    } else {
+                        $scope[el] = camForm.variableManager.variables[el].value;
+                    }
+                });
+
+                $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name+ "/profile").then(function(result){
+                    $rootScope.authentication.assigneeName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
+                });
+
+                console.log('ssidtssrFiles 1', $scope.ssidtssrFiles);
+
+                if (!$scope.ssidtssrFiles.value) {
+                    $scope.ssidtssrFiles.value = [];
+                }
+
+                /*if(!$scope.ssidtssrFiles){
+                    $scope.ssidtssrFiles = [{file:undefined,id:undefined}];
+                } else {
+                    var files = "";
+                    $scope.ssidtssrFiles.forEach(function(file){
+                        files+="ssidtssrFile"+file.id+",";
+                    });
+                    $scope.ssidtssrFilesPrev = [];
+                    $http.get('/camunda/api/engine/engine/default/task/'+camForm.taskId+'/form-variables?deserializeValues=false&variableNames='+files).then(
+                            function(result){
+                                $scope.ssidtssrFiles.forEach(function(file, index){
+                                    if(result.data['ssidtssrFile'+file.id] && result.data['ssidtssrFile'+file.id].valueInfo){
+                                        $scope['ssidtssrFile'+file.id] = {
+                                            prev: result.data['ssidtssrFile'+file.id]
+                                        };
+                                        $scope.ssidtssrFiles[index] = $scope['ssidtssrFile'+file.id];
+                                    }
+                                });
+                            },
+                            function (error) {
+                                console.log(error.data);
+                            }
+                    );
+                }*/
+
+                console.log('ssidtssrFiles 2', $scope.ssidtssrFiles);
+
+                if(!$scope.revisionJrStatus){
+                    $scope.revisionJrStatus = [];
+                    camForm.variableManager.destroyVariable('revisionJrStatus');
+                    camForm.variableManager.createVariable({
+                        name: "revisionJrStatus",
+                        type: 'Json'
+                    });
+                }
+
+                if($scope.sharingPlan){
+                    //$scope.sharingPlan.ssidtssrFiles = angular.copy($scope.ssidtssrFiles);
+                    $scope.sharingPlan.ssidtssrFiles = angular.copy($scope.ssidtssrFiles.value);
+                    $scope.sharingPlan.currentTask = {id:camForm.taskId};
+                }
+
+                camForm.variableManager.createVariable({
+                    name: 'updateInfrastructureRevisionJRExecutionStatusResult',
+                    type: 'String',
+                    value: ''
+                });
+
+                camForm.variableManager.createVariable({
+                    name: 'replanStatus',
+                    type: 'String',
+                    value: ''
+                });
+            });
+
+            camForm.on('submit', function () {
+                var files = [];
+                camForm.variableManager.variableValue('updateInfrastructureRevisionJRExecutionStatusResult', $scope.updateInfrastructureRevisionJRExecutionStatusResult);
+                if ($scope.updateInfrastructureRevisionJRExecutionStatusResult !== 'replan') {
+                    camForm.variableManager.variableValue('replanStatus', 'notreplan');
+                } else {
+                    camForm.variableManager.variableValue('replanStatus', 'replan');
+                }
+                $scope.ssidtssrFiles.value.forEach(function (f, i) {
+                   files.push(f.name);
+                });
+                camForm.variableManager.destroyVariable('resolutions');
+                camForm.variableManager.variableValue('sharingPlan', $scope.sharingPlan);
+            });
+            $scope.addJrStatus = function(){
+                $scope.revisionJrStatus.push({});
+            };
+            $scope.removeJrStatus = function(index){
+                $scope.revisionJrStatus.splice(index,1);
+            };
+            $scope.preSubmit = function(){
+                if($scope.revisionJrStatus){
+                    var json = JSON.stringify( $scope.revisionJrStatus, function( key, value ) {
+                        if( key === "$$hashKey" ) {
+                            return undefined;
+                        }
+                        return value;
+                    });
+                    return $http.put('/camunda/api/engine/engine/default/process-instance/'+$scope.processInstanceId+'/variables/revisionJrStatus',{"type":"Json","value": json}).then(
+                        function(){
+                        },
+                        function(error){
+                            console.log(error.data);
+                        }
+                    );
+                } else{
+                    return deferred.promise;
+                }
+            };
+            $scope.saveJrStatus = function () {
+                var json = JSON.stringify( $scope.revisionJrStatus, function( key, value ) {
+                    if( key === "$$hashKey" ) {
+                        return undefined;
+                    }
+                    return value;
+                });
+                $http.put('/camunda/api/engine/engine/default/process-instance/'+$scope.processInstanceId+'/variables/revisionJrStatus',{"type":"Json","value": json}).then(
+                    function(){
+                    },
+                    function(error){
+                        console.log(error.data);
+                    }
+                );
+            };
+            $scope.isEditSharingPlan = false;
+
+            $scope.editSharingPlan = function(){
+                $scope.isEditSharingPlan = true;
+            };
+            /*
+            function getBase64(el, index){
+                var reader = new FileReader();
+                reader.readAsArrayBuffer(el.files[0]);
+                reader.onloadend = function (e) {
+                    var binary = '';
+                    var bytes = new Uint8Array( e.target.result );
+                    var len = bytes.byteLength;
+                    for (var j = 0; j < len; j++) {
+                        binary += String.fromCharCode( bytes[ j ] );
+                    }
+                    $scope.$apply(function(){
+                        $scope.ssidtssrFiles[index].file.valueInfo = {
+                            filename: el.files[0].name,
+                            mimeType: el.files[0].type
+                        };
+                        $scope.ssidtssrFiles[index].file.value = btoa(binary);
+                        if($scope.ssidtssrFiles.length-1 == index){
+                            $scope.ssidtssrFiles.push({file:undefined,id:undefined});
+                        }
+                    });
+                };
+                reader.onerror = function (error) {
+                    console.log('Error: ', error);
+                };
+            }
+
+            $scope.fileSelected = function(el, index){
+                $scope.ssidtssrFiles[index].id = el.value.replace(/^.*[\\\/]/, '').replace(/\.[^/.]+$/, "");
+                if(el.files[0]){
+                    getBase64(el, index)
+                } else {
+                    $scope.$apply(function(){
+                        $scope.ssidtssrFiles[index] = {file:undefined,id:undefined};
+                    });
+                }
+            };
+            $scope.filesActions = [];
+            $scope.clearFile = function(index){
+                $scope.filesActions.push({supplementaryId: index, filename:$scope.ssidtssrFiles[index].prev.valueInfo.filename, action:'deleted'});
+                delete $scope.ssidtssrFiles[index].prev;
+            };
+            */
+            $scope.fileSelected = function (el, fileName) {
+                $timeout(function () {
+                    $scope.$apply(function () {
+                        uploadFileToMinio(el.files[0], fileName);
+                    });
+                })
+            };
+
+            function uploadFileToMinio(file, fileName) {
+                var fileIndex = $scope[fileName].value.length;
+
+                var fileToUpload = {
+                    name: file.name.replace(/[/\\?%*:|"<>]/g, '-'),
+                    isNew: true,
+                    path: $scope.processInstanceId + '/' + camForm.taskId + '/' + file.name.replace(/[/\\?%*:|"<>]/g, '-')
+                };
+                $http({
+                    method: 'GET',
+                    url: '/camunda/uploads/put/' + fileToUpload.path,
+                    transformResponse: []
+                }).then(function (response) {
+                    $http.put(response.data, file, {headers: {'Content-Type': undefined}}).then(
+                            function () {
+                                $scope[fileName].value.push(fileToUpload);
+                                angular.element(document.querySelector('#ssidtssr_file_' + fileIndex)).val(null);
+                            },
+                            function (error) {
+                                console.log(error.data);
+                            }
+                    );
+                }, function(error){
+                    console.log(error.data);
+                });
+            }
+
+            $scope.clearFile = function (list, fileIndex) {
+                $scope[list].value.splice(fileIndex, 1);
+            }
+
+            $scope.fileDownload = function (file) {
+                $http({
+                    method: 'GET',
+                    url: '/camunda/uploads/get/' + file.path,
+                    transformResponse: []
+                }).then(function (response) {
+                    document.getElementById('fileDownloadIframe').src = response.data;
+                }, function(error){
+                    console.log(error.data);
+                });
+            }
+        }]);
+
+    </script>
+    <style>
+        .sectors-table td{
+            padding: 3px;
+            vertical-align: top;
+        }
+        .sectors-table {
+            border: 1px solid #000;
+        }
+    </style>
+    <shared-site-plan plan-model="sharingPlan"></shared-site-plan>
+    <!--div ng-repeat="ssidtssrFile in ssidtssrFiles">
+        <div class="form-group">
+            <label class="col-sm-12 control-label">Upload SSID/TSSR files # {{$index+1}}:</label>
+            <div class="col-sm-8">
+                <ng-form name="ssidtssrFilesform">
+                    <a href="{{ssidtssrFile.prev.contentUrl}}">{{ssidtssrFile.prev.valueInfo.filename}}</a>
+                </ng-form>
+            </div>
+        </div>
+    </div-->
+    <iframe id="fileDownloadIframe" style="display:none;"></iframe>
+    <div class="form-group">
+        <!--label class="col-sm-4 control-label">Upload SSDI/TSSR File # {{ssidtssrFiles.length}}:</label-->
+        <div class="col-sm-12">
+            <div class="input-group" ng-repeat="file in ssidtssrFiles.value track by $index">
+                <label class="control-label">Upload SSDI/TSSR File # {{$index + 1}}: {{' '}}</label>
+                <a ng-click="fileDownload(file)">{{file.name}}</a> | <a ng-click="clearFile('ssidtssrFiles', $index)"><i class="glyphicon glyphicon-trash"></i></a>
+            </div>
+            <ng-form name="ssidtssr_file_form">
+                <input type="file" class="form-control" id="ssidtssr_file_{{ssidtssrFiles.value.length}}"
+                       name="ssidtssr_file_{{ssidtssrFiles.value.length}}" ng-model="file.file"
+                       required-file="prepareSSIDTSSRAndUploadPreparedFileResult === 'projectCompleted' && ssidtssrFiles.value.length == 0"
+                       onchange="angular.element(this).scope().fileSelected(this, 'ssidtssrFiles')"/>
+                <label class="has-error" ng-show="ssidtssr_file_form['ssidtssr_file_'+ssidtssrFiles.value.length].$error.validFile">File is required</label>
+            </ng-form>
+        </div>
+    </div>
+    <div class="form-group">
+        <div class="col-sm-12">
+            <a ng-click="editSharingPlan()">Edit Address Plan Parameters</a>
+        </div>
+        <div class="col-sm-12">
+            <table class="sectors-table">
+                <tbody ng-repeat="s in sharingPlan.shared_sectors">
+                    <tr>
+                        <td width="15%" style="border-right: 1px solid #000;">Sector&nbsp;Name</td>
+                        <td>Rollout</td>
+                        <td>LAC</td>
+                        <td>eNodeBId</td>
+                        <td>Position&nbsp;Type</td>
+                        <td>Location&nbsp;Type</td>
+                        <td>Placement&nbsp;Type</td>
+                        <td>Longitude/Latitude</td>
+                        <td>Antenna</td>
+                        <td>Status</td>
+                    </tr>
+                    <tr>
+                        <td rowspan="3" style="border-right: 1px solid #000;border-bottom: 1px solid #000;"><div class="form-control disabled">{{s.sector_name}}</div></td>
+                        <td style="padding-bottom: 10px;"><div class="form-control disabled">{{s.rollout}}</div></td>
+                        <td style="padding-bottom: 10px;"><div class="form-control disabled">{{s.lac}}</div></td>
+                        <td style="padding-bottom: 10px;"><div class="form-control disabled">{{s.enodeb_id}}</div></td>
+                        <td style="padding-bottom: 10px;"><div class="form-control disabled">{{s.position_type}}</div></td>
+                        <td style="padding-bottom: 10px;"><div class="form-control disabled">{{s.location_type}}</div></td>
+                        <td style="padding-bottom: 10px;"><div class="form-control disabled">{{s.placement_type}}</div></td>
+                        <td style="padding-bottom: 10px;"><div class="form-control disabled">{{s.longitude}}/{{s.latitude}}</div></td>
+                        <td style="padding-bottom: 10px;"><div class="form-control disabled">{{s.antenna_type}}</div></td>
+                        <td style="padding-bottom: 10px;"><div class="form-control disabled">{{s.status}}</div></td>
+                    </tr>
+                    <tr>
+                        <td>Site Usage Type</td>
+                        <td>Height</td>
+                        <td>Azimuth</td>
+                        <td>Tilt&nbsp;(m/e)</td>
+                        <td>Power</td>
+                        <td>EMS&nbsp;Limits</td>
+                        <td>eNodeB&nbsp;Range</td>
+                        <td>Beeline&nbsp;Band</td>
+                        <td>Kcell&nbsp;Band</td>
+                    </tr>
+                    <tr style="border-bottom: 1px solid #000;">
+                        <td style="padding-bottom: 10px;">
+                            <div class="input-group">
+                                <input type="text" class="form-control" ng-model="s.site_usage_type" ng-disabled="!isEditSharingPlan"/>
+                            </div>
+                        </td>
+                        <td style="padding-bottom: 10px;">
+                            <div class="input-group">
+                                <input type="text" numbers-only class="form-control" ng-model="s.height" placeholder="12m" ng-disabled="!isEditSharingPlan"/>
+                                <span class="input-group-addon">m</span>
+                            </div>
+                        </td>
+                        <td style="padding-bottom: 10px;">
+                            <div class="input-group">
+                                <input type="text" numbers-only class="form-control" ng-model="s.azimuth" placeholder="12 deg" ng-disabled="!isEditSharingPlan"/>
+                                <span class="input-group-addon">deg</span>
+                            </div>
+                        </td>
+                        <td style="padding-bottom: 10px;"><input type="text" ng-model="s.tilt" class="form-control" ng-disabled="!isEditSharingPlan"/></td>
+                        <td style="padding-bottom: 10px;">
+                            <div class="input-group">
+                                <input type="text" numbers-only class="form-control" ng-model="s.power_watt" placeholder="12 Watt" ng-disabled="!isEditSharingPlan"/>
+                                <span class="input-group-addon">Watt</span>
+                            </div>
+                        </td>
+                        <td style="padding-bottom: 10px;">
+                            <select class="form-control" ng-model="s.ems_limitations_info" ng-disabled="!isEditSharingPlan">
+                                <option value="да">да</option>
+                                <option value="нет">нет</option>
+                            </select>
+                        </td>
+                        <td style="padding-bottom: 10px;"><input type="text" numbers-only class="form-control" ng-model="s.enodeb_range" placeholder="20" ng-disabled="!isEditSharingPlan"/></td>
+                        <td style="padding-bottom: 10px;"><input type="text" numbers-only class="form-control" ng-model="s.beeline_band" placeholder="10" ng-disabled="!isEditSharingPlan"/></td>
+                        <td style="padding-bottom: 10px;"><input type="text" numbers-only class="form-control" ng-model="s.kcell_band" placeholder="10" ng-disabled="!isEditSharingPlan"/></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-4 control-label">Infrastructure Revision JRs:</label>
+        <div class="col-sm-8">
+            <div class="row">
+                <div class="col-md-2"><a ng-click="addJrStatus()" class="btn btn-primary">Add</a></div>
+            </div>
+            <hr/>
+            <div class="row" ng-if="revisionJrStatus.length > 0">
+                <div class="col-md-4">JR Number:</div>
+                <div class="col-md-3">JR Created In</div>
+                <div class="col-md-3">JR Status</div>
+                <div class="col-md-2"></div>
+            </div>
+            <div class="row" ng-repeat="status in revisionJrStatus track by $index">
+                <div class="col-md-4"><input type="text" class="form-control" ng-model="status.jrNumber"/></div>
+                <div class="col-md-3">
+                    <select class="form-control" ng-model="status.createdIn">
+                        <option value="Rn-Rs.Kcell.Kz">Rn-Rs.Kcell.Kz</option>
+                        <option value="Flow.Kcell.Kz">Flow.Kcell.Kz</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <select class="form-control" ng-model="status.jrStatus">
+                        <option value="In Progress">In Progress</option>
+                        <option value="Completed">Completed</option>
+                    </select>
+                </div>
+                <div class="col-md-2"><a ng-click="removeJrStatus($index)" class="btn btn-warning">Remove</a></div>
+            </div>
+            <hr/>
+            <div class="row" ng-if="revisionJrStatus.length > 0">
+                <div class="col-md-2"><a ng-click="saveJrStatus()" class="btn btn-success">Save</a></div>
+            </div>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-4 control-label">Revision JR Status:</label>
+        <div class="col-sm-8">
+            <label class="radio-inline">
+                <input type="radio" ng-model="updateInfrastructureRevisionJRExecutionStatusResult" name="updateInfrastructureRevisionJRExecutionStatusResult" value="completed" required> Completed
+            </label>
+            <label class="radio-inline">
+                <input type="radio" ng-model="updateInfrastructureRevisionJRExecutionStatusResult" name="updateInfrastructureRevisionJRExecutionStatusResult" value="rejected" required> Reject
+            </label>
+            <label class="radio-inline">
+                <input type="radio" ng-model="updateInfrastructureRevisionJRExecutionStatusResult" name="updateInfrastructureRevisionJRExecutionStatusResult" value="notneeded" required> Not Needed
+            </label>
+            <label class="error" ng-show="kcell_form.updateInfrastructureRevisionJRExecutionStatusResult.$error.required && ( kcell_form.updateInfrastructureRevisionJRExecutionStatusResult.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-4 control-label">Comments</label>
+        <div class="col-sm-8">
+            <textarea class="form-control" cam-variable-name="updateInfrastructureRevisionJRExecutionStatusComment" name="updateInfrastructureRevisionJRExecutionStatusComment" cam-variable-type="String" placeholder="Comments..." maxlength="500" rows="4" ng-required="updateInfrastructureRevisionJRExecutionStatusResult !== 'completed'"></textarea>
+            <label class="error" ng-show="kcell_form.updateInfrastructureRevisionJRExecutionStatusComment.$error.required && ( kcell_form.updateInfrastructureRevisionJRExecutionStatusComment.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+</form>

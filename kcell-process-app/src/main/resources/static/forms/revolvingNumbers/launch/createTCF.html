@@ -1,0 +1,342 @@
+<form role="form" class="form-horizontal" name="kcell_form" novalidate>
+  <style>
+    .background-yellow-accordion .panel-body {
+      background-color: #ffffcc;
+      border: 1px solid #b3b3b3;
+      color: #333;
+    }
+
+    .content-visible-accordion .panel {
+      overflow: visible;
+    }
+  </style>
+  <script cam-script type="text/form-script">
+        inject(['$scope', '$http', 'Uri', '$rootScope', '$q', 'toasty', '$timeout', function ($scope, $http, Uri, $rootScope, $q, toasty, $timeout) {
+            $scope.legalInfo = {};
+            $scope.techSpecs = {};
+            $scope.resolutions = [];
+            $scope.attachments = [];
+            $scope.tcf = {deadline: new Date(), richText: null};
+            $scope.richTextChecker = null;
+
+            var attachmentsChanges = {added: [], removed: []};
+
+            $scope.processInstanceId = null;
+            $scope.taskId = camForm.taskId;
+            var assigneeName = $rootScope.authentication.name;
+
+            $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name+ "/profile").then(function(result){
+                assigneeName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
+            });
+
+            $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
+                function(result){
+                    $scope.processInstanceId = result.data.processInstanceId;
+                    $http.get('/camunda/api/engine/engine/default/process-instance/' + $scope.processInstanceId).then(
+                        function(result){
+                            $scope.businessKey = result.data.businessKey;
+                        },
+                        function (error) {console.log(error.data);}
+                    );
+                },
+                function (error) { console.log(error.data);}
+            );
+
+            camForm.on('form-loaded', function () {
+                camForm.variableManager.fetchVariable('legalInfo');
+                camForm.variableManager.fetchVariable('techSpecs');
+                camForm.variableManager.fetchVariable('resolutions');
+                camForm.variableManager.fetchVariable('attachments');
+                camForm.variableManager.fetchVariable('launchName');
+                camForm.variableManager.fetchVariable('numbersAmount');
+                camForm.variableManager.fetchVariable('commLaunchTCF');
+            });
+
+            camForm.on('variables-fetched', function () {
+                $scope.legalInfo = camForm.variableManager.variableValue('legalInfo');
+                $scope.techSpecs = camForm.variableManager.variableValue('techSpecs');
+                $scope.resolutions = camForm.variableManager.variableValue('resolutions');
+                $scope.attachments = camForm.variableManager.variableValue('attachments');
+                $scope.launchName = camForm.variableManager.variableValue('launchName');
+                $scope.numbersAmount = camForm.variableManager.variableValue('numbersAmount');
+                $scope.tcf = camForm.variableManager.variableValue('commLaunchTCF');
+
+                if (!$scope.legalInfo) $scope.legalInfo = {};
+                if (!$scope.techSpecs) $scope.techSpecs = {};
+                if (!$scope.tcf) $scope.tcf = {deadline: new Date(), richText: null};
+
+                $scope.richTextChecker = $scope.tcf.richText;
+                if (!$scope.tcf.deadline) $scope.tcf.deadline = new Date();
+                else $scope.tcf.deadline = new Date($scope.tcf.deadline);
+
+                if (!$scope.launchName) $scope.launchName = 'launch';
+
+                camForm.variableManager.createVariable({
+                    name: $scope.launchName+'CreateTCFTaskResult',
+                    type: 'String',
+                    value: ''
+                });
+
+                camForm.variableManager.createVariable({
+                    name: $scope.launchName+'CreateTCFTaskComment',
+                    type: 'String',
+                    value: ''
+                });
+
+                camForm.variableManager.createVariable({
+                    name: $scope.launchName+'CreateTCFTaskAttachments',
+                    type: 'Json',
+                    value: {}
+                });
+                console.log($scope.resolutions);
+                $scope.resolutions.forEach(function(e){
+                    console.log(e);
+                    if(e.taskName.startsWith('Confirm commercial starting service')){
+                      $scope.ctaskEndDate = new Date(e.taskEndDate);
+                      console.log($scope.ctaskEndDate);
+                    }
+                })
+            });
+
+            $scope.preSubmit = function() {
+                return $http.get('/camunda/api/engine/engine/default/process-instance/'+$scope.processInstanceId+'/variables/attachments?deserializeValue=false').then(function (result) {
+                    if (result && result.data) {
+                        var lastAttachments = JSON.parse(result.data.value);
+                        for (var attachment of $scope.attachments) {
+                            if (!lastAttachments.find(function(e) {return e.path == attachment.path;})) {
+                                lastAttachments.push(attachment);
+                                attachmentsChanges.added.push(attachment.name);
+                            }
+                        }
+                        for (var i = 0; i < lastAttachments.length; i++) {
+                            if (!$scope.attachments.find(function(e) {return e.path == lastAttachments[i].path;})) {
+                                attachmentsChanges.removed.push(lastAttachments[i].name);
+                                lastAttachments.splice(i, 1);
+                                i--;
+                            }
+                        }
+                        $scope.attachments = lastAttachments;
+                    }
+                },
+                function(error){
+                    toasty.error(error.data.message);
+                });
+            };
+
+            camForm.on('submit', function (event) {
+                camForm.variableManager.destroyVariable('commLaunchTCF');
+                camForm.variableManager.createVariable({
+                    name: 'commLaunchTCF',
+                    type: 'Json',
+                    value: $scope.tcf,
+                    store: true
+                });
+                camForm.variableManager.variableValue('attachments', $scope.attachments);
+                camForm.variableManager.variableValue($scope.launchName+'CreateTCFTaskResult', 'Complete');
+                camForm.variableManager.variableValue($scope.launchName+'CreateTCFTaskComment', $scope.comment);
+                camForm.variableManager.variableValue($scope.launchName+'CreateTCFTaskAttachments', attachmentsChanges);
+            });
+
+            $scope.downloadFile = function (file) {
+                $http({method: 'GET', url: '/camunda/uploads/' + (file.path.split('/').length === 2 ? 'tmp/' : '') + 'get/' + file.path, transformResponse: [] }).then(
+                    function(response) {
+                        document.getElementById('fileDownloadIframe').src = response.data;
+                    },
+                    function(response) {console.log(response.data);}
+                );
+            };
+
+            $scope.clearFile = function(fileIndex) {
+                $scope.attachments.splice(fileIndex, 1);
+            };
+
+            $scope.fileSelected = function(el) {
+                $timeout(function () {
+                    $scope.$apply(function () {
+                        uploadFileToMinio(el.files[0]);
+                    });
+                });
+            };
+            function uploadFileToMinio(file) {
+                var fileToUpload = {
+                    name: file.name.replace(/[/\\?%*:|"<>]/g, '-'),
+                    path: $scope.processInstanceId + '/' + camForm.taskId + '/' + file.name.replace(/[/\\?%*:|"<>]/g, '-'),
+                    created: new Date(),
+                    createdBy: assigneeName
+                };
+                $http({method: 'GET', url: '/camunda/uploads/put/' + fileToUpload.path, transformResponse: [] }).then(
+                    function(response) {
+                        $http.put(response.data, file, {headers: {'Content-Type': undefined}}).then(
+                            function () {
+                                $scope.attachments.push(fileToUpload);
+                                angular.element(document.querySelector('#attachments')).val(null);
+                            },
+                            function (error) {
+                                console.log(error.data);
+                            }
+                        );
+                    },
+                    function(response) { console.log(response.data); }
+                );
+            }
+            $scope.$watch('tcf.richText', function(v) {
+                $scope.richTextChecker = $scope.tcf.richText;
+                if ($scope.tcf.richText === '<p><br></p>') $scope.richTextChecker = null;
+            }, true);
+        }]);
+    </script>
+
+  <div class="form-group">
+    <label class="col-sm-3 control-label" style="padding-top: 0">Number request:</label>
+    <div class="col-sm-9">{{businessKey}}</div>
+  </div>
+  <div class="form-group">
+    <label class="col-sm-3 control-label" style="padding-top: 0">Client:</label>
+    <div class="col-sm-9">{{legalInfo.legalName}} {{legalInfo.BIN}}</div>
+  </div>
+  <div class="form-group">
+    <label class="col-sm-3 control-label" style="padding-top: 0">Priority:</label>
+    <div class="col-sm-9">{{legalInfo.clientPriority}}</div>
+  </div>
+  <div class="form-group">
+    <label class="col-sm-3 control-label" style="padding-top: 0">Service:</label>
+    <div class="col-sm-9">Revolving numbers</div>
+  </div>
+  <div class="form-group">
+    <label class="col-sm-3 control-label" style="padding-top: 0">Amount of numbers:</label>
+    <div class="col-sm-9">
+      <label class="radio-inline"><input type="radio" readonly="true" disabled="true" ng-value="60" ng-model="numbersAmount"> 60</label>
+      <label class="radio-inline"><input type="radio" readonly="true" disabled="true" ng-value="100" ng-model="numbersAmount"> 100</label>
+      <label class="radio-inline"><input type="radio" readonly="true" disabled="true" ng-value="250" ng-model="numbersAmount"> 250</label>
+      <label class="radio-inline"><input type="radio" readonly="true" disabled="true" ng-value="500" ng-model="numbersAmount"> 500</label>
+      <label class="radio-inline"><input type="radio" readonly="true" disabled="true" ng-value="0" ng-model="numbersAmount"> Custom</label>
+    </div>
+  </div>
+
+  <div class="col-sm-12"><hr /></div>
+
+  <div class="form-group">
+    <label class="col-sm-3 control-label" style="padding-top: 0">Subject (TIC name):</label>
+    <div class="col-sm-9">{{legalInfo.ticName}}</div>
+  </div>
+
+  <div class="form-group">
+    <label class="col-sm-3 control-label">Deadline:</label>
+    <div class="col-sm-3">
+      <div class="input-group">
+        <input type="text" ng-model="tcf.deadline" class="form-control" datepicker-popup="dd.MM.yyyy" is-open="tcfDeadlineFieldOpened"/>
+        <span class="input-group-btn">
+          <button type="button" class="btn btn-default" ng-click="tcfDeadlineFieldOpened = true">
+            <i class="glyphicon glyphicon-calendar"></i>
+          </button>
+      </span>
+      </div>
+    </div>
+  </div>
+  <hr/>
+  <h4>To set the following tariffs for {{legalInfo.ticName}} contract from {{ctaskEndDate | date:'dd.MM.yyyy'}}</h4>
+
+  <div class="col-sm-12">
+    <div class="form-group">
+      <div class="col-sm-12">
+        <input type="checkbox" id="firstDayConnection" cam-variable-type="Boolean" cam-variable-name="firstDayConnection" name="firstDayConnection"/> <label for="firstDayConnection"> Connect from the first day</label>
+      </div>
+    </div>
+  </div>
+  <div ng-show="numbersAmount == 0">
+    <div class="col-md-12">
+      <div class="form-group">
+        <label class="col-sm-4 coltrol-label">Onnet:</label>
+        <div class="col-sm-8">
+          <input type="text" class="form-control" cam-variable-type="String" cam-variable-name="tariffOnnet" />
+        </div>
+      </div>
+    </div>
+    <div class="col-md-12">
+      <div class="form-group">
+        <label class="col-sm-4 coltrol-label">CUG:</label>
+        <div class="col-sm-8">
+          <input type="text" class="form-control" cam-variable-type="String" cam-variable-name="tariffCug" />
+        </div>
+      </div>
+    </div>
+    <div class="col-md-12">
+      <div class="form-group">
+        <label class="col-sm-4 coltrol-label">Offnet:</label>
+        <div class="col-sm-8">
+          <input type="text" class="form-control" cam-variable-type="String" cam-variable-name="tariffOffnet" />
+        </div>
+      </div>
+    </div>
+    <div class="col-md-12">
+      <div class="form-group">
+        <label class="col-sm-4 coltrol-label">PSTN:</label>
+        <div class="col-sm-8">
+          <input type="text" class="form-control" cam-variable-type="String" cam-variable-name="tariffPstn" />
+        </div>
+      </div>
+    </div>
+    <div class="col-md-12">
+      <div class="form-group">
+        <label class="col-sm-4 coltrol-label">Access to international calls:</label>
+        <div class="col-sm-8">
+          <input type="text" class="form-control" cam-variable-type="String" cam-variable-name="tariffInternational" />
+        </div>
+      </div>
+    </div>
+    <div class="col-md-12">
+      <div class="form-group">
+        <label class="col-sm-4 coltrol-label">Monthly fee:</label>
+        <div class="col-sm-8">
+          <input type="text" class="form-control" cam-variable-type="String" cam-variable-name="tariffMonthly" />
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-sm-12"><hr /></div>
+
+  <div class="form-group">
+    <label class="col-sm-2 control-label">Comment</label>
+    <div class="col-sm-10">
+      <textarea elastic-textarea class="form-control" rows="4" ng-model="comment"></textarea>
+    </div>
+  </div>
+
+  <accordion>
+    <accordion-group is-open="isHistoryOpen">
+      <accordion-heading>
+        History <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
+      </accordion-heading>
+      <table class="table">
+        <thead>
+        <tr>
+          <th>Activity</th>
+          <th>Assignee</th>
+          <th>Assigned date</th>
+          <th>Claimed date</th>
+          <th>Resolution date</th>
+          <th>Resolution</th>
+          <th>Comment</th>
+          <th>Attachments</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr ng-repeat="resolution in resolutions | orderBy:'-' track by $index">
+          <td>{{resolution.taskName}}</td>
+          <td>{{resolution.assigneeName}}</td>
+          <td>{{resolution.assignDate | date: 'dd.MM.yyyy HH:mm'}}</td>
+          <td>{{resolution.claimDate | date: 'dd.MM.yyyy HH:mm'}}</td>
+          <td>{{resolution.taskEndDate | date: 'dd.MM.yyyy HH:mm'}}</td>
+          <td>{{resolution.resolution}}</td>
+          <td>{{resolution.comment}}</td>
+          <td>
+            <p ng-repeat="file in resolution.attachments.added">{{file}}</p>
+            <p ng-repeat="file in resolution.attachments.removed" class="text-danger">{{file}}</p>
+          </td>
+        </tr>
+        </tbody>
+      </table>
+    </accordion-group>
+  </accordion>
+</form>

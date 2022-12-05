@@ -1,0 +1,344 @@
+<style>
+    .well {
+        color: #333;
+    }
+</style>
+<form role="form" class="form-horizontal" name="kcell_form" novalidate>
+    <script cam-script type="text/form-script">
+        inject(['$scope', '$http', 'Uri', '$rootScope', '$q', 'Upload', '$timeout', function ($scope, $http, Uri, $rootScope, $q, Upload, $timeout) {
+            var variables = [
+                'requestedDate',
+                'jrNumber',
+                'initiatorFull',
+                'validityDate',
+                'soaComplaintId',
+                'site',
+                'siteName',
+                'siteAddress',
+                'site_name',
+                'reason',
+                'contract',
+                'contractor',
+                'materialsRequired',
+                'leasingRequired',
+                'powerRequired',
+                'project',
+                'supplementaryFiles',
+                'explanation',
+                'jobWorks',
+                'sapPRFileXLS',
+                'sapPRNo',
+                'kcellWarehouseMaterialsList',
+                'contractorZIPWarehouseMaterialsList',
+                'kcellWarehouseMaterialsListName',
+                'kcellWarehouseMaterialsAdditionalList',
+                'contractorZIPWarehouseMaterialsListName',
+                'sapTransferRequestFile',
+                'resolutions',
+                'actOfMaterialsDispatchingFile',
+                'actOfMaterialsDispatchingFileName',
+                'actOfMaterialsDispatchingFiles',
+                'jrBlank',
+                'tssrssidFile',
+                'tssrssidFileName',
+                'trFilesName',
+                'trAdditionalFilesName',
+                'trFiles',
+                'siteWorksFiles',
+                'initiatorFiles',
+                'maintananceFiles',
+                'planningFiles',
+                'priority',
+                'performDate',
+                'mlApprovalAdditionalInfoFile',
+                'delayInfo',
+                'acceptanceDate',
+                'contractorJobAssignedDate',
+                'mainContract',
+                'rolloutRO2Delay',
+                'rolloutRO3Delay',
+                'rolloutRO4Delay',
+                'contains13Work'
+            ];
+            $scope.jobModel = {};
+            var workFiles = [];
+            var newFiles = [];
+            $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
+                    function(result){
+                        $scope.processInstanceId = result.data.processInstanceId;
+                    },
+                    function (error) {
+                        console.log(error.data);
+                    }
+            );
+            camForm.on('form-loaded', function () {
+                variables.forEach(function (el) {
+                    console.log("FETCH FROM VARIABLES");
+                    camForm.variableManager.fetchVariable(el);
+                });
+
+                $http.get($rootScope.getCatalogsHttpByName('catalogs')).then(
+                        function (result) {
+                            angular.extend($scope, result.data);
+                            angular.extend($scope.jobModel, result.data);
+                        },
+                        function (error) {
+                            console.log(error.data);
+                        }
+                );
+                camForm.variableManager.createVariable({
+                    name: 'acceptAndSignByPlanningGroupTaskResult',
+                    type: 'String',
+                    value: ''
+                });
+            });
+            camForm.on('variables-fetched', function () {
+                variables.forEach(function (el) {
+                    if(el === 'resolutions'){
+                        $scope.resolutions = angular.copy(camForm.variableManager.variables[el].value);
+                    } else if(el === 'tssrssidFileName' && camForm.variableManager.variables[el] && camForm.variableManager.variables[el].value && camForm.variableManager.variables[el].value.name) {
+                        $scope.jobModel[el] = camForm.variableManager.variables[el];
+                    } else if(el === 'siteWorksFiles' && camForm.variableManager.variables[el].value) {
+                        workFiles = camForm.variableManager.variables[el].value;
+                    } else {
+                        $scope.jobModel[el] = camForm.variableManager.variables[el];
+                    }
+                    if(el !== 'resolutions'){
+                        $scope[el] = camForm.variableManager.variables[el];
+                    }
+                });
+                $http.get(Uri.appUri("engine://engine/:engine/task/" + camForm.taskId + "/form-variables")).then(function(result){
+                    console.log("GET FROM URI");
+                    angular.forEach(result.data, function(value, key) {
+                        if(key.startsWith('works_')){
+                            $scope[key] = value;
+                            $scope.jobModel[key] = value;
+                        }
+                    });
+                    console.log("FETCHED");
+                });
+                $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name+ "/profile").then(function(result){
+                    $rootScope.authentication.assigneeName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
+                });
+
+                workFiles.forEach(function(file,i){
+                    if(file.name){
+                        var workIndex = file.name.split('_')[1];
+                        console.log($scope.jobModel.jobWorks);
+                        if(!$scope.jobModel.jobWorks.value[workIndex].files) {
+                            $scope.jobModel.jobWorks.value[workIndex].files = [];
+                        }
+                        if($scope.jobModel.jobWorks.value[workIndex].files && !containsFile($scope.jobModel.jobWorks.value[workIndex].files, file)){
+                            $scope.jobModel.jobWorks.value[workIndex].files.push(file);
+                        }
+                    }
+                });
+
+                $scope.planningFiles.type = 'Json';
+                if(!$scope.planningFiles.value){
+                    $scope.planningFiles.value = [];
+                }
+                $scope.jobModel.showDelayHint = true;
+                camForm.variableManager.variableValue('acceptAndSignByPlanningGroupComment', '');
+            });
+
+            camForm.on('submit', function () {
+                camForm.variableManager.variableValue('acceptAndSignByPlanningGroupTaskResult', $scope.acceptAndSignByPlanningGroupTaskResult);
+                camForm.variableManager.createVariable({
+                    name: 'accept_work_planning_groupTaskResult',
+                    type: 'String',
+                    value: $scope.acceptAndSignByPlanningGroupTaskResult
+                });
+                $scope.planningFiles.value.forEach(function (f, i) {
+                    if(f.value.isNew){
+                        newFiles.push(f.value);
+                        delete $scope.planningFiles.value[i].value.isNew;
+                    }
+                });
+                camForm.variableManager.createVariable({
+                    name: 'accept_work_planning_groupFiles',
+                    type: 'Json',
+                    value: newFiles
+                });
+
+                if(camForm.variableManager.variables['planningFiles']){
+                    camForm.variableManager.variableValue('planningFiles', $scope.planningFiles.value);
+                } else {
+                    camForm.variableManager.createVariable($scope.planningFiles);
+                }
+
+                var visibility = 'all';
+                if($scope.acceptAndSignByPlanningGroupComment && $scope.acceptAndSignByPlanningGroupCommentVisibility){
+                    visibility = $scope.acceptAndSignByPlanningGroupCommentVisibility;
+                    camForm.variableManager.createVariable({
+                        name: 'accept_work_planning_groupTaskCommentVisibility',
+                        type: 'String',
+                        value: visibility
+                    });
+                }
+                camForm.variableManager.createVariable({
+                    name: 'accept_work_planning_groupTaskComment',
+                    type: 'String',
+                    value: $scope.acceptAndSignByPlanningGroupComment
+                });
+                camForm.variableManager.destroyVariable('resolutions');
+            });
+
+            camForm.on('store', function() {
+                camForm.variableManager.variableValue('acceptAndSignByPlanningGroupTaskResult', $scope.acceptAndSignByPlanningGroupTaskResult);
+            });
+
+            camForm.on('variables-restored', function() {
+                $scope.acceptAndSignByPlanningGroupTaskResult = camForm.variableManager.variableValue('acceptAndSignByPlanningGroupTaskResult');
+            });
+
+            $scope.download = function (file) {
+                $http({method: 'GET', url: '/camunda/uploads/get/' + file.value.path, transformResponse: [] }).
+                then(function(response) {
+                    document.getElementById('fileDownloadIframe').src = response.data;
+                }, function(error){
+                    console.log(error.data);
+                });
+            }
+
+            $scope.downloadOldFile = function (file) {
+                document.getElementById('fileDownloadIframe').src = '/camunda/api/engine/engine/default/variable-instance/' + file.id + '/data';
+            }
+
+            function containsFile(files, file){
+                for(var i = 0; i<files.length; i++){
+                    if(files[i].name === file.name){
+                        return true;
+                    }
+                }
+                return false;
+            }
+
+            $scope.fileSelected = function(el, bindedInput){
+                $timeout(function () {
+                    $scope.$apply(function () {
+                        uploadFileToMinio(el.files[0], bindedInput);
+                    });
+                })
+            };
+
+            function uploadFileToMinio(file, bindedInput) {
+                var fileIndex = $scope.planningFiles.value.length;
+
+                var fileToUpload = {
+                    name: 'planning_file_' + fileIndex,
+                    isNew: true,
+                    type: 'Json',
+                    value: {
+                        name: file.name.replace(/[/\\?%*:|"<>]/g, '-'),
+                        isNew: true,
+                        path: $scope.processInstanceId + '/' + camForm.taskId + '/' + file.name.replace(/[/\\?%*:|"<>]/g, '-')
+                    }
+                };
+                $http({method: 'GET', url: '/camunda/uploads/put/' + fileToUpload.value.path, transformResponse: [] }).
+                    then(function(response) {
+                        $http.put(response.data, file, {headers: {'Content-Type': undefined}}).then(
+                            function () {
+                                $scope.planningFiles.value.push(fileToUpload);
+                                angular.element(document.querySelector('#planning_file_' + fileIndex)).val(null);
+                                $(bindedInput).val('');
+                            },
+                            function (error) {
+                                console.log(error.data);
+                            }
+                        );
+                }, function(error){
+                    console.log(error.data);
+                });
+            }
+
+            $scope.clearFile = function (fileIndex) {
+                $scope.planningFiles.value.splice(fileIndex, 1);
+            }
+
+            $scope.isVisible = function (resolution) {
+               return !resolution.visibility || resolution.visibility === 'all' || (resolution.visibility === 'kcell' && $rootScope.hasGroup('kcellUsers'));
+            }
+
+            $scope.hasComment = function () {
+                return $scope.acceptAndSignByPlanningGroupComment && $rootScope.hasGroup('kcellUsers');
+            }
+        }]);
+    </script>
+    <job-request job-model="jobModel"></job-request>
+    <ng-include ng-if="contextPath" src="contextPath+'/forms/revision/summaries-card.html'"></ng-include>
+    <iframe id="fileDownloadIframe" style="display:none;"></iframe>
+
+    <div style="margin-bottom: 20px;"></div>
+
+    <div class="form-group">
+        <label class="col-sm-4 control-label">Additional files</label>
+        <div class="col-md-12" ng-repeat="file in planningFiles.value">
+            <div class="input-group">
+                {{$index + 1}}.
+                <a ng-click="download(file)">{{file.value.name}}</a> | <a ng-click="clearFile($index)"><i class="glyphicon glyphicon-trash"></i></a>
+                <div class="input-group-addon">
+                    <label class="radio-inline">
+                        <input type="radio" name="planningFilesVisibility_{{$index}}"
+                               ng-model="file.value.visibility" value="all" ng-required="hasGroup('kcellUsers') && file.value.name"> Visible for all
+                    </label>
+                    <label class="radio-inline">
+                        <input type="radio" name="planningFilesVisibility_{{$index}}"
+                               ng-model="file.value.visibility" value="kcell" ng-required="hasGroup('kcellUsers') && file.value.name"> Kcell staff only
+                    </label>
+                    <label class="error" ng-show="kcell_form['planningFilesVisibility_'+$index].$error.required && ( kcell_form['planningFilesVisibility_'+$index].$touched || view.submitted)">Required field</label>
+                </div>
+            </div>
+        </div>
+        <!--<input type="file" class="form-control" id="planning_file_{{planningFiles.value.length}}" name="planning_file_{{planningFiles.value.length}}" ng-model="file.file" onchange="angular.element(this).scope().fileSelected(this)"/>-->
+    </div>
+    <div class="input-group">
+        <label class="input-group-btn">
+                    <span class="btn btn-default">
+                        Choose File <input type="file" id="planning_file_{{planningFiles.value.length}}" name="planning_file_{{planningFiles.value.length}}" ng-model="file.file" style="display: none;" onchange="angular.element(this).scope().fileSelected(this, '#supplementaryFilesName');$('#supplementaryFilesName').val(this.files[0].name)" >
+                    </span>
+        </label>
+        <input type="text" class="form-control upload-filename" id="supplementaryFilesName" placeholder="No File Chosen" readonly>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-4 control-label">Resolution</label>
+        <div class="col-sm-8">
+            <label class="radio-inline">
+                <input type="radio" name="acceptAndSignByPlanningGroupTaskResult" ng-model="acceptAndSignByPlanningGroupTaskResult" value="approved" required> Approved
+            </label>
+            <label class="radio-inline">
+                <input type="radio" name="acceptAndSignByPlanningGroupTaskResult" ng-model="acceptAndSignByPlanningGroupTaskResult" value="rejected" required> Not approved, request corrections
+            </label>
+            <label class="error" ng-show="kcell_form.acceptAndSignByPlanningGroupTaskResult.$error.required && ( kcell_form.acceptAndSignByPlanningGroupTaskResult.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-4 control-label">Comments</label>
+        <div class="col-sm-8">
+            <textarea class="form-control" rows="4" maxlength="500" cam-variable-name="acceptAndSignByPlanningGroupComment" name="acceptAndSignByPlanningGroupComment" ng-required="acceptAndSignByPlanningGroupTaskResult == 'rejected'" cam-variable-type="String"></textarea>
+            <label class="error" ng-show="kcell_form.acceptAndSignByPlanningGroupComment.$error.required && ( kcell_form.acceptAndSignByPlanningGroupComment.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+    <div class="form-group" ng-show="hasComment()">
+        <label class="col-sm-4 control-label">Comments visibility</label>
+        <div class="col-sm-8">
+            <label class="radio-inline">
+                <input type="radio" name="acceptAndSignByPlanningGroupCommentVisibility"
+                       ng-model="acceptAndSignByPlanningGroupCommentVisibility" value="all" ng-required="hasComment()"> Visible for all
+            </label>
+            <label class="radio-inline">
+                <input type="radio" name="acceptAndSignByPlanningGroupCommentVisibility"
+                       ng-model="acceptAndSignByPlanningGroupCommentVisibility" value="kcell" ng-required="hasComment()"> Kcell staff only
+            </label>
+            <label class="error" ng-show="kcell_form.acceptAndSignByPlanningGroupCommentVisibility.$error.required && ( kcell_form.acceptAndSignByPlanningGroupCommentVisibility.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+    <accordion>
+        <accordion-group is-open="isHistoryOpen">
+            <accordion-heading>
+                History <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
+            </accordion-heading>
+            <resolution-history resolutions="resolutions" procDef="Revision"></resolution-history>
+        </accordion-group>
+    </accordion>
+</form>

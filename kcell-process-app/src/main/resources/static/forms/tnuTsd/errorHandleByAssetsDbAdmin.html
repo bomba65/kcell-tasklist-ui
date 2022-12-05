@@ -1,0 +1,997 @@
+<form role="form" class="form-horizontal" name="kcell_form" novalidate style="width: 965px;">
+    <script cam-script type="text/form-script">
+        inject(['$scope', '$http', 'Uri', '$rootScope', '$q', '$timeout', function ($scope, $http, Uri, $rootScope, $q, $timeout) {
+            var variables = [
+                'region_name',
+                'ne_sitename',
+                'fe_sitename',
+                'resolutions',
+                'date_of_visit',
+                'ne_construction_type',
+                'fe_construction_type',
+                'protection_mode',
+                'ne_diameter',
+                'fe_diameter',
+                'hop_link_capacity',
+                'ne_address',
+                'fe_address',
+                'ne_latitude',
+                'ne_longitude',
+                'fe_latitude',
+                'fe_longitude',
+                'ne_altitude',
+                'fe_altitude',
+                'ne_azimuth',
+                'fe_azimuth',
+                'path_distance',
+                'ne_construction_height',
+                'fe_construction_height',
+                'ne_suspension_height_antennas',
+                'fe_suspension_height',
+                'hop_link_nxe1',
+                'hop_modulation_type',
+                'hop_channel_bandwidth',
+                'tnuTsdNumber',
+                'ne_terminal_id',
+                'fe_terminal_id',
+                'ne_protection_rau_subband',
+                'fe_protection_rau_subband',
+                'ne_protection_suspension_height',
+                'fe_protection_suspension_height',
+                'ne_protection_antenna_diameter',
+                'fe_protection_antenna_diameter',
+                'hop_polarization',
+                'ne_rau_subband',
+                'fe_rau_subband',
+                'ne_txrx_frequincies',
+                'fe_txrx_frequincies',
+                'ne_protection_txrx_frequincies',
+                'fe_protection_txrx_frequincies',
+                'ne_power_level_tx',
+                'ne_power_level_rx',
+                'fe_power_level_tx',
+                'fe_power_level_rx',
+                'ne_protection_power_level_tx',
+                'ne_protection_power_level_rx',
+                'fe_protection_power_level_tx',
+                'fe_protection_power_level_rx',
+                'sendAssetsErrorMessage',
+            ];
+
+            camForm.on('form-loaded', function () {
+                variables.forEach(function (el) {
+                    camForm.variableManager.fetchVariable(el);
+                });
+
+                camForm.variableManager.createVariable({
+                    name: 'tnutsd_fill_tsd_by_centerTaskResult',
+                    type: 'String',
+                    value: ''
+                });
+            });
+
+            $scope.titles = {};
+            $scope.regionsTitle = {
+                'alm': 'Alm',
+                'astana': 'Astana',
+                'nc': 'N&C',
+                'east': 'East',
+                'south': 'South',
+                'west': 'West'
+            };
+
+            $scope.protectionModeSetted = false;
+            $scope.antenaSetted = false;
+            $scope.linkCapacitySetted = false;
+            $scope.variablesFetched = false;
+            $scope.suspensionPattern = '([1-9]|[1-9][0-9]|[1-9][0-9][0-9])';
+
+            $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
+                    function (result) {
+                        $scope.processInstanceId = result.data.processInstanceId;
+                    },
+                    function (error) {
+                        console.log(error.data);
+                    }
+            );
+
+            $scope.ne_power_level_txPattern = '(-)?[0-9]{1,2}';
+            $scope.ne_power_level_rxPattern = '(-){1}[0-9]{1,2}';
+            $scope.protection_mode_fetched = false;
+            $scope.hop_link_type = 3;
+
+            $scope.antennaDiameter = function () {
+                $scope.fe_diameter = $scope.ne_diameter
+            };
+
+            $scope.setValues = function () {
+                if (!$scope.protectionModeSetted && $scope.variablesFetched && $scope.protectionModeList) {
+                    var i = $scope.protectionModeList.findIndex(function (e) {
+                        $scope.protectionModeSetted = true;
+                        return e.id.toString() === $scope.protection_mode
+                    });
+
+                    if (i > -1) {
+                        $scope.protection_mode = $scope.protectionModeList[i].id;
+                        $scope.protectionMode();
+                        if ($scope.protection_mode === 2) {
+                            $scope.hop_polarization = 3;
+                        }
+                    }
+                }
+
+                if (!$scope.linkCapacitySetted && $scope.variablesFetched && $scope.linkCapacityList) {
+                    var i = $scope.linkCapacityList.findIndex(function (e) {
+                        $scope.linkCapacitySetted = true;
+                        return e.id.toString() === $scope.hop_link_capacity
+                    });
+
+                    if (i > -1) {
+                        $scope.hop_link_capacity = $scope.linkCapacityList[i].id;
+                    }
+                }
+
+                if (!$scope.antenaSetted && $scope.variablesFetched && $scope.trAntennasTypeList) {
+                    var neI = $scope.trAntennasTypeList.findIndex(function (e) {
+                        $scope.antenaSetted = true;
+                        return e.id.toString() === $scope.ne_diameter
+                    });
+                    var feI = $scope.trAntennasTypeList.findIndex(function (e) {
+                        $scope.antenaSetted = true;
+                        return e.id.toString() === $scope.fe_diameter
+                    });
+
+                    if (neI > -1) {
+                        $scope.ne_diameter = $scope.trAntennasTypeList[neI].id
+                    }
+                    if (feI > -1) {
+                        $scope.fe_diameter = $scope.trAntennasTypeList[feI].id
+                    }
+
+                    var nePI = $scope.trAntennasTypeList.findIndex(function (e) {
+                        $scope.antenaSetted = true;
+                        return e.id.toString() === $scope.ne_protection_antenna_diameter
+                    });
+                    var fePI = $scope.trAntennasTypeList.findIndex(function (e) {
+                        $scope.antenaSetted = true;
+                        return e.id.toString() === $scope.fe_protection_antenna_diameter
+                    });
+
+                    if (nePI > -1) {
+                        $scope.ne_protection_antenna_diameter = $scope.trAntennasTypeList[nePI].id
+                    }
+                    if (fePI > -1) {
+                        $scope.fe_protection_antenna_diameter = $scope.trAntennasTypeList[fePI].id
+                    }
+                }
+
+            };
+
+            $scope.protectionMode = function () {
+                if ($scope.protection_mode === 1 || $scope.protection_mode === 2 || $scope.protection_mode === 3 || $scope.protection_mode === 4) {
+                    $scope.protection_mode_fetched = true
+                    $scope.ne_protection_antenna_diameter = undefined
+                    $scope.fe_protection_antenna_diameter = undefined
+                    $scope.ne_protection_suspension_height = undefined
+                    $scope.fe_protection_suspension_height = undefined
+                } else {
+                    $scope.protection_mode_fetched = false
+                }
+            };
+
+
+            camForm.on('store', function () {
+            });
+
+            camForm.on('variables-fetched', function () {
+                variables.forEach(function (el) {
+                    if (camForm.variableManager.variables[el].type === 'Date') {
+                        $scope[el] = new Date(camForm.variableManager.variables[el].value);
+                    } else {
+                        $scope[el] = camForm.variableManager.variables[el].value;
+                    }
+                });
+                $scope.variablesFetched = true;
+                $scope.setValues();
+
+                $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name + "/profile").then(function (result) {
+                    $rootScope.authentication.assigneeName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
+                });
+
+                $scope.hop_polarization = parseInt($scope.hop_polarization)
+                $scope.ne_rau_subband = parseInt($scope.ne_rau_subband)
+                $scope.fe_rau_subband = parseInt($scope.fe_rau_subband)
+                $scope.ne_protection_rau_subband = parseInt($scope.ne_protection_rau_subband)
+                $scope.fe_protection_rau_subband = parseInt($scope.fe_protection_rau_subband)
+                $scope.ne_txrx_frequincies = parseInt($scope.ne_txrx_frequincies)
+                $scope.fe_txrx_frequincies = parseInt($scope.fe_txrx_frequincies)
+                $scope.ne_protection_txrx_frequincies = parseInt($scope.ne_protection_txrx_frequincies)
+                $scope.fe_protection_txrx_frequincies = parseInt($scope.fe_protection_txrx_frequincies)
+                $scope.ne_power_level_tx = $scope.ne_power_level_tx
+                $scope.ne_power_level_rx = $scope.ne_power_level_rx
+                $scope.fe_power_level_tx = $scope.fe_power_level_tx
+                $scope.fe_power_level_rx = $scope.fe_power_level_rx
+                $scope.ne_protection_power_level_tx = $scope.ne_protection_power_level_tx
+                $scope.ne_protection_power_level_rx = $scope.ne_protection_power_level_rx
+                $scope.fe_protection_power_level_tx = $scope.fe_protection_power_level_tx
+                $scope.fe_protection_power_level_rx = $scope.fe_protection_power_level_rx
+
+                $scope.error_code = $scope.sendAssetsErrorMessage;
+                $scope.decription = null;
+                $scope.actions1 = null;
+                $scope.actions2 = null;
+                $scope.actions3 = null;
+
+                if($scope.error_code === "400"){
+                    $scope.actions1 = "Попробуйте повторно произвести запись, Для этого нажмите Complete"
+                    $scope.actions2 = "Обратитесь к разработчику"
+                    $scope.decription = "Неверный запрос"
+                }else if($scope.error_code === "401"){
+                    $scope.actions1 = "Попробуйте повторно произвести запись, Для этого нажмите Complete"
+                    $scope.actions2 = "Обратитесь к разработчику"
+                    $scope.decription = "Ошибка авторизации"
+                }else if($scope.error_code === "403"){
+                    $scope.actions1 = "Попробуйте повторно произвести запись, Для этого нажмите Complete"
+                    $scope.actions2 = "Обратитесь к разработчику"
+                    $scope.decription = "Ошибка доступа"
+                }else if($scope.error_code === "404"){
+                    $scope.actions1 = "Попробуйте повторно произвести запись, Для этого нажмите Complete"
+                    $scope.actions2 = "Обратитесь к разработчику"
+                    $scope.decription = "Не найдена запись которая меняется"
+                }else if($scope.error_code === "500"){
+                    $scope.actions1 = "Попробуйте повторно произвести запись, Для этого нажмите Complete"
+                    $scope.actions2 = "Проверьте работает ли сервер, далее нажмите Complete"
+                    $scope.actions3 = "Обратитесь к разработчику"
+                    $scope.decription = "Ошибка сервера"
+                } else {
+                    $scope.actions1 = "Попробуйте повторно произвести запись, Для этого нажмите Complete"
+                    $scope.actions2 = "Если ошибка повторяется, обратитесь к разработчику"
+                    $scope.decription = "Ошибка"
+                }
+
+                $scope.calculateAllDMS();
+            });
+
+            camForm.on('submit', function () {
+                camForm.variableManager.destroyVariable('resolutions');
+            });
+
+            $scope.populateSelectFromCatalog = function (containers, id) {
+                $http.get('/camunda/catalogs/api/get/id/' + id).then(function (result) {
+                    if (result && result.data && result.data.data && result.data.data.$list) {
+                        angular.forEach(containers, function (container) {
+                            $scope[container] = result.data.data.$list;
+                        });
+                        angular.forEach(result.data.data.$list, function (item) {
+                            if (!$scope.titles[containers[0]]) {
+                                $scope.titles[containers[0]] = {};
+                            }
+                            $scope.titles[containers[0]][item.id] = item.value;
+                        });
+                    }
+                    if ($scope.protectionModeList && !$scope.protectionModeSetted) {
+                        $scope.setValues()
+                    }
+                    if ($scope.trAntennasTypeList && !$scope.antenaSetted) {
+                        $scope.setValues()
+                    }
+
+                    if ($scope.linkCapacityList && !$scope.linkCapacitySetted) {
+                        $scope.setValues()
+                    }
+                });
+            };
+
+            $scope.populateSelectFromCatalog(['protectionModeList'], 44); // Protection mode
+            $scope.populateSelectFromCatalog(['trAntennasTypeList'], 20); // TR Antennas Type
+            $scope.populateSelectFromCatalog(['constructionTypeList'], 14); // Construction_type
+            $scope.populateSelectFromCatalog(['linkCapacityList'], 45);   // Link capacity
+            $scope.populateSelectFromCatalog(['polarizationList'], 48);   // Polarization
+            $scope.populateSelectFromCatalog(['linkTypeList'], 47);       // Link type
+            $scope.populateSelectFromCatalog(['rauSubbandList'], 46);     // Rau subband
+
+
+            $scope.ne_power_level_txChanged = function () {
+                $scope.fe_power_level_tx = $scope.ne_power_level_tx;
+            };
+            $scope.ne_power_level_rxChanged = function () {
+                $scope.fe_power_level_rx = $scope.ne_power_level_rx;
+            };
+            $scope.ne_protection_power_level_txChanged = function () {
+                $scope.fe_protection_power_level_tx = $scope.ne_protection_power_level_tx;
+            };
+            $scope.ne_protection_power_level_rxChanged = function () {
+                $scope.fe_protection_power_level_rx = $scope.ne_protection_power_level_rx;
+            };
+
+            $scope.hopLinkCapacitySelected = function () {
+                var obj = _.filter($scope.linkCapacityList, function (c) {
+                    return c.id === $scope.hop_link_capacity;
+                });
+                if (obj && obj.length > 0) {
+                    $scope.hop_modulation_type = obj[0]['Modulation'].value;
+                    $scope.hop_channel_bandwidth = obj[0]['Channel Bandwidth'].value;
+                }
+            };
+
+            $scope.rauRelations = {
+                39: {related: 40, minFrequency: 21784, maxFrequency: 22600}, // 6363 23/02L -> 6363 23/02H
+                40: {related: 39, minFrequency: 22996.25, maxFrequency: 23600}, // 6363 23/02H -> 6363 23/02L
+                41: {related: 42, minFrequency: 14495.75, maxFrequency: 14774}, // 6363 15/01L -> 6363 15/01H
+                42: {related: 41, minFrequency: 15055.75, maxFrequency: 15348}, // 6363 15/01H -> 6363 15/01L
+                43: {related: 44, minFrequency: 7905, maxFrequency: 8017}, // 6363 8/61L -> 6363 8/61H
+                44: {related: 43, minFrequency: 8171, maxFrequency: 8327}, // 6363 8/61H -> 6363 8/61L
+                45: {related: 46, minFrequency: 7498, maxFrequency: 7568}, // 6363 7/14L -> 6363 7/14H
+                46: {related: 45, minFrequency: 7665, maxFrequency: 7729}, // 6363 7/14H -> 6363 7/14L
+                47: {related: 48, minFrequency: 7107, maxFrequency: 7184}, // 6363 7/31L -> 6363 7/31H
+                48: {related: 47, minFrequency: 7275, maxFrequency: 7345}, // 6363 7/31H -> 6363 7/31L
+                1: {related: 2, minFrequency: 21784, maxFrequency: 22600},   // 23/A02 -> 23/A06
+                2: {related: 1, minFrequency: 22996.25, maxFrequency: 23600},   // 23/A06 -> 23/A02
+                27: {related: 29, minFrequency: 22002.75, maxFrequency: 22316.25}, // 23/76 -> 23/78
+                29: {related: 27, minFrequency: 23010.75, maxFrequency: 23324.25}, // 23/78	-> 23/76
+                28: {related: 30, minFrequency: 22274, maxFrequency: 22590.75}, // 23/77 ->	23/79
+                30: {related: 28, minFrequency: 23282, maxFrequency: 23598.75}, // 23/79 ->	23/77
+                3: {related: 4, minFrequency: 24549, maxFrequency: 24857},   // 26/A01 -> 26/A05
+                4: {related: 3, minFrequency: 25557, maxFrequency: 25865},   // 26/A05 -> 26/A01
+                31: {related: 32, minFrequency: 24549, maxFrequency: 24857}, // 26/51 -> 26/55
+                32: {related: 31, minFrequency: 25557, maxFrequency: 25865}, // 26/55 -> 26/51
+                5: {related: 6, minFrequency: 7498, maxFrequency: 7568},   // 7/A14 -> 7/A18
+                6: {related: 5, minFrequency: 7665, maxFrequency: 7729},   // 7/A18 -> 7/A14
+                7: {related: 8, minFrequency: 7107, maxFrequency: 7184},   // 7/A31 -> 7/A35
+                8: {related: 7, minFrequency: 7275, maxFrequency: 7345},   // 7/A35 -> 7/A31
+                9: {related: 10, minFrequency: 8031, maxFrequency: 8136},  // 8/A63 -> 8/A67
+                10: {related: 9, minFrequency: 8297, maxFrequency: 8402},  // 8/A67 -> 8/A63
+                11: {related: 12, minFrequency: 7905, maxFrequency: 8010}, // 8/A61 -> 8/A65
+                12: {related: 11, minFrequency: 8171, maxFrequency: 8276}, // 8/A65 -> 8/A61
+                13: {related: 13, minFrequency: 7505.5, maxFrequency: 7568}, // 7/44 -> 7/48
+                14: {related: 14, minFrequency: 7666.5, maxFrequency: 7729}, // 7/48 -> 7/44
+                15: {related: 16, minFrequency: 7107, maxFrequency: 7163}, // 7/51 -> 7/55
+                16: {related: 15, minFrequency: 7275, maxFrequency: 7331}, // 7/55 -> 7/51
+                17: {related: 18, minFrequency: 7905, maxFrequency: 8010}, // 8/61 -> 8/63
+                18: {related: 17, minFrequency: 8031, maxFrequency: 8136}, // 8/63 -> 8/61
+                19: {related: 20, minFrequency: 8171, maxFrequency: 8276}, // 8/65 -> 8/67
+                20: {related: 19, minFrequency: 8297, maxFrequency: 8402}, // 8/67 -> 8/65
+                21: {related: 22, minFrequency: 14495.75, maxFrequency: 14700.5}, // 15/43 -> 15/49
+                22: {related: 21, minFrequency: 15139.75, maxFrequency: 15344.5}, // 15/49 -> 15/43
+                25: {related: 26, minFrequency: 22002.75, maxFrequency: 22513.75}, // 23/56 -> 23/58
+                26: {related: 25, minFrequency: 23010.75, maxFrequency: 23521.75}, // 23/58 -> 23/56
+                33: {related: 34, minFrequency: 71000, maxFrequency: 76000}, // 80/11 -> 80/15
+                34: {related: 33, minFrequency: 81000, maxFrequency: 86000}, // 80/15 -> 80/11
+                37: {related: 38, minFrequency: 24549, maxFrequency: 25165}, // 6363 26/01L -> 6363 26/01H
+                38: {related: 37, minFrequency: 25557, maxFrequency: 26173}, // 6363 26/01H -> 6363 26/01L
+                23: {related: 24, minFrequency: 14495.75, maxFrequency: 14700.5}, // 15/A01 -> 15/A05
+                24: {related: 23, minFrequency: 15139.75, maxFrequency: 15344.5}, // 15/A05 -> 15/A01
+                35: {related: 36, minFrequency: 71000, maxFrequency: 76000}, // 80/11L -> 80/11H
+                36: {related: 35, minFrequency: 81000, maxFrequency: 86000}, // 80/11H -> 80/11L
+                49: {related: 50, minFrequency: 22996.25, maxFrequency: 23600}, // 6365 23/A02H -> 6365 23/A02L
+                50: {related: 49, minFrequency: 21784, maxFrequency: 22600}, // 6365 23/A02L -> 6365 23/A02H
+                51: {related: 52, minFrequency: 15055.75, maxFrequency: 15348}, // 6365 15/A01H -> 6365 15/A01L
+                52: {related: 51, minFrequency: 14495.75, maxFrequency: 14774}, // 6365 15/A01L -> 6365 15/A01H
+            }
+
+            $scope.rauSubbandSelected = function () {
+                $scope.fe_rau_subband = $scope.rauRelations[$scope.ne_rau_subband].related;
+
+            };
+            $scope.protectRauSubbandSelected = function () {
+                $scope.fe_protection_rau_subband = $scope.rauRelations[$scope.ne_protection_rau_subband].related;
+            };
+
+            $scope.ne_txrx_frequinciesValuesCheck = function () {
+                if ($scope.ne_txrx_frequincies && !isNaN($scope.ne_txrx_frequincies) && $scope.rauRelations[$scope.ne_rau_subband].minFrequency <= $scope.ne_txrx_frequincies && $scope.rauRelations[$scope.ne_rau_subband].maxFrequency >= $scope.ne_txrx_frequincies) {
+                    $scope.ne_txrx_frequinciesInvalid = false;
+                } else {
+                    $scope.ne_txrx_frequinciesInvalid = true;
+                }
+            }
+
+            $scope.fe_txrx_frequinciesValuesCheck = function () {
+                if ($scope.fe_txrx_frequincies && !isNaN($scope.fe_txrx_frequincies) && $scope.rauRelations[$scope.fe_rau_subband].minFrequency <= $scope.fe_txrx_frequincies && $scope.rauRelations[$scope.fe_rau_subband].maxFrequency >= $scope.fe_txrx_frequincies) {
+                    $scope.fe_txrx_frequinciesInvalid = false;
+                } else {
+                    $scope.fe_txrx_frequinciesInvalid = true;
+                }
+            }
+
+            $scope.ne_protection_txrx_frequinciesValuesCheck = function () {
+                if ($scope.ne_protection_txrx_frequincies && !isNaN($scope.ne_protection_txrx_frequincies) && $scope.rauRelations[$scope.ne_protection_rau_subband].minFrequency <= $scope.ne_protection_txrx_frequincies && $scope.rauRelations[$scope.ne_protection_rau_subband].maxFrequency >= $scope.ne_protection_txrx_frequincies) {
+                    $scope.ne_protection_txrx_frequinciesInvalid = false;
+                } else {
+                    $scope.ne_protection_txrx_frequinciesInvalid = true;
+                }
+            }
+
+            $scope.fe_protection_txrx_frequinciesValuesCheck = function () {
+                if ($scope.fe_protection_txrx_frequincies && !isNaN($scope.fe_protection_txrx_frequincies) && $scope.rauRelations[$scope.fe_protection_rau_subband].minFrequency <= $scope.fe_protection_txrx_frequincies && $scope.rauRelations[$scope.fe_protection_rau_subband].maxFrequency >= $scope.fe_protection_txrx_frequincies) {
+                    $scope.fe_protection_txrx_frequinciesInvalid = false;
+                } else {
+                    $scope.fe_protection_txrx_frequinciesInvalid = true;
+                }
+            }
+
+            $scope.preSubmit = function () {
+                var deferred = $q.defer();
+
+                if ($scope.ne_rau_subband && $scope.ne_txrx_frequincies && (isNaN($scope.ne_txrx_frequincies) || $scope.rauRelations[$scope.ne_rau_subband].minFrequency > $scope.ne_txrx_frequincies || $scope.rauRelations[$scope.ne_rau_subband].maxFrequency < $scope.ne_txrx_frequincies)) {
+                    deferred.reject('Please correct Tx/Rx frequencies, Mhz for Near End');
+                } else if ($scope.fe_rau_subband && $scope.fe_txrx_frequincies && (isNaN($scope.fe_txrx_frequincies) || $scope.rauRelations[$scope.fe_rau_subband].minFrequency > $scope.fe_txrx_frequincies || $scope.rauRelations[$scope.fe_rau_subband].maxFrequency < $scope.fe_txrx_frequincies)) {
+                    deferred.reject('Please correct Tx/Rx frequencies, Mhz for Far End');
+                } else if ($scope.ne_protection_rau_subband && $scope.ne_protection_txrx_frequincies && (isNaN($scope.ne_protection_txrx_frequincies) || $scope.rauRelations[$scope.ne_protection_rau_subband].minFrequency > $scope.ne_protection_txrx_frequincies || $scope.rauRelations[$scope.ne_protection_rau_subband].maxFrequency < $scope.ne_protection_txrx_frequincies)) {
+                    deferred.reject('Please correct Protection Tx/Rx frequencies, Mhz, Mhz for Near End');
+                } else if ($scope.fe_protection_rau_subband && $scope.fe_protection_txrx_frequincies && (isNaN($scope.fe_protection_txrx_frequincies) || $scope.rauRelations[$scope.fe_protection_rau_subband].minFrequency > $scope.fe_protection_txrx_frequincies || $scope.rauRelations[$scope.fe_protection_rau_subband].maxFrequency < $scope.fe_protection_txrx_frequincies)) {
+                    deferred.reject('Please correct Protection Tx/Rx frequencies, Mhz, Mhz for Far End');
+                } else {
+                    deferred.resolve();
+                }
+                return deferred.promise;
+            }
+
+            camForm.on('submit', function (e) {
+
+            });
+
+            $scope.calculateAllDMS = function (){
+                if($scope.selectedTsd && ($scope.ne_latitude)){
+                    $scope.ne_latitude_dms = $scope.calculateDMS($scope.ne_latitude);
+                }
+                if($scope.selectedTsd && ($scope.ne_longitude)){
+                    $scope.ne_longitude_dms = $scope.calculateDMS($scope.ne_longitude);
+                }
+
+                if($scope.selectedTsd && ($scope.fe_latitude)){
+                    $scope.fe_latitude_dms = $scope.calculateDMS($scope.fe_latitude);
+                }
+                if($scope.selectedTsd && ($scope.fe_longitude)){
+                    $scope.fe_longitude_dms = $scope.calculateDMS($scope.fe_longitude);
+                }
+            }
+
+            $scope.calculateDMS = function(degree) {
+                let deg = degree.replace(/,/g, '.')
+                var totalSeconds = deg * 3600;
+                var degrees = Math.floor(deg);
+                totalSeconds -= degrees * 3600;
+                var minutes = Math.floor(totalSeconds / 60);
+                totalSeconds -= (minutes * 60);
+                return degrees+"-"+minutes+"-"+totalSeconds.toFixed(2);
+            }
+
+            $scope.calculatePower = function(dbm) {
+                if(dbm !== undefined && dbm !== null && dbm !== ''){
+                    var power = (dbm - 30) / 10;
+                    return Number(Math.pow(10, power).toFixed(4)).toString();
+                }
+            }
+        }]);
+    </script>
+
+    <iframe id="fileDownloadIframe" style="display:none;"></iframe>
+
+    <div class="form-group">
+        <div class="col-sm-6">
+            <h4>Error to add data into DB</h4>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-2 control-label"><b>Process number:</b></label>
+        <label class="col-sm-6 control-label">{{tnuTsdNumber}}</label>
+    </div>
+
+    <div class="form-group">
+        <label class="col-sm-2 control-label"><b>Region name:</b></label>
+        <label class="col-sm-4 control-label">{{regionsTitle[region_name]}}</label>
+        <label class="col-sm-2 control-label"><b>Date:</b></label>
+        <div class="col-sm-4">
+            <div class="input-group">
+                <input type="text" ng-model="date_of_visit" name="dateOfVisit" class="form-control"
+                       datepicker-popup="dd.MM.yyyy" id="dateOfVisit" disabled/>
+            </div>
+            <label class="error"
+                   ng-if="kcell_form.dateOfVisit.$error.required && ( kcell_form.dateOfVisit.$touched || view.submitted)">Required
+                field</label>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label class="col-sm-2 control-label">Sitename:</label>
+        <label class="col-sm-3 control-label">{{ne_sitename}}</label>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-2 control-label">Site Address:</label>
+        <div class="col-sm-10">
+            <textarea class="form-control" name="ne_address" cam-variable-name="ne_address" cam-variable-type="String"
+                      maxlength="1500" rows="2" disabled ng-if="!ne_siteId || ne_address_fetched"></textarea>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label class="col-sm-2 control-label">Farend name:</label>
+        <label class="col-sm-3 control-label">{{fe_sitename}}</label>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-2 control-label">Farend Address:</label>
+        <div class="col-sm-10">
+            <textarea class="form-control" name="fe_address" cam-variable-name="fe_address" cam-variable-type="String"
+                      maxlength="1500" rows="2" disabled ng-if="!fe_siteId || fe_address_fetched"></textarea>
+        </div>
+    </div>
+
+    <accordion class="content-visible-accordion background-yellow-accordion">
+        <accordion-group is-open="false">
+            <accordion-heading>
+                Transmission Survey Data <i class="pull-right glyphicon"
+                                ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
+            </accordion-heading>
+            <div class="form-group">
+                <div class="col-sm-12">
+                    <table class="table table-bordered">
+                        <thead>
+                        <tr align="center">
+                            <td colspan="2">Position</td>
+                            <td colspan="4">Near End</td>
+                            <td colspan="4">Far End</td>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr>
+                            <td align="right" colspan="2">Basic information</td>
+                            <td align="center" colspan="4">{{ne_sitename}}</td>
+                            <td align="center" colspan="4">{{fe_sitename}}</td>
+                        </tr>
+                        <tr>
+                            <td align="right" colspan="2">Coordinates (degree):</td>
+                            <td>N</td>
+                            <td align="center">{{ne_latitude}}</td>
+                            <td>E</td>
+                            <td align="center">{{ne_longitude}}</td>
+                            <td>N</td>
+                            <td align="center">{{fe_latitude}}</td>
+                            <td>E</td>
+                            <td align="center">{{fe_longitude}}</td>
+                        </tr>
+<!--                        <tr>-->
+<!--                            <td align="right" colspan="2">Coordinates (Deg Min Sec):</td>-->
+<!--                            <td>N</td>-->
+<!--                            <td align="center">-->
+<!--                                &lt;!&ndash; <input type="text" class="form-control" ng-model="ne_latitude_dms" readonly /> &ndash;&gt;-->
+<!--                            </td>-->
+<!--                            <td>E</td>-->
+<!--                            <td align="center">-->
+<!--                                &lt;!&ndash; <input type="text" class="form-control" ng-model="ne_longitude_dms" readonly /> &ndash;&gt;-->
+<!--                            </td>-->
+<!--                            <td>N</td>-->
+<!--                            <td align="center">-->
+<!--                                &lt;!&ndash; <input type="text" class="form-control" ng-model="fe_latitude_dms" readonly /> &ndash;&gt;-->
+<!--                            </td>-->
+<!--                            <td>E</td>-->
+<!--                            <td align="center">-->
+<!--                                &lt;!&ndash; <input type="text" class="form-control" ng-model="fe_longitude_dms" readonly /> &ndash;&gt;-->
+<!--                            </td>-->
+<!--                        </tr>-->
+                        <tr>
+                            <td align="right" colspan="2">Altitude (m):</td>
+                            <td align="center" colspan="4">{{ne_altitude}}</td>
+                            <td align="center" colspan="4">{{fe_altitude}}</td>
+                        </tr>
+                        <tr>
+                            <td align="right" colspan="2">Azimuth (degree):</td>
+                            <td align="center" colspan="4">{{ne_azimuth}}</td>
+                            <td align="center" colspan="4">{{fe_azimuth}}</td>
+                        </tr>
+                        <tr>
+                            <td align="right" colspan="2">Path distance (km):</td>
+                            <td align="center" colspan="8">{{path_distance}}</td>
+                        </tr>
+                        <tr>
+                            <td align="right" colspan="2">Type of construction:</td>
+                            <td align="center" colspan="4">{{titles.constructionTypeList[ne_construction_type]}}</td>
+                            <td align="center" colspan="4">{{titles.constructionTypeList[fe_construction_type]}}</td>
+                        </tr>
+                        <tr>
+                            <td align="right" colspan="2">Height of construction (m):</td>
+                            <td align="center" colspan="4">{{ne_construction_height}}</td>
+                            <td align="center" colspan="4">{{fe_construction_height}}</td>
+                        </tr>
+                        <tr>
+                            <td align="right" colspan="2">Protection mode:</td>
+                            <td align="center" colspan="8">
+                                <select class="form-control" id="protection_mode" name="protection_mode"
+                                        ng-model="protection_mode" required ng-change="protectionMode()" ng-readonly="true">
+                                    <option ng-repeat="ct in protectionModeList" disabled
+                                            ng-selected="ct.id.toString() === protection_mode"
+                                            value="{{ct.id}}" ng-value="ct.id">{{ct.value}}
+                                    </option>
+                                </select>
+                                <label class="error"
+                                    ng-if="kcell_form.protection_mode.$error.required && ( kcell_form.protection_mode.$touched || view.submitted)">Required
+                                    field</label>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td align="right" colspan="2">Antenna diameter:</td>
+                            <td align="center" colspan="4">
+                                <select class="form-control" id="ne_diameter" name="ne_diameter" ng-model="ne_diameter" required
+                                        ng-change="antennaDiameter()" ng-readonly="true">
+                                    <option ng-repeat="ct in trAntennasTypeList" disabled ng-selected="ct.id.toString() === ne_diameter"
+                                            ng-value="ct.id">{{ct.value}}
+                                    </option>
+                                </select>
+                                <label class="error"
+                                    ng-if="kcell_form.ne_diameter.$error.required && ( kcell_form.ne_diameter.$touched || view.submitted)">Required
+                                    field</label>
+                            </td>
+                            <td align="center" colspan="4">
+                                <select class="form-control" id="fe_diameter" name="fe_diameter" ng-model="fe_diameter"
+                                        required ng-readonly="true">
+                                    <option ng-repeat="ct in trAntennasTypeList" disabled ng-selected="ct.id.toString() === fe_diameter"
+                                            ng-value="ct.id">{{ct.value}}
+                                    </option>
+                                </select>
+                                <label class="error"
+                                    ng-if="kcell_form.fe_diameter.$error.required && ( kcell_form.fe_diameter.$touched || view.submitted)">Required
+                                    field</label>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td align="right" colspan="2">Protection antenna diameter:</td>
+                            <td align="center" colspan="4">
+                                <select class="form-control" id="ne_protection_antenna_diameter" name="ne_protection_antenna_diameter" ng-model="ne_protection_antenna_diameter" ng-change="protectionAntennaDiameter()" ng-disabled="protection_mode_fetched" ng-readonly="true">
+                                    <option ng-repeat="ct in trAntennasTypeList" disabled ng-value="ct.id">{{ct.value}}</option>
+                                </select>
+                                <label class="error" ng-if="kcell_form.ne_protection_antenna_diameter.$error.required && ( kcell_form.ne_protection_antenna_diameter.$touched || view.submitted)">Required field</label>
+                            </td>
+                            <td align="center" colspan="4">
+                                <select class="form-control" id="fe_protection_antenna_diameter" name="fe_protection_antenna_diameter" ng-model="fe_protection_antenna_diameter" ng-disabled="protection_mode_fetched" ng-readonly="true">
+                                    <option ng-repeat="ct in trAntennasTypeList" disabled ng-value="ct.id">{{ct.value}}</option>
+                                </select>
+                                <label class="error" ng-if="kcell_form.fe_protection_antenna_diameter.$error.required && ( kcell_form.fe_protection_antenna_diameter.$touched || view.submitted)">Required field</label>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td align="right" colspan="2">Height of suspension of MW ant (m):</td>
+                            <td align="center" colspan="4">
+                                <input type="number" class="form-control" ng-model="ne_suspension_height_antennas"
+                                    name="ne_suspension_height_antennas" ng-pattern="suspensionPattern" required
+                                        cam-variable-type="Integer" readonly>
+                                <label class="error"
+                                    ng-if="kcell_form.ne_suspension_height_antennas.$error.required && ( kcell_form.ne_suspension_height_antennas.$touched || view.submitted)">Required
+                                    field</label>
+                                <label class="error"
+                                    ng-if="kcell_form.ne_suspension_height_antennas.$error.pattern && ( kcell_form.ne_suspension_height_antennas.$touched || view.submitted)">Expected:
+                                    1 <- Height of suspension of MW ant <- 999</label>
+                            </td>
+                            <td align="center" colspan="4">
+                                <input type="number" class="form-control" ng-model="fe_suspension_height"
+                                    name="fe_suspension_height" ng-pattern="suspensionPattern" required
+                                    cam-variable-type="Integer" readonly>
+                                <label class="error"
+                                    ng-if="kcell_form.fe_suspension_height.$error.required && ( kcell_form.fe_suspension_height.$touched || view.submitted)">Required
+                                    field</label>
+                                <label class="error"
+                                    ng-if="kcell_form.fe_suspension_height.$error.pattern && ( kcell_form.fe_suspension_height.$touched || view.submitted)">Expected:
+                                    1 <- Height of suspension of MW ant <- 999</label>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td align="right" colspan="2">Height of suspension of prot. MW ant (m).:</td>
+                            <td align="center" colspan="4">
+                                <input type="number" class="form-control" ng-model="ne_protection_suspension_height"
+                                    name="ne_protection_suspension_height" ng-pattern="suspensionPattern"
+                                    ng-disabled="protection_mode_fetched"
+                                    cam-variable-type="Integer" readonly>
+                                <label class="error"
+                                    ng-if="kcell_form.ne_protection_suspension_height.$error.required && ( kcell_form.ne_protection_suspension_height.$touched || view.submitted)">Required
+                                    field</label>
+                                <label class="error"
+                                    ng-if="kcell_form.ne_protection_suspension_height.$error.pattern && ( kcell_form.ne_protection_suspension_height.$touched || view.submitted)">Expected:
+                                    1 <- Height of suspension of prot. MW ant. <- 999</label>
+                            </td>
+                            <td align="center" colspan="4">
+                                <input type="number" class="form-control" ng-model="fe_protection_suspension_height"
+                                    name="fe_protection_suspension_height" ng-pattern="suspensionPattern"
+                                    ng-disabled="protection_mode_fetched"
+                                    cam-variable-type="Integer" readonly>
+                                <label class="error"
+                                    ng-if="kcell_form.fe_protection_suspension_height.$error.required && ( kcell_form.fe_protection_suspension_height.$touched || view.submitted)">Required
+                                    field</label>
+                                <label class="error"
+                                    ng-if="kcell_form.fe_protection_suspension_height.$error.pattern && ( kcell_form.fe_protection_suspension_height.$touched || view.submitted)">Expected:
+                                    1 <- Height of suspension of prot. MW ant. <- 999</label>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td align="right" colspan="2">Polarization:</td>
+                            <td align="center" colspan="8">
+                                <select class="form-control" id="hop_polarization" name="hop_polarization"
+                                        ng-model="hop_polarization" required ng-readonly="true">
+                                    <option ng-repeat="ct in polarizationList" disabled ng-value="ct.id">{{ct.value}}</option>
+                                </select>
+                                <label class="error"
+                                    ng-if="kcell_form.hop_polarization.$error.required && ( kcell_form.hop_polarization.$touched || view.submitted)">Required
+                                    field</label>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td align="right" colspan="2">Link type:</td>
+                            <td align="center" colspan="8">
+                                <select class="form-control" id="hop_link_type" name="hop_link_type" ng-model="hop_link_type"
+                                        required ng-readonly="true">
+                                    <option ng-repeat="ct in linkTypeList" disabled ng-value="ct.id">{{ct.value}}</option>
+                                </select>
+                                <label class="error"
+                                    ng-if="kcell_form.hop_link_type.$error.required && ( kcell_form.hop_link_type.$touched || view.submitted)">Required
+                                    field</label>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td align="right" rowspan="2">Link capacity :</td>
+                            <td align="right">Capacity</td>
+                            <td align="center" colspan="8">
+                                <select class="form-control" id="hop_link_capacity" name="hop_link_capacity"
+                                        ng-model="hop_link_capacity" required ng-change="hopLinkCapacitySelected()" ng-readonly="true">
+                                    <option ng-repeat="ct in linkCapacityList" disabled ng-value="ct.id">{{ct.value}}</option>
+                                </select>
+                                <label class="error"
+                                    ng-if="kcell_form.hop_link_capacity.$error.required && ( kcell_form.hop_link_capacity.$touched || view.submitted)">Required
+                                    field</label>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td align="right">nxE1</td>
+                            <td align="center" colspan="8">{{hop_link_nxe1}}</td>
+                        </tr>
+                        <tr>
+                            <td align="right" colspan="2">Modulation type:</td>
+                            <td align="center" colspan="8">{{hop_modulation_type}}</td>
+                        </tr>
+                        <tr>
+                            <td align="right" colspan="2">Channel bandwidth:</td>
+                            <td align="center" colspan="8">{{hop_channel_bandwidth}}</td>
+                        </tr>
+                        <tr>
+                            <td align="right" colspan="2">RAU subband:</td>
+                            <td align="center" colspan="4">
+                                <select class="form-control" id="ne_rau_subband" name="ne_rau_subband" ng-model="ne_rau_subband"
+                                        required ng-change="rauSubbandSelected()" ng-readonly="true">
+                                    <option ng-repeat="ct in rauSubbandList" disabled ng-value="ct.id">{{ct.value}}</option>
+                                </select>
+                                <label class="error"
+                                    ng-if="kcell_form.ne_rau_subband.$error.required && ( kcell_form.ne_rau_subband.$touched || view.submitted)">Required
+                                    field</label>
+                            </td>
+                            <td align="center" colspan="4">
+                                <select class="form-control" id="fe_rau_subband" name="fe_rau_subband" ng-model="fe_rau_subband"
+                                        required ng-readonly="true">
+                                    <option ng-repeat="ct in rauSubbandList" disabled ng-value="ct.id">{{ct.value}}</option>
+                                </select>
+                                <label class="error"
+                                    ng-if="kcell_form.fe_rau_subband.$error.required && ( kcell_form.fe_rau_subband.$touched || view.submitted)">Required
+                                    field</label>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td align="right" colspan="2">protection RAU subband:</td>
+                            <td align="center" colspan="4">
+                                <select class="form-control" id="ne_protection_rau_subband" name="ne_protection_rau_subband"
+                                        ng-model="ne_protection_rau_subband" ng-change="protectRauSubbandSelected()"
+                                        ng-disabled="protection_mode_fetched" ng-readonly="true">
+                                    <option ng-repeat="ct in rauSubbandList" disabled ng-value="ct.id">{{ct.value}}</option>
+                                </select>
+                            </td>
+                            <td align="center" colspan="4">
+                                <select class="form-control" id="fe_protection_rau_subband" name="fe_protection_rau_subband"
+                                        ng-model="fe_protection_rau_subband" ng-disabled="protection_mode_fetched" ng-readonly="true">
+                                    <option ng-repeat="ct in rauSubbandList" disabled ng-value="ct.id">{{ct.value}}</option>
+                                </select>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td align="right" colspan="2">Tx/Rx frequencies, Mhz:</td>
+                            <td align="center" colspan="4">
+                                <input type="number" class="form-control" name="ne_txrx_frequincies"
+                                    ng-model="ne_txrx_frequincies" cam-variable-name="ne_txrx_frequincies"
+                                    cam-variable-type="String" required ng-blur="ne_txrx_frequinciesValuesCheck()"
+                                    ng-disabled="!ne_rau_subband" readonly>
+                                <label class="error"
+                                    ng-if="kcell_form.ne_txrx_frequincies.$error.required && ( kcell_form.ne_txrx_frequincies.$touched || view.submitted)">Required
+                                    field</label>
+                                <label class="error" ng-if="ne_rau_subband && ne_txrx_frequinciesInvalid">Expected between
+                                    {{rauRelations[ne_rau_subband].minFrequency}} and
+                                    {{rauRelations[ne_rau_subband].maxFrequency}}</label>
+                            </td>
+                            <td align="center" colspan="4">
+                                <input type="number" class="form-control" name="fe_txrx_frequincies"
+                                    ng-model="fe_txrx_frequincies" cam-variable-name="fe_txrx_frequincies"
+                                    cam-variable-type="String" required ng-blur="fe_txrx_frequinciesValuesCheck()"
+                                    ng-disabled="!fe_rau_subband" readonly>
+                                <label class="error"
+                                    ng-if="kcell_form.fe_txrx_frequincies.$error.required && ( kcell_form.fe_txrx_frequincies.$touched || view.submitted)">Required
+                                    field</label>
+                                <label class="error" ng-if="fe_rau_subband && fe_txrx_frequinciesInvalid">Expected between
+                                    {{rauRelations[fe_rau_subband].minFrequency}} and
+                                    {{rauRelations[fe_rau_subband].maxFrequency}}</label>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td align="right" colspan="2">Protection Tx/Rx frequencies, Mhz:</td>
+                            <td align="center" colspan="4">
+                                <input type="number" class="form-control" name="ne_protection_txrx_frequincies"
+                                    ng-model="ne_protection_txrx_frequincies"
+                                    cam-variable-name="ne_protection_txrx_frequincies" cam-variable-type="String"
+                                    ng-blur="ne_protection_txrx_frequinciesValuesCheck()"
+                                    ng-disabled="protection_mode_fetched || !ne_protection_rau_subband" readonly>
+                                <label class="error"
+                                    ng-if="ne_protection_rau_subband && ne_protection_txrx_frequincies && ne_protection_txrx_frequinciesInvalid">Expected
+                                    between {{rauRelations[ne_protection_rau_subband].minFrequency}} and
+                                    {{rauRelations[ne_protection_rau_subband].maxFrequency}}</label>
+                            </td>
+                            <td align="center" colspan="4">
+                                <input type="number" class="form-control" name="fe_protection_txrx_frequincies"
+                                    ng-model="fe_protection_txrx_frequincies"
+                                    cam-variable-name="fe_protection_txrx_frequincies" cam-variable-type="String"
+                                    ng-blur="fe_protection_txrx_frequinciesValuesCheck()"
+                                    ng-disabled="protection_mode_fetched || !fe_protection_rau_subband" readonly>
+                                <label class="error"
+                                    ng-if="fe_protection_rau_subband && fe_protection_txrx_frequincies && fe_protection_txrx_frequinciesInvalid">Expected
+                                    between {{rauRelations[fe_protection_rau_subband].minFrequency}} and
+                                    {{rauRelations[fe_protection_rau_subband].maxFrequency}}</label>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td align="right" colspan="2">Terminal ID:</td>
+                            <td align="center" colspan="4">
+                                <input type="text" class="form-control" name="ne_terminal_id" ng-model="ne_terminal_id" readonly>
+                            </td>
+                            <td align="center" colspan="4">
+                                <input type="text" class="form-control" name="fe_terminal_id" ng-model="fe_terminal_id" readonly>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td align="right" colspan="2">Power levels:</td>
+                            <td>Tx</td>
+                            <td align="center">
+                                <input class="form-control" name="ne_power_level_tx" ng-model="ne_power_level_tx"
+                                    cam-variable-name="ne_power_level_tx" cam-variable-type="String" required
+                                    ng-pattern="ne_power_level_txPattern" ng-change="ne_power_level_txChanged()" readonly>
+                                <label class="error"
+                                    ng-if="kcell_form.ne_power_level_tx.$error.required && ( kcell_form.ne_power_level_tx.$touched || view.submitted)">Required
+                                    field</label>
+                                <label class="error"
+                                    ng-if="kcell_form.ne_power_level_tx.$error.pattern && ( kcell_form.ne_power_level_tx.$touched || view.submitted)">Invalid
+                                    format (XX or -XX required)</label>
+                            </td>
+                            <td>Rx</td>
+                            <td align="center">
+                                <input class="form-control" name="ne_power_level_rx" ng-model="ne_power_level_rx"
+                                    cam-variable-name="ne_power_level_rx" cam-variable-type="String" required
+                                    ng-pattern="ne_power_level_rxPattern" ng-change="ne_power_level_rxChanged()" readonly>
+                                <label class="error"
+                                    ng-if="kcell_form.ne_power_level_rx.$error.required && ( kcell_form.ne_power_level_rx.$touched || view.submitted)">Required
+                                    field</label>
+                                <label class="error"
+                                    ng-if="kcell_form.ne_power_level_rx.$error.pattern && ( kcell_form.ne_power_level_rx.$touched || view.submitted)">Invalid
+                                    format (format -XX required)</label>
+                            </td>
+                            <td>Tx</td>
+                            <td align="center">
+                                <input class="form-control" name="fe_power_level_tx" ng-model="fe_power_level_tx"
+                                    cam-variable-name="fe_power_level_tx" cam-variable-type="String" disabled>
+                            </td>
+                            <td>Rx</td>
+                            <td align="center">
+                                <input class="form-control" name="fe_power_level_rx" ng-model="fe_power_level_rx"
+                                    cam-variable-name="fe_power_level_rx" cam-variable-type="String" disabled>
+                            </td>
+                        </tr>
+<!--                        <tr>-->
+<!--                            <td align="right" colspan="2">Power levels (W):</td>-->
+<!--                            <td>Tx</td>-->
+<!--                            <td align="center">-->
+<!--                                &lt;!&ndash; <div class="form-control disabled">{{calculatePower(ne_power_level_tx)}}</div> &ndash;&gt;-->
+<!--                            </td>-->
+<!--                            <td>Rx</td>-->
+<!--                            <td align="center">-->
+<!--                                &lt;!&ndash; <div class="form-control disabled">{{calculatePower(ne_power_level_rx)}}</div> &ndash;&gt;-->
+<!--                            </td>-->
+<!--                            <td>Tx</td>-->
+<!--                            <td align="center">-->
+<!--                                &lt;!&ndash; <div class="form-control disabled">{{calculatePower(fe_power_level_tx)}}</div> &ndash;&gt;-->
+<!--                            </td>-->
+<!--                            <td>Rx</td>-->
+<!--                            <td align="center">-->
+<!--                                &lt;!&ndash; <div class="form-control disabled">{{calculatePower(fe_power_level_rx)}}</div> &ndash;&gt;-->
+<!--                            </td>-->
+<!--                        </tr>-->
+                        <tr>
+                            <td align="right" colspan="2">Protection line power levels:</td>
+                            <td>Tx</td>
+                            <td align="center">
+                                <input class="form-control" name="ne_protection_power_level_tx"
+                                    ng-model="ne_protection_power_level_tx" cam-variable-name="ne_protection_power_level_tx"
+                                    cam-variable-type="String" ng-pattern="ne_power_level_txPattern"
+                                    ng-change="ne_protection_power_level_txChanged()" ng-disabled="protection_mode_fetched" readonly>
+                                <label class="error"
+                                    ng-if="kcell_form.ne_protection_power_level_tx.$error.pattern && ( kcell_form.ne_protection_power_level_tx.$touched || view.submitted)">Invalid
+                                    format (XX or -XX required)</label>
+                            </td>
+                            <td>Rx</td>
+                            <td align="center">
+                                <input class="form-control" name="ne_protection_power_level_rx"
+                                    ng-model="ne_protection_power_level_rx" cam-variable-name="ne_protection_power_level_rx"
+                                    cam-variable-type="String" ng-pattern="ne_power_level_rxPattern"
+                                    ng-change="ne_protection_power_level_rxChanged()" ng-disabled="protection_mode_fetched" readonly>
+                                <label class="error"
+                                    ng-if="kcell_form.ne_protection_power_level_rx.$error.pattern && ( kcell_form.ne_protection_power_level_rx.$touched || view.submitted)">Invalid
+                                    format (format -XX required)</label>
+                            </td>
+                            <td>Tx</td>
+                            <td align="center">
+                                <input class="form-control" name="fe_protection_power_level_tx"
+                                    ng-model="fe_protection_power_level_tx" cam-variable-name="fe_protection_power_level_tx"
+                                    cam-variable-type="String" disabled>
+                            </td>
+                            <td>Rx</td>
+                            <td align="center">
+                                <input class="form-control" name="fe_protection_power_level_rx"
+                                    ng-model="fe_protection_power_level_rx" cam-variable-name="fe_protection_power_level_rx"
+                                    cam-variable-type="String" disabled>
+                            </td>
+                        </tr>
+<!--                        <tr>-->
+<!--                            <td align="right" colspan="2">Protection line power levels (W):</td>-->
+<!--                            <td>Tx</td>-->
+<!--                            <td align="center">-->
+<!--                                &lt;!&ndash; <div class="form-control disabled">{{calculatePower(ne_protection_power_level_tx)}}</div> &ndash;&gt;-->
+<!--                            </td>-->
+<!--                            <td>Rx</td>-->
+<!--                            <td align="center">-->
+<!--                                &lt;!&ndash; <div class="form-control disabled">{{calculatePower(ne_protection_power_level_rx)}}</div> &ndash;&gt;-->
+<!--                            </td>-->
+<!--                            <td>Tx</td>-->
+<!--                            <td align="center">-->
+<!--                                &lt;!&ndash; <div class="form-control disabled">{{calculatePower(fe_protection_power_level_tx)}}</div> &ndash;&gt;-->
+<!--                            </td>-->
+<!--                            <td>Rx</td>-->
+<!--                            <td align="center">-->
+<!--                                &lt;!&ndash; <div class="form-control disabled">{{calculatePower(fe_protection_power_level_rx)}}</div> &ndash;&gt;-->
+<!--                            </td>-->
+<!--                        </tr>-->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </accordion-group>
+    </accordion>
+
+    <div class="form-group">
+        <label class="col-sm-12 control-label">Technical information</label>
+    </div>
+
+    <div class="form-group">
+        <div class="col-sm-12">
+            <table class="table table-bordered">
+                <thead>
+                    <tr align="center">
+                        <td rowspan="4"><b>Method</b></td>
+                        <td rowspan="4"><b>Error code</b></td>
+                        <td rowspan="4"><b>Decription</b></td>
+                        <td><b>Actions</b></td>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td align="center" rowspan="0">Post</td>
+                        <td align="center" rowspan="0">{{error_code}}</td>
+                        <td align="center" rowspan="0">{{decription}}</td>
+                        <td align="center">{{actions1}}</td>
+                    </tr>
+                    <tr>
+                        <td align="center">{{actions2}}</td>
+                    </tr>
+                    <tr ng-if="$scope.error_code=='500'">
+                        <td align="center">{{actions3}}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+</form>

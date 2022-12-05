@@ -1,0 +1,126 @@
+<form role="form" class="form-horizontal" name="kcell_form" novalidate>
+    <script cam-script type="text/form-script">
+        inject(['$scope', '$http', 'Uri', '$rootScope', '$q', '$timeout', function ($scope, $http, Uri, $rootScope, $q, $timeout) {
+            var variables = [
+                'resolutions',
+                'identifiers',
+                'connectionType',
+                'transmitNumber',
+                'ipNumber',
+                'applicationScanCopyFileName',
+                'contractScanCopyFileName',
+                'vpnQuestionnaireFileName',
+                'abonentTarif',
+                'description',
+                'techSpecNumber',
+                'techSpecFIO',
+                'officialClientCompanyName',
+                'clientCompanyLatName',
+                'addressATS',
+                'coordinates',
+                'priority',
+                'provider',
+                'startDate',
+                'clientBIN',
+                'techSpecEmail',
+                'finalIDs',
+                'previouslyBought',
+                'buildingOwner',
+                'contractNumber',
+                'channelKLM',
+                'toIP',
+                'toPort',
+                'operatorType',
+                'responsibleB2BDelivery',
+                'responsibleB2BSales'
+            ];
+
+            camForm.on('form-loaded', function () {
+                variables.forEach(function (el) {
+                    camForm.variableManager.fetchVariable(el);
+                });
+                $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
+                        function(result){
+                            $scope.processInstanceId = result.data.processInstanceId;
+                        },
+                        function (error) {
+                            console.log(error.data);
+                        }
+                );
+                $scope.freephoneInfo = {};
+                $scope.freephoneInfo.files = [];
+            });
+
+            camForm.on('variables-fetched', function () {
+                variables.forEach(function (el) {
+                    if (el === 'resolutions') {
+                        if (camForm.variableManager.variables[el].value) {
+                            $scope.resolutions = angular.copy(camForm.variableManager.variables[el].value);
+                            camForm.variableManager.destroyVariable(el);
+                        }
+                    } else if (el === 'applicationScanCopyFileName' || el === 'contractScanCopyFileName' || el === 'vpnQuestionnaireFileName') {
+                        $scope[el] = camForm.variableManager.variables[el].value;
+                        $scope.freephoneInfo.files.push(camForm.variableManager.variables[el].value);
+                    } else {
+                        $scope[el] = camForm.variableManager.variables[el].value;
+                        $scope.freephoneInfo[el] = camForm.variableManager.variables[el].value;
+                    }
+                });
+                $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name+ "/profile").then(function(result){
+                    $rootScope.authentication.assigneeName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
+                });
+                if (!$scope.freephoneInfo.toIP) {
+                    $scope.freephoneInfo.toIP = '195.47.255.119';
+                }
+                if(!$scope.freephoneInfo.toPort) {
+                    $scope.freephoneInfo.toPort = '5060';
+                }
+                $scope.freephoneInfo.firewalltask = true;
+                $scope.freephoneInfo.showTarif = true;
+                console.log($scope.freephoneInfo);
+                console.log($scope.freephoneInfo.files);
+
+                camForm.variableManager.createVariable({
+                    name: 'firewallAccessConfirmTaskResult',
+                    type: 'String',
+                    value: ''
+                });
+
+                camForm.variableManager.createVariable({
+                    name: 'firewallAccessConfirmTaskComment',
+                    type: 'String',
+                    value: ''
+                });
+
+                $scope.firewallAccessConfirmTaskResult = '';
+            });
+
+            camForm.on('submit', function () {
+                camForm.variableManager.variableValue('firewallAccessConfirmTaskResult', $scope.firewallAccessConfirmTaskResult);
+                camForm.variableManager.variableValue('firewallAccessConfirmTaskComment', $scope.firewallAccessConfirmTaskComment);
+            });
+        }]);
+
+    </script>
+    <info-freephone freephone-info="freephoneInfo"></info-freephone>
+    <div class="form-group">
+        <label class="col-sm-4 control-label">Подтвердите настроенный доступ в Firewall</label>
+        <div class="col-sm-8">
+            <label class="radio-inline">
+                <input type="radio" name="firewallAccessConfirmTaskResult" ng-model="firewallAccessConfirmTaskResult" value="approved" required> Approve
+            </label>
+            <label class="radio-inline">
+                <input type="radio" name="firewallAccessConfirmTaskResult" ng-model="firewallAccessConfirmTaskResult" value="rejected" required> Reject
+            </label>
+            <label class="error" ng-show="kcell_form.firewallAccessConfirmTaskResult.$error.required && ( kcell_form.firewallAccessConfirmTaskResult.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label class="col-sm-3 control-label">Комментарии</label>
+        <div class="col-sm-9">
+            <textarea class="form-control" ng-model="firewallAccessConfirmTaskComment" name="firewallAccessConfirmTaskComment" placeholder="Comments..." maxlength="500" rows="4" style="resize:none"></textarea>
+            <label class="error" ng-show="kcell_form.firewallAccessConfirmTaskComment.$error.required && ( kcell_form.firewallAccessConfirmTaskComment.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+</form>

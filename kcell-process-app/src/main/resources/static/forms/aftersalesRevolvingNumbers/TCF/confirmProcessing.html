@@ -1,0 +1,229 @@
+<form role="form" class="form-horizontal" name="kcell_form" novalidate>
+    <script cam-script type="text/form-script">
+            inject([ '$scope', '$http', '$rootScope', '$q', '$timeout', 'historyVariablesManager', function($scope, $http, $rootScope, $q, $timeout, historyVariablesManager) {
+
+                var processInstanceId = null;
+                var assigneeName = $rootScope.authentication.name;
+                var taskKey = camForm.taskId;
+                var history = null;
+                var disable = true;
+                var createdDate = new Date();
+                $scope.resolutions = [];
+                $scope.typeOfWork = '';
+
+                $scope.testResultReadOnly = true;
+
+                $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name + "/profile").then(function(result){
+                    assigneeName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
+                });
+
+                $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
+                    function (result) {
+                        processInstanceId = result.data.processInstanceId;
+                        taskKey = result.data.taskDefinitionKey;
+                        history = historyVariablesManager(camForm, taskKey);
+                        history.createVariables(true);
+                        configureViews();
+                    },
+                    function (error) {
+                        console.log(error.data);
+                    }
+                );
+
+                $scope.downloadFile = function (file) {
+                    $http({method: 'GET', url: '/camunda/uploads/' + (file.path.split('/').length === 2 ? 'tmp/' : '') + 'get/' + file.path, transformResponse: [] }).then(
+                        function(response) {
+                            document.getElementById('fileDownloadIframe').src = response.data;
+                        },
+                        function(response) { console.log(response.data); }
+                    );
+                };
+
+                camForm.on('form-loaded', function () {
+                    camForm.variableManager.fetchVariable('resolutions');
+                    camForm.variableManager.fetchVariable('numberRequest');
+                    camForm.variableManager.fetchVariable('legalInfo');
+                    camForm.variableManager.fetchVariable('workType');
+                    camForm.variableManager.fetchVariable('clientPriority');
+                    camForm.variableManager.fetchVariable('deadline');
+                    camForm.variableManager.fetchVariable('action');
+                    camForm.variableManager.fetchVariable('numbersAmount');
+                    camForm.variableManager.fetchVariable('attachments');
+                    camForm.variableManager.fetchVariable('testResult');
+                });
+
+                camForm.on('variables-fetched', function () {
+                    $scope.resolutions = camForm.variableManager.variableValue('resolutions');
+                    $scope.numberRequest = camForm.variableManager.variableValue('numberRequest');
+                    $scope.li = camForm.variableManager.variableValue('legalInfo');
+                    $scope.workType = camForm.variableManager.variableValue('workType').forEach(x => {
+                                                                                            $scope.typeOfWork += x + '; '
+                                                                                        });
+                    $scope.clientPriority = camForm.variableManager.variableValue('clientPriority');
+                    $scope.deadline = camForm.variableManager.variableValue('deadline');
+                    $scope.action = camForm.variableManager.variableValue('action');
+                    $scope.numbersAmount = camForm.variableManager.variableValue('numbersAmount');
+                    $scope.attachments = camForm.variableManager.variableValue('attachments');
+                    $scope.testResult = camForm.variableManager.variableValue('testResult');
+
+                    if (!$scope.attachments) $scope.attachments = [];
+                    camForm.variableManager.createVariable({
+                        name: 'confirmTCFProcessing',
+                        type: 'String',
+                        value: ''
+                    });
+
+                });
+                camForm.on('submit', function (event) {
+                    camForm.variableManager.variableValue('confirmTCFProcessing', $scope.resolution);
+                    $scope.resolutions.push({
+                        assignee: assigneeName,
+                        resolution: $scope.resolution,
+                        comment: $scope.comment,
+                        taskEndDate: new Date(),
+                        taskName: 'Confirm request in TCF',
+                        assignDate: createdDate,
+                        claimDate: createdDate,
+                    });
+                    console.log($scope.resolutions);
+                    camForm.variableManager.variableValue('resolutions', $scope.resolutions);
+                });
+            }]);
+
+    </script>
+
+    <div class="col-sm-12">
+        <div class="form-group">
+            <label class="col-sm-4">Number request:</label>
+            <div class="col-sm-8"><span class="text-primary">{{numberRequest}}</span></div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-4">Client:</label>
+            <div class="col-sm-8">{{li.legalName}} {{li.BIN}}</div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-4">Service:</label>
+            <div class="col-sm-8">Revolving Numbers Aftersales</div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-4">Type of work:</label>
+            <div class="col-sm-8">{{typeOfWork}}</div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-4">Subject (TIC name):</label>
+            <div class="col-sm-8">{{li.ticName}}</div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-4">Priority:</label>
+            <div class="col-sm-8"><span class="{{clientPriority == 'High'?'text-danger':''}} ">{{clientPriority}}</span></div>
+        </div>
+
+        <div class="form-group">
+            <label class="col-sm-4">Deadline:</label>
+            <div class="col-sm-4">
+                    <div>{{deadline | date:'dd.MM.yyyy'}}</div>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label class="col-sm-4">Tariff:</label>
+            <div class="col-sm-8">
+                <div>{{action.tariffPlan}}:</div>
+                <div ng-show="action.tariffPlan == 'Нестандартный пакет'" >{{action.tariffExtra}}</div>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label class="col-sm-4 control-label">Amount of Revolving numbers:</label>
+            <div class="col-sm-8">
+                <div>{{numbersAmount}}</div>
+            </div>
+        </div>
+
+        <div class="col-sm-12">&#8203;</div>
+    </div>
+    <div class="col-sm-12">
+        <accordion>
+            <accordion-group is-open="isHistoryOpen">
+                <accordion-heading>
+                    History <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': status.isCustomHeaderOpen, 'glyphicon-chevron-down': !status.isCustomHeaderOpen}"></i>
+                </accordion-heading>
+                <table class="table">
+                    <thead>
+                    <tr>
+                        <th>Activity</th>
+                        <th>Assignee</th>
+                        <th>Date</th>
+                        <th>Resolution</th>
+                        <th>Comment</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr ng-repeat="resolution in resolutions | orderBy:'-' track by $index">
+                        <td>{{resolution.taskName}}</td>
+                        <td>{{resolution.assignee}}</td>
+                        <td>{{resolution.assignDate | date: 'dd.MM.yyyy HH:mm'}}</td>
+                        <td>{{resolution.resolution}}</td>
+                        <td>{{resolution.comment}}</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </accordion-group>
+        </accordion>
+
+    </div>
+
+    <div class="form-group">
+        <label class="col-sm-12">TCF: <span class="has-error" ng-if="kcell_form.testResultHtml.$error.required && (kcell_form.testResultHtml.$touched || view.submitted)">(Required field)</span></label>
+        <div class="col-sm-12">
+            <pbx-rich-text data="testResult.html" min-height="100" process-id="processInstanceId" task-id="taskId" disabled="testResultReadOnly"></pbx-rich-text>
+            <input type="hidden" ng-model="testResult.html" name="testResultHtml">
+        </div>
+    </div>
+
+    <div class="col-sm-12">
+        <iframe id="fileDownloadIframe" style="display:none;"></iframe>
+        <div class="form-group">
+            <label class="col-sm-4 control-label">Attachments</label>
+            <div class="col-sm-12">
+                <div class="col-sm-12">
+                    <table class="table ">
+                        <thead>
+                        <tr>
+                            <th>File Name</th>
+                            <th>Created</th>
+                            <th>Created By</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr ng-repeat="file in attachments track by $index">
+                            <td><a ng-click="downloadFile(file)">{{file.name}}</a></td>
+                            <td>{{file.created | date: 'dd.MM.yyyy HH:mm'}}</td>
+                            <td>{{file.createdBy}}</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-12"><hr /></div>
+    </div>
+
+    <div class="form-group">
+        <label class="col-sm-4 control-label">Resolution:</label>
+        <div class="col-sm-8">
+            <label class="radio-inline"><input type="radio" value="Need modify" ng-model="resolution" required> Need modify</label>
+            <label class="radio-inline"><input type="radio" value="Approve" ng-model="resolution" required> Approve</label>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label class="col-sm-12 control-label">Comments:<span class="text-danger glyphicon-asterisk" ng-show="resolution == 'Need modify'"></span></label>
+        <div class="col-sm-12">
+            <textarea class="form-control" name="comment" ng-model="comment" ng-required="resolution == 'Need modify'"></textarea>
+            <span class="has-error" ng-if="kcell_form.comment.$error.required && (kcell_form.comment.$touched || view.submitted)">Required field</span>
+        </div>
+    </div>
+
+</form>
+
