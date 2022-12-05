@@ -783,7 +783,8 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
             require: '^form',
             restrict: 'E',
             scope: {
-                leasingCandidate: '='
+                leasingCandidate: '=',
+                confirmStartLeasingTaskResult: '='
             },
             link: function (scope, el, attrs, formCtrl) {
                 //console.log(formCtrl, 'formCtrl');
