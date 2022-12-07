@@ -2562,6 +2562,7 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                 scope.selectedProcessInstances = [];
                 scope.shownPages = 0;
                 scope.xlsxPreparedRevision = false;
+                scope.dismantleReplaceStatisticsFile = undefined;
                 scope.xlsxPreparedTnu =false;
                 scope.onlyProcessActive = '';
 
@@ -2941,6 +2942,38 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                             $scope.result = response.data;
                         });
                 }
+                scope.prepareDismantleReplaceStatistics = function () {
+                    if (!scope.dismantleReplaceStatisticsFile) {
+                        const statRequestBody = _.map(scope.processInstances, function (pi) {
+                            return {
+                                processInstanceId: pi.id,
+                                businessKey: pi.businessKey,
+                                siteName: pi.site_name,
+                                endTime: pi.endTime
+                            }
+                        });
+                        $http({
+                            method: 'POST',
+                            data: statRequestBody,
+                            url: '/camunda/dismantle-replace/statistics',
+                            headers: {
+                                'Content-type': 'application/json'
+                            },
+                            responseType: 'arraybuffer'
+                        }).then(
+                            function (res) {
+                                var blob = new Blob([res.data], {type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;'});
+                                scope.dismantleReplaceStatisticsFile = window.URL.createObjectURL(blob);
+                            });
+                    } else {
+                        var fileName = "SDR-SRR-statistics.xlsx";
+                        var a = document.createElement("a");
+                        document.body.appendChild(a);
+                        a.href = scope.dismantleReplaceStatisticsFile;
+                        a.download = fileName;
+                        a.click();
+                    }
+                }
                 scope.getXlsxProcessInstances = function () {
                     var fileName = scope.onlyProcessActive.toLowerCase() + '-search-result.xlsx';
                     if (scope.xlsxPreparedRevision || scope.xlsxPreparedTnu) {
@@ -3074,6 +3107,7 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                         scope.filter.page = 1;
                         scope.piIndex = undefined;
                         scope.xlsxPreparedRevision = false;
+                        scope.dismantleReplaceStatisticsFile = undefined;
                         scope.xlsxPreparedTnu =false;
                     }
                     var selectedProcessInstances = [];
