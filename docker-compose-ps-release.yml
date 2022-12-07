@@ -59,15 +59,21 @@ services:
     volumes:
       - ./mail/run.initialization:/etc/service/postfix/run.initialization:ro
     environment:
-      - RELAY_HOST=maildev
-      - RELAY_PORT=1025
+      - RELAY_HOST=smtp1.kcell.kz
+      - RELAY_PORT=25
 
   maildev:
-    image: djfarrelly/maildev
+    image: maildev/maildev:2.0.5
     ports:
       - "1080:1080"
       - "1025:1025"
-    command: ["bin/maildev", "--base-pathname", "/mail"]
+    environment:
+      MAILDEV_SMTP_PORT: 1025
+      MAILDEV_WEB_PORT: 1080
+      MAILDEV_BASE_PATHNAME: "/mail"
+      MAILDEV_OUTGOING_HOST: "smtp1.kcell.kz"
+      MAILDEV_OUTGOING_PORT: 25
+      MAILDEV_OUTGOING_USER: "flow@kcell.kz"
 
   headless_chrome:
     image: kcell/headless_chrome
@@ -89,7 +95,8 @@ services:
       - CATALOG_URL=https://catalogs.flow.kcell.kz
       - APP_BASE_URL=https://flow.kcell.kz
       - EMAIL_DO_SEND=false
-      - EMAIL_BASE_URL=https://delivery.kcell.kz
+      - EMAIL_BASE_URL=https://flow.kcell.kz
+      - EMAIL_SENDER=flow@kcell.kz
       - LDAP_ENABLED=true
       - LDAP_PASSWORD=a%3Wxp79G*J?HB8-
       - LDAP_EXT_ENABLED=true
