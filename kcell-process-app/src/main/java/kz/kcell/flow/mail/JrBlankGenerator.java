@@ -208,13 +208,13 @@ public class JrBlankGenerator {
             row = sheet.createRow(5);
             row.createCell(3).setCellValue("Заказ  №");
             row.createCell(4).setCellValue(jrNumber);
-            row.createCell(5).setCellValue("от");
-            row.createCell(6).setCellValue(DateFormatUtils.format(requestDate, "dd.MM.yyyy"));
+            row.createCell(6).setCellValue("от");
+            row.createCell(7).setCellValue(DateFormatUtils.format(requestDate, "dd.MM.yyyy"));
 
             CellUtil.setFont(row.getCell(3), arial12);
             CellUtil.setFont(row.getCell(4), arial12);
-            CellUtil.setFont(row.getCell(5), arial12);
             CellUtil.setFont(row.getCell(6), arial12);
+            CellUtil.setFont(row.getCell(7), arial12);
 
             row = sheet.createRow(7);
             row.createCell(1).setCellValue("Адрес:");
@@ -449,6 +449,7 @@ public class JrBlankGenerator {
             sheet.addMergedRegion(new CellRangeAddress(13, 13, 1, 3));
             sheet.addMergedRegion(new CellRangeAddress(14, 14, 1, 3));
 
+            sheet.addMergedRegion(new CellRangeAddress(5, 5, 4, 5));
             sheet.addMergedRegion(new CellRangeAddress(7, 7, 4, 8));
 
             sheet.addMergedRegion(new CellRangeAddress(jobWorks.size() + 25, jobWorks.size() + 25, 2, 3));
