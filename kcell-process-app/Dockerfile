@@ -6,6 +6,11 @@ RUN gradle clean build -x test --no-daemon
 
 # docker
 FROM eclipse-temurin:8-alpine
+RUN apk --no-cache add libstdc++
+RUN apk --no-cache add ttf-dejavu fontconfig
+RUN apk --no-cache add msttcorefonts-installer fontconfig && \
+    update-ms-fonts && \
+    fc-cache -f
 
 RUN mkdir /app
 COPY --from=builder /home/gradle/src/build/libs/*.jar ./app/application.jar
