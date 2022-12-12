@@ -1,7 +1,10 @@
 package kz.kcell.flow.leasing;
 
 import io.minio.errors.*;
+import kz.kcell.flow.dismantleReplace.StatisticsService;
+import kz.kcell.flow.dismantleReplace.dto.StatisticsRequest;
 import kz.kcell.flow.files.Minio;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.java.Log;
 import org.camunda.bpm.engine.IdentityService;
 import org.camunda.bpm.engine.RuntimeService;
@@ -12,7 +15,10 @@ import org.camunda.spin.plugin.variable.SpinValues;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.xmlpull.v1.XmlPullParserException;
@@ -23,6 +29,7 @@ import java.io.*;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.sql.*;
+import java.util.List;
 import java.util.Scanner;
 import java.util.TimeZone;
 
@@ -41,6 +48,9 @@ public class LeasingController {
 
     @Autowired
     private TaskService taskService;
+
+    @Autowired
+    private LeasingStatisticsService statisticsService;
 
     @Value("${udb.oracle.url:jdbc:oracle:thin:@//apexudb-pmy:1521/apexudb}")
     private String udbOracleUrl;
@@ -422,4 +432,13 @@ public class LeasingController {
             throw e;
         }
     }
+
+    @RequestMapping(value = "/statistics", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<Resource> getStatistics(@RequestBody List<StatisticsRequest> request) throws Exception {
+        ByteArrayResource res = new ByteArrayResource(statisticsService.generateStatistics(request));
+        return ResponseEntity.ok()
+            .contentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
+            .body(res);
+    }
+
 }

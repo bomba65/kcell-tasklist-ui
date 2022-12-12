@@ -2563,6 +2563,7 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                 scope.shownPages = 0;
                 scope.xlsxPreparedRevision = false;
                 scope.dismantleReplaceStatisticsFile = undefined;
+                scope.rolloutStatisticsFile = undefined;
                 scope.xlsxPreparedTnu =false;
                 scope.onlyProcessActive = '';
 
@@ -2974,6 +2975,38 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                         a.click();
                     }
                 }
+                scope.prepareRolloutStatistics = function () {
+                    if (!scope.rolloutStatisticsFile) {
+                        const statRequestBody = _.map(scope.processInstances, function (pi) {
+                            return {
+                                processInstanceId: pi.id,
+                                businessKey: pi.businessKey,
+                                siteName: pi.site_name,
+                                endTime: pi.endTime
+                            }
+                        });
+                        $http({
+                            method: 'POST',
+                            data: statRequestBody,
+                            url: '/camunda/leasing/statistics',
+                            headers: {
+                                'Content-type': 'application/json'
+                            },
+                            responseType: 'arraybuffer'
+                        }).then(
+                            function (res) {
+                                var blob = new Blob([res.data], {type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;'});
+                                scope.rolloutStatisticsFile = window.URL.createObjectURL(blob);
+                            });
+                    } else {
+                        var fileName = "rollout-statistics.xlsx";
+                        var a = document.createElement("a");
+                        document.body.appendChild(a);
+                        a.href = scope.rolloutStatisticsFile;
+                        a.download = fileName;
+                        a.click();
+                    }
+                }
                 scope.getXlsxProcessInstances = function () {
                     var fileName = scope.onlyProcessActive.toLowerCase() + '-search-result.xlsx';
                     if (scope.xlsxPreparedRevision || scope.xlsxPreparedTnu) {
@@ -3108,6 +3141,7 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                         scope.piIndex = undefined;
                         scope.xlsxPreparedRevision = false;
                         scope.dismantleReplaceStatisticsFile = undefined;
+                        scope.rolloutStatisticsFile = undefined;
                         scope.xlsxPreparedTnu =false;
                     }
                     var selectedProcessInstances = [];
