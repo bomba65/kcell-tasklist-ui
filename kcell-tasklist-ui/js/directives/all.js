@@ -2967,7 +2967,7 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                                 scope.dismantleReplaceStatisticsFile = window.URL.createObjectURL(blob);
                             });
                     } else {
-                        var fileName = "SDR-SRR-statistics.xlsx";
+                        var fileName = scope.onlyProcessActive === 'Replacement' ? "SRR-statistics.xlsx" : "SDR-statistics.xlsx";
                         var a = document.createElement("a");
                         document.body.appendChild(a);
                         a.href = scope.dismantleReplaceStatisticsFile;

@@ -11,16 +11,13 @@ import org.apache.poi.xssf.usermodel.XSSFFont;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.camunda.bpm.engine.HistoryService;
-import org.camunda.bpm.engine.history.HistoricTaskInstance;
-import org.camunda.bpm.engine.history.UserOperationLogEntry;
+import org.camunda.bpm.engine.history.HistoricActivityInstance;
 import org.springframework.stereotype.Service;
 
 import java.io.ByteArrayOutputStream;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
-
-import static org.camunda.bpm.engine.history.UserOperationLogEntry.OPERATION_TYPE_COMPLETE;
 
 @Service
 @RequiredArgsConstructor
@@ -100,20 +97,20 @@ public class StatisticsService {
             row = sheet.createRow(2 + i);
             row.createCell(0).setCellValue(stat.getJrNumber());
             row.createCell(1).setCellValue(stat.getSiteName());
-            row.createCell(2).setCellValue(stat.getRegionHeadApprove().getAssignedDate());
-            row.createCell(3).setCellValue(stat.getRegionHeadApprove().getCompleteDate());
-            row.createCell(4).setCellValue(stat.getModifyRequest().getAssignedDate());
-            row.createCell(5).setCellValue(stat.getModifyRequest().getCompleteDate());
-            row.createCell(6).setCellValue(stat.getCentralLeasingUnit().getAssignedDate());
-            row.createCell(7).setCellValue(stat.getCentralLeasingUnit().getCompleteDate());
-            row.createCell(8).setCellValue(stat.getCentralPlanningUni().getAssignedDate());
-            row.createCell(9).setCellValue(stat.getCentralPlanningUni().getCompleteDate());
-            row.createCell(10).setCellValue(stat.getCentralSaoUnit().getAssignedDate());
-            row.createCell(11).setCellValue(stat.getCentralSaoUnit().getCompleteDate());
-            row.createCell(12).setCellValue(stat.getCentralTnuUnit().getAssignedDate());
-            row.createCell(13).setCellValue(stat.getCentralTnuUnit().getCompleteDate());
-            row.createCell(14).setCellValue(stat.getCentralSfmUnit().getAssignedDate());
-            row.createCell(15).setCellValue(stat.getCentralSfmUnit().getCompleteDate());
+            row.createCell(2).setCellValue(stat.getRegionHeadApprove().getStartTime());
+            row.createCell(3).setCellValue(stat.getRegionHeadApprove().getEndTime());
+            row.createCell(4).setCellValue(stat.getModifyRequest().getStartTime());
+            row.createCell(5).setCellValue(stat.getModifyRequest().getEndTime());
+            row.createCell(6).setCellValue(stat.getCentralLeasingUnit().getStartTime());
+            row.createCell(7).setCellValue(stat.getCentralLeasingUnit().getEndTime());
+            row.createCell(8).setCellValue(stat.getCentralPlanningUni().getStartTime());
+            row.createCell(9).setCellValue(stat.getCentralPlanningUni().getEndTime());
+            row.createCell(10).setCellValue(stat.getCentralSaoUnit().getStartTime());
+            row.createCell(11).setCellValue(stat.getCentralSaoUnit().getEndTime());
+            row.createCell(12).setCellValue(stat.getCentralTnuUnit().getStartTime());
+            row.createCell(13).setCellValue(stat.getCentralTnuUnit().getEndTime());
+            row.createCell(14).setCellValue(stat.getCentralSfmUnit().getStartTime());
+            row.createCell(15).setCellValue(stat.getCentralSfmUnit().getEndTime());
             row.createCell(16).setCellValue(stat.getCompletionNotification());
         }
 
@@ -152,14 +149,14 @@ public class StatisticsService {
             statistics.setSiteName(req.getSiteName());
             statistics.setCompletionNotification(req.getEndTime() != null ? DATE_FORMAT.format(req.getEndTime()) : null);
 
-            List<HistoricTaskInstance> tasks = historyService.createHistoricTaskInstanceQuery().processInstanceBusinessKeyIn(req.getBusinessKey()).list();
-            statistics.setRegionHeadApprove(statistics.fromTasks("region head approve", tasks));
-            statistics.setModifyRequest(statistics.fromTasks("Modify request", tasks));
-            statistics.setCentralLeasingUnit(statistics.fromTasks("central group \"Central Leasing Unit\"", tasks));
-            statistics.setCentralPlanningUni(statistics.fromTasks("central group \"Central Planning Unit\"", tasks));
-            statistics.setCentralSaoUnit(statistics.fromTasks("central group \"Central SAO Unit\"", tasks));
-            statistics.setCentralTnuUnit(statistics.fromTasks("central group \"Central Transmission Unit\"", tasks));
-            statistics.setCentralSfmUnit(statistics.fromTasks("central group \"Central S&FM Unit\"", tasks));
+            List<HistoricActivityInstance> activities = historyService.createHistoricActivityInstanceQuery().processInstanceId(req.getProcessInstanceId()).list();
+            statistics.setRegionHeadApprove(statistics.fromTasks("region head approve", activities));
+            statistics.setModifyRequest(statistics.fromTasks("Modify request", activities));
+            statistics.setCentralLeasingUnit(statistics.fromTasks("central group \"Central Leasing Unit\"", activities));
+            statistics.setCentralPlanningUni(statistics.fromTasks("central group \"Central Planning Unit\"", activities));
+            statistics.setCentralSaoUnit(statistics.fromTasks("central group \"Central SAO Unit\"", activities));
+            statistics.setCentralTnuUnit(statistics.fromTasks("central group \"Central Transmission Unit\"", activities));
+            statistics.setCentralSfmUnit(statistics.fromTasks("central group \"Central S&FM Unit\"", activities));
 
             statisticsList.add(statistics);
         }
@@ -183,25 +180,18 @@ public class StatisticsService {
         @Getter
         @Setter
         class StatisticsTask {
-            private String assignedDate;
-            private String completeDate;
+            private String startTime;
+            private String endTime;
         }
 
-        StatisticsTask fromTasks(String taskName, List<HistoricTaskInstance> tasks) {
-            Optional<HistoricTaskInstance> task = tasks.stream().filter(e -> e.getName().equals(taskName)).findFirst();
+        StatisticsTask fromTasks(String activityName, List<HistoricActivityInstance> activities) {
+            Optional<HistoricActivityInstance> activity = activities.stream().filter(e -> activityName.equals(e.getActivityName())).findFirst();
             StatisticsTask statisticsTask = new StatisticsTask();
-            if (task.isPresent()) {
-                String taskId = task.get().getId();
-                List<UserOperationLogEntry> userLogs = historyService.createUserOperationLogQuery()
-                    .taskId(taskId).property("assignee").list();
-                if (!userLogs.isEmpty() && userLogs.get(0).getTimestamp() != null) {
-                    statisticsTask.setAssignedDate(DATE_FORMAT.format(userLogs.get(0).getTimestamp()));
-                }
-                userLogs = historyService.createUserOperationLogQuery()
-                    .taskId(taskId).operationType(OPERATION_TYPE_COMPLETE).list();
-                if (!userLogs.isEmpty() && userLogs.get(0).getTimestamp() != null) {
-                    statisticsTask.setCompleteDate(DATE_FORMAT.format(userLogs.get(0).getTimestamp()));
-                }
+            if (activity.isPresent()) {
+                String startTime = activity.get().getStartTime() != null ? DATE_FORMAT.format(activity.get().getStartTime()) : null;
+                String endTime = activity.get().getEndTime() != null ? DATE_FORMAT.format(activity.get().getEndTime()) : null;
+                statisticsTask.setStartTime(startTime);
+                statisticsTask.setEndTime(endTime);
             }
             return statisticsTask;
         }
