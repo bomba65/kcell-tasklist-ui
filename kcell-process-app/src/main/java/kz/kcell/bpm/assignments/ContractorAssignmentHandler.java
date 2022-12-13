@@ -56,6 +56,11 @@ public class ContractorAssignmentHandler implements TaskListener {
             } else if (Arrays.asList("71", "72").contains(siteIdFirstTwoDigits)) {
                 delegateTask.addCandidateGroup("west_contractor_transtlc");
             }
+            if (reason.equals("4")) {
+                delegateTask.addCandidateGroup(siteRegion + "_operation_tr");
+            } else if (Arrays.asList("1", "2", "3", "5").contains(reason)){
+                delegateTask.addCandidateGroup(siteRegion + "_development_tr");
+            }
         } else {
             if (contractor.equals("5")) {
                 if (reason.equals("5")) {
