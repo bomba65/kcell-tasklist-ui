@@ -284,6 +284,15 @@ public class UpdateCandidate implements JavaDelegate {
                     value.put("square", square);
                 }
 
+                log.info("facilitiesCN body value.toString(): ");
+                log.info(value.toString());
+
+                log.info("facilitiesCN url: ");
+                log.info(assetsUri + "/asset-management/facilities/id/" + assetsCreatedCnFacilitieId);
+
+                log.info("facilitiesCN baseUri: ");
+                log.info(baseUri);
+
                 HttpPut httpPut = Utils.createHttpPut(
                     assetsUri + "/asset-management/facilities/id/" + assetsCreatedCnFacilitieId, baseUri, value);
 
@@ -296,7 +305,7 @@ public class UpdateCandidate implements JavaDelegate {
 
                 log.info("post response code: " + response.getStatusLine().getStatusCode());
                 if (response.getStatusLine().getStatusCode() < 200 || response.getStatusLine().getStatusCode() >= 300) {
-                    throw new RuntimeException("Candidate post returns code " + response.getStatusLine().getStatusCode());
+                    throw new RuntimeException("Candidate post returns code " + response.getStatusLine().getStatusCode() + "\n body " + EntityUtils.toString(response.getEntity()));
                 }
 
 //                if (assetsCnFacilitie != null) {
@@ -504,8 +513,14 @@ public class UpdateCandidate implements JavaDelegate {
                     value.put("site_name", site_name);
                 }
 
-                log.info("body value.toString(): ");
+                log.info("site body value.toString(): ");
                 log.info(value.toString());
+
+                log.info("site url: ");
+                log.info(assetsUri + "/asset-management/sites/id/" + assetsCreatedSiteId);
+
+                log.info("site baseUri: ");
+                log.info(baseUri);
 
                 HttpPut httpPut = Utils.createHttpPut(
                     assetsUri + "/asset-management/sites/id/" + assetsCreatedSiteId, baseUri, value);
@@ -519,7 +534,7 @@ public class UpdateCandidate implements JavaDelegate {
                 log.info("put response code: " + postResponse.getStatusLine().getStatusCode());
 
                 if (postResponse.getStatusLine().getStatusCode() < 200 || postResponse.getStatusLine().getStatusCode() >= 300) {
-                    throw new RuntimeException("Candidate post returns code " + postResponse.getStatusLine().getStatusCode());
+                    throw new RuntimeException("Candidate post returns code " + postResponse.getStatusLine().getStatusCode()  + "\n body " + responseString);
                 }
             }
             if (updateAssetCandidateTable.equals("powerSources")) {
