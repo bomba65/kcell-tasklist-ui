@@ -16,10 +16,10 @@ public class ValidateTrByCenterByGroupHandler implements TaskListener {
         String mainContract = delegateTask.getVariable("mainContract").toString();
 
         if("2022Work-agreement".equals(mainContract)){
-            if (reason.equals("4")) {
-                delegateTask.addCandidateGroup("hq_operation_approve");
-            } else if (Arrays.asList("1", "2", "3", "5").contains(reason)){
-                delegateTask.addCandidateGroup("hq_development_approve");
+            if (reason.equals("4") && group.equals("\"Development\"")) {
+                delegateTask.addCandidateGroup("hq_development_tr");
+            } else if (Arrays.asList("1", "2", "3", "5").contains(reason) && group.equals("\"Operation\"")) {
+                delegateTask.addCandidateGroup("hq_operation_tr");
             }
         }else {
             if (group != null) {

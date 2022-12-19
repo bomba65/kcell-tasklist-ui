@@ -1,35 +1,39 @@
 package kz.kcell.flow.assets;
 
-import lombok.extern.java.Log;
-import org.springframework.beans.factory.annotation.Value;
+import feign.FeignException;
+import kz.kcell.flow.assets.client.AssetsClient;
+import kz.kcell.flow.assets.dto.JobRequestDto;
+import lombok.RequiredArgsConstructor;
+import org.apache.commons.collections4.map.SingletonMap;
+import org.apache.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/job_request")
-@Log
+@RequiredArgsConstructor
 public class JobRequestController {
 
-    //TODO: implement asset REST api calls
-    private final String assetsUrl;
-
-    private JobRequestController(@Value("${asset.url:https://asset.test-flow.kcell.kz}") String assetsUrl) {
-        this.assetsUrl = assetsUrl;
-    }
+    private final AssetsClient assetsClient;
 
     @RequestMapping(value = "/jr_number/{jr_number}", method = RequestMethod.GET)
     @ResponseBody
-    public ResponseEntity<String> getByJrNumber(@PathVariable("jr_number") String jrNumber) throws Exception {
-        if (jrNumber.equals("Alm-LSE-P&O-22-0017")) {
-            return ResponseEntity.ok(String.format("{ \"id\": 1, \"jr_number\": \"%s\" }", jrNumber));
-        } else {
-            throw new RuntimeException(assetsUrl + " job request not found by number=" + jrNumber);
+    public ResponseEntity<JobRequestDto> getByJrNumber(@RequestHeader(value = HttpHeaders.REFERER, required = false) String referer,
+                                                       @PathVariable("jr_number") String jrNumber) {
+        try {
+            JobRequestDto content = assetsClient.getJobRequestByJrNumber(new SingletonMap<>(HttpHeaders.REFERER, referer), jrNumber);
+            return ResponseEntity.ok(content);
+        } catch (FeignException e) {
+            if (e.status() == 404) {
+                return ResponseEntity.status(e.status()).build();
+            } else {
+                throw e;
+            }
         }
-    }
-
-    @RequestMapping(method = RequestMethod.POST)
-    @ResponseBody
-    public ResponseEntity<String> createJr(@RequestBody String body) throws Exception {
-        return ResponseEntity.ok("");
     }
 }

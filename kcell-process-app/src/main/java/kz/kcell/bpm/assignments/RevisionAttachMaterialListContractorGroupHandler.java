@@ -1,15 +1,17 @@
 package kz.kcell.bpm.assignments;
 
+import org.apache.commons.lang.ArrayUtils;
 import org.camunda.bpm.engine.delegate.DelegateTask;
 import org.camunda.bpm.engine.delegate.TaskListener;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Supplier;
 
-public class ContractorAssignmentHandler implements TaskListener {
+import static kz.kcell.bpm.assignments.RevisionAttachMaterialListGroupHandler.ATTACH_MATERIAL_LIST_GROUP_TO_SITE;
+
+public class RevisionAttachMaterialListContractorGroupHandler implements TaskListener {
 
     private static final Map<String, String> contractorsTitle =
             ((Supplier<Map<String, String>>) (() -> {
@@ -33,11 +35,13 @@ public class ContractorAssignmentHandler implements TaskListener {
         String reason = delegateTask.getVariable("reason").toString();
         String mainContract = delegateTask.getVariable("mainContract").toString();
         if ("2022Work-agreement".equals(mainContract)) {
-            if (reason.equals("4")) {
-                delegateTask.addCandidateGroup(siteRegion + "_operation_tr");
-            } else if (Arrays.asList("1", "2", "3", "5").contains(reason)){
-                delegateTask.addCandidateGroup(siteRegion + "_development_tr");
-            }
+            String siteName = delegateTask.getVariable("site_name").toString();
+            String group = ATTACH_MATERIAL_LIST_GROUP_TO_SITE.entrySet().stream()
+                .filter(e -> ArrayUtils.contains(e.getValue(), siteName.substring(0, 2)))
+                .findFirst()
+                .orElse(null)
+                .getKey();
+            delegateTask.addCandidateGroup(group);
         } else {
             if (contractor.equals("5")) {
                 if (reason.equals("5")) {

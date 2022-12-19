@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" id="Definitions_05yc6v9" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="2.0.1">
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" id="Definitions_05yc6v9" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="4.0.0">
   <bpmn:process id="Replacement" name="Replacement" isExecutable="true">
     <bpmn:startEvent id="startevent_replacement" camunda:formKey="embedded:app:forms/dismantleReplaceRequest/replacementStart.html" camunda:initiator="starter">
       <bpmn:extensionElements>
@@ -25,26 +25,61 @@
       <bpmn:incoming>SequenceFlow_0rn78an</bpmn:incoming>
     </bpmn:endEvent>
     <bpmn:sequenceFlow id="SequenceFlow_0rn78an" sourceRef="extprocess_sdr_srr_request" targetRef="EndEvent_1" />
+    <bpmn:boundaryEvent id="Event_timer" name="24 hours timer" cancelActivity="false" attachedToRef="extprocess_sdr_srr_request">
+      <bpmn:outgoing>Flow_1p3nx9h</bpmn:outgoing>
+      <bpmn:timerEventDefinition id="TimerEventDefinition_1n89m0e">
+        <bpmn:timeDuration xsi:type="bpmn:tFormalExpression">PT24H</bpmn:timeDuration>
+      </bpmn:timerEventDefinition>
+    </bpmn:boundaryEvent>
+    <bpmn:sequenceFlow id="Flow_1p3nx9h" sourceRef="Event_timer" targetRef="Send_escalation" />
+    <bpmn:serviceTask id="Send_escalation" name="Request Expiration Notification" camunda:delegateExpression="${camundaMailer}">
+      <bpmn:extensionElements>
+        <camunda:inputOutput>
+          <camunda:inputParameter name="to">
+            <camunda:script scriptFormat="groovy" resource="dismantleReplaceRequest/getProcessStartNotifyEmails.groovy" />
+          </camunda:inputParameter>
+          <camunda:inputParameter name="subject">Site ${requestType == 'dismantle' ? 'Dismantle' : 'Replacement'} Request is Expired ${requestType == 'dismantle' ? sdrNumber : srrNumber} ${site_name}</camunda:inputParameter>
+          <camunda:inputParameter name="html">
+            <camunda:script scriptFormat="groovy" resource="dismantleReplaceRequest/requestExpirationNotificationBody.groovy" />
+          </camunda:inputParameter>
+        </camunda:inputOutput>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_1p3nx9h</bpmn:incoming>
+    </bpmn:serviceTask>
   </bpmn:process>
   <bpmndi:BPMNDiagram id="BPMNDiagram_1">
     <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Replacement">
+      <bpmndi:BPMNEdge id="Flow_1p3nx9h_di" bpmnElement="Flow_1p3nx9h">
+        <di:waypoint x="290" y="179" />
+        <di:waypoint x="290" y="250" />
+        <di:waypoint x="360" y="250" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_0rn78an_di" bpmnElement="SequenceFlow_0rn78an">
+        <di:waypoint x="367" y="121" />
+        <di:waypoint x="448" y="121" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_13j0avn_di" bpmnElement="SequenceFlow_13j0avn">
+        <di:waypoint x="192" y="121" />
+        <di:waypoint x="267" y="121" />
+      </bpmndi:BPMNEdge>
       <bpmndi:BPMNShape id="_BPMNShape_StartEvent_2" bpmnElement="startevent_replacement">
         <dc:Bounds x="156" y="103" width="36" height="36" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="CallActivity_0cvkpk0_di" bpmnElement="extprocess_sdr_srr_request">
         <dc:Bounds x="267" y="81" width="100" height="80" />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNEdge id="SequenceFlow_13j0avn_di" bpmnElement="SequenceFlow_13j0avn">
-        <di:waypoint x="192" y="121" />
-        <di:waypoint x="267" y="121" />
-      </bpmndi:BPMNEdge>
       <bpmndi:BPMNShape id="EndEvent_0xay2ct_di" bpmnElement="EndEvent_1">
         <dc:Bounds x="448" y="103" width="36" height="36" />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNEdge id="SequenceFlow_0rn78an_di" bpmnElement="SequenceFlow_0rn78an">
-        <di:waypoint x="367" y="121" />
-        <di:waypoint x="448" y="121" />
-      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="Activity_0x9h7b2_di" bpmnElement="Send_escalation">
+        <dc:Bounds x="360" y="210" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_057fpfe_di" bpmnElement="Event_timer">
+        <dc:Bounds x="272" y="143" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="206" y="186" width="72" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
     </bpmndi:BPMNPlane>
   </bpmndi:BPMNDiagram>
 </bpmn:definitions>
