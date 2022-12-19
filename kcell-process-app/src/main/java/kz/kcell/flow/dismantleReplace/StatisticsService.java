@@ -11,7 +11,7 @@ import org.apache.poi.xssf.usermodel.XSSFFont;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.camunda.bpm.engine.HistoryService;
-import org.camunda.bpm.engine.history.HistoricActivityInstance;
+import org.camunda.bpm.engine.history.HistoricTaskInstance;
 import org.springframework.stereotype.Service;
 
 import java.io.ByteArrayOutputStream;
@@ -149,14 +149,14 @@ public class StatisticsService {
             statistics.setSiteName(req.getSiteName());
             statistics.setCompletionNotification(req.getEndTime() != null ? DATE_FORMAT.format(req.getEndTime()) : null);
 
-            List<HistoricActivityInstance> activities = historyService.createHistoricActivityInstanceQuery().processInstanceId(req.getProcessInstanceId()).list();
-            statistics.setRegionHeadApprove(statistics.fromTasks("region head approve", activities));
-            statistics.setModifyRequest(statistics.fromTasks("Modify request", activities));
-            statistics.setCentralLeasingUnit(statistics.fromTasks("central group \"Central Leasing Unit\"", activities));
-            statistics.setCentralPlanningUni(statistics.fromTasks("central group \"Central Planning Unit\"", activities));
-            statistics.setCentralSaoUnit(statistics.fromTasks("central group \"Central SAO Unit\"", activities));
-            statistics.setCentralTnuUnit(statistics.fromTasks("central group \"Central Transmission Unit\"", activities));
-            statistics.setCentralSfmUnit(statistics.fromTasks("central group \"Central S&FM Unit\"", activities));
+            List<HistoricTaskInstance> tasks = historyService.createHistoricTaskInstanceQuery().processInstanceBusinessKeyIn(req.getBusinessKey()).list();
+            statistics.setRegionHeadApprove(statistics.fromTasks("region head approve", tasks));
+            statistics.setModifyRequest(statistics.fromTasks("Modify request", tasks));
+            statistics.setCentralLeasingUnit(statistics.fromTasks("central group \"Central Leasing Unit\"", tasks));
+            statistics.setCentralPlanningUni(statistics.fromTasks("central group \"Central Planning Unit\"", tasks));
+            statistics.setCentralSaoUnit(statistics.fromTasks("central group \"Central SAO Unit\"", tasks));
+            statistics.setCentralTnuUnit(statistics.fromTasks("central group \"Central Transmission Unit\"", tasks));
+            statistics.setCentralSfmUnit(statistics.fromTasks("central group \"Central S&FM Unit\"", tasks));
 
             statisticsList.add(statistics);
         }
@@ -184,8 +184,8 @@ public class StatisticsService {
             private String endTime;
         }
 
-        StatisticsTask fromTasks(String activityName, List<HistoricActivityInstance> activities) {
-            Optional<HistoricActivityInstance> activity = activities.stream().filter(e -> activityName.equals(e.getActivityName())).findFirst();
+        StatisticsTask fromTasks(String taskName, List<HistoricTaskInstance> tasks) {
+            Optional<HistoricTaskInstance> activity = tasks.stream().filter(e -> taskName.equals(e.getName())).findFirst();
             StatisticsTask statisticsTask = new StatisticsTask();
             if (activity.isPresent()) {
                 String startTime = activity.get().getStartTime() != null ? DATE_FORMAT.format(activity.get().getStartTime()) : null;
