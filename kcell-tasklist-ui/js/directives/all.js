@@ -2867,6 +2867,7 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                     maxResults: 20
                 };
                 scope.processInstances = [];
+                scope.allProcessInstances = [];
                 scope.currentDate = new Date();
                 scope.filter.beginYear = scope.currentDate.getFullYear() - 1;
                 scope.filter.endYear = scope.currentDate.getFullYear();
@@ -2945,7 +2946,7 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                 }
                 scope.prepareDismantleReplaceStatistics = function () {
                     if (!scope.dismantleReplaceStatisticsFile) {
-                        const statRequestBody = _.map(scope.processInstances, function (pi) {
+                        const statRequestBody = _.map(scope.allProcessInstances, function (pi) {
                             return {
                                 processInstanceId: pi.id,
                                 businessKey: pi.businessKey,
@@ -2977,7 +2978,7 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                 }
                 scope.prepareRolloutStatistics = function () {
                     if (!scope.rolloutStatisticsFile) {
-                        const statRequestBody = _.map(scope.processInstances, function (pi) {
+                        const statRequestBody = _.map(scope.allProcessInstances, function (pi) {
                             return {
                                 processInstanceId: pi.id,
                                 businessKey: pi.businessKey,
@@ -3613,6 +3614,48 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                             console.log(error.data);
                             scope[processInstances + 'Total'] = 0;
                             scope[processInstances + 'Pages'] = 0;
+                        });
+                    $http({
+                        method: 'POST',
+                        headers: {'Accept': 'application/hal+json, application/json; q=0.5'},
+                        data: filter,
+                        url: baseUrl + '/history/process-instance'
+                    }).then(
+                        function (result) {
+                            scope.allProcessInstances = result.data;
+                            var variables = ['site_name'];
+                            if (scope.allProcessInstances.length > 0) {
+                                _.forEach(variables, function (variable) {
+                                    var varSearchParams = {
+                                        processInstanceIdIn: _.map(scope.allProcessInstances, 'id'),
+                                        variableName: variable
+                                    };
+                                    $http({
+                                        method: 'POST',
+                                        headers: {'Accept': 'application/hal+json, application/json; q=0.5'},
+                                        data: varSearchParams,
+                                        url: baseUrl + '/history/variable-instance?deserializeValues=false'
+                                    }).then(
+                                        function (vars) {
+                                            scope.allProcessInstances.forEach(function (el) {
+                                                var f = _.filter(vars.data, function (v) {
+                                                    return v.processInstanceId === el.id;
+                                                });
+                                                if (f && f[0]) {
+                                                    if (f[0].type === 'Json') {
+                                                        el[variable] = JSON.parse(f[0].value);
+                                                    } else {
+                                                        el[variable] = f[0].value;
+                                                    }
+                                                }
+                                            });
+                                        },
+                                        function (error) {
+                                            console.log(error.data);
+                                        }
+                                    );
+                                });
+                            }
                         });
                     $http({
                         method: 'POST',
