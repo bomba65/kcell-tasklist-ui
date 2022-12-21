@@ -825,7 +825,7 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                         var trAntennaTypePromise = $http.get('/camunda/catalogs/api/get/id/20').then(function(promiseResult){return promiseResult.data;});
                         var newFrequenciesPromise = $http.get('/camunda/catalogs/api/get/id/17').then(function(promiseResult){return promiseResult.data;});
                         var antennaModelPromise = $http.get('/camunda/catalogs/api/get/id/19').then(function(promiseResult){return promiseResult.data;});
-                         var antennaLocationsPromise = $http.get($rootScope.catalogsServerUrl + '/camunda/catalogs/api/get/id/64').then(function(promiseResult){return promiseResult.data;});
+                        var antennaLocationsPromise = $http.get('/camunda/catalogs/api/get/id/64').then(function(promiseResult){return promiseResult.data;});
                         // $q.all([antennaTypePromise, trAntennaTypePromise, antennaModelPromise, antennaLocationsPromise, newCatalogsPromise]).then(function(allPromises) {
                         $q.all([newCatalogsPromise, newBscRncsPromise, trAntennaTypePromise, newFrequenciesPromise, antennaModelPromise, antennaLocationsPromise]).then(function(allPromises) {
                             // var antennaTypePromiseResult = allPromises[0];
