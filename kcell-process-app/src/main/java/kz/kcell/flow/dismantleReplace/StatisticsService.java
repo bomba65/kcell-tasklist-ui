@@ -185,11 +185,12 @@ public class StatisticsService {
         }
 
         StatisticsTask fromTasks(String taskName, List<HistoricTaskInstance> tasks) {
-            Optional<HistoricTaskInstance> activity = tasks.stream().filter(e -> taskName.equals(e.getName())).findFirst();
+            Comparator<HistoricTaskInstance> comparator = Comparator.comparing(HistoricTaskInstance::getStartTime);
+            Optional<HistoricTaskInstance> task = tasks.stream().filter(e -> taskName.equals(e.getName()) && e.getStartTime() != null).max(comparator);
             StatisticsTask statisticsTask = new StatisticsTask();
-            if (activity.isPresent()) {
-                String startTime = activity.get().getStartTime() != null ? DATE_FORMAT.format(activity.get().getStartTime()) : null;
-                String endTime = activity.get().getEndTime() != null ? DATE_FORMAT.format(activity.get().getEndTime()) : null;
+            if (task.isPresent()) {
+                String startTime = task.get().getStartTime() != null ? DATE_FORMAT.format(task.get().getStartTime()) : null;
+                String endTime = task.get().getEndTime() != null ? DATE_FORMAT.format(task.get().getEndTime()) : null;
                 statisticsTask.setStartTime(startTime);
                 statisticsTask.setEndTime(endTime);
             }
