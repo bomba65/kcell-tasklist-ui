@@ -8,11 +8,7 @@ def processName = execution.getProcessEngineServices().getRepositoryService().ge
 def procInst = execution.getProcessEngineServices().getHistoryService().createHistoricProcessInstanceQuery().processInstanceId(execution.getProcessInstanceId()).singleResult();
 def format = new SimpleDateFormat("dd.MM.yyyy HH:mm");
 
-
-def properties = new Properties()
-properties.load(new ClassPathResource('application.properties').inputStream);
-
-def link =  properties.'asset.url'
+def link =  System.getenv('ASSET_URL') ?: 'https://asset.test-flow.kcell.kz'
 
 def newTsdId = execution.getVariable("newTsdId")
 link = link + "/kcell-tasklist-ui/#/assets/tsd/" + newTsdId
