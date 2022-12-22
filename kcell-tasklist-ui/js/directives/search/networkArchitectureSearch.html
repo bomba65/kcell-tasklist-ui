@@ -31,13 +31,25 @@
             <select ng-model="filter.endYear" class="form-control selectpicker" select-picker title="" ng-options="y as y for y in years"></select>
         </div>
     </div>
-    <div class="form-group col-sm-4" ng-hide="onlyProcessActive==='Revision-power'">
+    <div class="form-group col-sm-4" ng-if="onlyProcessActive==='PrNumbersAssignment'">
+        <label class="col-sm-4 control-label">JR Number:</label>
+        <div class="col-sm-8">
+            <input type="text" ng-model="filter.jrNumber" name="jr_number" placeholder="JR Number">
+        </div>
+    </div>
+    <div class="form-group col-sm-4" ng-if="onlyProcessActive==='PrNumbersAssignment'">
+        <label class="col-sm-4 control-label">PR Number:</label>
+        <div class="col-sm-8">
+            <input type="text" ng-model="filter.prNumber" name="pr_number" placeholder="PR Number">
+        </div>
+    </div>
+    <div class="form-group col-sm-4" ng-hide="onlyProcessActive==='Revision-power' || onlyProcessActive==='PrNumbersAssignment'">
         <label class="col-sm-4 control-label">Sitename:</label>
         <div class="col-sm-8">
             <input type="text" ng-model="filter.powerSitename" name="site_name" typeahead="site as sites.site_name for sites in getSites($viewValue)" typeahead-on-select="siteSelected($item,$model,$label)" class="form-control" autocomplete="off" placeholder="Site Name">
         </div>
     </div>
-    <div class="form-group col-sm-4" ng-hide="onlyProcessActive==='Invoice' || onlyProcessActive==='monthlyAct'">
+    <div class="form-group col-sm-4" ng-hide="onlyProcessActive==='Invoice' || onlyProcessActive==='monthlyAct' || onlyProcessActive==='PrNumbersAssignment'">
         <label class="col-sm-4 control-label">Sitename:</label>
         <div class="col-sm-8">
             <input type="text" ng-model="filter.sitename" name="site_name" typeahead="site as sites.site_name for sites in getSites($viewValue)" typeahead-on-select="siteSelected($item,$model,$label)" class="form-control" autocomplete="off" placeholder="Site Name">
@@ -127,7 +139,7 @@
             </select>
         </div>
     </div>
-    <div class="form-group col-sm-4" ng-show="onlyProcessActive==='Invoice' || onlyProcessActive==='monthlyAct'">
+    <div class="form-group col-sm-4" ng-show="onlyProcessActive==='Invoice' || onlyProcessActive==='monthlyAct' || onlyProcessActive==='PrNumbersAssignment'">
         <label class="col-sm-4 control-label">Initiator:</label>
         <div class="col-sm-8">
             <input type="text" ng-model="filter.initiator" name="initiator"
@@ -667,7 +679,7 @@
 </div>
 <div style="margin-bottom: 20px;"></div>
 
-<div ng-if="(onlyProcessActive!=='Revision' &&  onlyProcessActive!=='CreatePR') || ((onlyProcessActive==='Revision' || onlyProcessActive==='CreatePR') && selectedCustomFields.length === 0)">
+<div ng-if="onlyProcessActive!=='PrNumbersAssignment' && (onlyProcessActive!=='Revision' &&  onlyProcessActive!=='CreatePR') || ((onlyProcessActive==='Revision' || onlyProcessActive==='CreatePR') && selectedCustomFields.length === 0)">
     <table class="table table-condensed table-hover" ng-if="processInstances.length>0" id="revisionsTable" name="revisionsTable">
         <thead class="fixed-header">
         <tr>
@@ -743,6 +755,7 @@
                     {{pi.businessKey}}
                 </a>
                 {{pi.processDefinitionKey==='create-new-tsd' || pi.processDefinitionKey==='change-tsd' || pi.processDefinitionKey==='tsd-processing' || pi.processDefinitionKey==='cancel-tsd' ? pi.businessKey.split("(").pop().replace(")","") : ''}}
+                <span ng-if="pi.processDefinitionKey==='PrNumbersAssignment'">{{pi.businessKey}}</span>
             </td>
             <td ng-if="onlyProcessActive===''">{{pi.processDefinitionKey == 'sdr_srr_request'? (pi.requestType === 'dismantle' ? 'Dismantle' : 'Replacement') : pi.processDefinitionName}}</td>
             <td ng-if="RevisionOrMonthlyAct || onlyProcessActive==='Dismantle' || onlyProcessActive==='Replacement' || onlyProcessActive==='Revision-power'">{{pi.executionTime}} days</td>
@@ -940,7 +953,7 @@
         </tbody>
     </table>
 </div>
-<div ng-if="(onlyProcessActive==='Revision' || onlyProcessActive==='CreatePR') && selectedCustomFields.length > 0">
+<div ng-if="onlyProcessActive!=='PrNumbersAssignment' && (onlyProcessActive==='Revision' || onlyProcessActive==='CreatePR') && selectedCustomFields.length > 0">
     <table class="table table-condensed table-hover" ng-if="processInstances.length>0" id="customRevisionsTable" name="customRevisionsTable">
         <thead class="fixed-header">
         <tr>
@@ -1024,6 +1037,33 @@
                     {{pi.monthActNumber}} {{pi.invoiceRO1Number?pi.invoiceRO1Number+', ':''}} {{pi.invoiceRO2Number?pi.invoiceRO2Number+', ':''}} {{pi.invoiceRO3Number?pi.invoiceRO3Number+', ':''}}
                 </span>
             </td>
+        </tbody>
+    </table>
+</div>
+<div ng-if="onlyProcessActive==='PrNumbersAssignment'">
+    <table class="table table-condensed table-hover" ng-if="processInstances.length>0" id="prNumbersAssignmentTable"
+           name="prNumbersAssignmentTable">
+        <thead class="fixed-header">
+        <tr>
+            <th>#</th>
+            <th>JR Number</th>
+            <th>PR Number</th>
+            <th>Region</th>
+            <th>Initiator</th>
+            <th>Process date</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr ng-repeat="pi in processInstances">
+            <td>{{(filter.page - 1) * 20 + $index + 1}}</td>
+            <td>{{pi.jrNumber}}</td>
+            <td>{{pi.prNumber}}</td>
+            <td>{{regionsMap[pi.siteRegion]}}</td>
+            <td>{{profiles[pi.startUserId] ? profiles[pi.startUserId].firstName : pi.startUserId}}
+                {{profiles[pi.startUserId] ? profiles[pi.startUserId].lastName : ''}}
+            </td>
+            <td>{{pi.endTime | date:'dd.MM.yyyy'}}</td>
+        </tr>
         </tbody>
     </table>
 </div>
