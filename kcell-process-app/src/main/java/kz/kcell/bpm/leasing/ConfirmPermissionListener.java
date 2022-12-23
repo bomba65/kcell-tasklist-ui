@@ -20,7 +20,7 @@ public class ConfirmPermissionListener implements TaskListener {
             delegateTask.setVariable("siteRegion", siteRegion);
         }
         if (candidate.has("constructionType") && candidate.getJSONObject("constructionType").getString("catalogsId").equals("18")
-            && ArrayUtils.contains(new Long[]{5L, 6L, 7L}, legalTypeCatalogId)) {
+            || ArrayUtils.contains(new Long[]{5L, 6L, 7L}, legalTypeCatalogId)) {
             delegateTask.addCandidateGroup("hq_leasing");
         } else {
             delegateTask.addCandidateGroup(siteRegion + "_leasing");
