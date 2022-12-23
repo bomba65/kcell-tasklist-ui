@@ -2526,6 +2526,11 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                         title: "Roll-out", value: false
                     }
                 }
+                if($rootScope.hasGroup('pr_users') || $rootScope.hasGroup('pr_search')) {
+                    allKWMSProcesses.PrNumbersAssignment = {
+                        title: "PR Numbers Assignment", value: false
+                    }
+                }
 
                 scope.KWMSProcesses = {};
                 scope.processDefinitionKeys = {
@@ -2759,6 +2764,11 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                                 $(this).data('daterangepicker').setEndDate(moment());
                             }
                         });
+                    }
+                    if(scope.onlyProcessActive!=='PrNumbersAssignment'){
+                        scope.filter.jrNumber = undefined;
+                        scope.filter.prNumber = undefined;
+                        scope.filter.requestor = undefined;
                     }
                 }, true);
 
@@ -3080,6 +3090,28 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                             })
 
                             ws = XLSX.utils.json_to_sheet(arrId['data'], {header: arrId['headers'], dateNF: 'DD.MM.YYYY'})
+                        } else if ((scope.onlyProcessActive === 'PrNumbersAssignment')) {
+                            var arrId = {
+                                'headers': [
+                                    "#",
+                                    "JR Number",
+                                    "PR Number",
+                                    "Region",
+                                    "Initiator",
+                                    "Process date"
+                                ],
+                                'data': []
+                            }
+                            scope['xlsxProcessInstances'].forEach(function (el, i) {
+                                arrId['data'].push({"#": i});
+                                arrId['data'][i]['JR Number'] = el.jrNumber;
+                                arrId['data'][i]['PR Number'] = el.prNumber;
+                                arrId['data'][i]['Region'] = scope.regionsMap[el.siteRegion];
+                                arrId['data'][i]['Initiator'] = (scope.profiles[el.startUserId] ? scope.profiles[el.startUserId].firstName : el.startUserId) + " " +
+                                    (scope.profiles[el.startUserId] ? scope.profiles[el.startUserId].lastName : '');
+                                arrId['data'][i]['Process date'] = new Date(el.endTime);
+                            });
+                            ws = XLSX.utils.json_to_sheet(arrId['data'], {header: arrId['headers'], dateNF: 'dd"."mm"."yyyy'})
                         } else {
                             ws = XLSX.utils.table_to_sheet(tbl, {dateNF: 'DD.MM.YYYY'});
                         }
@@ -3201,7 +3233,12 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                     if(scope.contractor) {
                         filter.variables.push({"name": "contractor", "operator": "eq", "value": scope.filter.contractor});
                     }
-
+                    if (scope.filter.jrNumber) {
+                        filter.variables.push({"name": "jrNumber", "operator": "eq", "value": scope.filter.jrNumber});
+                    }
+                    if (scope.filter.prNumber) {
+                        filter.variables.push({"name": "prNumber", "operator": "eq", "value": scope.filter.prNumber});
+                    }
                     if (scope.filter.businessKey) {
                         if (scope.filter.businessKeyFilterType === 'eq') {
                             filter.processInstanceBusinessKey = scope.filter.businessKey;
@@ -3596,7 +3633,8 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                     scope.filter.jrOrderedDate = undefined;
                     scope.filter.powerActivityId = undefined;
                     scope.filter.powerRegion = 'all';
-
+                    scope.filter.prNumber = undefined;
+                    scope.filter.jrNumber = undefined;
                 }
 
                 function getProcessInstances(filter, processInstances) {
@@ -3739,6 +3777,11 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                                 variables.push('worksTotalSum');
                                 variables.push('siteRegionShow');
                                 variables.push('jrOrderedDate');
+                            }
+                            if(scope.selectedProcessInstances.indexOf('PrNumbersAssignment')!==-1) {
+                                variables.push('jrNumber');
+                                variables.push('prNumber');
+                                variables.push('siteRegion');
                             }
 
                             if (scope[processInstances].length > 0) {
