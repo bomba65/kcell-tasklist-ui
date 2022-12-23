@@ -12,6 +12,9 @@ RUN apk --no-cache add msttcorefonts-installer fontconfig && \
     update-ms-fonts && \
     fc-cache -f
 
+RUN apk add --no-cache tzdata
+ENV TZ Asia/Almaty
+
 RUN mkdir /app
 COPY --from=builder /home/gradle/src/build/libs/*.jar ./app/application.jar
 
