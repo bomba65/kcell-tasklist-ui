@@ -6,11 +6,7 @@ import org.springframework.core.io.ClassPathResource
 
 import java.text.SimpleDateFormat
 
-
-def properties = new Properties()
-properties.load(new ClassPathResource('application.properties').inputStream);
-
-def link =  properties.'asset.url'
+def link = System.getenv('ASSET_URL') ?: 'https://asset.test-flow.kcell.kz'
 
 def tsdMwId = execution.getVariable("tsdMwId")
 link = link + "/kcell-tasklist-ui/#/assets/tsd/" + tsdMwId
@@ -46,7 +42,7 @@ html(lang:'en') {
             yield ' ожидающая Вашего участия.\'
            }
         p {
-            yield 'Для просмотра заявки Вам необходимо пройти по следующей \'
+            yield 'Для просмотра заявки Вам необходимо пройти по следующей ссылке \'
             a(href: link, link)
         }
         table {
