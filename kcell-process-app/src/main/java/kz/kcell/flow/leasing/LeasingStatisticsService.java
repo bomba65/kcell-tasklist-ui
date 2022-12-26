@@ -230,7 +230,10 @@ public class LeasingStatisticsService {
         }
 
         StatisticsTask fromTasks(String activityName, List<HistoricActivityInstance> activities) {
-            Optional<HistoricActivityInstance> activity = activities.stream().filter(e -> activityName.equals(e.getActivityName())).findFirst();
+            Comparator<HistoricActivityInstance> comparator = Comparator.comparing(HistoricActivityInstance::getStartTime);
+            Optional<HistoricActivityInstance> activity = activities.stream()
+                .filter(e -> activityName.equals(e.getActivityName()) && e.getStartTime() != null)
+                .max(comparator);
             StatisticsTask statisticsTask = new StatisticsTask();
             if (activity.isPresent()) {
                 String startTime = activity.get().getStartTime() != null ? DATE_FORMAT.format(activity.get().getStartTime()) : null;

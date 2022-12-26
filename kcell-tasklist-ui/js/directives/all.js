@@ -825,7 +825,7 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                         var trAntennaTypePromise = $http.get('/camunda/catalogs/api/get/id/20').then(function(promiseResult){return promiseResult.data;});
                         var newFrequenciesPromise = $http.get('/camunda/catalogs/api/get/id/17').then(function(promiseResult){return promiseResult.data;});
                         var antennaModelPromise = $http.get('/camunda/catalogs/api/get/id/19').then(function(promiseResult){return promiseResult.data;});
-                         var antennaLocationsPromise = $http.get($rootScope.catalogsServerUrl + '/camunda/catalogs/api/get/id/64').then(function(promiseResult){return promiseResult.data;});
+                        var antennaLocationsPromise = $http.get('/camunda/catalogs/api/get/id/64').then(function(promiseResult){return promiseResult.data;});
                         // $q.all([antennaTypePromise, trAntennaTypePromise, antennaModelPromise, antennaLocationsPromise, newCatalogsPromise]).then(function(allPromises) {
                         $q.all([newCatalogsPromise, newBscRncsPromise, trAntennaTypePromise, newFrequenciesPromise, antennaModelPromise, antennaLocationsPromise]).then(function(allPromises) {
                             // var antennaTypePromiseResult = allPromises[0];
@@ -2526,6 +2526,11 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                         title: "Roll-out", value: false
                     }
                 }
+                if($rootScope.hasGroup('pr_users') || $rootScope.hasGroup('pr_search')) {
+                    allKWMSProcesses.PrNumbersAssignment = {
+                        title: "PR Numbers Assignment", value: false
+                    }
+                }
 
                 scope.KWMSProcesses = {};
                 scope.processDefinitionKeys = {
@@ -2760,6 +2765,11 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                             }
                         });
                     }
+                    if(scope.onlyProcessActive!=='PrNumbersAssignment'){
+                        scope.filter.jrNumber = undefined;
+                        scope.filter.prNumber = undefined;
+                        scope.filter.requestor = undefined;
+                    }
                 }, true);
 
                 var regionGroupsMap = {
@@ -2867,6 +2877,7 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                     maxResults: 20
                 };
                 scope.processInstances = [];
+                scope.allProcessInstances = [];
                 scope.currentDate = new Date();
                 scope.filter.beginYear = scope.currentDate.getFullYear() - 1;
                 scope.filter.endYear = scope.currentDate.getFullYear();
@@ -2945,7 +2956,7 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                 }
                 scope.prepareDismantleReplaceStatistics = function () {
                     if (!scope.dismantleReplaceStatisticsFile) {
-                        const statRequestBody = _.map(scope.processInstances, function (pi) {
+                        const statRequestBody = _.map(scope.allProcessInstances, function (pi) {
                             return {
                                 processInstanceId: pi.id,
                                 businessKey: pi.businessKey,
@@ -2977,7 +2988,7 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                 }
                 scope.prepareRolloutStatistics = function () {
                     if (!scope.rolloutStatisticsFile) {
-                        const statRequestBody = _.map(scope.processInstances, function (pi) {
+                        const statRequestBody = _.map(scope.allProcessInstances, function (pi) {
                             return {
                                 processInstanceId: pi.id,
                                 businessKey: pi.businessKey,
@@ -3079,6 +3090,28 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                             })
 
                             ws = XLSX.utils.json_to_sheet(arrId['data'], {header: arrId['headers'], dateNF: 'DD.MM.YYYY'})
+                        } else if ((scope.onlyProcessActive === 'PrNumbersAssignment')) {
+                            var arrId = {
+                                'headers': [
+                                    "#",
+                                    "JR Number",
+                                    "PR Number",
+                                    "Region",
+                                    "Initiator",
+                                    "Process date"
+                                ],
+                                'data': []
+                            }
+                            scope['xlsxProcessInstances'].forEach(function (el, i) {
+                                arrId['data'].push({"#": i});
+                                arrId['data'][i]['JR Number'] = el.jrNumber;
+                                arrId['data'][i]['PR Number'] = el.prNumber;
+                                arrId['data'][i]['Region'] = scope.regionsMap[el.siteRegion];
+                                arrId['data'][i]['Initiator'] = (scope.profiles[el.startUserId] ? scope.profiles[el.startUserId].firstName : el.startUserId) + " " +
+                                    (scope.profiles[el.startUserId] ? scope.profiles[el.startUserId].lastName : '');
+                                arrId['data'][i]['Process date'] = new Date(el.endTime);
+                            });
+                            ws = XLSX.utils.json_to_sheet(arrId['data'], {header: arrId['headers'], dateNF: 'dd"."mm"."yyyy'})
                         } else {
                             ws = XLSX.utils.table_to_sheet(tbl, {dateNF: 'DD.MM.YYYY'});
                         }
@@ -3200,7 +3233,12 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                     if(scope.contractor) {
                         filter.variables.push({"name": "contractor", "operator": "eq", "value": scope.filter.contractor});
                     }
-
+                    if (scope.filter.jrNumber) {
+                        filter.variables.push({"name": "jrNumber", "operator": "eq", "value": scope.filter.jrNumber});
+                    }
+                    if (scope.filter.prNumber) {
+                        filter.variables.push({"name": "prNumber", "operator": "eq", "value": scope.filter.prNumber});
+                    }
                     if (scope.filter.businessKey) {
                         if (scope.filter.businessKeyFilterType === 'eq') {
                             filter.processInstanceBusinessKey = scope.filter.businessKey;
@@ -3595,7 +3633,8 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                     scope.filter.jrOrderedDate = undefined;
                     scope.filter.powerActivityId = undefined;
                     scope.filter.powerRegion = 'all';
-
+                    scope.filter.prNumber = undefined;
+                    scope.filter.jrNumber = undefined;
                 }
 
                 function getProcessInstances(filter, processInstances) {
@@ -3613,6 +3652,48 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                             console.log(error.data);
                             scope[processInstances + 'Total'] = 0;
                             scope[processInstances + 'Pages'] = 0;
+                        });
+                    $http({
+                        method: 'POST',
+                        headers: {'Accept': 'application/hal+json, application/json; q=0.5'},
+                        data: filter,
+                        url: baseUrl + '/history/process-instance'
+                    }).then(
+                        function (result) {
+                            scope.allProcessInstances = result.data;
+                            var variables = ['site_name'];
+                            if (scope.allProcessInstances.length > 0) {
+                                _.forEach(variables, function (variable) {
+                                    var varSearchParams = {
+                                        processInstanceIdIn: _.map(scope.allProcessInstances, 'id'),
+                                        variableName: variable
+                                    };
+                                    $http({
+                                        method: 'POST',
+                                        headers: {'Accept': 'application/hal+json, application/json; q=0.5'},
+                                        data: varSearchParams,
+                                        url: baseUrl + '/history/variable-instance?deserializeValues=false'
+                                    }).then(
+                                        function (vars) {
+                                            scope.allProcessInstances.forEach(function (el) {
+                                                var f = _.filter(vars.data, function (v) {
+                                                    return v.processInstanceId === el.id;
+                                                });
+                                                if (f && f[0]) {
+                                                    if (f[0].type === 'Json') {
+                                                        el[variable] = JSON.parse(f[0].value);
+                                                    } else {
+                                                        el[variable] = f[0].value;
+                                                    }
+                                                }
+                                            });
+                                        },
+                                        function (error) {
+                                            console.log(error.data);
+                                        }
+                                    );
+                                });
+                            }
                         });
                     $http({
                         method: 'POST',
@@ -3696,6 +3777,11 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                                 variables.push('worksTotalSum');
                                 variables.push('siteRegionShow');
                                 variables.push('jrOrderedDate');
+                            }
+                            if(scope.selectedProcessInstances.indexOf('PrNumbersAssignment')!==-1) {
+                                variables.push('jrNumber');
+                                variables.push('prNumber');
+                                variables.push('siteRegion');
                             }
 
                             if (scope[processInstances].length > 0) {
