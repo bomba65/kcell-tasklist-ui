@@ -9,16 +9,15 @@ import org.camunda.spin.json.SpinJsonNode;
 import org.camunda.spin.plugin.variable.value.JsonValue;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.io.InputStreamResource;
-import org.springframework.core.io.InputStreamSource;
+
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 
 import javax.activation.DataSource;
 import javax.mail.internet.MimeMessage;
+import javax.mail.internet.MimeUtility;
 import javax.mail.util.ByteArrayDataSource;
 import java.io.ByteArrayInputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
 import java.util.List;
@@ -100,7 +99,7 @@ public class CamundaMailerDelegate implements JavaDelegate {
                 .count();
 
         MimeMessage message = mailSender.createMimeMessage();
-        MimeMessageHelper helper = new MimeMessageHelper(message, true);
+        MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
 
         if (sendInstruction.equals("send")) {
             InputStream fis = CamundaMailerDelegate.class.getResourceAsStream("/instruction/instruction.pdf");
@@ -117,7 +116,7 @@ public class CamundaMailerDelegate implements JavaDelegate {
             ByteArrayInputStream is = new ByteArrayInputStream(jrBlankGenerator.generate(delegateExecution));
             DataSource source = new ByteArrayDataSource(is, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
             String fileName = jrNumber.replace("-####", "").replace("-##", "") + ".xlsx";
-            helper.addAttachment(fileName, source);
+            helper.addAttachment(MimeUtility.encodeWord(fileName), source);
             is.close();
         }
         if("ssu_send_application".equals(delegateExecution.getCurrentActivityId())) {
