@@ -12,6 +12,7 @@ import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.camunda.bpm.engine.HistoryService;
 import org.camunda.bpm.engine.history.HistoricActivityInstance;
+import org.camunda.bpm.engine.history.HistoricTaskInstance;
 import org.springframework.stereotype.Service;
 
 import java.io.ByteArrayOutputStream;
@@ -25,6 +26,7 @@ public class LeasingStatisticsService {
     private final HistoryService historyService;
 
     private static final DateFormat DATE_FORMAT = new SimpleDateFormat("dd.MM.yyyy");
+    private static final String INSTALLATION_WORKS_ID = "SubProcess_1ecv83k";
 
     public byte[] generateStatistics(List<StatisticsRequest> requests) throws Exception {
         List<Statistics> statisticsList = collectStatistics(requests);
@@ -126,14 +128,14 @@ public class LeasingStatisticsService {
             row.createCell(19).setCellValue(stat.getUploadLeaseContract().getEndTime());
             row.createCell(20).setCellValue(stat.getUploadLeaseContractFE().getStartTime());
             row.createCell(21).setCellValue(stat.getUploadLeaseContractFE().getEndTime());
-            //row.createCell(22).setCellValue(stat.get.getAssignedDate());
-            //row.createCell(23).setCellValue(stat.get.getCompleteDate());
+            row.createCell(22).setCellValue(stat.getContractApprovalFE().getStartTime());
+            row.createCell(23).setCellValue(stat.getContractApprovalFE().getEndTime());
             row.createCell(24).setCellValue(stat.getUploadVSD().getStartTime());
             row.createCell(25).setCellValue(stat.getUploadVSD().getEndTime());
             row.createCell(26).setCellValue(stat.getUploadTSD().getStartTime());
             row.createCell(27).setCellValue(stat.getUploadTSD().getEndTime());
-            //row.createCell(28).setCellValue(stat.get.getAssignedDate());
-            //row.createCell(29).setCellValue(stat.get.getCompleteDate());
+            row.createCell(28).setCellValue(stat.getInstallationWorks().getStartTime());
+            row.createCell(29).setCellValue(stat.getInstallationWorks().getEndTime());
             row.createCell(30).setCellValue(stat.getFillDetailsCandidateContract().getStartTime());
             row.createCell(31).setCellValue(stat.getFillDetailsCandidateContract().getEndTime());
             row.createCell(32).setCellValue(stat.getFillDetailsFarendContract().getStartTime());
@@ -170,29 +172,33 @@ public class LeasingStatisticsService {
 
     private List<Statistics> collectStatistics(List<StatisticsRequest> requests) {
         List<Statistics> statisticsList = new ArrayList<>();
+        List<HistoricActivityInstance> activities = historyService.createHistoricActivityInstanceQuery().activityId(INSTALLATION_WORKS_ID).list();
         for (StatisticsRequest req : requests) {
             Statistics statistics = new Statistics();
             statistics.setJrNumber(req.getBusinessKey());
             statistics.setSiteName(req.getSiteName());
             statistics.setCompletionNotification(req.getEndTime() != null ? DATE_FORMAT.format(req.getEndTime()) : null);
 
-            List<HistoricActivityInstance> activities = historyService.createHistoricActivityInstanceQuery().processInstanceId(req.getProcessInstanceId()).list();
-            statistics.setAddOutNCP(statistics.fromTasks("Add/Out NCP to Roll Out", activities));
-            statistics.setCreateNewCandidate(statistics.fromTasks("Create new candidate site", activities));
-            statistics.setPreliminaryEstimate(statistics.fromTasks("Preliminary estimate of Technical Capability from RES", activities));
-            statistics.setCheckAndApproveFE(statistics.fromTasks("Check and approve FE", activities));
-            statistics.setConfirmPossibilityTransmissionChannel(statistics.fromTasks("Confirm the possibility of organizing a transmission channel", activities));
-            statistics.setConfirmPermissionLeasingProcess(statistics.fromTasks("Confirm permission to start the Leasing process", activities));
-            statistics.setConfirmPermissionBaseStation(statistics.fromTasks("Confirm permission to install Base Station", activities));
-            statistics.setConfirmPermissionInstallFE(statistics.fromTasks("Confirm permission to install FE", activities));
-            statistics.setUploadLeaseContract(statistics.fromTasks("Upload the Lease Contract signed by the owner. Fill the Contract details", activities));
-            statistics.setUploadLeaseContractFE(statistics.fromTasks("Upload the Lease Contract for FE signed by the owner. Fill the Contract details", activities));
-            statistics.setContractApprovalFE(statistics.fromTasks("CONTRACT APPROVAL FE", activities));
-            statistics.setUploadVSD(statistics.fromTasks("Upload VSD file & fill Cell Antenna Information form", activities));
-            statistics.setUploadTSD(statistics.fromTasks("Upload TSD file", activities));
-            statistics.setInstallationWorks(statistics.fromTasks("INSTALLATION WORKS", activities));
-            statistics.setFillDetailsCandidateContract(statistics.fromTasks("Fill in the details of the Candidate Contract", activities));
-            statistics.setFillDetailsFarendContract(statistics.fromTasks("Fill in the details of the Farend Contract", activities));
+            List<HistoricTaskInstance> tasks = historyService.createHistoricTaskInstanceQuery().processInstanceBusinessKeyIn(req.getBusinessKey()).list();
+            statistics.setAddOutNCP(statistics.fromTasks("Add/Out NCP to Roll Out", tasks));
+            statistics.setCreateNewCandidate(statistics.fromTasks("Create new candidate site", tasks));
+            statistics.setPreliminaryEstimate(statistics.fromTasks("Preliminary estimate of Technical Capability from RES", tasks));
+            statistics.setCheckAndApproveFE(statistics.fromTasks("Check and approve FE", tasks));
+            statistics.setConfirmPossibilityTransmissionChannel(statistics.fromTasks("Confirm the possibility of organizing a transmission channel", tasks));
+            statistics.setConfirmPermissionLeasingProcess(statistics.fromTasks("Confirm permission to start the Leasing process", tasks));
+            statistics.setConfirmPermissionBaseStation(statistics.fromTasks("Confirm permission to install Base Station", tasks));
+            statistics.setConfirmPermissionInstallFE(statistics.fromTasks("Confirm permission to install FE", tasks));
+            statistics.setUploadLeaseContract(statistics.fromTasks("Upload the Lease Contract signed by the owner. Fill the Contract details", tasks));
+            statistics.setUploadLeaseContractFE(statistics.fromTasks("Upload the Lease Contract for FE signed by the owner. Fill the Contract details", tasks));
+            statistics.setContractApprovalFE(statistics.fromTasks("Upload the Lease Contract for FE signed by the owner. Fill the Contract details", tasks));
+            statistics.setUploadVSD(statistics.fromTasks("Upload VSD file & fill Cell Antenna Information form", tasks));
+            statistics.setUploadTSD(statistics.fromTasks("Upload TSD file", tasks));
+            statistics.setFillDetailsCandidateContract(statistics.fromTasks("Fill in the details of the Candidate Contract", tasks));
+            statistics.setFillDetailsFarendContract(statistics.fromTasks("Fill in the details of the Farend Contract", tasks));
+
+            Optional<HistoricActivityInstance> activity = activities.stream()
+                .filter(e -> req.getProcessInstanceId().equals(e.getProcessInstanceId())).findFirst();
+            statistics.setInstallationWorks(statistics.fromActivity(activity));
 
             statisticsList.add(statistics);
         }
@@ -229,18 +235,31 @@ public class LeasingStatisticsService {
             private String endTime;
         }
 
-        StatisticsTask fromTasks(String activityName, List<HistoricActivityInstance> activities) {
-            Comparator<HistoricActivityInstance> comparator = Comparator.comparing(HistoricActivityInstance::getStartTime);
-            Optional<HistoricActivityInstance> activity = activities.stream()
-                .filter(e -> activityName.equals(e.getActivityName()) && e.getStartTime() != null)
+        StatisticsTask fromTasks(String taskName, List<HistoricTaskInstance> tasks) {
+            Comparator<HistoricTaskInstance> comparator = Comparator.comparing(HistoricTaskInstance::getStartTime);
+            Optional<HistoricTaskInstance> task = tasks.stream()
+                .filter(e -> taskName.equals(e.getName()) && e.getStartTime() != null)
                 .max(comparator);
             StatisticsTask statisticsTask = new StatisticsTask();
+            if (task.isPresent()) {
+                String startTime = task.get().getStartTime() != null ? DATE_FORMAT.format(task.get().getStartTime()) : null;
+                String endTime = task.get().getEndTime() != null ? DATE_FORMAT.format(task.get().getEndTime()) : null;
+                statisticsTask.setStartTime(startTime);
+                statisticsTask.setEndTime(endTime);
+            }
+            return statisticsTask;
+        }
+
+        StatisticsTask fromActivity(Optional<HistoricActivityInstance> activity) {
+            StatisticsTask statisticsTask = new StatisticsTask();
+
             if (activity.isPresent()) {
                 String startTime = activity.get().getStartTime() != null ? DATE_FORMAT.format(activity.get().getStartTime()) : null;
                 String endTime = activity.get().getEndTime() != null ? DATE_FORMAT.format(activity.get().getEndTime()) : null;
                 statisticsTask.setStartTime(startTime);
                 statisticsTask.setEndTime(endTime);
             }
+
             return statisticsTask;
         }
     }

@@ -29,7 +29,7 @@ import java.util.concurrent.TimeUnit;
 @Log
 public class FirewallCreate implements JavaDelegate {
 
-    @Value("${firewall.use.testGroup:true}")
+    @Value("${firewall.use.testGroup}")
     private Boolean useTestGroup;
 
     static {

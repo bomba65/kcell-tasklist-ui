@@ -30,7 +30,7 @@ import static kz.kcell.flow.firewall.FirewallCreate.*;
 
 public class FirewallUpdate implements JavaDelegate {
 
-    @Value("${firewall.use.testGroup:true}")
+    @Value("${firewall.use.testGroup}")
     private Boolean useTestGroup;
 
     static {
