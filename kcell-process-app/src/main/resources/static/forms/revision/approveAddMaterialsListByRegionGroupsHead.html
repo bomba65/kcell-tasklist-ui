@@ -4,7 +4,7 @@
     }
 </style>
 <form role="form" class="form-horizontal" name="kcell_form" novalidate>
-    <script cam-script type="text/form-script">
+    <script cam-script type="text/form-script" type="text/javascript">
         inject(['$scope', '$http', 'Uri', '$rootScope', '$q', function ($scope, $http, Uri, $rootScope, $q) {
             var variables = [
                 'requestedDate',
@@ -131,20 +131,29 @@
                 }
 
                 $scope.approveMaterialsGroupList = [];
-                if($scope.optimizationMaterialApproveRequired){
-                    $scope.approveMaterialsGroupList.push('P&O');
-                }
-                if($scope.transmissionMaterialApproveRequired){
-                    $scope.approveMaterialsGroupList.push('Transmission');
-                }
-                if($scope.infrastructureMaterialApproveRequired){
-                    $scope.approveMaterialsGroupList.push('S&FM');
-                }
-                if($scope.operationMaterialApproveRequired){
-                    $scope.approveMaterialsGroupList.push('Operation');
-                }
-                if($scope.rollOutMaterialApproveRequired){
-                    $scope.approveMaterialsGroupList.push('Roll-out');
+                if ($scope.jobModel.mainContract.value === '2022Work-agreement') {
+                    if($scope.materialWillBeUsedDevelopment){
+                        $scope.approveMaterialsGroupList.push('Development');
+                    }
+                    if($scope.materialWillBeUsedOperation){
+                        $scope.approveMaterialsGroupList.push('Operation');
+                    }
+                } else {
+                    if($scope.optimizationMaterialApproveRequired){
+                        $scope.approveMaterialsGroupList.push('P&O');
+                    }
+                    if($scope.transmissionMaterialApproveRequired){
+                        $scope.approveMaterialsGroupList.push('Transmission');
+                    }
+                    if($scope.infrastructureMaterialApproveRequired){
+                        $scope.approveMaterialsGroupList.push('S&FM');
+                    }
+                    if($scope.operationMaterialApproveRequired){
+                        $scope.approveMaterialsGroupList.push('Operation');
+                    }
+                    if($scope.rollOutMaterialApproveRequired){
+                        $scope.approveMaterialsGroupList.push('Roll-out');
+                    }
                 }
 
                 camForm.variableManager.createVariable({
@@ -153,7 +162,11 @@
                     value: $scope.approveMaterialsGroupList
                 });
 
-                camForm.variableManager.variableValue('regionTransmissionCheckRequired', $scope.regionTransmissionCheckRequired);
+                if ($scope.regionTransmissionCheckRequired) {
+                    camForm.variableManager.variableValue('regionTransmissionCheckRequired', $scope.regionTransmissionCheckRequired);
+                } else {
+                    camForm.variableManager.variableValue('regionTransmissionCheckRequired', 'No');
+                }
 
                 var visibility = 'all';
                 if($scope.approveMaterialsListByRegionGroupsHeadComment && $scope.approveMaterialsListByRegionGroupsHeadCommentVisibility){
@@ -213,7 +226,7 @@
             <input type="checkbox" ng-model="needAdditionalApproveByCenterRollout" name="needAdditionalApproveByCenterRollout" />
         </div>
     </div> -->
-    <div class="form-group">
+    <div class="form-group" ng-if="jobModel.mainContract.value !== '2022Work-agreement'">
         <label class="col-sm-4 control-label">Need additional approve by Transmission unit:</label>
         <div class="col-sm-8">
             <label class="radio-inline">
@@ -226,7 +239,7 @@
         </div>
     </div>
 
-    <div class="form-group">
+    <div class="form-group" ng-show="jobModel.mainContract.value !== '2022Work-agreement'">
         <label class="col-sm-4 control-label">Please select the groups who must approve material list</label>
         <div class="col-sm-8">
             <label class="radio-inline" ng-show="jobModel.reason.value != '1'">
@@ -243,6 +256,17 @@
             </label><br/>
             <label class="radio-inline" ng-show="jobModel.reason.value != '5'">
                 <input type="checkbox" cam-variable-name="rollOutMaterialApproveRequired" name="materialApproveGroupList" cam-variable-type="Boolean" /> Roll-out
+            </label><br/>
+        </div>
+    </div>
+    <div class="form-group" ng-show="jobModel.mainContract.value === '2022Work-agreement'">
+        <label class="col-sm-4 control-label">Select whose materials will be used:</label>
+        <div class="col-sm-8">
+            <label class="radio-inline" ng-show="jobModel.reason.value === '4'">
+                <input type="checkbox" cam-variable-name="materialWillBeUsedDevelopment" name="materialWillBeUsed" cam-variable-type="Boolean" />Development
+            </label><br/>
+            <label class="radio-inline" ng-show="['1','2','3','5'].includes(jobModel.reason.value)">
+                <input type="checkbox" cam-variable-name="materialWillBeUsedOperation" name="materialWillBeUsed" cam-variable-type="Boolean" />Operation
             </label><br/>
         </div>
     </div>

@@ -12,19 +12,19 @@ import java.util.function.Supplier;
 public class ContractorAssignmentHandler implements TaskListener {
 
     private static final Map<String, String> contractorsTitle =
-            ((Supplier<Map<String, String>>) (() -> {
-                Map<String, String> map = new HashMap<>();
-                map.put("1", "avrora");
-                map.put("2", "aicom");
-                map.put("3", "spectr");
-                map.put("4", "lse");
-                map.put("5", "kcell");
-                map.put("6", "alta");
-                map.put("7", "logycom");
-                map.put("8", "arlan");
-                map.put("9", "inter");
-                return Collections.unmodifiableMap(map);
-            })).get();
+        ((Supplier<Map<String, String>>) (() -> {
+            Map<String, String> map = new HashMap<>();
+            map.put("1", "avrora");
+            map.put("2", "aicom");
+            map.put("3", "spectr");
+            map.put("4", "lse");
+            map.put("5", "kcell");
+            map.put("6", "alta");
+            map.put("7", "logycom");
+            map.put("8", "arlan");
+            map.put("9", "inter");
+            return Collections.unmodifiableMap(map);
+        })).get();
 
     @Override
     public void notify(DelegateTask delegateTask) {
@@ -32,11 +32,29 @@ public class ContractorAssignmentHandler implements TaskListener {
         String siteRegion = delegateTask.getVariable("siteRegion").toString();
         String reason = delegateTask.getVariable("reason").toString();
         String mainContract = delegateTask.getVariable("mainContract").toString();
+        String siteId = delegateTask.getVariable("siteName").toString();
         if ("2022Work-agreement".equals(mainContract)) {
-            if (reason.equals("4")) {
-                delegateTask.addCandidateGroup(siteRegion + "_operation_tr");
-            } else if (Arrays.asList("1", "2", "3", "5").contains(reason)){
-                delegateTask.addCandidateGroup(siteRegion + "_development_tr");
+            String siteIdFirstTwoDigits = siteId.substring(0, 2);
+            if (Arrays.asList("00", "01", "03", "04", "05", "06", "07").contains(siteIdFirstTwoDigits)) {
+                delegateTask.addCandidateGroup("alm_contractor_alta");
+            } else if (Arrays.asList("11", "12").contains(siteIdFirstTwoDigits)) {
+                delegateTask.addCandidateGroup("nc_contractor_alta");
+            } else if (Arrays.asList("14", "15", "16", "17", "21", "22", "23", "24").contains(siteIdFirstTwoDigits)) {
+                delegateTask.addCandidateGroup("nc_contractor_logycom");
+            } else if (Arrays.asList("31", "32").contains(siteIdFirstTwoDigits)) {
+                delegateTask.addCandidateGroup("east_contractor_logycom");
+            } else if (Arrays.asList("33", "34", "35", "36").contains(siteIdFirstTwoDigits)) {
+                delegateTask.addCandidateGroup("east_contractor_alta");
+            } else if (Arrays.asList("41", "42", "47").contains(siteIdFirstTwoDigits)) {
+                delegateTask.addCandidateGroup("south_contractor_foresterhg");
+            } else if (Arrays.asList("43", "44").contains(siteIdFirstTwoDigits)) {
+                delegateTask.addCandidateGroup("south_contractor_alta");
+            } else if (Arrays.asList("45", "46").contains(siteIdFirstTwoDigits)) {
+                delegateTask.addCandidateGroup("south_contractor_arlan");
+            } else if (Arrays.asList("51", "52", "61", "62", "81", "82").contains(siteIdFirstTwoDigits)) {
+                delegateTask.addCandidateGroup("west_contractor_foresterhg");
+            } else if (Arrays.asList("71", "72").contains(siteIdFirstTwoDigits)) {
+                delegateTask.addCandidateGroup("west_contractor_transtlc");
             }
         } else {
             if (contractor.equals("5")) {

@@ -150,7 +150,7 @@
       <bpmn:userTask id="upload_tr_contractor" name="Upload TR" camunda:formKey="embedded:app:forms/revision/bindTRToJRByContractor.html" camunda:priority="#{priority == &#39;emergency&#39;? 100: 50}">
         <bpmn:documentation>Bind TR to JR by Contractor</bpmn:documentation>
         <bpmn:extensionElements>
-          <camunda:taskListener class="kz.kcell.bpm.assignments.ContractorAssignmentHandler" event="create" />
+          <camunda:taskListener class="kz.kcell.bpm.assignments.UploadTrByContractorGroupHandler" event="create" />
         </bpmn:extensionElements>
         <bpmn:incoming>SequenceFlow_1cr5ksn</bpmn:incoming>
         <bpmn:incoming>Flow_17ckcm2</bpmn:incoming>
@@ -224,7 +224,7 @@
       <bpmn:userTask id="validate_tr" name="Validate TR" camunda:formKey="embedded:app:forms/revision/checkTRWithApprovedMaterialsByInitiator.html" camunda:priority="#{priority == &#39;emergency&#39;? 100: 50}">
         <bpmn:documentation>Check attached TR with approved material list</bpmn:documentation>
         <bpmn:extensionElements>
-          <camunda:taskListener class="kz.kcell.bpm.assignments.ApproveMaterialsListByMlApproversAssignmentHandler" event="create" />
+          <camunda:taskListener class="kz.kcell.bpm.assignments.ValidateTrApproversAssignmentHandler" event="create" />
         </bpmn:extensionElements>
         <bpmn:incoming>SequenceFlow_1g2fm4f</bpmn:incoming>
         <bpmn:incoming>Flow_01atv2x</bpmn:incoming>
@@ -305,7 +305,7 @@
         <bpmn:outgoing>SequenceFlow_1fagywt</bpmn:outgoing>
       </bpmn:exclusiveGateway>
       <bpmn:sequenceFlow id="SequenceFlow_0v9u1c3" sourceRef="exclgw_ml_approve_tnu_region" targetRef="approve_material_list_tnu_region">
-        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${regionTransmissionCheckRequired == 'Yes'}</bpmn:conditionExpression>
+        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${mainContract != '2022Work-agreement' &amp;&amp; regionTransmissionCheckRequired == 'Yes'}</bpmn:conditionExpression>
       </bpmn:sequenceFlow>
       <bpmn:exclusiveGateway id="exclgw_ml_approve_tnu_region1">
         <bpmn:incoming>SequenceFlow_01c6rb1</bpmn:incoming>
@@ -319,7 +319,7 @@
         <bpmn:outgoing>SequenceFlow_0hinm4x</bpmn:outgoing>
       </bpmn:exclusiveGateway>
       <bpmn:sequenceFlow id="SequenceFlow_1fagywt" sourceRef="exclgw_ml_approve_tnu_region" targetRef="exclgw_ml_approve_tnu_region2">
-        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${regionTransmissionCheckRequired == 'No'|| mainContract == '2022Work-agreement'}</bpmn:conditionExpression>
+        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${mainContract == '2022Work-agreement' || regionTransmissionCheckRequired == 'No'}</bpmn:conditionExpression>
       </bpmn:sequenceFlow>
       <bpmn:sequenceFlow id="SequenceFlow_0hinm4x" sourceRef="exclgw_ml_approve_tnu_region2" targetRef="approve_material_list_center1" />
       <bpmn:sequenceFlow id="SequenceFlow_01c6rb1" sourceRef="approve_material_list_tnu_region" targetRef="exclgw_ml_approve_tnu_region1" />
@@ -433,7 +433,7 @@
       <bpmn:userTask id="attach_tr_inhouse" name="Upload TR by Initiator" camunda:formKey="embedded:app:forms/revision/uploadTRByInitiator.html" camunda:assignee="${ starter }" camunda:priority="#{priority == &#39;emergency&#39;? 100: 50}">
         <bpmn:documentation>Upload TR to JR by Initiator</bpmn:documentation>
         <bpmn:extensionElements>
-          <camunda:taskListener class="kz.kcell.bpm.assignments.RevisionDefineInitiatorGroupHandler" event="create" />
+          <camunda:taskListener class="kz.kcell.bpm.assignments.UploadTrByInitiatorGroupHandler" event="create" />
         </bpmn:extensionElements>
         <bpmn:incoming>Flow_0yfaz0d</bpmn:incoming>
         <bpmn:outgoing>Flow_00ezxmz</bpmn:outgoing>
@@ -2074,10 +2074,10 @@
         <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${approveMaterialsGroupList.elements().size() == 0}</bpmn:conditionExpression>
       </bpmn:sequenceFlow>
       <bpmn:sequenceFlow id="SequenceFlow_0lrs2x8" sourceRef="exclgw_additional_ml_approve_tnu_region" targetRef="approve_additional_material_list_tnu_region">
-        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${regionTransmissionCheckRequired == 'Yes'}</bpmn:conditionExpression>
+        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${mainContract != '2022Work-agreement' &amp;&amp; regionTransmissionCheckRequired == 'Yes'}</bpmn:conditionExpression>
       </bpmn:sequenceFlow>
       <bpmn:sequenceFlow id="SequenceFlow_0vnn645" sourceRef="exclgw_additional_ml_approve_tnu_region" targetRef="exclgw_additional_ml_approve_tnu_region2">
-        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${regionTransmissionCheckRequired == 'No'}</bpmn:conditionExpression>
+        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${mainContract == '2022Work-agreement' || regionTransmissionCheckRequired == 'No'}</bpmn:conditionExpression>
       </bpmn:sequenceFlow>
       <bpmn:sequenceFlow id="SequenceFlow_03mw6qq" sourceRef="exclgw_additional_ml_approve_tnu_region2" targetRef="approve_additional_material_list_center1" />
       <bpmn:sequenceFlow id="SequenceFlow_1s9drh8" sourceRef="approve_additional_material_list_tnu_region" targetRef="exclgw_additional_ml_approve_tnu_region1" />
@@ -2160,7 +2160,7 @@
       <bpmn:userTask id="attach_tr_inhouse_additional" name="Upload Additional TR" camunda:formKey="embedded:app:forms/revision/uploadAdditionalTRByInitiator.html" camunda:assignee="${ starter }" camunda:priority="#{priority == &#39;emergency&#39;? 100: 50}">
         <bpmn:documentation>Upload additional TR to JR by Initiator</bpmn:documentation>
         <bpmn:extensionElements>
-          <camunda:taskListener class="kz.kcell.bpm.assignments.RevisionDefineInitiatorGroupHandler" event="create" />
+          <camunda:taskListener class="kz.kcell.bpm.assignments.UploadTrByInitiatorGroupHandler" event="create" />
         </bpmn:extensionElements>
         <bpmn:incoming>Flow_0cnzcre</bpmn:incoming>
         <bpmn:outgoing>Flow_06qo0xh</bpmn:outgoing>
