@@ -3530,7 +3530,7 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                             filter.variables.push({"name": "siteTypeForSearch","operator": "eq","value": scope.filter.leasingSiteType});
                         }
                         if(scope.filter.leasingBand){
-                            filter.variables.push({"name": "bandsJoinedByComma","operator": "like","value": '%,' + scope.filter.leasingBand + ',%'});
+                            filter.variables.push({"name": "bandsJoinedByComma","operator": "eq","value": ',' + scope.filter.leasingBand.split("+").join(",") + ','});
                         }
                         if(scope.filter.leasingContractType){
                             filter.variables.push({"name": "contractTypeJoinedByComma","operator": "like","value": '%,' + scope.filter.leasingContractType + ',%'});
