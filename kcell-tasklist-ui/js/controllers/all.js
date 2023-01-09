@@ -4264,6 +4264,23 @@ return module.controller('mainCtrl', ['$scope', '$rootScope', 'toasty', 'Authent
                 }
             );
         }
+        $http.get(baseUrl + '/process-instance/' + task.processInstanceId).then(
+            function (result) {
+                $scope.processBusinessKey = result.data.businessKey;
+            }
+        );
+        $scope.showProcessNumberTasks = [
+            'check_by_center_hop_delete',
+            'freq_cancellation_by_Permit_hop_delete',
+            'checkByCenterEngineer',
+            'informRegionalEngineer',
+            'checkByPermitChangetsd',
+            'enterRfsChangetsd',
+            'tnutsd_fill_tsd_by_center',
+            'tnutsd_problemhandle_asset',
+            'Activity_14shet0',
+            'rfsPermissionResult'
+        ];
     }
     function initHistoryData(task){
         var variableQuery = {
