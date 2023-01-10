@@ -525,12 +525,13 @@ public class JrBlankGenerator {
             row = sheet.getRow(3) != null ? sheet.getRow(3) : sheet.createRow(3);
             cell = row.getCell(11) != null ? row.getCell(11) : row.createCell(11);
             cell.setCellValue(explanation != null ? explanation : "");
-            CellUtil.setAlignment(cell, HorizontalAlignment.LEFT);
-            CellUtil.setVerticalAlignment(cell, VerticalAlignment.CENTER);
 
             CellStyle cellStyle = workbook.createCellStyle();
             cellStyle.setWrapText(true);
             cell.setCellStyle(cellStyle);
+
+            CellUtil.setAlignment(cell, HorizontalAlignment.LEFT);
+            CellUtil.setVerticalAlignment(cell, VerticalAlignment.TOP);
         } else{
             XSSFFont arial9 = workbook.createFont();
             arial9.setFontName(HSSFFont.FONT_ARIAL);
