@@ -82,11 +82,12 @@ public class JrBlankGenerator {
     static
     {
         reasonsTitle = new HashMap<String, String>();
-        reasonsTitle.put("1", "Optimization works");
-        reasonsTitle.put("2", "Transmission works");
-        reasonsTitle.put("3", "Infrastructure works");
-        reasonsTitle.put("4", "Operation works");
-        reasonsTitle.put("5", "Roll-out works");
+        reasonsTitle.put("1", "Оптимизация и планирование");
+        reasonsTitle.put("2", "Трансмиссия");
+        reasonsTitle.put("3", "Инфраструктура");
+        reasonsTitle.put("4", "Эксплуатация");
+        reasonsTitle.put("5", "Строительно-монтажные работы");
+        reasonsTitle.put("6", "Подготовка проекта");
     };
 
     public byte[] generate(DelegateExecution delegateExecution) throws Exception {
