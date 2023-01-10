@@ -98,6 +98,7 @@ public class CamundaMailerDelegate implements JavaDelegate {
                 .filter(e-> e.getKey().equals("Revision") || e.getKey().equals("Invoice"))
                 .count();
 
+        System.setProperty("mail.mime.splitlongparameters", "false");
         MimeMessage message = mailSender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
 
