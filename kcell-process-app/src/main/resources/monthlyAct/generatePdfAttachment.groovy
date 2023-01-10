@@ -51,11 +51,11 @@ def contractorsTitle = [
 ]
 
 def reasonsTitle = [
-        "1": "Оптимизация и планирование",
-        "2": "Трансмиссия",
-        "3": "Инфраструктура",
-        "4": "Эксплуатация",
-        "5": "Строительно-монтажные работы",
+        "1": "Optimization works",
+        "2": "Transmission works",
+        "3": "Infrastructure works",
+        "4": "Operation works",
+        "5": "Roll-out works",
         "6": "Подготовка проекта"
 ]
 

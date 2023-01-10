@@ -29,11 +29,11 @@ select
         else null
         end as "JR To",
     case reason.text_
-        when '1' then 'Оптимизация и планирование'
-        when '2' then 'Трансмиссия'
-        when '3' then 'Инфраструктура'
-        when '4' then 'Эксплуатация'
-        when '5' then 'Строительно-монтажные работы'
+        when '1' then 'Optimization works'
+        when '2' then 'Transmission works'
+        when '3' then 'Infrastructure works'
+        when '4' then 'Operation works'
+        when '5' then 'Roll-out works'
         when '6' then 'Подготовка проекта'
         else null
         end as "JR Reason",

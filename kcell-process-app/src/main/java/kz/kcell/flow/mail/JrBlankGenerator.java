@@ -82,11 +82,11 @@ public class JrBlankGenerator {
     static
     {
         reasonsTitle = new HashMap<String, String>();
-        reasonsTitle.put("1", "Оптимизация и планирование");
-        reasonsTitle.put("2", "Трансмиссия");
-        reasonsTitle.put("3", "Инфраструктура");
-        reasonsTitle.put("4", "Эксплуатация");
-        reasonsTitle.put("5", "Строительно-монтажные работы");
+        reasonsTitle.put("1", "Optimization works");
+        reasonsTitle.put("2", "Transmission works");
+        reasonsTitle.put("3", "Infrastructure works");
+        reasonsTitle.put("4", "Operation works");
+        reasonsTitle.put("5", "Roll-out works");
         reasonsTitle.put("6", "Подготовка проекта");
     };
 
@@ -525,13 +525,12 @@ public class JrBlankGenerator {
             row = sheet.getRow(3) != null ? sheet.getRow(3) : sheet.createRow(3);
             cell = row.getCell(11) != null ? row.getCell(11) : row.createCell(11);
             cell.setCellValue(explanation != null ? explanation : "");
+            CellUtil.setAlignment(cell, HorizontalAlignment.LEFT);
+            CellUtil.setVerticalAlignment(cell, VerticalAlignment.CENTER);
 
             CellStyle cellStyle = workbook.createCellStyle();
             cellStyle.setWrapText(true);
             cell.setCellStyle(cellStyle);
-
-            CellUtil.setAlignment(cell, HorizontalAlignment.LEFT);
-            CellUtil.setVerticalAlignment(cell, VerticalAlignment.TOP);
         } else{
             XSSFFont arial9 = workbook.createFont();
             arial9.setFontName(HSSFFont.FONT_ARIAL);
