@@ -71,22 +71,23 @@ public class JrBlankGenerator {
     static
     {
         contractorNumber = new HashMap<String, String>();
-        contractorNumber.put("6", "98137");
-        contractorNumber.put("7", "98110");
-        contractorNumber.put("8", "98132");
-        contractorNumber.put("10", "98136");
-        contractorNumber.put("11", "98235");
+        contractorNumber.put("6", "734974/2022/1 (CM 98137)");
+        contractorNumber.put("7", "734974/2022/2-1 (CM 98110)");
+        contractorNumber.put("8", "734974/2022/4 (CM 98132)");
+        contractorNumber.put("10", "734974/2022/3 (CM 98136)");
+        contractorNumber.put("11", "734974/2022/5 (CM 98235)");
     };
 
     private final static Map<String, String> reasonsTitle;
     static
     {
         reasonsTitle = new HashMap<String, String>();
-        reasonsTitle.put("1", "Optimization works");
-        reasonsTitle.put("2", "Transmission works");
-        reasonsTitle.put("3", "Infrastructure works");
-        reasonsTitle.put("4", "Operation works");
-        reasonsTitle.put("5", "Roll-out works");
+        reasonsTitle.put("1", "Оптимизация и планирование");
+        reasonsTitle.put("2", "Трансмиссия");
+        reasonsTitle.put("3", "Инфраструктура");
+        reasonsTitle.put("4", "Эксплуатация");
+        reasonsTitle.put("5", "Строительно-монтажные работы");
+        reasonsTitle.put("6", "Подготовка проекта");
     };
 
     public byte[] generate(DelegateExecution delegateExecution) throws Exception {
@@ -344,7 +345,7 @@ public class JrBlankGenerator {
                 }
 
                 BigDecimal priceWithMaterial = jobPrice.multiply(new BigDecimal(jobWorks.get(i).get("quantity").asText())).setScale(2, RoundingMode.DOWN);
-                BigDecimal jobPriceWithVAT = jobPrice.add(jobPrice.multiply(new BigDecimal("0.12"))).setScale(2, RoundingMode.DOWN);
+                BigDecimal jobPriceWithVAT = priceWithMaterial.add(priceWithMaterial.multiply(new BigDecimal("0.12"))).setScale(2, RoundingMode.DOWN);
 
                 jobWorksTotal = jobWorksTotal.add(jobPriceWithVAT).setScale(2, RoundingMode.DOWN);
 
@@ -524,8 +525,13 @@ public class JrBlankGenerator {
             row = sheet.getRow(3) != null ? sheet.getRow(3) : sheet.createRow(3);
             cell = row.getCell(11) != null ? row.getCell(11) : row.createCell(11);
             cell.setCellValue(explanation != null ? explanation : "");
+
+            CellStyle cellStyle = workbook.createCellStyle();
+            cellStyle.setWrapText(true);
+            cell.setCellStyle(cellStyle);
+
             CellUtil.setAlignment(cell, HorizontalAlignment.LEFT);
-            CellUtil.setVerticalAlignment(cell, VerticalAlignment.CENTER);
+            CellUtil.setVerticalAlignment(cell, VerticalAlignment.TOP);
         } else{
             XSSFFont arial9 = workbook.createFont();
             arial9.setFontName(HSSFFont.FONT_ARIAL);
