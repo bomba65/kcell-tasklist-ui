@@ -117,7 +117,7 @@ public class CamundaMailerDelegate implements JavaDelegate {
             ByteArrayInputStream is = new ByteArrayInputStream(jrBlankGenerator.generate(delegateExecution));
             DataSource source = new ByteArrayDataSource(is, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
             String fileName = jrNumber.replace("-####", "").replace("-##", "") + ".xlsx";
-            helper.addAttachment(MimeUtility.encodeWord(fileName), source);
+            helper.addAttachment(MimeUtility.encodeText(fileName, "UTF-8", "B"), source);
             is.close();
         }
         if("ssu_send_application".equals(delegateExecution.getCurrentActivityId())) {
