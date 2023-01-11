@@ -16,7 +16,7 @@ public class CentralGroupAssignmentHandler implements TaskListener {
             if("2022Work-agreement".equals(mainContract)){
                 if (reason.equals("4")) {
                     delegateTask.addCandidateGroup("hq_operation_approve");
-                } else if (Arrays.asList("1", "2", "3", "5").contains(reason)){
+                } else if (Arrays.asList("1", "2", "3", "5","6").contains(reason)){
                     delegateTask.addCandidateGroup("hq_development_approve");
                 }
             }else {
