@@ -66,6 +66,7 @@
       $scope.jrNumber = '';
       $scope.o20JobWorks = [];
       $scope.newWorks = [];
+      $scope.worksALFA = [];
 
       camForm.on('form-loaded', function () {
         variablesToCreate.forEach(function (el) {
@@ -90,6 +91,14 @@
                 work.title = work.num.toString()+ " " + work.title;
               })
             }
+          );
+
+          $http.get('/api/revisionPowerJobsALFA').then(
+                  function(result) {
+                    $scope.worksALFA = _.forEach(result.data.works, function(work) {
+                      work.title = work.num.toString()+ " " + work.title;
+                    })
+                  }
           );
 
           $http.get('/camunda/catalogs/api/get/id/30').then(
@@ -419,7 +428,14 @@
       <!-- Work list logic start -->
 
       $scope.getWorks = function(val) {
-        let result = $scope.contract && JSON.parse($scope.contract).id === '98267' ? $scope.newWorks : $scope.works;
+        let result;
+        if ($scope.contract && JSON.parse($scope.contract).id === '98267') {
+          result = $scope.newWorks;
+        } else if ($scope.contract && JSON.parse($scope.contract).id === '99412') {
+          result = $scope.worksALFA;
+        } else {
+          result = $scope.works;
+        }
 
         result = result.filter(function(work){
           return work.title.toLowerCase().toString().indexOf(val.toLowerCase()) !== -1;
@@ -449,8 +465,8 @@
             $scope.jobWorks[index].materialUnit = $item.unit;
             $scope.jobWorks[index].materialSum = 0;
             $scope.jobWorks[index].referedWorks = $item.num;
-            if (JSON.parse($scope.contract).id === '98267') {
-              $scope.jobWorks[index].materialPrice = $item.price[$scope.oblastName];
+            if (['98267', '99412'].includes(JSON.parse($scope.contract).id)) {
+              $scope.jobWorks[index].materialPrice = $item.price[$scope.oblastName] ? $item.price[$scope.oblastName] : 0;
               $scope.jobWorks[index].O25 = $item.O25;
             } else {
               $scope.jobWorks[index].O20 = $item.O20;
@@ -499,7 +515,7 @@
           <!-- O20 -->
           let dismntWork = JSON.parse($scope.jobWorks[index].dismantlingFor)
           $scope.jobWorks[index].refersTo = dismntWork.referedWorks;
-          let multiplier = JSON.parse($scope.contract).id === '98267' ? 0.2 : 0.02;
+          let multiplier = ['98267', '99412'].includes(JSON.parse($scope.contract).id) ? 0.2 : 0.02;
           $scope.jobWorks[index].materialPrice = (dismntWork.materialPrice*multiplier).toFixed(2);
         }
         getSum(index);
@@ -949,12 +965,12 @@
                 required
                 cam-variable-type="String"
                 ng-model="jobWork.transportationFor"
-                ng-if="(jobWork.num == 'O21' && parJson(contract).id !== '98267') || (jobWork.num == 'O25' && parJson(contract).id === '98267')"
+                ng-if="(jobWork.num == 'O21' && !['98267', '99412'].includes(parJson(contract).id)) || (jobWork.num == 'O25' && ['98267', '99412'].includes(parJson(contract).id))"
                 ng-change="getPrice($index, true)"
               >
                 <option value="">Select work</option>
                 <option
-                  ng-repeat="work in (parJson(contract).id === '98267' ? (jobWorks | filter:{O25:true}) : jobWorks)"
+                  ng-repeat="work in (['98267', '99412'].includes(parJson(contract).id) ? (jobWorks | filter:{O25:true}) : jobWorks)"
                   ng-selected="{{work === jobWork.transportationFor}}"
                   value="{{work}}"
                 >
@@ -969,16 +985,16 @@
                 required
                 cam-variable-type="String"
                 ng-model="jobWork.dismantlingFor"
-                ng-if="(jobWork.num == 'O20' && parJson(contract).id !== '98267') || (jobWork.num == 'O24' && parJson(contract).id === '98267')"
+                ng-if="(jobWork.num == 'O20' && !['98267', '99412'].includes(parJson(contract).id)) || (jobWork.num == 'O24' && ['98267', '99412'].includes(parJson(contract).id))"
                 ng-change="getPrice($index, false)"
               >
                 <option value="">Select work</option>
                 <option
-                  ng-repeat="work in (parJson(contract).id === '98267' ? (jobWorks | filter:{num:'O25'}): o20JobWorks)"
+                  ng-repeat="work in (['98267', '99412'].includes(parJson(contract).id) ? (jobWorks | filter:{num:'O25'}): o20JobWorks)"
                   ng-selected="{{work.num === jobWork.dismantlingFor}}"
                   value="{{work}}"
                 >
-                  {{parJson(contract).id === '98267' ? work.referedWorks : work.num}}
+                  {{['98267', '99412'].includes(parJson(contract).id) ? work.referedWorks : work.num}}
                 </option>
               </select>
             </td>
