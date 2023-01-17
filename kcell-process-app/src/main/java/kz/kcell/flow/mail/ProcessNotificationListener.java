@@ -124,7 +124,6 @@ public class ProcessNotificationListener implements ExecutionListener {
                         } else {
                             startTime.setTime(new Date());
                         }
-                        startTime.add(Calendar.HOUR, 6);
                         bindings.put("startTime", format.format(startTime.getTime()));
 
                         bindings.put("baseUrl", baseUrl);

@@ -23,7 +23,6 @@ public class SsuFormApplication implements JavaDelegate {
         String bin = delegateExecution.getVariable("bin").toString();
 
         Calendar dateCalendar = Calendar.getInstance();
-        dateCalendar.add(Calendar.HOUR, 6);
         Date current = dateCalendar.getTime();
 
         SimpleDateFormat format = new SimpleDateFormat("ddMMyyyy");

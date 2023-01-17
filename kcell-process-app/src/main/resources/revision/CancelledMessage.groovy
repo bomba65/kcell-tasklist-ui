@@ -10,7 +10,6 @@ def jrNumberObj = (jrNumber != null ? jrNumber : '########')
 def formatDateTime = new SimpleDateFormat("dd.MM.yyyy HH:mm")
 def calendar = Calendar.getInstance();
 calendar.setTime(requestedDate);
-calendar.add(Calendar.HOUR, 6);
 def requestedDate = formatDateTime.format(calendar.getTime())
 
 def initiatorObj = new JsonSlurper().parseText(initiatorFull.toString())

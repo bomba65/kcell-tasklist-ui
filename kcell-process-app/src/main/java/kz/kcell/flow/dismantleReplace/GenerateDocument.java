@@ -78,7 +78,6 @@ public class GenerateDocument implements JavaDelegate {
 
         Calendar calendar = Calendar.getInstance();
         calendar.setTime(new Date());
-        calendar.add(Calendar.HOUR, 6);
         varsMap.put("$infilldate", dformat.format(calendar.getTime()));
 
         SpinJsonNode initiatorFull = delegateExecution.<JsonValue>getVariableTyped("initiatorFull").getValue();

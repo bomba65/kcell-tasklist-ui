@@ -27,7 +27,6 @@ def calendar = Calendar.getInstance();
 if(contract_date!=null){
     calendar.setTime(contract_date);
 }
-calendar.add(Calendar.HOUR, 6);
 
 def formatDate = new SimpleDateFormat("dd.MM.yyyy")
 

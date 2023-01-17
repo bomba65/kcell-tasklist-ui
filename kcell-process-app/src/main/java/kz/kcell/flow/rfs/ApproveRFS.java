@@ -63,7 +63,6 @@ public class ApproveRFS implements JavaDelegate {
 
         Date rfsPermitionDateFormatted = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").parse(rfsPermitionDate);
         c.setTime(rfsPermitionDateFormatted);
-        c.add(Calendar.HOUR, 6);
         objectNode.put("rfs_date", new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ").format(c.getTime()));
 
         SSLContextBuilder builder = new SSLContextBuilder();

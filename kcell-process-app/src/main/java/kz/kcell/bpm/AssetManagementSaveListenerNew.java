@@ -51,7 +51,6 @@ public class AssetManagementSaveListenerNew implements TaskListener {
 
         Calendar calendar = Calendar.getInstance();
         calendar.setTime(new Date());
-        calendar.add(Calendar.HOUR, 6);
         delegateTask.setVariable("performDate", calendar.getTime());
     }
 

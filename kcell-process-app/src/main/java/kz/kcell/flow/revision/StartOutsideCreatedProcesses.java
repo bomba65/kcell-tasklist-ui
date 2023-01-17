@@ -334,7 +334,6 @@ public class StartOutsideCreatedProcesses {
                 vars.put("worksBelongsTo", "No");
 
                 Calendar calendar = Calendar.getInstance();
-                calendar.add(Calendar.HOUR, 6);
 
                 vars.put("requestedDate", calendar.getTime());
                 vars.put("siteRegion", regions.get(data.get("region").asText()));
@@ -346,7 +345,6 @@ public class StartOutsideCreatedProcesses {
                 SimpleDateFormat fff = new SimpleDateFormat("MM/dd/yy");
                 Calendar requestedDate = Calendar.getInstance();
                 requestedDate.setTime(fff.parse(data.get("requestedDate").asText()));
-                requestedDate.add(Calendar.HOUR, 6);
 
                 ArrayNode resolutions = (ArrayNode) mapper.createArrayNode();
                 ObjectNode res = mapper.createObjectNode();

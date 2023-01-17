@@ -59,7 +59,6 @@ public class Informed implements JavaDelegate {
 
         Calendar c = Calendar.getInstance();
         c.setTime((Date) execution.getVariable("checkedReviewedDate"));
-        c.add(Calendar.HOUR, 6);
         objectNode.put("review_date", new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ").format(c.getTime()));
 
         SSLContextBuilder builder = new SSLContextBuilder();
