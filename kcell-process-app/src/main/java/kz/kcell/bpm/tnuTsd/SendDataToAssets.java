@@ -105,7 +105,6 @@ public class SendDataToAssets implements JavaDelegate {
         objectNode.put("business_key", business_key);
         Calendar c = Calendar.getInstance();
         c.setTime(date);
-        c.add(Calendar.HOUR, 6);
         objectNode.put("date", new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ").format(c.getTime()));
 
         ObjectNode fe_rau_subband_id = objectMapper.createObjectNode();

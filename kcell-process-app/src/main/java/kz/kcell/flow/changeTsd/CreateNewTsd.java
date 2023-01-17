@@ -61,7 +61,6 @@ public class CreateNewTsd implements JavaDelegate {
         Date date = new Date(timestamp);
         Calendar c = Calendar.getInstance();
         c.setTime(date);
-        c.add(Calendar.HOUR, 6);
         objectNode.put("date", new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ").format(c.getTime()));
 
         // fe

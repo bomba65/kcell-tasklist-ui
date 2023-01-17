@@ -16,7 +16,6 @@ String starter = execution.getVariable("starter").toString();
 def formatDateTime = new SimpleDateFormat("dd.MM.yyyy HH:mm")
 def calendar = Calendar.getInstance();
 calendar.setTime(requestedDate);
-calendar.add(Calendar.HOUR, 6);
 def date = formatDateTime.format(calendar.getTime())
 
 def binding = [

@@ -65,7 +65,6 @@ public class ApproveRFS implements JavaDelegate {
                 Date date = new Date(timestamp);
                 Calendar c = Calendar.getInstance();
                 c.setTime(date);
-                c.add(Calendar.HOUR, 6);
                 objectNode.put("rfs_date", new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ").format(c.getTime()));
             }
 
@@ -90,7 +89,6 @@ public class ApproveRFS implements JavaDelegate {
             if(oldTsd.hasProp("elicense_date") && oldTsd.prop("elicense_date") != null && oldTsd.prop("elicense_date").value() != null) {
                 Calendar elicenseCalendar = Calendar.getInstance();
                 elicenseCalendar.setTime(new Date(oldTsd.prop("elicense_date").numberValue().longValue()));
-                elicenseCalendar.add(Calendar.HOUR, 6);
                 objectNode.put("elicense_date", new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ").format(elicenseCalendar.getTime()));
             }
         } else if (permitResolution.equals("reissueRFSpermittion")) {
@@ -106,7 +104,6 @@ public class ApproveRFS implements JavaDelegate {
             String rfsPermitionDate = String.valueOf(execution.getVariable("rfsPermitionDate"));
             Date rfsPermitionDateFormatted = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").parse(rfsPermitionDate);
             c.setTime(rfsPermitionDateFormatted);
-            c.add(Calendar.HOUR, 6);
             objectNode.put("rfs_date", new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ").format(c.getTime()));
         }
 

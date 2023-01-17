@@ -59,7 +59,6 @@ public class AddElicense implements JavaDelegate {
         String eLicenseDate = String.valueOf(execution.getVariable("eLicenseDate"));
         Date eLicenseDateFormatted = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").parse(eLicenseDate);
         c.setTime(eLicenseDateFormatted);
-        c.add(Calendar.HOUR, 6);
         objectNode.put("elicense_date", new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ").format(c.getTime()));
 
         ObjectNode rfs_status_id = objectMapper.createObjectNode();

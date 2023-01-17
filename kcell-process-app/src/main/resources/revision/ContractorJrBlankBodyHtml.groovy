@@ -17,10 +17,8 @@ if (procInst != null) {
 } else {
     startTime.setTime(new Date());
 }
-startTime.add(Calendar.HOUR, 6);
 
 def assignTime = Calendar.getInstance();
-assignTime.add(Calendar.HOUR, 6);
 
 def binding = ["processName": processName,
                "businessKey": execution.processBusinessKey,

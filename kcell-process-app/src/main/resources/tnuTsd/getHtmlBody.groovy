@@ -14,7 +14,6 @@ link = link + "/kcell-tasklist-ui/#/assets/tsd/" + tsdMwId
 def startTime = execution.getProcessEngineServices().getHistoryService().createHistoricProcessInstanceQuery().processInstanceId(execution.getProcessInstanceId()).list().get(0).getStartTime();
 Calendar c = Calendar.getInstance();
 c.setTime(startTime);
-c.add(Calendar.HOUR, 6);
 def binding = [
         "link": link,
         "tsdMwId": tsdMwId,
