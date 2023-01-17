@@ -106,6 +106,9 @@ public class JrBlankGenerator {
         String regionApproval = (String) delegateExecution.getVariable("regionApproval");
         String centralApproval = (String) delegateExecution.getVariable("centralApproval");
         Date requestDate = (Date) delegateExecution.getVariable("requestedDate");
+        Date workStartDate = (Date) delegateExecution.getVariable("workStartDate");
+        Date integrationRunDate = (Date) delegateExecution.getVariable("integrationRunDate");
+        Date workCompletionDate = (Date) delegateExecution.getVariable("workCompletionDate");
         SimpleDateFormat sdf = new SimpleDateFormat("dd.MM.yyyy");
         String priority = delegateExecution.getVariable("priority").toString();
         BigDecimal jobWorksTotal = BigDecimal.ZERO;
@@ -240,12 +243,15 @@ public class JrBlankGenerator {
 
             row = sheet.createRow(11);
             row.createCell(1).setCellValue("Дата начала выполнения работ:");
+            row.createCell(4).setCellValue(sdf.format(workStartDate));
 
             row = sheet.createRow(12);
             row.createCell(1).setCellValue("Дата выполнения Интеграции");
+            row.createCell(4).setCellValue(sdf.format(integrationRunDate));
 
             row = sheet.createRow(13);
             row.createCell(1).setCellValue("Дата окончания работ:");
+            row.createCell(4).setCellValue(sdf.format(workCompletionDate));
 
             row = sheet.createRow(14);
             row.createCell(1).setCellValue("Критическая просрочка(дней):");
