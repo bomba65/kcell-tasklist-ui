@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 import javax.activation.DataSource;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
+import javax.mail.internet.MimeUtility;
 import javax.mail.util.ByteArrayDataSource;
 import javax.script.*;
 import java.io.ByteArrayInputStream;
@@ -26,6 +27,7 @@ import java.util.*;
 import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Service("sendJobRequestBlank")
 @Log
@@ -129,7 +131,88 @@ public class SendGeneratedJRBlank implements JavaDelegate {
                 mailSender.send(message);
             }
 
-            log.info("Task Assignment Email successfully sent to user '" + assignee + "' with address '" + recipient + "'.");
+            log.info("Task Assignment Email successfully sent to user '" + assignee + "' with address '" + recipient + ".");
+
+            ByteArrayInputStream bis = new ByteArrayInputStream(jrBlank);
+            minioClient.saveFile(path, bis, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+            bis.close();
+
+            String json = "{\"name\" :\"" + fileName + "\",\"path\" : \"" + path + "\"}";
+            delegateExecution.setVariable("jrBlank", SpinValues.jsonValue(json));
+
+            delegateExecution.setVariable("isNewProcessCreated", "false");
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            log.log(Level.WARNING, "Could not send email to assignee", e);
+        }
+    }
+
+    protected void workAgreement2022sendMail(DelegateExecution delegateExecution) {
+        try {
+            String siteRegion = delegateExecution.getVariable("siteRegion").toString();
+            String reason = delegateExecution.getVariable("reason").toString();
+            String jrNumber = (String) delegateExecution.getVariable("jrNumber");
+            String contractor = delegateExecution.getVariable("contractor").toString();
+            byte[] jrBlank = jrBlankGenerator.generate(delegateExecution);
+            ByteArrayInputStream is = new ByteArrayInputStream(jrBlank);
+
+            DataSource source = new ByteArrayDataSource(is, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+
+            System.setProperty("mail.mime.splitlongparameters", "false");
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper messageHelper = new MimeMessageHelper(message, true, "UTF-8");
+
+            messageHelper.setFrom(sender);
+            messageHelper.setSubject("JR " + jrNumber + " Blank");
+
+            ScriptEngine groovy = manager.getEngineByName("groovy");
+            InputStreamReader reader = new InputStreamReader(ExecutionListener.class.getResourceAsStream("/revision/SendNotificationJRblank.groovy"));
+            final CompiledScript template = ((Compilable) groovy).compile(reader);
+
+            Bindings bindings = groovy.createBindings();
+            bindings.put("execution", delegateExecution);
+            bindings.put("starter", delegateExecution.getVariable("starter"));
+            bindings.put("site_name", delegateExecution.getVariable("site_name"));
+            bindings.put("priority", delegateExecution.getVariable("priority"));
+            messageHelper.setText(String.valueOf(template.eval(bindings)), true);
+
+            IdentityService identityService = Context.getProcessEngineConfiguration().getIdentityService();
+
+            Set<String> recipientsSet = identityService.createUserQuery()
+                .userId(delegateExecution.getVariable("starter").toString())
+                .list().stream().map(User::getEmail)
+                .filter(userEmail -> userEmail != null && !userEmail.isEmpty())
+                .collect(Collectors.toSet());
+            if (reason != null && reason.equals("3")) {
+                Set<String> revisionBudgetSet = identityService.createUserQuery().memberOfGroup("revision_budget").list().stream()
+                    .map(User::getEmail)
+                    .filter(userEmail -> userEmail != null && !userEmail.isEmpty())
+                    .collect(Collectors.toSet());
+                recipientsSet = Stream.of(recipientsSet, revisionBudgetSet).flatMap(Set::stream).collect(Collectors.toSet());
+            }
+            String contractorGroup = siteRegion + "_contractor_" + contractorsCode.get(contractor);
+
+            Set<String> contractorGroupSet = identityService.createUserQuery().memberOfGroup(contractorGroup).list().stream()
+                .map(User::getEmail)
+                .filter(userEmail -> userEmail != null && !userEmail.isEmpty())
+                .collect(Collectors.toSet());
+            recipientsSet = Stream.of(recipientsSet, contractorGroupSet).flatMap(Set::stream).collect(Collectors.toSet());
+
+            String recipients = String.join(",", recipientsSet);
+
+            messageHelper.setTo(InternetAddress.parse(recipients));
+
+            String path = delegateExecution.getProcessInstanceId() + "/" + jrNumber.replace("-####", "").replace("-##", "") + ".xlsx";
+            String fileName = jrNumber.replace("-####", "").replace("-##", "") + ".xlsx";
+
+            messageHelper.addAttachment(MimeUtility.encodeWord(fileName), source);
+
+            if (isEmailDoSend) {
+                mailSender.send(message);
+            }
+
+            log.info("Task Assignment Email successfully sent to " + recipients + "'.");
 
             ByteArrayInputStream bis = new ByteArrayInputStream(jrBlank);
             minioClient.saveFile(path, bis, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
@@ -148,31 +231,36 @@ public class SendGeneratedJRBlank implements JavaDelegate {
 
     @Override
     public void execute(DelegateExecution delegateExecution) throws Exception {
-        String recipient = (String) delegateExecution.getVariable("starter");
+        if (delegateExecution.getVariable("mainContract").equals("2022Work-agreement")
+            && delegateExecution.getVariableLocal("sendToContractor") != null && delegateExecution.getVariableLocal("sendToContractor").toString().equals("yes")) {
+            workAgreement2022sendMail(delegateExecution);
+        } else {
+            String recipient = (String) delegateExecution.getVariable("starter");
 
-        if (recipient == null) {
-            log.warning("Recipient is null for activity instance " + delegateExecution.getActivityInstanceId() + ", aborting mail notification");
-            return;
-        }
-
-        IdentityService identityService = Context.getProcessEngineConfiguration().getIdentityService();
-        User user = identityService.createUserQuery().userId(recipient).singleResult();
-
-        if (user != null) {
-
-            // Get Email Address from User Profile
-            String recipientEmail = user.getEmail();
-
-            if (recipient != null && !recipient.isEmpty()) {
-
-                sendMail(delegateExecution, recipient, recipientEmail);
-
-            } else {
-                log.warning("Not sending email to user " + recipient + "', user has no email address.");
+            if (recipient == null) {
+                log.warning("Recipient is null for activity instance " + delegateExecution.getActivityInstanceId() + ", aborting mail notification");
+                return;
             }
 
-        } else {
-            log.warning("Not sending email to user " + recipient + "', user is not enrolled with identity service.");
+            IdentityService identityService = Context.getProcessEngineConfiguration().getIdentityService();
+            User user = identityService.createUserQuery().userId(recipient).singleResult();
+
+            if (user != null) {
+
+                // Get Email Address from User Profile
+                String recipientEmail = user.getEmail();
+
+                if (recipient != null && !recipient.isEmpty()) {
+
+                    sendMail(delegateExecution, recipient, recipientEmail);
+
+                } else {
+                    log.warning("Not sending email to user " + recipient + "', user has no email address.");
+                }
+
+            } else {
+                log.warning("Not sending email to user " + recipient + "', user is not enrolled with identity service.");
+            }
         }
     }
 }
