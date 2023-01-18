@@ -2373,6 +2373,12 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                     }
                 );
 
+                $http.get('/api/revisionProjectTypes').then(
+                    function (response) {
+                        scope.projectTypes = response.data;
+                    }
+                );
+
                 scope.getLegalTypeCodeName = function (id) {
                     let legalType = [
                         {"id":"individual", "desc":"Физическое лицо", "udbid":"321"},
@@ -2670,6 +2676,7 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                         scope.filter.workName = undefined;
                         scope.filter.mainContract = 'All';
                         scope.filter.contractor = 'All';
+                        scope.filter.revisionProject = undefined;
                         scope.filter.participation = undefined;
                         scope.filter.currentAssignee = undefined;
                     }
@@ -3233,6 +3240,9 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                     if(scope.contractor) {
                         filter.variables.push({"name": "contractor", "operator": "eq", "value": scope.filter.contractor});
                     }
+                    if(scope.filter.revisionProject) {
+                        filter.variables.push({"name": "project", "operator": "eq", "value": scope.filter.revisionProject});
+                    }
                     if (scope.filter.jrNumber) {
                         filter.variables.push({"name": "jrNumber", "operator": "eq", "value": scope.filter.jrNumber});
                     }
@@ -3602,6 +3612,7 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                     scope.filter.finished = false;
                     scope.filter.mainContract = 'All';
                     scope.filter.contractor = 'All';
+                    scope.filter.revisionProject = undefined;
                     scope.filter.monthOfFormalPeriod = undefined;
                     scope.filter.yearOfFormalPeriod = undefined;
                     scope.filter.dismantlingInitiator = undefined;
