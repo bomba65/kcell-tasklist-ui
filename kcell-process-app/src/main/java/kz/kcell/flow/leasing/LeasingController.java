@@ -61,6 +61,9 @@ public class LeasingController {
     @Value("${udb.oracle.password:udb}")
     private String udbOraclePassword;
 
+    @Value("${udb.oracle.enabled}")
+    private Boolean udbOracleEnabled;
+
     private Minio minioClient;
 
     @Autowired
@@ -133,6 +136,11 @@ public class LeasingController {
     @RequestMapping(value = "/ncpCheck/{ncpId}", method = RequestMethod.GET)
     @ResponseBody
     public ResponseEntity<String> checkPresignedGetObjectUrl(@PathVariable("ncpId") String ncpId, HttpServletRequest request) throws InvalidEndpointException, InvalidPortException, InvalidKeyException, InvalidBucketNameException, NoSuchAlgorithmException, InsufficientDataException, NoResponseException, ErrorResponseException, InternalException, InvalidExpiresRangeException, IOException, XmlPullParserException, ClassNotFoundException, SQLException {
+        if (!udbOracleEnabled.booleanValue()) {
+            String result = "this ncp " + ncpId + " not found and ready to create";
+            return ResponseEntity.status(200).body(result);
+        }
+
         TimeZone timeZone = TimeZone.getTimeZone("Asia/Almaty");
         TimeZone.setDefault(timeZone);
         Class.forName ("oracle.jdbc.OracleDriver");
