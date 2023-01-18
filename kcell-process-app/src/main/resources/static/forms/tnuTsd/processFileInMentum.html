@@ -91,13 +91,7 @@
             };
 
             $scope.setValues = function () {
-                if (!$scope.protectionModeSetted && $scope.variablesFetched && $scope.protectionModeList) {
-                    var i = $scope.protectionModeList.findIndex(function (e) {
-                        $scope.protectionModeSetted = true;
-                        return e.id.toString() === $scope.protection_mode
-                    });
-
-                    $scope.protection_mode = $scope.protectionModeList[i].id;
+                if (!$scope.protectionModeSetted && $scope.variablesFetched) {
                     $scope.protectionMode();
                 }
 
@@ -202,7 +196,7 @@
                     $scope.protection_mode_fetched = false
                 }
 
-                const pm = _.find($scope.protectionModeList, el => el.id === $scope.protection_mode);
+                const pm = _.find($scope.protectionModeList, el => el.id.toString() === $scope.protection_mode);
 
                 $scope.filteredRauTypeList = _.filter($scope.rauTypeList, e => pm.RAU_type?.value?.includes(e.id));
 
@@ -210,8 +204,11 @@
                 $scope.hop_polarization = $scope.hop_polarization_obj?.id;
 
                 $scope.protectionRauSubbandActive = !!pm.protectionRauSubbandActive?.value;
-                $scope.ne_protection_rau_subband = undefined;
-                $scope.fe_protection_rau_subband = undefined;
+                if (!$scope.protectionRauSubbandActive) {
+                    $scope.ne_protection_rau_subband = undefined;
+                    $scope.fe_protection_rau_subband = undefined;
+                }
+                $scope.protectionModeSetted = true;
             };
 
 
@@ -341,13 +338,17 @@
 
             $scope.rauSubbandSelected = function () {
                 if($scope.ne_rau_subband){
-                    $scope.fe_rau_subband = _.find($scope.rauSubbandList, r => r.id === $scope.ne_rau_subband).Pair?.value;
+                    $scope.fe_rau_subband = _.find($scope.rauSubbandList, r => r.id.toString() === $scope.ne_rau_subband).Pair?.value.toString();
                 }
+                $scope.ne_txrx_frequinciesValuesCheck();
+                $scope.fe_txrx_frequinciesValuesCheck();
             };
             $scope.protectRauSubbandSelected = function () {
                 if($scope.ne_protection_rau_subband){
-                    $scope.fe_protection_rau_subband = _.find($scope.rauSubbandList, obj => obj.id === $scope.ne_protection_rau_subband).Pair?.value;
+                    $scope.fe_protection_rau_subband = _.find($scope.rauSubbandList, obj => obj.id.toString() === $scope.ne_protection_rau_subband).Pair?.value.toString();
                 }
+                $scope.ne_protection_txrx_frequinciesValuesCheck();
+                $scope.fe_protection_txrx_frequinciesValuesCheck();
             };
 
             $scope.ne_txrx_frequinciesValuesCheck = function () {
@@ -817,16 +818,16 @@
                     <td align="center" colspan="4">
                         <select ng-disabled="!rau_type" class="form-control" id="ne_rau_subband" name="ne_rau_subband" ng-model="ne_rau_subband"
                                 ng-required="tnutsd_fill_tsd_by_centerTaskResult == 'approved'" ng-change="rauSubbandSelected()">
-                            <option ng-repeat="ct in filteredRauSubbandList" ng-value="ct.id">{{ct.value + ' -> ' + ct.pairValue}}</option>
+                            <option ng-repeat="ct in filteredRauSubbandList" ng-value="ct.id.toString()">{{ct.value}}</option>
                         </select>
                         <label class="error"
                                ng-if="kcell_form.ne_rau_subband.$error.required && ( kcell_form.ne_rau_subband.$touched || view.submitted)">Required
                             field</label>
                     </td>
                     <td align="center" colspan="4">
-                        <select ng-disabled="!rau_type" class="form-control" id="fe_rau_subband" name="fe_rau_subband" ng-model="fe_rau_subband"
+                        <select ng-disabled="true" class="form-control" id="fe_rau_subband" name="fe_rau_subband" ng-model="fe_rau_subband"
                                 ng-required="tnutsd_fill_tsd_by_centerTaskResult == 'approved'">
-                            <option ng-repeat="ct in filteredRauSubbandList" ng-value="ct.id">{{ct.value}}</option>
+                            <option ng-repeat="ct in rauSubbandList" ng-value="ct.id.toString()">{{ct.value}}</option>
                         </select>
                         <label class="error"
                                ng-if="kcell_form.fe_rau_subband.$error.required && ( kcell_form.fe_rau_subband.$touched || view.submitted)">Required
@@ -839,13 +840,13 @@
                         <select ng-disabled="!rau_type || !protectionRauSubbandActive" class="form-control" id="ne_protection_rau_subband" name="ne_protection_rau_subband"
                                 ng-model="ne_protection_rau_subband" ng-change="protectRauSubbandSelected()"
                                 ng-disabled="protection_mode_fetched">
-                            <option ng-repeat="ct in filteredRauSubbandList" ng-value="ct.id">{{ct.value + ' -> ' + ct.pairValue}}</option>
+                            <option ng-repeat="ct in filteredRauSubbandList" ng-value="ct.id.toString()">{{ct.value}}</option>
                         </select>
                     </td>
                     <td align="center" colspan="4">
-                        <select ng-disabled="!rau_type || !protectionRauSubbandActive" class="form-control" id="fe_protection_rau_subband" name="fe_protection_rau_subband"
+                        <select ng-disabled="true" class="form-control" id="fe_protection_rau_subband" name="fe_protection_rau_subband"
                                 ng-model="fe_protection_rau_subband" ng-disabled="protection_mode_fetched">
-                            <option ng-repeat="ct in filteredRauSubbandList" ng-value="ct.id">{{ct.value}}</option>
+                            <option ng-repeat="ct in rauSubbandList" ng-value="ct.id.toString()">{{ct.value}}</option>
                         </select>
                     </td>
                 </tr>
