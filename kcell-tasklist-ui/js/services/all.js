@@ -136,7 +136,7 @@ define(['./module', 'camundaSDK', 'html2canvas', 'pdfMake'], function (module, C
             };
             return debounced;
         };
-    }]).service('StartProcessService', ['$rootScope', 'toasty', '$timeout', '$location', 'exModal', '$http', function ($rootScope, toasty, $timeout, $location, exModal, $http) {
+    }]).service('StartProcessService', ['$rootScope', 'toasty', '$timeout', '$location', 'exModal', '$http', '$window', function ($rootScope, toasty, $timeout, $location, exModal, $http, $window) {
         var camClient = new CamSDK.Client({
             mock: false,
             apiUri: '/camunda/api/engine/'
@@ -170,6 +170,9 @@ define(['./module', 'camundaSDK', 'html2canvas', 'pdfMake'], function (module, C
 
                                     if (task.assignee === $rootScope.authUser.id) {
                                         $rootScope.tryToOpen = task;
+                                        if (id.indexOf('VPN_Port_manual') !== -1) {
+                                            $window.open('/kcell-tasklist-ui/#/tasks/' + task.id, '_self');
+                                        }
                                     }
                                     $rootScope.$broadcast('getTaskListEvent');
                                 },
