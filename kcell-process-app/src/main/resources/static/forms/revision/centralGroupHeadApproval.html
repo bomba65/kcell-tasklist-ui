@@ -111,6 +111,11 @@
                         $scope.projectTypes = response.data;
                     }
                 );
+                $http.get('/api/discounts').then(
+                    function (response) {
+                        $scope.discounts = response.data.discounts;
+                    }
+                );
                 camForm.variableManager.createVariable({
                     name: 'centralGroupHeadApprovalTaskResult',
                     type: 'String',
@@ -574,11 +579,17 @@
                 var result = unitWorkPrice.div(1.2)
                 return result.toFixed(2).replace('.',',');
             }
-
-            $scope.calculateBasePriceTotal = function(){
+            $scope.findDiscount = function(oblastName,subcontractorName){
+                for (var i=0; i<$scope.discounts.length;i++) {
+                    if($scope.discounts[i].oblast==oblastName&&$scope.discounts[i].subcontractor==subcontractorName){
+                       return $scope.discounts[i].discount;
+                    }
+                }
+            }
+            $scope.calculateBasePriceTotal = function(discount_price){
                 var total = Big(0.0);
                 angular.forEach($scope.jobModel.workPrices, function(work){
-                    total = total.plus((work.basePriceByQuantity? Big(work.basePriceByQuantity) : Big(work.unitWorkPrice).times(Big(work.quantity))));
+                    total = total.plus(discount_price*(work.basePriceByQuantity? Big(work.basePriceByQuantity) : Big(work.unitWorkPrice).times(Big(work.quantity))));
                 });
                 return total.toFixed(2).replace('.',',');
             }
@@ -697,11 +708,13 @@
                     <th>Sites</th>
                     <th ng-if="jobModel.mainContract.value == 'Roll-outRevision2020'">Materials by</th>
                     <th>Base Price</th>
-                    <th ng-if="jobModel.priority.value === 'emergency'">Base Price * 1.2</th>
-                    <th ng-if="jobModel.mainContract.value != 'Roll-out' && jobModel.mainContract.value != 'Roll-outRevision2020'">Base + Transportation +8%</th>
-                    <th>Base Price * works q-ty</th>
-                    <th ng-if="jobModel.mainContract.value != 'Roll-out'">1 work price per site Sum/site q-ty</th>
-                    <th ng-if="jobModel.mainContract.value != 'Roll-out'">Sum * works q-ty</th>
+                    <th ng-if="jobModel.priority.value === 'emergency'">Base Price * 1.25456</th>
+                    <th ng-if="jobModel.mainContract.value !='2022Work-agreement'&&jobModel.mainContract.value != 'Roll-out' && jobModel.mainContract.value != 'Roll-outRevision2020'">Base + Transportation +8%</th>
+                    <th ng-if="jobModel.mainContract.value !='2022Work-agreement'">Base Price * works q-ty</th>
+                    <th ng-if="jobModel.mainContract.value != 'Roll-out'&&jobModel.mainContract.value !='2022Work-agreement'">1 work price per site Sum/site q-ty</th>
+                    <th ng-if="jobModel.mainContract.value =='2022Work-agreement'">Contractor's discount</th>
+                    <th ng-if="jobModel.mainContract.value =='2022Work-agreement'">Discount Price</th>
+                    <th ng-if="jobModel.mainContract.value != 'Roll-out'&&jobModel.mainContract.value !='2022Work-agreement'">Sum * works q-ty</th>
                     <th style="text-align:right;font-weight: bold;font-size: 16px;background-color: lightpink;">Total</th>
                 </tr>
             </thead>
@@ -725,21 +738,23 @@
                     </td>
                     <td>{{jobModel.priority.value === 'emergency' ? calculateBasePriceEmergency(work) : work.unitWorkPrice.replace('.',',')}}&nbsp;&#8376;</td>
                     <td ng-if="jobModel.priority.value === 'emergency'">{{work.unitWorkPrice.replace('.',',')}}&nbsp;&#8376;</td>
-                    <td ng-if="jobModel.mainContract.value != 'Roll-out' && jobModel.mainContract.value != 'Roll-outRevision2020'">{{work.unitWorkPricePlusTx.replace('.',',')}}&nbsp;&#8376;</td>
-                    <td>{{work.basePriceByQuantity ? work.basePriceByQuantity.replace('.',',') : calculateBasePriceByQuantity(work)}}&nbsp;&#8376;</td>
-                    <td ng-if="jobModel.mainContract.value != 'Roll-out'"><span ng-if="work.unitWorkPricePerSite >= 0">{{work.unitWorkPricePerSite.replace('.',',')}}&nbsp;&#8376;</span></td>
-                    <td ng-if="jobModel.mainContract.value != 'Roll-out'"><span ng-if="work.netWorkPricePerSite >= 0">{{work.netWorkPricePerSite.replace('.',',')}}&nbsp;&#8376;</span></td>
-                    <td style="text-align:right;font-weight: bold;font-size: 16px;background-color: lightpink;"><span style="padding: 6px 0px;display: inline-block;">{{work.total.replace('.',',')}}&nbsp;&#8376;</span></td>
+                    <td ng-if="jobModel.mainContract.value !='2022Work-agreement'&&jobModel.mainContract.value != 'Roll-out' && jobModel.mainContract.value != 'Roll-outRevision2020'">{{work.unitWorkPricePlusTx.replace('.',',')}}&nbsp;&#8376;</td>
+                    <td ng-if="jobModel.mainContract.value !='2022Work-agreement'">{{work.basePriceByQuantity ? work.basePriceByQuantity.replace('.',',') : calculateBasePriceByQuantity(work)}}&nbsp;&#8376;</td>
+                    <td ng-if="jobModel.mainContract.value != 'Roll-out'&&jobModel.mainContract.value !='2022Work-agreement'"><span ng-if="work.unitWorkPricePerSite >= 0">{{work.unitWorkPricePerSite.replace('.',',')}}&nbsp;&#8376;</span></td>
+                    <th ng-if="jobModel.mainContract.value =='2022Work-agreement'">{{findDiscount(oblastName,subcontractorName)}}%</th>
+                    <th ng-if="jobModel.mainContract.value =='2022Work-agreement'">{{((jobModel.priority.value === 'emergency' ? calculateBasePriceEmergency(work) : work.unitWorkPrice )*(findDiscount(oblastName,subcontractorName)/100)).toFixed(2).replace('.',',')}}&nbsp;&#8376;</th>
+                    <td ng-if="jobModel.mainContract.value != 'Roll-out'&&jobModel.mainContract.value !='2022Work-agreement'"><span ng-if="work.netWorkPricePerSite >= 0">{{work.netWorkPricePerSite.replace('.',',')}}&nbsp;&#8376;</span></td>
+                    <td style="text-align:right;font-weight: bold;font-size: 16px;background-color: lightpink;"><span style="padding: 6px 0px;display: inline-block;">{{(work.total*(findDiscount(oblastName,subcontractorName)/100)).toFixed(2).replace('.',',')}}&nbsp;&#8376;</span></td>
                 </tr>
                 <tr>
                     <th colspan="{{jobModel.mainContract.value != 'Roll-out'?'4':'2'}}">Total</th>
                     <th ng-if="jobModel.priority.value === 'emergency'"></th>
-                    <th>{{calculateBasePriceTotal()}}&nbsp;&#8376;</th>
+                    <th>{{calculateBasePriceTotal(findDiscount(oblastName,subcontractorName)/100)}}&nbsp;&#8376;</th>
                     <th ng-if="jobModel.mainContract.value != 'Roll-out' && jobModel.mainContract.value != 'Roll-outRevision2020'"></th>
                     <th></th>
                     <th ng-if="jobModel.mainContract.value != 'Roll-out'"></th>
                     <th ng-if="jobModel.mainContract.value != 'Roll-out'"></th>
-                    <th style="text-align:right;font-weight: bold;font-size: 16px;background-color: lightpink;">{{jobModel.jobWorksTotal.value.replace('.',',')}}&nbsp;&#8376;</th>
+                    <th style="text-align:right;font-weight: bold;font-size: 16px;background-color: lightpink;">{{calculateBasePriceTotal(findDiscount(oblastName,subcontractorName)/100)}}&nbsp;&#8376;</th>
                 </tr>
             </tbody>
         </table>
