@@ -39,7 +39,7 @@ public class SendDataToAssets implements JavaDelegate {
 
         log.info("sending data to Assets");
         Integer capacityId = Integer.parseInt(String.valueOf(execution.getVariable("hop_link_capacity")));
-        Integer hop_link_type = Integer.parseInt(String.valueOf(execution.getVariable("hop_link_type")));
+        Integer hop_link_type = execution.getVariable("hop_link_type") == null ? null : Integer.parseInt(String.valueOf(execution.getVariable("hop_link_type")));
         Integer fe_rau_subband = Integer.parseInt(String.valueOf(execution.getVariable("fe_rau_subband")));
         Integer fe_protection_rau_subband = execution.getVariable("fe_protection_rau_subband") == null ? null : Integer.parseInt(String.valueOf(execution.getVariable("fe_protection_rau_subband")));
         Integer fe_siteId = Integer.parseInt(String.valueOf(execution.getVariable("fe_siteId")));
