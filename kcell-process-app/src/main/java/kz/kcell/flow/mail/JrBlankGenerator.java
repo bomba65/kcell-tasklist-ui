@@ -243,15 +243,15 @@ public class JrBlankGenerator {
 
             row = sheet.createRow(11);
             row.createCell(1).setCellValue("Дата начала выполнения работ:");
-            row.createCell(4).setCellValue(sdf.format(workStartDate));
+            row.createCell(4).setCellValue(workStartDate != null ? sdf.format(workStartDate) : "");
 
             row = sheet.createRow(12);
             row.createCell(1).setCellValue("Дата выполнения Интеграции");
-            row.createCell(4).setCellValue(sdf.format(integrationRunDate));
+            row.createCell(4).setCellValue(integrationRunDate != null ? sdf.format(integrationRunDate) : "");
 
             row = sheet.createRow(13);
             row.createCell(1).setCellValue("Дата окончания работ:");
-            row.createCell(4).setCellValue(sdf.format(workCompletionDate));
+            row.createCell(4).setCellValue(workCompletionDate != null ? sdf.format(workCompletionDate) : "");
 
             row = sheet.createRow(14);
             row.createCell(1).setCellValue("Критическая просрочка(дней):");
