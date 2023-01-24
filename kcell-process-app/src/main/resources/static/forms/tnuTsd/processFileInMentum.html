@@ -30,6 +30,7 @@
                 'fe_suspension_height',
                 'hop_link_nxe1',
                 'hop_modulation_type',
+                'hop_channel_bandwidth',
                 'tnuTsdNumber',
                 'ne_terminal_id',
                 'fe_terminal_id',
@@ -66,6 +67,7 @@
             $scope.antenaSetted = false;
             $scope.linkCapacitySetted = false;
             $scope.constructionTypeSetted = false;
+            $scope.rauTypeSetted = false;
             $scope.variablesFetched = false;
             $scope.protectionRauSubbandActive = false;
             $scope.suspensionPattern = '([1-9]|[1-9][0-9]|[1-9][0-9][0-9])';
@@ -90,8 +92,17 @@
             };
 
             $scope.setValues = function () {
-                if (!$scope.protectionModeSetted && $scope.variablesFetched) {
-                    $scope.protectionMode();
+                if (!$scope.protectionModeSetted && $scope.variablesFetched && $scope.protectionModeList
+                    && $scope.rauTypeList && $scope.polarizationList) {
+                    var i = $scope.protectionModeList.findIndex(function (e) {
+                        $scope.protectionModeSetted = true;
+                        return e.id.toString() === $scope.protection_mode
+                    });
+
+                    if (i > -1) {
+                        $scope.protection_mode = $scope.protectionModeList[i].id;
+                        $scope.protectionMode();
+                    }
                 }
 
                 if (!$scope.linkCapacitySetted && $scope.variablesFetched && $scope.linkCapacityList) {
@@ -102,6 +113,7 @@
 
                     if (i > -1) {
                         $scope.hop_link_capacity = $scope.linkCapacityList[i].id;
+                        $scope.hopChannelBandwidthSelected();
                     }
                 }
 
@@ -159,28 +171,10 @@
                     }
                 }
 
-                if (!$scope.hopChannelBandwidthList && $scope.variablesFetched && $scope.rau_type) {
-                    var obj = _.filter($scope.linkCapacityList, function (c) {
-                        return c.RAU_type?.value === $scope.rau_type;
-                    });
-                    if (obj && obj.length > 0) {
-                        $scope.hopChannelBandwidthList = [...new Set(obj.map(el => el['Channel Bandwidth'].value))];
-                    }
-                }
-
-                if (!$scope.filteredLinkCapacityList && $scope.variablesFetched && $scope.rau_type && $scope.hop_channel_bandwidth) {
-                    $scope.filteredLinkCapacityList = _.filter($scope.linkCapacityList, function (c) {
-                        return c.RAU_type?.value === $scope.rau_type && c['Channel Bandwidth']?.value === $scope.hop_channel_bandwidth.split("string:")[1];
-                    });
-                }
-
-                if ($scope.variablesFetched && $scope.rau_type && $scope.rauSubbandList) {
-                    $scope['filteredRauSubbandList'] = _.filter($scope.rauSubbandList, function (r) {
-                        return r.RAU_type?.value === $scope.rau_type;
-                    }).map( obj => {
-                        obj.pairValue = _.find($scope.rauSubbandList, r => r.id === obj.Pair?.value)?.value;
-                        return obj;
-                    });
+                if (!$scope.rauTypeSetted && $scope.variablesFetched && $scope.rauSubbandList
+                    && $scope.linkCapacityList) {
+                    $scope.rauTypeSetted = true;
+                    $scope.rauTypeSelected();
                 }
             };
 
@@ -195,7 +189,9 @@
                     $scope.protection_mode_fetched = false
                 }
 
-                const pm = _.find($scope.protectionModeList, el => el.id.toString() === $scope.protection_mode);
+                const pm = _.find($scope.protectionModeList, el => el.id === $scope.protection_mode);
+
+                if (!pm) return;
 
                 $scope.filteredRauTypeList = _.filter($scope.rauTypeList, e => pm.RAU_type?.value?.includes(e.id));
 
@@ -203,11 +199,12 @@
                 $scope.hop_polarization = $scope.hop_polarization_obj?.id;
 
                 $scope.protectionRauSubbandActive = !!pm.protectionRauSubbandActive?.value;
-                if (!$scope.protectionRauSubbandActive) {
+                if (!$scope.protectionRauSubbandActive && $scope.ne_protection_rau_subband && $scope.fe_protection_rau_subband) {
                     $scope.ne_protection_rau_subband = undefined;
                     $scope.fe_protection_rau_subband = undefined;
+                    $scope.ne_protection_txrx_frequincies = undefined;
+                    $scope.fe_protection_txrx_frequincies = undefined;
                 }
-                $scope.protectionModeSetted = true;
             };
 
 
@@ -222,7 +219,6 @@
                         $scope[el] = camForm.variableManager.variables[el].value;
                     }
                 });
-                $scope.hop_channel_bandwidth = camForm.variableManager.variables['hop_channel_bandwidth'].value;
                 $scope.variablesFetched = true;
                 $scope.setValues();
 
@@ -237,7 +233,7 @@
                 $http.get('/camunda/catalogs/api/get/id/' + id).then(function (result) {
                     if (result && result.data && result.data.data && result.data.data.$list) {
                         angular.forEach(containers, function (container) {
-                            $scope[container] = result.data.data.$list;
+                            $scope[container] = [...result.data.data.$list];
                         });
                         angular.forEach(result.data.data.$list, function (item) {
                             if (!$scope.titles[containers[0]]) {
@@ -246,7 +242,8 @@
                             $scope.titles[containers[0]][item.id] = item.value;
                         });
                     }
-                    if ($scope.protectionModeList && !$scope.protectionModeSetted) {
+                    if ($scope.protectionModeList && $scope.rauTypeList
+                        && $scope.polarizationList && !$scope.protectionModeSetted) {
                         $scope.setValues()
                     }
                     if ($scope.trAntennasTypeList && !$scope.antenaSetted) {
@@ -260,6 +257,8 @@
                     }
                     if ($scope.rauSubbandList) {
                         $scope.rauRelations = rauSubbandFreqRange();
+                    }
+                    if ($scope.rauSubbandList && $scope.linkCapacityList && !$scope.rauTypeSetted) {
                         $scope.setValues();
                     }
                 });
@@ -272,7 +271,7 @@
             $scope.populateSelectFromCatalog(['polarizationList'], 48);   // Polarization
             $scope.populateSelectFromCatalog(['linkTypeList'], 47);       // Link type
             $scope.populateSelectFromCatalog(['rauSubbandList', 'filteredRauSubbandList'], 46);     // Rau subband
-            $scope.populateSelectFromCatalog(['rauTypeList', 'filteredRauTypeList'], 84);       // RAU Type
+            $scope.populateSelectFromCatalog(['rauTypeList', 'filteredRauTypeList'], 84);
 
             function rauSubbandFreqRange() {
                 let res = {};
@@ -306,7 +305,6 @@
                 });
                 if (obj && obj.length > 0) {
                     $scope.hop_modulation_type = obj[0]['Modulation'].value;
-                    $scope.hop_channel_bandwidth = obj[0]['Channel Bandwidth'].value;
                 }
             };
 
@@ -336,15 +334,15 @@
             }
 
             $scope.rauSubbandSelected = function () {
-                if($scope.ne_rau_subband){
-                    $scope.fe_rau_subband = _.find($scope.rauSubbandList, r => r.id.toString() === $scope.ne_rau_subband).Pair?.value.toString();
+                if($scope.ne_rau_subband && $scope.rauRelations[$scope.ne_rau_subband]){
+                    $scope.fe_rau_subband = $scope.rauRelations[$scope.ne_rau_subband].related.toString();
                 }
                 $scope.ne_txrx_frequinciesValuesCheck();
                 $scope.fe_txrx_frequinciesValuesCheck();
             };
             $scope.protectRauSubbandSelected = function () {
-                if($scope.ne_protection_rau_subband){
-                    $scope.fe_protection_rau_subband = _.find($scope.rauSubbandList, obj => obj.id.toString() === $scope.ne_protection_rau_subband).Pair?.value.toString();
+                if($scope.ne_protection_rau_subband && $scope.rauRelations[$scope.ne_protection_rau_subband]){
+                    $scope.fe_protection_rau_subband = $scope.rauRelations[$scope.ne_protection_rau_subband].related.toString();
                 }
                 $scope.ne_protection_txrx_frequinciesValuesCheck();
                 $scope.fe_protection_txrx_frequinciesValuesCheck();
@@ -404,11 +402,13 @@
                 camForm.variableManager.variableValue('fe_terminal_id', $scope.fe_terminal_id);
 
                 var newVars = [
+                    'rau_type',
                     'hop_polarization',
                     'ne_rau_subband',
                     'fe_rau_subband',
                     'ne_protection_rau_subband',
                     'fe_protection_rau_subband',
+                    'hop_channel_bandwidth',
                     'ne_txrx_frequincies',
                     'fe_txrx_frequincies',
                     'ne_protection_txrx_frequincies',
@@ -663,7 +663,6 @@
                         <select class="form-control" id="protection_mode" name="protection_mode"
                                 ng-model="protection_mode" ng-required="tnutsd_fill_tsd_by_centerTaskResult == 'approved'" ng-change="protectionMode()">
                             <option ng-repeat="ct in protectionModeList"
-                                    ng-selected="ct.id.toString() === protection_mode"
                                     value="{{ct.id}}" ng-value="ct.id">{{ct.value}}
                             </option>
                         </select>
@@ -766,7 +765,15 @@
                 </tr>
                 <tr>
                     <td align="right" colspan="2">Polarization:</td>
-                    <td align="center" colspan="8">{{hop_polarization_obj.value}}</td>
+                    <td align="center" colspan="8">
+                        <select class="form-control" id="hop_polarization" name="hop_polarization"
+                                ng-model="hop_polarization" ng-disabled="true">
+                            <option ng-repeat="ct in polarizationList" ng-value="ct.id">{{ct.value}}</option>
+                        </select>
+                        <label class="error"
+                               ng-if="kcell_form.hop_polarization.$error.required && ( kcell_form.hop_polarization.$touched || view.submitted)">Required
+                            field</label>
+                    </td>
                 </tr>
                 <tr>
                     <td align="right" colspan="2">RAU type:</td>
@@ -780,7 +787,7 @@
                 <tr>
                     <td align="right" colspan="2">Channel bandwidth:</td>
                     <td align="center" colspan="8">
-                        <select ng-disabled="!rau_type" class="form-control" name="hop_channel_bandwidth" ng-model="hop_channel_bandwidth" cam-variable-name="hop_channel_bandwidth" cam-variable-type="String" ng-change="hopChannelBandwidthSelected()" required>
+                        <select ng-disabled="!rau_type" class="form-control" name="hop_channel_bandwidth" ng-model="hop_channel_bandwidth" ng-change="hopChannelBandwidthSelected()" required>
                             <option ng-repeat="cb in hopChannelBandwidthList" ng-value="cb">{{cb}}</option>
                         </select>
                         <label class="error" ng-if="kcell_form.hop_channel_bandwidth.$error.required && ( kcell_form.hop_channel_bandwidth.$touched || view.submitted)">Required field</label>
@@ -824,14 +831,13 @@
                     <td align="right" colspan="2">protection RAU subband:</td>
                     <td align="center" colspan="4">
                         <select ng-disabled="!rau_type || !protectionRauSubbandActive" class="form-control" id="ne_protection_rau_subband" name="ne_protection_rau_subband"
-                                ng-model="ne_protection_rau_subband" ng-change="protectRauSubbandSelected()"
-                                ng-disabled="protection_mode_fetched">
+                                ng-model="ne_protection_rau_subband" ng-change="protectRauSubbandSelected()">
                             <option ng-repeat="ct in filteredRauSubbandList" ng-value="ct.id.toString()">{{ct.value}}</option>
                         </select>
                     </td>
                     <td align="center" colspan="4">
                         <select ng-disabled="true" class="form-control" id="fe_protection_rau_subband" name="fe_protection_rau_subband"
-                                ng-model="fe_protection_rau_subband" ng-disabled="protection_mode_fetched">
+                                ng-model="fe_protection_rau_subband">
                             <option ng-repeat="ct in rauSubbandList" ng-value="ct.id.toString()">{{ct.value}}</option>
                         </select>
                     </td>
