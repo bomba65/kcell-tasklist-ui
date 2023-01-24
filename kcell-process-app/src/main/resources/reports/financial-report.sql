@@ -67,6 +67,7 @@ select
     CAST(convert_from(statusBytes.bytes_, 'UTF8') AS json)->>'comment' as "Return reason",
     totalWorkPrice.unitWorkPrice as "Price without transport",
     totalWorkPrice.unitWorkPricePlusTx as "Price with transport",
+    discount.text_ as "Price discount",
     monthlyAct.text_ as "Monthly act #",
     jrNumber.text_ as "JO#",
     sapPRNo.text_ as "PR#",
@@ -97,6 +98,8 @@ from act_hi_procinst pi
                    on pi.id_ = monthlyAct.proc_inst_id_ and monthlyAct.name_ = 'monthActNumber'
          left join act_hi_varinst jrNumber
                    on pi.id_ = jrNumber.proc_inst_id_ and jrNumber.name_ = 'jrNumber'
+         left join act_hi_varinst discount
+                   on pi.id_ = discount.proc_inst_id_ and discount.name_ = 'discount'
          left join act_hi_varinst sapPRNo
                    on pi.id_ = sapPRNo.proc_inst_id_ and sapPRNo.name_ = 'sapPRNo'
          left join act_hi_varinst sapPRTotalValue
