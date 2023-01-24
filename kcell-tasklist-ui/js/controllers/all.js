@@ -450,6 +450,10 @@ return module.controller('mainCtrl', ['$scope', '$rootScope', 'toasty', 'Authent
             $scope.contractorCode = 7;
         } else if($rootScope.hasGroup('hq_contractor_alta') || $rootScope.hasGroup('astana_contractor_alta') || $rootScope.hasGroup('nc_contractor_alta') || $rootScope.hasGroup('alm_contractor_alta') || $rootScope.hasGroup('east_contractor_alta') || $rootScope.hasGroup('south_contractor_alta') || $rootScope.hasGroup('west_contractor_alta')){
             $scope.contractorCode = 6;
+        } else if($rootScope.hasGroup('hq_contractor_foresterhg') || $rootScope.hasGroup('astana_contractor_foresterhg') || $rootScope.hasGroup('nc_contractor_foresterhg') || $rootScope.hasGroup('alm_contractor_foresterhg') || $rootScope.hasGroup('east_contractor_foresterhg') || $rootScope.hasGroup('south_contractor_foresterhg') || $rootScope.hasGroup('west_contractor_foresterhg')){
+            $scope.contractorCode = 10;
+        } else if($rootScope.hasGroup('hq_contractor_transtlc') || $rootScope.hasGroup('astana_contractor_transtlc') || $rootScope.hasGroup('nc_contractor_transtlc') || $rootScope.hasGroup('alm_contractor_transtlc') || $rootScope.hasGroup('east_contractor_transtlc') || $rootScope.hasGroup('south_contractor_transtlc') || $rootScope.hasGroup('west_contractor_transtlc')){
+            $scope.contractorCode = 11;
         }
 
         queryParams.variables.push({name:"contractor", value: $scope.contractorCode, operator: "eq"});
