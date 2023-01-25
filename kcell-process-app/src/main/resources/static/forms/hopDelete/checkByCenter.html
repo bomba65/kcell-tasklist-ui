@@ -69,6 +69,11 @@
               'oldTsd',
               'selectedTsd',
               'resolutions',
+              'rau_type',
+              'ne_rau_subband',
+              'fe_rau_subband',
+              'ne_protection_rau_subband',
+              'fe_protection_rau_subband',
           ];
 
           camForm.on('form-loaded', function () {
@@ -98,6 +103,8 @@
           $scope.linkCapacitySetted = false;
           $scope.variablesFetched = false;
           $scope.protection_mode_fetched = false;
+          $scope.protectionRauSubbandActive = false;
+          $scope.rauTypeSetted = false;
           $scope.deleteEngineerHop = false;
           $scope.check_by_center_hop_deleteTaskComment = "";
           $scope.antennaDiameter = function () {
@@ -143,6 +150,11 @@
                       $scope.selectedTsd.capacity_id.id = $scope.linkCapacityList[i].id;
                   }
               }
+            if (!$scope.rauTypeSetted && $scope.variablesFetched && $scope.rauSubbandList
+                    && $scope.linkCapacityList) {
+              $scope.rauTypeSetted = true;
+              $scope.rauTypeSelected();
+            }
 
               if ($scope.selectedTsd && $scope.selectedTsd.ne_antenna_diameter_id && (!$scope.antenaSetted && $scope.variablesFetched && $scope.trAntennasTypeList)) {
                   var neI = $scope.trAntennasTypeList.findIndex(function (e) {
@@ -211,6 +223,17 @@
               } else {
                   $scope.protection_mode_fetched = false
               }
+            const pm = _.find($scope.protectionModeList, el => el.id === $scope.protection_mode);
+
+            $scope.filteredRauTypeList = _.filter($scope.rauTypeList, e => pm.RAU_type?.value?.includes(e.id));
+
+            $scope.protectionRauSubbandActive = !!pm.protectionRauSubbandActive?.value;
+            if (!$scope.protectionRauSubbandActive && $scope.ne_protection_rau_subband && $scope.fe_protection_rau_subband) {
+              $scope.ne_protection_rau_subband = undefined;
+              $scope.fe_protection_rau_subband = undefined;
+              $scope.ne_protection_txrx_frequincies = undefined;
+              $scope.fe_protection_txrx_frequincies = undefined;
+            }
           };
           $scope.selectedTsd = undefined;
 
@@ -316,6 +339,12 @@
                   if ($scope.linkCapacityList && !$scope.linkCapacitySetted) {
                       $scope.setValues()
                   }
+                if ($scope.rauSubbandList) {
+                  $scope.rauRelations = rauSubbandFreqRange();
+                }
+                if ($scope.rauSubbandList && $scope.linkCapacityList && !$scope.rauTypeSetted) {
+                  $scope.setValues();
+                }
               });
           };
 
@@ -325,8 +354,21 @@
           $scope.populateSelectFromCatalog(['linkCapacityList'], 45);   // Link capacity
           $scope.populateSelectFromCatalog(['polarizationList'], 48);   // Polarization
           $scope.populateSelectFromCatalog(['linkTypeList'], 47);       // Link type
-          $scope.populateSelectFromCatalog(['rauSubbandList'], 46);     // Rau subband
+          $scope.populateSelectFromCatalog(['rauSubbandList', 'filteredRauSubbandList'], 46);   // Rau subband
+          $scope.populateSelectFromCatalog(['rauTypeList', 'filteredRauTypeList'], 84); //Rau type
 
+      function rauSubbandFreqRange() {
+        let res = {};
+        $scope.rauSubbandList.forEach(obj => {
+                  res[obj.id] = {
+                    'related': obj.Pair ? obj.Pair.value : '',
+                    'minFrequency': obj["MIN_freq, MHz"].value,
+                    'maxFrequency': obj["MAX_freq, MHz"].value,
+                  }
+                }
+        );
+        return res;
+      }
 
           $scope.ne_power_level_txChanged = function () {
               $scope.selectedTsd.fe_power_levels_tx = $scope.selectedTsd.ne_power_levels_tx;
@@ -408,54 +450,94 @@
               51: {related: 52, minFrequency: 0, maxFrequency: 0}, // 6365 15/A01H -> 6365 15/A01L
               52: {related: 51, minFrequency: 0, maxFrequency: 0}, // 6365 15/A01L -> 6365 15/A01H
           }
+      $scope.rauTypeSelected = function () {
+        var obj = _.filter($scope.linkCapacityList, function (c) {
+          return c.RAU_type?.value === $scope.rau_type;
+        });
 
-          $scope.rauSubbandSelected = function () {
-              if($scope.selectedTsd.ne_rau_subband_id.id && $scope.rauRelations[$scope.selectedTsd.ne_rau_subband_id.id]){
-                  $scope.selectedTsd.fe_rau_subband_id.id = $scope.rauRelations[$scope.selectedTsd.ne_rau_subband_id.id].related;
-              }
-          };
-          $scope.protectRauSubbandSelected = function () {
-              if($scope.selectedTsd.ne_rau_subband_protect_id && ($scope.selectedTsd.ne_rau_subband_protect_id.id && $scope.rauRelations[$scope.selectedTsd.ne_rau_subband_protect_id.id])){
-                  if($scope.selectedTsd.fe_rau_subband_protect_id == null){
-                      $scope.selectedTsd.fe_rau_subband_protect_id = {}
-                  }
-                  $scope.selectedTsd.fe_rau_subband_protect_id.id = $scope.rauRelations[$scope.selectedTsd.ne_rau_subband_protect_id.id].related;
-              }
-          };
+        $scope['filteredRauSubbandList'] = _.filter($scope.rauSubbandList, function (r) {
+          return r.RAU_type?.value === $scope.rau_type;
+        }).map( obj => {
+          obj.nameValue = _.find($scope.rauSubbandList, r => r.id === obj["Id. Name"]?.value)?.value;
+          return obj;
+        });
 
-          $scope.ne_txrx_frequinciesValuesCheck = function () {
-              if ($scope.selectedTsd.ne_txrx_frequencies && !isNaN($scope.selectedTsd.ne_txrx_frequencies) && $scope.rauRelations[$scope.selectedTsd.ne_rau_subband_id.id].minFrequency <= $scope.selectedTsd.ne_txrx_frequencies && $scope.rauRelations[$scope.selectedTsd.ne_rau_subband_id.id].maxFrequency >= $scope.selectedTsd.ne_txrx_frequencies) {
-                  $scope.ne_txrx_frequinciesInvalid = false;
-              } else {
-                  $scope.ne_txrx_frequinciesInvalid = true;
-              }
-          }
+      }
 
-          $scope.fe_txrx_frequinciesValuesCheck = function () {
-              if ($scope.selectedTsd.fe_txrx_frequencies && !isNaN($scope.selectedTsd.fe_txrx_frequencies) && $scope.rauRelations[$scope.selectedTsd.fe_rau_subband_id.id].minFrequency <= $scope.selectedTsd.fe_txrx_frequencies && $scope.rauRelations[$scope.selectedTsd.fe_rau_subband_id.id].maxFrequency >= $scope.selectedTsd.fe_txrx_frequencies) {
-                  $scope.fe_txrx_frequinciesInvalid = false;
-              } else {
-                  $scope.fe_txrx_frequinciesInvalid = true;
-              }
-          }
 
-          $scope.ne_protection_txrx_frequinciesValuesCheck = function () {
-              if ($scope.selectedTsd.ne_txrx_frequencies_protect && !isNaN($scope.selectedTsd.ne_txrx_frequencies_protect) && $scope.rauRelations[$scope.selectedTsd.ne_rau_subband_protect_id.id].minFrequency <= $scope.selectedTsd.ne_txrx_frequencies_protect && $scope.rauRelations[$scope.selectedTsd.ne_rau_subband_protect_id.id].maxFrequency >= $scope.selectedTsd.ne_txrx_frequencies_protect) {
-                  $scope.ne_protection_txrx_frequinciesInvalid = false;
-              } else {
-                  $scope.ne_protection_txrx_frequinciesInvalid = true;
-              }
-          }
 
-          $scope.fe_protection_txrx_frequinciesValuesCheck = function () {
-              if ($scope.selectedTsd.fe_txrx_frequencies_protect && !isNaN($scope.selectedTsd.fe_txrx_frequencies_protect) && $scope.rauRelations[$scope.selectedTsd.fe_rau_subband_protect_id.id].minFrequency <= $scope.selectedTsd.fe_txrx_frequencies_protect && $scope.rauRelations[$scope.selectedTsd.fe_rau_subband_protect_id.id].maxFrequency >= $scope.selectedTsd.fe_txrx_frequencies_protect) {
-                  $scope.fe_protection_txrx_frequinciesInvalid = false;
-              } else {
-                  $scope.fe_protection_txrx_frequinciesInvalid = true;
-              }
-          }
+      $scope.rauSubbandSelected = function () {
+        if($scope.ne_rau_subband && $scope.rauRelations[$scope.ne_rau_subband]){
+          $scope.fe_rau_subband = $scope.rauRelations[$scope.ne_rau_subband].related.toString();
+        }
+        $scope.ne_txrx_frequinciesValuesCheck();
+        $scope.fe_txrx_frequinciesValuesCheck();
+      };
+      $scope.protectRauSubbandSelected = function () {
+        if($scope.ne_protection_rau_subband && $scope.rauRelations[$scope.ne_protection_rau_subband]){
+          $scope.fe_protection_rau_subband = $scope.rauRelations[$scope.ne_protection_rau_subband].related.toString();
+        }
+        $scope.ne_protection_txrx_frequinciesValuesCheck();
+        $scope.fe_protection_txrx_frequinciesValuesCheck();
+      };
 
-          camForm.on('submit', function (e) {
+      $scope.ne_txrx_frequinciesValuesCheck = function () {
+        if ($scope.ne_txrx_frequincies && !isNaN($scope.ne_txrx_frequincies) && $scope.rauRelations[$scope.ne_rau_subband].minFrequency <= $scope.ne_txrx_frequincies && $scope.rauRelations[$scope.ne_rau_subband].maxFrequency >= $scope.ne_txrx_frequincies) {
+          $scope.ne_txrx_frequinciesInvalid = false;
+        } else {
+          $scope.ne_txrx_frequinciesInvalid = true;
+        }
+      }
+
+      $scope.fe_txrx_frequinciesValuesCheck = function () {
+        if ($scope.fe_txrx_frequincies && !isNaN($scope.fe_txrx_frequincies) && $scope.rauRelations[$scope.fe_rau_subband].minFrequency <= $scope.fe_txrx_frequincies && $scope.rauRelations[$scope.fe_rau_subband].maxFrequency >= $scope.fe_txrx_frequincies) {
+          $scope.fe_txrx_frequinciesInvalid = false;
+        } else {
+          $scope.fe_txrx_frequinciesInvalid = true;
+        }
+      }
+
+      $scope.ne_protection_txrx_frequinciesValuesCheck = function () {
+        if ($scope.ne_protection_txrx_frequincies && !isNaN($scope.ne_protection_txrx_frequincies) && $scope.rauRelations[$scope.ne_protection_rau_subband].minFrequency <= $scope.ne_protection_txrx_frequincies && $scope.rauRelations[$scope.ne_protection_rau_subband].maxFrequency >= $scope.ne_protection_txrx_frequincies) {
+          $scope.ne_protection_txrx_frequinciesInvalid = false;
+        } else {
+          $scope.ne_protection_txrx_frequinciesInvalid = true;
+        }
+      }
+
+      $scope.fe_protection_txrx_frequinciesValuesCheck = function () {
+        if ($scope.fe_protection_txrx_frequincies && !isNaN($scope.fe_protection_txrx_frequincies) && $scope.rauRelations[$scope.fe_protection_rau_subband].minFrequency <= $scope.fe_protection_txrx_frequincies && $scope.rauRelations[$scope.fe_protection_rau_subband].maxFrequency >= $scope.fe_protection_txrx_frequincies) {
+          $scope.fe_protection_txrx_frequinciesInvalid = false;
+        } else {
+          $scope.fe_protection_txrx_frequinciesInvalid = true;
+        }
+      }
+
+
+      camForm.on('submit', function (e) {
+                var newVars = [
+                  'rau_type',
+                  'ne_rau_subband',
+                  'fe_rau_subband',
+                  'ne_protection_rau_subband',
+                  'fe_protection_rau_subband',
+                  'ne_txrx_frequincies',
+                  'fe_txrx_frequincies',
+                  'ne_protection_txrx_frequincies',
+                  'fe_protection_txrx_frequincies',
+                ];
+
+               angular.forEach(newVars, function (t) {
+                if(camForm.variableManager.variables[t]){
+                   camForm.variableManager.variableValue(t, $scope[t]);
+                  } else {
+                   camForm.variableManager.createVariable({
+                   name: t,
+                   type: 'String',
+                   value: $scope[t]
+                  });
+                }
+              });
               camForm.variableManager.createVariable({
                   name: 'check_by_center_hop_deleteTaskComment',
                   type: 'String',
@@ -979,6 +1061,15 @@
             </td>
           </tr>
           <tr>
+            <td align="right" colspan="2">RAU type:</td>
+            <td align="center" colspan="8">
+              <select class="form-control" id="rau_type" name="rau_type" ng-model="rau_type" required ng-change="rauTypeSelected()" >
+                <option ng-repeat="rt in filteredRauTypeList" ng-value="rt.id">{{rt.value}}</option>
+              </select>
+              <label class="error" ng-if="kcell_form.rau_type.$error.required && ( kcell_form.rau_type.$touched || view.submitted)">Required field</label>
+            </td>
+          </tr>
+          <tr>
             <td align="right" rowspan="2">Link capacity :</td>
             <td align="right">Capacity</td>
             <td align="center" colspan="8">
@@ -1035,135 +1126,89 @@
           <tr>
             <td align="right" colspan="2">RAU subband:</td>
             <td align="center" colspan="4">
-              <select
-                disabled
-                class="form-control"
-                id="ne_rau_subband"
-                name="ne_rau_subband"
-                ng-model="selectedTsd.ne_rau_subband_id.id"
-                ng-change="rauSubbandSelected()"
-              >
-                <option ng-repeat="ct in rauSubbandList" ng-value="ct.id">
-                  {{ct.value}}
-                </option>
+              <select ng-disabled="!rau_type" class="form-control" id="ne_rau_subband" name="ne_rau_subband" ng-model="ne_rau_subband"
+                      ng-required="tnutsd_fill_tsd_by_centerTaskResult == 'approved'" ng-change="rauSubbandSelected()">
+                <option ng-repeat="ct in filteredRauSubbandList" ng-value="ct.id.toString()">{{ct.value}}</option>
               </select>
+              <label class="error"
+                     ng-if="kcell_form.ne_rau_subband.$error.required && ( kcell_form.ne_rau_subband.$touched || view.submitted)">Required
+                field</label>
             </td>
             <td align="center" colspan="4">
-              <select
-                disabled
-                class="form-control"
-                id="fe_rau_subband"
-                name="fe_rau_subband"
-                ng-model="selectedTsd.fe_rau_subband_id.id"
-              >
-                <option ng-repeat="ct in rauSubbandList" ng-value="ct.id">
-                  {{ct.value}}
-                </option>
+              <select ng-disabled="true" class="form-control" id="fe_rau_subband" name="fe_rau_subband" ng-model="fe_rau_subband"
+                      ng-required="tnutsd_fill_tsd_by_centerTaskResult == 'approved'">
+                <option ng-repeat="ct in rauSubbandList" ng-value="ct.id.toString()">{{ct.value}}</option>
               </select>
+              <label class="error"
+                     ng-if="kcell_form.fe_rau_subband.$error.required && ( kcell_form.fe_rau_subband.$touched || view.submitted)">Required
+                field</label>
             </td>
           </tr>
           <tr>
             <td align="right" colspan="2">protection RAU subband:</td>
             <td align="center" colspan="4">
-              <select
-                disabled
-                class="form-control"
-                id="ne_protection_rau_subband"
-                name="ne_protection_rau_subband"
-                ng-model="selectedTsd.ne_rau_subband_protect_id.id"
-                ng-change="protectRauSubbandSelected()"
-              >
-                <option ng-repeat="ct in rauSubbandList" ng-value="ct.id">
-                  {{ct.value}}
-                </option>
+              <select ng-disabled="!rau_type || !protectionRauSubbandActive" class="form-control" id="ne_protection_rau_subband" name="ne_protection_rau_subband"
+                      ng-model="ne_protection_rau_subband" ng-change="protectRauSubbandSelected()">
+                <option ng-repeat="ct in filteredRauSubbandList" ng-value="ct.id.toString()">{{ct.value}}</option>
               </select>
             </td>
             <td align="center" colspan="4">
-              <select
-                disabled
-                class="form-control"
-                id="fe_protection_rau_subband"
-                name="fe_protection_rau_subband"
-                ng-model="selectedTsd.fe_rau_subband_protect_id.id"
-              >
-                <option ng-repeat="ct in rauSubbandList" ng-value="ct.id">
-                  {{ct.value}}
-                </option>
+              <select ng-disabled="true" class="form-control" id="fe_protection_rau_subband" name="fe_protection_rau_subband"
+                      ng-model="fe_protection_rau_subband">
+                <option ng-repeat="ct in rauSubbandList" ng-value="ct.id.toString()">{{ct.value}}</option>
               </select>
             </td>
           </tr>
           <tr>
             <td align="right" colspan="2">Tx/Rx frequencies, Mhz:</td>
             <td align="center" colspan="4">
-              <input
-                disabled
-                type="number"
-                class="form-control"
-                name="ne_txrx_frequincies"
-                ng-model="selectedTsd.ne_txrx_frequencies"
-                ng-blur="ne_txrx_frequinciesValuesCheck()"
-              />
-              <label
-                class="error"
-                ng-if="ne_rau_subband && ne_txrx_frequinciesInvalid"
-                >Expected between {{rauRelations[ne_rau_subband].minFrequency}}
-                and {{rauRelations[ne_rau_subband].maxFrequency}}</label
-              >
+              <input type="number" class="form-control" name="ne_txrx_frequincies"
+                     ng-model="ne_txrx_frequincies" cam-variable-name="ne_txrx_frequincies"
+                     cam-variable-type="String" ng-required="tnutsd_fill_tsd_by_centerTaskResult == 'approved'" ng-blur="ne_txrx_frequinciesValuesCheck()"
+                     ng-disabled="!ne_rau_subband">
+              <label class="error"
+                     ng-if="kcell_form.ne_txrx_frequincies.$error.required && ( kcell_form.ne_txrx_frequincies.$touched || view.submitted)">Required
+                field</label>
+              <label class="error" ng-if="ne_rau_subband && ne_txrx_frequinciesInvalid">Expected between
+                {{rauRelations[ne_rau_subband].minFrequency}} and
+                {{rauRelations[ne_rau_subband].maxFrequency}}</label>
             </td>
             <td align="center" colspan="4">
-              <input
-                disabled
-                type="number"
-                class="form-control"
-                name="fe_txrx_frequincies"
-                ng-model="selectedTsd.fe_txrx_frequencies"
-                ng-blur="fe_txrx_frequinciesValuesCheck()"
-              />
-              <label
-                class="error"
-                ng-if="fe_rau_subband && fe_txrx_frequinciesInvalid"
-                >Expected between {{rauRelations[fe_rau_subband].minFrequency}}
-                and {{rauRelations[fe_rau_subband].maxFrequency}}</label
-              >
+              <input type="number" class="form-control" name="fe_txrx_frequincies"
+                     ng-model="fe_txrx_frequincies" cam-variable-name="fe_txrx_frequincies"
+                     cam-variable-type="String" ng-required="tnutsd_fill_tsd_by_centerTaskResult == 'approved'" ng-blur="fe_txrx_frequinciesValuesCheck()"
+                     ng-disabled="!fe_rau_subband">
+              <label class="error"
+                     ng-if="kcell_form.fe_txrx_frequincies.$error.required && ( kcell_form.fe_txrx_frequincies.$touched || view.submitted)">Required
+                field</label>
+              <label class="error" ng-if="fe_rau_subband && fe_txrx_frequinciesInvalid">Expected between
+                {{rauRelations[fe_rau_subband].minFrequency}} and
+                {{rauRelations[fe_rau_subband].maxFrequency}}</label>
             </td>
           </tr>
           <tr>
-            <td align="right" colspan="2">
-              Protection Tx/Rx frequencies, Mhz:
+            <td align="right" colspan="2">Protection Tx/Rx frequencies, Mhz:</td>
+            <td align="center" colspan="4">
+              <input type="number" class="form-control" name="ne_protection_txrx_frequincies"
+                     ng-model="ne_protection_txrx_frequincies"
+                     cam-variable-name="ne_protection_txrx_frequincies" cam-variable-type="String"
+                     ng-blur="ne_protection_txrx_frequinciesValuesCheck()"
+                     ng-disabled="protection_mode_fetched || !ne_protection_rau_subband">
+              <label class="error"
+                     ng-if="ne_protection_rau_subband && ne_protection_txrx_frequincies && ne_protection_txrx_frequinciesInvalid">Expected
+                between {{rauRelations[ne_protection_rau_subband].minFrequency}} and
+                {{rauRelations[ne_protection_rau_subband].maxFrequency}}</label>
             </td>
             <td align="center" colspan="4">
-              <input
-                disabled
-                type="number"
-                class="form-control"
-                name="ne_protection_txrx_frequincies"
-                ng-model="selectedTsd.ne_txrx_frequencies_protect"
-                ng-blur="ne_protection_txrx_frequinciesValuesCheck()"
-              />
-              <label
-                class="error"
-                ng-if="ne_protection_rau_subband && ne_protection_txrx_frequincies && ne_protection_txrx_frequinciesInvalid"
-                >Expected between
-                {{rauRelations[ne_protection_rau_subband].minFrequency}} and
-                {{rauRelations[ne_protection_rau_subband].maxFrequency}}</label
-              >
-            </td>
-            <td align="center" colspan="4">
-              <input
-                disabled
-                type="number"
-                class="form-control"
-                name="fe_protection_txrx_frequincies"
-                ng-model="selectedTsd.fe_txrx_frequencies_protect"
-                ng-blur="fe_protection_txrx_frequinciesValuesCheck()"
-              />
-              <label
-                class="error"
-                ng-if="fe_protection_rau_subband && fe_protection_txrx_frequincies && fe_protection_txrx_frequinciesInvalid"
-                >Expected between
-                {{rauRelations[fe_protection_rau_subband].minFrequency}} and
-                {{rauRelations[fe_protection_rau_subband].maxFrequency}}</label
-              >
+              <input type="number" class="form-control" name="fe_protection_txrx_frequincies"
+                     ng-model="fe_protection_txrx_frequincies"
+                     cam-variable-name="fe_protection_txrx_frequincies" cam-variable-type="String"
+                     ng-blur="fe_protection_txrx_frequinciesValuesCheck()"
+                     ng-disabled="protection_mode_fetched || !fe_protection_rau_subband">
+              <label class="error"
+                     ng-if="fe_protection_rau_subband && fe_protection_txrx_frequincies && fe_protection_txrx_frequinciesInvalid">Expected
+                between {{rauRelations[fe_protection_rau_subband].minFrequency}} and
+                {{rauRelations[fe_protection_rau_subband].maxFrequency}}</label>
             </td>
           </tr>
           <tr>
