@@ -120,6 +120,11 @@ public class SetPricesDelegate implements TaskListener {
                 delegateTask.setVariable("worksPriceList", SpinValues.jsonValue(worksPriceList.toString()).create());
                 delegateTask.setVariable("jobWorksTotal", jobWorksTotal.setScale(2, RoundingMode.DOWN).toString());
             } else {
+                String centralApproval = (String) delegateTask.getVariable("centralApproval");
+                ArrayNode unitWorkPrice_jr=null;
+                if(centralApproval != null && !centralApproval.isEmpty() && !centralApproval.equals("null")) {
+                    unitWorkPrice_jr = (ArrayNode) mapper.readTree(delegateTask.getVariableTyped("unitWorkPrice_jr").getValue().toString());
+                }
                 Map<String, JsonNode> worksPriceMap = new HashMap<>();
 
                 String siteRegion = (String) delegateTask.getVariable("siteRegion");
@@ -139,6 +144,7 @@ public class SetPricesDelegate implements TaskListener {
                 ArrayNode workPrices = mapper.createArrayNode();
                 ArrayNode jobWorks = (ArrayNode) mapper.readTree(delegateTask.getVariable("jobWorks").toString());
                 BigDecimal jobWorksTotal = BigDecimal.ZERO;
+                int i=0;
                 for (JsonNode work : jobWorks) {
                     if(work.has("id") && work.get("id").intValue() >= 5000) {
                         continue;
@@ -171,7 +177,11 @@ public class SetPricesDelegate implements TaskListener {
 
                     BigDecimal unitWorkPrice;
                     if ("2022Work-agreement".equals(mainContract)) {
-                        unitWorkPrice = new BigDecimal(priceJson.get(oblastName).textValue());
+                        unitWorkPrice = new BigDecimal( priceJson.get(oblastName).textValue());
+                        if(unitWorkPrice_jr.get(i)!=null) {
+                            String s = String.valueOf(unitWorkPrice_jr.get(i));
+                            unitWorkPrice = new BigDecimal(s);
+                        }
 
                         workPrice.put("basePrice", priceJson.get(oblastName).textValue());
                         workPrices.add(workPrice);
@@ -212,6 +222,7 @@ public class SetPricesDelegate implements TaskListener {
                     workPrice.put("total", total.setScale(2, RoundingMode.DOWN).toString());
 
                     jobWorksTotal = jobWorksTotal.add(total);
+                    i++;
                 }
                 JsonValue jsonValue = SpinValues.jsonValue(workPrices.toString()).create();
 

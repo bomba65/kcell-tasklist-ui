@@ -349,7 +349,7 @@ public class JrBlankGenerator {
             for (int i = 0; i < jobWorks.size(); i++) {
                 JsonNode priceJson = worksPrice.get(Integer.toString(jobWorks.get(i).get("id").intValue()));
                 BigDecimal jobPrice = new BigDecimal(priceJson.get(oblastName).textValue()).setScale(2, RoundingMode.DOWN);
-                if(unitWorkPrice_jr!=null) {
+                if(unitWorkPrice_jr.get(i)!=null) {
                     String s = String.valueOf(unitWorkPrice_jr.get(i));
                     jobPrice = new BigDecimal(s).setScale(2, RoundingMode.DOWN);
                 }
