@@ -79,7 +79,7 @@
 </style>
 
 <form role="form" class="form-horizontal" name="kcell_form" novalidate>
-  <script cam-script type="text/form-script">
+  <script cam-script type="text/form-script" type="text/javascript">
     <!--         <script>-->
           inject(['$scope', '$http', 'Uri', '$rootScope', '$q', '$timeout', function ($scope, $http, Uri, $rootScope, $q, $timeout) {
                 var variables = [
@@ -263,9 +263,14 @@
                     }
                 };
 
+                $scope.protectionModeClicked = false;
+                $scope.protectionModeClickedAndChanged = false;
+                $scope.onProtectionModeClick = function() {
+                  $scope.protectionModeClicked = true;
+                }
                 $scope.protectionMode = function () {
-                    if ($scope.selectedTsd.protection_mode_id.id === 2) {
-                        $scope.selectedTsd.polarization_id.id = 3;
+                    if ($scope.protectionModeClicked) {
+                        $scope.protectionModeClickedAndChanged = true;
                     }
                     if ($scope.selectedTsd.protection_mode_id  && ($scope.selectedTsd.protection_mode_id.id === 0 || $scope.selectedTsd.protection_mode_id.id === 1 || $scope.selectedTsd.protection_mode_id.id === 2 || $scope.selectedTsd.protection_mode_id.id === 3)) {
                         $scope.protection_mode_fetched = true
@@ -277,10 +282,25 @@
                         $scope.selectedTsd.ne_power_levels_rx_protect = undefined
                         $scope.selectedTsd.fe_power_levels_tx_protect = undefined
                         $scope.selectedTsd.fe_power_levels_rx_protect = undefined
-                        $scope.selectedTsd.ne_rau_subband_protect_id = undefined
-                        $scope.selectedTsd.fe_rau_subband_protect_id = undefined
                     } else {
                         $scope.protection_mode_fetched = false
+                    }
+
+                    const pm = _.find($scope.protectionModeList, el => el.id === $scope.selectedTsd.protection_mode_id.id);
+
+                    if (!pm) return;
+
+                    $scope.filteredRauTypeList = _.filter($scope.rauTypeList, e => pm.RAU_type?.value?.includes(e.id));
+
+                    $scope.hop_polarization_obj = _.find($scope.polarizationList, e => e.id === pm.Polarization?.value);
+                    $scope.selectedTsd.polarization_id.id = $scope.hop_polarization_obj?.id;
+
+                    $scope.protectionRauSubbandActive = !!pm.protectionRauSubbandActive?.value;
+                    if (!$scope.protectionRauSubbandActive && $scope.ne_protection_rau_subband && $scope.fe_protection_rau_subband) {
+                      $scope.selectedTsd.ne_rau_subband_protect_id = undefined;
+                      $scope.selectedTsd.fe_rau_subband_protect_id = undefined;
+                      $scope.selectedTsd.ne_txrx_frequencies_protect = undefined;
+                      $scope.selectedTsd.fe_txrx_frequencies_protect = undefined;
                     }
                 };
 
@@ -433,7 +453,7 @@
                     $http.get('/camunda/catalogs/api/get/id/' + id).then(function (result) {
                         if (result && result.data && result.data.data && result.data.data.$list) {
                             angular.forEach(containers, function (container) {
-                                $scope[container] = result.data.data.$list;
+                                $scope[container] = [...result.data.data.$list];
                             });
                             angular.forEach(result.data.data.$list, function (item) {
                                 if (!$scope.titles[containers[0]]) {
@@ -454,14 +474,13 @@
                         }
                     });
                 };
-
                 $scope.populateSelectFromCatalog(['protectionModeList'], 44); // Protection mode
                 $scope.populateSelectFromCatalog(['trAntennasTypeList'], 20); // TR Antennas Type
                 $scope.populateSelectFromCatalog(['constructionTypeList'], 14); // Construction_type
-                $scope.populateSelectFromCatalog(['linkCapacityList'], 45);   // Link capacity
+                $scope.populateSelectFromCatalog(['linkCapacityList', 'filteredLinkCapacityList'], 45);   // Link capacity
                 $scope.populateSelectFromCatalog(['polarizationList'], 48);   // Polarization
-                $scope.populateSelectFromCatalog(['linkTypeList'], 47);       // Link type
-                $scope.populateSelectFromCatalog(['rauSubbandList'], 46);     // Rau subband
+                $scope.populateSelectFromCatalog(['rauSubbandList', 'filteredRauSubbandList'], 46);     // Rau subband
+                $scope.populateSelectFromCatalog(['rauTypeList'], 84);       // RAU Type
 
 
                 $scope.ne_power_level_txChanged = function () {
@@ -483,69 +502,49 @@
                     });
                     if ($scope.selectedTsd && $scope.selectedTsd.capacity_id && (obj && obj.length > 0)) {
                         $scope.selectedTsd.capacity_id.modulation = obj[0]['Modulation'].value;
-                        $scope.selectedTsd.capacity_id['channel bandwidth'] = obj[0]['Channel Bandwidth'].value;
                     }
                 };
 
+                $scope.rauSubbandFreqRange = function () {
+                    let res = {};
+                    $scope.rauSubbandList.forEach(obj => {
+                              res[obj.id] = {
+                                'related': obj.Pair ? obj.Pair.value : '',
+                                'minFrequency': obj["MIN_freq, MHz"].value,
+                                'maxFrequency': obj["MAX_freq, MHz"].value,
+                              }
+                            }
+                    );
+                    return res;
+                }
 
+                $scope.$watch('rauSubbandList', function(newValue, oldValue) {
+                     $scope.rauRelations = $scope.rauSubbandFreqRange();
+                });
 
-                $scope.rauRelations = {
-                    37: {related: 38, minFrequency: 24549, maxFrequency: 25165}, // 6363 26/01L -> 6363 26/01H
-                    38: {related: 37, minFrequency: 25557, maxFrequency: 26173}, // 6363 26/01H -> 6363 26/01L
-                    39: {related: 40, minFrequency: 21784, maxFrequency: 22600}, // 6363 23/02L -> 6363 23/02H
-                    40: {related: 39, minFrequency: 22996.25, maxFrequency: 23600}, // 6363 23/02H -> 6363 23/02L
-                    41: {related: 42, minFrequency: 14495.75, maxFrequency: 14774}, // 6363 15/01L -> 6363 15/01H
-                    42: {related: 41, minFrequency: 15055.75, maxFrequency: 15348}, // 6363 15/01H -> 6363 15/01L
-                    43: {related: 44, minFrequency: 7905, maxFrequency: 8017}, // 6363 8/61L -> 6363 8/61H
-                    44: {related: 43, minFrequency: 8171, maxFrequency: 8327}, // 6363 8/61H -> 6363 8/61L
-                    45: {related: 46, minFrequency: 7498, maxFrequency: 7568}, // 6363 7/14L -> 6363 7/14H
-                    46: {related: 45, minFrequency: 7665, maxFrequency: 7729}, // 6363 7/14H -> 6363 7/14L
-                    47: {related: 48, minFrequency: 7107, maxFrequency: 7184}, // 6363 7/31L -> 6363 7/31H
-                    48: {related: 47, minFrequency: 7275, maxFrequency: 7345}, // 6363 7/31H -> 6363 7/31L
-                    1: {related: 2, minFrequency: 21784, maxFrequency: 22600},   // 23/A02 -> 23/A06
-                    2: {related: 1, minFrequency: 22996.25, maxFrequency: 23600},   // 23/A06 -> 23/A02
-                    27: {related: 29, minFrequency: 22002.75, maxFrequency: 22316.25}, // 23/76 -> 23/78
-                    29: {related: 27, minFrequency: 23010.75, maxFrequency: 23324.25}, // 23/78	-> 23/76
-                    28: {related: 30, minFrequency: 22274, maxFrequency: 22590.75}, // 23/77 ->	23/79
-                    30: {related: 28, minFrequency: 23282, maxFrequency: 23598.75}, // 23/79 ->	23/77
-                    3: {related: 4, minFrequency: 24549, maxFrequency: 24857},   // 26/A01 -> 26/A05
-                    4: {related: 3, minFrequency: 25557, maxFrequency: 25865},   // 26/A05 -> 26/A01
-                    31: {related: 32, minFrequency: 24549, maxFrequency: 24857}, // 26/51 -> 26/55
-                    32: {related: 31, minFrequency: 25557, maxFrequency: 25865}, // 26/55 -> 26/51
-                    5: {related: 6, minFrequency: 7498, maxFrequency: 7568},   // 7/A14 -> 7/A18
-                    6: {related: 5, minFrequency: 7665, maxFrequency: 7729},   // 7/A18 -> 7/A14
-                    7: {related: 8, minFrequency: 7107, maxFrequency: 7184},   // 7/A31 -> 7/A35
-                    8: {related: 7, minFrequency: 7275, maxFrequency: 7345},   // 7/A35 -> 7/A31
-                    9: {related: 10, minFrequency: 8031, maxFrequency: 8136},  // 8/A63 -> 8/A67
-                    10: {related: 9, minFrequency: 8297, maxFrequency: 8402},  // 8/A67 -> 8/A63
-                    11: {related: 12, minFrequency: 7905, maxFrequency: 8010}, // 8/A61 -> 8/A65
-                    12: {related: 11, minFrequency: 8171, maxFrequency: 8276}, // 8/A65 -> 8/A61
-                    13: {related: 13, minFrequency: 7505.5, maxFrequency: 7568}, // 7/44 -> 7/48
-                    14: {related: 14, minFrequency: 7666.5, maxFrequency: 7729}, // 7/48 -> 7/44
-                    15: {related: 16, minFrequency: 7107, maxFrequency: 7163}, // 7/51 -> 7/55
-                    16: {related: 15, minFrequency: 7275, maxFrequency: 7331}, // 7/55 -> 7/51
-                    17: {related: 18, minFrequency: 7905, maxFrequency: 8010}, // 8/61 -> 8/63
-                    18: {related: 17, minFrequency: 8031, maxFrequency: 8136}, // 8/63 -> 8/61
-                    19: {related: 20, minFrequency: 8171, maxFrequency: 8276}, // 8/65 -> 8/67
-                    20: {related: 19, minFrequency: 8297, maxFrequency: 8402}, // 8/67 -> 8/65
-                    21: {related: 22, minFrequency: 14495.75, maxFrequency: 14700.5}, // 15/43 -> 15/49
-                    22: {related: 21, minFrequency: 15139.75, maxFrequency: 15344.5}, // 15/49 -> 15/43
-                    25: {related: 26, minFrequency: 22002.75, maxFrequency: 22513.75}, // 23/56 -> 23/58
-                    26: {related: 25, minFrequency: 23010.75, maxFrequency: 23521.75}, // 23/58 -> 23/56
-                    33: {related: 34, minFrequency: 71000, maxFrequency: 76000}, // 80/11 -> 80/15
-                    34: {related: 33, minFrequency: 81000, maxFrequency: 86000}, // 80/15 -> 80/11
-                    23: {related: 24, minFrequency: 14495.75, maxFrequency: 14700.5}, // 15/A01 -> 15/A05
-                    24: {related: 23, minFrequency: 15139.75, maxFrequency: 15344.5}, // 15/A05 -> 15/A01
-                    35: {related: 36, minFrequency: 71000, maxFrequency: 76000}, // 80/11L -> 80/11H
-                    36: {related: 35, minFrequency: 81000, maxFrequency: 86000}, // 80/11H -> 80/11L
-                    49: {related: 50, minFrequency: 22996.25, maxFrequency: 23600}, // 6365 23/A02H -> 6365 23/A02L
-                    50: {related: 49, minFrequency: 21784, maxFrequency: 22600}, // 6365 23/A02L -> 6365 23/A02H
-                    51: {related: 52, minFrequency: 15055.75, maxFrequency: 15348}, // 6365 15/A01H -> 6365 15/A01L
-                    52: {related: 51, minFrequency: 14495.75, maxFrequency: 14774}, // 6365 15/A01L -> 6365 15/A01H
-                    55: {related: 56, minFrequency: 21200, maxFrequency: 21896}, // 23/A01L (6365) -> 23/A01H (6365)
-                    56: {related: 55, minFrequency: 22400, maxFrequency: 23128}, // 23/A01H (6365) -> 23/A01L (6365)
-                    57: {related: 58, minFrequency: 21200, maxFrequency: 21896}, // 23/01L (6363) -> 23/01H (6363)
-                    58: {related: 57, minFrequency: 22400, maxFrequency: 23044}, // 23/01H (6363) -> 23/01L (6363)
+                $scope.rauTypeSelected = function () {
+                  var obj = _.filter($scope.linkCapacityList, function (c) {
+                    return c.RAU_type?.value === $scope.selectedTsd.rau_type.id;
+                  });
+                  if (obj && obj.length > 0) {
+                    $scope['hopChannelBandwidthList'] = [...new Set(obj.map(el => el['Channel Bandwidth'].value))];
+                  }
+
+                  $scope['filteredRauSubbandList'] = _.filter($scope.rauSubbandList, function (r) {
+                    return r.RAU_type?.value === $scope.selectedTsd.rau_type.id;
+                  }).map( obj => {
+                    obj.pairValue = _.find($scope.rauSubbandList, r => r.id === obj.Pair?.value)?.value;
+                    return obj;
+                  });
+                }
+
+                $scope.hopChannelBandwidthSelected = function() {
+                  var obj = _.filter($scope.linkCapacityList, function (c) {
+                    return c.RAU_type?.value === $scope.selectedTsd.rau_type.id && c['Channel Bandwidth']?.value === $scope.selectedTsd.capacity_id['channel bandwidth'];
+                  });
+                  if (obj && obj.length > 0) {
+                    $scope['filteredLinkCapacityList'] = [...obj];
+                  }
                 }
 
                 $scope.rauSubbandSelected = function () {
@@ -1261,7 +1260,7 @@
             </td>
           </tr>
           <tr>
-            <td align="right" colspan="2">Protection mode:</td>
+            <td align="right" colspan="2">Mode:</td>
             <td align="center" colspan="8">
               <select
                 class="form-control"
@@ -1269,6 +1268,7 @@
                 name="protection_mode"
                 ng-model="selectedTsd.protection_mode_id.id"
                 required
+                ng-click="onProtectionModeClick()"
                 ng-change="protectionMode()"
               >
                 <option
@@ -1474,16 +1474,9 @@
           <tr>
             <td align="right" colspan="2">Polarization:</td>
             <td align="center" colspan="8">
-              <select
-                class="form-control"
-                id="hop_polarization"
-                name="hop_polarization"
-                ng-model="selectedTsd.polarization_id.id"
-                required
-              >
-                <option ng-repeat="ct in polarizationList" ng-value="ct.id">
-                  {{ct.value}}
-                </option>
+              <select class="form-control" id="hop_polarization" name="hop_polarization"
+                      ng-model="selectedTsd.polarization_id.id" ng-disabled="true">
+                <option ng-repeat="ct in polarizationList" ng-value="ct.id">{{ct.value}}</option>
               </select>
               <label
                 class="error"
@@ -1493,8 +1486,31 @@
             </td>
           </tr>
           <tr>
-            <td align="right" rowspan="2">Link capacity :</td>
-            <td align="right">Capacity</td>
+            <td align="right" colspan="2">RAU type</td>
+            <td align="center" colspan="8">
+              <select class="form-control" id="rau_type" name="rau_type" ng-model="selectedTsd.rau_type.id" required ng-change="rauTypeSelected()"
+                ng-disabled="!protectionModeClickedAndChanged">
+                <option ng-repeat="rt in filteredRauTypeList" ng-value="rt.id">{{rt.value}}</option>
+              </select>
+              <label class="error" ng-if="kcell_form.rau_type.$error.required && ( kcell_form.rau_type.$touched || view.submitted)">Required field</label>
+            </td>
+          </tr>
+          <tr>
+            <td align="right" colspan="2">Channel bandwidth:</td>
+            <td align="center" colspan="8">
+              <select ng-if="hopChannelBandwidthList" ng-disabled="!selectedTsd.rau_type.id" class="form-control" name="hop_channel_bandwidth" ng-model="selectedTsd.capacity_id['channel bandwidth']" ng-change="hopChannelBandwidthSelected()" required>
+                <option ng-repeat="cb in hopChannelBandwidthList" ng-value="cb">{{cb}}</option>
+              </select>
+              <span ng-if="!hopChannelBandwidthList">{{selectedTsd.capacity_id['channel bandwidth']}}</span>
+              <label
+                      class="error"
+                      ng-if="kcell_form.hop_channel_bandwidth.$error.required && ( kcell_form.hop_channel_bandwidth.$touched || view.submitted)"
+              >Required field</label
+              >
+            </td>
+          </tr>
+          <tr>
+            <td align="right" colspan="2">Capacity</td>
             <td align="center" colspan="8">
               <select
                 class="form-control"
@@ -1502,9 +1518,10 @@
                 name="hop_link_capacity"
                 ng-model="selectedTsd.capacity_id.id"
                 required
+                ng-disabled="!selectedTsd.rau_type.id"
                 ng-change="hopLinkCapacitySelected()"
               >
-                <option ng-repeat="ct in linkCapacityList" ng-value="ct.id">
+                <option ng-repeat="ct in filteredLinkCapacityList" ng-value="ct.id">
                   {{ct.value}}
                 </option>
               </select>
@@ -1516,49 +1533,16 @@
             </td>
           </tr>
           <tr>
-            <td align="right">nxE1</td>
-            <td align="center" colspan="8">
-              <input
-                type="text"
-                class="form-control"
-                name="hop_link_nxe1"
-                ng-model="selectedTsd.nxe1"
-                ng-pattern="linkNxePattern"
-              />
-              <label
-                class="error"
-                ng-if="kcell_form.hop_link_nxe1.$error.pattern && ( kcell_form.hop_link_nxe1.$touched || view.submitted)"
-                >Expected: 0 <- nxE1 <- 155</label
-              >
-            </td>
-          </tr>
-          <tr>
             <td align="right" colspan="2">Modulation type:</td>
             <td align="center" colspan="8">
               <input
                 type="text"
                 class="form-control"
                 name="hop_modulation_type"
+                disabled
                 ng-model="selectedTsd.capacity_id.modulation"
                 required
               />
-            </td>
-          </tr>
-          <tr>
-            <td align="right" colspan="2">Channel bandwidth:</td>
-            <td align="center" colspan="8">
-              <input
-                type="text"
-                class="form-control"
-                name="hop_channel_bandwidth"
-                ng-model="selectedTsd.capacity_id['channel bandwidth']"
-                required
-              />
-              <label
-                class="error"
-                ng-if="kcell_form.hop_channel_bandwidth.$error.required && ( kcell_form.hop_channel_bandwidth.$touched || view.submitted)"
-                >Required field</label
-              >
             </td>
           </tr>
           <tr>
@@ -1570,9 +1554,10 @@
                 name="ne_rau_subband"
                 required
                 ng-model="selectedTsd.ne_rau_subband_id.id"
+                ng-disabled="!selectedTsd.rau_type.id"
                 ng-change="rauSubbandSelected()"
               >
-                <option ng-repeat="ct in rauSubbandList" ng-value="ct.id">
+                <option ng-repeat="ct in filteredRauSubbandList" ng-value="ct.id">
                   {{ct.value}}
                 </option>
               </select>
@@ -1588,6 +1573,7 @@
                 id="fe_rau_subband"
                 required
                 name="fe_rau_subband"
+                disabled
                 ng-model="selectedTsd.fe_rau_subband_id.id"
               >
                 <option ng-repeat="ct in rauSubbandList" ng-value="ct.id">
@@ -1609,9 +1595,10 @@
                 id="ne_protection_rau_subband"
                 name="ne_protection_rau_subband"
                 ng-model="selectedTsd.ne_rau_subband_protect_id.id"
+                ng-disabled="!protectionRauSubbandActive"
                 ng-change="protectRauSubbandSelected()"
               >
-                <option ng-repeat="ct in rauSubbandList" ng-value="ct.id">
+                <option ng-repeat="ct in filteredRauSubbandList" ng-value="ct.id">
                   {{ct.value}}
                 </option>
               </select>
@@ -1621,6 +1608,7 @@
                 class="form-control"
                 id="fe_protection_rau_subband"
                 name="fe_protection_rau_subband"
+                disabled
                 ng-model="selectedTsd.fe_rau_subband_protect_id.id"
               >
                 <option ng-repeat="ct in rauSubbandList" ng-value="ct.id">
@@ -1709,7 +1697,7 @@
                 name="fe_protection_txrx_frequincies"
                 ng-model="selectedTsd.fe_txrx_frequencies_protect"
                 ng-blur="fe_protection_txrx_frequinciesValuesCheck()"
-                ng-disabled="protection_mode_fetched || !selectedTsd.fe_rau_subband_protect_id"
+                ng-disabled="!protectionRauSubbandActive"
               />
               <label
                 class="error"
@@ -1905,6 +1893,23 @@
                 ng-model="selectedTsd.fe_power_levels_rx_protect"
                 ng-disabled="protection_mode_fetched"
               />
+            </td>
+          </tr>
+          <tr>
+            <td align="right" colspan="2">nxE1</td>
+            <td align="center" colspan="8">
+              <input
+                      type="text"
+                      class="form-control"
+                      name="hop_link_nxe1"
+                      ng-model="selectedTsd.nxe1"
+                      ng-pattern="linkNxePattern"
+              />
+              <label
+                      class="error"
+                      ng-if="kcell_form.hop_link_nxe1.$error.pattern && ( kcell_form.hop_link_nxe1.$touched || view.submitted)"
+              >Expected: 0 <- nxE1 <- 155</label
+              >
             </td>
           </tr>
           <!--                <tr>-->
