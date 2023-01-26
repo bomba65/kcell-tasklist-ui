@@ -11,7 +11,7 @@ public class RevisionAttachMaterialListGroupHandler implements TaskListener {
 
     public final static Map<String, String[]> ATTACH_MATERIAL_LIST_GROUP_TO_SITE = new HashMap<String, String[]>() {{
         put("alm_contractor_alta", new String[] {"00", "01", "03", "04", "05", "06","07"});
-        put("nc_contractor_alta", new String[] {"11", "12"});
+        put("nc_contractor_alta", new String[] {"11", "12", "13"});
         put("south_contractor_alta", new String[] {"43", "44"});
         put("east_contractor_alta", new String[] {"33", "34", "35", "36"});
         put("nc_contractor_logycom", new String[] {"14", "15", "16", "17", "21", "22", "23", "24"});
