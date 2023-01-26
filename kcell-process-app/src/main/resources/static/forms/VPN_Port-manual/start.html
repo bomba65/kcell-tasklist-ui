@@ -1,6 +1,15 @@
 <form role="form" class="form-horizontal" name="kcell_form" novalidate>
     <script cam-script type="text/form-script" type="text/javascript">
-        inject(['$scope', '$http', '$rootScope', '$q', '$timeout', 'exModal', function ($scope, $http) {
+        inject(['$scope', '$http', '$rootScope', '$q', '$timeout', 'exModal', function ($scope, $http, $rootScope, $q) {
+            $scope.addedPorts = [];
+            $scope.channel = 'Port';
+
+            $scope.preSubmit = function () {
+                const deferred = $q.defer();
+                if ($scope.addedPorts.length === 0) deferred.reject('Please add ports');
+                return deferred.promise;
+            }
+
             camForm.on('submit', function (e) {
                 camForm.variableManager.createVariable({
                     name: 'channel',
@@ -12,6 +21,11 @@
                     name: 'businessKey',
                     type: 'String',
                     value: $scope.businessKey
+                });
+                camForm.variableManager.createVariable({
+                    name: 'addedPorts',
+                    type: 'Json',
+                    value: $scope.addedPorts
                 });
                 camForm.businessKey = $scope.businessKey;
             });
@@ -47,4 +61,6 @@
             </select>
         </div>
     </div>
+
+    <organize-port ng-if="channel === 'Port' && request_type === 'Organize'" added-ports="addedPorts" form="kcell_form" view="view"></organize-port>
 </form>
