@@ -18,6 +18,7 @@ import java.math.RoundingMode;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 @Log
 public class SetPricesDelegate implements TaskListener {
@@ -120,9 +121,9 @@ public class SetPricesDelegate implements TaskListener {
                 delegateTask.setVariable("worksPriceList", SpinValues.jsonValue(worksPriceList.toString()).create());
                 delegateTask.setVariable("jobWorksTotal", jobWorksTotal.setScale(2, RoundingMode.DOWN).toString());
             } else {
-                String centralApproval = (String) delegateTask.getVariable("centralApproval");
+                Object unitWorkPrice_jr_test= delegateTask.getVariable("unitWorkPrice_jr");
                 ArrayNode unitWorkPrice_jr=null;
-                if(centralApproval != null && !centralApproval.isEmpty() && !centralApproval.equals("null")) {
+                if(!(unitWorkPrice_jr_test == "null")&& !Objects.equals(unitWorkPrice_jr_test.toString(), "null")){
                     unitWorkPrice_jr = (ArrayNode) mapper.readTree(delegateTask.getVariableTyped("unitWorkPrice_jr").getValue().toString());
                 }
                 Map<String, JsonNode> worksPriceMap = new HashMap<>();
@@ -178,11 +179,12 @@ public class SetPricesDelegate implements TaskListener {
                     BigDecimal unitWorkPrice;
                     if ("2022Work-agreement".equals(mainContract)) {
                         unitWorkPrice = new BigDecimal( priceJson.get(oblastName).textValue());
-                        if(unitWorkPrice_jr.get(i)!=null) {
-                            String s = String.valueOf(unitWorkPrice_jr.get(i));
-                            unitWorkPrice = new BigDecimal(s);
+                        if (unitWorkPrice_jr!=null) {
+                            if (unitWorkPrice_jr.get(i) != null) {
+                                String s = String.valueOf(unitWorkPrice_jr.get(i));
+                                unitWorkPrice = new BigDecimal(s);
+                            }
                         }
-
                         workPrice.put("basePrice", priceJson.get(oblastName).textValue());
                         workPrices.add(workPrice);
                     } else {

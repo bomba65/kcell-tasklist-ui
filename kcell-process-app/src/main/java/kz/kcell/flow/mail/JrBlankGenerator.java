@@ -115,10 +115,11 @@ public class JrBlankGenerator {
         ObjectMapper mapper = new ObjectMapper();
         ArrayNode jobWorks = (ArrayNode) mapper.readTree(delegateExecution.getVariableTyped("jobWorks").getValue().toString());
         JsonNode initiatorFull = mapper.readTree(delegateExecution.getVariableTyped("initiatorFull").getValue().toString());
+        Object unitWorkPrice_jr_test= delegateExecution.getVariable("unitWorkPrice_jr");
         ArrayNode unitWorkPrice_jr=null;
-        if(centralApproval != null && !centralApproval.isEmpty() && !centralApproval.equals("null")) {
-             unitWorkPrice_jr = (ArrayNode) mapper.readTree(delegateExecution.getVariableTyped("unitWorkPrice_jr").getValue().toString());
-        }
+        if(!(unitWorkPrice_jr_test == "null")&& !Objects.equals(unitWorkPrice_jr_test.toString(), "null")){
+            unitWorkPrice_jr = (ArrayNode) mapper.readTree(delegateExecution.getVariableTyped("unitWorkPrice_jr").getValue().toString());
+       }
         String siteRegion = (String) delegateExecution.getVariable("siteRegion");
         XSSFWorkbook workbook = new XSSFWorkbook();
         XSSFSheet sheet = workbook.createSheet();
@@ -349,10 +350,12 @@ public class JrBlankGenerator {
             for (int i = 0; i < jobWorks.size(); i++) {
                 JsonNode priceJson = worksPrice.get(Integer.toString(jobWorks.get(i).get("id").intValue()));
                 BigDecimal jobPrice = new BigDecimal(priceJson.get(oblastName).textValue()).setScale(2, RoundingMode.DOWN);
-                if(unitWorkPrice_jr.get(i)!=null) {
-                    String s = String.valueOf(unitWorkPrice_jr.get(i));
-                    jobPrice = new BigDecimal(s).setScale(2, RoundingMode.DOWN);
-                }
+               if (unitWorkPrice_jr!=null) {
+                   if (unitWorkPrice_jr.get(i) != null) {
+                       String s = String.valueOf(unitWorkPrice_jr.get(i));
+                       jobPrice = new BigDecimal(s).setScale(2, RoundingMode.DOWN);
+                   }
+               }
                 if (priority.equals("emergency")) {
                     jobPrice = jobPrice.multiply(new BigDecimal("1.2"));
                 }
