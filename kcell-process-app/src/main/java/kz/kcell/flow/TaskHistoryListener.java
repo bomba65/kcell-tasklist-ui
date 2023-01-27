@@ -64,7 +64,7 @@ public class TaskHistoryListener implements TaskListener {
       "cancel-tsd",
       "FixedInternet",
       "monthlyAct",
-       "VPN_Port_manual"
+      "VPN_Port_process"
     );
 
     private final List<String> groupOne = Arrays.asList(

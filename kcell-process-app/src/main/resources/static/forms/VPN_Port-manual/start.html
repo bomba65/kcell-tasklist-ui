@@ -2,11 +2,20 @@
     <script cam-script type="text/form-script" type="text/javascript">
         inject(['$scope', '$http', '$rootScope', '$q', '$timeout', 'exModal', function ($scope, $http, $rootScope, $q) {
             $scope.addedPorts = [];
+            $scope.disbandPorts = [];
             $scope.channel = 'Port';
+            $scope.request_type = 'Disband';
+            $scope.priority = 'Emergency';
 
             $scope.preSubmit = function () {
                 const deferred = $q.defer();
-                if ($scope.addedPorts.length === 0) deferred.reject('Please add ports');
+                if ($scope.request_type === 'Organize' && $scope.channel === 'Port' && $scope.addedPorts.length === 0) {
+                    deferred.reject('Please add ports');
+                } else if ($scope.request_type === 'Disband' && $scope.channel === 'Port' && $scope.disbandPorts.length === 0) {
+                    deferred.reject('Please select ports to disband');
+                } else {
+                    deferred.resolve();
+                }
                 return deferred.promise;
             }
 
@@ -16,18 +25,28 @@
                     type: 'String',
                     value: $scope.channel
                 });
+
+                if ($scope.request_type === 'Organize' && $scope.channel === 'Port') {
+                    camForm.variableManager.createVariable({
+                        name: 'addedPorts',
+                        type: 'Json',
+                        value: $scope.addedPorts
+                    });
+                } else if ($scope.request_type === 'Disband' && $scope.channel === 'Port') {
+                    camForm.variableManager.createVariable({
+                        name: 'disbandPorts',
+                        type: 'Json',
+                        value: $scope.disbandPorts
+                    });
+                }
+
                 $scope.businessKey = $scope.channel + '-' + new Date().getFullYear().toString().slice(-2) + '-' + Math.floor(1000 + Math.random() * 9000);
+                camForm.businessKey = $scope.businessKey;
                 camForm.variableManager.createVariable({
                     name: 'businessKey',
                     type: 'String',
                     value: $scope.businessKey
                 });
-                camForm.variableManager.createVariable({
-                    name: 'addedPorts',
-                    type: 'Json',
-                    value: $scope.addedPorts
-                });
-                camForm.businessKey = $scope.businessKey;
             });
         }]);
     </script>
@@ -44,8 +63,7 @@
     <div class="form-group">
         <div class="col-sm-3"><label class="control-label" for="request_type">Request Type</label></div>
         <div class="col-sm-6">
-            <select class="form-control" select-picker id="request_type" name="request_type" cam-variable-type="String" cam-variable-name="request_type"
-                    required>
+            <select class="form-control" select-picker id="request_type" name="request_type" ng-model="request_type" required>
                 <option value="Organize">Organize</option>
                 <option value="Disband">Disband</option>
                 <option value="Modify">Modify</option>
@@ -55,7 +73,7 @@
     <div class="form-group">
         <div class="col-sm-3"><label class="control-label" for="priority">Priority</label></div>
         <div class="col-sm-6">
-            <select class="form-control " select-picker id="priority" name="priority" cam-variable-type="String" cam-variable-name="priority" required>
+            <select class="form-control " select-picker id="priority" name="priority" ng-model="priority" required>
                 <option value="Regular">Regular</option>
                 <option value="Emergency">Emergency</option>
             </select>
@@ -63,4 +81,5 @@
     </div>
 
     <organize-port ng-if="channel === 'Port' && request_type === 'Organize'" added-ports="addedPorts" form="kcell_form" view="view"></organize-port>
+    <disband-port ng-if="channel === 'Port' && request_type === 'Disband'" disband-ports="disbandPorts" form="kcell_form" view="view"></disband-port>
 </form>

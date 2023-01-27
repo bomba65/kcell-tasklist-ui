@@ -29,20 +29,20 @@ define(['./../../module'], function(module) {
 
                 scope.searchOblastSelected = function (obl) {
                     scope.filteredDistrictCatalog = _.filter(scope.districtCatalog, el => el.parent === obl);
-                    scope.addedPorts = [];
+                    scope.addedPorts.length = 0;
                     scope.isSearched = false;
                     scope.availablePorts = undefined;
                 }
 
                 scope.searchDistrictSelected = function (dis) {
                     scope.filteredCityVillageCatalog = _.filter(scope.cityVillageCatalog, el => el.parent === dis);
-                    scope.addedPorts = [];
+                    scope.addedPorts.length = 0;
                     scope.isSearched = false;
                     scope.availablePorts = undefined;
                 }
 
                 scope.searchCitySelected = function (city) {
-                    scope.addedPorts = [];
+                    scope.addedPorts.length = 0;
                     scope.isSearched = false;
                     scope.availablePorts = undefined;
                 }
@@ -64,8 +64,6 @@ define(['./../../module'], function(module) {
                         }
                     )
                 }
-
-                scope.addedPorts = [];
 
                 scope.addPort = function () {
                     if (!scope.availablePorts) {
