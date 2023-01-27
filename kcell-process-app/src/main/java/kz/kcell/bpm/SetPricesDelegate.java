@@ -123,7 +123,7 @@ public class SetPricesDelegate implements TaskListener {
             } else {
                 Object unitWorkPrice_jr_test= delegateTask.getVariable("unitWorkPrice_jr");
                 ArrayNode unitWorkPrice_jr=null;
-                if(!(unitWorkPrice_jr_test == "null")&& !Objects.equals(unitWorkPrice_jr_test.toString(), "null")){
+                if(!(unitWorkPrice_jr_test == null)&& !Objects.equals(unitWorkPrice_jr_test.toString(), "null")){
                     unitWorkPrice_jr = (ArrayNode) mapper.readTree(delegateTask.getVariableTyped("unitWorkPrice_jr").getValue().toString());
                 }
                 Map<String, JsonNode> worksPriceMap = new HashMap<>();
