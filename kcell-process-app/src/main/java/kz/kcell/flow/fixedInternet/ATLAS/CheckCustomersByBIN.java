@@ -25,7 +25,7 @@ public class CheckCustomersByBIN implements JavaDelegate {
 
     private static final String URL_ENDING = "/customers/search";
 
-    @Value("${atlas.url}")
+    @Value("${atlas.customers.url}")
     private String atlasUrl;
 
     @Value("${atlas.auth}")

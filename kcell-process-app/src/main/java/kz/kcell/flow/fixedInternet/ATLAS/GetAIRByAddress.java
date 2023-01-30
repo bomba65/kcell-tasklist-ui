@@ -25,7 +25,7 @@ public class GetAIRByAddress implements JavaDelegate {
 
     private static final String URL_ENDING = "/customers/AIRaddress";
 
-    @Value("${atlas.url}")
+    @Value("${atlas.customers.url}")
     private String atlasUrl;
 
     @Value("${atlas.auth}")
