@@ -21,6 +21,7 @@ define([
 	'./search/rpaSearch',
 	'./aftersalesRevolvingNumbers/index',
   	'./fixedInternet/index',
-	'./vpnPortProcess/start/index'
+	'./vpnPortProcess/start/organizePort',
+	'./vpnPortProcess/start/disbandPort'
 //	'./search/demandSearch',
 	], function(){});
