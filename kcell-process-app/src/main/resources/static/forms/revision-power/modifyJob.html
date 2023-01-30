@@ -74,6 +74,14 @@
                 }
         );
 
+        $http.get('/api/revisionPowerJobsArcommm').then(
+                function(result) {
+                  $scope.worksArcommm = _.forEach(result.data.works, function(work) {
+                    work.title = work.num.toString()+ " " + work.title;
+                  })
+                }
+        );
+
         $http.get('/api/revisionPowerJobsALFA').then(
                 function(result) {
                   $scope.worksALFA = _.forEach(result.data.works, function(work) {
@@ -210,6 +218,8 @@
         let result;
         if ($scope.contract && $scope.contract.id === '98267') {
           result = $scope.newWorks;
+        } else if ($scope.contract && $scope.contract.id === '99377') {
+          result = $scope.worksArcommm;
         } else if ($scope.contract && $scope.contract.id === '99412') {
           result = $scope.worksALFA;
         } else if ($scope.contract && JSON.parse($scope.contract).id === '758437') {
@@ -254,6 +264,10 @@
               $scope.jobs[index].materialPrice = $item.price[$scope.oblastName];
               $scope.jobs[index].O25 = $item.O25;
             } else if ($scope.contract.id === '99412') {
+              let oblast = $scope.contractor.oblast;
+              $scope.jobs[index].materialPrice = $item.price[oblast];
+              $scope.jobs[index].O25 = $item.O25;
+            } else if ($scope.contract.id === '99377') {
               let oblast = $scope.contractor.oblast;
               $scope.jobs[index].materialPrice = $item.price[oblast];
               $scope.jobs[index].O25 = $item.O25;
@@ -307,7 +321,7 @@
             <!-- O20 -->
             let dismntWork = JSON.parse($scope.jobs[index].dismantlingFor)
             $scope.jobs[index].refersTo = dismntWork.referedWorks;
-            let multiplier = ['98267', '99412','758437'].includes(JSON.parse($scope.contract).id) ? 0.2 : 0.02;
+            let multiplier = ['99377','98267', '99412','758437'].includes(JSON.parse($scope.contract).id) ? 0.2 : 0.02;
             $scope.jobs[index].materialPrice = (dismntWork.materialPrice*multiplier).toFixed(2);
           }
         getSum(index);
@@ -622,43 +636,43 @@
               </td>
               <td>
                 <select
-                  class="form-control selectpicker"
-                  select-picker
-                  title=""
-                  select-model="jobs"
-                  required
-                  cam-variable-type="String"
-                  ng-model="job.transportationFor"
-                  ng-if="(job.num == 'O21' && !['98267', '99412','758437'].includes(contract.id)) || (job.num == 'O25' && ['98267', '99412','758437'].includes(contract.id))"
-                  ng-change="getPrice($index, true)"
+                        class="form-control selectpicker"
+                        select-picker
+                        title=""
+                        select-model="jobs"
+                        required
+                        cam-variable-type="String"
+                        ng-model="job.transportationFor"
+                        ng-if="(job.num == 'O21' && !['99377','98267', '99412','758437'].includes(contract.id)) || (job.num == 'O25' && ['98267', '99412','758437'].includes(contract.id))"
+                        ng-change="getPrice($index, true)"
                 >
                   <option value="">Select work</option>
                   <option
-                    ng-repeat="work in (['98267', '99412','758437'].includes(contract.id) ? (jobs | filter:{O25:true}) : jobs)"
-                    ng-selected="{{work === job.transportationFor}}"
-                    value="{{work}}"
+                          ng-repeat="work in (['99377','98267', '99412','758437'].includes(contract.id) ? (jobs | filter:{O25:true}) : jobs)"
+                          ng-selected="{{work === job.transportationFor}}"
+                          value="{{work}}"
                   >
                     {{work.num}}
                   </option>
                 </select>
                 <select
-                  class="form-control selectpicker"
-                  select-picker
-                  title=""
-                  select-model="o20JobWorks"
-                  required
-                  cam-variable-type="String"
-                  ng-model="job.dismantlingFor"
-                  ng-if="(job.num == 'O20' && !['98267', '99412','758437'].includes(contract.id)) || (job.num == 'O24' && ['98267', '99412','758437'].includes(contract.id))"
-                  ng-change="getPrice($index, false)"
+                        class="form-control selectpicker"
+                        select-picker
+                        title=""
+                        select-model="o20JobWorks"
+                        required
+                        cam-variable-type="String"
+                        ng-model="job.dismantlingFor"
+                        ng-if="(job.num == 'O20' && !['99377','98267', '99412','758437'].includes(contract.id)) || (job.num == 'O24' && ['98267', '99412','758437'].includes(contract.id))"
+                        ng-change="getPrice($index, false)"
                 >
                   <option value="">Select work</option>
                   <option
-                    ng-repeat="work in (['98267', '99412','758437'].includes(contract.id) ? (jobs | filter:{num:'O25'}): o20JobWorks)"
-                    ng-selected="{{work === job.dismantlingFor}}"
-                    value="{{work}}"
+                          ng-repeat="work in (['99377','98267', '99412','758437'].includes(contract.id) ? (jobs | filter:{num:'O25'}): o20JobWorks)"
+                          ng-selected="{{work === job.dismantlingFor}}"
+                          value="{{work}}"
                   >
-                    {{['98267', '99412','758437'].includes(contract.id) ? work.referedWorks : work.num}}
+                    {{['99377','98267', '99412','758437'].includes(contract.id) ? work.referedWorks : work.num}}
                   </option>
                 </select>
               </td>
