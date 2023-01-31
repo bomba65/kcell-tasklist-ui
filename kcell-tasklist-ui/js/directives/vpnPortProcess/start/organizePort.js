@@ -5,28 +5,13 @@ define(['./../../module'], function(module) {
             restrict: 'E',
             scope: {
                 addedPorts: '=',
+                oblastCatalog: '=',
+                districtCatalog: '=',
+                cityVillageCatalog: '=',
                 form: '=',
                 view: '='
             },
             link: function (scope, el, attrs) {
-                $http.get('/camunda/catalogs/api/get/id/30').then(
-                    function (response) {
-                        scope.oblastCatalog = response.data.data.$list;
-                    }
-                );
-
-                $http.get('/camunda/catalogs/api/get/id/31').then(
-                    function (response) {
-                        scope.districtCatalog = response.data.data.$list;
-                    }
-                );
-
-                $http.get('/camunda/catalogs/api/get/id/32').then(
-                    function (response) {
-                        scope.cityVillageCatalog = response.data.data.$list.sort(el => el.value);
-                    }
-                );
-
                 scope.searchOblastSelected = function (obl) {
                     scope.filteredDistrictCatalog = _.filter(scope.districtCatalog, el => el.parent === obl);
                     scope.addedPorts.length = 0;

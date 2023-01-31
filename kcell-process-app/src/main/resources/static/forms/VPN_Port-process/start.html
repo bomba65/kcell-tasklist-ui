@@ -4,18 +4,45 @@
             $scope.addedPorts = [];
             $scope.addedServices = [];
             $scope.disbandPorts = [];
+            $scope.disbandServices= [];
             $scope.channel = 'VPN';
-            $scope.request_type = 'Organize';
+            $scope.request_type = 'Disband';
             $scope.priority = 'Emergency';
+
+            $http.get('/camunda/catalogs/api/get/id/30').then(
+                function (response) {
+                    scope.oblastCatalog = response.data.data.$list;
+                }
+            );
+
+            $http.get('/camunda/catalogs/api/get/id/31').then(
+                function (response) {
+                    scope.districtCatalog = response.data.data.$list;
+                }
+            );
+
+            $http.get('/camunda/catalogs/api/get/id/32').then(
+                function (response) {
+                    scope.cityVillageCatalog = response.data.data.$list.sort(el => el.value);
+                }
+            );
+
+            $http.get('/camunda/catalogs/api/get/id/83').then(
+                function (response) {
+                    scope.serviceTypeCatalog = response.data.data.$list;
+                }
+            );
 
             $scope.preSubmit = function () {
                 const deferred = $q.defer();
                 if ($scope.request_type === 'Organize' && $scope.channel === 'Port' && $scope.addedPorts.length === 0) {
                     deferred.reject('Please add ports');
-                } else if ($scope.request_type === 'Organize' && $scope.channel === 'VPN' && $scope.addedServices.length === 0) {
-                    deferred.reject('Please add services');
                 } else if ($scope.request_type === 'Disband' && $scope.channel === 'Port' && $scope.disbandPorts.length === 0) {
                     deferred.reject('Please select ports to disband');
+                } else if ($scope.request_type === 'Organize' && $scope.channel === 'VPN' && $scope.addedServices.length === 0) {
+                    deferred.reject('Please add services');
+                } else if ($scope.request_type === 'Disband' && $scope.channel === 'VPN' && $scope.disbandServices.length === 0) {
+                    deferred.reject('Please select services to disband');
                 } else {
                     deferred.resolve();
                 }
@@ -46,6 +73,12 @@
                         name: 'addedServices',
                         type: 'Json',
                         value: $scope.addedServices
+                    });
+                } else if ($scope.request_type === 'Disband' && $scope.channel === 'VPN') {
+                    camForm.variableManager.createVariable({
+                        name: 'disbandServices',
+                        type: 'Json',
+                        value: $scope.disbandServices
                     });
                 }
 
@@ -89,7 +122,18 @@
         </div>
     </div>
 
-    <organize-port ng-if="channel === 'Port' && request_type === 'Organize'" added-ports="addedPorts" form="kcell_form" view="view"></organize-port>
-    <organize-vpn ng-if="channel === 'VPN' && request_type === 'Organize'" added-services="addedServices" form="kcell_form" view="view"></organize-vpn>
-    <disband-port ng-if="channel === 'Port' && request_type === 'Disband'" disband-ports="disbandPorts" form="kcell_form" view="view"></disband-port>
+    <organize-port ng-if="channel === 'Port' && request_type === 'Organize'" added-ports="addedPorts"
+                   oblast-catalog="oblastCatalog" district-catalog="districtCatalog"
+                   city-village-catalog="cityVillageCatalog" form="kcell_form" view="view"></organize-port>
+    <disband-port ng-if="channel === 'Port' && request_type === 'Disband'" disband-ports="disbandPorts"
+                  oblast-catalog="oblastCatalog" district-catalog="districtCatalog"
+                  city-village-catalog="cityVillageCatalog" form="kcell_form" view="view"></disband-port>
+    <organize-vpn ng-if="channel === 'VPN' && request_type === 'Organize'" added-services="addedServices"
+                  oblast-catalog="oblastCatalog" district-catalog="districtCatalog"
+                  city-village-catalog="cityVillageCatalog" service-type-catalog="serviceTypeCatalog"
+                  form="kcell_form" view="view"></organize-vpn>
+    <disband-vpn ng-if="channel === 'VPN' && request_type === 'Disband'" disband-services="disbandServices"
+                 oblast-catalog="oblastCatalog" district-catalog="districtCatalog"
+                 city-village-catalog="cityVillageCatalog" service-type-catalog="serviceTypeCatalog"
+                 form="kcell_form" view="view"></disband-vpn>
 </form>
