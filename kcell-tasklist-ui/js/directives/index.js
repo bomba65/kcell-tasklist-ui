@@ -22,6 +22,7 @@ define([
 	'./aftersalesRevolvingNumbers/index',
   	'./fixedInternet/index',
 	'./vpnPortProcess/start/organizePort',
-	'./vpnPortProcess/start/disbandPort'
+	'./vpnPortProcess/start/disbandPort',
+	'./vpnPortProcess/start/organizeVpn'
 //	'./search/demandSearch',
 	], function(){});

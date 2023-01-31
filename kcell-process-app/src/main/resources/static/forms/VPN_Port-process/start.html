@@ -2,15 +2,18 @@
     <script cam-script type="text/form-script" type="text/javascript">
         inject(['$scope', '$http', '$rootScope', '$q', '$timeout', 'exModal', function ($scope, $http, $rootScope, $q) {
             $scope.addedPorts = [];
+            $scope.addedServices = [];
             $scope.disbandPorts = [];
-            $scope.channel = 'Port';
-            $scope.request_type = 'Disband';
+            $scope.channel = 'VPN';
+            $scope.request_type = 'Organize';
             $scope.priority = 'Emergency';
 
             $scope.preSubmit = function () {
                 const deferred = $q.defer();
                 if ($scope.request_type === 'Organize' && $scope.channel === 'Port' && $scope.addedPorts.length === 0) {
                     deferred.reject('Please add ports');
+                } else if ($scope.request_type === 'Organize' && $scope.channel === 'VPN' && $scope.addedServices.length === 0) {
+                    deferred.reject('Please add services');
                 } else if ($scope.request_type === 'Disband' && $scope.channel === 'Port' && $scope.disbandPorts.length === 0) {
                     deferred.reject('Please select ports to disband');
                 } else {
@@ -37,6 +40,12 @@
                         name: 'disbandPorts',
                         type: 'Json',
                         value: $scope.disbandPorts
+                    });
+                } else if ($scope.request_type === 'Organize' && $scope.channel === 'VPN') {
+                    camForm.variableManager.createVariable({
+                        name: 'addedServices',
+                        type: 'Json',
+                        value: $scope.addedServices
                     });
                 }
 
@@ -81,5 +90,6 @@
     </div>
 
     <organize-port ng-if="channel === 'Port' && request_type === 'Organize'" added-ports="addedPorts" form="kcell_form" view="view"></organize-port>
+    <organize-vpn ng-if="channel === 'VPN' && request_type === 'Organize'" added-services="addedServices" form="kcell_form" view="view"></organize-vpn>
     <disband-port ng-if="channel === 'Port' && request_type === 'Disband'" disband-ports="disbandPorts" form="kcell_form" view="view"></disband-port>
 </form>

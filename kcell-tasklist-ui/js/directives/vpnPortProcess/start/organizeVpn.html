@@ -1,0 +1,270 @@
+<div class="form-group">
+    <div class="col-sm-8"><h4>Request #</h4></div>
+</div>
+<div class="form-group">
+    <div class="col-sm-3"><label>Request type & channel:</label></div>
+    <div class="col-sm-3">{{request_type + ' ' + channel}}</div>
+</div>
+<div class="form-group">
+    <div class="col-sm-3"><label>Priority:</label></div>
+    <div class="col-sm-3">{{priority}}</div>
+</div>
+
+<div class="form-group">
+    <div class="col-sm-1 control-label"><h4>Search</h4></div>
+    <div class="radio col-sm-2">
+        <label class="control-label">
+            <input type="radio" ng-model="searchOption" value="portId">
+            Port ID
+        </label>
+    </div>
+    <div class="radio col-sm-3">
+        <label class="control-label">
+            <input type="radio" ng-model="searchOption" value="farEndAddress">
+            Far end address
+        </label>
+    </div>
+</div>
+
+<div class="form-group" ng-show="searchOption === 'portId'">
+    <div class="col-sm-2"><label class="control-label">Search by Port ID</label></div>
+    <div class="col-sm-3">
+        <input type="text" class="form-control" ng-model="search_port_number" name="search_port_number" ng-required="searchOption === 'portId'">
+        <label class="error" ng-show="form.search_port_number.$error.required && ( form.search_port_number.$touched || view.submitted || isSearched)">Required field</label>
+    </div>
+    <div class="col-sm-2">
+        <button class="btn btn-success" ng-click="searchByPortNumber()">Search</button>
+    </div>
+</div>
+<div class="form-group" ng-show="searchOption === 'farEndAddress'">
+    <div class="panel-group custom-panel col-sm-6">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h4 class="panel-title">Search by Far end address</h4>
+            </div>
+            <div class="panel-body">
+                <div class="form-group">
+                    <div class="col-sm-4"><label class="control-label">Oblast</label></div>
+                    <div class="col-sm-8">
+                        <select class="form-control" select-picker id="search_oblast" name="search_oblast"
+                                ng-required="searchOption === 'farEndAddress'"
+                                ng-options="obl.id as obl.value for obl in oblastCatalog" ng-model="search_oblast"
+                                ng-change="searchOblastSelected(search_oblast)">
+                        </select>
+                        <label class="error" ng-show="form.search_oblast.$error.required && ( form.search_oblast.$touched || view.submitted || isSearched)">Required field</label>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="col-sm-4"><label class="control-label" for="search_district">District</label></div>
+                    <div class="col-sm-8">
+                        <select class="form-control" select-picker id="search_district" name="search_district"
+                                ng-required="searchOption === 'farEndAddress'"
+                                ng-options="dis.id as dis.value for dis in filteredDistrictCatalog"
+                                ng-model="search_district" ng-change="searchDistrictSelected(search_district)">
+                        </select>
+                        <label class="error" ng-show="form.search_district.$error.required && ( form.search_oblast.$touched || view.submitted || isSearched)">Required field</label>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="col-sm-4"><label class="control-label" for="city_village">City/Village</label></div>
+                    <div class="col-sm-8">
+                        <select class="form-control" select-picker id="city_village" name="city_village"
+                                ng-required="searchOption === 'farEndAddress'"
+                                ng-options="city.id as city.value for city in filteredCityVillageCatalog | orderBy: 'value'"
+                                ng-model="search_city_village" ng-change="searchCitySelected(city_village)">
+                        </select>
+                        <label class="error" ng-show="form.city_village.$error.required && ( form.search_oblast.$touched || view.submitted || isSearched)">Required field</label>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="col-sm-6">
+                        <button type="button" class="btn btn-success" ng-click="searchPorts()">Search</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="form-group">
+    <div class="col-sm-3"><h4>Available Ports </h4></div>
+</div>
+<div class="form-group">
+    <div class="col-sm-12">
+        <table class="table table-bordered">
+            <thead>
+            <tr>
+                <th>#</th>
+                <th>Port ID</th>
+                <th>Channel type</th>
+                <th>Port type</th>
+                <th>Capacity</th>
+                <th>Capacity unit</th>
+                <th>Far end address</th>
+                <th style="background-color: #cea3bf;">Add service</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr ng-repeat="availablePort in availablePorts">
+                <td>{{$index + 1}}</td>
+                <td>{{availablePort.port_id}}</td>
+                <td>{{availablePort.channel_type}}</td>
+                <td>{{availablePort.port_type}}</td>
+                <td>{{availablePort.capacity}}</td>
+                <td>{{availablePort.capacity_unit}}</td>
+                <td>{{addressToString(availablePort)}}</td>
+                <td style="background-color: #cea3bf;">
+                    <button class="btn btn-success" ng-click="addService(availablePort)">Add Service</button>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="form-group">
+    <div class="col-sm-3"><h4>Added Services</h4></div>
+</div>
+<div class="form-group">
+    <div class="col-sm-12">
+        <div ng-repeat="addedService in addedServices track by $index">
+            <div class="panel panel-default">
+                <div class="panel-heading clearfix" style="background-color: transparent; border: none;">
+                    <div class="pull-left">
+                        <span class="label label-default" style="background-color: #cea3bf; padding: 1.5em 2em">{{ $index + 1 }}</span>
+                    </div>
+                    <button type="button" class="btn btn-danger pull-right" ng-click="removeAddedService(addedService)">
+                        <span class="glyphicon glyphicon-remove"></span>
+                    </button>
+                </div>
+                <div class="panel-body">
+
+                    <div class="form-group row">
+                        <div class="col-sm-2">
+                            <label class="control-label">Port ID</label>
+                        </div>
+                        <div class="col-sm-4">
+                            <input type="text" name="port_id_{{$index}}" class="form-control"
+                                   ng-model="addedService.port_id"
+                                   disabled
+                                   required>
+                            <label class="error" ng-show="form.port_id_{{$index}}.$error.required && ( form.port_id_{{$index}}.$touched || view.submitted)">Required field</label>
+                        </div>
+                        <div class="col-sm-2">
+                            <label class="control-label">Service type</label>
+                        </div>
+                        <div class="col-sm-4">
+                            <select class="form-control" name="service_type_{{$index}}"
+                                    ng-model="addedService.service_type"
+                                    ng-options="serviceType.id as serviceType.value for serviceType in serviceTypeCatalog"
+                                    required>
+                            </select>
+                            <label class="error" ng-show="form.service_type_{{$index}}.$error.required && ( form.service_type_{{$index}}.$touched || view.submitted)">Required field</label>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <div class="col-sm-2">
+                            <label class="control-label">Service</label>
+                        </div>
+                        <div class="col-sm-4">
+                            <select class="form-control" name="service_{{$index}}"
+                                    ng-model="addedService.service"
+                                    required>
+                                <option value="L2">L2</option>
+                                <option value="L3">L3</option>
+                            </select>
+                            <label class="error" ng-show="form.service_{{$index}}.$error.required && ( form.service_{{$index}}.$touched || view.submitted)">Required field</label>
+                        </div>
+                        <div class="col-sm-2">
+                            <label class="control-label">Capacity (Mbit/s)</label>
+                        </div>
+                        <div class="col-sm-4">
+                            <input type="number" name="capacity_{{$index}}" class="form-control"
+                                   ng-model="addedService.capacity"
+                                   required>
+                            <label class="error" ng-show="form.capacity_{{$index}}.$error.required && ( form.capacity_{{$index}}.$touched || view.submitted)">Required field</label>
+                        </div>
+                    </div>
+
+                    <div class="form-group row">
+                        <div class="col-sm-12">
+                            <div class="panel panel-default">
+                                <div class="panel-heading clearfix">
+                                    <h4 class="panel-title">Near end address</h4>
+                                </div>
+                                <div class="panel-body">
+                                    <div class="form-group row">
+                                        <label class="col-sm-2 col-form-label control-label">Oblast</label>
+                                        <div class="col-sm-4 control-label">
+                                            <select class="form-control" select-picker id="oblast_{{$index}}" name="oblast_{{$index}}"
+                                                    ng-options="obl.id as obl.value for obl in oblastCatalog" ng-model="addedService.near_end_address.oblast"
+                                                    ng-change="addedServiceOblastSelected(addedService)"
+                                                    required>
+                                            </select>
+                                            <label class="error" ng-show="form.oblast_{{$index}}.$error.required && ( form.oblast_{{$index}}.$touched || view.submitted)">Required field</label>
+                                        </div>
+                                        <label class="col-sm-2 col-form-label control-label">Street /
+                                            Microdistrict</label>
+                                        <div class="col-sm-4">
+                                            <input type="text" class="form-control" name="street_{{$index}}" ng-model="addedService.near_end_address.street" ng-required="!addedService.near_end_address.address_not_full">
+                                            <label class="error" ng-show="form.street_{{$index}}.$error.required && ( form.street_{{$index}}.$touched || view.submitted)">Required field</label>
+                                        </div>
+                                    </div>
+                                    <div class="form-group row">
+                                        <label class="col-sm-2 col-form-label control-label">District</label>
+                                        <div class="col-sm-4 control-label">
+                                            <select class="form-control" select-picker id="district_{{$index}}" name="district_{{$index}}"
+                                                    required
+                                                    ng-options="dis.id as dis.value for dis in addedServicesDistrictCatalog[$index]"
+                                                    ng-model="addedService.near_end_address.district" ng-change="addedServiceDistrictSelected(addedService)">
+                                            </select>
+                                            <label class="error" ng-show="form.district_{{$index}}.$error.required && ( form.district_{{$index}}.$touched || view.submitted)">Required field</label>
+                                        </div>
+                                        <label class="col-sm-2 col-form-label control-label">Building</label>
+                                        <div class="col-sm-4">
+                                            <input type="text" class="form-control" name="building_{{$index}}" ng-model="addedService.near_end_address.building" ng-required="!addedService.near_end_address.address_not_full">
+                                            <label class="error" ng-show="form.building_{{$index}}.$error.required && ( form.building_{{$index}}.$touched || view.submitted)">Required field</label>
+                                        </div>
+                                    </div>
+                                    <div class="form-group row">
+                                        <label class="col-sm-2 col-form-label control-label">City / Village</label>
+                                        <div class="col-sm-4 control-label">
+                                            <select class="form-control" select-picker id="city_village_{{$index}}" name="city_village_{{$index}}"
+                                                    required
+                                                    ng-options="city.id as city.value for city in addedServicesCityCatalog[$index] | orderBy: 'value'"
+                                                    ng-model="addedService.near_end_address.city"">
+                                            </select>
+                                            <label class="error" ng-show="form.city_village_{{$index}}.$error.required && ( form.city_village_{{$index}}.$touched || view.submitted)">Required field</label>
+                                        </div>
+                                        <label class="col-sm-2 col-form-label control-label">Cadastral number</label>
+                                        <div class="col-sm-4">
+                                            <input type="text" class="form-control" name="cadastral_number_{{$index}}" ng-model="addedService.near_end_address.cadastral_number" ng-required="!addedService.near_end_address.address_not_full">
+                                            <label class="error" ng-show="form.cadastral_number_{{$index}}.$error.required && ( form.cadastral_number_{{$index}}.$touched || view.submitted)">Required field</label>
+                                        </div>
+                                    </div>
+                                    <div class="form-group row">
+                                        <div class="col-sm-2">Not full address</div>
+                                        <div class="col-sm-4">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox"
+                                                       id="address_not_full"
+                                                       ng-model="addedService.near_end_address.address_not_full">
+                                            </div>
+                                        </div>
+                                        <label class="col-sm-2 col-form-label control-label">Note
+                                            to the address</label>
+                                        <div class="col-sm-4">
+                                            <input type="text" class="form-control" name="address_note_{{$index}}" ng-model="addedService.near_end_address.address_note" ng-required="!addedService.near_end_address.address_not_full">
+                                            <label class="error" ng-show="form.address_note_{{$index}}.$error.required && ( form.address_note_{{$index}}.$touched || view.submitted)">Required field</label>
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
