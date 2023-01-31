@@ -2,12 +2,21 @@
     <script cam-script type="text/form-script" type="text/javascript">
         inject(['$scope', '$http', '$rootScope', '$q', '$timeout', 'exModal', function ($scope, $http, $rootScope, $q) {
             $scope.addedPorts = [];
-            $scope.addedServices = [];
             $scope.disbandPorts = [];
+            $scope.modifyPorts = [];
+            $scope.addedServices = [];
             $scope.disbandServices= [];
-            $scope.channel = 'VPN';
-            $scope.request_type = 'Disband';
-            $scope.priority = 'Emergency';
+            $scope.channel = 'Port';
+            $scope.request_type = 'Modify';
+            $scope.priority = 'Regular';
+
+            $scope.clearArrays = function () {
+                $scope.addedPorts = [];
+                $scope.disbandPorts = [];
+                $scope.modifyPorts = [];
+                $scope.addedServices = [];
+                $scope.disbandServices= [];
+            }
 
             $http.get('/camunda/catalogs/api/get/id/30').then(
                 function (response) {
@@ -39,6 +48,8 @@
                     deferred.reject('Please add ports');
                 } else if ($scope.request_type === 'Disband' && $scope.channel === 'Port' && $scope.disbandPorts.length === 0) {
                     deferred.reject('Please select ports to disband');
+                } else if ($scope.request_type === 'Modify' && $scope.channel === 'Port' && $scope.modifyPorts.length === 0) {
+                    deferred.reject('Please select ports to disband');
                 } else if ($scope.request_type === 'Organize' && $scope.channel === 'VPN' && $scope.addedServices.length === 0) {
                     deferred.reject('Please add services');
                 } else if ($scope.request_type === 'Disband' && $scope.channel === 'VPN' && $scope.disbandServices.length === 0) {
@@ -68,6 +79,12 @@
                         type: 'Json',
                         value: $scope.disbandPorts
                     });
+                }else if ($scope.request_type === 'Modify' && $scope.channel === 'Port') {
+                    camForm.variableManager.createVariable({
+                        name: 'modifyPorts',
+                        type: 'Json',
+                        value: $scope.modifyPorts
+                    });
                 } else if ($scope.request_type === 'Organize' && $scope.channel === 'VPN') {
                     camForm.variableManager.createVariable({
                         name: 'addedServices',
@@ -95,17 +112,20 @@
     <div class="form-group">
         <div class="col-sm-3 text-center">
             <label class="radio-inline">
-                <input type="radio" id="channel_vpn" name="channel" value="VPN" ng-model="channel" required>VPN
+                <input type="radio" id="channel_vpn" name="channel" value="VPN" ng-model="channel"
+                       ng-change="clearArrays()" required>VPN
             </label>
             <label class="radio-inline">
-                <input type="radio" id="channel_port" name="channel" value="Port" ng-model="channel" required>Port
+                <input type="radio" id="channel_port" name="channel" value="Port" ng-model="channel"
+                       ng-change="clearArrays()" required>Port
             </label>
         </div>
     </div>
     <div class="form-group">
         <div class="col-sm-3"><label class="control-label" for="request_type">Request Type</label></div>
         <div class="col-sm-6">
-            <select class="form-control" select-picker id="request_type" name="request_type" ng-model="request_type" required>
+            <select class="form-control" select-picker id="request_type" name="request_type" ng-model="request_type"
+                    ng-change="clearArrays()" required>
                 <option value="Organize">Organize</option>
                 <option value="Disband">Disband</option>
                 <option value="Modify">Modify</option>
@@ -128,6 +148,9 @@
     <disband-port ng-if="channel === 'Port' && request_type === 'Disband'" disband-ports="disbandPorts"
                   oblast-catalog="oblastCatalog" district-catalog="districtCatalog"
                   city-village-catalog="cityVillageCatalog" form="kcell_form" view="view"></disband-port>
+    <modify-port ng-if="channel === 'Port' && request_type === 'Modify'" modify-ports="modifyPorts"
+                 oblast-catalog="oblastCatalog" district-catalog="districtCatalog"
+                 city-village-catalog="cityVillageCatalog" form="kcell_form" view="view"></modify-port>
     <organize-vpn ng-if="channel === 'VPN' && request_type === 'Organize'" added-services="addedServices"
                   oblast-catalog="oblastCatalog" district-catalog="districtCatalog"
                   city-village-catalog="cityVillageCatalog" service-type-catalog="serviceTypeCatalog"

@@ -1,0 +1,189 @@
+<div class="form-group">
+    <div class="col-sm-8"><h4>Request #</h4></div>
+</div>
+<div class="form-group">
+    <div class="col-sm-3"><label>Request type & channel:</label></div>
+    <div class="col-sm-3">{{request_type + ' ' + channel}}</div>
+</div>
+<div class="form-group">
+    <div class="col-sm-3"><label>Priority:</label></div>
+    <div class="col-sm-3">{{priority}}</div>
+</div>
+
+<div class="form-group">
+    <div class="col-sm-1 control-label"><h4>Search</h4></div>
+    <div class="radio col-sm-2">
+        <label class="control-label">
+            <input type="radio" ng-model="searchOption" value="portId">
+            Port ID
+        </label>
+    </div>
+    <div class="radio col-sm-3">
+        <label class="control-label">
+            <input type="radio" ng-model="searchOption" value="farEndAddress">
+            Far end address
+        </label>
+    </div>
+</div>
+
+<div class="form-group" ng-show="searchOption === 'portId'">
+    <div class="col-sm-2"><label class="control-label">Search by Port ID</label></div>
+    <div class="col-sm-3">
+        <input type="text" class="form-control" ng-model="search_port_number" name="search_port_number" ng-required="searchOption === 'portId'">
+        <label class="error" ng-show="form.search_port_number.$error.required && ( form.search_port_number.$touched || view.submitted || isSearched)">Required field</label>
+    </div>
+    <div class="col-sm-2">
+        <button class="btn btn-success" ng-click="searchByPortNumber()">Search</button>
+    </div>
+</div>
+<div class="form-group" ng-show="searchOption === 'farEndAddress'">
+    <div class="panel-group custom-panel col-sm-6">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h4 class="panel-title">Search by Far end address</h4>
+            </div>
+            <div class="panel-body">
+                <div class="form-group">
+                    <div class="col-sm-4"><label class="control-label">Oblast</label></div>
+                    <div class="col-sm-8">
+                        <select class="form-control" select-picker id="search_oblast" name="search_oblast"
+                                ng-required="searchOption === 'farEndAddress'"
+                                ng-options="obl.id as obl.value for obl in oblastCatalog" ng-model="search_oblast"
+                                ng-change="searchOblastSelected(search_oblast)">
+                        </select>
+                        <label class="error" ng-show="form.search_oblast.$error.required && ( form.search_oblast.$touched || view.submitted || isSearched)">Required field</label>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="col-sm-4"><label class="control-label" for="search_district">District</label></div>
+                    <div class="col-sm-8">
+                        <select class="form-control" select-picker id="search_district" name="search_district"
+                                ng-required="searchOption === 'farEndAddress'"
+                                ng-options="dis.id as dis.value for dis in filteredDistrictCatalog"
+                                ng-model="search_district" ng-change="searchDistrictSelected(search_district)">
+                        </select>
+                        <label class="error" ng-show="form.search_district.$error.required && ( form.search_oblast.$touched || view.submitted || isSearched)">Required field</label>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="col-sm-4"><label class="control-label" for="city_village">City/Village</label></div>
+                    <div class="col-sm-8">
+                        <select class="form-control" select-picker id="city_village" name="city_village"
+                                ng-required="searchOption === 'farEndAddress'"
+                                ng-options="city.id as city.value for city in filteredCityVillageCatalog | orderBy: 'value'"
+                                ng-model="search_city_village" ng-change="searchCitySelected(city_village)">
+                        </select>
+                        <label class="error" ng-show="form.city_village.$error.required && ( form.search_oblast.$touched || view.submitted || isSearched)">Required field</label>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="col-sm-6">
+                        <button type="button" class="btn btn-success" ng-click="searchPorts()">Search</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="form-group">
+    <div class="col-sm-3"><h4>Available Ports </h4></div>
+</div>
+<div class="form-group">
+    <div class="col-sm-12">
+        <table class="table table-bordered">
+            <thead>
+            <tr>
+                <th>#</th>
+                <th>Port ID</th>
+                <th>Channel type</th>
+                <th>Port type</th>
+                <th>Capacity</th>
+                <th>Capacity unit</th>
+                <th>Far end address</th>
+                <th style="background-color: #cea3bf;">Modify</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr ng-repeat="availablePort in availablePorts">
+                <td>{{$index + 1}}</td>
+                <td>{{availablePort.port_id}}</td>
+                <td>{{availablePort.channel_type}}</td>
+                <td>{{availablePort.port_type}}</td>
+                <td>{{availablePort.capacity}}</td>
+                <td>{{availablePort.capacity_unit}}</td>
+                <td>{{availablePort.far_end_address}}</td>
+                <td style="background-color: #cea3bf;">
+                    <input type="checkbox" ng-checked="isSelected(availablePort)" ng-click="addModifyPort(availablePort)">
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+
+<div class="form-group">
+    <div class="col-sm-3"><h4>Modified Ports </h4></div>
+</div>
+<div class="form-group">
+    <div class="col-sm-12">
+        <table class="table table-bordered">
+            <thead>
+            <tr>
+                <th>#</th>
+                <th>Port ID</th>
+                <th style="background-color: #cea3bf;">Channel type</th>
+                <th style="background-color: #cea3bf;">Port type</th>
+                <th>Capacity</th>
+                <th>Capacity unit</th>
+                <th style="background-color: #cea3bf;">Modified capacity</th>
+                <th style="background-color: #cea3bf;">Modified capacity unit</th>
+                <th>Far end address</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr ng-repeat="modifyPort in modifyPorts">
+                <td>{{$index + 1}}</td>
+                <td>{{modifyPort.port_id}}</td>
+                <td style="background-color: #cea3bf;">
+                    <select class="form-control" name="channel_type_{{$index}}" ng-model="modifyPort.channel_type"
+                            required style="width: auto;min-width: fit-content;">
+                        <option value="Main">Main</option>
+                        <option value="Reserve">Reserve</option>
+                    </select>
+                    <label class="error" ng-show="form.channel_type_{{$index}}.$error.required && ( form.channel_type_{{$index}}.$touched || view.submitted)">Required field</label>
+                </td>
+                <td style="background-color: #cea3bf;">
+                    <select class="form-control" name="port_type_{{$index}}" ng-model="modifyPort.port_type"
+                            ng-disabled="modifyPort.modified_capacity_unit == 'Mb'"
+                            required style="width: auto;min-width: fit-content;">
+                        <option value="Copper" ng-selected="modifyPort.modified_capacity_unit == 'Mb'">Copper
+                        </option>
+                        <option value="Optic">Optic</option>
+                    </select>
+                    <label class="error" ng-show="form.port_type_{{$index}}.$error.required && ( form.port_type_{{$index}}.$touched || view.submitted)">Required field</label>
+                </td>
+                <td>{{modifyPort.capacity}}</td>
+                <td>{{modifyPort.capacity_unit}}</td>
+                <td style="background-color: #cea3bf;">
+                    <input type="number" name="capacity_{{$index}}" class="form-control"
+                           ng-model="modifyPort.modified_capacity"
+                           required>
+                    <label class="error" ng-show="form.capacity_{{$index}}.$error.required && ( form.capacity_{{$index}}.$touched || view.submitted)">Required field</label>
+                </td>
+                <td style="background-color: #cea3bf;">
+                    <select class="form-control" name="capacity_unit_{{$index}}"
+                            ng-model="modifyPort.modified_capacity_unit"
+                            required>
+                        <option value="Gb">Gb</option>
+                        <option value="Mb">Mb</option>
+                    </select>
+                    <label class="error" ng-show="form.capacity_unit_{{$index}}.$error.required && ( form.capacity_unit_{{$index}}.$touched || view.submitted)">Required field</label>
+                </td>
+                <td>{{modifyPort.far_end_address}}</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
