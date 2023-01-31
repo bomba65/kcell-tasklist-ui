@@ -1,0 +1,164 @@
+<div class="form-group">
+    <div class="col-sm-8"><h4>Request #</h4></div>
+</div>
+<div class="form-group">
+    <div class="col-sm-3"><label>Request type & channel:</label></div>
+    <div class="col-sm-3">{{request_type + ' ' + channel}}</div>
+</div>
+<div class="form-group">
+    <div class="col-sm-3"><label>Priority:</label></div>
+    <div class="col-sm-3">{{priority}}</div>
+</div>
+
+<div class="form-group">
+    <div class="col-sm-1 control-label"><h4>Search</h4></div>
+    <div class="radio col-sm-2">
+        <label class="control-label">
+            <input type="radio" ng-model="searchOption" value="vpnId">
+            VPN ID
+        </label>
+    </div>
+    <div class="radio col-sm-2">
+        <label class="control-label">
+            <input type="radio" ng-model="searchOption" value="portId">
+            Port ID
+        </label>
+    </div>
+    <div class="radio col-sm-3">
+        <label class="control-label">
+            <input type="radio" ng-model="searchOption" value="farEndAddress">
+            Far end address
+        </label>
+    </div>
+    <div class="radio col-sm-3">
+        <label class="control-label">
+            <input type="radio" ng-model="searchOption" value="nearEndAddress">
+            Near end address
+        </label>
+    </div>
+</div>
+
+<div class="form-group" ng-show="searchOption === 'vpnId'">
+    <div class="col-sm-2"><label class="control-label">Search by VPN ID</label></div>
+    <div class="col-sm-3">
+        <input type="text" class="form-control" ng-model="search_vpn_id" name="search_vpn_id" ng-required="searchOption === 'vpnId'">
+        <label class="error" ng-show="form.search_vpn_id.$error.required && ( form.search_vpn_id.$touched || view.submitted || isSearched)">Required field</label>
+    </div>
+    <div class="col-sm-2">
+        <button class="btn btn-success" ng-click="searchByVpnId()">Search</button>
+    </div>
+</div>
+<div class="form-group" ng-show="searchOption === 'portId'">
+    <div class="col-sm-2"><label class="control-label">Search by Port ID</label></div>
+    <div class="col-sm-3">
+        <input type="text" class="form-control" ng-model="search_port_number" name="search_port_number" ng-required="searchOption === 'portId'">
+        <label class="error" ng-show="form.search_port_number.$error.required && ( form.search_port_number.$touched || view.submitted || isSearched)">Required field</label>
+    </div>
+    <div class="col-sm-2">
+        <button class="btn btn-success" ng-click="searchByPortNumber()">Search</button>
+    </div>
+</div>
+<div class="form-group" ng-show="searchOption === 'farEndAddress' || searchOption === 'nearEndAddress'">
+    <div class="panel-group custom-panel col-sm-6">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h4 class="panel-title">Search by {{searchOption === 'farEndAddress' ? 'Far' : 'Near'}} end address</h4>
+            </div>
+            <div class="panel-body">
+                <div class="form-group">
+                    <div class="col-sm-4"><label class="control-label">Oblast</label></div>
+                    <div class="col-sm-8">
+                        <select class="form-control" select-picker id="search_oblast" name="search_oblast"
+                                ng-required="searchOption === 'farEndAddress' || searchOption === 'nearEndAddress'"
+                                ng-options="obl.id as obl.value for obl in oblastCatalog" ng-model="search_oblast"
+                                ng-change="searchOblastSelected(search_oblast)">
+                        </select>
+                        <label class="error" ng-show="form.search_oblast.$error.required && ( form.search_oblast.$touched || view.submitted || isSearched)">Required field</label>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="col-sm-4"><label class="control-label" for="search_district">District</label></div>
+                    <div class="col-sm-8">
+                        <select class="form-control" select-picker id="search_district" name="search_district"
+                                ng-required="searchOption === 'farEndAddress' || searchOption === 'nearEndAddress'"
+                                ng-options="dis.id as dis.value for dis in filteredDistrictCatalog"
+                                ng-model="search_district" ng-change="searchDistrictSelected(search_district)">
+                        </select>
+                        <label class="error" ng-show="form.search_district.$error.required && ( form.search_oblast.$touched || view.submitted || isSearched)">Required field</label>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="col-sm-4"><label class="control-label" for="city_village">City/Village</label></div>
+                    <div class="col-sm-8">
+                        <select class="form-control" select-picker id="city_village" name="city_village"
+                                ng-required="searchOption === 'farEndAddress' || searchOption === 'nearEndAddress'"
+                                ng-options="city.id as city.value for city in filteredCityVillageCatalog | orderBy: 'value'"
+                                ng-model="search_city_village" ng-change="searchCitySelected(city_village)">
+                        </select>
+                        <label class="error" ng-show="form.city_village.$error.required && ( form.search_oblast.$touched || view.submitted || isSearched)">Required field</label>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="col-sm-6">
+                        <button type="button" class="btn btn-success" ng-click="searchServices()">Search</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="form-group">
+    <div class="col-sm-3"><h4>Available Services </h4></div>
+</div>
+<div class="form-group" ng-if="searchOption === 'farEndAddress'">
+    <div class="col-sm-12 control-label">Far end address: {{}}</div>
+</div>
+<div class="form-group">
+    <div class="col-sm-12">
+        <table class="table table-bordered">
+            <thead>
+            <tr>
+                <th>#</th>
+                <th>VPN ID</th>
+                <th>Service</th>
+                <th>Service Type</th>
+                <th>Capacity (Mbit/s)</th>
+                <th>VLAN</th>
+                <th>Provider IP</th>
+                <th>Kcell IP</th>
+                <th>Provider AS</th>
+                <th>Kcell AS</th>
+                <th style="background-color: #e6e6e6">Port ID</th>
+                <th style="background-color: #e6e6e6">Channel Type</th>
+                <th style="background-color: #e6e6e6">Port Type</th>
+                <th style="background-color: #e6e6e6">Far end address</th>
+                <th style="background-color: #e6e6e6">Near end address</th>
+                <th style="background-color: #cea3bf;">Disband</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr ng-repeat="availableService in availableServices">
+                <td>{{$index + 1}}</td>
+                <td>{{ availableService.vpn_id }}</td>
+                <td>{{ availableService.service }}</td>
+                <td>{{ getValueById('serviceTypeCatalog',availableService.service_type) }}</td>
+                <td>{{ availableService.service_capacity }}</td>
+                <td>{{ availableService.vlan }}</td>
+                <td>{{ availableService.provider_ip }}</td>
+                <td>{{ availableService.kcell_ip }}</td>
+                <td>{{ availableService.provider_as }}</td>
+                <td>{{ availableService.kcell_as }}</td>
+                <td style="background-color: #e6e6e6">{{ availableService.port_number }}</td>
+                <td style="background-color: #e6e6e6">{{ availableService.channel_type }}</td>
+                <td style="background-color: #e6e6e6">{{ availableService.port_type }}</td>
+                <td style="background-color: #e6e6e6">{{ farEndAddressToString(availableService) }}</td>
+                <td style="background-color: #e6e6e6">{{ nearEndAddressToString(availableService) }}</td>
+                <td style="background-color: #cea3bf;">
+                    <input type="checkbox" ng-checked="isSelected(availableService)" ng-click="addDisbandService(availableService)">
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>

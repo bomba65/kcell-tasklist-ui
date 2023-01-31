@@ -23,6 +23,7 @@ define([
   	'./fixedInternet/index',
 	'./vpnPortProcess/start/organizePort',
 	'./vpnPortProcess/start/disbandPort',
-	'./vpnPortProcess/start/organizeVpn'
+	'./vpnPortProcess/start/organizeVpn',
+	'./vpnPortProcess/start/disbandVpn'
 //	'./search/demandSearch',
 	], function(){});
