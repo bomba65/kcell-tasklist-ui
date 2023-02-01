@@ -26,5 +26,6 @@ define([
 	'./vpnPortProcess/start/organizeVpn',
 	'./vpnPortProcess/start/disbandVpn',
 	'./vpnPortProcess/start/modifyPort',
+	'./vpnPortProcess/start/modifyVpn',
 //	'./search/demandSearch',
 	], function(){});
