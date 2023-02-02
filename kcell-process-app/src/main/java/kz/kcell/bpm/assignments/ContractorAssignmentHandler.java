@@ -47,7 +47,7 @@ public class ContractorAssignmentHandler implements TaskListener {
                 delegateTask.addCandidateGroup("east_contractor_alta");
             } else if (Arrays.asList("41", "42", "47").contains(siteIdFirstTwoDigits)) {
                 delegateTask.addCandidateGroup("south_contractor_foresterhg");
-            } else if (Arrays.asList("43", "44").contains(siteIdFirstTwoDigits)) {
+            } else if (Arrays.asList("43", "44","99").contains(siteIdFirstTwoDigits)) {
                 delegateTask.addCandidateGroup("south_contractor_alta");
             } else if (Arrays.asList("45", "46").contains(siteIdFirstTwoDigits)) {
                 delegateTask.addCandidateGroup("south_contractor_arlan");
