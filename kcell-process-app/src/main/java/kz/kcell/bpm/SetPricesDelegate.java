@@ -22,7 +22,22 @@ import java.util.Objects;
 
 @Log
 public class SetPricesDelegate implements TaskListener {
-
+    private static final Map<String, Double> DISCOUNT_MAP = new HashMap<String,Double>() {{
+        put("Акмолинская область", 0.20);
+        put("Алматинская область", 0.20);
+        put("Восточно-Казахстанская область", 0.20);
+        put("Жамбылская область", 0.20);
+        put("Атырауская область", 0.17);
+        put("Мангыстауская область", 0.20);
+        put("Западно-Казахстанская область", 0.17);
+        put("Туркестанская область", 0.17);
+        put("Кызылординская область", 0.04);
+        put("Актюбинская область", 0.03);
+        put("Карагандинская область", 0.03);
+        put("Костанайская область", 0.03);
+        put("Северо-Казахстанская область", 0.03);
+        put("Павлодарская область", 0.03);
+    }};
     @Override
     public void notify(DelegateTask delegateTask) {
         try {
@@ -183,6 +198,11 @@ public class SetPricesDelegate implements TaskListener {
                             if (unitWorkPrice_jr.get(i) != null) {
                                 String s = String.valueOf(unitWorkPrice_jr.get(i));
                                 unitWorkPrice = new BigDecimal(s);
+                                double discount= DISCOUNT_MAP.get(oblastName);
+                                BigDecimal totalWithDiscount=unitWorkPrice;
+                                totalWithDiscount=totalWithDiscount.multiply(new BigDecimal(1.00-discount));
+                                totalWithDiscount=totalWithDiscount.multiply(new BigDecimal(workPrice.get("quantity").asText())).setScale(2, RoundingMode.DOWN);
+                                workPrice.put("totalWithDiscount",totalWithDiscount.toString());
                             }
                         }
                         workPrice.put("basePrice", priceJson.get(oblastName).textValue());

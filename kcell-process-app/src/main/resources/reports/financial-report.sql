@@ -67,7 +67,7 @@ select
     CAST(convert_from(statusBytes.bytes_, 'UTF8') AS json)->>'comment' as "Return reason",
     totalWorkPrice.unitWorkPrice as "Price without transport",
     totalWorkPrice.unitWorkPricePlusTx as "Price with transport",
-    discount.text_ as "Price discount",
+    totalWorkPrice.totalWithDiscount as "Price discount",
     monthlyAct.text_ as "Monthly act #",
     jrNumber.text_ as "JO#",
     sapPRNo.text_ as "PR#",
@@ -167,6 +167,7 @@ from act_hi_procinst pi
          left join lateral (
     select distinct workPricesJson.value->>'sapServiceNumber' as sapServiceNumber,
                     workPricesJson.value->>'quantity' as quantity,
+                    cast(workPricesJson.value->>'totalWithDiscount' as numeric) as totalWithDiscount,
                     --workPricesJson.value->>'basePriceByQuantity' as basePriceByQuantity,
                     --workPricesJson.value->>'netWorkPricePerSite' as netWorkPricePerSite
                     cast(workPricesJson.value ->>'unitWorkPrice' as numeric) * cast(worksJson.value ->>'quantity' as double precision) as unitWorkPrice,            --"Price without transport",
