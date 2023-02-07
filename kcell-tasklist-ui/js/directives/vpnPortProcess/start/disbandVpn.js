@@ -1,6 +1,6 @@
 define(['./../../module'], function(module) {
     'use strict';
-    module.directive('disbandVpn', ['$http', '$timeout', 'toasty', function ($http, $timeout, toasty) {
+    module.directive('disbandVpn', ['$http', function ($http) {
         return {
             restrict: 'E',
             scope: {
@@ -38,219 +38,46 @@ define(['./../../module'], function(module) {
                     scope.disbandServices.length = 0;
                     scope.isSearched = true;
                     if (!scope.search_oblast || !scope.search_district || !scope.search_city_village) return;
-                    scope.availableServices = [];
-                    scope.availableServices.push(
-                        {
-                            "vpn_id": "VPN001",
-                            "service": "L3",
-                            "service_type": 3,
-                            "service_capacity": 100,
-                            "vlan": "232",
-                            "provider_ip": "10.0.0.1",
-                            "kcell_ip": "10.0.0.2",
-                            "provider_as": 65500,
-                            "kcell_as": 65501,
-                            "port_number": "БаканасСЕ1",
-                            "channel_type": "Main",
-                            "port_type": "Optic",
-                            "far_end_address": {
-                                "oblast": 1,
-                                "district": 1,
-                                "city": 1,
-                                "street": "ул. Канаева",
-                                "building": "33",
-                                "cadastral_number": null,
-                                "address_note": null
-                            },
-                            "near_end_address": {
-                                "oblast": 1,
-                                "district": 1,
-                                "city": 1,
-                                "street": "ул. Канаева",
-                                "building": "33",
-                                "cadastral_number": null,
-                                "address_note": null
+
+                    if (scope.searchOption === 'farEndAddress') {
+                        $http.get('/camunda/vpn/far_end_city_id/' + scope.search_city_village).then(
+                            (response) => {
+                                scope.availableServices = response.data;
                             }
-                        },
-                        {
-                            "vpn_id": "VPN002",
-                            "service": "L2",
-                            "service_type": 10,
-                            "service_capacity": 100,
-                            "vlan": "235",
-                            "provider_ip": "10.0.0.1",
-                            "kcell_ip": "10.0.0.2",
-                            "provider_as": 65500,
-                            "kcell_as": 65501,
-                            "port_number": "БаканасСЕ1",
-                            "channel_type": "Main",
-                            "port_type": "Optic",
-                            "far_end_address": {
-                                "oblast": 1,
-                                "district": 1,
-                                "city": 1,
-                                "street": "ул. Канаева",
-                                "building": "33",
-                                "cadastral_number": null,
-                                "address_note": null
-                            },
-                            "near_end_address": {
-                                "oblast": 1,
-                                "district": 1,
-                                "city": 1,
-                                "street": "ул. Канаева",
-                                "building": "33",
-                                "cadastral_number": null,
-                                "address_note": null
+                        );
+                    } else if (scope.searchOption === 'nearEndAddress') {
+                        $http.get('/camunda/vpn/near_end_city_id/' + scope.search_city_village).then(
+                            (response) => {
+                                scope.availableServices = response.data
                             }
-                        }
-                    )
+                        );
+                    }
+
+
                 }
 
                 scope.searchByPortNumber = function () {
                     scope.disbandServices.length = 0;
                     scope.isSearched = true;
                     if (!scope.search_port_number) return;
-                    scope.availableServices = [];
-                    scope.availableServices.push(
-                        {
-                            "vpn_id": "VPN001",
-                            "service": "L3",
-                            "service_type": 3,
-                            "service_capacity": 100,
-                            "vlan": "232",
-                            "provider_ip": "10.0.0.1",
-                            "kcell_ip": "10.0.0.2",
-                            "provider_as": 65500,
-                            "kcell_as": 65501,
-                            "port_number": "БаканасСЕ1",
-                            "channel_type": "Main",
-                            "port_type": "Optic",
-                            "far_end_address": {
-                                "oblast": 1,
-                                "district": 1,
-                                "city": 1,
-                                "street": "ул. Канаева",
-                                "building": "33",
-                                "cadastral_number": null,
-                                "address_note": null
-                            },
-                            "near_end_address": {
-                                "oblast": 1,
-                                "district": 1,
-                                "city": 1,
-                                "street": "ул. Канаева",
-                                "building": "33",
-                                "cadastral_number": null,
-                                "address_note": null
-                            }
-                        },
-                        {
-                            "vpn_id": "VPN002",
-                            "service": "L2",
-                            "service_type": 10,
-                            "service_capacity": 100,
-                            "vlan": "235",
-                            "provider_ip": "10.0.0.1",
-                            "kcell_ip": "10.0.0.2",
-                            "provider_as": 65500,
-                            "kcell_as": 65501,
-                            "port_number": "БаканасСЕ1",
-                            "channel_type": "Main",
-                            "port_type": "Optic",
-                            "far_end_address": {
-                                "oblast": 1,
-                                "district": 1,
-                                "city": 1,
-                                "street": "ул. Канаева",
-                                "building": "33",
-                                "cadastral_number": null,
-                                "address_note": null
-                            },
-                            "near_end_address": {
-                                "oblast": 1,
-                                "district": 1,
-                                "city": 1,
-                                "street": "ул. Канаева",
-                                "building": "33",
-                                "cadastral_number": null,
-                                "address_note": null
-                            }
+
+                    $http.get('/camunda/vpn/port_number/' + scope.search_port_number).then(
+                        (response) => {
+                            scope.availableServices = response.data
                         }
-                    )
+                    );
                 }
                 
                 scope.searchByVpnId = function() {
                     scope.disbandServices.length = 0;
                     scope.isSearched = true;
                     if (!scope.search_vpn_id) return;
-                    scope.availableServices = [];
-                    scope.availableServices.push(
-                        {
-                            "vpn_id": "VPN001",
-                            "service": "L3",
-                            "service_type": 3,
-                            "service_capacity": 100,
-                            "vlan": "232",
-                            "provider_ip": "10.0.0.1",
-                            "kcell_ip": "10.0.0.2",
-                            "provider_as": 65500,
-                            "kcell_as": 65501,
-                            "port_number": "БаканасСЕ1",
-                            "channel_type": "Main",
-                            "port_type": "Optic",
-                            "far_end_address": {
-                                "oblast": 1,
-                                "district": 1,
-                                "city": 1,
-                                "street": "ул. Канаева",
-                                "building": "33",
-                                "cadastral_number": null,
-                                "address_note": null
-                            },
-                            "near_end_address": {
-                                "oblast": 1,
-                                "district": 1,
-                                "city": 1,
-                                "street": "ул. Канаева",
-                                "building": "33",
-                                "cadastral_number": null,
-                                "address_note": null
-                            }
-                        },
-                        {
-                            "vpn_id": "VPN002",
-                            "service": "L2",
-                            "service_type": 10,
-                            "service_capacity": 100,
-                            "vlan": "235",
-                            "provider_ip": "10.0.0.1",
-                            "kcell_ip": "10.0.0.2",
-                            "provider_as": 65500,
-                            "kcell_as": 65501,
-                            "port_number": "БаканасСЕ1",
-                            "channel_type": "Main",
-                            "port_type": "Optic",
-                            "far_end_address": {
-                                "oblast": 1,
-                                "district": 1,
-                                "city": 1,
-                                "street": "ул. Канаева",
-                                "building": "33",
-                                "cadastral_number": null,
-                                "address_note": null
-                            },
-                            "near_end_address": {
-                                "oblast": 1,
-                                "district": 1,
-                                "city": 1,
-                                "street": "ул. Канаева",
-                                "building": "33",
-                                "cadastral_number": null,
-                                "address_note": null
-                            }
+
+                    $http.get('/camunda/vpn/vpn_number/' + scope.search_vpn_number).then(
+                        (response) => {
+                            scope.availableServices = response.data
                         }
-                    )
+                    );
                 }
                 
                 
@@ -266,19 +93,14 @@ define(['./../../module'], function(module) {
                     }
                 };
 
-                scope.farEndAddressToString = function (availableService) {
-                    return scope.getValueById('oblastCatalog', availableService.far_end_address.oblast) + ' '
-                        + scope.getValueById('districtCatalog', availableService.far_end_address.district) + ' '
-                        + scope.getValueById('cityVillageCatalog', availableService.far_end_address.city) + ' '
-                        + availableService.far_end_address.street + ' ' + availableService.far_end_address.building;
-                }
+                scope.addressToString = function (address) {
+                    if (!address) return;
 
-                scope.nearEndAddressToString = function (availableService) {
-                    return scope.getValueById('oblastCatalog', availableService.near_end_address.oblast) + ' '
-                        + scope.getValueById('districtCatalog', availableService.near_end_address.district) + ' '
-                        + scope.getValueById('cityVillageCatalog', availableService.near_end_address.city) + ' '
-                        + availableService.near_end_address.street + ' ' + availableService.near_end_address.building;
-                }
+                    return address.city_id.district_id.oblast_id.name + ' '
+                        + address.city_id.district_id.name + ' '
+                        + address.city_id.name + ' '
+                        + address.street + ' ' + address.building;
+                };
 
                 scope.getValueById = function (name, id) {
                     return _.find(scope[name], el => el.id === id).value;
