@@ -519,6 +519,14 @@
                 {id: 'south', name: 'South', value: 'S'},
                 {id: 'west', name: 'West', value: 'W'}
             ]
+            $scope.regions99 = [
+                {id: 1, name: 'Almaty'},
+                {id: 2, name: 'Astana'},
+                {id: 3, name: 'North and Center'},
+                {id: 4, name: 'East'},
+                {id: 5, name: 'South'},
+                {id: 6, name: 'West'}
+            ]
             $scope.oblastToSelect = ['Алматинская область','Жамбылская область'];
             $scope.regionsMap = {
                 '1': 'Alm',
@@ -1173,7 +1181,6 @@
                         }
                 );
             };
-
             function setOblastName(val) {
                         for (const item of $scope.oblastCatalog) {
                             if (item['siteId'] === undefined) {
@@ -1267,6 +1274,8 @@
                             setOblastName(siteInfo.site_id);
                             setSubcontractorName(siteInfo.site_id);
                             checkIfNeedToSelectOblast();
+                            checkIfNeedToSelectRegion();
+                            checkIfNeedToSelectSubcontractor99();
                         }
                     }
                     $scope.siteStatus = siteInfo.site_status_id ? siteInfo.site_status_id.name : '';
@@ -1289,21 +1298,143 @@
                     refreshJobRequests();
                 }
             }
+            $scope.needToSelectRegion = false;
+            function checkIfNeedToSelectRegion() {
+                    const siteId = $scope.siteId ? $scope.siteId.substring(0,2) : '';
+                    $scope.needToSelectRegion = $scope.mainContract === '2022Work-agreement'
+                        && ['99'].includes(siteId);
+            }
+
+            $scope.needToSelectSubcontractor99 = false;
+            function checkIfNeedToSelectSubcontractor99() {
+                const siteId = $scope.siteId ? $scope.siteId.substring(0,2) : '';
+                $scope.needToSelectSubcontractor99 = $scope.mainContract === '2022Work-agreement'
+                    && ['99'].includes(siteId);
+                if ($scope.needToSelectSubcontractor99) {
+                    $scope.subcontractorName = null;
+                }
+
+            }
 
             $scope.needToSelectOblast = false;
+            $scope.needToSelectOblast99 = false;
             function checkIfNeedToSelectOblast() {
                 const siteId = $scope.siteId ? $scope.siteId.substring(0,2) : '';
                 $scope.needToSelectOblast = $scope.mainContract === '2022Work-agreement'
                     && ['03','05','07'].includes(siteId);
+                $scope.needToSelectOblast99 = $scope.mainContract === '2022Work-agreement'
+                    && ['99'].includes(siteId);
+                if ($scope.needToSelectOblast99) {
+                    $scope.oblastName = null;
+                }
                 if ($scope.needToSelectOblast) {
                     $scope.oblastName = null;
                 }
             }
+            $scope.oblastToSelect99 = ['Алматинская область',
+                'Карагандинская область',
+                'Акмолинская область',
+                'Актюбинская область',
+                'Атырауская область',
+                'Западно-Казахстанская область',
+                'Жамбылская область',
+                'Костанайская область',
+                'Кызылординская область',
+                'Мангыстауская область',
+                'Павлодарская область',
+                'Северо-Казахстанская область',
+                'Туркестанская область',
+                'Восточно-Казахстанская область',
+                'Шымкент (г.а.)'
+            ];
+            $scope.selectedRegion = undefined;
+            $scope.work2022AgreementRegionSelected = function(selectedRegion) {
+                if (selectedRegion) {
+                    const regionId = selectedRegion.id;
+                    const regionName = selectedRegion.name;
+                    setRegion(regionId, regionName);
+                    if(regionId===3)$scope.oblastToSelect99 = ['Акмолинская область','Северо-Казахстанская область','Костанайская область','Карагандинская область'];
+                    if(regionId===1)$scope.oblastToSelect99 = ['Алматинская область','Жамбылская область'];
+                    if(regionId===5)$scope.oblastToSelect99 = ['Жамбылская область','Шымкент (г.а.)','Туркестанская область','Кызылординская область'];
+                    if(regionId===4)$scope.oblastToSelect99 = ['Восточно-Казахстанская область','Павлодарская область'];
+                    if(regionId===6)$scope.oblastToSelect99 = ['Мангыстауская область','Атырауская область','Западно-Казахстанская область','Актюбинская область'];
 
+                    refreshJobRequests();
+                }
+            }
+
+            function setSubcontractorName99(selectedSubcontractor99) {
+                for (const item of $scope.subcontractorCatalog) {
+                    if(item.value===selectedSubcontractor99) {
+                        $scope.subcontractorName = item.value;
+                        $scope.custom.contractor = item.id;
+                       break;
+                    }
+                }
+            };
+
+            $scope.subcontractorToSelect99=['Алта Телеком','Логиком','Forester-Hes Group','Arlan Si','Транстелеком'];
+            $scope.selectedSubcontractor99 = undefined;
+            $scope.subcontractorSelected = function(selectedSubcontractor99) {
+                if (selectedSubcontractor99) {
+                    setSubcontractorName99(selectedSubcontractor99);
+                }
+            }
             $scope.selectedOblast = undefined;
             $scope.oblastSelected = function(selectedOblast) {
                 if (selectedOblast) {
                     $scope.oblastName = selectedOblast;
+                    const oblastName99=selectedOblast;
+                    switch (oblastName99) {
+                        case 'Алматинская область':
+                            $scope.subcontractorToSelect99=['Алта Телеком'];
+                            break;
+                        case 'Карагандинская область':
+                            $scope.subcontractorToSelect99=['Логиком'];
+                            break;
+                        case 'Акмолинская область':
+                            $scope.subcontractorToSelect99=['Алта Телеком'];
+                            break;
+                        case 'Актюбинская область':
+                            $scope.subcontractorToSelect99=['Транстелеком'];
+                            break;
+                        case 'Атырауская область':
+                            $scope.subcontractorToSelect99=['Forester-Hes Group'];
+                            break;
+                        case 'Западно-Казахстанская область':
+                            $scope.subcontractorToSelect99=['Forester-Hes Group'];
+                            break;
+                        case 'Мангыстауская область':
+                            $scope.subcontractorToSelect99=['Forester-Hes Group'];
+                            break;
+                        case 'Жамбылская область':
+                            $scope.subcontractorToSelect99=['Алта Телеком'];
+                            break;
+                        case 'Костанайская область':
+                            $scope.subcontractorToSelect99=['Логиком'];
+                            break;
+                        case 'Северо-Казахстанская область':
+                            $scope.subcontractorToSelect99=['Логиком'];
+                            break;
+                        case 'Кызылординская область':
+                            $scope.subcontractorToSelect99=['Arlan Si'];
+                            break;
+                        case 'Туркестанская область':
+                            $scope.subcontractorToSelect99=['Forester-Hes Group'];
+                            break;
+                        case 'Шымкент (г.а.)':
+                            $scope.subcontractorToSelect99=['Forester-Hes Group'];
+                            break;
+                        case 'Павлодарская область':
+                            $scope.subcontractorToSelect99=['Логиком'];
+                            break;
+                        case 'Восточно-Казахстанская область':
+                            $scope.subcontractorToSelect99=['Алта Телеком'];
+                            break;
+
+                        default:
+                            console.log(`Sorry, there is no such OblastName.`);
+                    }
                 }
             }
 
@@ -1472,14 +1603,21 @@
     <div class="form-group">
         <label class="col-sm-3 control-label">Region:</label>
         <input type="hidden" ng-model="siteRegionShow" name="siteRegionShow" required/>
-        <div class="col-sm-3">
+        <div class="col-sm-3" ng-if="!needToSelectRegion">
             <div class="form-control">{{siteRegionShow}}</div>
             <label class="error" ng-if="kcell_form.siteRegionShow.$error.required && ( kcell_form.siteRegionShow.$touched || view.submitted)">Required field</label>
+        </div>
+        <div class="col-sm-3" ng-if="needToSelectRegion">
+            <select ng-model="selectedRegion" ng-options="r as r.name for r in regions99"
+                    class="form-control" title="" name="selectedRegion" ng-required="true" ng-change="work2022AgreementRegionSelected(selectedRegion)">
+                <option value="">select region</option>
+            </select>
+            <label class="error" ng-if="kcell_form.selectedRegion.$error.required && ( kcell_form.selectedRegion.$touched || view.submitted)">Required field</label>
         </div>
     </div>
     <div class="form-group" ng-if="mainContract === '2022Work-agreement'">
         <label class="col-sm-3 control-label">Oblast:</label>
-        <div class="col-sm-3" ng-if="!needToSelectOblast">
+        <div class="col-sm-3" ng-if="!needToSelectOblast&&!needToSelectOblast99">
             <div class="form-control">{{oblastName}}</div>
         </div>
         <div class="col-sm-3" ng-if="needToSelectOblast">
@@ -1489,12 +1627,26 @@
             </select>
             <label class="error" ng-if="kcell_form.selectedOblast.$error.required && ( kcell_form.selectedOblast.$touched || view.submitted)">Required field</label>
         </div>
+        <div class="col-sm-3" ng-if="needToSelectOblast99">
+            <select ng-model="selectedOblast" ng-options="o as o for o in oblastToSelect99"
+                    class="form-control" title="" name="selectedOblast" ng-required="true" ng-change="oblastSelected(selectedOblast)">
+                <option value="">select oblast</option>
+            </select>
+            <label class="error" ng-if="kcell_form.selectedOblast.$error.required && ( kcell_form.selectedOblast.$touched || view.submitted)">Required field</label>
+        </div>
     </div>
     <div class="form-group" ng-if="mainContract === '2022Work-agreement'">
         <label class="col-sm-3 control-label">Subcontractor:</label>
         <input type="hidden" ng-model="subcontractorName" name="subcontractorName"/>
-        <div class="col-sm-3">
+        <div class="col-sm-3" ng-if="!needToSelectSubcontractor99">
             <div class="form-control">{{subcontractorName}}</div>
+        </div>
+        <div class="col-sm-3" ng-if="needToSelectSubcontractor99">
+            <select ng-model="selectedSubcontractor99" ng-options="o as o for o in subcontractorToSelect99"
+                    class="form-control" title="" name="selectedSubcontractor99" ng-required="true" ng-change="subcontractorSelected(selectedSubcontractor99)">
+                <option value="">select subcontractor</option>
+            </select>
+            <label class="error" ng-if="kcell_form.selectedSubcontractor99.$error.required && ( kcell_form.selectedSubcontractor99.$touched || view.submitted)">Required field</label>
         </div>
     </div>
     <div class="form-group" ng-if="siteAddress">

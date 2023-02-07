@@ -23,6 +23,8 @@ public class ContractorAssignmentHandler implements TaskListener {
             map.put("7", "logycom");
             map.put("8", "arlan");
             map.put("9", "inter");
+            map.put("10","foresterhg");
+            map.put("11","transtlc");
             return Collections.unmodifiableMap(map);
         })).get();
 
@@ -35,7 +37,9 @@ public class ContractorAssignmentHandler implements TaskListener {
         String siteId = delegateTask.getVariable("siteName").toString();
         if ("2022Work-agreement".equals(mainContract)) {
             String siteIdFirstTwoDigits = siteId.substring(0, 2);
-            if (Arrays.asList("00", "01", "03", "04", "05", "06", "07").contains(siteIdFirstTwoDigits)) {
+            if("99".contains(siteIdFirstTwoDigits)){
+                delegateTask.addCandidateGroup(siteRegion+"_contractor_"+contractorsTitle.get(contractor));
+            } else if (Arrays.asList("00", "01", "03", "04", "05", "06", "07").contains(siteIdFirstTwoDigits)) {
                 delegateTask.addCandidateGroup("alm_contractor_alta");
             } else if (Arrays.asList("11", "12", "13").contains(siteIdFirstTwoDigits)) {
                 delegateTask.addCandidateGroup("nc_contractor_alta");
@@ -47,7 +51,7 @@ public class ContractorAssignmentHandler implements TaskListener {
                 delegateTask.addCandidateGroup("east_contractor_alta");
             } else if (Arrays.asList("41", "42", "47").contains(siteIdFirstTwoDigits)) {
                 delegateTask.addCandidateGroup("south_contractor_foresterhg");
-            } else if (Arrays.asList("43", "44","99").contains(siteIdFirstTwoDigits)) {
+            } else if (Arrays.asList("43", "44").contains(siteIdFirstTwoDigits)) {
                 delegateTask.addCandidateGroup("south_contractor_alta");
             } else if (Arrays.asList("45", "46").contains(siteIdFirstTwoDigits)) {
                 delegateTask.addCandidateGroup("south_contractor_arlan");
