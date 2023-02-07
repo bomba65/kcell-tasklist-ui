@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import kz.kcell.bpm.SetPricesDelegate;
 import lombok.extern.java.Log;
 import org.camunda.bpm.engine.delegate.DelegateExecution;
 import org.camunda.bpm.engine.delegate.ExecutionListener;
@@ -85,6 +84,7 @@ public class SetWorkVariables implements ExecutionListener {
 
                     if ("2022Work-agreement".equals(mainContract)) {
                         String oblast = execution.hasVariable("oblastName") ? execution.getVariable("oblastName").toString() : null;
+                        if(oblast.contains("Шымкент (г.а.)")) oblast="Туркестанская область";
                         workPriceJson.put("price", priceJson.get(oblast).textValue());
                     } else {
                         String siteRegion = (String) execution.getVariable("siteRegion");

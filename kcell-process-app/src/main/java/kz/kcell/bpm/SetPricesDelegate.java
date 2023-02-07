@@ -148,6 +148,7 @@ public class SetPricesDelegate implements TaskListener {
                     siteRegion = "astana";
                 }
                 String oblastName = (String) delegateTask.getVariable("oblastName");
+                if(oblastName.contains("Шымкент (г.а.)")) oblastName="Туркестанская область";
 
                 InputStream fis = SetWorkVariables.class.getResourceAsStream("/revision/newWorkPrice.json");
                 InputStreamReader reader = new InputStreamReader(fis, "utf-8");
