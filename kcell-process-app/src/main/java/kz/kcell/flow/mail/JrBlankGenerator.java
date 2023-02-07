@@ -365,7 +365,7 @@ public class JrBlankGenerator {
 
                 jobWorksTotal = jobWorksTotal.add(jobPriceWithVAT).setScale(2, RoundingMode.DOWN);
 
-                row = (17+i < 36)?sheet.getRow(17+i):sheet.createRow(17 + i);
+                row = sheet.getRow(17+i) != null ? sheet.getRow(17+i) :sheet.createRow(17 + i);
                 row.createCell(0).setCellValue(i+1);
 
                 row.createCell(1).setCellValue(jobWorks.get(i).get("displayServiceName").textValue().split(" ")[0]);
