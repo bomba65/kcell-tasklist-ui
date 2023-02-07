@@ -25,6 +25,8 @@ public class RevisionAttachMaterialListContractorGroupHandler implements TaskLis
                 map.put("7", "logycom");
                 map.put("8", "arlan");
                 map.put("9", "inter");
+                map.put("10","foresterhg");
+                map.put("11","transtlc");
                 return Collections.unmodifiableMap(map);
             })).get();
 
@@ -36,12 +38,17 @@ public class RevisionAttachMaterialListContractorGroupHandler implements TaskLis
         String mainContract = delegateTask.getVariable("mainContract").toString();
         if ("2022Work-agreement".equals(mainContract)) {
             String siteName = delegateTask.getVariable("site_name").toString();
-            String group = ATTACH_MATERIAL_LIST_GROUP_TO_SITE.entrySet().stream()
-                .filter(e -> ArrayUtils.contains(e.getValue(), siteName.substring(0, 2)))
-                .findFirst()
-                .orElse(null)
-                .getKey();
-            delegateTask.addCandidateGroup(group);
+            if(siteName.substring(0, 2).contains("99")){
+                delegateTask.addCandidateGroup(siteRegion+"_contractor_"+contractorsTitle.get(contractor));
+            }
+            else {
+                String group = ATTACH_MATERIAL_LIST_GROUP_TO_SITE.entrySet().stream()
+                    .filter(e -> ArrayUtils.contains(e.getValue(), siteName.substring(0, 2)))
+                    .findFirst()
+                    .orElse(null)
+                    .getKey();
+                delegateTask.addCandidateGroup(group);
+            }
         } else {
             if (contractor.equals("5")) {
                 if (reason.equals("5")) {
