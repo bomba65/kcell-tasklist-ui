@@ -34,6 +34,7 @@
       <bpmn:incoming>SequenceFlow_02gfwmc</bpmn:incoming>
       <bpmn:incoming>SequenceFlow_1amgavg</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_0xfce22</bpmn:outgoing>
+      <bpmn:outgoing>Flow_1ro7l8s</bpmn:outgoing>
     </bpmn:exclusiveGateway>
     <bpmn:exclusiveGateway id="ExclusiveGateway_17laltw" default="SequenceFlow_1wrrdm6">
       <bpmn:incoming>SequenceFlow_1bf5keh</bpmn:incoming>
@@ -76,7 +77,9 @@
       <bpmn:incoming>Flow_1ayttad</bpmn:incoming>
       <bpmn:outgoing>Flow_0zdbi1y</bpmn:outgoing>
     </bpmn:userTask>
-    <bpmn:sequenceFlow id="SequenceFlow_0xfce22" name="approved" sourceRef="ExclusiveGateway_0bu8817" targetRef="updateTsd" />
+    <bpmn:sequenceFlow id="SequenceFlow_0xfce22" name="approved" sourceRef="ExclusiveGateway_0bu8817" targetRef="updateTsd">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${centerEngineerResolution== "Approve"}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
     <bpmn:sequenceFlow id="SequenceFlow_1y0bppt" sourceRef="updateRFS" targetRef="Activity_1n6nmrx" />
     <bpmn:sequenceFlow id="SequenceFlow_19kv8ld" sourceRef="ExclusiveGateway_14l6tfa" targetRef="updateRFS" />
     <bpmn:sequenceFlow id="SequenceFlow_1wrrdm6" name="RFS Approved" sourceRef="ExclusiveGateway_17laltw" targetRef="ExclusiveGateway_14l6tfa" />
@@ -151,6 +154,30 @@
       <bpmn:outgoing>Flow_1x0hpfk</bpmn:outgoing>
     </bpmn:sendTask>
     <bpmn:sequenceFlow id="Flow_1x0hpfk" sourceRef="Activity_01j4ax1" targetRef="Gateway_1o10c0h" />
+    <bpmn:sendTask id="Activity_1jdrvpk" name="Send notification about cencel job" camunda:delegateExpression="${camundaMailer}" >
+      <bpmn:documentation>Send notification about cencel job</bpmn:documentation>
+      <bpmn:extensionElements>
+        <camunda:inputOutput>
+          <camunda:inputParameter name="to">
+            <camunda:script scriptFormat="groovy" resource="changeTSD/NotifyInitiator.groovy" />
+          </camunda:inputParameter>
+          <camunda:inputParameter name="subject"> Ваша заявка Change TSD отменено </camunda:inputParameter>
+          <camunda:inputParameter name="html">
+            <camunda:script scriptFormat="groovy" resource="changeTSD/CentralEngineerCanceled.groovy" />
+          </camunda:inputParameter>
+        </camunda:inputOutput>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_1ro7l8s</bpmn:incoming>
+      <bpmn:outgoing>Flow_185q25x</bpmn:outgoing>
+    </bpmn:sendTask>
+    <bpmn:sequenceFlow id="Flow_1ro7l8s" name="cancel" sourceRef="ExclusiveGateway_0bu8817" targetRef="Activity_1jdrvpk">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${centerEngineerResolution== "Cancel"}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:endEvent id="Event_0j042sd">
+      <bpmn:incoming>Flow_185q25x</bpmn:incoming>
+      <bpmn:terminateEventDefinition id="TerminateEventDefinition_13wr4t8" />
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_185q25x" sourceRef="Activity_1jdrvpk" targetRef="Event_0j042sd" />
     <bpmn:textAnnotation id="TextAnnotation_1hoo5w5">
       <bpmn:text>ок</bpmn:text>
     </bpmn:textAnnotation>
@@ -383,6 +410,13 @@
       <bpmndi:BPMNShape id="TextAnnotation_0f133lx_di" bpmnElement="TextAnnotation_0f133lx" bioc:stroke="rgb(251, 140, 0)" bioc:fill="rgb(255, 224, 178)">
         <dc:Bounds x="1470" y="221" width="100" height="96" />
       </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0njdk87_di" bpmnElement="Activity_1jdrvpk">
+        <dc:Bounds x="587" y="290" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_1w75bhg_di" bpmnElement="Event_0j042sd">
+        <dc:Bounds x="619" y="112" width="36" height="36" />
+      </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="SequenceFlow_0xfce22_di" bpmnElement="SequenceFlow_0xfce22">
         <di:waypoint x="662" y="486" />
         <di:waypoint x="747" y="486" />
@@ -581,6 +615,17 @@
       <bpmndi:BPMNEdge id="Association_0vg8s2z_di" bpmnElement="Association_0vg8s2z">
         <di:waypoint x="1461" y="361" />
         <di:waypoint x="1495" y="317" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1ro7l8s_di" bpmnElement="Flow_1ro7l8s">
+        <di:waypoint x="637" y="461" />
+        <di:waypoint x="637" y="370" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="604" y="423" width="32" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_185q25x_di" bpmnElement="Flow_185q25x">
+        <di:waypoint x="637" y="290" />
+        <di:waypoint x="637" y="148" />
       </bpmndi:BPMNEdge>
     </bpmndi:BPMNPlane>
   </bpmndi:BPMNDiagram>
