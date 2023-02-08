@@ -144,6 +144,7 @@ public class JrBlankGenerator {
                 siteRegion = "astana";
             }
             String oblastName = (String) delegateExecution.getVariable("oblastName");
+            if(oblastName.contains("Шымкент (г.а.)")) oblastName="Туркестанская область";
 
             CellRangeAddress cellRangeAddress;
             Map<String, Object> properties = new HashMap<>();
