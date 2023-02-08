@@ -87,6 +87,7 @@ define(['./../../module'], function(module) {
 
                 scope.addDisbandService = function(availableService) {
                     if(scope.disbandServices.indexOf(availableService) === -1) {
+                        scope.addServiceTypeTitle(availableService);
                         scope.disbandServices.push(availableService);
                     } else {
                         scope.disbandServices.splice(scope.disbandServices.indexOf(availableService), 1);
@@ -106,6 +107,10 @@ define(['./../../module'], function(module) {
                     return _.find(scope[name], el => el.id === id).value;
                 }
 
+                scope.addServiceTypeTitle = function (service) {
+                    service.service_type_title =
+                        scope.getValueById("serviceTypeCatalog", service.service_type_id);
+                }
             },
             templateUrl: './js/directives/vpnPortProcess/start/disbandVpn.html'
         };

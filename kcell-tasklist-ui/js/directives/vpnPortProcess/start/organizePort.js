@@ -1,6 +1,6 @@
 define(['./../../module'], function(module) {
     'use strict';
-    module.directive('organizePort', ['$http', function ($http) {
+    module.directive('organizePort', ['$http', 'toasty', function ($http, toasty) {
         return {
             restrict: 'E',
             scope: {
@@ -46,7 +46,7 @@ define(['./../../module'], function(module) {
                 }
 
                 scope.addPort = function () {
-                    if (!scope.availablePorts) {
+                    if (!scope.isSearched) {
                         toasty.error({title: "Error", msg: "Please search available ports first"});
                         return;
                     }
@@ -58,14 +58,13 @@ define(['./../../module'], function(module) {
                             "port_capacity": null,
                             "port_capacity_unit": null,
                             "far_end_address": {
-                                "oblast": scope.search_oblast,
-                                "district": scope.search_district,
-                                "city": scope.search_city_village,
-                                "address_not_full": false,
+                                "city_id": {
+                                    "id": scope.search_city_village,
+                                },
                                 "street": null,
                                 "building": null,
                                 "cadastral_number": null,
-                                "address_note": null
+                                "note": null,
                             }
                         }
                     )
@@ -78,10 +77,10 @@ define(['./../../module'], function(module) {
 
                 scope.getAddedPortId = function (index) {
                     const cityName = scope.getValueById('cityVillageCatalog', scope.search_city_village).replace(' ', '');
-                    let number = 1;
+                    let number = 0;
                     const existingNumbers =  _.map(scope.availablePorts, (port) => Number(/(\d+)(?!.*\d)/g.exec(port.port_number)[1])).sort();
                     if (existingNumbers && existingNumbers.length > 0) number = existingNumbers[existingNumbers.length - 1];
-                    return cityName + 'CE' + (parseInt(number) + 1 + index);
+                    return cityName + 'СЕ' + (parseInt(number) + 1 + index);
                 }
 
                 scope.getValueById = function (name, id) {

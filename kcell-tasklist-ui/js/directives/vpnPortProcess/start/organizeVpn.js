@@ -62,21 +62,27 @@ define(['./../../module'], function(module) {
 
                 scope.addService = function(availablePort) {
                     var service = {
-                        "port_number": availablePort.port_number,
+                        "vpn_number": null,
+                        "port": availablePort,
                         "service": null,
                         "service_type_id": null,
-                        "capacity": null,
+                        "service_type_catalog_id": 83,
+                        "provider_ip": null,
+                        "kcell_ip": null,
+                        "vlan": null,
+                        "service_capacity": null,
+                        "provider_as": null,
+                        "kcell_as": null,
                         "near_end_address": {
-                            "oblast": null,
-                            "district": null,
-                            "city": null,
-                            "address_not_full": false,
+                            "city_id": {
+                                "id": null
+                            },
                             "street": null,
                             "building": null,
                             "cadastral_number": null,
-                            "address_note": null
+                            "note": null,
                         }
-                    };
+                    }
                     scope.addedServices.push(service);
                     scope.addedServicesDistrictCatalog.push([]);
                     scope.addedServicesCityCatalog.push([]);
@@ -112,6 +118,11 @@ define(['./../../module'], function(module) {
                 scope.addedServiceDistrictSelected = function (addedService) {
                     const index = scope.addedServices.indexOf(addedService);
                     scope.addedServicesCityCatalog[index] = _.filter(scope.cityVillageCatalog, el => el.parent === addedService.near_end_address.district);
+                }
+
+                scope.addServiceTypeTitle = function (service) {
+                    service.service_type_title =
+                        scope.getValueById("serviceTypeCatalog", service.service_type_id);
                 }
             },
             templateUrl: './js/directives/vpnPortProcess/start/organizeVpn.html'
