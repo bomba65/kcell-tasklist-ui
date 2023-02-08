@@ -102,7 +102,7 @@ public class CreateCorpClient implements JavaDelegate {
         uriBuilder.setParameter("bankname", contractInfoJson.has("bank_name") ? contractInfoJson.get("bank_name").textValue() : "");
         uriBuilder.setParameter("bik", contractInfoJson.has("bik") ? contractInfoJson.get("bik").textValue() : "");
         uriBuilder.setParameter("bankAccount", contractInfoJson.has("IBAN") ? contractInfoJson.get("IBAN").textValue() : "");
-        uriBuilder.setParameter("regCertDate", "2022-08-21 12:41:55");
+        uriBuilder.setParameter("regCertDate", contractInfoJson.has("contract_date") ? contractInfoJson.get("contract_date").textValue() : "");
         uriBuilder.setParameter("budgetOrg", "206");
         uriBuilder.setParameter("segmentId", "1");
         uriBuilder.setParameter("billingGroup", "2");
