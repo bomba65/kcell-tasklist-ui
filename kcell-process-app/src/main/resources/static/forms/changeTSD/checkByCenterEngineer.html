@@ -12,7 +12,8 @@
             'selectedTsd',
             'resolutions',
             'startevt_get_rfs_by_permit',
-            'authUser'
+            'authUser',
+            'initiatorEmail'
         ];
 
         camForm.on('form-loaded', function () {
@@ -297,6 +298,7 @@
 
             $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name + "/profile").then(function (result) {
                 $rootScope.authentication.assigneeName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
+                $scope.centerEngineerassigneeName=(result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
             });
 
             $scope.startTsd = angular.copy($scope.selectedTsd);
@@ -421,7 +423,7 @@
             }
             return deferred.promise;
         }
-
+        $scope.centerEngineerResolution = null;
         camForm.on('submit', function (e) {
             if($scope.selectedTsd.nearend_id.facility_id.altitude){
                 $scope.selectedTsd.nearend_id.facility_id.altitude = parseFloat($scope.selectedTsd.nearend_id.facility_id.altitude.toFixed(1)) * 1.0;
@@ -431,6 +433,16 @@
             }
             camForm.variableManager.variableValue('oldTsd', $scope.oldTsd);
             camForm.variableManager.variableValue('selectedTsd', $scope.selectedTsd);
+          camForm.variableManager.createVariable({
+            name: 'centerEngineerResolution',
+            type: 'String',
+            value: $scope.centerEngineerResolution
+          });
+          camForm.variableManager.createVariable({
+            name: 'centerEngineerassigneeName',
+            type: 'String',
+            value: $scope.centerEngineerassigneeName
+          });
             camForm.variableManager.createVariable({
                 name: 'checkByCenterEngineerTaskComment',
                 type: 'String',
@@ -1548,7 +1560,6 @@
             <td align="right" colspan="2">Polarization:</td>
             <td align="center" colspan="8">
               <select
-                disabled
                 class="form-control"
                 ng-if="startTsd.polarization_id.id === oldTsd.polarization_id.id"
                 id="hop_polarization"
@@ -1566,7 +1577,6 @@
                 ng-show="startTsd.polarization_id.id !== oldTsd.polarization_id.id"
               >
                 <select
-                  disabled
                   class="form-control"
                   id="hop_polarization"
                   name="hop_polarization"
@@ -2402,7 +2412,13 @@
     <label class="col-sm-2"> Comment: </label>
     <label class="col-sm-10"> {{startevt_get_rfs_by_permit}} </label>
   </div>
-
+  <div class="form-group">
+    <label class="col-sm-4 control-label">Resolution:</label>
+    <div class="col-sm-8">
+      <label class="radio-inline"><input type="radio" value="Approve" ng-model="centerEngineerResolution" required> Approve </label>
+      <label class="radio-inline"><input type="radio" value="Cancel" ng-model="centerEngineerResolution" required> Cancel</label>
+    </div>
+  </div>
   <div class="form-group">
     <label class="col-sm-2 control-label">Comments</label>
     <div class="col-sm-10">
@@ -2412,6 +2428,7 @@
         maxlength="500"
         name="checkByCenterEngineerTaskComment"
         ng-model="checkByCenterEngineerTaskComment"
+        ng-required="centerEngineerResolution == 'Cancel'"
       ></textarea>
       <label
         class="error"
