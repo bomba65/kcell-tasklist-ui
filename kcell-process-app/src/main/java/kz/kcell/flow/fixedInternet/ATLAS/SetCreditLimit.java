@@ -1,7 +1,6 @@
 package kz.kcell.flow.fixedInternet.ATLAS;
 
-import lombok.extern.java.Log;
-import org.apache.http.HttpEntity;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
@@ -17,7 +16,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.Base64;
 
-@Log
+@Slf4j
 @Service("SetCreditLimit")
 public class SetCreditLimit implements JavaDelegate {
 
@@ -55,7 +54,9 @@ public class SetCreditLimit implements JavaDelegate {
         HttpResponse response = contentProviderHttpClient.execute(httpPost);
 
         if(response.getStatusLine().getStatusCode() < 200 || response.getStatusLine().getStatusCode() >= 300) {
-            log.info("SetCreditLimit returns code: " + response.getStatusLine().getStatusCode() + "\nMessage: " + EntityUtils.toString(response.getEntity()));
+            log.error("SetCreditLimit returns code: " + response.getStatusLine().getStatusCode() + "\n" +
+                "Error message: " + EntityUtils.toString(response.getEntity()));
+            delegateExecution.setVariable("unsuccessful", true);
         } else {
             delegateExecution.setVariable("isCreditLimitSet", true);
         }

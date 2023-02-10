@@ -1,6 +1,6 @@
 package kz.kcell.flow.fixedInternet.ATLAS;
 
-import lombok.extern.java.Log;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
@@ -22,7 +22,7 @@ import spinjar.com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.util.Base64;
 
-@Log
+@Slf4j
 @Service("CreateAccount")
 public class CreateAccount implements JavaDelegate {
 
@@ -137,7 +137,9 @@ public class CreateAccount implements JavaDelegate {
         HttpResponse response = contentProviderHttpClient.execute(httpPost);
 
         if(response.getStatusLine().getStatusCode() < 200 || response.getStatusLine().getStatusCode() >= 300) {
-            log.info("CreateAccount returns code: " + response.getStatusLine().getStatusCode() + "\nMessage: " + EntityUtils.toString(response.getEntity()));
+            log.error("CreateAccount returns code: " + response.getStatusLine().getStatusCode() + "\n" +
+                "Error message: " + EntityUtils.toString(response.getEntity()));
+            delegateExecution.setVariable("unsuccessful", true);
         } else {
             HttpEntity entity = response.getEntity();
             String content = EntityUtils.toString(entity);

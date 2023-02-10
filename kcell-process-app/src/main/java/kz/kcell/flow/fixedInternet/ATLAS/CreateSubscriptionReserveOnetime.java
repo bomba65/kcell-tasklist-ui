@@ -1,6 +1,6 @@
 package kz.kcell.flow.fixedInternet.ATLAS;
 
-import lombok.extern.java.Log;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
@@ -25,7 +25,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
-@Log
+@Slf4j
 @Service("CreateSubscriptionReserveOnetime")
 public class CreateSubscriptionReserveOnetime implements JavaDelegate {
 
@@ -90,7 +90,8 @@ public class CreateSubscriptionReserveOnetime implements JavaDelegate {
                             HttpResponse response = httpClient.execute(httpPost);
 
                             if(response.getStatusLine().getStatusCode() < 200 || response.getStatusLine().getStatusCode() >= 300) {
-                                log.info("CreateSubscriptionReserveOnetime for service " + serviceId + " returns code: " + response.getStatusLine().getStatusCode() + "\nMessage: " + EntityUtils.toString(response.getEntity()));
+                                log.error("CreateSubscriptionReserveOnetime for service " + serviceId + " returns code: " + response.getStatusLine().getStatusCode() + "\n" +
+                                    "Error message: " + EntityUtils.toString(response.getEntity()));
                                 delegateExecution.setVariable("unsuccessful", true);
                                 return;
                             } else {
