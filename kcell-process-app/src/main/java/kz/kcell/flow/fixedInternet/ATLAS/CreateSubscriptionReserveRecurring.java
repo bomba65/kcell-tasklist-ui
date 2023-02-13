@@ -46,6 +46,7 @@ public class CreateSubscriptionReserveRecurring implements JavaDelegate {
         this.getTraceNumber = getTraceNumber;
     }
 
+
     public void execute(DelegateExecution delegateExecution) throws Exception {
         Map<String, String> serviceIdByName = new HashMap();
         serviceIdByName.put("Абонентская плата за услугу Фиксированный интернет", "5102");
@@ -114,6 +115,8 @@ public class CreateSubscriptionReserveRecurring implements JavaDelegate {
 
                                 if(response.getStatusLine().getStatusCode() < 200 || response.getStatusLine().getStatusCode() >= 300) {
                                     log.info("CreateSubscriptionReserveRecurring for service " + serviceId + " returns code: " + response.getStatusLine().getStatusCode() + "\nMessage: " + EntityUtils.toString(response.getEntity()));
+                                    delegateExecution.setVariable("unsuccessful", true);
+                                    return;
                                 } else {
                                     HttpEntity entity = response.getEntity();
                                     String entityAsString = EntityUtils.toString(entity);
