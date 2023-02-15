@@ -16,7 +16,7 @@ public class RevisionAttachMaterialListGroupHandler implements TaskListener {
         put("east_contractor_alta", new String[] {"33", "34", "35", "36"});
         put("nc_contractor_logycom", new String[] {"14", "15", "16", "17", "21", "22", "23", "24"});
         put("east_contractor_logycom", new String[] {"31", "32"});
-        put("south_contractor_foresterhg", new String[] {"41", "42", "47"});
+        put("south_contractor_foresterhg", new String[] {"40","41", "42", "47","48"});
         put("west_contractor_foresterhg", new String[] {"51", "52", "61", "62", "81", "82"});
         put("south_contractor_arlan", new String[] {"45", "46"});
         put("west_contractor_transtlc", new String[] {"71", "72"});
