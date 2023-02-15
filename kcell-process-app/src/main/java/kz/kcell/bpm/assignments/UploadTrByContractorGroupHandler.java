@@ -38,6 +38,10 @@ public class UploadTrByContractorGroupHandler implements TaskListener {
             String siteName = delegateTask.getVariable("site_name").toString();
             if(siteName.substring(0, 2).contains("99")){
                 delegateTask.addCandidateGroup(siteRegion+"_contractor_"+contractorsTitle.get(contractor));
+            } else if(siteName.substring(0, 2).contains("40")){
+                delegateTask.addCandidateGroup("south_contractor_foresterhg");
+            } else if(siteName.substring(0, 2).contains("48")){
+                delegateTask.addCandidateGroup("south_contractor_foresterhg");
             } else if (reason.equals("4")) {
                 delegateTask.addCandidateGroup(siteRegion + "_operation_tr");
             } else if (Arrays.asList("1", "2", "3", "5","6").contains(reason)){
