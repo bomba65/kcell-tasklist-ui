@@ -84,6 +84,7 @@ define(['./../../module'], function(module) {
 
                 scope.addModifyService = function(availableService) {
                     if(scope.modifyServices.indexOf(availableService) === -1) {
+                        scope.addServiceTypeTitle(availableService);
                         scope.modifyServices.push(availableService);
                     } else {
                         scope.modifyServices.splice(scope.modifyServices.indexOf(availableService), 1);
@@ -101,6 +102,11 @@ define(['./../../module'], function(module) {
 
                 scope.getValueById = function (name, id) {
                     return _.find(scope[name], el => el.id === id).value;
+                }
+
+                scope.addServiceTypeTitle = function (service) {
+                    service.service_type_title =
+                        scope.getValueById("serviceTypeCatalog", service.service_type_id);
                 }
 
             },

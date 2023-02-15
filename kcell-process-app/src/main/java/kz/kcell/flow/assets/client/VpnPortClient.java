@@ -2,6 +2,8 @@ package kz.kcell.flow.assets.client;
 
 import feign.Param;
 import feign.RequestLine;
+import kz.kcell.flow.assets.dto.AddressesInputDto;
+import kz.kcell.flow.assets.dto.AdressesOutputDto;
 import kz.kcell.flow.assets.dto.PortInputDto;
 import kz.kcell.flow.assets.dto.PortOutputDto;
 import kz.kcell.flow.assets.dto.VpnInputDto;
@@ -51,4 +53,7 @@ public interface VpnPortClient {
 
     @RequestLine("DELETE /port/{id}")
     void deletePorts(@Param("id") Long id);
+
+    @RequestLine("POST /adresses")
+    AdressesOutputDto createNewAddress(AddressesInputDto inputDto);
 }

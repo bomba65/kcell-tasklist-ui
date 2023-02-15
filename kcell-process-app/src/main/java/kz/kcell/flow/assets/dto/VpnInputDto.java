@@ -16,7 +16,7 @@ public class VpnInputDto {
     private String providerIp;
     private String kcellIp;
     private String vlan;
-    private String serviceCapacity;
+    private Integer serviceCapacity;
     private String providerAs;
     private String kcellAs;
     private Long nearEndAddressId;

@@ -2,23 +2,24 @@ package kz.kcell.flow.assets.dto;
 
 import com.fasterxml.jackson.databind.PropertyNamingStrategy;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.Setter;
 
-import java.util.Date;
-import java.util.Map;
+import javax.validation.Valid;
 
-@Data
-@NoArgsConstructor
+@Getter
+@Setter
+@Builder
 @JsonNaming(PropertyNamingStrategy.SnakeCaseStrategy.class)
-public class AdressesOutputDto {
-    public Long id;
-    public AddressCityDto cityId; // Village
+public class AddressesInputDto {
+
+    @Valid
+    public CatalogObjectDto cityId; // Village
+    public Boolean notFullAddress;
     public String street;
     public String building;
     public String cadastralNumber;
     public String note;
-    public String status;
-    public Date dateCreated;
-    public Map<String, Object> regionId;
+    public CatalogObjectDto regionId;
 }

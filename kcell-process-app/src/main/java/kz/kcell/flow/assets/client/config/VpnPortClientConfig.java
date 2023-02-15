@@ -22,6 +22,7 @@ public class VpnPortClientConfig {
         return Feign.builder()
             .encoder(new JacksonEncoder())
             .decoder(new JacksonDecoder())
+            .requestInterceptor(template -> template.header(CONTENT_TYPE, APPLICATION_JSON_VALUE))
             .target(VpnPortClient.class, assetUrl + "/asset-management");
     }
 }
