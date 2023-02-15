@@ -27,5 +27,11 @@ define([
 	'./vpnPortProcess/start/disbandVpn',
 	'./vpnPortProcess/start/modifyPort',
 	'./vpnPortProcess/start/modifyVpn',
+	'./vpnPortProcess/approveRequest/approveOrganizePort',
+	'./vpnPortProcess/approveRequest/approveOrganizeVpn',
+	'./vpnPortProcess/approveRequest/approveDisbandPort',
+	'./vpnPortProcess/approveRequest/approveDisbandVpn',
+	'./vpnPortProcess/approveRequest/approveModifyPort',
+	'./vpnPortProcess/approveRequest/approveModifyVpn',
 //	'./search/demandSearch',
 	], function(){});
