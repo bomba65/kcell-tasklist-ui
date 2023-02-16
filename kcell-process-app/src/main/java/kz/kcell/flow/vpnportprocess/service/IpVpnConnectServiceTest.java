@@ -1,6 +1,7 @@
 package kz.kcell.flow.vpnportprocess.service;
 
 import kz.kcell.flow.assets.dto.VpnOutputDto;
+import kz.kcell.flow.vpnportprocess.variable.VpnCamVar;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 
@@ -10,7 +11,7 @@ public class IpVpnConnectServiceTest implements IpVpnConnectService {
 
     @Override
     public String addNewVlanToIpVpnConnectFile(String serviceType) {
-        return "VLAN0001";
+        return "";
     }
 
     @Override
@@ -26,4 +27,10 @@ public class IpVpnConnectServiceTest implements IpVpnConnectService {
     public boolean checkUtilization(String vpnNumber, String serviceType) {
         return true;
     }
+
+    @Override
+    public void makeChangesToAddedService(VpnOutputDto vpn) {}
+
+    @Override
+    public void deleteAddedVpn(VpnCamVar vpn) {}
 }

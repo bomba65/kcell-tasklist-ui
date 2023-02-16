@@ -155,7 +155,9 @@ public class CalculateAndReservePortCapacity implements JavaDelegate {
             ipVpnConnectService.addNewVpnToIpVpnConnectFile(createdVpn, vpn.getServiceTypeTitle(), vlan);
             return createdVpn;
         }).collect(Collectors.toList());
+        List<Integer> createdVpnHashCodeList = createdVpns.stream().map(VpnOutputDto::hashCode).collect(Collectors.toList());
 
+        execution.setVariable("addedServiceHashCodeList", SpinValues.jsonValue(objectMapper.writeValueAsString(createdVpnHashCodeList)));
         execution.setVariable("addedServices", SpinValues.jsonValue(objectMapper.writeValueAsString(createdVpns)).create());
     }
 
