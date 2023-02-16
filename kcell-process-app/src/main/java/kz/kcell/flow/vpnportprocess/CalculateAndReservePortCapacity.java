@@ -3,6 +3,7 @@ package kz.kcell.flow.vpnportprocess;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import feign.FeignException;
 import kz.kcell.flow.assets.client.VpnPortClient;
+import kz.kcell.flow.assets.dto.PortOutputDto;
 import kz.kcell.flow.assets.dto.VpnOutputDto;
 import kz.kcell.flow.vpnportprocess.mapper.VpnPortProcessMapper;
 import kz.kcell.flow.vpnportprocess.service.IpVpnConnectService;
@@ -53,12 +54,12 @@ public class CalculateAndReservePortCapacity implements JavaDelegate {
     private void organizePort(DelegateExecution execution) throws IOException {
         PortCamVar[] addedPorts = objectMapper.readValue(execution.getVariable("addedPorts").toString(), PortCamVar[].class);
 
-        List<Long> createdPortIds = Arrays.stream(addedPorts).map((port) -> {
+        List<PortOutputDto> createdPorts = Arrays.stream(addedPorts).map((port) -> {
             long addressId = vpnPortClient.createNewAddress(vpnPortProcessMapper.map(port.getFarEndAddress())).getId();
-            return vpnPortClient.createNewPort(vpnPortProcessMapper.map(port, addressId, "Ordered")).getId();
+            return vpnPortClient.createNewPort(vpnPortProcessMapper.map(port, addressId, "Ordered"));
         }).collect(Collectors.toList());
 
-        execution.setVariable("createdPortIds", SpinValues.jsonValue(objectMapper.writeValueAsString(createdPortIds)).create());
+        execution.setVariable("addedPorts", SpinValues.jsonValue(objectMapper.writeValueAsString(createdPorts)).create());
     }
 
     private void disbandPort(DelegateExecution execution) throws IOException {
@@ -140,7 +141,7 @@ public class CalculateAndReservePortCapacity implements JavaDelegate {
             }
         }
 
-        List<Long> createdVpnIds = Arrays.stream(addedServices).map((vpn) -> {
+        List<VpnOutputDto> createdVpns = Arrays.stream(addedServices).map((vpn) -> {
             long addressId = vpnPortClient.createNewAddress(vpnPortProcessMapper.map(vpn.getNearEndAddress())).getId();
             String vlan = null;
             // write to IPVPN CONNECT.xlsm to VLAN sheet and get a vlan value for the newly created vpn
@@ -152,10 +153,10 @@ public class CalculateAndReservePortCapacity implements JavaDelegate {
 
             // write the created vpn to IPVPN CONNECT.xlsm
             ipVpnConnectService.addNewVpnToIpVpnConnectFile(createdVpn, vpn.getServiceTypeTitle(), vlan);
-            return createdVpn.getId();
+            return createdVpn;
         }).collect(Collectors.toList());
 
-        execution.setVariable("createdVpnIds", SpinValues.jsonValue(objectMapper.writeValueAsString(createdVpnIds)).create());
+        execution.setVariable("addedServices", SpinValues.jsonValue(objectMapper.writeValueAsString(createdVpns)).create());
     }
 
     private void disbandVpn(DelegateExecution execution) throws IOException {
