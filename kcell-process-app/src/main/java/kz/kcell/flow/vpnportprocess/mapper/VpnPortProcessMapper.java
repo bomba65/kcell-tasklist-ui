@@ -4,6 +4,7 @@ import kz.kcell.flow.assets.dto.AddressesInputDto;
 import kz.kcell.flow.assets.dto.CatalogObjectDto;
 import kz.kcell.flow.assets.dto.PortInputDto;
 import kz.kcell.flow.assets.dto.VpnInputDto;
+import kz.kcell.flow.assets.dto.VpnOutputDto;
 import kz.kcell.flow.vpnportprocess.variable.AddressCamVar;
 import kz.kcell.flow.vpnportprocess.variable.PortCamVar;
 import kz.kcell.flow.vpnportprocess.variable.VpnCamVar;
@@ -66,6 +67,24 @@ public class VpnPortProcessMapper {
             .kcellAs(vpn.getService().equals("L3") ? "29355" : null)
             .nearEndAddressId(addressId)
             .status(status)
+            .build();
+    }
+
+    public VpnInputDto mapFromVpnOutputDto(VpnOutputDto vpn) {
+        return VpnInputDto.builder()
+            .vpnNumber(vpn.getVpnNumber())
+            .portId(vpn.getPort().getId())
+            .service(vpn.getService())
+            .serviceTypeId(vpn.getServiceTypeId())
+            .serviceTypeCatalogId(vpn.getServiceTypeCatalogId())
+            .providerIp(vpn.getProviderIp())
+            .kcellIp(vpn.getKcellIp())
+            .vlan(vpn.getVlan())
+            .serviceCapacity(vpn.getServiceCapacity())
+            .providerAs(vpn.getProviderAs())
+            .kcellAs(vpn.getKcellAs())
+            .nearEndAddressId(vpn.getNearEndAddress().getId())
+            .status(vpn.getStatus())
             .build();
     }
 

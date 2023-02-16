@@ -1,6 +1,7 @@
 package kz.kcell.flow.vpnportprocess.service;
 
 import kz.kcell.flow.assets.dto.VpnOutputDto;
+import kz.kcell.flow.vpnportprocess.variable.VpnCamVar;
 import lombok.RequiredArgsConstructor;
 import org.apache.poi.openxml4j.util.ZipSecureFile;
 import org.apache.poi.ss.usermodel.BorderStyle;
@@ -251,6 +252,12 @@ public class IpVpnConnectServiceProd implements IpVpnConnectService {
             throw new RuntimeException("VPN Number not found in IPVPN's yyyy.MM.dd.xlsx");
         }
     }
+
+    @Override
+    public void makeChangesToAddedService(VpnOutputDto vpn) {}
+
+    @Override
+    public void deleteAddedVpn(VpnCamVar vpn) {}
 
     private void setBordersAndHorizontalAlignmentToCenter(CellStyle style) {
         style.setBorderTop(BorderStyle.THIN);
