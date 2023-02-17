@@ -25,6 +25,9 @@ select
         when '6' then 'Алта Телеком'
         when '7' then 'Логиком'
         when '8' then 'Arlan SI'
+        when '9' then 'TOO Inter Service'
+        when '10' then 'Forester-Hes Group'
+        when '11' then 'Транстелеком'
         when '-1' then 'Не выбран'
         else null
         end as "JR To",
@@ -40,13 +43,16 @@ select
     to_timestamp(requestedDate.long_/1000) + interval '6 hour' as "Requested Date",
     pi.start_user_id_ as "Requested By",
     to_timestamp(validityDate.long_/1000) + interval '6 hour' as "Validity Date",
+    to_timestamp(workStartDate.long_/1000) + interval '6 hour' as "workStartDate",
+    to_timestamp(integrationRunDate.long_/1000) + interval '6 hour' as "integrationRunDate",
+    to_timestamp(workCompletionDate.long_/1000) + interval '6 hour' as "workCompletionDate",
     relatedTo.text_ as "Related to the",
     project.text_ as "Project",
     mtListSignDate.value_ + interval '6 hour' as "Material List Signing Date",
     acceptanceByInitiatorDate.value_ + interval '6 hour' as "Accept by Initiator",
     acceptMaint.value_ + interval '6 hour' as "Accept by Work Maintenance",
     acceptPlan.value_ + interval '6 hour' as "Accept by Work Planning",
-    acceptanceDate.value_ + interval '6 hour' as "Acceptance Date",
+    to_timestamp(initiatorAcceptanceDate.long_/1000) + interval '6 hour' as "Acceptance Date",
     -- сюда еще нужно состав работ разбитый на строки
     aggregatedWorks.title as "Job Description",
     aggregatedWorks.quantity as "Quantity",
@@ -87,6 +93,12 @@ from act_hi_procinst pi
                    on pi.id_ = reason.proc_inst_id_ and reason.name_ = 'reason'
          left join act_hi_varinst validityDate
                    on pi.id_ = validityDate.proc_inst_id_ and validityDate.name_ = 'validityDate'
+         left join act_hi_varinst workStartDate
+                   on pi.id_ = workStartDate.proc_inst_id_ and workStartDate.name_ = 'workStartDate'
+         left join act_hi_varinst integrationRunDate
+                   on pi.id_ = integrationRunDate.proc_inst_id_ and integrationRunDate.name_ = 'integrationRunDate'
+         left join act_hi_varinst workCompletionDate
+                   on pi.id_ = workCompletionDate.proc_inst_id_ and workCompletionDate.name_ = 'workCompletionDate'
          left join act_hi_varinst relatedTo
                    on pi.id_ = relatedTo.proc_inst_id_ and relatedTo.name_ = 'relatedTo'
          left join act_hi_varinst project
@@ -115,6 +127,8 @@ from act_hi_procinst pi
                    on pi.id_ = invoiceNumber.proc_inst_id_ and invoiceNumber.name_ = 'invoiceNumber'
          left join act_hi_varinst invoiceDate
                    on pi.id_ = invoiceDate.proc_inst_id_ and invoiceDate.name_ = 'invoiceDate'
+         left join act_hi_varinst initiatorAcceptanceDate
+                   on pi.id_ = initiatorAcceptanceDate.proc_inst_id_ and initiatorAcceptanceDate.name_ = 'initiatorAcceptanceDate'
          left join act_hi_varinst requestedDate
                    on pi.id_ = requestedDate.proc_inst_id_ and requestedDate.name_ = 'requestedDate'
          left join lateral (select max(ti.start_time_) as value_
