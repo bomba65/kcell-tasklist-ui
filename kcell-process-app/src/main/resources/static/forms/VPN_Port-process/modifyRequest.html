@@ -1,0 +1,145 @@
+<form role="form" class="form-horizontal" name="kcell_form" novalidate>
+    <script cam-script type="text/form-script" type="text/javascript">
+        inject(['$scope', '$http', '$rootScope', '$q', '$timeout', 'exModal', function ($scope, $http, $rootScope, $q) {
+            const variables = [
+                'addedPorts',
+                'disbandPorts',
+                'modifyPorts',
+                'addedServices',
+                'disbandServices',
+                'modifyServices',
+                'formData',
+                'channel',
+                'request_type',
+                'priority',
+                'dateCreated',
+                'dateUpdated',
+                'businessKey',
+                'approverComments'
+            ];
+
+            $scope.resolution = undefined;
+            $scope.approverComments = undefined;
+
+            $http.get('/camunda/catalogs/api/get/id/30').then(
+                function (response) {
+                    $scope.oblastCatalog = response.data.data.$list;
+                }
+            );
+
+            $http.get('/camunda/catalogs/api/get/id/31').then(
+                function (response) {
+                    $scope.districtCatalog = response.data.data.$list;
+                }
+            );
+
+            $http.get('/camunda/catalogs/api/get/id/32').then(
+                function (response) {
+                    $scope.cityVillageCatalog = response.data.data.$list.sort(el => el.value);
+                }
+            );
+
+            $http.get('/camunda/catalogs/api/get/id/83').then(
+                function (response) {
+                    $scope.serviceTypeCatalog = response.data.data.$list;
+                }
+            );
+
+            camForm.on('form-loaded', function () {
+                variables.forEach(function (el) {
+                    camForm.variableManager.fetchVariable(el);
+                });
+            });
+
+            camForm.on('variables-fetched', function () {
+                variables.forEach(function (el) {
+                    const val = camForm.variableManager.variables[el].value;
+                    if (val) {
+                        if (el.includes("date")) {
+                            const date = new Date(val);
+                            $scope[el] = `${date.getDate()}.${date.getMonth() + 1}.${date.getFullYear()}`;
+                        } else {
+                            $scope[el] = val;
+                        }
+                    }
+                });
+            });
+
+            camForm.on('submit', function (e) {
+                if ($scope.request_type === 'Organize' && $scope.channel === 'VPN' && $scope.addedServices.length === 0) {
+                    camForm.variableManager.setVariable('addedServices', angular.toJson($scope.addedServices));
+                }
+                camForm.variableManager.createVariable({
+                    name: 'afterModifyResolution',
+                    type: 'String',
+                    value: $scope.afterModifyResolution
+                });
+                camForm.variableManager.createVariable({
+                    name: 'initiatorComments',
+                    type: 'String',
+                    value: $scope.initiatorComments
+                });
+            });
+        }]);
+    </script>
+    <div class="form-group">
+        <div class="col-sm-6"><h4>Request # {{businessKey}}</h4></div>
+    </div>
+    <div class="form-group">
+        <div class="col-sm-3">
+            <label class="control-label"><b>Request: </b><span style="color: #cea3bf">{{request_type}} {{channel}}</span></label>
+        </div>
+        <div class="col-sm-3">
+            <label class="control-label"><b>Date created: </b><span style="color: #cea3bf">{{dateCreated}}</span></label>
+        </div>
+    </div>
+    <div class="form-group">
+        <div class="col-sm-3">
+            <label class="control-label"><b>Priority: </b><span style="color: #cea3bf">{{priority}}</span></label>
+        </div>
+        <div class="col-sm-3">
+            <label class="control-label"><b>Date updated: </b><span style="color: #cea3bf">{{dateUpdated}}</span></label>
+        </div>
+    </div>
+
+    <organize-vpn ng-if="channel === 'VPN' && request_type === 'Organize'" added-services="addedServices"
+                  oblast-catalog="oblastCatalog" district-catalog="districtCatalog"
+                  city-village-catalog="cityVillageCatalog" service-type-catalog="serviceTypeCatalog"
+                  form-data="formData" form="kcell_form" view="view"></organize-vpn>
+
+
+    <div class="form-group">
+        <div class="col-sm-2 control-label">
+            <h4>Resolution</h4>
+            <label class="error" ng-if="kcell_form.afterModifyResolution.$error.required && ( kcell_form.afterModifyResolution.$touched || view.submitted)">Field required</label>
+        </div>
+        <div class="radio col-sm-3">
+            <label class="control-label">
+                <input type="radio" name="afterModifyResolution" ng-model="afterModifyResolution" value="approve" required>
+                Approve
+            </label>
+        </div>
+        <div class="radio col-sm-3">
+            <label class="control-label">
+                <input type="radio" name="afterModifyResolution" ng-model="afterModifyResolution" value="reject" required>
+                Reject
+            </label>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label for="initiatorComments" class="col-sm-6 control-label">Initiator comments:</label>
+        <label for="approverComments" class="col-sm-6 control-label">Approver comments:</label>
+        <div class="col-sm-6">
+            <textarea id="initiatorComments" name="initiatorComments" class="form-control"
+                      ng-required="afterModifyResolution==='approve'"
+                      ng-model="initiatorComments"></textarea>
+            <label class="error"
+                   ng-if="kcell_form.initiatorComments.$error.required && ( kcell_form.initiatorComments.$touched || view.submitted)">Field required</label>
+        </div>
+        <div class="col-sm-6">
+            <textarea readonly id="approverComments" class="form-control" ng-model="approverComments"></textarea>
+        </div>
+    </div>
+</form>
+

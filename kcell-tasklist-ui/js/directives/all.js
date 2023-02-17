@@ -2014,6 +2014,17 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
     }
 
     myApp.config(['$provide', 'datepickerPopupConfig', "datepickerConfig", Decorate]);
+    myApp.filter('isParent', function() {
+        return function(input, parent) {
+            const out = [];
+            if (input && parent) {
+                for (let i = 0; i < input.length; i++) {
+                    if (input[i].parent === parent) out.push(input[i]);
+                }
+            }
+            return out;
+        }
+    });
     module.directive('calendarRange', function ($timeout, $parse, $rootScope) {
         return {
             restrict: 'A',
