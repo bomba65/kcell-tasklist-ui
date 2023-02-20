@@ -1,16 +1,4 @@
 <div class="form-group">
-    <div class="col-sm-8"><h4>Request #</h4></div>
-</div>
-<div class="form-group">
-    <div class="col-sm-3"><label>Request type & channel:</label></div>
-    <div class="col-sm-3">{{request_type + ' ' + channel}}</div>
-</div>
-<div class="form-group">
-    <div class="col-sm-3"><label>Priority:</label></div>
-    <div class="col-sm-3">{{priority}}</div>
-</div>
-
-<div class="form-group">
     <div class="col-sm-3"><h4>Search</h4></div>
 </div>
 <div class="form-group">
@@ -24,8 +12,7 @@
                     <div class="col-sm-4"><label class="control-label">Oblast</label></div>
                     <div class="col-sm-8">
                         <select class="form-control" select-picker id="search_oblast" name="search_oblast" required
-                                ng-options="obl.id as obl.value for obl in oblastCatalog" ng-model="search_oblast"
-                                ng-change="searchOblastSelected(search_oblast)">
+                                ng-options="obl.id as obl.value for obl in oblastCatalog" ng-model="formData.search_oblast">
                         </select>
                         <label class="error" ng-show="form.search_oblast.$error.required && ( form.search_oblast.$touched || view.submitted || isSearched)">Required field</label>
                     </div>
@@ -35,8 +22,8 @@
                     <div class="col-sm-8">
                         <select class="form-control" select-picker id="search_district" name="search_district"
                                 required
-                                ng-options="dis.id as dis.value for dis in filteredDistrictCatalog"
-                                ng-model="search_district" ng-change="searchDistrictSelected(search_district)">
+                                ng-options="dis.id as dis.value for dis in districtCatalog | isParent:formData.search_oblast"
+                                ng-model="formData.search_district">
                         </select>
                         <label class="error" ng-show="form.search_district.$error.required && ( form.search_oblast.$touched || view.submitted || isSearched)">Required field</label>
                     </div>
@@ -45,8 +32,8 @@
                     <div class="col-sm-4"><label class="control-label" for="city_village">City/Village</label></div>
                     <div class="col-sm-8">
                         <select class="form-control" select-picker id="city_village" name="city_village" required
-                                ng-options="city.id as city.value for city in filteredCityVillageCatalog | orderBy: 'value'"
-                                ng-model="search_city_village" ng-change="searchCitySelected(city_village)">
+                                ng-options="city.id as city.value for city in cityVillageCatalog | isParent:formData.search_district | orderBy: 'value'"
+                                ng-model="formData.search_city_village">
                         </select>
                         <label class="error" ng-show="form.city_village.$error.required && ( form.search_oblast.$touched || view.submitted || isSearched)">Required field</label>
                     </div>
@@ -66,12 +53,12 @@
     <div class="col-sm-3"><h4>Available Ports </h4></div>
 </div>
 <div class="form-group">
-    <div ng-if="isSearched && (!availablePorts || availablePorts.length === 0)" class="col-sm-12" style="text-align: center">
+    <div ng-if="formData.isSearched && (!formData.availablePorts || formData.availablePorts.length === 0)" class="col-sm-12" style="text-align: center">
         <h4>Not found</h4>
     </div>
 </div>
 <div class="form-group">
-    <div ng-if="!isSearched || availablePorts.length > 0" class="col-sm-12">
+    <div ng-if="!formData.isSearched || formData.availablePorts.length > 0" class="col-sm-12">
         <table class="table table-bordered">
             <thead>
             <tr>
@@ -85,7 +72,7 @@
             </tr>
             </thead>
             <tbody>
-            <tr ng-repeat="availablePort in availablePorts">
+            <tr ng-repeat="availablePort in formData.availablePorts">
                 <td>{{$index + 1}}</td>
                 <td>{{availablePort.port_number}}</td>
                 <td>{{availablePort.channel_type}}</td>
@@ -189,7 +176,7 @@
                                     <div class="form-group row">
                                         <label class="col-sm-2 col-form-label control-label">Oblast</label>
                                         <div class="col-sm-4 control-label">
-                                            {{ getValueById("oblastCatalog", search_oblast) }}
+                                            {{ getValueById("oblastCatalog", formData.search_oblast) }}
                                         </div>
                                         <label class="col-sm-2 col-form-label control-label">Street /
                                             Microdistrict</label>
@@ -201,7 +188,7 @@
                                     <div class="form-group row">
                                         <label class="col-sm-2 col-form-label control-label">District</label>
                                         <div class="col-sm-4 control-label">
-                                            {{ getValueById("districtCatalog", search_district)}}
+                                            {{ getValueById("districtCatalog", formData.search_district)}}
                                         </div>
                                         <label class="col-sm-2 col-form-label control-label">Building</label>
                                         <div class="col-sm-4">
@@ -212,7 +199,7 @@
                                     <div class="form-group row">
                                         <label class="col-sm-2 col-form-label control-label">City / Village</label>
                                         <div class="col-sm-4 control-label">
-                                            {{ getValueById("cityVillageCatalog", search_city_village) }}
+                                            {{ getValueById("cityVillageCatalog", formData.search_city_village) }}
                                         </div>
                                         <label class="col-sm-2 col-form-label control-label">Cadastral number</label>
                                         <div class="col-sm-4">

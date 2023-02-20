@@ -8,45 +8,44 @@ define(['./../../module'], function(module) {
                 oblastCatalog: '=',
                 districtCatalog: '=',
                 cityVillageCatalog: '=',
+                formData: '=',
                 form: '=',
                 view: '='
             },
             link: function (scope, el, attrs) {
                 scope.searchOblastSelected = function (obl) {
-                    scope.filteredDistrictCatalog = _.filter(scope.districtCatalog, el => el.parent === obl);
                     scope.addedPorts.length = 0;
-                    scope.isSearched = false;
-                    scope.availablePorts = undefined;
+                    scope.formData.isSearched = false;
+                    scope.formData.availablePorts = undefined;
                 }
 
                 scope.searchDistrictSelected = function (dis) {
-                    scope.filteredCityVillageCatalog = _.filter(scope.cityVillageCatalog, el => el.parent === dis);
                     scope.addedPorts.length = 0;
-                    scope.isSearched = false;
-                    scope.availablePorts = undefined;
+                    scope.formData.isSearched = false;
+                    scope.formData.availablePorts = undefined;
                 }
 
                 scope.searchCitySelected = function (city) {
                     scope.addedPorts.length = 0;
-                    scope.isSearched = false;
-                    scope.availablePorts = undefined;
+                    scope.formData.isSearched = false;
+                    scope.formData.availablePorts = undefined;
                 }
 
-                scope.isSearched = false;
+                scope.formData.isSearched = false;
 
                 scope.searchPorts = function () {
-                    scope.isSearched = true;
-                    if (!scope.search_oblast || !scope.search_district || !scope.search_city_village) return;
+                    scope.formData.isSearched = true;
+                    if (!scope.formData.search_oblast || !scope.formData.search_district || !scope.formData.search_city_village) return;
 
-                    $http.get('/camunda/port/city_id/' + scope.search_city_village).then(
+                    $http.get('/camunda/port/city_id/' + scope.formData.search_city_village).then(
                         (response) => {
-                            scope.availablePorts = response.data
+                            scope.formData.availablePorts = response.data
                         }
                     );
                 }
 
                 scope.addPort = function () {
-                    if (!scope.isSearched) {
+                    if (!scope.formData.isSearched) {
                         toasty.error({title: "Error", msg: "Please search available ports first"});
                         return;
                     }
@@ -59,7 +58,7 @@ define(['./../../module'], function(module) {
                             "port_capacity_unit": null,
                             "far_end_address": {
                                 "city_id": {
-                                    "id": scope.search_city_village,
+                                    "id": scope.formData.search_city_village,
                                 },
                                 "street": null,
                                 "building": null,
@@ -76,15 +75,15 @@ define(['./../../module'], function(module) {
                 }
 
                 scope.getAddedPortId = function (index) {
-                    const cityName = scope.getValueById('cityVillageCatalog', scope.search_city_village).replace(' ', '');
+                    const cityName = scope.getValueById('cityVillageCatalog', scope.formData.search_city_village)?.replace(' ', '');
                     let number = 0;
-                    const existingNumbers =  _.map(scope.availablePorts, (port) => Number(/(\d+)(?!.*\d)/g.exec(port.port_number)[1])).sort();
+                    const existingNumbers =  _.map(scope.formData.availablePorts, (port) => Number(/(\d+)(?!.*\d)/g.exec(port.port_number)[1])).sort();
                     if (existingNumbers && existingNumbers.length > 0) number = existingNumbers[existingNumbers.length - 1];
                     return cityName + 'СЕ' + (parseInt(number) + 1 + index);
                 }
 
                 scope.getValueById = function (name, id) {
-                    return _.find(scope[name], el => el.id === id).value;
+                    return _.find(scope[name], el => el.id === id)?.value;
                 }
 
                 scope.addressToString = function (address) {
