@@ -100,7 +100,7 @@ define(['./../../module'], function(module) {
                 }
 
                 scope.getValueById = function (name, id) {
-                    return _.find(scope[name], el => el.id === id).value;
+                    return _.find(scope[name], el => el.id === id)?.value;
                 }
 
                 scope.addServiceTypeTitle = function (service) {

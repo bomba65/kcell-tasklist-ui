@@ -11,7 +11,7 @@ define(['./../../module'], function(module) {
             },
             link: function (scope, el, attrs) {
                 scope.getValueById = function (name, id) {
-                    return _.find(scope[name], el => el.id === id).value;
+                    return _.find(scope[name], el => el.id === id)?.value;
                 }
 
                 scope.addressToString = function (address) {
