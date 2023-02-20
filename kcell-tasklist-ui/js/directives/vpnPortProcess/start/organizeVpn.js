@@ -9,53 +9,52 @@ define(['./../../module'], function(module) {
                 districtCatalog: '=',
                 cityVillageCatalog: '=',
                 serviceTypeCatalog: '=',
+                formData: '=',
                 form: '=',
                 view: '='
             },
             link: function (scope, el, attrs) {
                 scope.searchOblastSelected = function (obl) {
-                    scope.filteredDistrictCatalog = _.filter(scope.districtCatalog, el => el.parent === obl);
                     scope.addedServices.length = 0;
-                    scope.isSearched = false;
-                    scope.availablePorts = undefined;
+                    scope.formData.isSearched = false;
+                    scope.formData.availablePorts = undefined;
                 }
 
                 scope.searchDistrictSelected = function (dis) {
-                    scope.filteredCityVillageCatalog = _.filter(scope.cityVillageCatalog, el => el.parent === dis);
                     scope.addedServices.length = 0;
-                    scope.isSearched = false;
-                    scope.availablePorts = undefined;
+                    scope.formData.isSearched = false;
+                    scope.formData.availablePorts = undefined;
                 }
 
                 scope.searchCitySelected = function (city) {
                     scope.addedServices.length = 0;
-                    scope.isSearched = false;
-                    scope.availablePorts = undefined;
+                    scope.formData.isSearched = false;
+                    scope.formData.availablePorts = undefined;
                 }
 
-                scope.isSearched = false;
-                scope.searchOption = "portId";
+                scope.formData.isSearched = false;
+                scope.formData.searchOption = scope.formData.searchOption ? scope.formData.searchOption : 'portId'
 
                 scope.searchPorts = function () {
                     scope.addedServices.length = 0;
-                    scope.isSearched = true;
-                    if (!scope.search_oblast || !scope.search_district || !scope.search_city_village) return;
+                    scope.formData.isSearched = true;
+                    if (!scope.formData.search_oblast || !scope.formData.search_district || !scope.formData.search_city_village) return;
 
-                    $http.get('/camunda/port/city_id/' + scope.search_city_village).then(
+                    $http.get('/camunda/port/city_id/' + scope.formData.search_city_village).then(
                         (response) => {
-                            scope.availablePorts = response.data
+                            scope.formData.availablePorts = response.data
                         }
                     );
                 }
 
                 scope.searchByPortNumber = function () {
                     scope.addedServices.length = 0;
-                    scope.isSearched = true;
-                    if (!scope.search_port_number) return;
+                    scope.formData.isSearched = true;
+                    if (!scope.formData.search_port_number) return;
 
-                    $http.get('/camunda/port/port_number/' + scope.search_port_number).then(
+                    $http.get('/camunda/port/port_number/' + scope.formData.search_port_number).then(
                         (response) => {
-                            scope.availablePorts = response.data
+                            scope.formData.availablePorts = response.data
                         }
                     );
                 }
@@ -84,8 +83,6 @@ define(['./../../module'], function(module) {
                         }
                     }
                     scope.addedServices.push(service);
-                    scope.addedServicesDistrictCatalog.push([]);
-                    scope.addedServicesCityCatalog.push([]);
                 };
 
                 scope.addressToString = function (address) {
@@ -100,24 +97,10 @@ define(['./../../module'], function(module) {
                 scope.removeAddedService = function (addedService) {
                     const index = scope.addedServices.indexOf(addedService);
                     scope.addedServices.splice(index, 1);
-                    scope.addedServicesDistrictCatalog.splice(index,1);
-                    scope.addedServicesCityCatalog.splice(index,1);
                 }
 
                 scope.getValueById = function (name, id) {
                     return _.find(scope[name], el => el.id === id).value;
-                }
-
-                scope.addedServicesDistrictCatalog = []
-                scope.addedServiceOblastSelected = function (addedService) {
-                    const index = scope.addedServices.indexOf(addedService);
-                    scope.addedServicesDistrictCatalog[index] = _.filter(scope.districtCatalog, el => el.parent === addedService.near_end_address.oblast);
-                }
-
-                scope.addedServicesCityCatalog = []
-                scope.addedServiceDistrictSelected = function (addedService) {
-                    const index = scope.addedServices.indexOf(addedService);
-                    scope.addedServicesCityCatalog[index] = _.filter(scope.cityVillageCatalog, el => el.parent === addedService.near_end_address.district);
                 }
 
                 scope.addServiceTypeTitle = function (service) {
