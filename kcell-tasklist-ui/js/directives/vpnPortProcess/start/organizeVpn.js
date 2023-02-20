@@ -33,7 +33,7 @@ define(['./../../module'], function(module) {
                 }
 
                 scope.formData.isSearched = false;
-                scope.formData.searchOption = scope.formData.searchOption ? scope.formData.searchOption : 'portId'
+                scope.formData.searchOption = scope.formData?.searchOption ? scope.formData.searchOption : 'portId'
 
                 scope.searchPorts = function () {
                     scope.addedServices.length = 0;

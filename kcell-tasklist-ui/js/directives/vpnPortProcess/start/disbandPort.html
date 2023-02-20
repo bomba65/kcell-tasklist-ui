@@ -1,42 +1,30 @@
 <div class="form-group">
-    <div class="col-sm-8"><h4>Request #</h4></div>
-</div>
-<div class="form-group">
-    <div class="col-sm-3"><label>Request type & channel:</label></div>
-    <div class="col-sm-3">{{request_type + ' ' + channel}}</div>
-</div>
-<div class="form-group">
-    <div class="col-sm-3"><label>Priority:</label></div>
-    <div class="col-sm-3">{{priority}}</div>
-</div>
-
-<div class="form-group">
     <div class="col-sm-1 control-label"><h4>Search</h4></div>
     <div class="radio col-sm-2">
         <label class="control-label">
-            <input type="radio" ng-model="searchOption" value="portId">
+            <input type="radio" ng-model="formData.searchOption" value="portId">
             Port ID
         </label>
     </div>
     <div class="radio col-sm-3">
         <label class="control-label">
-            <input type="radio" ng-model="searchOption" value="farEndAddress">
+            <input type="radio" ng-model="formData.searchOption" value="farEndAddress">
             Far end address
         </label>
     </div>
 </div>
 
-<div class="form-group" ng-show="searchOption === 'portId'">
+<div class="form-group" ng-show="formData.searchOption === 'portId'">
     <div class="col-sm-2"><label class="control-label">Search by Port ID</label></div>
     <div class="col-sm-3">
-        <input type="text" class="form-control" ng-model="search_port_number" name="search_port_number" ng-required="searchOption === 'portId'">
-        <label class="error" ng-show="form.search_port_number.$error.required && ( form.search_port_number.$touched || view.submitted || isSearched)">Required field</label>
+        <input type="text" class="form-control" ng-model="formData.search_port_number" name="search_port_number" ng-required="formData.searchOption === 'portId'">
+        <label class="error" ng-show="form.search_port_number.$error.required && ( form.search_port_number.$touched || view.submitted || formData.isSearched)">Required field</label>
     </div>
     <div class="col-sm-2">
         <button class="btn btn-success" ng-click="searchByPortNumber()">Search</button>
     </div>
 </div>
-<div class="form-group" ng-show="searchOption === 'farEndAddress'">
+<div class="form-group" ng-show="formData.searchOption === 'farEndAddress'">
     <div class="panel-group custom-panel col-sm-6">
         <div class="panel panel-default">
             <div class="panel-heading">
@@ -47,31 +35,31 @@
                     <div class="col-sm-4"><label class="control-label">Oblast</label></div>
                     <div class="col-sm-8">
                         <select class="form-control" select-picker id="search_oblast" name="search_oblast"
-                                ng-required="searchOption === 'farEndAddress'"
-                                ng-options="obl.id as obl.value for obl in oblastCatalog" ng-model="search_oblast"
+                                ng-required="formData.searchOption === 'farEndAddress'"
+                                ng-options="obl.id as obl.value for obl in oblastCatalog" ng-model="formData.search_oblast"
                                 ng-change="searchOblastSelected(search_oblast)">
                         </select>
-                        <label class="error" ng-show="form.search_oblast.$error.required && ( form.search_oblast.$touched || view.submitted || isSearched)">Required field</label>
+                        <label class="error" ng-show="form.search_oblast.$error.required && ( form.search_oblast.$touched || view.submitted || formData.isSearched)">Required field</label>
                     </div>
                 </div>
                 <div class="form-group">
                     <div class="col-sm-4"><label class="control-label" for="search_district">District</label></div>
                     <div class="col-sm-8">
                         <select class="form-control" select-picker id="search_district" name="search_district"
-                                ng-required="searchOption === 'farEndAddress'"
-                                ng-options="dis.id as dis.value for dis in filteredDistrictCatalog"
-                                ng-model="search_district" ng-change="searchDistrictSelected(search_district)">
+                                ng-required="formData.searchOption === 'farEndAddress'"
+                                ng-options="dis.id as dis.value for dis in districtCatalog | isParent:formData.search_oblast"
+                                ng-model="formData.search_district" ng-change="searchDistrictSelected(search_district)">
                         </select>
-                        <label class="error" ng-show="form.search_district.$error.required && ( form.search_oblast.$touched || view.submitted || isSearched)">Required field</label>
+                        <label class="error" ng-show="form.search_district.$error.required && ( form.search_oblast.$touched || view.submitted || formData.isSearched)">Required field</label>
                     </div>
                 </div>
                 <div class="form-group">
                     <div class="col-sm-4"><label class="control-label" for="city_village">City/Village</label></div>
                     <div class="col-sm-8">
                         <select class="form-control" select-picker id="city_village" name="city_village"
-                                ng-required="searchOption === 'farEndAddress'"
-                                ng-options="city.id as city.value for city in filteredCityVillageCatalog | orderBy: 'value'"
-                                ng-model="search_city_village" ng-change="searchCitySelected(city_village)">
+                                ng-required="formData.searchOption === 'farEndAddress'"
+                                ng-options="city.id as city.value for city in cityVillageCatalog | isParent:formData.search_district | orderBy: 'value'"
+                                ng-model="formData.search_city_village" ng-change="searchCitySelected(city_village)">
                         </select>
                         <label class="error" ng-show="form.city_village.$error.required && ( form.search_oblast.$touched || view.submitted || isSearched)">Required field</label>
                     </div>
@@ -105,7 +93,7 @@
             </tr>
             </thead>
             <tbody>
-            <tr ng-repeat="availablePort in availablePorts">
+            <tr ng-repeat="availablePort in formData.availablePorts">
                 <td>{{$index + 1}}</td>
                 <td>{{availablePort.port_number}}</td>
                 <td>{{availablePort.channel_type}}</td>

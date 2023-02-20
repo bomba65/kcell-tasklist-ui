@@ -9,46 +9,45 @@ define(['./../../module'], function(module) {
                 districtCatalog: '=',
                 cityVillageCatalog: '=',
                 serviceTypeCatalog: '=',
+                formData: '=',
                 form: '=',
                 view: '='
             },
             link: function (scope) {
-                scope.searchOption = 'vpnId';
+                scope.formData.searchOption = scope.formData?.searchOption ? scope.formData.searchOption : 'vpnId';
 
                 scope.searchOblastSelected = function (obl) {
                     scope.modifyServices.length = 0;
-                    scope.filteredDistrictCatalog = _.filter(scope.districtCatalog, el => el.parent === obl);
-                    scope.isSearched = false;
+                    scope.formData.isSearched = false;
                 }
 
                 scope.searchDistrictSelected = function (dis) {
                     scope.modifyServices.length = 0;
-                    scope.filteredCityVillageCatalog = _.filter(scope.cityVillageCatalog, el => el.parent === dis);
-                    scope.isSearched = false;
+                    scope.formData.isSearched = false;
                 }
 
                 scope.searchCitySelected = function (city) {
                     scope.modifyServices.length = 0;
-                    scope.isSearched = false;
+                    scope.formData.isSearched = false;
                 }
 
                 scope.isSearched = false;
 
                 scope.searchServices = function () {
                     scope.modifyServices.length = 0;
-                    scope.isSearched = true;
-                    if (!scope.search_oblast || !scope.search_district || !scope.search_city_village) return;
+                    scope.formData.isSearched = true;
+                    if (!scope.formData.search_oblast || !scope.formData.search_district || !scope.formData.search_city_village) return;
 
-                    if (scope.searchOption === 'farEndAddress') {
-                        $http.get('/camunda/vpn/far_end_city_id/' + scope.search_city_village).then(
+                    if (scope.formData.searchOption === 'farEndAddress') {
+                        $http.get('/camunda/vpn/far_end_city_id/' + scope.formData.search_city_village).then(
                             (response) => {
-                                scope.availableServices = response.data;
+                                scope.formData.availableServices = response.data;
                             }
                         );
-                    } else if (scope.searchOption === 'nearEndAddress') {
-                        $http.get('/camunda/vpn/near_end_city_id/' + scope.search_city_village).then(
+                    } else if (scope.formData.searchOption === 'nearEndAddress') {
+                        $http.get('/camunda/vpn/near_end_city_id/' + scope.formData.search_city_village).then(
                             (response) => {
-                                scope.availableServices = response.data
+                                scope.formData.availableServices = response.data
                             }
                         );
                     }
@@ -56,38 +55,38 @@ define(['./../../module'], function(module) {
 
                 scope.searchByPortNumber = function () {
                     scope.modifyServices.length = 0;
-                    scope.isSearched = true;
-                    if (!scope.search_port_number) return;
+                    scope.formData.isSearched = true;
+                    if (!scope.formData.search_port_number) return;
 
-                    $http.get('/camunda/vpn/port_number/' + scope.search_port_number).then(
+                    $http.get('/camunda/vpn/port_number/' + scope.formData.search_port_number).then(
                         (response) => {
-                            scope.availableServices = response.data
+                            scope.formData.availableServices = response.data
                         }
                     );
                 }
 
                 scope.searchByVpnId = function() {
                     scope.modifyServices.length = 0;
-                    scope.isSearched = true;
-                    if (!scope.search_vpn_id) return;
+                    scope.formData.isSearched = true;
+                    if (!scope.formData.search_vpn_id) return;
 
-                    $http.get('/camunda/vpn/vpn_number/' + scope.search_vpn_number).then(
+                    $http.get('/camunda/vpn/vpn_number/' + scope.formData.search_vpn_number).then(
                         (response) => {
-                            scope.availableServices = response.data
+                            scope.formData.availableServices = response.data
                         }
                     );
                 }
 
                 scope.isSelected = function(availableService) {
-                    return scope.modifyServices.indexOf(availableService) !== -1;
+                    return scope.modifyServices.findIndex(item => item.id === availableService.id) !== -1;
                 };
 
                 scope.addModifyService = function(availableService) {
-                    if(scope.modifyServices.indexOf(availableService) === -1) {
+                    if(scope.modifyServices.findIndex(item => item.id === availableService.id) === -1) {
                         scope.addServiceTypeTitle(availableService);
                         scope.modifyServices.push(availableService);
                     } else {
-                        scope.modifyServices.splice(scope.modifyServices.indexOf(availableService), 1);
+                        scope.modifyServices.splice(scope.modifyServices.findIndex(item => item.id === availableService.id), 1);
                     }
                 };
 
