@@ -3142,18 +3142,22 @@ return module.controller('mainCtrl', ['$scope', '$rootScope', 'toasty', 'Authent
                 $http.get('/camunda/reports/financialreport').then(function (response) {
                     var data = response.data;
                     angular.forEach(data, function (d) {
-                        d[8] = $filter('date')(d[8], "yyyy-MM-dd");
-                        d[10] = $filter('date')(d[10], "yyyy-MM-dd");
-                        d[13] = $filter('date')(d[13], "yyyy-MM-dd");
-                        d[14] = $filter('date')(d[14], "yyyy-MM-dd");
-                        d[15] = $filter('date')(d[15], "yyyy-MM-dd");
-                        d[16] = $filter('date')(d[16], "yyyy-MM-dd");
-                        d[17] = $filter('date')(d[17], "yyyy-MM-dd");
-                        d[35] = $filter('date')(d[35], "yyyy-MM-dd");
-                        d[38] = $filter('date')(d[38], "yyyy-MM-dd");
+                        d[8] = $filter('date')(d[8], "dd-MM-yyyy");
+                        d[10] = $filter('date')(d[10], "dd-MM-yyyy");
+                        d[11] = $filter('date')(d[11], "dd-MM-yyyy");
+                        d[12] = $filter('date')(d[12], "dd-MM-yyyy");
+                        d[13] = $filter('date')(d[13], "dd-MM-yyyy");
+                        d[16] = $filter('date')(d[16], "dd-MM-yyyy");
+                        d[17] = $filter('date')(d[17], "dd-MM-yyyy");
+                        d[18] = $filter('date')(d[18], "dd-MM-yyyy");
+                        d[19] = $filter('date')(d[19], "dd-MM-yyyy");
+                        d[20] = $filter('date')(d[20], "dd-MM-yyyy");
+                        d[40] = $filter('date')(d[40], "dd-MM-yyyy");
+                        d[43] = $filter('date')(d[43], "dd-MM-yyyy");
                     });
                     
-                    data.splice(0, 0, ["Contract", "Year", "Month", "Region", "Sitename", "JR No", "JR To", "JR Reason", "Requested Date", "Requested By", "Validity Date", "Related to the", "Project"
+                    data.splice(0, 0, ["Contract", "Year", "Month", "Region", "Sitename", "JR No", "JR To", "JR Reason", "Requested Date", "Requested By", "Validity Date",
+                        "Work start date","Integration run date","Work completion date","Related to the", "Project"
                         , "Material List Signing Date", "Accept by Initiator", "Accept by Work Maintenance", "Accept by Work Planning", "Acceptance Date", "Job Description", "Quantity"
                         , "Materials from", "Job reason", "Type of expenses", "Comments", "Customer Material", "Process State", "JR Status", "Detailed status", "Reason", "Price (without transportation)"
                         , "Price (with transportation)", "Price (discount)","Monthly act #", "JO#", "PR#", "PR Total Value", "PR Status", "PR Approval date", "PO#", "Invoice No", "Invoice date"
@@ -3174,19 +3178,22 @@ return module.controller('mainCtrl', ['$scope', '$rootScope', 'toasty', 'Authent
                     var data = response.data;
 
                     angular.forEach(data, function (d) {
-                        d[8] = $filter('date')(d[8], "yyyy-MM-dd");
-                        d[10] = $filter('date')(d[10], "yyyy-MM-dd");
-                        d[13] = $filter('date')(d[13], "yyyy-MM-dd");
-                        d[14] = $filter('date')(d[14], "yyyy-MM-dd");
-                        d[15] = $filter('date')(d[15], "yyyy-MM-dd");
-                        d[16] = $filter('date')(d[16], "yyyy-MM-dd");
-                        d[17] = $filter('date')(d[17], "yyyy-MM-dd");
-                        d[35] = $filter('date')(d[35], "yyyy-MM-dd");
-                        //d[34] =  $filter('date')(d[34], "yyyy-MM-dd");
-                        d[38] = $filter('date')(d[38], "yyyy-MM-dd");
+                        d[8] = $filter('date')(d[8], "dd-MM-yyyy");
+                        d[10] = $filter('date')(d[10], "dd-MM-yyyy");
+                        d[11] = $filter('date')(d[11], "dd-MM-yyyy");
+                        d[12] = $filter('date')(d[12], "dd-MM-yyyy");
+                        d[13] = $filter('date')(d[13], "dd-MM-yyyy");
+                        d[16] = $filter('date')(d[16], "dd-MM-yyyy");
+                        d[17] = $filter('date')(d[17], "dd-MM-yyyy");
+                        d[18] = $filter('date')(d[18], "dd-MM-yyyy");
+                        d[19] = $filter('date')(d[19], "dd-MM-yyyy");
+                        d[20] = $filter('date')(d[20], "dd-MM-yyyy");
+                        d[40] = $filter('date')(d[40], "dd-MM-yyyy");
+                        d[43] = $filter('date')(d[43], "dd-MM-yyyy");
                     });
 
-                    data.splice(0, 0, ["Contract", "Year", "Month", "Region", "Sitename", "JR No", "JR To", "JR Reason", "Requested Date", "Requested By", "Validity Date", "Related to the", "Project"
+                    data.splice(0, 0, ["Contract", "Year", "Month", "Region", "Sitename", "JR No", "JR To", "JR Reason", "Requested Date", "Requested By", "Validity Date",
+                        "Work start date","Integration run date","Work completion date", "Related to the", "Project"
                         , "Material List Signing Date", "Accept by Initiator", "Accept by Work Maintenance", "Accept by Work Planning", "Acceptance Date", "Job Description", "Quantity", "Materials from"
                         , "Job reason", "Type of expenses", "Comments", "Customer Material", "Process State", "JR Status", "Detailed status", "Reason", "Price (without transportation)"
                         , "Price (with transportation)","Price (discount)", "Monthly act #", "JO#", "PR#", "PR Total Value", "PR Status", "PR Approval date", "PO#", "Invoice No", "Invoice date", "Job list"
@@ -4073,19 +4080,22 @@ return module.controller('mainCtrl', ['$scope', '$rootScope', 'toasty', 'Authent
                         var data = response.data;
 
                         angular.forEach(data, function (d) {
-                            d[8] = $filter('date')(d[8], "yyyy-MM-dd");
-                            d[10] = $filter('date')(d[10], "yyyy-MM-dd");
-                            d[13] = $filter('date')(d[13], "yyyy-MM-dd");
-                            d[14] = $filter('date')(d[14], "yyyy-MM-dd");
-                            d[15] = $filter('date')(d[15], "yyyy-MM-dd");
-                            d[16] = $filter('date')(d[16], "yyyy-MM-dd");
-                            d[17] = $filter('date')(d[17], "yyyy-MM-dd");
-                            d[35] = $filter('date')(d[35], "yyyy-MM-dd");
-                            //d[34] =  $filter('date')(d[34], "yyyy-MM-dd");
-                            d[38] = $filter('date')(d[38], "yyyy-MM-dd");
+                            d[8] = $filter('date')(d[8], "dd-MM-yyyy");
+                            d[10] = $filter('date')(d[10], "dd-MM-yyyy");
+                            d[11] = $filter('date')(d[11], "dd-MM-yyyy");
+                            d[12] = $filter('date')(d[12], "dd-MM-yyyy");
+                            d[13] = $filter('date')(d[13], "dd-MM-yyyy");
+                            d[16] = $filter('date')(d[16], "dd-MM-yyyy");
+                            d[17] = $filter('date')(d[17], "dd-MM-yyyy");
+                            d[18] = $filter('date')(d[18], "dd-MM-yyyy");
+                            d[19] = $filter('date')(d[19], "dd-MM-yyyy");
+                            d[20] = $filter('date')(d[20], "dd-MM-yyyy");
+                            d[40] = $filter('date')(d[40], "dd-MM-yyyy");
+                            d[43] = $filter('date')(d[43], "dd-MM-yyyy");
                         });
 
-                        data.splice(0, 0, ["Contract", "Year", "Month", "Region", "Sitename", "JR No", "JR To", "JR Reason", "Requested Date", "Requested By", "Validity Date", "Related to the", "Project"
+                        data.splice(0, 0, ["Contract", "Year", "Month", "Region", "Sitename", "JR No", "JR To", "JR Reason", "Requested Date", "Requested By", "Validity Date",
+                            "Work start date","Integration run date","Work completion date", "Related to the", "Project"
                             , "Material List Signing Date", "Accept by Initiator", "Accept by Work Maintenance", "Accept by Work Planning", "Acceptance Date", "Job Description", "Quantity"
                             , "Job reason", "Type of expenses", "Comments", "Customer Material", "Process State", "JR Status", "Detailed status", "Reason", "Price (without transportation)"
                             , "Price (with transportation)", "Price (discount)", "Monthly act #", "JO#", "PR#", "PR Total Value", "PR Status", "PR Approval date", "PO#", "Invoice No", "Invoice date", "Job list"
