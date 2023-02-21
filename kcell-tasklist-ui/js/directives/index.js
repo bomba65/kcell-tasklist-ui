@@ -33,5 +33,6 @@ define([
 	'./vpnPortProcess/approveRequest/approveDisbandVpn',
 	'./vpnPortProcess/approveRequest/approveModifyPort',
 	'./vpnPortProcess/approveRequest/approveModifyVpn',
+	'./vpnPortProcess/filesInput',
 //	'./search/demandSearch',
 	], function(){});
