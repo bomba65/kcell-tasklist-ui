@@ -1,0 +1,225 @@
+<form role="form" class="form-horizontal" name="kcell_form" novalidate>
+    <script cam-script type="text/form-script" type="text/javascript">
+        inject(['$scope', '$http', '$rootScope', '$q', '$timeout', 'exModal', function ($scope, $http, $rootScope, $q) {
+            const variables = [
+                'addedPorts',
+                'disbandPorts',
+                'modifyPorts',
+                'addedServices',
+                'disbandServices',
+                'modifyServices',
+                'channel',
+                'request_type',
+                'priority',
+                'dateCreated',
+                'dateUpdated',
+                'businessKey',
+                'initiatorComments'
+            ];
+
+            $scope.providerResolution = undefined;
+            $scope.providerComments = undefined;
+
+            $http.get('/camunda/catalogs/api/get/id/83').then(
+                function (response) {
+                    $scope.serviceTypeCatalog = response.data.data.$list;
+                }
+            );
+
+            camForm.on('form-loaded', function () {
+                variables.forEach(function (el) {
+                    camForm.variableManager.fetchVariable(el);
+                });
+            });
+
+            camForm.on('variables-fetched', function () {
+                variables.forEach(function (el) {
+                    const val = camForm.variableManager.variables[el].value;
+                    if (val) {
+                        if (el.includes("date")) {
+                            const date = new Date(val);
+                            $scope[el] = `${date.getDate()}.${date.getMonth() + 1}.${date.getFullYear()}`;
+                        } else {
+                            $scope[el] = val;
+                        }
+                    }
+                });
+            });
+
+            $scope.preSubmit = function () {
+                return $scope.uploadFilesToMinio();
+            }
+
+            camForm.on('submit', function (e) {
+                if ($scope.request_type === 'Organize' && $scope.channel === 'VPN' && $scope.addedServices.length === 0) {
+                    camForm.variableManager.setVariable('addedServices', angular.toJson($scope.addedServices));
+                }
+                camForm.variableManager.createVariable({
+                    name: 'nor',
+                    type: 'String',
+                    value: $scope.nor
+                });
+                camForm.variableManager.createVariable({
+                    name: 'providerResolution',
+                    type: 'String',
+                    value: $scope.providerResolution
+                });
+                camForm.variableManager.createVariable({
+                    name: 'providerComments',
+                    type: 'String',
+                    value: $scope.providerComments
+                });
+            });
+
+            $scope.files = [];
+            $scope.uploadedFiles = [];
+
+            $scope.uploadFiles = function() {
+                for (var i = 0; i < $scope.files.length; i++) {
+                    var file = $scope.files[i];
+                    var reader = new FileReader();
+                    reader.onload = function(event) {
+                        $scope.$apply(function() {
+                            var uploadedFile = {
+                                fileName: file.name,
+                                fileData: event.target.result,
+                                file: file
+                            };
+                            $scope.uploadedFiles.push(uploadedFile);
+                        });
+                    };
+                    reader.readAsDataURL(file);
+                }
+                $scope.files = [];
+            };
+
+            $scope.downloadFile = function(file) {
+                var a = document.createElement("a");
+                document.body.appendChild(a);
+                a.style = "display: none";
+                a.href = file.fileData;
+                a.download = file.fileName;
+                a.click();
+                document.body.removeChild(a);
+            };
+
+            $scope.removeFile = function(file) {
+                var index = $scope.uploadedFiles.indexOf(file);
+                $scope.uploadedFiles.splice(index, 1);
+            };
+
+            $scope.uploadFilesToMinio = function () {
+                const promises = _.map($scope.uploadedFiles, function (file) {
+                    return $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
+                        function (result) {
+                            var processInstanceId = result.data.processInstanceId;
+                            var fileToUpload = {
+                                name: file.fileName.replace(/[/\\?%*:|"<>]/g, '-'),
+                                path: processInstanceId + '/' + camForm.taskId + '/' + file.fileName.replace(/[/\\?%*:|"<>]/g, '-')
+                            };
+                            return $http({
+                                method: 'GET',
+                                url: '/camunda/uploads/put/' + fileToUpload.path,
+                                transformResponse: []
+                            }).then(function (getResponse) {
+                                return $http.put(getResponse.data, file.file, {headers: {'Content-Type': undefined}}).then(function (putResponse) {
+                                        return putResponse;
+                                    }
+                                );
+                            });
+                        }
+                    );
+
+                });
+                return Promise.all(promises);
+            }
+        }]);
+    </script>
+    <div class="form-group">
+        <div class="col-sm-6"><h4>Request # {{businessKey}}</h4></div>
+    </div>
+    <div class="form-group">
+        <div class="col-sm-3">
+            <label class="control-label"><b>Request: </b><span style="color: #cea3bf">{{request_type}} {{channel}}</span></label>
+        </div>
+        <div class="col-sm-3">
+            <label class="control-label"><b>Date created: </b><span style="color: #cea3bf">{{dateCreated}}</span></label>
+        </div>
+    </div>
+    <div class="form-group">
+        <div class="col-sm-3">
+            <label class="control-label"><b>Priority: </b><span style="color: #cea3bf">{{priority}}</span></label>
+        </div>
+        <div class="col-sm-3">
+            <label class="control-label"><b>Date updated: </b><span style="color: #cea3bf">{{dateUpdated}}</span></label>
+        </div>
+    </div>
+
+    <approve-organize-port ng-if="channel === 'Port' && request_type === 'Organize'" added-ports="addedPorts"
+                           form="kcell_form" view="view"></approve-organize-port>
+    <approve-disband-port ng-if="channel === 'Port' && request_type === 'Disband'" disband-ports="disbandPorts"
+                          form="kcell_form" view="view"></approve-disband-port>
+    <approve-modify-port ng-if="channel === 'Port' && request_type === 'Modify'" modify-ports="modifyPorts"
+                         form="kcell_form" view="view"></approve-modify-port>
+    <approve-organize-vpn ng-if="channel === 'VPN' && request_type === 'Organize'" added-services="addedServices" is-editable="false"
+                          service-type-catalog="serviceTypeCatalog" form="kcell_form" view="view"></approve-organize-vpn>
+    <approve-disband-vpn ng-if="channel === 'VPN' && request_type === 'Disband'" disband-services="disbandServices"
+                         service-type-catalog="serviceTypeCatalog" form="kcell_form" view="view"></approve-disband-vpn>
+    <approve-modify-vpn ng-if="channel === 'VPN' && request_type === 'Modify'" modify-services="modifyServices"
+                        service-type-catalog="serviceTypeCatalog" form="kcell_form" view="view"></approve-modify-vpn>
+
+    <div class="form-group">
+        <label for="nor" class="col-sm-2 control-label">NOR</label>
+        <div class="col-sm-4">
+            <input type="text" class="form-control" ng-model="nor" id="nor" name="nor" ng-required="true">
+            <label class="error" ng-if="kcell_form.nor.$error.required && ( kcell_form.nor.$touched || view.submitted)">Field required</label>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="col-sm-2 control-label">
+            <label class="control-label">Provider Resolution</label>
+            <label class="error" ng-if="kcell_form.resolution.$error.required && ( kcell_form.resolution.$touched || view.submitted)">Field required</label>
+        </div>
+        <div class="radio col-sm-2">
+            <label class="control-label">
+                <input type="radio" name="resolution" ng-model="providerResolution" value="approve" required>
+                Approve
+            </label>
+        </div>
+        <div class="radio col-sm-2">
+            <label class="control-label">
+                <input type="radio" name="resolution" ng-model="providerResolution" value="reject" required>
+                Reject
+            </label>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label for="providerComments" class="col-sm-2 control-label">Provider comments:</label>
+        <div class="col-sm-6">
+            <textarea id="providerComments" name="providerComments" class="form-control" rows="5"
+                      ng-required="providerResolution === 'reject'"
+                      ng-model="providerComments"></textarea>
+            <label class="error"
+                   ng-if="kcell_form.providerComments.$error.required && ( kcell_form.providerComments.$touched || view.submitted)">Field required</label>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-2 control-label"><b>Attachments</b></label>
+        <div class="col-sm-2">
+            <label class="btn btn-success">
+                Attach File
+                <input type="file" name="file" style="display: none;" multiple files-input ng-model="files" ng-change="uploadFiles()">
+            </label>
+        </div>
+    </div>
+    <div class="form-group">
+        <div class="col-sm-12" ng-repeat="file in uploadedFiles">
+            <label class="control-label">{{ file.fileName }}</label>
+            <a style="font-size: 2rem" ng-click="downloadFile(file)"><span class="glyphicon glyphicon-download"></span></a>
+            <a style="font-size: 2rem" ng-click="removeFile(file)"><span class="glyphicon glyphicon-minus-sign"></span></a>
+        </div>
+    </div>
+    <br>
+</form>

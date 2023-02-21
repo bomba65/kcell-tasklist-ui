@@ -6,6 +6,7 @@ define(['./../../module'], function(module) {
             scope: {
                 serviceTypeCatalog: '=',
                 addedServices: '=',
+                isEditable: '=',
                 form: '=',
                 view: '='
             },
