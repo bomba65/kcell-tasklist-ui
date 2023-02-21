@@ -8,22 +8,21 @@ define(['./../../module'], function(module) {
                 oblastCatalog: '=',
                 districtCatalog: '=',
                 cityVillageCatalog: '=',
+                formData: '=',
                 form: '=',
                 view: '='
             },
             link: function (scope, el, attrs) {
-                scope.searchOption = 'portId';
+                scope.formData.searchOption = scope.formData?.searchOption ? scope.formData.searchOption : 'portId';
 
                 scope.searchOblastSelected = function (obl) {
                     scope.modifyPorts.length = 0;
-                    scope.filteredDistrictCatalog = _.filter(scope.districtCatalog, el => el.parent === obl);
-                    scope.isSearched = false;
+                    scope.formData.isSearched = false;
                 }
 
                 scope.searchDistrictSelected = function (dis) {
                     scope.modifyPorts.length = 0;
-                    scope.filteredCityVillageCatalog = _.filter(scope.cityVillageCatalog, el => el.parent === dis);
-                    scope.isSearched = false;
+                    scope.formData.isSearched = false;
                 }
 
                 scope.searchCitySelected = function (city) {
@@ -31,44 +30,39 @@ define(['./../../module'], function(module) {
                     scope.isSearched = false;
                 }
 
-                scope.isSearched = false;
-
                 scope.searchPorts = function () {
                     scope.modifyPorts.length = 0;
-                    scope.isSearched = true;
-                    if (!scope.search_oblast || !scope.search_district || !scope.search_city_village) return;
+                    scope.formData.isSearched = true;
+                    if (!scope.formData.search_oblast || !scope.formData.search_district || !scope.formData.search_city_village) return;
 
-                    $http.get('/camunda/port/city_id/' + scope.search_city_village).then(
+                    $http.get('/camunda/port/city_id/' + scope.formData.search_city_village).then(
                         (response) => {
-                            scope.availablePorts = response.data
+                            scope.formData.availablePorts = response.data
                         }
                     );
                 }
 
                 scope.searchByPortNumber = function () {
                     scope.modifyPorts.length = 0;
-                    scope.isSearched = true;
-                    if (!scope.search_port_number) return;
+                    scope.formData.isSearched = true;
+                    if (!scope.formData.search_port_number) return;
 
-                    $http.get('/camunda/port/port_number/' + scope.search_port_number).then(
+                    $http.get('/camunda/port/port_number/' + scope.formData.search_port_number).then(
                         (response) => {
-                            scope.availablePorts = response.data
+                            scope.formData.availablePorts = response.data
                         }
                     );
                 }
 
                 scope.isSelected = function(availablePort) {
-                    const modifyPort = _.find(scope.modifyPorts, (port) => port.port_number === availablePort.port_number);
-                    return scope.modifyPorts.indexOf(modifyPort) !== -1;
+                    return scope.modifyPorts.findIndex(item => item.id === availablePort.id) !== -1;
                 };
 
                 scope.addModifyPort = function(availablePort) {
-                    const modifyPort = _.find(scope.modifyPorts, (port) => port.port_number === availablePort.port_number);
-                    if(scope.modifyPorts.indexOf(modifyPort) === -1) {
+                    if(scope.modifyPorts.findIndex(item => item.id === availablePort.id) === -1) {
                         scope.modifyPorts.push(JSON.parse(JSON.stringify(availablePort)));
                     } else {
-                        const modifyPort = _.find(scope.modifyPorts, (port) => port.port_number === availablePort.port_number);
-                        scope.modifyPorts.splice(scope.modifyPorts.indexOf(modifyPort), 1);
+                        scope.modifyPorts.splice(scope.modifyPorts.findIndex(item => item.id === availablePort.id), 1);
                     }
                 };
 

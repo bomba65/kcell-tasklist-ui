@@ -31,10 +31,13 @@ define(['./../../module'], function(module) {
                     scope.formData.availablePorts = undefined;
                 }
 
-                scope.formData.isSearched = false;
-
                 scope.searchPorts = function () {
-                    scope.formData.isSearched = true;
+                    if (scope.form.$invalid) {
+                        scope.formData.showError = true;
+                        return;
+                    } else {
+                        scope.formData.showError = false;
+                    }
                     if (!scope.formData.search_oblast || !scope.formData.search_district || !scope.formData.search_city_village) return;
 
                     $http.get('/camunda/port/city_id/' + scope.formData.search_city_village).then(
@@ -42,6 +45,7 @@ define(['./../../module'], function(module) {
                             scope.formData.availablePorts = response.data
                         }
                     );
+                    scope.formData.isSearched = true;
                 }
 
                 scope.addPort = function () {
