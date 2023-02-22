@@ -185,7 +185,7 @@ public class LeasingStatisticsService {
             statistics.setPreliminaryEstimate(statistics.fromTasks("Preliminary estimate of Technical Capability from RES", tasks));
             statistics.setCheckAndApproveFE(statistics.fromTasks("Check and approve FE", tasks));
             statistics.setConfirmPossibilityTransmissionChannel(statistics.fromTasks("Confirm the possibility of organizing a transmission channel", tasks));
-            statistics.setConfirmPermissionLeasingProcess(statistics.fromTasks("Confirm permission to start the Leasing process", tasks));
+            statistics.setConfirmPermissionLeasingProcess(statistics.fromTasks("Preliminary approval by Site Leasing", tasks));
             statistics.setConfirmPermissionBaseStation(statistics.fromTasks("Confirm permission to install Base Station", tasks));
             statistics.setConfirmPermissionInstallFE(statistics.fromTasks("Confirm permission to install FE", tasks));
             statistics.setUploadLeaseContract(statistics.fromTasks("Upload the Lease Contract signed by the owner. Fill the Contract details", tasks));

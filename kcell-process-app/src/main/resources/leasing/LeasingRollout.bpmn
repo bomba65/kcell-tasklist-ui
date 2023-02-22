@@ -21,22 +21,6 @@
     <bpmn:sequenceFlow id="SequenceFlow_1l71kk9" name="Not Agree / Not Received / Not Approved" sourceRef="ExclusiveGateway_0wi0wbj" targetRef="ServiceTask_02xcxq2">
       <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${rentApprovalResult=='refused'}</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
-    <bpmn:userTask id="estimateTechnicalCapabilityRes" name="Preliminary estimate of Technical Capability from RES" camunda:formKey="embedded:app:forms/leasing/estimateTechnicalCapabilityRes.html">
-      <bpmn:documentation>Preliminary estimate of Technical Capability from RES</bpmn:documentation>
-      <bpmn:extensionElements>
-        <camunda:taskListener class="kz.kcell.bpm.leasing.PreliminaryEstimateListener" event="create" />
-      </bpmn:extensionElements>
-      <bpmn:incoming>SequenceFlow_0t1ore9</bpmn:incoming>
-      <bpmn:outgoing>SequenceFlow_0vur415</bpmn:outgoing>
-    </bpmn:userTask>
-    <bpmn:userTask id="checkAndApproveFE" name="Check and approve FE" camunda:formKey="embedded:app:forms/leasing/checkAndApproveFE.html">
-      <bpmn:documentation>Check and approve FE</bpmn:documentation>
-      <bpmn:extensionElements>
-        <camunda:taskListener class="kz.kcell.bpm.leasing.CheckFEListener" event="create" />
-      </bpmn:extensionElements>
-      <bpmn:incoming>SequenceFlow_1qtnaoy</bpmn:incoming>
-      <bpmn:outgoing>SequenceFlow_0ixzzp0</bpmn:outgoing>
-    </bpmn:userTask>
     <bpmn:subProcess id="SubProcess_0iqjr7a" name="LEASE CONTRACT">
       <bpmn:extensionElements>
         <camunda:executionListener class="kz.kcell.bpm.leasing.VariableSetStatus" event="start">
@@ -788,8 +772,6 @@
     <bpmn:sequenceFlow id="SequenceFlow_1u8yw9f" name="TR type = Microwae / Microwave + Satellite or Provider" sourceRef="ParallelGateway_0le7fnu" targetRef="ServiceTask_1i0xslv">
       <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${S(candidate).prop('transmissionType').stringValue().equals("Microwave") || S(candidate).prop('transmissionType').stringValue().equals("Microwave + Satellite or Provider")}</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
-    <bpmn:sequenceFlow id="SequenceFlow_0vur415" sourceRef="estimateTechnicalCapabilityRes" targetRef="Activity_13ucoms" />
-    <bpmn:sequenceFlow id="SequenceFlow_0ixzzp0" sourceRef="checkAndApproveFE" targetRef="Activity_1gcjkc8" />
     <bpmn:sequenceFlow id="SequenceFlow_116lgvb" sourceRef="ParallelGateway_0201vgh" targetRef="ServiceTask_19q0cx8" />
     <bpmn:subProcess id="SubProcess_0oq53qg" name="PLANNING">
       <bpmn:extensionElements>
@@ -1280,8 +1262,8 @@ execution.setVariable('createAssetCandidateTableList', SpinValues.jsonValue(crea
       <bpmn:incoming>SequenceFlow_0wgy3lw</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_1p6bfby</bpmn:outgoing>
     </bpmn:userTask>
-    <bpmn:userTask id="confirmStartLeasingNO" name="Confirm permission to start the Leasing process" camunda:formKey="embedded:app:forms/leasing/confirmStartLeasingNO.html">
-      <bpmn:documentation>Confirm permission to start the Leasing process</bpmn:documentation>
+    <bpmn:userTask id="confirmStartLeasingNO" name="Preliminary approval by Site Leasing" camunda:formKey="embedded:app:forms/leasing/confirmStartLeasingNO.html">
+      <bpmn:documentation>Preliminary approval by Site Leasing</bpmn:documentation>
       <bpmn:extensionElements>
         <camunda:taskListener class="kz.kcell.bpm.leasing.ConfirmPermissionListener" event="create" />
       </bpmn:extensionElements>
@@ -1861,9 +1843,8 @@ InstStatusBeforeLeasingProblem</camunda:script>
         </camunda:executionListener>
       </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_0pjyoj9</bpmn:incoming>
-      <bpmn:outgoing>SequenceFlow_0t1ore9</bpmn:outgoing>
+      <bpmn:outgoing>Flow_1jh0e3o</bpmn:outgoing>
     </bpmn:serviceTask>
-    <bpmn:sequenceFlow id="SequenceFlow_0t1ore9" sourceRef="ServiceTask_1khc38t" targetRef="estimateTechnicalCapabilityRes" />
     <bpmn:serviceTask id="ServiceTask_1i0xslv" name="General Status = &#34;Waiting regional Transmission approval&#34;" camunda:expression="${true}">
       <bpmn:extensionElements>
         <camunda:executionListener class="kz.kcell.bpm.leasing.VariableSetStatus" event="start">
@@ -1876,9 +1857,8 @@ InstStatusBeforeLeasingProblem</camunda:script>
         </camunda:executionListener>
       </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_1u8yw9f</bpmn:incoming>
-      <bpmn:outgoing>SequenceFlow_1qtnaoy</bpmn:outgoing>
+      <bpmn:outgoing>Flow_0ycfjy4</bpmn:outgoing>
     </bpmn:serviceTask>
-    <bpmn:sequenceFlow id="SequenceFlow_1qtnaoy" sourceRef="ServiceTask_1i0xslv" targetRef="checkAndApproveFE" />
     <bpmn:serviceTask id="ServiceTask_19q0cx8" name="General Status = &#34;Waiting Leasing approval&#34;" camunda:expression="${true}">
       <bpmn:extensionElements>
         <camunda:executionListener class="kz.kcell.bpm.leasing.VariableSetStatus" event="start">
@@ -1911,7 +1891,7 @@ InstStatusBeforeLeasingProblem</camunda:script>
           </camunda:field>
         </camunda:executionListener>
       </bpmn:extensionElements>
-      <bpmn:incoming>SequenceFlow_0ixzzp0</bpmn:incoming>
+      <bpmn:incoming>Flow_0ycfjy4</bpmn:incoming>
       <bpmn:outgoing>Flow_1d40mns</bpmn:outgoing>
     </bpmn:serviceTask>
     <bpmn:serviceTask id="Activity_13ucoms" name="set Status 02a" camunda:class="kz.kcell.flow.leasing.SetStatus">
@@ -1928,7 +1908,7 @@ InstStatusBeforeLeasingProblem</camunda:script>
           </camunda:field>
         </camunda:executionListener>
       </bpmn:extensionElements>
-      <bpmn:incoming>SequenceFlow_0vur415</bpmn:incoming>
+      <bpmn:incoming>Flow_1jh0e3o</bpmn:incoming>
       <bpmn:outgoing>Flow_0l6buy3</bpmn:outgoing>
     </bpmn:serviceTask>
     <bpmn:serviceTask id="Activity_11xms0y" name="set Status 11a" camunda:class="kz.kcell.flow.leasing.SetStatus">
@@ -2221,7 +2201,7 @@ InstStatusBeforeLeasingProblem</camunda:script>
     <bpmn:sequenceFlow id="Flow_0n50y4e" sourceRef="finish_notify" targetRef="Send_signal_finish" />
     <bpmn:sequenceFlow id="Flow_1d549t2" sourceRef="Gateway_0w0lur9" targetRef="EndEvent_0miie5o" />
     <bpmn:sequenceFlow id="Flow_07vz4ig" name="Project = Alternative to Dismantled Site
-&#10;&#10;" sourceRef="Gateway_0pgmzv8" targetRef="finish_notify">
+&#10;&#10;&#10;" sourceRef="Gateway_0pgmzv8" targetRef="finish_notify">
       <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${project.prop('name').stringValue() == 'Alternative to Dismantled Site' || project.prop('name').stringValue() == 'Alternative to Dismantled Site 2023'}</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
     <bpmn:sequenceFlow id="Flow_100qcyr" sourceRef="Gateway_0pgmzv8" targetRef="Gateway_0w0lur9" />
@@ -2321,6 +2301,8 @@ Site: ${siteName}
     </bpmn:serviceTask>
     <bpmn:sequenceFlow id="Flow_011smb3" sourceRef="Event_1y8jmdh" targetRef="Activity_0iecpvd" />
     <bpmn:sequenceFlow id="Flow_1tauiom" sourceRef="Activity_0iecpvd" targetRef="Activity_1iqc1px" />
+    <bpmn:sequenceFlow id="Flow_1jh0e3o" sourceRef="ServiceTask_1khc38t" targetRef="Activity_13ucoms" />
+    <bpmn:sequenceFlow id="Flow_0ycfjy4" sourceRef="ServiceTask_1i0xslv" targetRef="Activity_1gcjkc8" />
     <bpmn:textAnnotation id="TextAnnotation_1afyvrl">
       <bpmn:text>Central Planner group</bpmn:text>
     </bpmn:textAnnotation>
@@ -2336,15 +2318,6 @@ Site: ${siteName}
     <bpmn:textAnnotation id="TextAnnotation_1nuc1x0">
       <bpmn:text>Regional Transmission group</bpmn:text>
     </bpmn:textAnnotation>
-    <bpmn:textAnnotation id="TextAnnotation_0dc4a5v">
-      <bpmn:text>Regional Power Engineer</bpmn:text>
-    </bpmn:textAnnotation>
-    <bpmn:textAnnotation id="TextAnnotation_13jpbr2">
-      <bpmn:text>Предварительная оценка ТВ от РЭС</bpmn:text>
-    </bpmn:textAnnotation>
-    <bpmn:association id="Association_045sq6p" sourceRef="estimateTechnicalCapabilityRes" targetRef="TextAnnotation_0dc4a5v" />
-    <bpmn:association id="Association_0a7q585" sourceRef="estimateTechnicalCapabilityRes" targetRef="TextAnnotation_13jpbr2" />
-    <bpmn:association id="Association_13we5y4" sourceRef="checkAndApproveFE" targetRef="TextAnnotation_1nuc1x0" />
     <bpmn:textAnnotation id="TextAnnotation_09eibzg">
       <bpmn:text>Regional Site Leasing</bpmn:text>
     </bpmn:textAnnotation>
@@ -2396,12 +2369,6 @@ Site: ${siteName}
         <bpmndi:BPMNLabel>
           <dc:Bounds x="162" y="482" width="0" height="13" />
         </bpmndi:BPMNLabel>
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="UserTask_0mkinlz_di" bpmnElement="estimateTechnicalCapabilityRes" bioc:stroke="#1E88E5" bioc:fill="#BBDEFB">
-        <dc:Bounds x="4018" y="1082" width="100" height="80" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="UserTask_0lq9qua_di" bpmnElement="checkAndApproveFE" bioc:stroke="#E53935" bioc:fill="#FFCDD2">
-        <dc:Bounds x="4018" y="1249" width="100" height="80" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="SubProcess_0iqjr7a_di" bpmnElement="SubProcess_0iqjr7a" isExpanded="true" bioc:stroke="#43A047" bioc:fill="#C8E6C9">
         <dc:Bounds x="5420" y="419" width="2721" height="2234" />
@@ -3885,6 +3852,7 @@ Site: ${siteName}
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="UserTask_1ywmudj_di" bpmnElement="confirmStartLeasingNO">
         <dc:Bounds x="4670" y="1216" width="100" height="80" />
+        <bpmndi:BPMNLabel />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="ExclusiveGateway_0w92bfy_di" bpmnElement="ExclusiveGateway_0w92bfy" isMarkerVisible="true">
         <dc:Bounds x="14054" y="1046" width="50" height="50" />
@@ -4356,12 +4324,6 @@ Site: ${siteName}
       <bpmndi:BPMNShape id="TextAnnotation_1nuc1x0_di" bpmnElement="TextAnnotation_1nuc1x0">
         <dc:Bounds x="4049" y="1353" width="129" height="37" />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="TextAnnotation_0dc4a5v_di" bpmnElement="TextAnnotation_0dc4a5v">
-        <dc:Bounds x="3950" y="1007" width="156" height="30" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="TextAnnotation_13jpbr2_di" bpmnElement="TextAnnotation_13jpbr2">
-        <dc:Bounds x="3983" y="1188" width="169" height="39" />
-      </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="TextAnnotation_09eibzg_di" bpmnElement="TextAnnotation_09eibzg">
         <dc:Bounds x="11643" y="843" width="100" height="39" />
       </bpmndi:BPMNShape>
@@ -4471,14 +4433,6 @@ Site: ${siteName}
         <bpmndi:BPMNLabel>
           <dc:Bounds x="3781" y="1217" width="63" height="66" />
         </bpmndi:BPMNLabel>
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="SequenceFlow_0vur415_di" bpmnElement="SequenceFlow_0vur415">
-        <di:waypoint x="4118" y="1122" />
-        <di:waypoint x="4190" y="1122" />
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="SequenceFlow_0ixzzp0_di" bpmnElement="SequenceFlow_0ixzzp0">
-        <di:waypoint x="4118" y="1289" />
-        <di:waypoint x="4190" y="1289" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_116lgvb_di" bpmnElement="SequenceFlow_116lgvb">
         <di:waypoint x="4345" y="1195" />
@@ -4763,14 +4717,6 @@ Site: ${siteName}
         <di:waypoint x="12502" y="1052" />
         <di:waypoint x="12589" y="1052" />
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="SequenceFlow_0t1ore9_di" bpmnElement="SequenceFlow_0t1ore9">
-        <di:waypoint x="3948" y="1122" />
-        <di:waypoint x="4018" y="1122" />
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="SequenceFlow_1qtnaoy_di" bpmnElement="SequenceFlow_1qtnaoy">
-        <di:waypoint x="3948" y="1289" />
-        <di:waypoint x="4018" y="1289" />
-      </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_1r8asff_di" bpmnElement="SequenceFlow_1r8asff">
         <di:waypoint x="4500" y="1193" />
         <di:waypoint x="4587" y="1193" />
@@ -5021,20 +4967,6 @@ Site: ${siteName}
         <di:waypoint x="362" y="1192" />
         <di:waypoint x="255" y="1191" />
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Association_045sq6p_di" bpmnElement="Association_045sq6p">
-        <di:waypoint x="4068" y="1082" />
-        <di:waypoint x="4068" y="1055" />
-        <di:waypoint x="4016" y="1055" />
-        <di:waypoint x="4016" y="1037" />
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Association_0a7q585_di" bpmnElement="Association_0a7q585">
-        <di:waypoint x="4068" y="1162" />
-        <di:waypoint x="4068" y="1188" />
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Association_13we5y4_di" bpmnElement="Association_13we5y4">
-        <di:waypoint x="4069" y="1329" />
-        <di:waypoint x="4069" y="1352" />
-      </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Association_08rvkrm_di" bpmnElement="Association_08rvkrm">
         <di:waypoint x="11716" y="915" />
         <di:waypoint x="11701" y="882" />
@@ -5075,6 +5007,14 @@ Site: ${siteName}
       <bpmndi:BPMNEdge id="Association_1nxpafa_di" bpmnElement="Association_1nxpafa">
         <di:waypoint x="4068" y="1479" />
         <di:waypoint x="4068" y="1519" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1jh0e3o_di" bpmnElement="Flow_1jh0e3o">
+        <di:waypoint x="3948" y="1122" />
+        <di:waypoint x="4190" y="1122" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0ycfjy4_di" bpmnElement="Flow_0ycfjy4">
+        <di:waypoint x="3948" y="1289" />
+        <di:waypoint x="4190" y="1289" />
       </bpmndi:BPMNEdge>
     </bpmndi:BPMNPlane>
   </bpmndi:BPMNDiagram>
