@@ -1,0 +1,124 @@
+<form role="form" class="form-horizontal" name="kcell_form" novalidate>
+    <script cam-script type="text/form-script" type="text/javascript">
+        inject(['$scope', '$http', '$rootScope', '$q', '$timeout', 'exModal', function ($scope, $http, $rootScope, $q) {
+            const variables = [
+                'addedPorts',
+                'disbandPorts',
+                'modifyPorts',
+                'addedServices',
+                'disbandServices',
+                'modifyServices',
+                'channel',
+                'request_type',
+                'priority',
+                'dateCreated',
+                'dateUpdated',
+                'businessKey',
+                'providerComments',
+                'nor',
+                'uploadedFiles'
+            ];
+
+            $http.get('/camunda/catalogs/api/get/id/83').then(
+                function (response) {
+                    $scope.serviceTypeCatalog = response.data.data.$list;
+                }
+            );
+
+            $scope.downloadFile = function(file) {
+                $http({
+                    method: 'GET',
+                    url: '/camunda/uploads/get/' + file.path,
+                    transformResponse: []
+                }).then(function (response) {
+                    document.getElementById('fileDownloadIframe').src = response.data;
+                }, function (error) {
+                    console.log(error);
+                });
+            };
+
+            camForm.on('form-loaded', function () {
+                variables.forEach(function (el) {
+                    camForm.variableManager.fetchVariable(el);
+                });
+            });
+
+            camForm.on('variables-fetched', function () {
+                variables.forEach(function (el) {
+                    const val = camForm.variableManager.variables[el].value;
+                    if (val) {
+                        if (el.includes("date")) {
+                            const date = new Date(val);
+                            $scope[el] = `${date.getDate()}.${date.getMonth() + 1}.${date.getFullYear()}`;
+                        } else {
+                            $scope[el] = val;
+                        }
+                    }
+                });
+            });
+
+            camForm.on('submit', function (e) {
+
+            });
+        }]);
+    </script>
+    <div class="form-group">
+        <div class="col-sm-6"><h4>Request # {{businessKey}}</h4></div>
+    </div>
+    <div class="form-group">
+        <div class="col-sm-3">
+            <label class="control-label"><b>Request: </b><span style="color: #cea3bf">{{request_type}} {{channel}}</span></label>
+        </div>
+        <div class="col-sm-3">
+            <label class="control-label"><b>Date created: </b><span style="color: #cea3bf">{{dateCreated}}</span></label>
+        </div>
+    </div>
+    <div class="form-group">
+        <div class="col-sm-3">
+            <label class="control-label"><b>Priority: </b><span style="color: #cea3bf">{{priority}}</span></label>
+        </div>
+        <div class="col-sm-3">
+            <label class="control-label"><b>Date updated: </b><span style="color: #cea3bf">{{dateUpdated}}</span></label>
+        </div>
+    </div>
+
+    <approve-organize-port ng-if="channel === 'Port' && request_type === 'Organize'" added-ports="addedPorts"
+                           form="kcell_form" view="view"></approve-organize-port>
+    <approve-disband-port ng-if="channel === 'Port' && request_type === 'Disband'" disband-ports="disbandPorts"
+                          form="kcell_form" view="view"></approve-disband-port>
+    <approve-modify-port ng-if="channel === 'Port' && request_type === 'Modify'" modify-ports="modifyPorts"
+                         form="kcell_form" view="view"></approve-modify-port>
+    <approve-organize-vpn ng-if="channel === 'VPN' && request_type === 'Organize'" added-services="addedServices" is-editable="true"
+                          service-type-catalog="serviceTypeCatalog" form="kcell_form" view="view"></approve-organize-vpn>
+    <approve-disband-vpn ng-if="channel === 'VPN' && request_type === 'Disband'" disband-services="disbandServices"
+                         service-type-catalog="serviceTypeCatalog" form="kcell_form" view="view"></approve-disband-vpn>
+    <approve-modify-vpn ng-if="channel === 'VPN' && request_type === 'Modify'" modify-services="modifyServices"
+                        service-type-catalog="serviceTypeCatalog" form="kcell_form" view="view"></approve-modify-vpn>
+
+
+    <div class="form-group">
+        <label for="nor" class="col-sm-2 control-label">NOR</label>
+        <div class="col-sm-4">
+            <input type="text" class="form-control" ng-model="nor" id="nor" name="nor" disabled>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label for="providerComments" class="col-sm-2 control-label">Provider comments:</label>
+        <div class="col-sm-6">
+            <textarea readonly id="providerComments" class="form-control" ng-model="providerComments" rows="5"></textarea>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label class="col-sm-2 control-label"><b>Attachments</b></label>
+    </div>
+    <div class="form-group">
+        <div class="col-sm-12" ng-repeat="file in uploadedFiles">
+            <iframe id="fileDownloadIframe" style="display:none;"></iframe>
+            <label class="control-label">{{ file.name }}</label>
+            <a style="font-size: 2rem" ng-click="downloadFile(file)"><span class="glyphicon glyphicon-download"></span></a>
+        </div>
+    </div>
+    <br>
+</form>
