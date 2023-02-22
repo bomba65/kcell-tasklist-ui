@@ -1,5 +1,6 @@
 package kz.kcell.flow.vpnportprocess.service;
 
+import kz.kcell.flow.assets.dto.PortOutputDto;
 import kz.kcell.flow.assets.dto.VpnOutputDto;
 import kz.kcell.flow.vpnportprocess.variable.VpnCamVar;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -32,5 +33,9 @@ public class IpVpnConnectServiceTest implements IpVpnConnectService {
     public void makeChangesToAddedService(VpnOutputDto vpn) {}
 
     @Override
-    public void deleteAddedVpn(VpnCamVar vpn) {}
+    public void deleteVpn(VpnCamVar vpn) {}
+
+    @Override
+    public void changePortCapacity(PortOutputDto port) {
+    }
 }
