@@ -52,6 +52,18 @@ public class VpnPortProcessMapper {
             .build();
     }
 
+    public PortInputDto mapModifiedPort(PortCamVar port, String status) {
+        return PortInputDto.builder()
+            .portNumber(port.getPortNumber())
+            .portCapacity(port.getModifiedPortCapacity())
+            .portCapacityUnit(port.getModifiedPortCapacityUnit())
+            .channelType(port.getChannelType())
+            .portType(port.getPortType())
+            .farEndAddressId(port.getFarEndAddress().getId())
+            .status(status)
+            .build();
+    }
+
     public VpnInputDto mapFromAddedVpn(VpnCamVar vpn, long addressId, String vlan, String status) {
         return VpnInputDto.builder()
             .vpnNumber(vpn.getVpnNumber())

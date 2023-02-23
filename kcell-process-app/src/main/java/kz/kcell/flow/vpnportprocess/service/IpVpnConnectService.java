@@ -1,5 +1,6 @@
 package kz.kcell.flow.vpnportprocess.service;
 
+import kz.kcell.flow.assets.dto.PortOutputDto;
 import kz.kcell.flow.assets.dto.VpnOutputDto;
 import kz.kcell.flow.vpnportprocess.variable.VpnCamVar;
 
@@ -16,5 +17,7 @@ public interface IpVpnConnectService {
 
     void makeChangesToAddedService(VpnOutputDto vpn);
 
-    void deleteAddedVpn(VpnCamVar vpn);
+    void deleteVpn(VpnCamVar vpn);
+
+    void changePortCapacity(PortOutputDto port);
 }
