@@ -11,6 +11,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
+import java.util.Map;
 
 import static kz.kcell.Util.writeToFile;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -85,5 +86,14 @@ public class IpVpnConnectServiceTest {
 
         boolean isAvailableForModification = ipVpnConnectService.checkUtilization("VPN0409", "ABIS");
         assertThat(isAvailableForModification).isTrue();
+    }
+
+    @Test
+    public void testFindVpnNumbersThatMeetUtilizationCriteria() {
+        InputStream in = getClass().getClassLoader().getResourceAsStream("vpn-port-process/files001/IP VPN Statistics/IPVPN's 2023.01.04.xlsx");
+        when(sambaService.readIpVpnUtilization()).thenReturn(in);
+
+        Map<String, Double> result = ipVpnConnectService.findVpnNumbersThatMeetUtilizationCriteria();
+        assertThat(result).hasSize(73);
     }
 }

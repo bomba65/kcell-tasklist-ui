@@ -22,7 +22,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @ConditionalOnProperty(name="ipvpn.connect.file.enabled", havingValue = "true")
@@ -233,7 +235,7 @@ public class IpVpnConnectServiceProd implements IpVpnConnectService {
         ZipSecureFile.setMinInflateRatio(0);
 
         InputStream in = sambaService.readIpVpnUtilization();
-        Workbook workbook = null;
+        Workbook workbook;
         try {
             workbook = new XSSFWorkbook(in);
         } catch (IOException e) {
@@ -241,7 +243,7 @@ public class IpVpnConnectServiceProd implements IpVpnConnectService {
         }
 
         List<String> serviceTypes = new ArrayList<>(Arrays.asList("Abis","IuB","ABIS","IUB","MuB","MUB","GB","GB1","PORT"));
-        double utilizationMax = serviceTypes.contains(serviceType) ? 80 : 70;
+        double utilizationMax = serviceTypes.contains(serviceType) ? 0.80 : 0.70;
         Sheet sheet = workbook.getSheet("All data");
         int rowIndex = searchForValueAtCell(sheet, 1, vpnNumber);
         if (rowIndex != 1) {
@@ -252,6 +254,41 @@ public class IpVpnConnectServiceProd implements IpVpnConnectService {
         } else {
             throw new RuntimeException("VPN Number not found in IPVPN's yyyy.MM.dd.xlsx");
         }
+    }
+
+    @Override
+    public Map<String, Double> findVpnNumbersThatMeetUtilizationCriteria() {
+        ZipSecureFile.setMinInflateRatio(0);
+
+        InputStream in = sambaService.readIpVpnUtilization();
+        Workbook workbook;
+        try {
+            workbook = new XSSFWorkbook(in);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+        List<String> serviceTypes = new ArrayList<>(Arrays.asList("Abis","IuB","ABIS","IUB","MuB","MUB","GB","GB1","PORT"));
+        Map<String, Double> result = new HashMap<>();
+        Sheet sheet = workbook.getSheet("All data");
+
+        for (int i = 1; i <= sheet.getLastRowNum(); i++) {
+            Row row = sheet.getRow(i);
+            Cell cell = row.getCell(64);
+            if (cell != null && cell.getCellType() == CellType.FORMULA && cell.getCachedFormulaResultType() == CellType.NUMERIC) {
+                double utilization = cell.getNumericCellValue();
+                String vpnNumber = row.getCell(1).getCellType() == CellType.STRING ? row.getCell(1).getStringCellValue() : String.valueOf(row.getCell(1).getNumericCellValue());
+                String serviceType = row.getCell(4).getStringCellValue();
+                double utilizationMax = serviceTypes.contains(serviceType) ? 0.80 : 0.70;
+
+                if (utilization >= utilizationMax) {
+                    result.put(vpnNumber.trim(), utilization);
+                }
+            }
+
+        }
+
+        return result;
     }
 
     @Override

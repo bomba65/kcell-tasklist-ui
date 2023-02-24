@@ -1,11 +1,15 @@
 package kz.kcell.flow.vpnportprocess.mapper;
 
+import kz.kcell.flow.assets.dto.AddressCityDto;
 import kz.kcell.flow.assets.dto.AddressesInputDto;
+import kz.kcell.flow.assets.dto.AdressesOutputDto;
 import kz.kcell.flow.assets.dto.CatalogObjectDto;
 import kz.kcell.flow.assets.dto.PortInputDto;
+import kz.kcell.flow.assets.dto.PortOutputDto;
 import kz.kcell.flow.assets.dto.VpnInputDto;
 import kz.kcell.flow.assets.dto.VpnOutputDto;
 import kz.kcell.flow.vpnportprocess.variable.AddressCamVar;
+import kz.kcell.flow.vpnportprocess.variable.CityCamVar;
 import kz.kcell.flow.vpnportprocess.variable.PortCamVar;
 import kz.kcell.flow.vpnportprocess.variable.VpnCamVar;
 import org.springframework.stereotype.Service;
@@ -133,6 +137,51 @@ public class VpnPortProcessMapper {
             .kcellAs(vpn.getKcellAs())
             .nearEndAddressId(vpn.getNearEndAddress().getId())
             .status(status)
+            .build();
+    }
+
+    public VpnCamVar map(VpnOutputDto vpn, int modifiedServiceCapacity) {
+        return VpnCamVar.builder()
+            .vpnNumber(vpn.getVpnNumber())
+            .port(map(vpn.getPort()))
+            .service(vpn.getService())
+            .serviceTypeId(vpn.getServiceTypeId())
+            .serviceTypeCatalogId(vpn.getServiceTypeCatalogId())
+            .providerIp(vpn.getProviderIp())
+            .kcellIp(vpn.getKcellIp())
+            .vlan(vpn.getVlan())
+            .serviceCapacity(vpn.getServiceCapacity())
+            .modifiedServiceCapacity(modifiedServiceCapacity)
+            .providerAs(vpn.getProviderAs())
+            .kcellAs(vpn.getKcellAs())
+            .nearEndAddress(map(vpn.getNearEndAddress()))
+            .build();
+    }
+
+    public PortCamVar map(PortOutputDto port) {
+        return PortCamVar.builder()
+            .portNumber(port.getPortNumber())
+            .portCapacity(port.getPortCapacity())
+            .portCapacityUnit(port.getPortCapacityUnit())
+            .channelType(port.getChannelType())
+            .portType(port.getPortType())
+            .farEndAddress(map(port.getFarEndAddress()))
+            .build();
+    }
+
+    public AddressCamVar map(AdressesOutputDto address) {
+        return AddressCamVar.builder()
+            .cityId(map(address.getCityId()))
+            .street(address.getStreet())
+            .building(address.getBuilding())
+            .cadastralNumber(address.getCadastralNumber())
+            .note(address.getNote())
+            .build();
+    }
+
+    public CityCamVar map(AddressCityDto city) {
+        return CityCamVar.builder()
+            .id(city.getId())
             .build();
     }
 }

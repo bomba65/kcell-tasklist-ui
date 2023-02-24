@@ -19,7 +19,7 @@ public interface VpnPortClient {
     VpnOutputDto getVpnById(@Param("id") Long id);
 
     @RequestLine("GET /vpn/vpn_number/{vpnNumber}")
-    List<VpnOutputDto> getVpnByVpnNumber(@Param("vpnNumber") String vpnNumber);
+    VpnOutputDto getVpnByVpnNumber(@Param("vpnNumber") String vpnNumber);
 
     @RequestLine("GET /vpn/port_number/{portNumber}")
     List<VpnOutputDto> getVpnsByPortNumber(@Param("portNumber") String portNumber);
