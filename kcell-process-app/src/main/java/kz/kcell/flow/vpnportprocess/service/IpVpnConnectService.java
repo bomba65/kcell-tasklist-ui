@@ -4,6 +4,8 @@ import kz.kcell.flow.assets.dto.PortOutputDto;
 import kz.kcell.flow.assets.dto.VpnOutputDto;
 import kz.kcell.flow.vpnportprocess.variable.VpnCamVar;
 
+import java.util.Map;
+
 public interface IpVpnConnectService {
     String addNewVlanToIpVpnConnectFile(String serviceType);
 
@@ -18,6 +20,8 @@ public interface IpVpnConnectService {
     void makeChangesToAddedService(VpnOutputDto vpn);
 
     void deleteVpn(VpnCamVar vpn);
+
+    Map<String, Double> findVpnNumbersThatMeetUtilizationCriteria();
 
     void changePortCapacity(PortOutputDto port);
 }

@@ -33,7 +33,7 @@ public class VpnController {
     }
 
     @GetMapping("/vpn_number/{vpnNumber}")
-    public List<VpnOutputDto> getVpnByVpnNumber(@PathVariable String vpnNumber) {
+    public VpnOutputDto getVpnByVpnNumber(@PathVariable String vpnNumber) {
         return vpnPortClient.getVpnByVpnNumber(vpnNumber);
     }
 

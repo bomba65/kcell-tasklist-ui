@@ -1,10 +1,10 @@
-package kz.kcell.flow.assets.client.config;
+package kz.kcell.flow.catalogs.client.config;
 
 import feign.Feign;
 import feign.jackson.JacksonDecoder;
 import feign.jackson.JacksonEncoder;
-import kz.kcell.flow.assets.client.AssetsClient;
-import lombok.RequiredArgsConstructor;
+import kz.kcell.flow.catalogs.client.CatalogsClient;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -12,17 +12,19 @@ import static org.springframework.http.HttpHeaders.CONTENT_TYPE;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 @Configuration
-@RequiredArgsConstructor
-public class AssetsClientConfig {
+public class CatalogsClientConfig {
 
-    private final String assetUrl;
+    private final String catalogsUrl;
 
+    public CatalogsClientConfig(@Value("${catalogs.url:https://catalogs.test-flow.kcell.kz}") String catalogsUrl) {
+        this.catalogsUrl = catalogsUrl;
+    }
     @Bean
-    AssetsClient assetsClient() {
+    CatalogsClient catalogsClient() {
         return Feign.builder()
             .encoder(new JacksonEncoder())
             .decoder(new JacksonDecoder())
             .requestInterceptor(template -> template.header(CONTENT_TYPE, APPLICATION_JSON_VALUE))
-            .target(AssetsClient.class, assetUrl + "/asset-management");
+            .target(CatalogsClient.class, catalogsUrl);
     }
 }

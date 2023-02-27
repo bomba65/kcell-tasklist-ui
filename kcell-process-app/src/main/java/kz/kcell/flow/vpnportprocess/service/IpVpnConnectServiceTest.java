@@ -6,6 +6,9 @@ import kz.kcell.flow.vpnportprocess.variable.VpnCamVar;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
+import java.util.Map;
+
 @Service
 @ConditionalOnProperty(name="ipvpn.connect.file.enabled", havingValue = "false")
 public class IpVpnConnectServiceTest implements IpVpnConnectService {
@@ -34,6 +37,13 @@ public class IpVpnConnectServiceTest implements IpVpnConnectService {
 
     @Override
     public void deleteVpn(VpnCamVar vpn) {}
+
+    @Override
+    public Map<String,Double> findVpnNumbersThatMeetUtilizationCriteria() {
+        return new HashMap<String,Double>() {{
+            put("vpn1908", 0.83);
+        }};
+    }
 
     @Override
     public void changePortCapacity(PortOutputDto port) {
