@@ -5,6 +5,7 @@ import feign.FeignException;
 import kz.kcell.flow.assets.client.VpnPortClient;
 import kz.kcell.flow.assets.dto.PortOutputDto;
 import kz.kcell.flow.assets.dto.VpnOutputDto;
+import kz.kcell.flow.utils.Pair;
 import kz.kcell.flow.vpnportprocess.mapper.VpnPortProcessMapper;
 import kz.kcell.flow.vpnportprocess.service.IpVpnConnectService;
 import kz.kcell.flow.vpnportprocess.variable.PortCamVar;
@@ -16,6 +17,7 @@ import org.camunda.spin.plugin.variable.SpinValues;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -141,6 +143,7 @@ public class CalculateAndReservePortCapacity implements JavaDelegate {
             }
         }
 
+        List<Pair<String, Integer>> addedIpVpnRowNumbers = new ArrayList<>();
         List<VpnOutputDto> createdVpns = Arrays.stream(addedServices).map((vpn) -> {
             long addressId = vpnPortClient.createNewAddress(vpnPortProcessMapper.map(vpn.getNearEndAddress())).getId();
             String vlan = null;
@@ -152,12 +155,14 @@ public class CalculateAndReservePortCapacity implements JavaDelegate {
             VpnOutputDto createdVpn = vpnPortClient.createNewVpn(vpnPortProcessMapper.mapFromAddedVpn(vpn, addressId, vlan, "Ordered"));
 
             // write the created vpn to IPVPN CONNECT.xlsm
-            ipVpnConnectService.addNewVpnToIpVpnConnectFile(createdVpn, vpn.getServiceTypeTitle(), vlan);
+            Pair<String, Integer> sheetAndRowNumber = ipVpnConnectService.addNewVpnToIpVpnConnectFile(createdVpn, vpn.getServiceTypeTitle(), vlan);
+            addedIpVpnRowNumbers.add(sheetAndRowNumber);
             return createdVpn;
         }).collect(Collectors.toList());
         List<Integer> createdVpnHashCodeList = createdVpns.stream().map(VpnOutputDto::hashCode).collect(Collectors.toList());
 
         execution.setVariable("addedServiceHashCodeList", SpinValues.jsonValue(objectMapper.writeValueAsString(createdVpnHashCodeList)));
+        execution.setVariable("addedIpVpnRowNumbers", SpinValues.jsonValue(objectMapper.writeValueAsString(addedIpVpnRowNumbers)));
         execution.setVariable("addedServices", SpinValues.jsonValue(objectMapper.writeValueAsString(createdVpns)).create());
     }
 

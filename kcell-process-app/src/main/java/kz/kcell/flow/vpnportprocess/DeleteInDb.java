@@ -1,7 +1,9 @@
 package kz.kcell.flow.vpnportprocess;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import kz.kcell.flow.assets.client.VpnPortClient;
+import kz.kcell.flow.utils.Pair;
 import kz.kcell.flow.vpnportprocess.mapper.VpnPortProcessMapper;
 import kz.kcell.flow.vpnportprocess.service.IpVpnConnectService;
 import kz.kcell.flow.vpnportprocess.variable.PortCamVar;
@@ -12,6 +14,7 @@ import org.camunda.bpm.engine.delegate.JavaDelegate;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
+import java.util.List;
 
 @Component
 @RequiredArgsConstructor
@@ -23,7 +26,7 @@ public class DeleteInDb implements JavaDelegate {
     private final IpVpnConnectService ipVpnConnectService;
 
     @Override
-    public void execute(DelegateExecution execution) throws Exception {
+    synchronized public void execute(DelegateExecution execution) throws Exception {
         String channel = execution.getVariable("channel").toString();
         String requestType = execution.getVariable("request_type").toString();
 
@@ -60,10 +63,11 @@ public class DeleteInDb implements JavaDelegate {
 
     private void deleteAddedServices(DelegateExecution execution) throws Exception {
         VpnCamVar[] addedServices = objectMapper.readValue(execution.getVariable("addedServices").toString(), VpnCamVar[].class);
+        List<Pair<String,Integer>> addedIpVpnRowNumbers = objectMapper.readValue(execution.getVariable("addedIpVpnRowNumbers").toString(),  new TypeReference<List<Pair<String,Integer>>>(){});
 
-        for(VpnCamVar vpn: addedServices) {
-            vpnPortClient.deleteVpn(vpn.getId());
-            ipVpnConnectService.deleteVpn(vpn);
+        for(int i = 0; i < addedServices.length; i++) {
+            vpnPortClient.deleteVpn(addedServices[i].getId());
+            ipVpnConnectService.deleteAddedService(addedServices[i], addedIpVpnRowNumbers.get(i));
         }
     }
 

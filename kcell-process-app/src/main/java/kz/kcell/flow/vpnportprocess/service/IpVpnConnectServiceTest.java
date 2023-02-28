@@ -1,7 +1,7 @@
 package kz.kcell.flow.vpnportprocess.service;
 
-import kz.kcell.flow.assets.dto.PortOutputDto;
 import kz.kcell.flow.assets.dto.VpnOutputDto;
+import kz.kcell.flow.utils.Pair;
 import kz.kcell.flow.vpnportprocess.variable.VpnCamVar;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
@@ -19,10 +19,15 @@ public class IpVpnConnectServiceTest implements IpVpnConnectService {
     }
 
     @Override
-    public void addNewVpnToIpVpnConnectFile(VpnOutputDto vpn, String serviceType, String vlan) {}
+    public Pair<String, Integer> addNewVpnToIpVpnConnectFile(VpnOutputDto vpn, String serviceType, String vlan) {
+        return new Pair<>("VPN", 0);
+    }
 
     @Override
     public void changeStatus(String vpnNumber, String status) {}
+
+    @Override
+    public void changeAddedServiceStatus(VpnCamVar vpn, Pair<String, Integer> rowNumber, String status) {}
 
     @Override
     public void changeStatusAndCapacity(String vpnNumber, String status, Integer modifiedCapacity) {}
@@ -33,10 +38,12 @@ public class IpVpnConnectServiceTest implements IpVpnConnectService {
     }
 
     @Override
-    public void makeChangesToAddedService(VpnOutputDto vpn) {}
+    public void makeChangesToAddedService(VpnOutputDto vpn, Pair<String, Integer> rowNumber) {}
 
     @Override
-    public void deleteVpn(VpnCamVar vpn) {}
+    public void deleteAddedService(VpnCamVar vpn, Pair<String, Integer> rowNumber) {}
+
+    public void deleteDisbandedVpn(String vpnNumber) {}
 
     @Override
     public Map<String,Double> findVpnNumbersThatMeetUtilizationCriteria() {
@@ -46,6 +53,6 @@ public class IpVpnConnectServiceTest implements IpVpnConnectService {
     }
 
     @Override
-    public void changePortCapacity(PortOutputDto port) {
+    public void changePortCapacity(String portNumber, String portCapacity, String status) {
     }
 }

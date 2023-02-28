@@ -30,13 +30,13 @@ public class IpVpnConnectServiceTest {
     private IpVpnConnectServiceProd ipVpnConnectService;
 
     @Test
-    public void testAddNewVlanToIpVpnConnectFile() throws Exception {
+    public void testAddNewVlanToIpVpnConnectFile() {
         String serviceType = "IuB";
         InputStream in = getClass().getClassLoader().getResourceAsStream("vpn-port-process/files001/td_home/MSC_Data/TRUNK COMMUNICATIONS/IP Core/CORE_NETWORK/IPVPN CONNECT.xlsm");
         when(sambaService.readIpVpnConnect()).thenReturn(in);
 
         String vlan = ipVpnConnectService.addNewVlanToIpVpnConnectFile(serviceType);
-        assertThat(vlan).isEqualTo("2491");
+        assertThat(vlan).isEqualTo("2599");
 
         ArgumentCaptor<ByteArrayOutputStream> argumentCaptor = ArgumentCaptor.forClass(ByteArrayOutputStream.class);
         verify(sambaService).writeIpVpnConnect(argumentCaptor.capture());
@@ -56,7 +56,7 @@ public class IpVpnConnectServiceTest {
             VpnOutputDto.class
         );
 
-        ipVpnConnectService.addNewVpnToIpVpnConnectFile(vpn, serviceType, "2491");
+        ipVpnConnectService.addNewVpnToIpVpnConnectFile(vpn, serviceType, "2599");
 
         ArgumentCaptor<ByteArrayOutputStream> argumentCaptor = ArgumentCaptor.forClass(ByteArrayOutputStream.class);
         verify(sambaService).writeIpVpnConnect(argumentCaptor.capture());
@@ -64,6 +64,7 @@ public class IpVpnConnectServiceTest {
 
         writeToFile(capturedOut, "./test-output/IPVPN CONNECT_new_vpn.xlsm");
     }
+
 
     @Test
     public void testChangeStatus() {
@@ -82,7 +83,7 @@ public class IpVpnConnectServiceTest {
     @Test
     public void testCheckUtilization() {
         InputStream in = getClass().getClassLoader().getResourceAsStream("vpn-port-process/files001/IP VPN Statistics/IPVPN's 2023.01.04.xlsx");
-        when(sambaService.readIpVpnUtilization()).thenReturn(in);
+        when(sambaService.readIpVpnStatistics()).thenReturn(in);
 
         boolean isAvailableForModification = ipVpnConnectService.checkUtilization("VPN0409", "ABIS");
         assertThat(isAvailableForModification).isTrue();
@@ -91,9 +92,23 @@ public class IpVpnConnectServiceTest {
     @Test
     public void testFindVpnNumbersThatMeetUtilizationCriteria() {
         InputStream in = getClass().getClassLoader().getResourceAsStream("vpn-port-process/files001/IP VPN Statistics/IPVPN's 2023.01.04.xlsx");
-        when(sambaService.readIpVpnUtilization()).thenReturn(in);
+        when(sambaService.readIpVpnStatistics()).thenReturn(in);
 
         Map<String, Double> result = ipVpnConnectService.findVpnNumbersThatMeetUtilizationCriteria();
         assertThat(result).hasSize(73);
+    }
+
+    @Test
+    public void testChangePortCapacity() {
+        InputStream in = getClass().getClassLoader().getResourceAsStream("vpn-port-process/files001/td_home/MSC_Data/TRUNK COMMUNICATIONS/IP Core/CORE_NETWORK/IPVPN CONNECT.xlsm");
+        when(sambaService.readIpVpnConnect()).thenReturn(in);
+
+        ipVpnConnectService.changePortCapacity("АктауCE2", "40GB", "In Process");
+
+        ArgumentCaptor<ByteArrayOutputStream> argumentCaptor = ArgumentCaptor.forClass(ByteArrayOutputStream.class);
+        verify(sambaService).writeIpVpnConnect(argumentCaptor.capture());
+        ByteArrayOutputStream capturedOut = argumentCaptor.getValue();
+
+        writeToFile(capturedOut, "./test-output/IPVPN CONNECT_changed_port_capacity.xlsm");
     }
 }

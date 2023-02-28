@@ -1,7 +1,7 @@
 package kz.kcell.flow.vpnportprocess.service;
 
-import kz.kcell.flow.assets.dto.PortOutputDto;
 import kz.kcell.flow.assets.dto.VpnOutputDto;
+import kz.kcell.flow.utils.Pair;
 import kz.kcell.flow.vpnportprocess.variable.VpnCamVar;
 import lombok.RequiredArgsConstructor;
 import org.apache.poi.openxml4j.util.ZipSecureFile;
@@ -91,7 +91,7 @@ public class IpVpnConnectServiceProd implements IpVpnConnectService {
     }
 
     @Override
-    public void addNewVpnToIpVpnConnectFile(VpnOutputDto vpn, String serviceType, String vlan) {
+    public Pair<String, Integer> addNewVpnToIpVpnConnectFile(VpnOutputDto vpn, String serviceType, String vlan) {
         ZipSecureFile.setMinInflateRatio(0);
 
         InputStream in = sambaService.readIpVpnConnect();
@@ -104,29 +104,33 @@ public class IpVpnConnectServiceProd implements IpVpnConnectService {
 
         // search for port number in VPN sheet
         Sheet sheet = workbook.getSheet("VPN");
-        int rowIndexPortNumberFoundInVpnSheet = searchForValueAtCell(sheet, 0, vpn.getPort().getPortNumber());
+        int rowIndexPortNumberFoundInVpnSheet = searchForValueAtCell(sheet, 19, vpn.getPort().getPortNumber());
 
         // search for port number in 3G_REGIONS sheet
         sheet = workbook.getSheet("3G_REGIONS");
-        int rowIndexPortNumberFoundIn3gRegionsSheet = searchForValueAtCell(sheet, 0, vpn.getPort().getPortNumber());
+        int rowIndexPortNumberFoundIn3gRegionsSheet = searchForValueAtCell(sheet, 19, vpn.getPort().getPortNumber());
 
+        Row row;
         if (rowIndexPortNumberFoundInVpnSheet != -1) {
             sheet = workbook.getSheet("VPN");
+            sheet.shiftRows(rowIndexPortNumberFoundInVpnSheet + 1, sheet.getLastRowNum(), 1);
+            row = sheet.createRow(rowIndexPortNumberFoundInVpnSheet + 1);
         } else if (rowIndexPortNumberFoundIn3gRegionsSheet != -1) {
             sheet = workbook.getSheet("3G_REGIONS");
+            sheet.shiftRows(rowIndexPortNumberFoundIn3gRegionsSheet + 1, sheet.getLastRowNum(), 1, true, true);
+            row = sheet.createRow(rowIndexPortNumberFoundIn3gRegionsSheet + 1);
         } else if (DISTRICTS.contains(vpn.getNearEndAddress().getCityId().getDistrictId().getName())) {
             sheet = workbook.getSheet("VPN");
+            row = sheet.createRow(findLastNonBlankRow(sheet) + 1);
         } else {
             sheet = workbook.getSheet("3G_REGIONS");
+            row = sheet.createRow(findLastNonBlankRow(sheet) + 1);
         }
 
         CellStyle cellStyle = workbook.createCellStyle();
         setBordersAndHorizontalAlignmentToCenter(cellStyle);
 
-        Row row = sheet.createRow(findLastNonBlankRow(sheet) + 1);
-        Cell cell = row.createCell(0); // City
-        cell.setCellValue(vpn.getPort().getPortNumber());
-        cell = row.createCell(1); // VPN
+        Cell cell = row.createCell(1); // VPN
         cell.setCellValue(serviceType);
         cell = row.createCell(2);// ID
         cell.setCellValue("ORDERED");
@@ -144,10 +148,16 @@ public class IpVpnConnectServiceProd implements IpVpnConnectService {
         cell = row.createCell(10);// Termination point
         cell = row.createCell(11);// Interface
         cell.setCellValue(vpn.getPort().getPortCapacity()+vpn.getPort().getPortCapacityUnit());
-        cell = row.createCell(12);// Status
+        cell = row.createCell(19);// City
+        cell.setCellValue(vpn.getPort().getPortNumber());
+        cell = row.createCell(20);// Status
         cell.setCellValue("Ordered");
 
         for(int i = 0; i <= 12; i++) {
+            cell = row.getCell(i) != null ? row.getCell(i) : row.createCell(i);
+            cell.setCellStyle(cellStyle);
+        }
+        for(int i = 19; i <= 20; i++) {
             cell = row.getCell(i) != null ? row.getCell(i) : row.createCell(i);
             cell.setCellStyle(cellStyle);
         }
@@ -162,12 +172,53 @@ public class IpVpnConnectServiceProd implements IpVpnConnectService {
         }
 
         sambaService.writeIpVpnConnect(out);
+
+        return new Pair<>(sheet.getSheetName(), row.getRowNum());
     }
 
     @Override
     public void changeStatus(String vpnNumber, String status) {
         changeStatusAndCapacity(vpnNumber, status, null);
     }
+
+    public void changeAddedServiceStatus(VpnCamVar vpn, Pair<String, Integer> rowNumber, String status) {
+        ZipSecureFile.setMinInflateRatio(0);
+
+        InputStream in = sambaService.readIpVpnConnect();
+        Workbook workbook = null;
+        try {
+            workbook = new XSSFWorkbook(in);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+        Sheet sheet = workbook.getSheet(rowNumber.getKey());
+        Row row = sheet.getRow(rowNumber.getValue());
+
+        // check if row is the same as VpnCamVar
+        if (row.getCell(7).getNumericCellValue() != vpn.getServiceCapacity() // Capacity, Mbps
+            || !row.getCell(11).getStringCellValue().equals(vpn.getPort().getPortCapacity() + vpn.getPort().getPortCapacityUnit()) // Interface
+            || !row.getCell(19).getStringCellValue().equals(vpn.getPort().getPortNumber())) { // City
+            throw new RuntimeException("Row number of VPN:" + vpn + " has been changed!");
+        }
+
+        // set row status
+        Cell cell = row.getCell(20);
+        cell.setCellValue(status);
+
+
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        try {
+            workbook.write(out);
+            out.close();
+            workbook.close();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+        sambaService.writeIpVpnConnect(out);
+    }
+
 
     @Override
     public void changeStatusAndCapacity(String vpnNumber, String status, Integer modifiedCapacity) {
@@ -202,20 +253,13 @@ public class IpVpnConnectServiceProd implements IpVpnConnectService {
 
         Row row = sheet.getRow(rowIndexToChangeValueAt);
 
-        Cell cell = row.getCell(12);
-        if (cell != null) {
-            cell.setCellValue("In process");
-        } else {
-            throw new RuntimeException("There is no Status cell in IPVPN CONNECT.xlsm for VPN Number:" + vpnNumber);
-        }
+        Cell cell = row.getCell(20) != null ? row.getCell(20) : row.createCell(20);
+        cell.setCellValue(status);
 
         if (modifiedCapacity != null) {
-            cell = row.getCell(7);
-            if (cell != null) {
-                cell.setCellValue(modifiedCapacity);
-            } else {
-                throw new RuntimeException("There is no Capacity cell in IPVPN CONNECT.xlsm for VPN Number:" + vpnNumber);
-            }
+            cell = row.getCell(7) != null ? row.getCell(7) : row.createCell(7);
+            cell.setCellValue(modifiedCapacity);
+
         }
 
         ByteArrayOutputStream out = new ByteArrayOutputStream();
@@ -234,7 +278,7 @@ public class IpVpnConnectServiceProd implements IpVpnConnectService {
     public boolean checkUtilization(String vpnNumber, String serviceType) {
         ZipSecureFile.setMinInflateRatio(0);
 
-        InputStream in = sambaService.readIpVpnUtilization();
+        InputStream in = sambaService.readIpVpnStatistics();
         Workbook workbook;
         try {
             workbook = new XSSFWorkbook(in);
@@ -260,7 +304,7 @@ public class IpVpnConnectServiceProd implements IpVpnConnectService {
     public Map<String, Double> findVpnNumbersThatMeetUtilizationCriteria() {
         ZipSecureFile.setMinInflateRatio(0);
 
-        InputStream in = sambaService.readIpVpnUtilization();
+        InputStream in = sambaService.readIpVpnStatistics();
         Workbook workbook;
         try {
             workbook = new XSSFWorkbook(in);
@@ -292,13 +336,202 @@ public class IpVpnConnectServiceProd implements IpVpnConnectService {
     }
 
     @Override
-    public void makeChangesToAddedService(VpnOutputDto vpn) {}
+    public void makeChangesToAddedService(VpnOutputDto vpn, Pair<String, Integer> rowNumber) {
+        ZipSecureFile.setMinInflateRatio(0);
+
+        InputStream in = sambaService.readIpVpnConnect();
+        Workbook workbook;
+        try {
+            workbook = new XSSFWorkbook(in);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+        // get row
+        Sheet sheet = workbook.getSheet(rowNumber.getKey());
+        Row row = sheet.getRow(rowNumber.getValue());
+
+        // check if row is the same as VpnOutputDto
+        if (row.getCell(7).getNumericCellValue() != vpn.getServiceCapacity() // Capacity, Mbps
+            || !row.getCell(11).getStringCellValue().equals(vpn.getPort().getPortCapacity() + vpn.getPort().getPortCapacityUnit()) // Interface
+            || !row.getCell(19).getStringCellValue().equals(vpn.getPort().getPortNumber())// City
+            || !row.getCell(20).getStringCellValue().equals(vpn.getStatus())) { // Status
+            throw new RuntimeException("Row number of VPN:" + vpn + " has been changed!");
+        }
+
+        //vlan, provider_ip, kcell_ip, provider_as, kcell_as
+        Cell cell = row.getCell(4);// IP address KZT
+        cell.setCellValue(vpn.getProviderIp());
+        cell = row.getCell(5);// IP address Kcell
+        cell.setCellValue(vpn.getKcellIp());
+        cell = row.getCell(6);// Vlan
+        cell.setCellValue(vpn.getVlan());
+        cell = row.getCell(8);// AS KZT
+        cell.setCellValue(vpn.getProviderAs());
+        cell = row.getCell(9);// AS Kcell
+        cell.setCellValue(vpn.getKcellAs());
+
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        try {
+            workbook.write(out);
+            out.close();
+            workbook.close();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+        sambaService.writeIpVpnConnect(out);
+    }
 
     @Override
-    public void deleteVpn(VpnCamVar vpn) {}
+    public void deleteAddedService(VpnCamVar vpn, Pair<String, Integer> rowNumber) {
+        ZipSecureFile.setMinInflateRatio(0);
+
+        InputStream in = sambaService.readIpVpnConnect();
+        Workbook workbook = null;
+        try {
+            workbook = new XSSFWorkbook(in);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        Sheet sheet = workbook.getSheet("L2 VLAN");
+
+        // find add vlan value
+        int rowIndex = searchForNumericValueAtCell(sheet, 0, Double.parseDouble(vpn.getVlan()));
+        // remove row with shift up all rows
+        if (rowIndex == sheet.getLastRowNum()) {
+            sheet.removeRow(sheet.getRow(rowIndex));
+        } else {
+            sheet.shiftRows(rowIndex + 1, sheet.getLastRowNum(), -1);
+        }
+
+        sheet = workbook.getSheet(rowNumber.getKey());
+        Row row = sheet.getRow(rowNumber.getValue());
+
+        // check if row is the same as VpnCamVar
+        if (row.getCell(7).getNumericCellValue() != vpn.getServiceCapacity() // Capacity, Mbps
+            || !row.getCell(11).getStringCellValue().equals(vpn.getPort().getPortCapacity() + vpn.getPort().getPortCapacityUnit()) // Interface
+            || !row.getCell(19).getStringCellValue().equals(vpn.getPort().getPortNumber())) { // City
+            throw new RuntimeException("Row number of VPN:" + vpn + " has been changed!");
+        }
+
+        // delete row with shift up all rows
+        sheet.shiftRows(rowNumber.getValue() + 1, sheet.getLastRowNum(), -1);
+
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        try {
+            workbook.write(out);
+            out.close();
+            workbook.close();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+        sambaService.writeIpVpnConnect(out);
+    }
+
+    public void deleteDisbandedVpn(String vpnNumber) {
+        ZipSecureFile.setMinInflateRatio(0);
+
+        InputStream in = sambaService.readIpVpnConnect();
+        Workbook workbook = null;
+        try {
+            workbook = new XSSFWorkbook(in);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+        // search for port number in VPN sheet
+        Sheet sheet = workbook.getSheet("VPN");
+        int rowIndexVpnNumberFoundInVpnSheet = searchForValueAtCell(sheet, 2, vpnNumber);
+
+        // search for port number in 3G_REGIONS sheet
+        sheet = workbook.getSheet("3G_REGIONS");
+        int rowIndexVpnNumberFoundIn3gRegionsSheet = searchForValueAtCell(sheet, 2, vpnNumber);
+
+        int rowIndexToChangeValueAt = -1;
+        if (rowIndexVpnNumberFoundInVpnSheet != -1) {
+            sheet = workbook.getSheet("VPN");
+            rowIndexToChangeValueAt = rowIndexVpnNumberFoundInVpnSheet;
+        } else if (rowIndexVpnNumberFoundIn3gRegionsSheet != -1) {
+            sheet = workbook.getSheet("3G_REGIONS");
+            rowIndexToChangeValueAt = rowIndexVpnNumberFoundIn3gRegionsSheet;
+        } else {
+            throw new RuntimeException("VPN Number:" + vpnNumber + " not found in IPVPN CONNECT.xlsm" );
+        }
+
+        // delete row with shift up all rows
+        sheet.shiftRows(rowIndexToChangeValueAt + 1, sheet.getLastRowNum(), -1);
+
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        try {
+            workbook.write(out);
+            out.close();
+            workbook.close();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+        sambaService.writeIpVpnConnect(out);
+    }
 
     @Override
-    public void changePortCapacity(PortOutputDto port) {
+    public void changePortCapacity(String portNumber, String portCapacity, String status) {
+        ZipSecureFile.setMinInflateRatio(0);
+
+        InputStream in = sambaService.readIpVpnConnect();
+        Workbook workbook = null;
+        try {
+            workbook = new XSSFWorkbook(in);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+        // search for port number in VPN sheet
+        Sheet sheet = workbook.getSheet("VPN");
+        List<Integer> foundRowNumbersInVpnSheet = searchForValuesAtCell(sheet, 19, portNumber);
+        for(int rowNumber: foundRowNumbersInVpnSheet) {
+            Row row = sheet.getRow(rowNumber);
+            if (status != null) {
+                Cell cell = row.getCell(20) != null ? row.getCell(20) : row.createCell(20);
+                cell.setCellValue(status);
+            }
+            if (portCapacity != null) {
+                Cell cell = row.getCell(11) != null ? row.getCell(11) : row.createCell(11);
+                cell.setCellValue(portCapacity);
+            }
+        }
+
+        // search for port number in 3G_REGIONS sheet
+        sheet = workbook.getSheet("3G_REGIONS");
+        List<Integer> foundRowNumbersIn3gSheet = searchForValuesAtCell(sheet, 19, portNumber);
+        for(int rowNumber: foundRowNumbersIn3gSheet) {
+            if (status != null) {
+                Row row = sheet.getRow(rowNumber);
+                Cell cell = row.getCell(20) != null ? row.getCell(20) : row.createCell(20);
+                cell.setCellValue(status);
+            }
+            if (portCapacity == null) {
+                Row row = sheet.getRow(rowNumber);
+                Cell cell = row.getCell(11) != null ? row.getCell(11) : row.createCell(11);
+                cell.setCellValue(portCapacity);
+            }
+        }
+
+        if (foundRowNumbersInVpnSheet.isEmpty() && foundRowNumbersIn3gSheet.isEmpty()) {
+            throw new RuntimeException("Port number:" + portNumber + " not found in IPVPN CONNECT.xlsm" );
+        }
+
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        try {
+            workbook.write(out);
+            out.close();
+            workbook.close();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+        sambaService.writeIpVpnConnect(out);
     }
 
     private void setBordersAndHorizontalAlignmentToCenter(CellStyle style) {
@@ -319,6 +552,31 @@ public class IpVpnConnectServiceProd implements IpVpnConnectService {
             }
         }
         return -1;
+    }
+
+    private int searchForNumericValueAtCell(Sheet sheet, int cellIndex, double value) {
+        for (Row row : sheet) {
+            Cell cell = row.getCell(cellIndex);
+            if (cell != null && cell.getCellType() == CellType.NUMERIC) {
+                if (cell.getNumericCellValue() == value) {
+                    return row.getRowNum();
+                }
+            }
+        }
+        return -1;
+    }
+
+    private List<Integer> searchForValuesAtCell(Sheet sheet, int cellIndex, String value) {
+        List<Integer> result = new ArrayList<>();
+        for (Row row : sheet) {
+            Cell cell = row.getCell(cellIndex);
+            if (cell != null && cell.getCellType() == CellType.STRING) {
+                if (cell.getStringCellValue().equals(value)) {
+                    result.add(row.getRowNum());
+                }
+            }
+        }
+        return result;
     }
 
     private int findLastNonBlankRow(Sheet sheet) {
