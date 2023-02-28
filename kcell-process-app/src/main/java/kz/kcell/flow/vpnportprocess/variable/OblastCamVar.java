@@ -10,8 +10,7 @@ import lombok.Data;
 @Builder
 @JsonNaming(PropertyNamingStrategy.SnakeCaseStrategy.class)
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class CityCamVar {
+public class OblastCamVar {
     private Long id;
     private String name;
-    private DistrictCamVar districtId;
 }
