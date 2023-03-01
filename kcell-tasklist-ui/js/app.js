@@ -171,6 +171,7 @@ define('app',[
 						(process.key === 'Revision' && (hasGroup('statistics_revision') || hasGroup('search_revision'))) ||
 						(process.key === 'Revision-power' && (hasGroup('statistics_revision') || hasGroup('search_revision'))) ||
 						(process.key === 'Revision-power' && (hasGroup('power_admin') || hasGroup('power_search'))) ||
+						(process.key === 'Revision-power' && ["alm_power", "astana_power", "nc_power", "south_power", "west_power", "east_power"].some(group => hasGroup(group))) ||
 						(process.key === 'Invoice' && (hasGroup('statistics_monthlyact') || hasGroup('search_monthlyact'))) ||
 						(process.key === 'monthlyAct' && (hasGroup('statistics_monthlyact') || hasGroup('search_monthlyact')))
 					  )){
