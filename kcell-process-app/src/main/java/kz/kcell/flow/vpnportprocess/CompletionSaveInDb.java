@@ -1,8 +1,9 @@
 package kz.kcell.flow.vpnportprocess;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import kz.kcell.flow.assets.client.VpnPortClient;
-import kz.kcell.flow.assets.dto.PortOutputDto;
+import kz.kcell.flow.utils.Pair;
 import kz.kcell.flow.vpnportprocess.mapper.VpnPortProcessMapper;
 import kz.kcell.flow.vpnportprocess.service.IpVpnConnectService;
 import kz.kcell.flow.vpnportprocess.variable.PortCamVar;
@@ -13,6 +14,7 @@ import org.camunda.bpm.engine.delegate.JavaDelegate;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
+import java.util.List;
 
 @Component
 @RequiredArgsConstructor
@@ -58,21 +60,23 @@ public class CompletionSaveInDb implements JavaDelegate {
     }
 
     private void saveModifiedPorts(DelegateExecution execution) throws IOException {
-        PortCamVar[] disbandPorts = objectMapper.readValue(execution.getVariable("disbandPorts").toString(), PortCamVar[].class);
+        PortCamVar[] modifyPorts = objectMapper.readValue(execution.getVariable("modifyPorts").toString(), PortCamVar[].class);
 
-        for (PortCamVar port : disbandPorts) {
-            PortOutputDto portOutputDto = vpnPortClient.updatePort(vpnPortProcessMapper.mapModifiedPort(port, "Active"), port.getId());
-            ipVpnConnectService.changePortCapacity(portOutputDto);
+        for (PortCamVar port : modifyPorts) {
+            vpnPortClient.updatePort(vpnPortProcessMapper.mapModifiedPort(port, "Active"), port.getId());
+            ipVpnConnectService.changePortCapacity(port.getPortNumber(),port.getPortCapacity()+port.getPortCapacityUnit(), "In Process");
         }
     }
 
 
     private void setAddedServicesStatusToActive(DelegateExecution execution) throws Exception {
         VpnCamVar[] addedServices = objectMapper.readValue(execution.getVariable("addedServices").toString(), VpnCamVar[].class);
+        List<Pair<String,Integer>> addedIpVpnRowNumbers = objectMapper.readValue(execution.getVariable("addedIpVpnRowNumbers").toString(),  new TypeReference<List<Pair<String,Integer>>>(){});
 
-        for(VpnCamVar vpn: addedServices) {
+        for(int i = 0; i < addedServices.length; i++) {
+            VpnCamVar vpn = addedServices[i];
             vpnPortClient.updateVpn(vpnPortProcessMapper.mapFromAddedVpn(vpn, vpn.getNearEndAddress().getId(), vpn.getVlan(), "Active"), vpn.getId());
-            ipVpnConnectService.changeStatus(vpn.getVpnNumber(), "Active");
+            ipVpnConnectService.changeAddedServiceStatus(vpn,  addedIpVpnRowNumbers.get(i), "Active");
         }
     }
 
@@ -81,7 +85,7 @@ public class CompletionSaveInDb implements JavaDelegate {
 
         for (VpnCamVar vpn : disbandServices) {
             vpnPortClient.deleteVpn(vpn.getId());
-            ipVpnConnectService.deleteVpn(vpn);
+            ipVpnConnectService.deleteDisbandedVpn(vpn.getVpnNumber());
         }
     }
 
@@ -90,7 +94,7 @@ public class CompletionSaveInDb implements JavaDelegate {
 
         for (VpnCamVar vpn : modifyServices) {
             vpnPortClient.updateVpn(vpnPortProcessMapper.mapFromModifiedVpn(vpn, "Active"), vpn.getId());
-            ipVpnConnectService.changeStatusAndCapacity(vpn.getVpnNumber(), "Active", vpn.getServiceCapacity());
+            ipVpnConnectService.changeStatusAndCapacity(vpn.getVpnNumber(), "Active", vpn.getModifiedServiceCapacity());
         }
     }
 }

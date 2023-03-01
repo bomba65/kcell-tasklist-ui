@@ -84,6 +84,8 @@ services:
     image: kcell/process-app
     ports:
       - "8080:8080"
+    volumes:
+      - ./ipvpn-samba/files001:/files001
     environment:
       - DATASOURCE_URL=jdbc:postgresql://camundadb:5432/process-engine?stringtype=unspecified
       - DATASOURCE_USER=camunda
@@ -99,6 +101,9 @@ services:
       - LDAP_PASSWORD=a%3Wxp79G*J?HB8-
       - LDAP_EXT_ENABLED=false
       - LDAP_EXT_PASSWORD=H243c2A9dy2
+      - TEST_CONTROLLER_ENABLED=true
+      - IP_VPN_SAMBA_URL=smb://ipvpn-samba/files001
+      - IPVPN_CONNECT=true
     extra_hosts:
       - "dbm1-scan1:192.168.116.6"
       - "dbm1dbadm02:192.168.117.3"
@@ -120,3 +125,21 @@ services:
       - DATASOURCE_URL=jdbc:postgresql://directory-managementdb:5432/networkinfrastructure?stringtype=unspecified
       - DATASOURCE_USER=networkinfrastructure
       - DATASOURCE_PASSWORD=networkinfrastructure
+
+  ipvpn-samba:
+    image: dperson/samba
+    environment:
+      TZ: 'Asia/Almaty'
+    ports:
+      - "139:139"
+      - "445:445"
+    tmpfs:
+      - /tmp
+    stdin_open: true
+    tty: true
+    volumes:
+      - ./ipvpn-samba/files001:/files001
+    command: >
+      -S -w "WORKGROUP"
+      -s "files001;/files001;yes;no;yes;all;none;;files001 folder for vpn-port-process"
+      -p
