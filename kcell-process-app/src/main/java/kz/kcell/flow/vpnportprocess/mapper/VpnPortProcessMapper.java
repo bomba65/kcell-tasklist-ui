@@ -1,17 +1,7 @@
 package kz.kcell.flow.vpnportprocess.mapper;
 
-import kz.kcell.flow.assets.dto.AddressCityDto;
-import kz.kcell.flow.assets.dto.AddressesInputDto;
-import kz.kcell.flow.assets.dto.AdressesOutputDto;
-import kz.kcell.flow.assets.dto.CatalogObjectDto;
-import kz.kcell.flow.assets.dto.PortInputDto;
-import kz.kcell.flow.assets.dto.PortOutputDto;
-import kz.kcell.flow.assets.dto.VpnInputDto;
-import kz.kcell.flow.assets.dto.VpnOutputDto;
-import kz.kcell.flow.vpnportprocess.variable.AddressCamVar;
-import kz.kcell.flow.vpnportprocess.variable.CityCamVar;
-import kz.kcell.flow.vpnportprocess.variable.PortCamVar;
-import kz.kcell.flow.vpnportprocess.variable.VpnCamVar;
+import kz.kcell.flow.assets.dto.*;
+import kz.kcell.flow.vpnportprocess.variable.*;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -182,6 +172,23 @@ public class VpnPortProcessMapper {
     public CityCamVar map(AddressCityDto city) {
         return CityCamVar.builder()
             .id(city.getId())
+            .name(city.getName())
+            .districtId(map(city.getDistrictId()))
+            .build();
+    }
+
+    public DistrictCamVar map(AddressDistrictDto district) {
+        return DistrictCamVar.builder()
+            .id(district.getId())
+            .name(district.getName())
+            .oblastId(map(district.getOblastId()))
+            .build();
+    }
+
+    public OblastCamVar map(AddressOblastDto oblast) {
+        return OblastCamVar.builder()
+            .id(oblast.getId())
+            .name(oblast.getName())
             .build();
     }
 }
