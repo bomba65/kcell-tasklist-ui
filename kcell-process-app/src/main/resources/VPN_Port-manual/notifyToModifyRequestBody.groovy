@@ -6,7 +6,7 @@ def request_type = execution.getVariable("request_type").toString()
 def request_number = execution.processBusinessKey
 def initiator = execution.getVariable("starter").toString()
 def priority = execution.getVariable("priority").toString()
-def approver_comments = execution.getVariable("approver_comments").toString()
+def approverComments = execution.getVariable("approverComments").toString()
 
 def channel_rus
 if (channel == "Port") {
@@ -29,7 +29,7 @@ def binding = ["request_number"  : request_number,
                "channel_rus"        : channel_rus,
                "initiator"          : initiator,
                "priority"           : priority,
-               "approver_comments"  : approver_comments]
+               "approverComments"  : approverComments]
 
 def template = '''
 yieldUnescaped '<!DOCTYPE html>'
@@ -40,7 +40,7 @@ html(lang:'ru') {
     }
     body {
         p { 
-            yield "Запрос # " + request_number + " на " + request_type_rus + " " + channel_rus + " отправлен на корректировку по следующей причине: " + approver_comments
+            yield "Запрос # " + request_number + " на " + request_type_rus + " " + channel_rus + " отправлен на корректировку по следующей причине: " + approverComments
         }
         p { 
             yield "Для просмотра заявки Вам необходимо пройти по следующей ссылкe: "

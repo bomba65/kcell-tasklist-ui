@@ -6,7 +6,6 @@ def request_type = execution.getVariable("request_type").toString()
 def request_number = execution.processBusinessKey
 def initiator = execution.getVariable("starter").toString()
 def priority = execution.getVariable("priority").toString()
-def approver_comments = execution.getVariable("approver_comments").toString()
 
 def channel_rus
 if (channel == "Port") {
@@ -28,8 +27,7 @@ def binding = ["request_number"  : request_number,
                "request_type_rus"   : request_type_rus,
                "channel_rus"        : channel_rus,
                "initiator"          : initiator,
-               "priority"           : priority,
-               "approver_comments"  : approver_comments]
+               "priority"           : priority]
 
 def template = '''
 yieldUnescaped '<!DOCTYPE html>'
