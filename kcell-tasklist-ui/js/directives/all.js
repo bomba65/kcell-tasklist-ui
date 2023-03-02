@@ -2475,6 +2475,9 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                     Revision: {
                         title: "Revision", value: false
                     },
+                    'Revision-power': {
+                        title: 'Revision-power', value: false
+                    },
                     CreatePR: {
                         title: "PR Creation", value: false
                     },
@@ -3087,7 +3090,7 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                                 arrId['data'][i]["Process State"] = el['state']
                                 arrId['data'][i]["Sum"] = el['worksTotalSum']
 
-                                arrId['data'][i]["Contract"] = el['contract']['name']
+                                arrId['data'][i]["Contract"] = el['contract']?.['name']
                                 arrId['data'][i]["JR To"] = el["job_to"]
 
                                 var monthNames = ["January", "February", "March", "April", "May", "June",
@@ -4261,8 +4264,8 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                                     })).then(function (tasks) {
                                         
                                         console.log("5")
-                                        scope.jobModel.tasks = tasks.data._embedded.task;;
-                                        asynCall2 = true;
+                                        scope.jobModel.tasks = _.flatten(_.map(tasks, (task) => task.data));
+                                        var asynCall2 = true;
                                         try {
                                             if(asynCall3) {
                                                 asynCall3 = false;
@@ -4331,8 +4334,6 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                                                     if(processDefinitionKey === 'Revision-power' && asynCall3) {
 
                                                         console.log("OKKK")
-                                                        openProcessCardModalRevisionPower(processDefinitionId, businessKey, index);
-                                                        
                                                     }
                                                     if (taskResult.data._embedded && taskResult.data._embedded.group) {
                                                         e.group = taskResult.data._embedded.group[0].id;
@@ -4391,7 +4392,6 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                                         asynCall3 = true;
                                         if(asynCall3) {
                                             console.log("OKKK3");
-                                            openProcessCardModalRevisionPower(processDefinitionId, businessKey, index);
                                         }
                                         asynCall3 = false
                                         if (asynCall1 && asynCall2) {
