@@ -130,6 +130,24 @@ public class VpnPortProcessMapper {
             .build();
     }
 
+    public VpnInputDto mapFromVpn(VpnCamVar vpn, String status) {
+        return VpnInputDto.builder()
+            .vpnNumber(vpn.getVpnNumber())
+            .portId(vpn.getPort().getId())
+            .service(vpn.getService())
+            .serviceTypeId(vpn.getServiceTypeId())
+            .serviceTypeCatalogId(vpn.getServiceTypeCatalogId())
+            .providerIp(vpn.getProviderIp())
+            .kcellIp(vpn.getKcellIp())
+            .vlan(vpn.getVlan())
+            .serviceCapacity(vpn.getModifiedServiceCapacity())
+            .providerAs(vpn.getProviderAs())
+            .kcellAs(vpn.getKcellAs())
+            .nearEndAddressId(vpn.getNearEndAddress().getId())
+            .status(status)
+            .build();
+    }
+
     public VpnCamVar map(VpnOutputDto vpn, int modifiedServiceCapacity) {
         return VpnCamVar.builder()
             .vpnNumber(vpn.getVpnNumber())
