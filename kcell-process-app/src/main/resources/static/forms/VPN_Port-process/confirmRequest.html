@@ -55,7 +55,11 @@
             $scope.setResolution = function () {
                 if (!$scope.automodifyServices) return;
 
-                $scope.automodifyServices.forEach(service => service.resolution = $scope.resolution);
+                $scope.automodifyServices.forEach(service => service.confirmed = $scope.resolution);
+            }
+
+            $scope.isAllRejected = function () {
+                return $scope.automodifyServices.every(it => it.confirmed === false);
             }
 
             camForm.on('form-loaded', function () {
@@ -155,7 +159,7 @@
                     <td style="background-color: #e6e6e6">{{ automodifyService.port.port_type }}</td>
                     <td style="background-color: #e6e6e6">{{ addressToString(automodifyService.port.far_end_address) }}</td>
                     <td style="background-color: #cea3bf;">
-                        <select class="form-control " name="resolution_{{$index}}" select-picker ng-model="automodifyService.resolution" required>
+                        <select class="form-control " name="resolution_{{$index}}" select-picker ng-model="automodifyService.confirmed" required>
                             <option ng-value="true">Approve</option>
                             <option ng-value="false">Reject</option>
                         </select>
@@ -174,13 +178,13 @@
         <div class="radio col-sm-2">
             <label class="control-label">
                 <input type="radio" name="resolutionForAll" ng-model="resolution" ng-value="true" ng-click="setResolution()">
-                Approve
+                Approve all
             </label>
         </div>
         <div class="radio col-sm-2">
             <label class="control-label">
                 <input type="radio" name="resolutionForAll" ng-model="resolution" ng-value="false" ng-click="setResolution()">
-                Reject
+                Reject all
             </label>
         </div>
     </div>
@@ -188,7 +192,8 @@
     <div class="form-group">
         <label for="confirmerComments" class="col-sm-2 control-label">Confirmer comments:</label>
         <div class="col-sm-6">
-            <textarea id="confirmerComments" class="form-control" ng-model="confirmerComments" rows="5"></textarea>
+            <textarea id="confirmerComments" name="confirmerComments" class="form-control" ng-required="isAllRejected()" ng-model="confirmerComments" rows="5"></textarea>
+            <label class="error" ng-show="kcell_form.confirmerComments.$error.required && ( kcell_form.confirmerComments.$touched || view.submitted)">Required field</label>
         </div>
     </div>
     <br>
