@@ -99,6 +99,16 @@
                     'region',
                     'designationWhatSiteRadioButton',
                     'otherButtonComment',
+                    'ne_rau_subband',
+                    'fe_rau_subband',
+                    'rau_type',
+                    'hop_polarization',
+                    'ne_protection_rau_subband',
+                    'fe_protection_rau_subband',
+                    'ne_protection_suspension_height',
+                    'fe_protection_suspension_height',
+                    'ne_protection_antenna_diameter',
+                    'fe_protection_antenna_diameter',
                 ];
                 camForm.on('form-loaded', function () {
                     variables.forEach(function (el) {
@@ -365,7 +375,7 @@
                 $scope.populateSelectFromCatalog(['constructionTypeList'], 14); // Construction_type
                 $scope.populateSelectFromCatalog(['linkCapacityList'], 45);   // Link capacity
                 $scope.populateSelectFromCatalog(['polarizationList'], 48);   // Polarization
-                $scope.populateSelectFromCatalog(['rauSubbandList'], 46);     // Rau subband
+                $scope.populateSelectFromCatalog(['rauSubbandList', 'filteredRauSubbandList'], 46);     // Rau subband
                 $scope.populateSelectFromCatalog(['rauTypeList', 'filteredRauTypeList'], 84); //Rau type
             function rauSubbandFreqRange() {
               let res = {};
@@ -449,25 +459,24 @@
                 return c.RAU_type?.value === $scope.rau_type;
               });
 
-              $scope['filteredRauSubbandListNE'] = _.filter($scope.rauSubbandList, function (r) {
+              $scope['filteredRauSubbandList'] = _.filter($scope.rauSubbandList, function (r) {
                 return r.RAU_type?.value === $scope.rau_type;
               }).map( obj => {
-                obj.nameValue = _.find($scope.rauSubbandList, r => r.id === obj["Id. Name"]?.value)?.value;
+                obj.pairValue = _.find($scope.rauSubbandList, r => r.id === obj.Pair?.value)?.value;
                 return obj;
               });
-
             }
 
             $scope.rauSubbandSelected = function () {
-              if($scope.ne_rau_subband){
-                $scope.fe_rau_subband = _.find($scope.rauSubbandList, r => r.id === $scope.ne_rau_subband).Pair?.value;
+              if($scope.ne_rau_subband && $scope.rauRelations[$scope.ne_rau_subband]){
+                $scope.fe_rau_subband = $scope.rauRelations[$scope.ne_rau_subband].related.toString();
               }
               $scope.ne_txrx_frequinciesValuesCheck();
               $scope.fe_txrx_frequinciesValuesCheck();
             };
             $scope.protectRauSubbandSelected = function () {
-              if($scope.ne_protection_rau_subband){
-                $scope.fe_protection_rau_subband = _.find($scope.rauSubbandList, obj => obj.id === $scope.ne_protection_rau_subband).Pair?.value;
+              if($scope.ne_protection_rau_subband && $scope.rauRelations[$scope.ne_protection_rau_subband]){
+                $scope.fe_protection_rau_subband = $scope.rauRelations[$scope.ne_protection_rau_subband].related.toString();
               }
               $scope.ne_protection_txrx_frequinciesValuesCheck();
               $scope.fe_protection_txrx_frequinciesValuesCheck();
@@ -1382,29 +1391,35 @@
             <td align="right" colspan="2">RAU subband:</td>
             <td align="center" colspan="4">
               <select ng-disabled="!rau_type" class="form-control" id="ne_rau_subband" name="ne_rau_subband" ng-model="ne_rau_subband"
-                      ng-change="rauSubbandSelected()">
-                <option ng-repeat="ct in filteredRauSubbandListNE" ng-value="ct.id">{{ct.value}}</option>
+                      ng-required="tnutsd_fill_tsd_by_centerTaskResult == 'approved'" ng-change="rauSubbandSelected()">
+                <option ng-repeat="ct in filteredRauSubbandList" ng-value="ct.id.toString()">{{ct.value}}</option>
               </select>
+              <label class="error"
+                     ng-if="kcell_form.ne_rau_subband.$error.required && ( kcell_form.ne_rau_subband.$touched || view.submitted)">Required
+                field</label>
             </td>
             <td align="center" colspan="4">
-              <select ng-disabled="true" class="form-control" id="fe_rau_subband" name="fe_rau_subband" ng-model="fe_rau_subband">
-                <option ng-repeat="ct in rauSubbandList" ng-value="ct.id">{{ct.value}}</option>
+              <select ng-disabled="true" class="form-control" id="fe_rau_subband" name="fe_rau_subband" ng-model="fe_rau_subband"
+                      ng-required="tnutsd_fill_tsd_by_centerTaskResult == 'approved'">
+                <option ng-repeat="ct in rauSubbandList" ng-value="ct.id.toString()">{{ct.value}}</option>
               </select>
+              <label class="error"
+                     ng-if="kcell_form.fe_rau_subband.$error.required && ( kcell_form.fe_rau_subband.$touched || view.submitted)">Required
+                field</label>
             </td>
           </tr>
           <tr>
             <td align="right" colspan="2">protection RAU subband:</td>
             <td align="center" colspan="4">
               <select ng-disabled="!rau_type || !protectionRauSubbandActive" class="form-control" id="ne_protection_rau_subband" name="ne_protection_rau_subband"
-                      ng-model="ne_protection_rau_subband" ng-change="protectRauSubbandSelected()"
-                      ng-disabled="protection_mode_fetched">
-                <option ng-repeat="ct in filteredRauSubbandListNE" ng-value="ct.id">{{ct.value}}</option>
+                      ng-model="ne_protection_rau_subband" ng-change="protectRauSubbandSelected()">
+                <option ng-repeat="ct in filteredRauSubbandList" ng-value="ct.id.toString()">{{ct.value}}</option>
               </select>
             </td>
             <td align="center" colspan="4">
               <select ng-disabled="true" class="form-control" id="fe_protection_rau_subband" name="fe_protection_rau_subband"
-                      ng-model="fe_protection_rau_subband" ng-disabled="protection_mode_fetched">
-                <option ng-repeat="ct in rauSubbandList" ng-value="ct.id">{{ct.value}}</option>
+                      ng-model="fe_protection_rau_subband">
+                <option ng-repeat="ct in rauSubbandList" ng-value="ct.id.toString()">{{ct.value}}</option>
               </select>
             </td>
           </tr>
