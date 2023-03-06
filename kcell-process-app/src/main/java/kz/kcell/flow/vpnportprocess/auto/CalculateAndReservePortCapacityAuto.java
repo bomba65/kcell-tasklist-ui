@@ -11,8 +11,10 @@ import kz.kcell.flow.vpnportprocess.variable.VpnCamVar;
 import lombok.RequiredArgsConstructor;
 import org.camunda.bpm.engine.delegate.DelegateExecution;
 import org.camunda.bpm.engine.delegate.JavaDelegate;
+import org.camunda.spin.plugin.variable.SpinValues;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -31,6 +33,8 @@ public class CalculateAndReservePortCapacityAuto implements JavaDelegate {
     @Override
     synchronized public void execute(DelegateExecution execution) throws Exception {
         VpnCamVar[] modifyServices = objectMapper.readValue(execution.getVariable("automodifyServices").toString(), VpnCamVar[].class);
+        List<VpnCamVar> rejectedAutomodifyServices = new ArrayList<>();
+        List<VpnCamVar> approvedAutomodifyServices = new ArrayList<>();
 
         // group vpns to modify by port
         Map<PortCamVar, List<VpnCamVar>> portToVpns = Arrays.stream(modifyServices).collect(Collectors.groupingBy(VpnCamVar::getPort));
@@ -55,14 +59,18 @@ public class CalculateAndReservePortCapacityAuto implements JavaDelegate {
             long capacityDiff = totalModifiedServiceCapacity - totalExistingServiceCapacity;
 
             if ((totalServiceCapacityOnPort + capacityDiff) * 100 / portCapacity >= 90) {
-                execution.setVariable("calculateAndReservePortCapacityReject", "port capacity is not enough for automodified service");
-                return;
+                rejectedAutomodifyServices.addAll(entry.getValue());
+            } else {
+                approvedAutomodifyServices.addAll(entry.getValue());
             }
         }
 
-        for (VpnCamVar vpn : modifyServices) {
+        for (VpnCamVar vpn : approvedAutomodifyServices) {
             vpnPortClient.updateVpn(vpnPortProcessMapper.mapFromModifiedVpn(vpn, "In Process"), vpn.getId());
             ipVpnConnectService.changeStatusAndCapacity(vpn.getVpnNumber(), "In Process", vpn.getModifiedServiceCapacity());
         }
+
+        execution.setVariable("rejectedAutomodifyServices", SpinValues.jsonValue(objectMapper.writeValueAsString(rejectedAutomodifyServices.stream().map(VpnCamVar::getVpnNumber).collect(Collectors.toList()))));
+        execution.setVariable("automodifyServices", SpinValues.jsonValue(objectMapper.writeValueAsString(approvedAutomodifyServices)));
     }
 }
