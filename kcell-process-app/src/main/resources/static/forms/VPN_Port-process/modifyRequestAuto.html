@@ -10,10 +10,10 @@
                 'dateUpdated',
                 'businessKey',
                 'approverComments',
-                'confirmerComments'
             ];
 
             $scope.resolution = undefined;
+            $scope.confirmerComments = undefined;
 
             $http.get('/camunda/catalogs/api/get/id/83').then(
                 function (response) {
@@ -54,6 +54,16 @@
                 return result;
             }
 
+            $scope.setResolution = function () {
+                if (!$scope.automodifyServices) return;
+
+                $scope.automodifyServices.forEach(service => service.confirmed = $scope.resolution);
+            }
+
+            $scope.isAllRejected = function () {
+                return $scope.automodifyServices.every(it => it.confirmed === false);
+            }
+
             camForm.on('form-loaded', function () {
                 variables.forEach(function (el) {
                     camForm.variableManager.fetchVariable(el);
@@ -75,17 +85,12 @@
             });
 
             camForm.on('submit', function (e) {
-                camForm.variableManager.variableValue('automodifyServices', $scope.automodifyServices);
+                camForm.variableManager.variableValue("automodifyServices", $scope.automodifyServices);
+
                 camForm.variableManager.createVariable({
-                    name: 'resolution',
+                    name: 'confirmerComments',
                     type: 'String',
-                    value: $scope.resolution
-                });
-                camForm.variableManager.destroyVariable('approverComments');
-                camForm.variableManager.createVariable({
-                    name: 'approverComments',
-                    type: 'String',
-                    value: $scope.approverComments
+                    value: $scope.confirmerComments
                 });
             });
         }]);
@@ -120,6 +125,7 @@
                 <thead>
                 <tr>
                     <th>#</th>
+                    <th>VPN ID</th>
                     <th>Service</th>
                     <th>Service Type</th>
                     <th>Capacity (Mbit/s)</th>
@@ -134,11 +140,13 @@
                     <th style="background-color: #e6e6e6">Channel Type</th>
                     <th style="background-color: #e6e6e6">Port Type</th>
                     <th style="background-color: #e6e6e6">Far end address</th>
+                    <th style="background-color: #cea3bf;">Resolution</th>
                 </tr>
                 </thead>
                 <tbody>
                 <tr ng-repeat="automodifyService in automodifyServices">
                     <td>{{$index + 1}}</td>
+                    <td>{{ automodifyService.vpn_number }}</td>
                     <td>{{ automodifyService.service }}</td>
                     <td>{{ getServiceTypeById(automodifyService.service_type_id) }}</td>
                     <td>{{ automodifyService.service_capacity }}</td>
@@ -157,6 +165,13 @@
                     <td style="background-color: #e6e6e6">{{ automodifyService.port.channel_type }}</td>
                     <td style="background-color: #e6e6e6">{{ automodifyService.port.port_type }}</td>
                     <td style="background-color: #e6e6e6">{{ addressToString(automodifyService.port.far_end_address) }}</td>
+                    <td style="background-color: #cea3bf;">
+                        <select class="form-control " name="resolution_{{$index}}" select-picker ng-model="automodifyService.confirmed" required>
+                            <option ng-value="true">Approve</option>
+                            <option ng-value="false">Reject</option>
+                        </select>
+                        <label class="error" ng-show="kcell_form.resolution_{{$index}}.$error.required && ( kcell_form.resolution_{{$index}}.$touched || view.submitted)">Required field</label>
+                    </td>
                 </tr>
                 </tbody>
             </table>
@@ -165,42 +180,32 @@
 
     <div class="form-group">
         <div class="col-sm-2 control-label">
-            <h4>Resolution</h4>
-            <label class="error" ng-if="kcell_form.resolution.$error.required && ( kcell_form.resolution.$touched || view.submitted)">Field required</label>
+            <label class="control-label">Resolution</label>
         </div>
-        <div class="radio col-sm-3">
+        <div class="radio col-sm-2">
             <label class="control-label">
-                <input type="radio" name="resolution" ng-model="resolution" value="approve" required>
-                Approve
+                <input type="radio" name="resolutionForAll" ng-model="resolution" ng-value="true" ng-click="setResolution()">
+                Approve all
             </label>
         </div>
-        <div class="radio col-sm-3">
+        <div class="radio col-sm-2">
             <label class="control-label">
-                <input type="radio" name="resolution" ng-model="resolution" value="send for revision" required>
-                Send for revision
-            </label>
-        </div>
-        <div class="radio col-sm-3">
-            <label class="control-label">
-                <input type="radio" name="resolution" ng-model="resolution" value="reject" required>
-                Reject
+                <input type="radio" name="resolutionForAll" ng-model="resolution" ng-value="false" ng-click="setResolution()">
+                Reject all
             </label>
         </div>
     </div>
 
     <div class="form-group">
-        <label for="approverComments" class="col-sm-6 control-label">Approver comments:</label>
         <label for="confirmerComments" class="col-sm-6 control-label">Confirmer comments:</label>
+        <label for="approverComments" class="col-sm-6 control-label">Approver comments:</label>
         <div class="col-sm-6">
-            <textarea id="approverComments" name="approverComments" class="form-control"
-                      ng-required="resolution!=='approve'"
-                      ng-model="approverComments"></textarea>
-            <label class="error"
-                   ng-if="kcell_form.approverComments.$error.required && ( kcell_form.approverComments.$touched || view.submitted)">Field required</label>
+            <textarea id="confirmerComments" name="confirmerComments" class="form-control" ng-required="isAllRejected()" ng-model="confirmerComments" rows="5"></textarea>
+            <label class="error" ng-show="kcell_form.confirmerComments.$error.required && ( kcell_form.confirmerComments.$touched || view.submitted)">Required field</label>
         </div>
         <div class="col-sm-6">
-            <textarea readonly id="confirmerComments" class="form-control" ng-model="confirmerComments"></textarea>
+            <textarea readonly id="approverComments" name="approverComments" class="form-control" ng-model="approverComments"></textarea>
         </div>
     </div>
+    <br>
 </form>
-
