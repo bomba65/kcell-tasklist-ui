@@ -1,0 +1,168 @@
+<form role="form" class="form-horizontal" name="kcell_form" novalidate>
+    <script cam-script type="text/form-script" type="text/javascript">
+        inject(['$scope', '$http', '$rootScope', '$q', '$timeout', 'exModal', function ($scope, $http, $rootScope, $q) {
+            const variables = [
+                'automodifyServices',
+                'channel',
+                'request_type',
+                'priority',
+                'dateCreated',
+                'dateUpdated',
+                'businessKey',
+                'providerComments',
+                'nor',
+                'uploadedFiles'
+            ];
+
+            $http.get('/camunda/catalogs/api/get/id/83').then(
+                function (response) {
+                    $scope.serviceTypeCatalog = response.data.data.$list;
+                }
+            );
+
+            $scope.downloadFile = function(file) {
+                $http({
+                    method: 'GET',
+                    url: '/camunda/uploads/get/' + file.path,
+                    transformResponse: []
+                }).then(function (response) {
+                    document.getElementById('fileDownloadIframe').src = response.data;
+                }, function (error) {
+                    console.log(error);
+                });
+            };
+
+            camForm.on('form-loaded', function () {
+                variables.forEach(function (el) {
+                    camForm.variableManager.fetchVariable(el);
+                });
+            });
+
+            camForm.on('variables-fetched', function () {
+                variables.forEach(function (el) {
+                    const val = camForm.variableManager.variables[el].value;
+                    if (val) {
+                        if (el.includes("date")) {
+                            const date = new Date(val);
+                            $scope[el] = `${date.getDate()}.${date.getMonth() + 1}.${date.getFullYear()}`;
+                        } else {
+                            $scope[el] = val;
+                        }
+                    }
+                });
+            });
+
+            camForm.on('submit', function (e) {
+
+            });
+        }]);
+    </script>
+    <div class="form-group">
+        <div class="col-sm-6"><h4>Request # {{businessKey}}</h4></div>
+    </div>
+    <div class="form-group">
+        <div class="col-sm-3">
+            <label class="control-label"><b>Request: </b><span style="color: #cea3bf">{{request_type}} {{channel}}</span></label>
+        </div>
+        <div class="col-sm-3">
+            <label class="control-label"><b>Date created: </b><span style="color: #cea3bf">{{dateCreated}}</span></label>
+        </div>
+    </div>
+    <div class="form-group">
+        <div class="col-sm-3">
+            <label class="control-label"><b>Priority: </b><span style="color: #cea3bf">{{priority}}</span></label>
+        </div>
+        <div class="col-sm-3">
+            <label class="control-label"><b>Date updated: </b><span style="color: #cea3bf">{{dateUpdated}}</span></label>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="col-sm-3"><h4>Automodified Services </h4></div>
+    </div>
+
+    <div class="form-group">
+        <div class="col-sm-12">
+            <table class="table table-bordered">
+                <thead>
+                <tr>
+                    <th>#</th>
+                    <th>VPN ID</th>
+                    <th>Service</th>
+                    <th>Service Type</th>
+                    <th>Capacity (Mbit/s)</th>
+                    <th style="background-color: #cea3bf;">Modified Capacity (Mbit/s)</th>
+                    <th>VLAN</th>
+                    <th>Provider IP</th>
+                    <th>Kcell IP</th>
+                    <th>Provider AS</th>
+                    <th>Kcell AS</th>
+                    <th>Near end address</th>
+                    <th style="background-color: #e6e6e6">Port ID</th>
+                    <th style="background-color: #e6e6e6">Channel Type</th>
+                    <th style="background-color: #e6e6e6">Port Type</th>
+                    <th style="background-color: #e6e6e6">Far end address</th>
+                    <th style="background-color: #cea3bf;">Resolution</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr ng-repeat="automodifyService in automodifyServices">
+                    <td>{{$index + 1}}</td>
+                    <td>{{ automodifyService.vpn_number }}</td>
+                    <td>{{ automodifyService.service }}</td>
+                    <td>{{ getServiceTypeById(automodifyService.service_type_id) }}</td>
+                    <td>{{ automodifyService.service_capacity }}</td>
+                    <td style="background-color: #cea3bf;">
+                        <input type="text" class="form-control" name="modifiedCapacity_{{$index}}"
+                               ng-model="automodifyService.modified_service_capacity" required>
+                        <label class="error" ng-show="kcell_form.modifiedCapacity_{{$index}}.$error.required && ( kcell_form.modifiedCapacity_{{$index}}.$touched || view.submitted)">Required field</label>
+                    </td>
+                    <td>{{ automodifyService.vlan }}</td>
+                    <td>{{ automodifyService.provider_ip }}</td>
+                    <td>{{ automodifyService.kcell_ip }}</td>
+                    <td>{{ automodifyService.provider_as }}</td>
+                    <td>{{ automodifyService.kcell_as }}</td>
+                    <td>{{ addressToString(automodifyService.near_end_address) }}</td>
+                    <td style="background-color: #e6e6e6">{{ automodifyService.port.port_number }}</td>
+                    <td style="background-color: #e6e6e6">{{ automodifyService.port.channel_type }}</td>
+                    <td style="background-color: #e6e6e6">{{ automodifyService.port.port_type }}</td>
+                    <td style="background-color: #e6e6e6">{{ addressToString(automodifyService.port.far_end_address) }}</td>
+                    <td style="background-color: #cea3bf;">
+                        <select class="form-control " name="resolution_{{$index}}" select-picker ng-model="automodifyService.confirmed" required>
+                            <option ng-value="true">Approve</option>
+                            <option ng-value="false">Reject</option>
+                        </select>
+                        <label class="error" ng-show="kcell_form.resolution_{{$index}}.$error.required && ( kcell_form.resolution_{{$index}}.$touched || view.submitted)">Required field</label>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label for="nor" class="col-sm-2 control-label">NOR</label>
+        <div class="col-sm-4">
+            <input type="text" class="form-control" ng-model="nor" id="nor" name="nor" disabled>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label for="providerComments" class="col-sm-2 control-label">Provider comments:</label>
+        <div class="col-sm-6">
+            <textarea readonly id="providerComments" class="form-control" ng-model="providerComments" rows="5"></textarea>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label class="col-sm-2 control-label"><b>Attachments</b></label>
+    </div>
+    <div class="form-group">
+        <div class="col-sm-12" ng-repeat="file in uploadedFiles">
+            <iframe id="fileDownloadIframe" style="display:none;"></iframe>
+            <label class="control-label">{{ file.name }}</label>
+            <a style="font-size: 2rem" ng-click="downloadFile(file)"><span class="glyphicon glyphicon-download"></span></a>
+        </div>
+    </div>
+    <br>
+</form>
