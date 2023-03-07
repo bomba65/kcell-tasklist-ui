@@ -33,6 +33,9 @@ public class IpVpnConnectServiceTest implements IpVpnConnectService {
     public void changeStatusAndCapacity(String vpnNumber, String status, Integer modifiedCapacity) {}
 
     @Override
+    public void changeStatusAndCapacityVpn(String portNumber, String status, Integer modifiedCapacity) {}
+
+    @Override
     public boolean checkUtilization(String vpnNumber, String serviceType) {
         return true;
     }

@@ -16,7 +16,7 @@ public interface IpVpnConnectService {
     void changeAddedServiceStatus(VpnCamVar vpn, Pair<String, Integer> rowNumber, String status);
 
     void changeStatusAndCapacity(String vpnNumber, String status, Integer modifiedCapacity);
-
+    void changeStatusAndCapacityVpn(String portNumber, String status, Integer modifiedCapacity);
     boolean checkUtilization(String vpnNumber, String serviceType);
 
     void makeChangesToAddedService(VpnOutputDto vpn, Pair<String, Integer> rowNumber);
