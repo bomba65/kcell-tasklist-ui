@@ -10,6 +10,7 @@ import org.camunda.bpm.engine.delegate.DelegateExecution;
 import org.camunda.bpm.engine.delegate.JavaDelegate;
 import org.springframework.stereotype.Component;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -28,23 +29,15 @@ public class DeleteInDbAuto implements JavaDelegate {
         revertVpnModification(execution);
     }
 
-    private void revertVpnModification(DelegateExecution execution) throws Exception {
-        VpnCamVar[] modifyServices = null;
-        if (!(execution.getVariable("modifyServices") == null))
-            modifyServices = objectMapper.readValue(execution.getVariable("modifyServices").toString(), VpnCamVar[].class);
-        VpnCamVar[] disbandServices = null;
-        if (!(execution.getVariable("disbandServices") == null))
-            disbandServices = objectMapper.readValue(execution.getVariable("disbandServices").toString(), VpnCamVar[].class);
-        VpnCamVar[] addedServices = null;
-        if (!(execution.getVariable("addedServices") == null))
-            addedServices = objectMapper.readValue(execution.getVariable("addedServices").toString(), VpnCamVar[].class);
-        List<VpnCamVar> allServices = new ArrayList<>();
-        if (modifyServices != null) allServices.addAll(Arrays.asList(modifyServices));
-        if (disbandServices != null) allServices.addAll(Arrays.asList(disbandServices));
-        if (addedServices != null) allServices.addAll(Arrays.asList(addedServices));
-        for (VpnCamVar vpn : allServices) {
-            vpnPortClient.updateVpn(vpnPortProcessMapper.mapFromVpn(vpn, "Active"), vpn.getId());
-            ipVpnConnectService.changeStatusAndCapacity(vpn.getVpnNumber(), "Active", vpn.getServiceCapacity());
+    private void revertVpnModification(DelegateExecution execution) throws IOException {
+        VpnCamVar[] allServices=null;
+        if (!(execution.getVariable("automodifyServices") == null)) {
+             allServices = objectMapper.readValue(execution.getVariable("automodifyServices").toString(), VpnCamVar[].class);
         }
+        if( allServices != null)
+        for (VpnCamVar vpn : allServices) {
+                vpnPortClient.updateVpn(vpnPortProcessMapper.mapFromVpn(vpn, "Active"), vpn.getId());
+                ipVpnConnectService.changeStatusAndCapacityVpn(vpn.getPort().getPortNumber(), "Active", vpn.getServiceCapacity());
+            }
     }
 }
