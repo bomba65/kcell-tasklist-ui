@@ -151,6 +151,24 @@
                 });
                 return Promise.all(promises);
             }
+
+            $scope.$watch('automodifyServices', function () {
+                if (_.every($scope.automodifyServices, el => el.provider_confirmed === false)) {
+                    $scope.providerResolution = 'reject';
+                } else if (_.every($scope.automodifyServices, el => el.provider_confirmed === true)) {
+                    $scope.providerResolution = 'approve';
+                } else {
+                    $scope.providerResolution = 'partially-reject';
+                }
+            }, true);
+
+            $scope.providerResolutionChanged = function () {
+                if ($scope.providerResolution === 'approve') {
+                    $scope.automodifyServices.forEach(el => el.provider_confirmed = true);
+                } else if ($scope.providerResolution === 'reject') {
+                    $scope.automodifyServices.forEach(el => el.provider_confirmed = false);
+                }
+            }
         }]);
     </script>
     <div class="form-group">
@@ -222,7 +240,7 @@
                     <td style="background-color: #e6e6e6">{{ automodifyService.port.port_type }}</td>
                     <td style="background-color: #e6e6e6">{{ addressToString(automodifyService.port.far_end_address) }}</td>
                     <td style="background-color: #cea3bf;">
-                        <select class="form-control " name="resolution_{{$index}}" select-picker ng-model="automodifyService.confirmed" required>
+                        <select class="form-control " name="resolution_{{$index}}" select-picker ng-model="automodifyService.provider_confirmed" required>
                             <option ng-value="true">Approve</option>
                             <option ng-value="false">Reject</option>
                         </select>
@@ -249,13 +267,13 @@
         </div>
         <div class="radio col-sm-2">
             <label class="control-label">
-                <input type="radio" name="resolution" ng-model="providerResolution" value="approve" required>
+                <input type="radio" name="resolution" ng-model="providerResolution" value="approve" ng-change="providerResolutionChanged()">
                 Approve All
             </label>
         </div>
         <div class="radio col-sm-2">
             <label class="control-label">
-                <input type="radio" name="resolution" ng-model="providerResolution" value="reject" required>
+                <input type="radio" name="resolution" ng-model="providerResolution" value="reject" ng-change="providerResolutionChanged()">
                 Reject All
             </label>
         </div>
