@@ -140,7 +140,7 @@ public class VpnPortProcessMapper {
             .providerIp(vpn.getProviderIp())
             .kcellIp(vpn.getKcellIp())
             .vlan(vpn.getVlan())
-            .serviceCapacity(vpn.getModifiedServiceCapacity())
+            .serviceCapacity(vpn.getServiceCapacity())
             .providerAs(vpn.getProviderAs())
             .kcellAs(vpn.getKcellAs())
             .nearEndAddressId(vpn.getNearEndAddress().getId())
