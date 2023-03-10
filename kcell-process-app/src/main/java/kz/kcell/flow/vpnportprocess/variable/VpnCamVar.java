@@ -30,4 +30,6 @@ public class VpnCamVar {
     private String providerAs;
     private String kcellAs;
     private AddressCamVar nearEndAddress;
+    private Boolean confirmed;
+    private Boolean providerConfirmed;
 }
