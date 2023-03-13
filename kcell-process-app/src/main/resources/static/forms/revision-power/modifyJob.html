@@ -31,7 +31,8 @@
         'comment',
         'rejectedBy',
         'resolutions',
-        'oblastName'
+        'oblastName',
+        'job_to'
       ];
 
 
@@ -250,8 +251,19 @@
             $scope.jobs[index].materialUnit = undefined;
             $scope.jobs[index].materialPrice = undefined;
             $scope.jobs[index].materialSum = undefined;
-        } else {
-
+        }
+        else if($scope.job_to === 'kcell'){
+          $scope.jobs[index].num = $item.num;
+          $scope.jobs[index].title = $item.title ;
+          $scope.jobs[index].materialUnit = $item.unit;
+          $scope.jobs[index].materialSum = 0;
+          $scope.jobs[index].transportationFor = {};
+          $scope.jobs[index].dismantlingFor = {};
+          $scope.jobs[index].referedWorks = $item.num;
+          $scope.jobs[index].materialPrice = $item.price;
+          $scope.jobs[index].O25 = $item.O25;
+        }
+        else {
             $scope.jobs[index].num = $item.num;
             $scope.jobs[index].title = $item.title ;
             $scope.jobs[index].materialUnit = $item.unit;
@@ -274,30 +286,6 @@
             } else if ($scope.contract.id === '758437') {
               $scope.jobs[index].materialPrice = $item.price[Object.keys($item.price)[0]];
               $scope.jobs[index].O25 = $item.O25;
-            } else {
-
-              <!-- TEMPORARY works dividing by regions -->
-              if ($scope.siteRegionShow === 'Astana') {
-                $scope.jobs[index].materialPrice = $item.astana;
-              } else if ($scope.siteRegionShow === 'East') {
-                $scope.jobs[index].materialPrice = $item.east;
-              } else if ($scope.siteRegionShow === 'West') {
-                $scope.jobs[index].materialPrice = $item.west;
-              } else if ($scope.siteRegionShow === 'South') {
-                $scope.jobs[index].materialPrice = $item.south;
-              } else {
-                $scope.jobs[index].materialPrice = $item.almaty;
-              }
-
-              for(let i=0; i<$scope.works.length; i++){
-                let work={}
-                if($scope.works[i].num == $scope.jobs[index].num){
-                  work = $scope.jobs[index]
-                  if(work.O20){
-                    $scope.o20JobWorks.push(work)
-                  }
-                }
-              }
             }
         }
       };
@@ -321,8 +309,7 @@
             <!-- O20 -->
             let dismntWork = JSON.parse($scope.jobs[index].dismantlingFor)
             $scope.jobs[index].refersTo = dismntWork.referedWorks;
-            let multiplier = ['99377','98267', '99412','758437'].includes(JSON.parse($scope.contract).id) ? 0.2 : 0.02;
-            $scope.jobs[index].materialPrice = (dismntWork.materialPrice*multiplier).toFixed(2);
+            $scope.jobs[index].materialPrice = (dismntWork.materialPrice*0.2).toFixed(2);
           }
         getSum(index);
       };
@@ -643,12 +630,12 @@
                         required
                         cam-variable-type="String"
                         ng-model="job.transportationFor"
-                        ng-if="(job.num == 'O21' && !['99377','98267', '99412','758437'].includes(contract.id)) || (job.num == 'O25' && ['99377','98267', '99412','758437'].includes(contract.id))"
+                        ng-if="(job.num == 'O21' && !['99377','98267', '99412','758437'].includes(contract.id)) || job.num == 'O25' ||(job.num == 'O25' && ['99377','98267', '99412','758437'].includes(contract.id))"
                         ng-change="getPrice($index, true)"
                 >
                   <option value="">Select work</option>
                   <option
-                          ng-repeat="work in (['99377','98267', '99412','758437'].includes(contract.id) ? (jobs | filter:{O25:true}) : jobs)"
+                          ng-repeat="work in (jobs | filter:{O25:true})"
                           ng-selected="{{work === job.transportationFor}}"
                           value="{{work}}"
                   >
@@ -663,16 +650,16 @@
                         required
                         cam-variable-type="String"
                         ng-model="job.dismantlingFor"
-                        ng-if="(job.num == 'O20' && !['99377','98267', '99412','758437'].includes(contract.id)) || (job.num == 'O24' && ['99377','98267', '99412','758437'].includes(contract.id))"
+                        ng-if="(job.num == 'O20' && !['99377','98267', '99412','758437'].includes(contract.id)) ||job.num == 'O24'|| (job.num == 'O24' && ['99377','98267', '99412','758437'].includes(contract.id))"
                         ng-change="getPrice($index, false)"
                 >
                   <option value="">Select work</option>
                   <option
-                          ng-repeat="work in (['99377','98267', '99412','758437'].includes(contract.id) ? (jobs | filter:{num:'O25'}): o20JobWorks)"
+                          ng-repeat="work in  (jobs | filter:{num:'O25'})"
                           ng-selected="{{work === job.dismantlingFor}}"
                           value="{{work}}"
                   >
-                    {{['99377','98267', '99412','758437'].includes(contract.id) ? work.referedWorks : work.num}}
+                    {{work.num}}
                   </option>
                 </select>
               </td>
