@@ -32,4 +32,5 @@ public class VpnCamVar {
     private AddressCamVar nearEndAddress;
     private Boolean confirmed;
     private Boolean providerConfirmed;
+    private Boolean modifyConfirmed;
 }

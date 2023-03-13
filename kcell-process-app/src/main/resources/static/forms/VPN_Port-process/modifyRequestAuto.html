@@ -54,15 +54,23 @@
                 return result;
             }
 
-            $scope.setResolution = function () {
-                if (!$scope.automodifyServices) return;
-
-                $scope.automodifyServices.forEach(service => service.confirmed = $scope.resolution);
+            $scope.rejectAll = function () {
+                _.forEach($scope.automodifyServices, service => service.modify_confirmed = false);
             }
 
-            $scope.isAllRejected = function () {
-                return $scope.automodifyServices.every(it => it.confirmed === false);
+            $scope.approveAll = function () {
+                _.forEach($scope.automodifyServices, service => service.modify_confirmed = true);
             }
+
+            $scope.onAutomodifyServiceConfirmed = function () {
+                if (_.every($scope.automodifyServices, service => service.modify_confirmed === true)) {
+                    $scope.modify_resolution = 'approved';
+                } else if (_.every($scope.automodifyServices, service => service.modify_confirmed === false)) {
+                    $scope.modify_resolution = 'rejected';
+                } else {
+                    $scope.modify_resolution = 'partially_approved';
+                }
+            };
 
             camForm.on('form-loaded', function () {
                 variables.forEach(function (el) {
@@ -91,6 +99,11 @@
                     name: 'confirmerComments',
                     type: 'String',
                     value: $scope.confirmerComments
+                });
+                camForm.variableManager.createVariable({
+                    name: 'modify_resolution',
+                    type: 'String',
+                    value: $scope.modify_resolution
                 });
             });
         }]);
@@ -166,7 +179,9 @@
                     <td style="background-color: #e6e6e6">{{ automodifyService.port.port_type }}</td>
                     <td style="background-color: #e6e6e6">{{ addressToString(automodifyService.port.far_end_address) }}</td>
                     <td style="background-color: #cea3bf;">
-                        <select class="form-control " name="resolution_{{$index}}" select-picker ng-model="automodifyService.confirmed" required>
+                        <select class="form-control " name="resolution_{{$index}}" select-picker ng-model="automodifyService.modify_confirmed" 
+                                ng-change="onAutomodifyServiceConfirmed()"
+                                required>
                             <option ng-value="true">Approve</option>
                             <option ng-value="false">Reject</option>
                         </select>
@@ -184,13 +199,13 @@
         </div>
         <div class="radio col-sm-2">
             <label class="control-label">
-                <input type="radio" name="resolutionForAll" ng-model="resolution" ng-value="true" ng-click="setResolution()">
+                <input type="radio" name="resolutionForAll" ng-model="modify_resolution" ng-value="'approved'" ng-click="approveAll()">
                 Approve all
             </label>
         </div>
         <div class="radio col-sm-2">
             <label class="control-label">
-                <input type="radio" name="resolutionForAll" ng-model="resolution" ng-value="false" ng-click="setResolution()">
+                <input type="radio" name="resolutionForAll" ng-model="modify_resolution" ng-value="'rejected'" ng-click="rejectAll()">
                 Reject all
             </label>
         </div>
@@ -200,7 +215,7 @@
         <label for="confirmerComments" class="col-sm-6 control-label">Confirmer comments:</label>
         <label for="approverComments" class="col-sm-6 control-label">Approver comments:</label>
         <div class="col-sm-6">
-            <textarea id="confirmerComments" name="confirmerComments" class="form-control" ng-required="isAllRejected()" ng-model="confirmerComments" rows="5"></textarea>
+            <textarea id="confirmerComments" name="confirmerComments" class="form-control" ng-required="modify_resolution === 'rejected'" ng-model="confirmerComments" rows="5"></textarea>
             <label class="error" ng-show="kcell_form.confirmerComments.$error.required && ( kcell_form.confirmerComments.$touched || view.submitted)">Required field</label>
         </div>
         <div class="col-sm-6">
