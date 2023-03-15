@@ -6853,6 +6853,106 @@ return module.controller('mainCtrl', ['$scope', '$rootScope', 'toasty', 'Authent
                     toasty.error('At least one cancel activity should be selected');
                 }
             }
+
+            //----------------------------------------------------------- Replace JR blank --------------------------------------
+            $scope.searchBusinessKeyToReplaceJrBlank = function () {
+                if ($scope.businessKey && $scope.businessKey !== '') {
+                    businessKey = $scope.businessKey;
+                }
+
+                $http.post(baseUrl + '/process-instance', {
+                    businessKey: businessKey, processDefinitionKey: 'Revision',
+                    active: true
+                }).then(
+                    function (result) {
+                        if (result.data.length > 0) {
+                            $scope.foundProcesses = result.data;
+                            var processInstanceIds = [];
+                            processInstanceIds.push($scope.foundProcesses[0].id);
+
+                            $http.post(baseUrl + '/history/variable-instance?deserializeValues=false', {
+                                processInstanceIdIn: processInstanceIds,
+                                variableName: "jrBlank"
+                            }).then(
+                                function (varResult) {
+                                    $scope.jrBlankValue = JSON.parse(varResult.data[0].value);
+                                },
+                                function (error) {
+                                    console.log(error.data)
+                                }
+                            );
+                        } else {
+                            toasty.error('No active process found');
+                        }
+                    },
+                    function (error) {
+                        console.log(error.data)
+                    }
+                );
+            }
+
+            $scope.uploadJrBlank = function () {
+                $timeout(function () {
+                    $scope.$apply(function () {
+                        uploadJrBlankToMinio($scope.selectedFile);
+                    });
+                });
+            };
+
+            function uploadJrBlankToMinio(file) {
+                if ($scope.foundProcesses.length > 0 && $scope.jrBlankValue) {
+                    var path = $scope.jrBlankValue.path;
+                    path = path.substring(0, path.lastIndexOf('/'));
+                    $http({
+                        method: 'GET',
+                        url: '/camunda/uploads/admin/put/' + path + '/' + $scope.jrBlankValue.name,
+                        transformResponse: []
+                    })
+                        .then(function (response) {
+                            $http.put(response.data, file, {headers: {'Content-Type': undefined}}).then(
+                                function () {
+                                    var processTechnicalUpdates = ($scope.processTechnicalUpdates === "") ? $scope.jrBlankComment : ($scope.processTechnicalUpdates + " " + $scope.jrBlankComment);
+
+                                    $http.post(baseUrl + '/process-instance/' + $scope.foundProcesses[0].id + '/variables',
+                                        {
+                                            "modifications":
+                                                {
+                                                    "processTechnicalUpdates": {
+                                                        "value": processTechnicalUpdates,
+                                                        type: 'String'
+                                                    }
+                                                }
+                                        }
+                                    ).then(
+                                        function (result) {
+                                            toasty.success("Данные успешно сохранены!");
+                                            $scope.foundProcesses = [];
+                                            $scope.jrBlankValue = undefined;
+                                            $scope.selectedFile = undefined;
+                                            $scope.businessKey = undefined;
+                                            businessKey = 'businessKey';
+                                            $scope.jrBlankComment = undefined;
+                                            $scope.processTechnicalUpdates = "";
+                                            angular.element(document.querySelector('#attachedAcceptanceFile')).val(null);
+                                        },
+                                        function (error) {
+                                            console.log(error.data)
+                                            toasty.success(error.data);
+                                        }
+                                    );
+                                },
+                                function (error) {
+                                    console.log(`Could not upload ${file.name} to ${path}`);
+                                    console.log(error.data);
+                                    alert(`Could not upload ${file.name} to ${path}`);
+                                }
+                            );
+                        }, function (error) {
+                            console.log(error.data);
+                            alert('No such file ' + file.name);
+                        });
+                }
+            }
         }]).controller('MassApproveCtrl', ['$scope', '$rootScope', 'toasty', 'AuthenticationService', '$stateParams', '$timeout', '$location', 'exModal', '$http', '$state', '$q', '$filter', function ($scope, $rootScope, toasty, AuthenticationService, $stateParams, $timeout, $location, exModal, $http, $state, $q, $filter) {
         const baseUrl = '/camunda/api/engine/engine/default';
         const defKey = $stateParams.defKey;
