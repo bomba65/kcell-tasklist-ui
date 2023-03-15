@@ -5129,9 +5129,38 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                         url: baseUrl + '/task?processInstanceId=' + processInstanceId,
                     }).then(
                         function (tasks) {
+                            const open = () => $http.post(baseUrl + '/history/variable-instance?deserializeValues=false', {
+                                processDefinitionKey: processDefinitionKey,
+                                processInstanceId: processInstanceId,
+                            }).then(function (result) {
+                                    let vars = {};
+                                    result.data.forEach(function (v) {
+                                        vars[v.name] = v.value;
+                                    });
+                                    if (processDefinitionKey === 'create-new-tsd') {
+                                        openCreateTsdProcessCardModal(businessKey, startDate, userId, vars, processDefinitionId, task)
+                                    } else {
+                                        openTsdProcessCardModal(businessKey, startDate, userId, vars, processDefinitionId, task)
+                                    }
+                                },
+                                function (error) {
+                                    console.log(error.data);
+                                });
+
                             var processInstanceTasks = tasks.data._embedded.task;
                             if (processInstanceTasks && processInstanceTasks.length > 0) {
                                 processInstanceTasks.forEach(function (e) {
+                                    $http({
+                                        method: 'GET',
+                                        headers: {'Accept': 'application/json;'},
+                                        url: baseUrl + '/task/' + e.id + '/identity-links',
+                                    }).then((identityLinks) => {
+                                        _.forEach(identityLinks.data, (identityLink) => {
+                                            if (identityLink.type === 'candidate' && identityLink.groupId) {
+                                                e.group = identityLink.groupId;
+                                            }
+                                        });
+                                    });
                                     if (e.assignee && tasks.data._embedded.assignee) {
                                         for (var i = 0; i < tasks.data._embedded.assignee.length; i++) {
                                             if (tasks.data._embedded.assignee[i].id === e.assignee) {
@@ -5199,45 +5228,134 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                                     );
                                 });
                                 task = processInstanceTasks;
+                                open();
                             } else {
                                 var activities = [];
                                 $http.get(baseUrl + '/process-instance/' + processInstanceId + '/activity-instances').then(
                                     function (result) {
-                                        _.forEach(result.data.childActivityInstances, function (firstLevel) {
-                                            if (firstLevel.activityType === 'subProcess') {
-                                                _.forEach(firstLevel.childActivityInstances, function (secondLevel) {
-                                                    if (secondLevel.activityType !== 'userTask' && secondLevel.activityType !== 'multiInstanceBody') {
-                                                        activities.push(secondLevel);
-                                                    }
+                                        if (_.some(result.data.childActivityInstances, (firstLevel) => firstLevel.activityType === 'callActivity')) {
+                                                const callActivities = _.filter(result.data.childActivityInstances, (firstLevel) => firstLevel.activityType === 'callActivity');
+                                                const activityInstances = _.map(callActivities, (firstLevel) =>
+                                                    $http.get(baseUrl + '/history/activity-instance?activityInstanceId=' + firstLevel.id)
+                                                );
+                                                $q.all(activityInstances).then((activityResults) => {
+                                                    const taskPromises = _.map(activityResults, (activityResult) =>
+                                                        $http({
+                                                            method: 'GET',
+                                                            headers: {'Accept': 'application/hal+json, application/json; q=0.5'},
+                                                            url: baseUrl + '/task?processInstanceId=' + activityResult.data[0].calledProcessInstanceId,
+                                                        })
+                                                    );
+                                                    $q.all(taskPromises).then((calledActivityTasks) => {
+                                                        const processInstanceTasks = _.flatten(_.map(calledActivityTasks, (calledActivityTask) => calledActivityTask.data._embedded.task));
+                                                        if (processInstanceTasks && processInstanceTasks.length > 0) {
+                                                            processInstanceTasks.forEach(function (e) {
+                                                                $http({
+                                                                    method: 'GET',
+                                                                    headers: {'Accept': 'application/json;'},
+                                                                    url: baseUrl + '/task/' + e.id + '/identity-links',
+                                                                }).then((identityLinks) => {
+                                                                    _.forEach(identityLinks.data, (identityLink) => {
+                                                                        if (identityLink.type === 'candidate' && identityLink.groupId) {
+                                                                            e.group = identityLink.groupId;
+                                                                        }
+                                                                    });
+                                                                });
+                                                                if (e.assignee && tasks.data._embedded.assignee) {
+                                                                    for (var i = 0; i < tasks.data._embedded.assignee.length; i++) {
+                                                                        if (tasks.data._embedded.assignee[i].id === e.assignee) {
+                                                                            e.assigneeObject = tasks.data._embedded.assignee[i];
+                                                                        }
+                                                                        $http({
+                                                                            method: 'GET',
+                                                                            headers: {'Accept': 'application/hal+json, application/json; q=0.5'},
+                                                                            url: baseUrl + '/task/' + e.processInstanceId
+                                                                        }).then(
+                                                                            function (taskResult) {
+                                                                                if (taskResult.data._embedded && taskResult.data._embedded.group) {
+                                                                                    e.group = taskResult.data._embedded.group[0].id;
+                                                                                }
+                                                                            },
+                                                                            function (error) {
+                                                                                console.log(error.data);
+                                                                            }
+                                                                        );
+                                                                    }
+                                                                }
+                                                                $http({
+                                                                    method: 'GET',
+                                                                    headers: {'Accept': 'application/hal+json, application/json; q=0.5'},
+                                                                    url: baseUrl + '/task/' + e.id
+                                                                }).then(
+                                                                    function (taskResult) {
+                                                                        if (taskResult.data._embedded && taskResult.data._embedded.group) {
+                                                                            e.group = taskResult.data._embedded.group[0].id;
+                                                                        }
+                                                                    },
+                                                                    function (error) {
+                                                                        console.log(error.data);
+                                                                    }
+                                                                );
+                                                                $http({
+                                                                    method: 'GET',
+                                                                    headers: {'Accept': 'application/hal+json, application/json; q=0.5'},
+                                                                    url: baseUrl + '/history/user-operation?operationType=Claim&taskId=' + e.id
+                                                                }).then(
+                                                                    function (taskLog) {
+                                                                        console.log(taskLog);
+                                                                        if (taskLog.data.length > 0) {
+                                                                            e.claimDate = taskLog.data[0].timestamp;
+                                                                        }
+                                                                    },
+                                                                    function (error) {
+                                                                        console.log(error.data);
+                                                                    }
+                                                                );
+                                                                $http({
+                                                                    method: 'GET',
+                                                                    headers: {'Accept': 'application/hal+json, application/json; q=0.5'},
+                                                                    url: baseUrl + '/history/user-operation?operationType=Assign&taskId=' + e.id
+                                                                }).then(
+                                                                    function (taskLog) {
+                                                                        console.log(taskLog);
+                                                                        if (taskLog.data.length > 0) {
+                                                                            e.assigneeDate = taskLog.data[0].timestamp;
+                                                                        }
+                                                                    },
+                                                                    function (error) {
+                                                                        console.log(error.data);
+                                                                    }
+                                                                );
+                                                            });
+                                                            activities.push(...processInstanceTasks);
+                                                        }
+                                                        task = activities;
+                                                        open();
+                                                    });
                                                 });
-                                            } else if (firstLevel.activityType !== 'userTask' && firstLevel.activityType !== 'multiInstanceBody') {
-                                                activities.push(firstLevel);
-                                            }
-                                        });
+                                        } else {
+                                            _.forEach(result.data.childActivityInstances, function (firstLevel) {
+                                                if (firstLevel.activityType === 'subProcess') {
+                                                    _.forEach(firstLevel.childActivityInstances, function (secondLevel) {
+                                                        if (secondLevel.activityType !== 'userTask' && secondLevel.activityType !== 'multiInstanceBody') {
+                                                            activities.push(secondLevel);
+                                                        }
+                                                    });
+                                                } else if (firstLevel.activityType !== 'userTask' && firstLevel.activityType !== 'multiInstanceBody') {
+                                                    activities.push(firstLevel);
+                                                }
+                                                task = activities;
+                                                open();
+                                            });
+                                        }
                                     },
                                     function (error) {
                                         console.log(error.data);
+                                        task = activities;
+                                        open();
                                     }
                                 );
-                                task = activities;
                             }
-                            $http.post(baseUrl + '/history/variable-instance?deserializeValues=false', {
-                                processDefinitionKey: processDefinitionKey,
-                                processInstanceId: processInstanceId,
-                            }).then(function (result) {
-                                let vars = {};
-                                result.data.forEach(function (v) {
-                                    vars[v.name] = v.value;
-                                });
-                                if (processDefinitionKey === 'create-new-tsd') {
-                                    openCreateTsdProcessCardModal(businessKey, startDate, userId, vars, processDefinitionId, task)
-                                } else {
-                                    openTsdProcessCardModal(businessKey, startDate, userId, vars, processDefinitionId, task)
-                                }
-                            },
-                            function (error) {
-                                console.log(error.data);
-                            });
                     });
                 };
                 function openProcessCardModalReplacement(processDefinitionId, businessKey, index) {
@@ -5770,6 +5888,7 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                         scope: {
                             showDiagram: scope.showDiagram,
                             showHistory: scope.showHistory,
+                            showGroupDetails: scope.showGroupDetails,
                             profiles: scope.profiles,
                             resolutions,
                             task,
@@ -5799,6 +5918,7 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                         scope: {
                             showDiagram: scope.showDiagram,
                             showHistory: scope.showHistory,
+                            showGroupDetails: scope.showGroupDetails,
                             profiles: scope.profiles,
                             construction_type_id: scope.construction_type_id,
                             antenna_diameter_id: scope.antenna_diameter_id,
