@@ -35,7 +35,7 @@ define(['./../../module'], function(module) {
                     scope.formData.isSearched = true;
                     if (!scope.formData.search_oblast || !scope.formData.search_district || !scope.formData.search_city_village) return;
 
-                    $http.get('/camunda/port/city_id/' + scope.formData.search_city_village).then(
+                    $http.get('/camunda/port/city_id/' + scope.formData.search_city_village + '?status=Active').then(
                         (response) => {
                             scope.formData.availablePorts = response.data
                         }
@@ -47,7 +47,7 @@ define(['./../../module'], function(module) {
                     scope.formData.isSearched = true;
                     if (!scope.formData.search_port_number) return;
 
-                    $http.get('/camunda/port/port_number/' + scope.formData.search_port_number).then(
+                    $http.get('/camunda/port/port_number/' + scope.formData.search_port_number + '?status=Active').then(
                         (response) => {
                             scope.formData.availablePorts = response.data
                         }
@@ -69,10 +69,13 @@ define(['./../../module'], function(module) {
                 scope.addressToString = function (address) {
                     if (!address) return;
 
-                    return address.city_id.district_id.oblast_id.name + ' '
-                        + address.city_id.district_id.name + ' '
-                        + address.city_id.name + ' '
-                        + address.street + ' ' + address.building;
+                    return (address.city_id.district_id.oblast_id.name ? address.city_id.district_id.oblast_id.name : '') + ' '
+                        + (address.city_id.district_id.name ? address.city_id.district_id.name : '') + ' '
+                        + (address.city_id.name ? address.city_id.name : '') + ' '
+                        + (address.street ? address.street : '') + ' '
+                        + (address.building ? address.building : '') + ' '
+                        + (address.cadastral_number ? address.cadastral_number : '') + ' '
+                        + (address.note ? address.note : '');
                 }
             },
             templateUrl: './js/directives/vpnPortProcess/start/disbandPort.html'

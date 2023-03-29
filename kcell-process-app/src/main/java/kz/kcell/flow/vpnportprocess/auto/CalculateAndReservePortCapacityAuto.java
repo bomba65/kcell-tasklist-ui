@@ -16,6 +16,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -43,7 +44,8 @@ public class CalculateAndReservePortCapacityAuto implements JavaDelegate {
             PortCamVar port = entry.getKey();
             long totalServiceCapacityOnPort;
             try {
-                totalServiceCapacityOnPort = vpnPortClient.getVpnsByPortNumber(port.getPortNumber()).stream().mapToLong(VpnOutputDto::getServiceCapacity).sum();
+                totalServiceCapacityOnPort = vpnPortClient.getVpnsByPortNumber(port.getPortNumber(), new HashMap<String,Object>(){{put("status","Active");}})
+                    .stream().mapToLong(VpnOutputDto::getServiceCapacity).sum();
             } catch (FeignException exception) {
                 if (exception.status() == 404) {
                     totalServiceCapacityOnPort = 0;

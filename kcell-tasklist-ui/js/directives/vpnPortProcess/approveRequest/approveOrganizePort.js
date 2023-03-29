@@ -16,10 +16,13 @@ define(['./../../module'], function(module) {
                 scope.addressToString = function (address) {
                     if (!address) return;
 
-                    return address.city_id.district_id.oblast_id.name + ' '
-                        + address.city_id.district_id.name + ' '
-                        + address.city_id.name + ' '
-                        + address.street + ' ' + address.building;
+                    return (address.city_id.district_id.oblast_id.name ? address.city_id.district_id.oblast_id.name : '') + ' '
+                        + (address.city_id.district_id.name ? address.city_id.district_id.name : '') + ' '
+                        + (address.city_id.name ? address.city_id.name : '') + ' '
+                        + (address.street ? address.street : '') + ' '
+                        + (address.building ? address.building : '') + ' '
+                        + (address.cadastral_number ? address.cadastral_number : '') + ' '
+                        + (address.note ? address.note : '');
                 }
 
             },

@@ -25,6 +25,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -52,7 +53,9 @@ public class CheckUtilization implements JavaDelegate {
 
         List<VpnCamVar> automodifyServices = new ArrayList<>();
         for (Map.Entry<String, Double> vpn : vpns.entrySet()) {
-            VpnOutputDto vpnOutputDto = vpnPortClient.getVpnByVpnNumber(vpn.getKey());
+            VpnOutputDto vpnOutputDto = vpnPortClient.getVpnByVpnNumber(vpn.getKey(), new HashMap<String,Object>() {{
+                    put("status", "Active");
+            }});
 
             long serviceTypeId = vpnOutputDto.getServiceTypeId();
             String serviceType = serviceTypeIds.stream()
