@@ -11,8 +11,10 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.HashMap;
 import java.util.List;
 
 @RestController
@@ -27,18 +29,37 @@ public class PortController {
     }
 
     @GetMapping("/id/{id}")
-    public PortOutputDto getPortById(@PathVariable Long id) {
-        return vpnPortClient.getPortById(id);
+    public PortOutputDto getPortById(@PathVariable Long id, @RequestParam(required=false) String status) {
+        if (status == null) {
+            return vpnPortClient.getPortById(id, new HashMap<>());
+        } else {
+            return vpnPortClient.getPortById(id, new HashMap<String, Object>() {{
+                put("status", status);
+            }});
+        }
+
     }
 
     @GetMapping("/port_number/{portNumber}")
-    public List<PortOutputDto> getPortsByPortNumber(@PathVariable String portNumber) {
-        return vpnPortClient.getPortsByPortNumber(portNumber);
+    public List<PortOutputDto> getPortsByPortNumber(@PathVariable String portNumber, @RequestParam(required=false) String status) {
+        if (status == null) {
+            return vpnPortClient.getPortsByPortNumber(portNumber, new HashMap<>());
+        } else {
+            return vpnPortClient.getPortsByPortNumber(portNumber, new HashMap<String, Object>() {{
+                put("status", status);
+            }});
+        }
     }
 
     @GetMapping("/city_id/{cityId}")
-    public List<PortOutputDto> getPortsByCityId(@PathVariable Long cityId) {
-        return vpnPortClient.getPortsByCityId(cityId);
+    public List<PortOutputDto> getPortsByCityId(@PathVariable Long cityId, @RequestParam(required=false) String status) {
+        if (status == null) {
+            return vpnPortClient.getPortsByCityId(cityId, new HashMap<>());
+        } else {
+            return vpnPortClient.getPortsByCityId(cityId, new HashMap<String, Object>() {{
+                put("status", status);
+            }});
+        }
     }
 
     @PutMapping("/id/{id}")

@@ -11,8 +11,10 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.HashMap;
 import java.util.List;
 
 @RestController
@@ -28,28 +30,58 @@ public class VpnController {
     }
 
     @GetMapping("/{id}")
-    public VpnOutputDto getVpnById(@PathVariable Long id) {
-        return vpnPortClient.getVpnById(id);
+    public VpnOutputDto getVpnById(@PathVariable Long id, @RequestParam(required=false) String status) {
+        if (status == null) {
+            return vpnPortClient.getVpnById(id, new HashMap<>());
+        } else {
+            return vpnPortClient.getVpnById(id, new HashMap<String, Object>() {{
+                put("status", status);
+            }});
+        }
     }
 
     @GetMapping("/vpn_number/{vpnNumber}")
-    public VpnOutputDto getVpnByVpnNumber(@PathVariable String vpnNumber) {
-        return vpnPortClient.getVpnByVpnNumber(vpnNumber);
+    public VpnOutputDto getVpnByVpnNumber(@PathVariable String vpnNumber, @RequestParam(required=false) String status) {
+        if (status == null) {
+            return vpnPortClient.getVpnByVpnNumber(vpnNumber, new HashMap<>());
+        } else {
+            return vpnPortClient.getVpnByVpnNumber(vpnNumber, new HashMap<String, Object>() {{
+                put("status", status);
+            }});
+        }
     }
 
     @GetMapping("/port_number/{portNumber}")
-    public List<VpnOutputDto> getVpnsByPortNumber(@PathVariable String portNumber) {
-        return vpnPortClient.getVpnsByPortNumber(portNumber);
+    public List<VpnOutputDto> getVpnsByPortNumber(@PathVariable String portNumber, @RequestParam(required=false) String status) {
+        if (status == null) {
+            return vpnPortClient.getVpnsByPortNumber(portNumber, new HashMap<>());
+        } else {
+            return vpnPortClient.getVpnsByPortNumber(portNumber, new HashMap<String, Object>() {{
+                put("status", status);
+            }});
+        }
     }
 
     @GetMapping("/far_end_city_id/{farEndCityId}")
-    public List<VpnOutputDto> getVpnsByFarEndAddress(@PathVariable Long farEndCityId) {
-        return vpnPortClient.getVpnsByFarEndAddress(farEndCityId);
+    public List<VpnOutputDto> getVpnsByFarEndAddress(@PathVariable Long farEndCityId, @RequestParam(required=false) String status) {
+        if (status == null) {
+            return vpnPortClient.getVpnsByFarEndAddress(farEndCityId, new HashMap<>());
+        } else {
+            return vpnPortClient.getVpnsByFarEndAddress(farEndCityId, new HashMap<String, Object>() {{
+                put("status", status);
+            }});
+        }
     }
 
     @GetMapping("/near_end_city_id/{nearEndCityId}")
-    public List<VpnOutputDto> getVpnsByNearEndAddress(@PathVariable Long nearEndCityId) {
-        return vpnPortClient.getVpnsByNearEndAddress(nearEndCityId);
+    public List<VpnOutputDto> getVpnsByNearEndAddress(@PathVariable Long nearEndCityId, @RequestParam(required=false) String status) {
+        if (status == null) {
+            return vpnPortClient.getVpnsByNearEndAddress(nearEndCityId, new HashMap<>());
+        } else {
+            return vpnPortClient.getVpnsByNearEndAddress(nearEndCityId, new HashMap<String, Object>() {{
+                put("status", status);
+            }});
+        }
     }
 
     @PutMapping("/{id}")

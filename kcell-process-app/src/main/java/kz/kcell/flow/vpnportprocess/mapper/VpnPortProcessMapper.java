@@ -58,6 +58,18 @@ public class VpnPortProcessMapper {
             .build();
     }
 
+    public PortInputDto revertModifiedPort(PortCamVar port, String status) {
+        return PortInputDto.builder()
+            .portNumber(port.getPortNumber())
+            .portCapacity(port.getPortCapacity())
+            .portCapacityUnit(port.getPortCapacityUnit())
+            .channelType(port.getChannelType())
+            .portType(port.getPortType())
+            .farEndAddressId(port.getFarEndAddress().getId())
+            .status(status)
+            .build();
+    }
+
     public VpnInputDto mapFromAddedVpn(VpnCamVar vpn, long addressId, String vlan, String status) {
         return VpnInputDto.builder()
             .vpnNumber(vpn.getVpnNumber())
@@ -123,6 +135,24 @@ public class VpnPortProcessMapper {
             .kcellIp(vpn.getKcellIp())
             .vlan(vpn.getVlan())
             .serviceCapacity(vpn.getModifiedServiceCapacity()) // set modified service capacity
+            .providerAs(vpn.getProviderAs())
+            .kcellAs(vpn.getKcellAs())
+            .nearEndAddressId(vpn.getNearEndAddress().getId())
+            .status(status)
+            .build();
+    }
+
+    public VpnInputDto revertModifiedVpn(VpnCamVar vpn, String status) {
+        return VpnInputDto.builder()
+            .vpnNumber(vpn.getVpnNumber())
+            .portId(vpn.getPort().getId())
+            .service(vpn.getService())
+            .serviceTypeId(vpn.getServiceTypeId())
+            .serviceTypeCatalogId(vpn.getServiceTypeCatalogId())
+            .providerIp(vpn.getProviderIp())
+            .kcellIp(vpn.getKcellIp())
+            .vlan(vpn.getVlan())
+            .serviceCapacity(vpn.getServiceCapacity()) // set modified service capacity
             .providerAs(vpn.getProviderAs())
             .kcellAs(vpn.getKcellAs())
             .nearEndAddressId(vpn.getNearEndAddress().getId())

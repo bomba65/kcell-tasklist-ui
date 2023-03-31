@@ -35,7 +35,7 @@ public class DeleteInDb implements JavaDelegate {
         } else if (requestType.equals("Disband") && channel.equals("Port")) {
             revertPortDisbandment(execution);
         } else if (requestType.equals("Modify") && channel.equals("Port")) {
-            revertPortDisbandment(execution);
+            revertPortModification(execution);
         } else if (requestType.equals("Organize") && channel.equals("VPN")) {
             deleteAddedServices(execution);
         } else if (requestType.equals("Disband") && channel.equals("VPN")) {
@@ -56,9 +56,16 @@ public class DeleteInDb implements JavaDelegate {
         PortCamVar[] disbandPorts = objectMapper.readValue(execution.getVariable("disbandPorts").toString(), PortCamVar[].class);
 
         for (PortCamVar port : disbandPorts) {
+            vpnPortClient.updatePort(vpnPortProcessMapper.revertModifiedPort(port, "Active"), port.getId());
+        }
+    }
+
+    private void revertPortModification(DelegateExecution execution) throws IOException {
+        PortCamVar[] disbandPorts = objectMapper.readValue(execution.getVariable("modifyPorts").toString(), PortCamVar[].class);
+
+        for (PortCamVar port : disbandPorts) {
             vpnPortClient.updatePort(vpnPortProcessMapper.map(port, "Active"), port.getId());
         }
-
     }
 
     private void deleteAddedServices(DelegateExecution execution) throws Exception {
@@ -84,7 +91,7 @@ public class DeleteInDb implements JavaDelegate {
         VpnCamVar[] modifyServices = objectMapper.readValue(execution.getVariable("modifyServices").toString(), VpnCamVar[].class);
 
         for (VpnCamVar vpn : modifyServices) {
-            vpnPortClient.updateVpn(vpnPortProcessMapper.mapFromModifiedVpn(vpn, "Active"), vpn.getId());
+            vpnPortClient.updateVpn(vpnPortProcessMapper.revertModifiedVpn(vpn, "Active"), vpn.getId());
             ipVpnConnectService.changeStatusAndCapacity(vpn.getVpnNumber(), "Active", vpn.getServiceCapacity());
         }
     }

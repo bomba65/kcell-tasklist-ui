@@ -19,6 +19,7 @@ import org.springframework.stereotype.Component;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -57,8 +58,18 @@ public class CalculateAndReservePortCapacity implements JavaDelegate {
         PortCamVar[] addedPorts = objectMapper.readValue(execution.getVariable("addedPorts").toString(), PortCamVar[].class);
 
         List<PortOutputDto> createdPorts = Arrays.stream(addedPorts).map((port) -> {
-            long addressId = vpnPortClient.createNewAddress(vpnPortProcessMapper.map(port.getFarEndAddress())).getId();
-            return vpnPortClient.createNewPort(vpnPortProcessMapper.map(port, addressId, "Ordered"));
+            try {
+                PortOutputDto existingPort = vpnPortClient.getPortsByPortNumber(port.getPortNumber(), new HashMap<String,Object>(){{put("status","Ordered");}}).get(0);
+                return vpnPortClient.updatePort(vpnPortProcessMapper.map(port, existingPort.getFarEndAddress().getId(), "Ordered"), existingPort.getId());
+            } catch (FeignException exception) {
+                if (exception.status() == 404) {
+                    long addressId = vpnPortClient.createNewAddress(vpnPortProcessMapper.map(port.getFarEndAddress())).getId();
+                    return vpnPortClient.createNewPort(vpnPortProcessMapper.map(port, addressId, "Ordered"));
+                } else {
+                    throw exception;
+                }
+            }
+
         }).collect(Collectors.toList());
 
         execution.setVariable("addedPorts", SpinValues.jsonValue(objectMapper.writeValueAsString(createdPorts)).create());
@@ -69,7 +80,7 @@ public class CalculateAndReservePortCapacity implements JavaDelegate {
 
         for (PortCamVar port : disbandPorts) {
             try {
-                vpnPortClient.getVpnsByPortNumber(port.getPortNumber());
+                vpnPortClient.getVpnsByPortNumber(port.getPortNumber(), new HashMap<String,Object>(){{put("status","Active");}});
                 execution.setVariable("calculateAndReservePortCapacityReject", "there are existed vpns");
                 return;
             } catch (FeignException exception) {
@@ -91,7 +102,8 @@ public class CalculateAndReservePortCapacity implements JavaDelegate {
         for (PortCamVar port : modifyPorts) {
             long totalServiceCapacity;
             try {
-                totalServiceCapacity = vpnPortClient.getVpnsByPortNumber(port.getPortNumber()).stream().mapToLong(VpnOutputDto::getServiceCapacity).sum();
+                totalServiceCapacity = vpnPortClient.getVpnsByPortNumber(port.getPortNumber(), new HashMap<String,Object>(){{put("status","Active");}})
+                    .stream().mapToLong(VpnOutputDto::getServiceCapacity).sum();
             } catch (FeignException exception) {
                 if (exception.status() == 404) {
                     totalServiceCapacity = 0;
@@ -124,7 +136,8 @@ public class CalculateAndReservePortCapacity implements JavaDelegate {
             PortCamVar port = entry.getKey();
             long totalServiceCapacity;
             try {
-                totalServiceCapacity = vpnPortClient.getVpnsByPortNumber(port.getPortNumber()).stream().mapToLong(VpnOutputDto::getServiceCapacity).sum();
+                totalServiceCapacity = vpnPortClient.getVpnsByPortNumber(port.getPortNumber(), new HashMap<String,Object>(){{put("status","Active");}})
+                    .stream().mapToLong(VpnOutputDto::getServiceCapacity).sum();
             } catch (FeignException exception) {
                 if (exception.status() == 404) {
                     totalServiceCapacity = 0;
@@ -145,19 +158,28 @@ public class CalculateAndReservePortCapacity implements JavaDelegate {
 
         List<Pair<String, Integer>> addedIpVpnRowNumbers = new ArrayList<>();
         List<VpnOutputDto> createdVpns = Arrays.stream(addedServices).map((vpn) -> {
-            long addressId = vpnPortClient.createNewAddress(vpnPortProcessMapper.map(vpn.getNearEndAddress())).getId();
-            String vlan = null;
-            // write to IPVPN CONNECT.xlsm to VLAN sheet and get a vlan value for the newly created vpn
-            if (vpn.getService().equals("L2")) {
-                vlan = ipVpnConnectService.addNewVlanToIpVpnConnectFile(vpn.getServiceTypeTitle());
-            }
-            // post the vpn to assets
-            VpnOutputDto createdVpn = vpnPortClient.createNewVpn(vpnPortProcessMapper.mapFromAddedVpn(vpn, addressId, vlan, "Ordered"));
+            try {
+                VpnOutputDto existingVpn = vpnPortClient.getVpnByVpnNumber(vpn.getVpnNumber(), new HashMap<String,Object>(){{put("status","Ordered");}});
+                return vpnPortClient.updateVpn(vpnPortProcessMapper.mapFromAddedVpn(vpn, existingVpn.getNearEndAddress().getId(), vpn.getVlan(), "Ordered"), existingVpn.getId());
+            } catch (FeignException exception) {
+                if (exception.status() == 404) {
+                    long addressId = vpnPortClient.createNewAddress(vpnPortProcessMapper.map(vpn.getNearEndAddress())).getId();
+                    String vlan = null;
+                    // write to IPVPN CONNECT.xlsm to VLAN sheet and get a vlan value for the newly created vpn
+                    if (vpn.getService().equals("L2")) {
+                        vlan = ipVpnConnectService.addNewVlanToIpVpnConnectFile(vpn.getServiceTypeTitle());
+                    }
+                    // post the vpn to assets
+                    VpnOutputDto createdVpn = vpnPortClient.createNewVpn(vpnPortProcessMapper.mapFromAddedVpn(vpn, addressId, vlan, "Ordered"));
 
-            // write the created vpn to IPVPN CONNECT.xlsm
-            Pair<String, Integer> sheetAndRowNumber = ipVpnConnectService.addNewVpnToIpVpnConnectFile(createdVpn, vpn.getServiceTypeTitle(), vlan);
-            addedIpVpnRowNumbers.add(sheetAndRowNumber);
-            return createdVpn;
+                    // write the created vpn to IPVPN CONNECT.xlsm
+                    Pair<String, Integer> sheetAndRowNumber = ipVpnConnectService.addNewVpnToIpVpnConnectFile(createdVpn, vpn.getServiceTypeTitle(), vlan);
+                    addedIpVpnRowNumbers.add(sheetAndRowNumber);
+                    return createdVpn;
+                } else {
+                    throw exception;
+                }
+            }
         }).collect(Collectors.toList());
         List<Integer> createdVpnHashCodeList = createdVpns.stream().map(VpnOutputDto::hashCode).collect(Collectors.toList());
 
@@ -185,7 +207,8 @@ public class CalculateAndReservePortCapacity implements JavaDelegate {
             PortCamVar port = entry.getKey();
             long totalServiceCapacityOnPort;
             try {
-                totalServiceCapacityOnPort = vpnPortClient.getVpnsByPortNumber(port.getPortNumber()).stream().mapToLong(VpnOutputDto::getServiceCapacity).sum();
+                totalServiceCapacityOnPort = vpnPortClient.getVpnsByPortNumber(port.getPortNumber(), new HashMap<String,Object>(){{put("status","Active");}})
+                    .stream().mapToLong(VpnOutputDto::getServiceCapacity).sum();
             } catch (FeignException exception) {
                 if (exception.status() == 404) {
                     totalServiceCapacityOnPort = 0;
