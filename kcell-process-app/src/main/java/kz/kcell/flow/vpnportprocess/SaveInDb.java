@@ -35,7 +35,9 @@ public class SaveInDb implements JavaDelegate {
                 VpnOutputDto vpn = vpns[i];
                 if (vpnHashCodeList[i] != vpn.hashCode()) {
                     vpnPortClient.updateVpn(mapper.mapFromVpnOutputDto(vpn), vpn.getId());
-                    ipVpnConnectService.makeChangesToAddedService(vpn, addedIpVpnRowNumbers.get(i));
+                    if (addedIpVpnRowNumbers.size() > 0) {
+                        ipVpnConnectService.makeChangesToAddedService(vpn, addedIpVpnRowNumbers.get(i));
+                    }
                 }
             }
         }

@@ -23,6 +23,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 @Component
 @RequiredArgsConstructor
@@ -60,6 +61,7 @@ public class CalculateAndReservePortCapacity implements JavaDelegate {
         List<PortOutputDto> createdPorts = Arrays.stream(addedPorts).map((port) -> {
             try {
                 PortOutputDto existingPort = vpnPortClient.getPortsByPortNumber(port.getPortNumber(), new HashMap<String,Object>(){{put("status","Ordered");}}).get(0);
+                vpnPortClient.updateAddress(vpnPortProcessMapper.map(port.getFarEndAddress()), existingPort.getFarEndAddress().getId());
                 return vpnPortClient.updatePort(vpnPortProcessMapper.map(port, existingPort.getFarEndAddress().getId(), "Ordered"), existingPort.getId());
             } catch (FeignException exception) {
                 if (exception.status() == 404) {
@@ -156,33 +158,36 @@ public class CalculateAndReservePortCapacity implements JavaDelegate {
             }
         }
 
+        Long[] addedServiceIdList = execution.getVariable("addedServiceIdList") != null ? objectMapper.readValue(execution.getVariable("addedServiceIdList").toString(), Long[].class) : null;
         List<Pair<String, Integer>> addedIpVpnRowNumbers = new ArrayList<>();
-        List<VpnOutputDto> createdVpns = Arrays.stream(addedServices).map((vpn) -> {
-            try {
-                VpnOutputDto existingVpn = vpnPortClient.getVpnByVpnNumber(vpn.getVpnNumber(), new HashMap<String,Object>(){{put("status","Ordered");}});
+        List<VpnOutputDto> createdVpns = IntStream.range(0, addedServices.length).mapToObj((i) -> {
+            VpnCamVar vpn = addedServices[i];
+            if (addedServiceIdList != null) {
+                Long vpnId = addedServiceIdList[i];
+                vpnPortClient.updateAddress(vpnPortProcessMapper.map(vpn.getNearEndAddress()), vpn.getNearEndAddress().getId());
+                VpnOutputDto existingVpn = vpnPortClient.getVpnById(vpnId, new HashMap<String, Object>() {{
+                    put("status", "Ordered");
+                }});
                 return vpnPortClient.updateVpn(vpnPortProcessMapper.mapFromAddedVpn(vpn, existingVpn.getNearEndAddress().getId(), vpn.getVlan(), "Ordered"), existingVpn.getId());
-            } catch (FeignException exception) {
-                if (exception.status() == 404) {
-                    long addressId = vpnPortClient.createNewAddress(vpnPortProcessMapper.map(vpn.getNearEndAddress())).getId();
-                    String vlan = null;
-                    // write to IPVPN CONNECT.xlsm to VLAN sheet and get a vlan value for the newly created vpn
-                    if (vpn.getService().equals("L2")) {
-                        vlan = ipVpnConnectService.addNewVlanToIpVpnConnectFile(vpn.getServiceTypeTitle());
-                    }
-                    // post the vpn to assets
-                    VpnOutputDto createdVpn = vpnPortClient.createNewVpn(vpnPortProcessMapper.mapFromAddedVpn(vpn, addressId, vlan, "Ordered"));
-
-                    // write the created vpn to IPVPN CONNECT.xlsm
-                    Pair<String, Integer> sheetAndRowNumber = ipVpnConnectService.addNewVpnToIpVpnConnectFile(createdVpn, vpn.getServiceTypeTitle(), vlan);
-                    addedIpVpnRowNumbers.add(sheetAndRowNumber);
-                    return createdVpn;
-                } else {
-                    throw exception;
+            } else {
+                long addressId = vpnPortClient.createNewAddress(vpnPortProcessMapper.map(vpn.getNearEndAddress())).getId();
+                String vlan = null;
+                // write to IPVPN CONNECT.xlsm to VLAN sheet and get a vlan value for the newly created vpn
+                if (vpn.getService().equals("L2")) {
+                    vlan = ipVpnConnectService.addNewVlanToIpVpnConnectFile(vpn.getServiceTypeTitle());
                 }
+                // post the vpn to assets
+                VpnOutputDto createdVpn = vpnPortClient.createNewVpn(vpnPortProcessMapper.mapFromAddedVpn(vpn, addressId, vlan, "Ordered"));
+
+                // write the created vpn to IPVPN CONNECT.xlsm
+                Pair<String, Integer> sheetAndRowNumber = ipVpnConnectService.addNewVpnToIpVpnConnectFile(createdVpn, vpn.getServiceTypeTitle(), vlan);
+                addedIpVpnRowNumbers.add(sheetAndRowNumber);
+                return createdVpn;
             }
         }).collect(Collectors.toList());
         List<Integer> createdVpnHashCodeList = createdVpns.stream().map(VpnOutputDto::hashCode).collect(Collectors.toList());
 
+        execution.setVariable("addedServiceIdList", SpinValues.jsonValue(objectMapper.writeValueAsString(createdVpns.stream().map(VpnOutputDto::getId).collect(Collectors.toList()))));
         execution.setVariable("addedServiceHashCodeList", SpinValues.jsonValue(objectMapper.writeValueAsString(createdVpnHashCodeList)));
         execution.setVariable("addedIpVpnRowNumbers", SpinValues.jsonValue(objectMapper.writeValueAsString(addedIpVpnRowNumbers)));
         execution.setVariable("addedServices", SpinValues.jsonValue(objectMapper.writeValueAsString(createdVpns)).create());

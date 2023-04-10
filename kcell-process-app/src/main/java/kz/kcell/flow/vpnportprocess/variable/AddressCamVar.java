@@ -17,7 +17,7 @@ import lombok.NoArgsConstructor;
 public class AddressCamVar {
     private Long id;
     private CityCamVar cityId;
-    private boolean addressNotFull;
+    private boolean notFullAddress;
     private String street;
     private String building;
     private String cadastralNumber;
