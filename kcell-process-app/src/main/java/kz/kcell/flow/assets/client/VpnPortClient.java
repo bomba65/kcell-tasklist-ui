@@ -58,4 +58,7 @@ public interface VpnPortClient {
 
     @RequestLine("POST /adresses")
     AdressesOutputDto createNewAddress(AddressesInputDto inputDto);
+
+    @RequestLine("PUT /addresses/id/{id}")
+    AdressesOutputDto updateAddress(AddressesInputDto inputDto, @Param("id") Long id);
 }

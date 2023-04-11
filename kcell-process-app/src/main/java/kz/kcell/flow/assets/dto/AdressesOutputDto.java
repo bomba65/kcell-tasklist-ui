@@ -19,6 +19,7 @@ public class AdressesOutputDto {
     public String street;
     public String building;
     public String cadastralNumber;
+    public Boolean notFullAddress;
     public String note;
     public String status;
     public Date dateCreated;

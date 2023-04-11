@@ -102,6 +102,11 @@ define(['./../../module'], function(module) {
                         + (address.note ? address.note : '');
                 }
 
+                scope.changeCapacityUnit = function(addedPort) {
+                    if (addedPort.port_capacity_unit === 'Mb') {
+                        addedPort.port_type = 'Copper';
+                    }
+                }
             },
             templateUrl: './js/directives/vpnPortProcess/start/organizePort.html'
         };
