@@ -14,7 +14,7 @@
     <bpmn:sequenceFlow id="Flow_0tx9u4o" name="Sent for revision" sourceRef="Gateway_0ugxtpm" targetRef="Activity_1idfuq1">
       <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">#{resolution == 'send for revision'}</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
-    <bpmn:sequenceFlow id="Flow_0me7gbd" sourceRef="Activity_1idfuq1" targetRef="Activity_0o40zeg" />
+    <bpmn:sequenceFlow id="Flow_0me7gbd" sourceRef="Activity_1idfuq1" targetRef="modifyForm" />
     <bpmn:sendTask id="Activity_1idfuq1" name="Notify to modify request" camunda:delegateExpression="${camundaMailer}">
       <bpmn:extensionElements>
         <camunda:inputOutput>
@@ -49,7 +49,7 @@
       <bpmn:incoming>Flow_0cnjmhk</bpmn:incoming>
       <bpmn:outgoing>Flow_09px3qh</bpmn:outgoing>
     </bpmn:sendTask>
-    <bpmn:userTask id="Activity_0l3b28s" name="Input the Providers NOR" camunda:formKey="embedded:app:forms/VPN_Port-process/inputProvidersNor.html" camunda:candidateGroups="Provider_relations_users">
+    <bpmn:userTask id="inputTheProvidersNor" name="Input the Providers NOR" camunda:formKey="embedded:app:forms/VPN_Port-process/inputProvidersNor.html" camunda:candidateGroups="Provider_relations_users">
       <bpmn:incoming>Flow_0vmqamu</bpmn:incoming>
       <bpmn:outgoing>Flow_0006rh5</bpmn:outgoing>
     </bpmn:userTask>
@@ -58,7 +58,7 @@
       <bpmn:outgoing>Flow_0be24dm</bpmn:outgoing>
       <bpmn:outgoing>Flow_0a9chep</bpmn:outgoing>
     </bpmn:exclusiveGateway>
-    <bpmn:sequenceFlow id="Flow_0006rh5" sourceRef="Activity_0l3b28s" targetRef="Gateway_06l3bl5" />
+    <bpmn:sequenceFlow id="Flow_0006rh5" sourceRef="inputTheProvidersNor" targetRef="Gateway_06l3bl5" />
     <bpmn:sequenceFlow id="Flow_0be24dm" name="Approved" sourceRef="Gateway_06l3bl5" targetRef="Activity_0o7k3wv" />
     <bpmn:sendTask id="Activity_0o7k3wv" name="Notify to confirm completion request" camunda:delegateExpression="${camundaMailer}">
       <bpmn:extensionElements>
@@ -80,15 +80,15 @@
     <bpmn:sequenceFlow id="Flow_0a9chep" name="Rejected" sourceRef="Gateway_06l3bl5" targetRef="Activity_09eyot0">
       <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">#{providerResolution == "reject"}</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
-    <bpmn:sequenceFlow id="Flow_1b50teq" sourceRef="Activity_1ttjalw" targetRef="Activity_1d9io3v" />
+    <bpmn:sequenceFlow id="Flow_1b50teq" sourceRef="confirmCompletionRequest" targetRef="Activity_1d9io3v" />
     <bpmn:endEvent id="Event_0zpmfzp">
       <bpmn:incoming>Flow_1aa8jvj</bpmn:incoming>
     </bpmn:endEvent>
-    <bpmn:userTask id="Activity_1ttjalw" name="Confirm completion request" camunda:formKey="embedded:app:forms/VPN_Port-process/confirmCompletionRequest.html">
+    <bpmn:userTask id="confirmCompletionRequest" name="Confirm completion request" camunda:formKey="embedded:app:forms/VPN_Port-process/confirmCompletionRequest.html">
       <bpmn:incoming>Flow_1t3nk3j</bpmn:incoming>
       <bpmn:outgoing>Flow_1b50teq</bpmn:outgoing>
     </bpmn:userTask>
-    <bpmn:userTask id="Activity_0nd38fq" name="Approve request" camunda:formKey="embedded:app:forms/VPN_Port-process/approveRequest.html" camunda:candidateGroups="IP_Core_users">
+    <bpmn:userTask id="approveRequest" name="Approve request" camunda:formKey="embedded:app:forms/VPN_Port-process/approveRequest.html" camunda:candidateGroups="IP_Core_users">
       <bpmn:incoming>Flow_1man9lx</bpmn:incoming>
       <bpmn:outgoing>Flow_0ssbctg</bpmn:outgoing>
     </bpmn:userTask>
@@ -127,7 +127,7 @@
       <bpmn:incoming>Flow_1oms2c4</bpmn:incoming>
       <bpmn:outgoing>Flow_1man9lx</bpmn:outgoing>
     </bpmn:sendTask>
-    <bpmn:sequenceFlow id="Flow_1man9lx" sourceRef="Activity_018nvw2" targetRef="Activity_0nd38fq" />
+    <bpmn:sequenceFlow id="Flow_1man9lx" sourceRef="Activity_018nvw2" targetRef="approveRequest" />
     <bpmn:sendTask id="Activity_08adv1y" name="Notify about rejected request" camunda:delegateExpression="${camundaMailer}">
       <bpmn:extensionElements>
         <camunda:inputOutput>
@@ -146,7 +146,7 @@
       <bpmn:outgoing>Flow_1qx5yjj</bpmn:outgoing>
     </bpmn:sendTask>
     <bpmn:sequenceFlow id="Flow_1qx5yjj" sourceRef="Activity_08adv1y" targetRef="Event_02ykp8l" />
-    <bpmn:sequenceFlow id="Flow_1t3nk3j" sourceRef="Activity_0o7k3wv" targetRef="Activity_1ttjalw" />
+    <bpmn:sequenceFlow id="Flow_1t3nk3j" sourceRef="Activity_0o7k3wv" targetRef="confirmCompletionRequest" />
     <bpmn:exclusiveGateway id="Gateway_1hvih2n" name="Request approved?" default="Flow_1oms2c4">
       <bpmn:incoming>Flow_1xr0g5v</bpmn:incoming>
       <bpmn:outgoing>Flow_1oms2c4</bpmn:outgoing>
@@ -200,7 +200,7 @@
     <bpmn:startEvent id="StartEvent_1" camunda:formKey="embedded:app:forms/VPN_Port-process/start.html" camunda:initiator="starter">
       <bpmn:outgoing>Flow_1vmn2b3</bpmn:outgoing>
     </bpmn:startEvent>
-    <bpmn:sequenceFlow id="Flow_0ssbctg" sourceRef="Activity_0nd38fq" targetRef="Gateway_0ugxtpm" />
+    <bpmn:sequenceFlow id="Flow_0ssbctg" sourceRef="approveRequest" targetRef="Gateway_0ugxtpm" />
     <bpmn:sequenceFlow id="Flow_01d8caz" name="Rejected" sourceRef="Gateway_0ugxtpm" targetRef="Activity_18r1uk0">
       <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">#{resolution == 'reject'}</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
@@ -232,7 +232,7 @@
       <bpmn:outgoing>Flow_0cnjmhk</bpmn:outgoing>
     </bpmn:serviceTask>
     <bpmn:sequenceFlow id="Flow_0cnjmhk" sourceRef="Activity_03jr9wh" targetRef="Activity_09fyw27" />
-    <bpmn:userTask id="Activity_0o40zeg" name="Modify form" camunda:formKey="embedded:app:forms/VPN_Port-process/modifyRequest.html">
+    <bpmn:userTask id="modifyForm" name="Modify form" camunda:formKey="embedded:app:forms/VPN_Port-process/modifyRequest.html">
       <bpmn:incoming>Flow_0me7gbd</bpmn:incoming>
       <bpmn:outgoing>Flow_05qsvvv</bpmn:outgoing>
     </bpmn:userTask>
@@ -244,7 +244,7 @@
       <bpmn:outgoing>Flow_1lla9ni</bpmn:outgoing>
       <bpmn:outgoing>Flow_0b1gqgc</bpmn:outgoing>
     </bpmn:exclusiveGateway>
-    <bpmn:sequenceFlow id="Flow_05qsvvv" sourceRef="Activity_0o40zeg" targetRef="Gateway_15bbpv5" />
+    <bpmn:sequenceFlow id="Flow_05qsvvv" sourceRef="modifyForm" targetRef="Gateway_15bbpv5" />
     <bpmn:exclusiveGateway id="Gateway_1gkyoi0">
       <bpmn:incoming>Flow_0b1gqgc</bpmn:incoming>
       <bpmn:incoming>Flow_1vmn2b3</bpmn:incoming>
@@ -301,7 +301,7 @@
       <bpmn:outgoing>Flow_0vmqamu</bpmn:outgoing>
     </bpmn:sendTask>
     <bpmn:sequenceFlow id="Flow_09px3qh" sourceRef="Activity_09fyw27" targetRef="Activity_0gnhdmx" />
-    <bpmn:sequenceFlow id="Flow_0vmqamu" sourceRef="Activity_0gnhdmx" targetRef="Activity_0l3b28s" />
+    <bpmn:sequenceFlow id="Flow_0vmqamu" sourceRef="Activity_0gnhdmx" targetRef="inputTheProvidersNor" />
     <bpmn:textAnnotation id="TextAnnotation_1gz4ia6">
       <bpmn:text>Camunda
 Task 2</bpmn:text>
@@ -311,7 +311,7 @@ Task 2</bpmn:text>
       <bpmn:text>IP Core
 Task 4</bpmn:text>
     </bpmn:textAnnotation>
-    <bpmn:association id="Association_18g9i3f" sourceRef="Activity_0nd38fq" targetRef="TextAnnotation_1dqu7jf" />
+    <bpmn:association id="Association_18g9i3f" sourceRef="approveRequest" targetRef="TextAnnotation_1dqu7jf" />
     <bpmn:textAnnotation id="TextAnnotation_1y62ah4">
       <bpmn:text>Camunda
 Task 5.2</bpmn:text>
@@ -326,7 +326,7 @@ Task 5.3</bpmn:text>
       <bpmn:text>Provider_relations_users
 Task 7</bpmn:text>
     </bpmn:textAnnotation>
-    <bpmn:association id="Association_0rzxumu" sourceRef="Activity_0l3b28s" targetRef="TextAnnotation_0qy3yfs" />
+    <bpmn:association id="Association_0rzxumu" sourceRef="inputTheProvidersNor" targetRef="TextAnnotation_0qy3yfs" />
     <bpmn:textAnnotation id="TextAnnotation_1ou87ch">
       <bpmn:text>Camunda
 Task 8.1</bpmn:text>
@@ -336,7 +336,7 @@ Task 8.1</bpmn:text>
       <bpmn:text>IP Core
 Task 9</bpmn:text>
     </bpmn:textAnnotation>
-    <bpmn:association id="Association_18maxyu" sourceRef="Activity_1ttjalw" targetRef="TextAnnotation_0s1ntl4" />
+    <bpmn:association id="Association_18maxyu" sourceRef="confirmCompletionRequest" targetRef="TextAnnotation_0s1ntl4" />
     <bpmn:textAnnotation id="TextAnnotation_02j7mzi">
       <bpmn:text>Camunda
 Task 11</bpmn:text>
@@ -386,7 +386,7 @@ Task 8.2</bpmn:text>
       <bpmn:text>Initiator
 Task 6.1</bpmn:text>
     </bpmn:textAnnotation>
-    <bpmn:association id="Association_0b9v031" sourceRef="Activity_0o40zeg" targetRef="TextAnnotation_18hvsok" />
+    <bpmn:association id="Association_0b9v031" sourceRef="modifyForm" targetRef="TextAnnotation_18hvsok" />
     <bpmn:textAnnotation id="TextAnnotation_0z4g1zi">
       <bpmn:text>Camunda
 Task 6.2</bpmn:text>
@@ -574,7 +574,7 @@ Task 5.4</bpmn:text>
         <dc:Bounds x="1230" y="608" width="100" height="80" />
         <bpmndi:BPMNLabel />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Activity_022ilem_di" bpmnElement="Activity_0l3b28s">
+      <bpmndi:BPMNShape id="Activity_022ilem_di" bpmnElement="inputTheProvidersNor">
         <dc:Bounds x="1619" y="608" width="100" height="80" />
         <bpmndi:BPMNLabel />
       </bpmndi:BPMNShape>
@@ -591,11 +591,11 @@ Task 5.4</bpmn:text>
       <bpmndi:BPMNShape id="Event_09evb9n_di" bpmnElement="Event_0zpmfzp">
         <dc:Bounds x="2471" y="630" width="36" height="36" />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Activity_0d6fust_di" bpmnElement="Activity_1ttjalw">
+      <bpmndi:BPMNShape id="Activity_0d6fust_di" bpmnElement="confirmCompletionRequest">
         <dc:Bounds x="2029" y="608" width="100" height="80" />
         <bpmndi:BPMNLabel />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Activity_1ql5qrt_di" bpmnElement="Activity_0nd38fq">
+      <bpmndi:BPMNShape id="Activity_1ql5qrt_di" bpmnElement="approveRequest">
         <dc:Bounds x="820" y="608" width="100" height="80" />
         <bpmndi:BPMNLabel />
       </bpmndi:BPMNShape>
@@ -644,7 +644,7 @@ Task 5.4</bpmn:text>
         <dc:Bounds x="1090" y="608" width="100" height="80" />
         <bpmndi:BPMNLabel />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="BPMNShape_06zx3gt" bpmnElement="Activity_0o40zeg">
+      <bpmndi:BPMNShape id="BPMNShape_06zx3gt" bpmnElement="modifyForm">
         <dc:Bounds x="680" y="410" width="100" height="80" />
         <bpmndi:BPMNLabel />
       </bpmndi:BPMNShape>

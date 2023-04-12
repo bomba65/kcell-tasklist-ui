@@ -9,8 +9,9 @@
                 'dateCreated',
                 'dateUpdated',
                 'businessKey',
-                'approverComments',
-                'confirmerComments'
+                'approveRequestTaskComment',
+                'confirmRequestTaskComment',
+                'resolutions'
             ];
 
             $scope.resolution = undefined;
@@ -88,8 +89,8 @@
             });
 
             $scope.files = [];
-            $scope.uploadedFiles = [];
-            $scope.uploadedFilesPath = [];
+            $scope.inputTheProvidersNorFiles = [];
+            $scope.inputTheProvidersNorFilesPath = [];
 
             $scope.uploadFiles = function() {
                 for (var i = 0; i < $scope.files.length; i++) {
@@ -102,7 +103,7 @@
                                 fileData: event.target.result,
                                 file: file
                             };
-                            $scope.uploadedFiles.push(uploadedFile);
+                            $scope.inputTheProvidersNorFiles.push(uploadedFile);
                         });
                     };
                     reader.readAsDataURL(file);
@@ -121,12 +122,12 @@
             };
 
             $scope.removeFile = function(file) {
-                var index = $scope.uploadedFiles.indexOf(file);
-                $scope.uploadedFiles.splice(index, 1);
+                var index = $scope.inputTheProvidersNorFiles.indexOf(file);
+                $scope.inputTheProvidersNorFiles.splice(index, 1);
             };
 
             $scope.uploadFilesToMinio = function () {
-                const promises = _.map($scope.uploadedFiles, function (file) {
+                const promises = _.map($scope.inputTheProvidersNorFiles, function (file) {
                     return $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
                         function (result) {
                             var processInstanceId = result.data.processInstanceId;
@@ -140,7 +141,7 @@
                                 transformResponse: []
                             }).then(function (getResponse) {
                                 return $http.put(getResponse.data, file.file, {headers: {'Content-Type': undefined}}).then(function (putResponse) {
-                                        $scope.uploadedFilesPath.push(fileToUpload);
+                                        $scope.inputTheProvidersNorFilesPath.push(fileToUpload);
                                         return putResponse;
                                     }
                                 );
@@ -280,13 +281,13 @@
     </div>
 
     <div class="form-group">
-        <label for="providerComments" class="col-sm-2 control-label">Provider comments:</label>
+        <label for="inputTheProvidersNorTaskComment" class="col-sm-2 control-label">Provider comments:</label>
         <div class="col-sm-6">
-            <textarea id="providerComments" name="providerComments" class="form-control" rows="5"
+            <textarea id="inputTheProvidersNorTaskComment" name="inputTheProvidersNorTaskComment" class="form-control" rows="5"
                       ng-required="providerResolution === 'reject'"
-                      ng-model="providerComments"></textarea>
+                      ng-model="inputTheProvidersNorTaskComment"></textarea>
             <label class="error"
-                   ng-if="kcell_form.providerComments.$error.required && ( kcell_form.providerComments.$touched || view.submitted)">Field required</label>
+                   ng-if="kcell_form.inputTheProvidersNorTaskComment.$error.required && ( kcell_form.inputTheProvidersNorTaskComment.$touched || view.submitted)">Field required</label>
         </div>
     </div>
     <div class="form-group">
@@ -299,7 +300,7 @@
         </div>
     </div>
     <div class="form-group">
-        <div class="col-sm-12" ng-repeat="file in uploadedFiles">
+        <div class="col-sm-12" ng-repeat="file in inputTheProvidersNorFiles">
             <label class="control-label">{{ file.fileName }}</label>
             <a style="font-size: 2rem" ng-click="downloadFile(file)"><span class="glyphicon glyphicon-download"></span></a>
             <a style="font-size: 2rem" ng-click="removeFile(file)"><span class="glyphicon glyphicon-minus-sign"></span></a>
