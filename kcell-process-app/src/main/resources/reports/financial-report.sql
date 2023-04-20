@@ -6,15 +6,7 @@ select
     to_char(pi.start_time_ + interval '6 hour', 'YYYY') as "Year",
     to_char(pi.start_time_ + interval '6 hour', 'month') as "Month",
     substring(pi.business_key_ from '^[^-]+') as region,
-    case
-        when relatedSites.site_names is not null then
-            case
-                when position(sitename.text_ in relatedSites.site_names) > 0 then relatedSites.site_names
-                else sitename.text_ || ', ' || relatedSites.site_names
-                end
-        else
-            sitename.text_
-        end as sitename,
+    sitename.text_ as sitename,
     pi.business_key_ as "JR No",
     case contractor.text_
         when '1' then 'avrora'
