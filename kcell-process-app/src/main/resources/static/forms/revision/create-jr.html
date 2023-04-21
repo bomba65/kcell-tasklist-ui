@@ -849,6 +849,24 @@
 
             $scope.preSubmit = function(){
                 var deferred = $q.defer();
+
+                for (let index = 0; index < $scope.jobWorks.length; index++) {
+                    if ($scope.getWorks($scope.jobWorks[index].displayServiceName).map(e => e.displayServiceName).includes($scope.jobWorks[index].displayServiceName)) {
+                        let work = $scope.getWorks($scope.jobWorks[index].displayServiceName).find(e => e.displayServiceName === $scope.jobWorks[index].displayServiceName);
+                        if ($scope.jobWorks[index].sapServiceNumber !== work.sapServiceNumber ||
+                            $scope.jobWorks[index].id !== work.id ||
+                            $scope.jobWorks[index].displayServiceName !== work.displayServiceName ||
+                            $scope.jobWorks[index].materialUnit !== work.units
+                        ) {
+                            deferred.reject('Reselect ' + $scope.jobWorks[index].displayServiceName + "from drop down list");
+                            return deferred.promise;
+                        }
+                    } else {
+                        deferred.reject($scope.jobWorks[index].displayServiceName + ' there is no such work in the list');
+                        return deferred.promise;
+                    }
+                }
+
                 var a = JSON.stringify($scope.oldWorks, function(key, value) {
                     if (typeof key === 'string' && (key.charAt(0) === '$' || key === 'this')) {
                         return undefined;
