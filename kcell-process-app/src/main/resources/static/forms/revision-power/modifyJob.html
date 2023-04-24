@@ -32,7 +32,8 @@
         'rejectedBy',
         'resolutions',
         'oblastName',
-        'job_to'
+        'job_to',
+        'project',
       ];
 
 
@@ -51,6 +52,11 @@
       $scope.o20JobWorks = [];
 
       camForm.on('form-loaded', function () {
+        $http.get('/api/powerProjectTypes').then(
+                function (response) {
+                  $scope.powerProjectTypes = response.data;
+                }
+        );
         variables.forEach(function (el) {
           camForm.variableManager.fetchVariable(el);
         });
@@ -141,6 +147,7 @@
       camForm.on('submit', function (evt) {
         // evt.submitPrevented = true;
         try{
+          camForm.variableManager.variableValue('project', $scope.project);
           camForm.variableManager.variableValue('worksTotalSum', $scope.worksTotalSum)
           camForm.variableManager.variableValue('jrType', JSON.parse($scope.jrType))
           camForm.variableManager.variableValue('jrReason', JSON.parse($scope.jrReason))
@@ -428,6 +435,16 @@
       <label class="col-sm-3 control-label">Site Address:</label>
       <div class="col-sm-5">
         <div style="height: auto">{{address}}</div>
+      </div>
+    </div>
+    <div class="row">
+      <label class="col-sm-3 control-label">Project:</label>
+      <div class="col-sm-3">
+        <select ng-model="project" name="project" class="form-control" >
+          <option value="{{project.value()}}">{{project}}</option>
+          <option ng-repeat="type in powerProjectTypes"  value="{{type.value}}">{{type.label}}</option>
+        </select>
+        <label class="error" ng-if="kcell_form.project.$error.required && ( kcell_form.project.$touched || view.submitted)">Required field</label>
       </div>
     </div>
     <div class="row">
