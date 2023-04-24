@@ -2259,7 +2259,12 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                 var catalogs = {};
                 scope.dismantleCatalogs = {};
                 scope.leasingCatalogs = {};
+                scope.powerProjectTypes = [];
                 scope.isCustomField = false;
+
+                scope.getPowerProjectTypeLabel = function (value) {
+                    return _.find(scope.powerProjectTypes, e => e.value === value).label;
+                }
 
                 $http.get($rootScope.getCatalogsHttpByName('catalogs')).then(
                     function (result) {
@@ -2274,6 +2279,14 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                 $http.get($rootScope.getCatalogsHttpByName('dismantleCatalogs')).then(
                     function (result) {
                         angular.extend(scope.dismantleCatalogs, result.data);
+                    },
+                    function (error) {
+                        console.log(error.data);
+                    }
+                );
+                $http.get($rootScope.getCatalogsHttpByName('powerProjectTypes')).then(
+                    function (result) {
+                        angular.extend(scope.powerProjectTypes, result.data);
                     },
                     function (error) {
                         console.log(error.data);
@@ -2779,6 +2792,7 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                     }
                     if(scope.onlyProcessActive!=='Revision-power'){
                         scope.filter.validityDateRange = undefined;
+                        scope.filter.powerProjectType = undefined;
                         $(".calendar-range-readonly").each(function () {
                             if ($(this).data('daterangepicker')) {
                                 $(this).data('daterangepicker').setStartDate(moment());
@@ -3263,6 +3277,9 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                     if (scope.filter.prNumber) {
                         filter.variables.push({"name": "prNumber", "operator": "eq", "value": scope.filter.prNumber});
                     }
+                    if (scope.filter.powerProjectType) {
+                        filter.variables.push({"name": "project", "operator": "eq", "value": scope.filter.powerProjectType});
+                    }
                     if (scope.filter.businessKey) {
                         if (scope.filter.businessKeyFilterType === 'eq') {
                             filter.processInstanceBusinessKey = scope.filter.businessKey;
@@ -3660,6 +3677,7 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                     scope.filter.powerRegion = 'all';
                     scope.filter.prNumber = undefined;
                     scope.filter.jrNumber = undefined;
+                    scope.filter.powerProjectType = undefined;
                 }
 
                 function getProcessInstances(filter, processInstances) {
@@ -4517,6 +4535,8 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                             hasGroup: scope.hasGroup,
                             showGroupDetails: scope.showGroupDetails,
                             processDefinitionId: processDefinitionId,
+                            powerProjectTypes: scope.powerProjectTypes,
+                            getPowerProjectTypeLabel: scope.getPowerProjectTypeLabel,
                             piIndex: scope.piIndex,
                             $index: index,
                             businessKey: businessKey,
