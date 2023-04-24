@@ -2263,7 +2263,11 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                 scope.isCustomField = false;
 
                 scope.getPowerProjectTypeLabel = function (value) {
-                    return _.find(scope.powerProjectTypes, e => e.value === value).label;
+                    if (value) {
+                        return _.find(scope.powerProjectTypes, e => e.value === value).label;
+                    } else {
+                        return '';
+                    }
                 }
 
                 $http.get($rootScope.getCatalogsHttpByName('catalogs')).then(
@@ -3075,6 +3079,7 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                                     "JR No",
                                     "JR Type",
                                     "JR Reason",
+                                    "Project",
                                     "Requested Date",
                                     "Initiator",
                                     "Validity Date",
@@ -3119,6 +3124,7 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                                 arrId['data'][i]["JR No"] = el["businessKey"]
                                 arrId['data'][i]["JR Type"] = el["jrType"]["name"]
                                 arrId['data'][i]["JR Reason"] = el["jrReason"]["name"]
+                                arrId['data'][i]["Project"] = scope.getPowerProjectTypeLabel(el["project"])
                                 arrId['data'][i]["Requested Date"] = el["jrOrderedDate"]
                                 arrId['data'][i]["Initiator"] = el["initiatorFull"]["firstName"] + " " + el["initiatorFull"]["lastName"]
                                 arrId['data'][i]["Validity Date"] = el["validityDate"]
@@ -3820,6 +3826,7 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                                 variables.push('worksTotalSum');
                                 variables.push('siteRegionShow');
                                 variables.push('jrOrderedDate');
+                                variables.push('project');
                             }
                             if(scope.selectedProcessInstances.indexOf('PrNumbersAssignment')!==-1) {
                                 variables.push('jrNumber');
