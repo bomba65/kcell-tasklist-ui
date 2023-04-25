@@ -1,6 +1,6 @@
 package kz.kcell.flow.fixedInternet.ATLAS;
 
-import lombok.extern.java.Log;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
@@ -17,7 +17,7 @@ import org.springframework.stereotype.Service;
 import javax.ws.rs.core.UriBuilder;
 import java.util.Base64;
 
-@Log
+@Slf4j
 @Service("CreateCustomSubscriber")
 public class CreateCustomSubscriber implements JavaDelegate {
 
@@ -39,7 +39,7 @@ public class CreateCustomSubscriber implements JavaDelegate {
         body.put("identification", accountNumber);
         body.put("standardId", 9999);
         JSONObject subscriber = new JSONObject();
-        subscriber.put("ratePlanId", 1000);
+        subscriber.put("ratePlanId", 10000);
         body.put("subscriber", subscriber);
 
         String encoding = Base64.getEncoder().encodeToString((atlasAuth).getBytes("UTF-8"));
@@ -56,7 +56,9 @@ public class CreateCustomSubscriber implements JavaDelegate {
         HttpResponse response = contentProviderHttpClient.execute(httpPost);
 
         if(response.getStatusLine().getStatusCode() < 200 || response.getStatusLine().getStatusCode() >= 300) {
-            log.info("CreateCustomSubscriber returns code: " + response.getStatusLine().getStatusCode() + "\nMessage: " + EntityUtils.toString(response.getEntity()));
+            log.error("CreateCustomSubscriber returns code: " + response.getStatusLine().getStatusCode() + "\n" +
+                "Error message: " + EntityUtils.toString(response.getEntity()));
+            delegateExecution.setVariable("unsuccessful", true);
         } else {
             HttpEntity entity = response.getEntity();
             String entityAsString = EntityUtils.toString(entity);

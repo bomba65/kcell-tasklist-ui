@@ -1,13 +1,11 @@
 package kz.kcell.flow.fixedInternet.ATLAS;
 
-import lombok.extern.java.Log;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.utils.URIBuilder;
-import org.apache.http.entity.ContentType;
-import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 import org.camunda.bpm.engine.delegate.DelegateExecution;
@@ -24,7 +22,7 @@ import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
 
-@Log
+@Slf4j
 @Service("CreateCorpClient")
 public class CreateCorpClient implements JavaDelegate {
 
@@ -124,7 +122,9 @@ public class CreateCorpClient implements JavaDelegate {
         HttpResponse response = contentProviderHttpClient.execute(httpPost);
 
         if (response.getStatusLine().getStatusCode() < 200 || response.getStatusLine().getStatusCode() >= 300) {
-            log.info("CreateCorpClient returns code " + response.getStatusLine().getStatusCode() + "\nMessage: " + EntityUtils.toString(response.getEntity()));
+            log.error("CreateCorpClient returns code " + response.getStatusLine().getStatusCode() + "\n" +
+                "Error message: " + EntityUtils.toString(response.getEntity()));
+            delegateExecution.setVariable("unsuccessful", true);
         } else {
 
             HttpEntity entity = response.getEntity();

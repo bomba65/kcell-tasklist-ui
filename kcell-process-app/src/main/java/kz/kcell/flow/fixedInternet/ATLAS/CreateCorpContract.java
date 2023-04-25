@@ -1,6 +1,6 @@
 package kz.kcell.flow.fixedInternet.ATLAS;
 
-import lombok.extern.java.Log;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
@@ -19,7 +19,7 @@ import spinjar.com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.util.Base64;
 
-@Log
+@Slf4j
 @Service("CreateCorpContract")
 public class CreateCorpContract implements JavaDelegate {
 
@@ -62,7 +62,9 @@ public class CreateCorpContract implements JavaDelegate {
         HttpResponse response = contentProviderHttpClient.execute(httpPost);
 
         if(response.getStatusLine().getStatusCode() < 200 || response.getStatusLine().getStatusCode() >= 300) {
-            log.info("CreateCorpContract returns code " + response.getStatusLine().getStatusCode() + "\nMessage: " + EntityUtils.toString(response.getEntity()));
+            log.error("CreateCorpContract returns code " + response.getStatusLine().getStatusCode() + "\n" +
+                "Error message: " + EntityUtils.toString(response.getEntity()));
+            delegateExecution.setVariable("unsuccessful", true);
         } else {
             HttpEntity entity = response.getEntity();
             String content = EntityUtils.toString(entity);

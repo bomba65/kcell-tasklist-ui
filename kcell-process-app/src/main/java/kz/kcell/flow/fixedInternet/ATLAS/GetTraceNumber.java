@@ -1,6 +1,6 @@
 package kz.kcell.flow.fixedInternet.ATLAS;
 
-import lombok.extern.java.Log;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpGet;
@@ -15,7 +15,7 @@ import org.springframework.stereotype.Service;
 import javax.ws.rs.core.UriBuilder;
 import java.util.Base64;
 
-@Log
+@Slf4j
 @Service("GetTraceNumber")
 public class GetTraceNumber implements JavaDelegate {
 
@@ -40,7 +40,8 @@ public class GetTraceNumber implements JavaDelegate {
         HttpResponse response = httpclient.execute(httpGet);
 
         if (response.getStatusLine().getStatusCode() < 200 || response.getStatusLine().getStatusCode() >= 300) {
-            log.info("GetTraceNumber returns code " + response.getStatusLine().getStatusCode() + "\nMessage: " + EntityUtils.toString(response.getEntity()));
+            log.error("GetTraceNumber returns code " + response.getStatusLine().getStatusCode() + "\n" +
+                "Error message: " + EntityUtils.toString(response.getEntity()));
         } else {
             HttpEntity entity = response.getEntity();
             String content = EntityUtils.toString(entity);

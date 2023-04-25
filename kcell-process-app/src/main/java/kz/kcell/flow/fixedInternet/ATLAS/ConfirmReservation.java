@@ -17,8 +17,8 @@ import java.util.Base64;
 import java.util.List;
 
 @Slf4j
-@Service("ConfirmReserve")
-public class ConfirmReserve implements JavaDelegate {
+@Service("ConfirmReservation")
+public class ConfirmReservation implements JavaDelegate {
 
     private class Reservation {
         public String variableName;
@@ -70,7 +70,8 @@ public class ConfirmReserve implements JavaDelegate {
                 HttpResponse response = httpclient.execute(httpPost);
 
                 if (response.getStatusLine().getStatusCode() < 200 || response.getStatusLine().getStatusCode() >= 300) {
-                    log.info("ConfirmReserve for variable " + reservation.variableName + " returns code " + response.getStatusLine().getStatusCode() + "\nMessage: " + EntityUtils.toString(response.getEntity()));
+                    log.error("ConfirmReserve for variable " + reservation.variableName + " returns code " + response.getStatusLine().getStatusCode() + "\n" +
+                        "Error message: " + EntityUtils.toString(response.getEntity()));
                     delegateExecution.setVariable("unsuccessful", true);
                 }
             }
