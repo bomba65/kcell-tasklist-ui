@@ -17,5 +17,6 @@ ENV TZ Asia/Almaty
 
 RUN mkdir /app
 COPY --from=builder /home/gradle/src/build/libs/*.jar ./app/application.jar
+COPY ./cacerts ./opt/java/openjdk/jre/lib/security/cacerts
 
 ENTRYPOINT ["java","-jar","/app/application.jar"]
