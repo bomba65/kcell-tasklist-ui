@@ -3675,6 +3675,7 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                     scope.filter.leasingGeneralStatus = undefined;
 
                     scope.filter.powerContract = undefined;
+                    scope.setPowerContract();
                     scope.filter.powerContractor = undefined;
                     scope.filter.jrType = undefined;
                     scope.filter.jrReason = undefined;
@@ -4017,6 +4018,28 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                     }
                     return array;
                 }
+                scope.setPowerContract = function() {
+                    if (scope.contractsList && scope.contractsList.length !== 0) {
+                        var contractId = undefined;
+                        var contractorId = undefined;
+                        if ($rootScope.hasGroup('power_contractor_alta')) {
+                            contractId = "758437";
+                            contractorId = "ALTA";
+                        } else if ($rootScope.hasGroup('power_contractor_alfa')) {
+                            contractId = "99412";
+                            contractorId = "ALFA"
+                        } else if ($rootScope.hasGroup('power_contractor_arcommm')) {
+                            contractId = "99377";
+                            contractorId = "Arcommm"
+                        }
+
+                        if (contractId && contractorId) {
+                            scope.contractsList = _.filter(scope.contractsList, (e) => e.id === contractId);
+                            scope.filter.powerContract = _.find(scope.contractsList, (e) => e.id === contractId).name;
+                            scope.contractorsList = _.filter(scope.contractorsList, (e) => e.id.indexOf(contractorId) === 0)
+                        }
+                    }
+                }
                 scope.toggleProcess = function (process) {
                     if (scope.KWMSProcesses[process].value) {
                         scope.KWMSProcesses[process].value = false;
@@ -4032,6 +4055,7 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                                       scope.jrReasonsList = result.data.jrReasonsList;
                                       scope.contractsList = result.data.contractsList;
                                       scope.contractorsList = result.data.contractorsList;
+                                      scope.setPowerContract();
                                     }
                                   );
                             }
