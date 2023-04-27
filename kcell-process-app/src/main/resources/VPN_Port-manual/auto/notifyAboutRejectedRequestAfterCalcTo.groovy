@@ -6,7 +6,7 @@ import java.util.stream.Collectors
 def getEmails(DelegateExecution execution) {
     def identityService = execution.processEngineServices.identityService
 
-    def groups = ["IP_Core_users", "Central_transmission"]
+    def groups = ["port_ipcore", "port_hq_transmission"]
 
     def userList = []
     for (group in groups) {

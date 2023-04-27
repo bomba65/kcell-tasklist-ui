@@ -77,8 +77,8 @@ define('app',[
 						{key:'Dismantle', name:'Dismantle', group:'infrastructure_dismantle_users', subprocesses:[{key:'sdr_srr_request'}], businessKeyLike: 'SDR-%'},
 						{key:'Replacement', name:'Replacement', group:'infrastructure_replacement_users', subprocesses:[{key:'sdr_srr_request'}], businessKeyLike: 'SRR-%'},
 						{key:'create-new-tsd', name:'Create new TSD', group:'infrastructure_tnu_users'},
-						{key:'VPN_Port_process', name:'VPN/Port process', group:'VPN_users'},
-						{key:'VPN_Port_auto_process', name:'VPN/Port auto process', group:'VPN_users'},
+						{key:'VPN_Port_process', name:'VPN/Port process', group:'port_starter'},
+						{key:'VPN_Port_auto_process', name:'VPN/Port auto process', group:'port_starter'},
 					]
 				},
 				{
