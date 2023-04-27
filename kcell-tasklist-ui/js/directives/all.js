@@ -2708,7 +2708,6 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                         scope.filter.mainContract = 'All';
                         scope.filter.contractor = 'All';
                         scope.filter.revisionProject = undefined;
-                        scope.filter.participation = undefined;
                         scope.filter.currentAssignee = undefined;
                     }
                     if (scope.onlyProcessActive!=='Dismantle') {
@@ -3454,33 +3453,9 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                             "value": scope.filter.replacementInitiator
                         });
                     }
-                    if (scope.filter.participation && (scope.onlyProcessActive==='Revision' || scope.onlyProcessActive==='Revision-power' || scope.onlyProcessActive==='CreatePR' || scope.onlyProcessActive==='create-new-tsd' || scope.onlyProcessActive==='change-tsd' || scope.onlyProcessActive==='tsd-processing' || scope.onlyProcessActive==='cancel-tsd')) {
-                        if(!scope.filter.requestor){
-                            toasty.error({title: "Error", msg: 'Please fill field Requestor!'});
-                            return;
-                        }
-
-                        if (['participant','iamparticipant'].indexOf(scope.filter.participation) !== -1) {
-                            $http.post(baseUrl + '/history/task', {taskAssignee: scope.filter.requestor}).then(
-                                function (result) {
-                                    if (!filter.processInstanceIds) filter.processInstanceIds = _.map(result.data, 'processInstanceId');
-                                    else filter.processInstanceIds = filter.processInstanceIds.filter(value => -1 !== _.map(result.data, 'processInstanceId').indexOf(value));
-                                    asynCall4 = true;
-                                    if (asynCall1 && asynCall2 && asynCall3 && asynCall4) {
-                                        scope.lastSearchParamsRevision = filter;
-                                        scope.lastSearchParamsTnu = filter;
-                                        getProcessInstances(filter, 'processInstances');
-                                        asynCall4 = false;
-                                    }
-                                },
-                                function (error) {
-                                    console.log(error.data)
-                                }
-                            );
-                        } else {
-                            filter.startedBy = scope.filter.requestor;
-                            asynCall4 = true;
-                        }
+                    if (scope.filter.requestor && (scope.onlyProcessActive==='Revision' || scope.onlyProcessActive==='Revision-power' || scope.onlyProcessActive==='CreatePR' || scope.onlyProcessActive==='create-new-tsd' || scope.onlyProcessActive==='change-tsd' || scope.onlyProcessActive==='tsd-processing' || scope.onlyProcessActive==='cancel-tsd')) {
+                        filter.startedBy = scope.filter.requestor;
+                        asynCall4 = true;
                     } else {
                         asynCall4 = true;
                     }
@@ -3629,7 +3604,6 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                     scope.filter.nearend = undefined;
                     scope.filter.businessKey = undefined;
                     scope.filter.workType = undefined;
-                    scope.filter.participation = undefined;
                     scope.filter.currentAssignee = undefined;
                     scope.filter.beginYear = scope.currentDate.getFullYear()-1;
                     scope.filter.endYear = scope.currentDate.getFullYear();
@@ -5435,11 +5409,6 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                         size: 'lg'
                     }).then(function(results){
                     });
-                }
-                scope.putCurrentUserAsRequestor = function(){
-                    if(scope.filter.participation === 'iaminitiator' || scope.filter.participation === 'iamparticipant'){
-                        scope.filter.requestor = $rootScope.authentication.name;
-                    }
                 }
 
                 // scope.$watch('filter.leasingInitiator', function (leasingInitiator) {
