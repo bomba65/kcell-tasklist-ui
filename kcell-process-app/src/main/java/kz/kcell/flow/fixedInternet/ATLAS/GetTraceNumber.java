@@ -9,6 +9,7 @@ import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 import org.camunda.bpm.engine.delegate.DelegateExecution;
 import org.camunda.bpm.engine.delegate.JavaDelegate;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -27,6 +28,9 @@ public class GetTraceNumber implements JavaDelegate {
     @Value("${atlas.auth}")
     private String atlasAuth;
 
+    @Autowired
+    private CloseableHttpClient httpClientWithoutSSL;
+
     @Override
     public void execute(DelegateExecution delegateExecution) throws Exception {
         UriBuilder uriBuilder = UriBuilder.fromPath(atlasUrl + URL_ENDING);
@@ -37,7 +41,7 @@ public class GetTraceNumber implements JavaDelegate {
 
         HttpGet httpGet = new HttpGet(uriBuilder.build());
         httpGet.setHeader("Authorization", "Basic " + encoding);
-        HttpResponse response = httpclient.execute(httpGet);
+        HttpResponse response = httpClientWithoutSSL.execute(httpGet);
 
         if (response.getStatusLine().getStatusCode() < 200 || response.getStatusLine().getStatusCode() >= 300) {
             log.error("GetTraceNumber returns code " + response.getStatusLine().getStatusCode() + "\n" +

@@ -2,15 +2,15 @@ package kz.kcell.flow.fixedInternet.ATLAS;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.HttpClients;
+import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.util.EntityUtils;
 import org.camunda.bpm.engine.delegate.DelegateExecution;
 import org.camunda.bpm.engine.delegate.JavaDelegate;
 import org.json.JSONObject;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -27,6 +27,9 @@ public class SetCreditLimit implements JavaDelegate {
 
     @Value("${atlas.auth}")
     private String atlasAuth;
+
+    @Autowired
+    private CloseableHttpClient httpClientWithoutSSL;
 
     public void execute(DelegateExecution delegateExecution) throws Exception {
         URIBuilder uriBuilder = new URIBuilder(atlasUrl + URL_ENDING);
@@ -49,9 +52,7 @@ public class SetCreditLimit implements JavaDelegate {
         StringEntity inputData = new StringEntity(body.toString(), "UTF-8");
         httpPost.setEntity(inputData);
 
-        HttpClient contentProviderHttpClient = HttpClients.createDefault();
-
-        HttpResponse response = contentProviderHttpClient.execute(httpPost);
+        HttpResponse response = httpClientWithoutSSL.execute(httpPost);
 
         if(response.getStatusLine().getStatusCode() < 200 || response.getStatusLine().getStatusCode() >= 300) {
             log.error("SetCreditLimit returns code: " + response.getStatusLine().getStatusCode() + "\n" +
