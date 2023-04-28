@@ -5,10 +5,10 @@ import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 import org.camunda.bpm.engine.delegate.DelegateExecution;
 import org.camunda.bpm.engine.delegate.JavaDelegate;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -38,6 +38,9 @@ public class ConfirmReservation implements JavaDelegate {
     @Value("${atlas.auth}")
     private String atlasAuth;
 
+    @Autowired
+    private CloseableHttpClient httpClientWithoutSSL;
+
     @Override
     public void execute(DelegateExecution delegateExecution) throws Exception {
         List<Reservation> reservations = Arrays.asList(
@@ -61,13 +64,11 @@ public class ConfirmReservation implements JavaDelegate {
 
                 String encoding = Base64.getEncoder().encodeToString((atlasAuth).getBytes("UTF-8"));
 
-                CloseableHttpClient httpclient = HttpClients.custom().build();
-
                 HttpPost httpPost = new HttpPost(uriBuilder.build());
                 httpPost.setHeader("Authorization", "Basic " + encoding);
                 httpPost.addHeader("Content-Type", "application/json;charset=UTF-8");
 
-                HttpResponse response = httpclient.execute(httpPost);
+                HttpResponse response = httpClientWithoutSSL.execute(httpPost);
 
                 if (response.getStatusLine().getStatusCode() < 200 || response.getStatusLine().getStatusCode() >= 300) {
                     log.error("ConfirmReserve for variable " + reservation.variableName + " returns code " + response.getStatusLine().getStatusCode() + "\n" +

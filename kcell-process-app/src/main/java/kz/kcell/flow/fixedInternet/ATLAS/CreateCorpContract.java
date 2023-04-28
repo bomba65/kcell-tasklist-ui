@@ -3,15 +3,15 @@ package kz.kcell.flow.fixedInternet.ATLAS;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.utils.URIBuilder;
-import org.apache.http.impl.client.HttpClients;
+import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.util.EntityUtils;
 import org.camunda.bpm.engine.delegate.DelegateExecution;
 import org.camunda.bpm.engine.delegate.JavaDelegate;
 import org.camunda.bpm.engine.impl.util.json.JSONObject;
 import org.camunda.spin.impl.json.jackson.JacksonJsonNode;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import spinjar.com.fasterxml.jackson.databind.JsonNode;
@@ -30,6 +30,9 @@ public class CreateCorpContract implements JavaDelegate {
 
     @Value("${atlas.auth}")
     private String atlasAuth;
+
+    @Autowired
+    private CloseableHttpClient httpClientWithoutSSL;
 
     @Override
     public void execute(DelegateExecution delegateExecution) throws Exception {
@@ -57,9 +60,7 @@ public class CreateCorpContract implements JavaDelegate {
         httpPost.setHeader("Authorization", "Basic " + encoding);
         httpPost.addHeader("Content-Type", "application/json;charset=UTF-8");
 
-        HttpClient contentProviderHttpClient = HttpClients.createDefault();
-
-        HttpResponse response = contentProviderHttpClient.execute(httpPost);
+        HttpResponse response = httpClientWithoutSSL.execute(httpPost);
 
         if(response.getStatusLine().getStatusCode() < 200 || response.getStatusLine().getStatusCode() >= 300) {
             log.error("CreateCorpContract returns code " + response.getStatusLine().getStatusCode() + "\n" +

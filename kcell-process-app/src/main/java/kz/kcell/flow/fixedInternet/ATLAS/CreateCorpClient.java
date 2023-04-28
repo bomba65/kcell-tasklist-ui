@@ -3,10 +3,9 @@ package kz.kcell.flow.fixedInternet.ATLAS;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.utils.URIBuilder;
-import org.apache.http.impl.client.HttpClients;
+import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.util.EntityUtils;
 import org.camunda.bpm.engine.delegate.DelegateExecution;
 import org.camunda.bpm.engine.delegate.JavaDelegate;
@@ -35,6 +34,9 @@ public class CreateCorpClient implements JavaDelegate {
     private String atlasAuth;
 
     private GetAIRByAddress getAIRByAddress;
+
+    @Autowired
+    private CloseableHttpClient httpClientWithoutSSL;
 
     @Autowired
     public void setGetAIRByAddress(GetAIRByAddress getAIRByAddress) {
@@ -117,9 +119,7 @@ public class CreateCorpClient implements JavaDelegate {
         httpPost.setHeader("Authorization", "Basic " + encoding);
         httpPost.addHeader("Content-Type", "application/json;charset=UTF-8");
 
-        HttpClient contentProviderHttpClient = HttpClients.createDefault();
-
-        HttpResponse response = contentProviderHttpClient.execute(httpPost);
+        HttpResponse response = httpClientWithoutSSL.execute(httpPost);
 
         if (response.getStatusLine().getStatusCode() < 200 || response.getStatusLine().getStatusCode() >= 300) {
             log.error("CreateCorpClient returns code " + response.getStatusLine().getStatusCode() + "\n" +
