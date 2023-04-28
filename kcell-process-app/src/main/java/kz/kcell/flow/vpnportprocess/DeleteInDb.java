@@ -74,7 +74,9 @@ public class DeleteInDb implements JavaDelegate {
 
         for(int i = 0; i < addedServices.length; i++) {
             vpnPortClient.deleteVpn(addedServices[i].getId());
-            ipVpnConnectService.deleteAddedService(addedServices[i], addedIpVpnRowNumbers.get(i));
+            if (addedIpVpnRowNumbers.size() > 0) {
+                ipVpnConnectService.deleteAddedService(addedServices[i], addedIpVpnRowNumbers.get(i));
+            }
         }
     }
 

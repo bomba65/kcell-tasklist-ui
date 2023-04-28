@@ -37,13 +37,13 @@ define(['./../../module'], function(module) {
                     if (!scope.formData.search_oblast || !scope.formData.search_district || !scope.formData.search_city_village) return;
 
                     if (scope.formData.searchOption === 'farEndAddress') {
-                        $http.get('/camunda/vpn/far_end_city_id/' + scope.formData.search_city_village).then(
+                        $http.get('/camunda/vpn/far_end_city_id/' + scope.formData.search_city_village + '?status=Active').then(
                             (response) => {
                                 scope.formData.availableServices = response.data;
                             }
                         );
                     } else if (scope.formData.searchOption === 'nearEndAddress') {
-                        $http.get('/camunda/vpn/near_end_city_id/' + scope.formData.search_city_village).then(
+                        $http.get('/camunda/vpn/near_end_city_id/' + scope.formData.search_city_village + '?status=Active').then(
                             (response) => {
                                 scope.formData.availableServices = response.data
                             }
@@ -58,7 +58,7 @@ define(['./../../module'], function(module) {
                     scope.formData.isSearched = true;
                     if (!scope.formData.search_port_number) return;
 
-                    $http.get('/camunda/vpn/port_number/' + scope.formData.search_port_number).then(
+                    $http.get('/camunda/vpn/port_number/' + scope.formData.search_port_number + '?status=Active').then(
                         (response) => {
                             scope.formData.availableServices = response.data
                         }
@@ -70,7 +70,7 @@ define(['./../../module'], function(module) {
                     scope.formData.isSearched = true;
                     if (!scope.search_vpn_id) return;
 
-                    $http.get('/camunda/vpn/vpn_number/' + scope.formData.search_vpn_number).then(
+                    $http.get('/camunda/vpn/vpn_number/' + scope.formData.search_vpn_number + '?status=Active').then(
                         (response) => {
                             scope.formData.availableServices = response.data
                         }

@@ -124,7 +124,7 @@ public class VpnPortProcessMapper {
             .build();
     }
 
-    public VpnInputDto mapFromModifiedVpn(VpnCamVar vpn, String status) {
+    public VpnInputDto mapFromModifiedVpn(VpnCamVar vpn, String status, Integer serviceCapacity) {
         return VpnInputDto.builder()
             .vpnNumber(vpn.getVpnNumber())
             .portId(vpn.getPort().getId())
@@ -134,7 +134,7 @@ public class VpnPortProcessMapper {
             .providerIp(vpn.getProviderIp())
             .kcellIp(vpn.getKcellIp())
             .vlan(vpn.getVlan())
-            .serviceCapacity(vpn.getModifiedServiceCapacity()) // set modified service capacity
+            .serviceCapacity(serviceCapacity)
             .providerAs(vpn.getProviderAs())
             .kcellAs(vpn.getKcellAs())
             .nearEndAddressId(vpn.getNearEndAddress().getId())
