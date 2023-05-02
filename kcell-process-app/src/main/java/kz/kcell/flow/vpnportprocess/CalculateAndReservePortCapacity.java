@@ -235,7 +235,7 @@ public class CalculateAndReservePortCapacity implements JavaDelegate {
         }
 
         for (VpnCamVar vpn : modifyServices) {
-            vpnPortClient.updateVpn(vpnPortProcessMapper.mapFromModifiedVpn(vpn, "In Process"), vpn.getId());
+            vpnPortClient.updateVpn(vpnPortProcessMapper.mapFromModifiedVpn(vpn, "In Process", vpn.getServiceCapacity()), vpn.getId());
             ipVpnConnectService.changeStatusAndCapacity(vpn.getVpnNumber(), "In Process", vpn.getModifiedServiceCapacity());
         }
     }

@@ -7,6 +7,7 @@ define(['./../../module'], function(module) {
                 serviceTypeCatalog: '=',
                 addedServices: '=',
                 isEditable: '=',
+                isConfirmCompletion: '=',
                 form: '=',
                 view: '='
             },

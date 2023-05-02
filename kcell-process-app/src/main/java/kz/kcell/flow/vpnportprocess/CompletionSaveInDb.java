@@ -93,7 +93,7 @@ public class CompletionSaveInDb implements JavaDelegate {
         VpnCamVar[] modifyServices = objectMapper.readValue(execution.getVariable("modifyServices").toString(), VpnCamVar[].class);
 
         for (VpnCamVar vpn : modifyServices) {
-            vpnPortClient.updateVpn(vpnPortProcessMapper.mapFromModifiedVpn(vpn, "Active"), vpn.getId());
+            vpnPortClient.updateVpn(vpnPortProcessMapper.mapFromModifiedVpn(vpn, "Active", vpn.getModifiedServiceCapacity()), vpn.getId());
             ipVpnConnectService.changeStatusAndCapacity(vpn.getVpnNumber(), "Active", vpn.getModifiedServiceCapacity());
         }
     }
