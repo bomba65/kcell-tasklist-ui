@@ -290,8 +290,6 @@
 
                     if (!pm) return;
 
-                    $scope.filteredRauTypeList = _.filter($scope.rauTypeList, e => pm.RAU_type?.value?.includes(e.id));
-
                     $scope.hop_polarization_obj = _.find($scope.polarizationList, e => e.id === pm.Polarization?.value);
                     $scope.selectedTsd.polarization_id.id = $scope.hop_polarization_obj?.id;
 
@@ -686,6 +684,18 @@
                         var power = (dbm - 30) / 10;
                         return Number(Math.pow(10, power).toFixed(4)).toString();
                     }
+                }
+
+                $scope.filterRauTypeList = function (rt) {
+                  if (!$scope.protectionModeList || !$scope.selectedTsd?.protection_mode_id?.id) return true;
+
+                  const pm = _.find($scope.protectionModeList, el => el.id === $scope.selectedTsd.protection_mode_id.id);
+
+                  if (pm) {
+                    return pm.RAU_type?.value?.includes(rt.id);
+                  } else {
+                    return true;
+                  }
                 }
             }]);
   </script>
@@ -1493,9 +1503,8 @@
           <tr>
             <td align="right" colspan="2">RAU type</td>
             <td align="center" colspan="8">
-              <select class="form-control" id="rau_type" name="rau_type" ng-model="selectedTsd.rau_type.id" required ng-change="rauTypeSelected()"
-                ng-disabled="!protectionModeClickedAndChanged">
-                <option ng-repeat="rt in filteredRauTypeList" ng-value="rt.id">{{rt.value}}</option>
+              <select class="form-control" id="rau_type" name="rau_type" ng-model="selectedTsd.rau_type.id" required ng-change="rauTypeSelected()">
+                <option ng-repeat="rt in rauTypeList|filter:filterRauTypeList" ng-value="rt.id">{{rt.value}}</option>
               </select>
               <label class="error" ng-if="kcell_form.rau_type.$error.required && ( kcell_form.rau_type.$touched || view.submitted)">Required field</label>
             </td>
