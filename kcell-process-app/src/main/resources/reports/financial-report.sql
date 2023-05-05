@@ -44,7 +44,7 @@ select
     acceptanceByInitiatorDate.value_ + interval '6 hour' as "Accept by Initiator",
     acceptMaint.value_ + interval '6 hour' as "Accept by Work Maintenance",
     acceptPlan.value_ + interval '6 hour' as "Accept by Work Planning",
-    to_timestamp(initiatorAcceptanceDate.long_/1000) + interval '6 hour' as "Acceptance Date",
+    acceptanceDate.value_ + interval '6 hour' as "Acceptance Date",
     -- сюда еще нужно состав работ разбитый на строки
     coalesce(title.value_, worksJson.value ->>'displayServiceName') as "Job Description",
     worksJson.value ->>'quantity' as "Quantity",
