@@ -1,6 +1,7 @@
 package kz.kcell.flow.vpnportprocess;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import feign.FeignException;
 import kz.kcell.flow.assets.client.VpnPortClient;
 import kz.kcell.flow.assets.dto.VpnOutputDto;
 import kz.kcell.flow.catalogs.client.CatalogsClient;
@@ -53,9 +54,19 @@ public class CheckUtilization implements JavaDelegate {
 
         List<VpnCamVar> automodifyServices = new ArrayList<>();
         for (Map.Entry<String, Double> vpn : vpns.entrySet()) {
-            VpnOutputDto vpnOutputDto = vpnPortClient.getVpnByVpnNumber(vpn.getKey(), new HashMap<String,Object>() {{
+            VpnOutputDto vpnOutputDto;
+            try {
+                vpnOutputDto = vpnPortClient.getVpnByVpnNumber(vpn.getKey(), new HashMap<String,Object>() {{
                     put("status", "Active");
-            }});
+                }});
+            } catch (FeignException e) {
+                if (e.status() == 404) {
+                    continue;
+                } else {
+                    throw e;
+                }
+            }
+
 
             long serviceTypeId = vpnOutputDto.getServiceTypeId();
             String serviceType = serviceTypeIds.stream()

@@ -13,9 +13,9 @@ def request_type_rus
 if (request_type == "Organize") {
     request_type_rus = "организацию"
 } else if (request_type == "Modify") {
-    request_type_rus = "расформирование"
-} else if (request_type == "Disband") {
     request_type_rus = "изменение"
+} else if (request_type == "Disband") {
+    request_type_rus = "расформирование"
 }
 
 def res = "Запрос на " + request_type_rus + " " + channel_rus + " # " + request_number

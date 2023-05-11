@@ -2,7 +2,7 @@ import groovy.text.markup.MarkupTemplateEngine
 import groovy.text.markup.TemplateConfiguration
 
 def request_number = execution.processBusinessKey
-def confirmerComments = execution.getVariable("confirmerComments").toString()
+def confirmerComments = execution.getVariable("modifyFormTaskComment").toString()
 
 def binding = ["request_number"  : request_number,
                "initiatorComments"  : confirmerComments]

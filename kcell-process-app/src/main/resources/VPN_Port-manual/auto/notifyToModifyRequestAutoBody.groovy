@@ -3,7 +3,7 @@ import groovy.text.markup.TemplateConfiguration
 
 def request_number = execution.processBusinessKey
 def priority = execution.getVariable("priority").toString()
-def approverComments = execution.getVariable("approverComments").toString()
+def approverComments = execution.getVariable("approveRequestTaskComment").toString()
 
 def binding = ["request_number"  : request_number,
                "priority"           : priority,
