@@ -68,11 +68,11 @@ define(['./../../module'], function(module) {
                 scope.searchByVpnId = function() {
                     scope.disbandServices.length = 0;
                     scope.formData.isSearched = true;
-                    if (!scope.search_vpn_id) return;
+                    if (!scope.formData.search_vpn_number) return;
 
                     $http.get('/camunda/vpn/vpn_number/' + scope.formData.search_vpn_number + '?status=Active').then(
                         (response) => {
-                            scope.formData.availableServices = response.data
+                            scope.formData.availableServices = [response.data];
                         }
                     );
                 }

@@ -5,7 +5,7 @@ def channel = execution.getVariable("channel").toString()
 def request_type = execution.getVariable("request_type").toString()
 def request_number = execution.processBusinessKey
 def initiator = execution.getVariable("starter").toString()
-def approverComments = execution.getVariable("approverComments").toString()
+def approverComments = execution.getVariable("approveRequestTaskComment").toString()
 
 def channel_rus
 if (channel == "Port") {
@@ -18,9 +18,9 @@ def request_type_rus
 if (request_type == "Organize") {
     request_type_rus = "организацию"
 } else if (request_type == "Modify") {
-    request_type_rus = "расформирование"
-} else if (request_type == "Disband") {
     request_type_rus = "изменение"
+} else if (request_type == "Disband") {
+    request_type_rus = "расформирование"
 }
 
 def binding = ["request_number"  : request_number,
