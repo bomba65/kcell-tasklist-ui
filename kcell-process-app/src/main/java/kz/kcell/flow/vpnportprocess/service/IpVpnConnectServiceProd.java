@@ -379,7 +379,7 @@ public class IpVpnConnectServiceProd implements IpVpnConnectService {
                 String serviceType = row.getCell(4).getStringCellValue();
                 double utilizationMax = serviceTypes.contains(serviceType) ? 0.80 : 0.70;
 
-                if (utilization >= utilizationMax) {
+                if (utilization >= utilizationMax && !vpnNumber.isEmpty()) {
                     result.put(vpnNumber.trim(), utilization);
                 }
             }
