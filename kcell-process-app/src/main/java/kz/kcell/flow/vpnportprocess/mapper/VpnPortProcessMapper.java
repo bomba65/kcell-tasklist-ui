@@ -14,7 +14,7 @@ public class VpnPortProcessMapper {
 
         return AddressesInputDto.builder()
             .cityId(cityId)
-            .notFullAddress(address.isNotFullAddress())
+            .notFullAddress(address.getNotFullAddress())
             .street(address.getStreet())
             .building(address.getBuilding())
             .cadastralNumber(address.getCadastralNumber())
