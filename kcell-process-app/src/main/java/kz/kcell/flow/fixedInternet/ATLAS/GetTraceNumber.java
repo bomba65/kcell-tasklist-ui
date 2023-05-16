@@ -5,7 +5,6 @@ import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 import org.camunda.bpm.engine.delegate.DelegateExecution;
 import org.camunda.bpm.engine.delegate.JavaDelegate;
@@ -36,8 +35,6 @@ public class GetTraceNumber implements JavaDelegate {
         UriBuilder uriBuilder = UriBuilder.fromPath(atlasUrl + URL_ENDING);
 
         String encoding = Base64.getEncoder().encodeToString((atlasAuth).getBytes("UTF-8"));
-
-        CloseableHttpClient httpclient = HttpClients.custom().build();
 
         HttpGet httpGet = new HttpGet(uriBuilder.build());
         httpGet.setHeader("Authorization", "Basic " + encoding);

@@ -91,7 +91,7 @@ public class CreateSubscriptionReserveOnetime implements JavaDelegate {
                             HttpResponse response = httpClientWithoutSSL.execute(httpPost);
 
                             if(response.getStatusLine().getStatusCode() < 200 || response.getStatusLine().getStatusCode() >= 300) {
-                                log.error("CreateSubscriptionReserveOnetime for service " + serviceId + " returns code: " + response.getStatusLine().getStatusCode() + "\n" +
+                                log.error("CreateSubscriptionReserveOnetime, query " + uriBuilder + " body " + body + " returns code: " + response.getStatusLine().getStatusCode() + "\n" +
                                     "Error message: " + EntityUtils.toString(response.getEntity()));
                                 delegateExecution.setVariable("unsuccessful", true);
                                 return;
