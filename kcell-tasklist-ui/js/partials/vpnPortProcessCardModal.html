@@ -1,0 +1,113 @@
+<style>
+    .card-modal-header {
+        background: transparent;
+        color: black;
+        padding: 0 15px 0 15px;
+    }
+
+</style>
+<div class="card-modal-header">
+    <button type="button" class="close" ng-click="$dismiss()" aria-hidden="true">&times;</button>
+    <h4 style="margin-top:14px;">{{process.businessKey}}</h4>
+    <hr/>
+</div>
+<div class="modal-body new-card-search" style="padding-top:5px">
+    <iframe id="fileDownloadIframe" style="display:none;"></iframe>
+    <div class="row">
+        <div class="col-sm-4">
+            <div class="row">
+                <div class="col-md-6">
+                    <div style="display: inline-block; margin-right: 10px;"><b>Status: {{process.currentActivities.length > 0 ? 'In progress' : 'Completed'}}</b></div>
+                    <button class="btn btn-default" style="display: inline-block;" ng-click="showHistory(process.resolutions, process.processInstance.processDefinitionKey)">More</button>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="panel panel-default" style="margin:18px 0 0 0">
+                        <div class="panel-heading block-headers">Details</div>
+                        <div class="panel-body" style="padding:10px 0 10px 0;word-break:break-word;">
+                            <div class="form-group">
+                                <div class="col-sm-12"><b>Process</b>: {{ process.processInstance.processDefinitionName
+                                    }}
+                                </div>
+                                <div class="col-sm-12"><b>Request type</b>:
+                                    {{ process.request_type + " " + process.channel }}
+                                </div>
+                                <div class="col-sm-12"><b>Initiator</b>: {{ process.processInstance.startUserId }}</div>
+                                <div class="col-sm-12"><b>Current activity</b>: {{ process.currentActivitiesNames }}
+                                </div>
+                                <div class="col-sm-12"><b>Assignee</b>: {{ process.currentActivitiesAssignees }}
+                                </div>
+                                <div class="col-sm-12"><b>Date created</b>: {{ process.dateCreated }}</div>
+                                <div class="col-sm-12"><b>Date updated</b>: {{ process.dateUpdated }}</div>
+                                <div class="col-sm-12"><b>NOR</b>: {{ process.nor }}</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="panel panel-default" style="margin:18px 0 0 0">
+                        <div class="panel-heading block-headers">Comments</div>
+                        <div class="panel-body" style="padding:10px 0 10px 0;word-break:break-word;">
+                            <div class="form-group">
+                                <div class="col-sm-12"><b>Initiator comments</b>: {{ process.modifyFormTaskComment }}
+                                </div>
+                                <div class="col-sm-12"><b>Approver comments</b>: {{ process.approveRequestTaskComment }}
+                                </div>
+                                <div class="col-sm-12"><b>Provider comments</b>:
+                                    {{ process.inputTheProvidersNorTaskComment }}
+                                </div>
+                                <div ng-if="request_type='Automodify'" class="col-sm-12"><b>Confirmer comments</b>:
+                                    {{ process.confirmRequestTaskComment }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-sm-8">
+            <div ng-if="process.ports.length > 0" ng-repeat="port in process.ports">
+                <div class="row">
+                    <div><b>Port ID: </b>{{port.port_number}}</div>
+                    <div><b>Capacity: </b>{{port.port_capacity}}</div>
+                    <div><b>Capacity unit: </b>{{port.port_capacity_unit}}</div>
+                    <div><b>Channel type: </b>{{port.channel_type}}</div>
+                    <div><b>Port type: </b>{{port.port_type}}</div>
+                    <div><b>Far end address: </b>{{addressToString(port.far_end_address)}}</div>
+                </div>
+                <hr/>
+            </div>
+
+            <div ng-if="process.vpns.length > 0" ng-repeat="vpn in process.vpns">
+                <div class="row">
+                    <div><b>VPN ID: </b>{{port.vpn_number}}</div>
+                    <div><b>Port ID: </b>{{vpn.port.port_number}}</div>
+                    <div><b>Service: </b>{{vpn.service}}</div>
+                    <div><b>Service type: </b>{{vpn.service_type_title}}</div>
+                    <div><b>Capacity (Mbit/s): </b>{{vpn.service_capacity}}</div>
+                    <div><b>Provider IP: </b>{{vpn.provider_ip ? vpn.provider_ip : ''}}</div>
+                    <div><b>Kcell IP: </b>{{vpn.kcell_ip ? vpn.kcell_ip : ''}}</div>
+                    <div><b>VLAN: </b>{{vpn.vlan}}</div>
+                    <div><b>Provider AS: </b>{{vpn.provider_as ? vpn.provider_ip : ''}}</div>
+                    <div><b>Kcell AS: </b>{{vpn.kcell_as ? vpn.kcell_as : ''}}</div>
+                    <div><b>Near end address: </b>{{addressToString(vpn.near_end_address)}}</div>
+                </div>
+                <hr/>
+            </div>
+
+            <div class="row">
+                <h5>Attachments</h5>
+            </div>
+            <div class="row">
+                <p ng-repeat="file in process.inputTheProvidersNorFiles">
+                    <span ng-if="!file.path">{{file}}<br/></span>
+                    <a ng-if="file.path" ng-click="downloadFile(file)">{{file.name}}<br/></a>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal-footer" id="modal-footer">
+    <button type="button" class="btn btn-default" style="float:right;" ng-click="$dismiss()">Close</button>
+</div>
