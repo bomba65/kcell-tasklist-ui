@@ -240,5 +240,5 @@ from act_hi_procinst pi
          left join act_hi_varinst mainContract
                    on pi.id_ = mainContract.proc_inst_id_ and mainContract.name_ = 'mainContract'
 
-where pi.proc_def_key_ = 'Revision' and pi.state_ <> 'EXTERNALLY_TERMINATED'
+where pi.proc_def_key_ = 'Revision' and pi.state_ <> 'EXTERNALLY_TERMINATED' and mainContract.text_ IN ('Revision','Roll-outRevision2020','Roll-out')
 order by "Requested Date", "Job Description"
