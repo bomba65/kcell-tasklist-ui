@@ -1,0 +1,205 @@
+<style>
+    .pagination>.active>a, .pagination>.active>a:focus, .pagination>.active>a:hover, .pagination>.active>span, .pagination>.active>span:focus, .pagination>.active>span:hover {
+        background-color: #682d86 !important;
+        border-color: #682d86 !important;
+    }
+    .pagination>li>a, .pagination>li>span {
+        color: #682d86 !important;
+    }
+    .pagination>.active>a, .pagination>.active>a:focus, .pagination>.active>a:hover, .pagination>.active>span, .pagination>.active>span:focus, .pagination>.active>span:hover {
+        color: #fff !important;
+    }
+</style>
+<div class="row">
+    <div class="col-md-4">
+        <div class="form-group">
+            <label>Process:</label>
+            <select type="text" class="form-control" ng-model="formData.process">
+                <option></option>
+                <option value="VPN_Port_process">VPN/Port process</option>
+                <option value="VPN_Port_auto_process">VPN/Port auto process</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>Channel:</label>
+            <select type="text" class="form-control" ng-model="formData.channel">
+                <option></option>
+                <option value="Port">Port</option>
+                <option value="VPN">VPN</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>Request type:</label>
+            <select type="text" class="form-control" ng-model="formData.requestType">
+                <option></option>
+                <option>Organize</option>
+                <option>Disband</option>
+                <option>Modify</option>
+            </select>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="form-group">
+            <label>Current activity:</label>
+            <select type="text" class="form-control" ng-model="formData.currentActivity" ng-options="key as value for (key, value) in taskList">
+                <option></option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>Priority:</label>
+            <select type="text" class="form-control" ng-model="formData.priority">
+                <option></option>
+                <option>Regular</option>
+                <option>Emergency</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>Date created:</label>
+            <div class="input-group">
+                <input type="text" ng-model="formData.dateCreated" name="dateCreated" class="form-control calendar-range-readonly" readonly/>
+                <span class="input-group-btn">
+                    <button type="button" calendar-range class="btn btn-default" id="calendarRangeButton" name="dateCreated">
+                        <i class="glyphicon glyphicon-calendar"></i>
+                    </button>
+                </span>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="form-group">
+            <label>Request number:</label>
+            <input type="text" class="form-control" ng-model="formData.requestNumber">
+        </div>
+        <div class="form-group">
+            <label>Port ID:</label>
+            <input type="text" class="form-control" ng-model="formData.portId">
+        </div>
+        <div class="form-group">
+            <label>VPN ID:</label>
+            <input type="text" class="form-control" ng-model="formData.vpnId">
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="form-group col-sm-4"></div>
+    <div class="form-group col-sm-4">
+        <div class="col-sm-12">
+            <div style="text-align: center;">
+                <a class="btn btn-default" ng-click="clearFilter()">Clear filters</a>
+                <a class="btn btn-primary ng-binding" ng-click="search()"><i class="glyphicon glyphicon-search"></i>
+                    Search ({{processInstances ? processInstances.length : 0}})</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-4 ng-scope" ng-if="processInstances.length > 0" style="text-align: end;">
+        <a class="btn btn-default ng-binding ng-scope" id="xlsxClick" ng-click="exportToExcel()">Export to Excel</a>
+    </div>
+</div>
+
+<div class="row" ng-if="processInstances.length > 0">
+    <div class="col-md-12">
+        <table class="table">
+            <thead>
+            <tr>
+                <th>#</th>
+                <th>
+                    <a href="" ng-click="sortColumn('businessKey')">Request number</a>
+                </th>
+                <th>
+                    <a href="" ng-click="sortColumn('processInstance.processDefinitionName')">Process</a>
+                </th>
+                <th>
+                    <a href="" ng-click="sortColumn('channel')">Channel</a>
+                </th>
+                <th>
+                    <a href="" ng-click="sortColumn('request_type')">Request type</a>
+                </th>
+                <th>
+                    <a href="" ng-click="sortColumn('priority')">Priority</a>
+                </th>
+                <th>
+                    <a href="" ng-click="sortColumn('currentActivitiesNames')">Current activity</a>
+                </th>
+                <th>
+                    <a href="" ng-click="sortColumn('processInstance.startTime')">Date created</a>
+                </th>
+                <th>
+                    <a href="" ng-click="sortColumn('vpnId')">VPN ID</a>
+                </th>
+                <th>
+                    <a href="" ng-click="sortColumn('portId')">Port ID</a>
+                </th>
+            </tr>
+            </thead>
+            <tbody>
+                <tr ng-repeat="process in pagedProcessInstances track by $index">
+                    <td>{{(currentPage - 1) * itemsPerPage + $index + 1}}</td>
+                    <td>
+                        <a ng-click="openProcessCardModal(process)">{{process.businessKey}}</a>
+                    </td>
+                    <td>{{process.processInstance.processDefinitionName}}</td>
+                    <td>{{process.channel}}</td>
+                    <td>{{process.request_type}}</td>
+                    <td>{{process.priority}}</td>
+                    <td>{{process.currentActivitiesNames}}</td>
+                    <td>{{process.dateCreated}}</td>
+                    <td>{{process.vpnId}}</td>
+                    <td>{{process.portId}}</td>
+                </tr>
+            </tbody>
+        </table>
+        <div class="text-center">
+            <ul class="pagination">
+                <li ng-class="{disabled: currentPage === 1}">
+                    <a href="" ng-click="setCurrentPage(1)">First</a>
+                </li>
+                <li ng-class="{disabled: currentPage === 1}">
+                    <a href="" ng-click="setCurrentPage(currentPage - 1)">Previous</a>
+                </li>
+                <li ng-repeat="page in pages" ng-class="{active: page === currentPage}">
+                    <a href="" ng-click="setCurrentPage(page)">{{page}}</a>
+                </li>
+                <li ng-class="{disabled: currentPage === totalPages}">
+                    <a href="" ng-click="setCurrentPage(currentPage + 1)">Next</a>
+                </li>     <li ng-class="{disabled: currentPage === totalPages}">
+                <a href="" ng-click="setCurrentPage(totalPages)">Last</a>
+            </li>
+            </ul>
+        </div>
+    </div>
+
+    <table ng-hide="true" class="table" id="excelTable">
+        <thead>
+        <tr>
+            <th>#</th>
+            <th>Request number</th>
+            <th>Process</th>
+            <th>Channel</th>
+            <th>Request type</th>
+            <th>Priority</th>
+            <th>Current activity</th>
+            <th>Date created</th>
+            <th>VPN ID</th>
+            <th>Port ID</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr ng-repeat="process in processInstances track by $index">
+            <td>{{$index + 1}}</td>
+            <td>
+                <a ng-click="openProcessCardModal(process)">{{process.businessKey}}</a>
+            </td>
+            <td>{{process.processInstance.processDefinitionName}}</td>
+            <td>{{process.channel}}</td>
+            <td>{{process.request_type}}</td>
+            <td>{{process.priority}}</td>
+            <td>{{process.currentActivitiesNames}}</td>
+            <td>{{process.dateCreated}}</td>
+            <td>{{process.vpnId}}</td>
+            <td>{{process.portId}}</td>
+        </tr>
+        </tbody>
+    </table>
+
+</div>

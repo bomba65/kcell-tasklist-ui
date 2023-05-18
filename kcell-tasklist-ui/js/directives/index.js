@@ -19,6 +19,7 @@ define([
 	'./aftersales/infoAftersalesSearch',
 	'./search/deliveryPortalSearch',
 	'./search/rpaSearch',
+	'./search/vpnPortSearch',
 	'./aftersalesRevolvingNumbers/index',
   	'./fixedInternet/index',
 	'./vpnPortProcess/start/organizePort',
