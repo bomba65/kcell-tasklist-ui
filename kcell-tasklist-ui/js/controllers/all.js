@@ -3241,6 +3241,7 @@ return module.controller('mainCtrl', ['$scope', '$rootScope', 'toasty', 'Authent
                     return XLSX.writeFile(wb, 'extended-report-by-jobs.xlsx');
                 });
             }
+        }
         $scope.downloadExtendedByJobsReport = function () {
             if ($rootScope.hasGroup('revision_reports')) {
                 $http.get('/camunda/reports/extended-report-by-jobs').then(function (response) {
