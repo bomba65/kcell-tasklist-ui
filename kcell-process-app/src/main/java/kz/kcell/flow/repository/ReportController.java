@@ -64,7 +64,19 @@ public class ReportController {
 
         return ResponseEntity.ok(reportDtos);
     }
-
+    @RequestMapping(value = "/financialreport2022", method = RequestMethod.GET)
+    @ResponseBody
+    public ResponseEntity<List<FinancialReportDto>> getFinancialReport2022(){
+        if (identityService.getCurrentAuthentication() == null || identityService.getCurrentAuthentication().getUserId() == null) {
+            log.warning("No user logged in");
+            return ResponseEntity.ok(new ArrayList<FinancialReportDto>());
+        }
+        InputStream fis = ReportController.class.getResourceAsStream("/reports/financial-report_contract2022.sql");
+        Scanner s = new Scanner(fis).useDelimiter("\\A");
+        String query = s.hasNext() ? s.next() : "";
+        List<FinancialReportDto> reportDtos = reportRepository.financialReport(query);
+        return ResponseEntity.ok(reportDtos);
+    }
 
     @RequestMapping(value = "/financialreport", method = RequestMethod.GET)
     @ResponseBody
@@ -84,7 +96,19 @@ public class ReportController {
         return ResponseEntity.ok(reportDtos);
     }
 
-
+    @RequestMapping(value = "/extended-report-by-jobs2022", method = RequestMethod.GET)
+    @ResponseBody
+    public ResponseEntity<List<ExtendedReportByJobsDto>> getExtendedReportByJobs2022(){
+        if (identityService.getCurrentAuthentication() == null || identityService.getCurrentAuthentication().getUserId() == null) {
+            log.warning("No user logged in");
+            return ResponseEntity.ok(new ArrayList<ExtendedReportByJobsDto>());
+        }
+        InputStream fis = ReportController.class.getResourceAsStream("/reports/extended-financial-report-by-job_contract2022.sql");
+        Scanner s = new Scanner(fis).useDelimiter("\\A");
+        String query = s.hasNext() ? s.next() : "";
+        List<ExtendedReportByJobsDto> reportDtos = reportRepository.extendedReportByJobs(query);
+        return ResponseEntity.ok(reportDtos);
+    }
     @RequestMapping(value = "/extended-report-by-jobs", method = RequestMethod.GET)
     @ResponseBody
     public ResponseEntity<List<ExtendedReportByJobsDto>> getExtendedReportByJobs(){
