@@ -10,6 +10,7 @@ import kz.kcell.flow.vpnportprocess.mapper.VpnPortProcessMapper;
 import kz.kcell.flow.vpnportprocess.service.IpVpnConnectService;
 import kz.kcell.flow.vpnportprocess.variable.VpnCamVar;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpPost;
@@ -30,6 +31,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class CheckUtilization implements JavaDelegate {
@@ -59,6 +61,7 @@ public class CheckUtilization implements JavaDelegate {
                 vpnOutputDto = vpnPortClient.getVpnByVpnNumber(vpn.getKey(), new HashMap<String,Object>() {{
                     put("status", "Active");
                 }});
+                log.info("Found vpn in db: " + objectMapper.writeValueAsString(vpnOutputDto));
             } catch (FeignException e) {
                 if (e.status() == 404) {
                     continue;

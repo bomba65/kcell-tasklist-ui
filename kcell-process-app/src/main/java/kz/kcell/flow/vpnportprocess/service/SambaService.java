@@ -17,7 +17,7 @@ public class SambaService {
     @Value("${ipvpn.samba.url}")
     private String sambaUrl;
 
-    InputStream readIpVpnConnect() {
+    public InputStream readIpVpnConnect() {
         try {
             SmbFile smbFile = new SmbFile(sambaUrl + "/td_home/MSC_Data/TRUNK COMMUNICATIONS/IP Core/CORE_NETWORK/IPVPN CONNECT.xlsm");
             return new SmbFileInputStream(smbFile);
@@ -26,7 +26,7 @@ public class SambaService {
         }
     }
 
-    InputStream readIpVpnStatistics() {
+    public InputStream readIpVpnStatistics() {
         try {
             SmbFile directory = new SmbFile(sambaUrl + "/IP VPN Statistics/");
             SmbFile[] files = directory.listFiles();
@@ -40,7 +40,7 @@ public class SambaService {
         }
     }
 
-    void writeIpVpnConnect(ByteArrayOutputStream byteArrayOutputStream ) {
+    public void writeIpVpnConnect(ByteArrayOutputStream byteArrayOutputStream ) {
         try {
             SmbFile smbFile = new SmbFile(sambaUrl + "/td_home/MSC_Data/TRUNK COMMUNICATIONS/IP Core/CORE_NETWORK/IPVPN CONNECT.xlsm");
             SmbFileOutputStream outputStream = new SmbFileOutputStream(smbFile);

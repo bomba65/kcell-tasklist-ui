@@ -180,6 +180,7 @@ public class VpnPortProcessMapper {
 
     public VpnCamVar map(VpnOutputDto vpn, int modifiedServiceCapacity) {
         return VpnCamVar.builder()
+            .id(vpn.getId())
             .vpnNumber(vpn.getVpnNumber())
             .port(map(vpn.getPort()))
             .service(vpn.getService())
@@ -198,6 +199,7 @@ public class VpnPortProcessMapper {
 
     public PortCamVar map(PortOutputDto port) {
         return PortCamVar.builder()
+            .id(port.getId())
             .portNumber(port.getPortNumber())
             .portCapacity(port.getPortCapacity())
             .portCapacityUnit(port.getPortCapacityUnit())
