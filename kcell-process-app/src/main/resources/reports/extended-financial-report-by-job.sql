@@ -289,5 +289,5 @@ from act_hi_procinst pi
 
             ) jobList on true
 
-where pi.proc_def_key_ = 'Revision' and pi.state_ <> 'EXTERNALLY_TERMINATED'
+where pi.proc_def_key_ = 'Revision' and pi.state_ <> 'EXTERNALLY_TERMINATED' and mainContract.text_ IN ('Revision','Roll-outRevision2020','Roll-out')
 order by "Requested Date", "Job Description"
