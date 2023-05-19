@@ -214,6 +214,9 @@ public class IpVpnConnectServiceProd implements IpVpnConnectService {
             Cell cell = row.getCell(20);
             cell.setCellValue(status);
 
+            cell = row.getCell(2);
+            cell.setCellValue(vpn.getVpnNumber());
+
 
             ByteArrayOutputStream out = new ByteArrayOutputStream();
             try {
