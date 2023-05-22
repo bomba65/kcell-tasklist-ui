@@ -211,6 +211,7 @@ public class VpnPortProcessMapper {
 
     public AddressCamVar map(AdressesOutputDto address) {
         return AddressCamVar.builder()
+            .id(address.getId())
             .cityId(map(address.getCityId()))
             .street(address.getStreet())
             .building(address.getBuilding())
