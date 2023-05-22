@@ -527,6 +527,7 @@
                 {id: 6, name: 'West'}
             ]
             $scope.oblastToSelect = ['Алматинская область','Жамбылская область'];
+            $scope.oblastToSelect07 = ['Алматинская область','Жамбылская область','Карагандинская область'];
             $scope.regionsMap = {
                 '1': 'Alm',
                 '2': 'Ast',
@@ -1316,14 +1317,20 @@
             }
 
             $scope.needToSelectOblast = false;
+            $scope.needToSelectOblast07 = false;
             $scope.needToSelectOblast99 = false;
             function checkIfNeedToSelectOblast() {
                 const siteId = $scope.siteId ? $scope.siteId.substring(0,2) : '';
                 $scope.needToSelectOblast = $scope.mainContract === '2022Work-agreement'
-                    && ['03','05','07'].includes(siteId);
+                    && ['03','05'].includes(siteId);
                 $scope.needToSelectOblast99 = $scope.mainContract === '2022Work-agreement'
                     && ['99'].includes(siteId);
+                $scope.needToSelectOblast07 = $scope.mainContract === '2022Work-agreement'
+                    && ['07'].includes(siteId);
                 if ($scope.needToSelectOblast99) {
+                    $scope.oblastName = null;
+                }
+                if ($scope.needToSelectOblast07) {
                     $scope.oblastName = null;
                 }
                 if ($scope.needToSelectOblast) {
@@ -1379,6 +1386,27 @@
                     setSubcontractorName99(selectedSubcontractor99);
                 }
             }
+            $scope.selectedOblast07 = undefined;
+            $scope.oblastSelected07 = function(selectedOblast07) {
+                if (selectedOblast07) {
+                    $scope.oblastName = selectedOblast07;
+                    if(selectedOblast07=='Карагандинская область'){
+                        const regionId = 3;
+                        const regionName = "North & Central";
+                        setRegion(regionId, regionName);
+                        $scope.subcontractorName = 'Логиком';
+                        $scope.custom.contractor = 7;
+                    }
+                    else{
+                        const regionId = 1;
+                        const regionName = "Almaty";
+                        setRegion(regionId, regionName);
+                        $scope.subcontractorName = 'Алта Телеком';
+                        $scope.custom.contractor = 6;
+                    }
+                }
+                }
+
             $scope.selectedOblast = undefined;
             $scope.oblastSelected = function(selectedOblast) {
                 if (selectedOblast) {
@@ -1616,12 +1644,19 @@
     </div>
     <div class="form-group" ng-if="mainContract === '2022Work-agreement'">
         <label class="col-sm-3 control-label">Oblast:</label>
-        <div class="col-sm-3" ng-if="!needToSelectOblast&&!needToSelectOblast99">
+        <div class="col-sm-3" ng-if="!needToSelectOblast&&!needToSelectOblast99&&!needToSelectOblast07">
             <div class="form-control">{{oblastName}}</div>
         </div>
         <div class="col-sm-3" ng-if="needToSelectOblast">
             <select ng-model="selectedOblast" ng-options="o as o for o in oblastToSelect"
                     class="form-control" title="" name="selectedOblast" ng-required="true" ng-change="oblastSelected(selectedOblast)">
+                <option value="">select oblast</option>
+            </select>
+            <label class="error" ng-if="kcell_form.selectedOblast.$error.required && ( kcell_form.selectedOblast.$touched || view.submitted)">Required field</label>
+        </div>
+        <div class="col-sm-3" ng-if="needToSelectOblast07">
+            <select ng-model="selectedOblast07" ng-options="o as o for o in oblastToSelect07"
+                    class="form-control" title="" name="selectedOblast07" ng-required="true" ng-change="oblastSelected07(selectedOblast07)">
                 <option value="">select oblast</option>
             </select>
             <label class="error" ng-if="kcell_form.selectedOblast.$error.required && ( kcell_form.selectedOblast.$touched || view.submitted)">Required field</label>

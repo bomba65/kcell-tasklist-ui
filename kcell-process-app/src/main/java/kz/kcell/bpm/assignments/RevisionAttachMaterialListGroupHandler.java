@@ -29,12 +29,17 @@ public class RevisionAttachMaterialListGroupHandler implements TaskListener {
 
         if ("2022Work-agreement".equals(mainContract)) {
             String siteName = delegateTask.getVariable("site_name").toString();
-            String group = ATTACH_MATERIAL_LIST_GROUP_TO_SITE.entrySet().stream()
-                .filter(e -> ArrayUtils.contains(e.getValue(), siteName.substring(0, 2)))
-                .findFirst()
-                .orElse(null)
-                .getKey();
-            delegateTask.addCandidateGroup(group);
+            if(siteName.substring(0, 2).equals("07")&&siteRegion.equals("nc")){
+                delegateTask.addCandidateGroup("nc_contractor_logycom");
+            }
+            else {
+                String group = ATTACH_MATERIAL_LIST_GROUP_TO_SITE.entrySet().stream()
+                    .filter(e -> ArrayUtils.contains(e.getValue(), siteName.substring(0, 2)))
+                    .findFirst()
+                    .orElse(null)
+                    .getKey();
+                delegateTask.addCandidateGroup(group);
+            }
         } else {
             delegateTask.addCandidateGroup(siteRegion + "_engineer");
         }
