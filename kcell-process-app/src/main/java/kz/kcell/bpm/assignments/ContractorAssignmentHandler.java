@@ -39,6 +39,8 @@ public class ContractorAssignmentHandler implements TaskListener {
             String siteIdFirstTwoDigits = siteId.substring(0, 2);
             if("99".contains(siteIdFirstTwoDigits)){
                 delegateTask.addCandidateGroup(siteRegion+"_contractor_"+contractorsTitle.get(contractor));
+            } else if (("07".equals(siteIdFirstTwoDigits))&&siteRegion.equals("nc")) {
+                delegateTask.addCandidateGroup("nc_contractor_logycom");
             } else if (Arrays.asList("00", "01", "03", "04", "05", "06", "07").contains(siteIdFirstTwoDigits)) {
                 delegateTask.addCandidateGroup("alm_contractor_alta");
             } else if (Arrays.asList("10", "11", "12", "13").contains(siteIdFirstTwoDigits)) {
