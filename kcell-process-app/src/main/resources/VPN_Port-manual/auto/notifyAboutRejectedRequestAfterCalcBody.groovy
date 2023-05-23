@@ -1,11 +1,12 @@
+import groovy.json.JsonSlurper
 import groovy.text.markup.MarkupTemplateEngine
 import groovy.text.markup.TemplateConfiguration
 import org.camunda.spin.json.SpinJsonNode
 
 def request_number = execution.processBusinessKey
-def rejectedString = execution.getVariable("rejectedAutomodifyServices")
+def rejectedString = execution.getVariable("rejectedAutomodifyServices").toString()
 SpinJsonNode rejectedJsonNode = rejectedString.getValue(SpinJsonNode.class);
-String[] rejected = rejectedJsonNode.mapTo(String[].class);
+String[] rejected = new JsonSlurper().parseText(rejectedJsonNode);
 
 
 def binding = ["request_number"  : request_number,

@@ -1,13 +1,11 @@
+import groovy.json.JsonSlurper
 import groovy.text.markup.MarkupTemplateEngine
 import groovy.text.markup.TemplateConfiguration
-import org.camunda.spin.json.SpinJsonNode
 
 def request_number = execution.processBusinessKey
 def priority = execution.getVariable("priority").toString()
-def rejectedString = execution.getVariable("rejectedAutomodifyServices")
-SpinJsonNode rejectedJsonNode = rejectedString.getValue(SpinJsonNode.class);
-String[] rejected = rejectedJsonNode.mapTo(String[].class);
-
+def rejectedString = execution.getVariable("rejectedAutomodifyServices").toString()
+String[] rejected = new JsonSlurper().parseText(rejectedString);
 
 def binding = ["request_number"  : request_number,
                "rejected"  : rejected,
@@ -33,9 +31,11 @@ html(lang:'ru') {
         p {
             span("Статус: " + priority)
         }
-        p("При этом в  расширении следующих VPN отказано, ввиду отсутствия технической возможности (требуется увеличение емкости порта):")
-        each rejectedItem in rejected {
-            p(rejectedItem)
+        if (rejected && rejected.size() > 0) {
+            p("При этом в  расширении следующих VPN отказано, ввиду отсутствия технической возможности (требуется увеличение емкости порта):")
+            each rejectedItem in rejected {
+                p(rejectedItem)
+            }
         }
     }
 }

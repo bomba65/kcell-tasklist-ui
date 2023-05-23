@@ -33,12 +33,16 @@ public class CalculateAndReservePortCapacityAuto implements JavaDelegate {
 
     @Override
     synchronized public void execute(DelegateExecution execution) throws Exception {
-        VpnCamVar[] modifyServices = objectMapper.readValue(execution.getVariable("automodifyServices").toString(), VpnCamVar[].class);
+        List<VpnCamVar> modifyServices = Arrays.stream(objectMapper.readValue(
+            execution.getVariable("automodifyServices").toString(), VpnCamVar[].class
+        ))
+            .filter(VpnCamVar::getConfirmed)
+            .collect(Collectors.toList());
         List<VpnCamVar> rejectedAutomodifyServices = new ArrayList<>();
         List<VpnCamVar> approvedAutomodifyServices = new ArrayList<>();
 
         // group vpns to modify by port
-        Map<PortCamVar, List<VpnCamVar>> portToVpns = Arrays.stream(modifyServices).collect(Collectors.groupingBy(VpnCamVar::getPort));
+        Map<PortCamVar, List<VpnCamVar>> portToVpns = modifyServices.stream().collect(Collectors.groupingBy(VpnCamVar::getPort));
 
         for (Map.Entry<PortCamVar, List<VpnCamVar>> entry : portToVpns.entrySet()) {
             PortCamVar port = entry.getKey();

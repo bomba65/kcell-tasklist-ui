@@ -27,6 +27,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -96,6 +97,8 @@ public class CheckUtilization implements JavaDelegate {
         execution.setVariable("priority", isEmergency ? "Emergency" : "Regular");
         execution.setVariable("automodifyServices", SpinValues.jsonValue(objectMapper.writeValueAsString(automodifyServices)).create());
         execution.setProcessBusinessKey("VPN-" + getVpnPortCounter());
+        execution.setVariable("dateCreated", new Date());
+        execution.setVariable("businessKey", execution.getProcessBusinessKey());
     }
 
     private String getVpnPortCounter() throws Exception {

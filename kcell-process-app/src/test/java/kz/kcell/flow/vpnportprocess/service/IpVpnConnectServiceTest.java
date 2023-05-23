@@ -24,10 +24,10 @@ public class IpVpnConnectServiceTest {
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
     @Mock
-    private SambaService sambaService;
+    private SambaServiceProd sambaService;
 
     @InjectMocks
-    private IpVpnConnectServiceProd ipVpnConnectService;
+    private IpVpnConnectService ipVpnConnectService;
 
     @Test
     public void testAddNewVlanToIpVpnConnectFile() {

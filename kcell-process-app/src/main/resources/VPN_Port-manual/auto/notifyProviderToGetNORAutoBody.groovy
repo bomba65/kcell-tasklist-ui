@@ -4,7 +4,7 @@ import groovy.text.markup.TemplateConfiguration
 
 def request_number = execution.processBusinessKey
 def priority = execution.getVariable("priority").toString()
-def automodifyServices = execution.getVariable("automodifyServices")
+def automodifyServices = new JsonSlurper().parseText(execution.getVariable("automodifyServices").toString())
 
 def makeStringAddress(address) {
     def addressString = ""
