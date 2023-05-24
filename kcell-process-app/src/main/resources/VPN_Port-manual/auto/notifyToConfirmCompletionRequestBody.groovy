@@ -1,7 +1,6 @@
 import groovy.json.JsonSlurper
 import groovy.text.markup.MarkupTemplateEngine
 import groovy.text.markup.TemplateConfiguration
-import kz.kcell.flow.GroovyDebugger
 
 def request_number = execution.processBusinessKey
 def priority = execution.getVariable("priority").toString()
