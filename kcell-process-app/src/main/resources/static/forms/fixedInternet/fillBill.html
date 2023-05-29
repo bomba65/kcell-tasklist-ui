@@ -96,6 +96,10 @@
               );
             }
 
+            function daysInMonth(month, year) {
+                return new Date(year, month, 0).getDate();
+            }
+
             camForm.on('form-loaded', function () {
                 camForm.variableManager.fetchVariable('legalInfo');
                 camForm.variableManager.fetchVariable('attachments');
@@ -114,6 +118,7 @@
 
                 camForm.variableManager.fetchVariable('numberRequest');
                 camForm.variableManager.fetchVariable('resolutions');
+                camForm.variableManager.fetchVariable('rentAmount');
             });
 
             camForm.on('variables-fetched', function () {
@@ -139,6 +144,7 @@
 
                 $scope.numberRequest = camForm.variableManager.variableValue('numberRequest');
                 $scope.resolutions = camForm.variableManager.variableValue('resolutions');
+                $scope.rentAmount = camForm.variableManager.variableValue('rentAmount');
 
                 camForm.variableManager.createVariable({
                     name: 'fillBillTaskResult',
@@ -170,8 +176,14 @@
             });
 
             $scope.serviceDateChange = function(){
-                $scope.billing.firstMonthNum = $scope.billing.serviceDate.getMonth() + 1;
-                console.log($scope.firstMonthNum)
+                const firstDay = $scope.billing.serviceDate.getDate();
+                const month = $scope.billing.serviceDate.getMonth() + 1;
+                const year = $scope.billing.serviceDate.getFullYear();
+                const numberOfDaysInMonth = daysInMonth(month, year);
+
+                $scope.billing.firstMonthNum = month;
+                $scope.billing.firstMonthSum = $scope.rentAmount * (numberOfDaysInMonth - firstDay + 1) / numberOfDaysInMonth;
+                $scope.billing.firstMonthSum = parseFloat($scope.billing.firstMonthSum.toFixed(2));
             };
 
         }]);
