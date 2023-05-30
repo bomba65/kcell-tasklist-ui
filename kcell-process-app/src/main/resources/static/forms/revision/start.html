@@ -874,6 +874,9 @@
             }
 
             function refreshJobRequests(){
+                if($scope.mainContract === 'technical_maintenance_services'){
+                    $scope.reason = '4';
+                }
                 if($scope.mainContract === 'emergencyRevision2022' || $scope.mainContract === 'Roll-outRevision2020'){
                     $scope.rolloutOrEmergency = true;
                 }else{
@@ -1306,16 +1309,22 @@
             }
 
             $scope.needToSelectSubcontractor99 = false;
+            $scope.needToSelectSubcontractor0405 = false;
             function checkIfNeedToSelectSubcontractor99() {
                 const siteId = $scope.siteId ? $scope.siteId.substring(0,2) : '';
                 $scope.needToSelectSubcontractor99 = $scope.mainContract === '2022Work-agreement'
                     && ['99'].includes(siteId);
+                $scope.needToSelectSubcontractor0405 = $scope.mainContract === 'technical_maintenance_services'
+                    && ['04','05'].includes(siteId);
                 if ($scope.needToSelectSubcontractor99) {
+                    $scope.subcontractorName = null;
+                }
+                if ($scope.needToSelectSubcontractor0405) {
                     $scope.subcontractorName = null;
                 }
 
             }
-
+            $scope.needToSelectOblast0405=false;
             $scope.needToSelectOblast = false;
             $scope.needToSelectOblast07 = false;
             $scope.needToSelectOblast99 = false;
@@ -1323,6 +1332,8 @@
                 const siteId = $scope.siteId ? $scope.siteId.substring(0,2) : '';
                 $scope.needToSelectOblast = $scope.mainContract === '2022Work-agreement'
                     && ['03','05'].includes(siteId);
+                $scope.needToSelectOblast0405 = $scope.mainContract === 'technical_maintenance_services'
+                    && ['04','05'].includes(siteId);
                 $scope.needToSelectOblast99 = $scope.mainContract === '2022Work-agreement'
                     && ['99'].includes(siteId);
                 $scope.needToSelectOblast07 = $scope.mainContract === '2022Work-agreement'
@@ -1334,6 +1345,9 @@
                     $scope.oblastName = null;
                 }
                 if ($scope.needToSelectOblast) {
+                    $scope.oblastName = null;
+                }
+                if ($scope.needToSelectOblast0405) {
                     $scope.oblastName = null;
                 }
             }
@@ -1378,12 +1392,28 @@
                     }
                 }
             };
+            function setSubcontractorName0405(selectedSubcontractor0405) {
+                for (const item of $scope.subcontractorCatalog) {
+                    if(item.value===selectedSubcontractor0405) {
+                        $scope.subcontractorName = item.value;
+                        $scope.custom.contractor = item.id;
+                        break;
+                    }
+                }
+            };
 
             $scope.subcontractorToSelect99=['Алта Телеком','Логиком','Forester-Hes Group','Arlan Si','Транстелеком'];
             $scope.selectedSubcontractor99 = undefined;
             $scope.subcontractorSelected = function(selectedSubcontractor99) {
                 if (selectedSubcontractor99) {
                     setSubcontractorName99(selectedSubcontractor99);
+                }
+            }
+            $scope.subcontractorToSelect0405=['Arlan Si','TOO Inter Service'];
+            $scope.selectedSubcontractor0405 = undefined;
+            $scope.subcontractorSelected0405 = function(selectedSubcontractor0405) {
+                if (selectedSubcontractor0405) {
+                    setSubcontractorName0405(selectedSubcontractor0405);
                 }
             }
             $scope.selectedOblast07 = undefined;
@@ -1554,19 +1584,16 @@
     <div class="form-group">
         <label class="col-sm-3 control-label">Contract:</label>
         <div class="col-sm-3">
-            <select class="form-control selectpicker" select-picker title="" cam-variable-name="mainContract" name="mainContract" required cam-variable-type="String" ng-change="refreshJobRequests()" disabled>
+            <select class="form-control selectpicker" select-picker title="" cam-variable-name="mainContract" name="mainContract" required cam-variable-type="String" ng-change="refreshJobRequests()">
                 <option value="2022Work-agreement">Договор Подряда на Выполнение Работ 2022</option>
-                <option value="Roll-outRevision2020">Roll-out and Revision 2020</option>
-                <option ng-if="$root.authentication.name === 'demo'" value="Revision">Revision</option>
-                <option ng-if="$root.authentication.name === 'demo'" value="Roll-out">Roll-out</option>
-                <option value="emergencyRevision2022">Emergency Revision 2022</option>
+                <option value="technical_maintenance_services">Услуги по Техническому (Ревизионному) Обслуживанию</option>
             </select>
             <label class="error" ng-if="kcell_form.mainContract.$error.required && ( kcell_form.mainContract.$touched || view.submitted)">Required field</label>
         </div>
     </div>
     <div class="form-group">
         <label class="col-sm-3 control-label">Job to:</label>
-        <div class="col-sm-8" ng-if="mainContract !== '2022Work-agreement'">
+        <div class="col-sm-8" ng-if="(mainContract !== '2022Work-agreement')&&(mainContract !== 'technical_maintenance_services')">
             <label class="radio-inline" ng-if="$root.authentication.name === 'demo'">
                 <input type="radio" name="contractor" ng-disabled="['emergencyRevision2022'].includes(mainContract)" ng-model="custom.contractor" id="lse" value="4"> TOO Line System Engineering
             </label>
@@ -1578,7 +1605,7 @@
             </label>
             <label class="error" ng-if="kcell_form.contractor.$error.required && ( kcell_form.contractor.$touched || view.submitted)">Required field</label>
         </div>
-        <div class="col-sm-8" ng-if="mainContract === '2022Work-agreement'">
+        <div class="col-sm-8" ng-if="(mainContract === '2022Work-agreement')||(mainContract === 'technical_maintenance_services')">
             <label class="radio-inline">
                 <input type="radio" ng-checked="true"> Subcontractor
             </label>
@@ -1642,12 +1669,19 @@
             <label class="error" ng-if="kcell_form.selectedRegion.$error.required && ( kcell_form.selectedRegion.$touched || view.submitted)">Required field</label>
         </div>
     </div>
-    <div class="form-group" ng-if="mainContract === '2022Work-agreement'">
+    <div class="form-group" ng-if="(mainContract === '2022Work-agreement')||(mainContract === 'technical_maintenance_services')">
         <label class="col-sm-3 control-label">Oblast:</label>
-        <div class="col-sm-3" ng-if="!needToSelectOblast&&!needToSelectOblast99&&!needToSelectOblast07">
+        <div class="col-sm-3" ng-if="!needToSelectOblast&&!needToSelectOblast99&&!needToSelectOblast07&&!needToSelectOblast0405">
             <div class="form-control">{{oblastName}}</div>
         </div>
         <div class="col-sm-3" ng-if="needToSelectOblast">
+            <select ng-model="selectedOblast" ng-options="o as o for o in oblastToSelect"
+                    class="form-control" title="" name="selectedOblast" ng-required="true" ng-change="oblastSelected(selectedOblast)">
+                <option value="">select oblast</option>
+            </select>
+            <label class="error" ng-if="kcell_form.selectedOblast.$error.required && ( kcell_form.selectedOblast.$touched || view.submitted)">Required field</label>
+        </div>
+        <div class="col-sm-3" ng-if="needToSelectOblast0405">
             <select ng-model="selectedOblast" ng-options="o as o for o in oblastToSelect"
                     class="form-control" title="" name="selectedOblast" ng-required="true" ng-change="oblastSelected(selectedOblast)">
                 <option value="">select oblast</option>
@@ -1669,15 +1703,22 @@
             <label class="error" ng-if="kcell_form.selectedOblast.$error.required && ( kcell_form.selectedOblast.$touched || view.submitted)">Required field</label>
         </div>
     </div>
-    <div class="form-group" ng-if="mainContract === '2022Work-agreement'">
+    <div class="form-group" ng-if="(mainContract === '2022Work-agreement')||(mainContract === 'technical_maintenance_services')">
         <label class="col-sm-3 control-label">Subcontractor:</label>
         <input type="hidden" ng-model="subcontractorName" name="subcontractorName"/>
-        <div class="col-sm-3" ng-if="!needToSelectSubcontractor99">
+        <div class="col-sm-3" ng-if="!needToSelectSubcontractor99&&!needToSelectSubcontractor0405">
             <div class="form-control">{{subcontractorName}}</div>
         </div>
         <div class="col-sm-3" ng-if="needToSelectSubcontractor99">
             <select ng-model="selectedSubcontractor99" ng-options="o as o for o in subcontractorToSelect99"
                     class="form-control" title="" name="selectedSubcontractor99" ng-required="true" ng-change="subcontractorSelected(selectedSubcontractor99)">
+                <option value="">select subcontractor</option>
+            </select>
+            <label class="error" ng-if="kcell_form.selectedSubcontractor99.$error.required && ( kcell_form.selectedSubcontractor99.$touched || view.submitted)">Required field</label>
+        </div>
+        <div class="col-sm-3" ng-if="needToSelectSubcontractor0405">
+            <select ng-model="selectedSubcontractor0405" ng-options="o as o for o in subcontractorToSelect0405"
+                    class="form-control" title="" name="selectedSubcontractor0405" ng-required="true" ng-change="subcontractorSelected0405(selectedSubcontractor0405)">
                 <option value="">select subcontractor</option>
             </select>
             <label class="error" ng-if="kcell_form.selectedSubcontractor99.$error.required && ( kcell_form.selectedSubcontractor99.$touched || view.submitted)">Required field</label>
@@ -1730,7 +1771,16 @@
             </div>
         </div>
     </div>
-    <div class="form-group">
+    <div class="form-group" ng-if="mainContract === 'technical_maintenance_services'">
+        <label class="col-sm-3 control-label">Reason:</label>
+        <div class="col-sm-3">
+            <select class="form-control selectpicker" select-picker select-model="reasons" title="" cam-variable-name="reason" name="reason" ng-required="true" cam-variable-type="String" ng-change="refreshJobRequests()" disabled>
+                <option value="4">Эксплуатация</option>
+            </select>
+            <label class="error" ng-if="kcell_form.reason.$error.required && ( kcell_form.reason.$touched || view.submitted)">Required field</label>
+        </div>
+    </div>
+    <div class="form-group" ng-if="mainContract !== 'technical_maintenance_services'">
         <label class="col-sm-3 control-label">Reason:</label>
         <div class="col-sm-3">
             <select class="form-control selectpicker" select-picker select-model="reasons" title="" cam-variable-name="reason" name="reason" ng-required="true" cam-variable-type="String" ng-change="refreshJobRequests()">
