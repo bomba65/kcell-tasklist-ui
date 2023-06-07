@@ -246,7 +246,17 @@ public class CreateNewTsd implements JavaDelegate {
         Integer ne_txrx_frequencies_protect = !newTsd.hasProp("ne_txrx_frequencies_protect") || newTsd.prop("ne_txrx_frequencies_protect").isNull() ? null : newTsd.prop("ne_txrx_frequencies_protect").isString() ? Integer.parseInt(newTsd.prop("ne_txrx_frequencies_protect").stringValue()) : newTsd.prop("ne_txrx_frequencies_protect").numberValue().intValue();
         objectNode.put("ne_txrx_frequencies_protect", ne_txrx_frequencies_protect);
 
-        Integer nxe1 = !newTsd.hasProp("nxe1") || newTsd.prop("nxe1").isNull() ? null : newTsd.prop("nxe1").isString() ? Integer.parseInt(newTsd.prop("nxe1").stringValue()) : newTsd.prop("nxe1").numberValue().intValue();
+        Integer nxe1;
+        if (!newTsd.hasProp("nxe1") || newTsd.prop("nxe1").isNull()) {
+            nxe1 = null;
+        } else if (!newTsd.prop("nxe1").isString()) {
+            nxe1 = newTsd.prop("nxe1").numberValue().intValue();
+        } else if (newTsd.prop("nxe1").stringValue().trim().isEmpty()) {
+            nxe1 = null;
+        } else {
+            nxe1 = Integer.parseInt(newTsd.prop("nxe1").stringValue());
+        }
+
         objectNode.put("nxe1", nxe1);
 
         Double path_distance = !newTsd.hasProp("path_distance") || newTsd.prop("path_distance") == null ? null : newTsd.prop("path_distance").isString() ? Double.parseDouble(newTsd.prop("path_distance").stringValue()) : newTsd.prop("path_distance").numberValue().doubleValue();
