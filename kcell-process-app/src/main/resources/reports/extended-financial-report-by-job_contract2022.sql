@@ -6,6 +6,7 @@ select
     to_char(pi.start_time_ + interval '6 hour', 'YYYY') as "Year",
     to_char(pi.start_time_ + interval '6 hour', 'month') as "Month",
     substring(pi.business_key_ from '^[^-]+') as region,
+    oblastName.text_ as "Oblast",
     sitename.text_ as sitename,
     pi.business_key_ as "JR No",
     case contractor.text_
@@ -105,6 +106,8 @@ from act_hi_procinst pi
                    on pi.id_ = jrNumber.proc_inst_id_ and jrNumber.name_ = 'jrNumber'
          left join act_hi_varinst discount
                    on pi.id_ = discount.proc_inst_id_ and discount.name_ = 'discount'
+         left join act_hi_varinst oblastName
+                   on pi.id_ = oblastName.proc_inst_id_ and oblastName.name_ = 'oblastName'
          left join act_hi_varinst sapPRNo
                    on pi.id_ = sapPRNo.proc_inst_id_ and sapPRNo.name_ = 'sapPRNo'
          left join act_hi_varinst sapPRTotalValue
