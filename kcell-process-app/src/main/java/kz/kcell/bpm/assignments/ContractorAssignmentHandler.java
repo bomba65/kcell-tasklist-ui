@@ -35,12 +35,20 @@ public class ContractorAssignmentHandler implements TaskListener {
         String reason = delegateTask.getVariable("reason").toString();
         String mainContract = delegateTask.getVariable("mainContract").toString();
         String siteId = delegateTask.getVariable("siteName").toString();
-        if ("2022Work-agreement".equals(mainContract)) {
+        if ("2022Work-agreement".equals(mainContract) || "technical_maintenance_services".equals(mainContract)) {
             String siteIdFirstTwoDigits = siteId.substring(0, 2);
             if("99".contains(siteIdFirstTwoDigits)){
                 delegateTask.addCandidateGroup(siteRegion+"_contractor_"+contractorsTitle.get(contractor));
-            } else if (("07".equals(siteIdFirstTwoDigits))&&siteRegion.equals("nc")) {
-                delegateTask.addCandidateGroup("nc_contractor_logycom");
+            } else if ("07".equals(siteIdFirstTwoDigits)) {
+                if ("technical_maintenance_services".equals(mainContract)) {
+                    if (contractor.equals("7")) {
+                        delegateTask.addCandidateGroup("nc_contractor_logycom");
+                    } else if (contractor.equals("8")) {
+                        delegateTask.addCandidateGroup("alm_contractor_arlan");
+                    }
+                } else if (siteRegion.equals("nc")) {
+                    delegateTask.addCandidateGroup("nc_contractor_logycom");
+                }
             } else if ("03".contains(siteIdFirstTwoDigits)) {
                 delegateTask.addCandidateGroup("alm_contractor_arlan");
             } else if (Arrays.asList("00", "01", "04", "05", "06", "07").contains(siteIdFirstTwoDigits)) {

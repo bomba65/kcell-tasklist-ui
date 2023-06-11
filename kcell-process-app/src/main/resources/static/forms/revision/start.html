@@ -1279,6 +1279,7 @@
                             checkIfNeedToSelectOblast();
                             checkIfNeedToSelectRegion();
                             checkIfNeedToSelectSubcontractor99();
+                            checkIfTechnicalMaintenanceServicesAndSite07();
                         }
                     }
                     $scope.siteStatus = siteInfo.site_status_id ? siteInfo.site_status_id.name : '';
@@ -1306,6 +1307,21 @@
                     const siteId = $scope.siteId ? $scope.siteId.substring(0,2) : '';
                     $scope.needToSelectRegion = $scope.mainContract === '2022Work-agreement'
                         && ['99'].includes(siteId);
+            }
+
+            function checkIfTechnicalMaintenanceServicesAndSite07() {
+                const siteId = $scope.siteId ? $scope.siteId.substring(0,2) : '';
+                if ( $scope.mainContract === 'technical_maintenance_services' && ['07'].includes(siteId)) {
+                    $scope.technicalMaintenanceServicesAndSite07 = true;
+                    let regionId = "1";
+                    let regionName = "Almaty";
+                    setRegion(regionId, regionName);
+                    $scope.subcontractorName = 'Arlan Si';
+                    $scope.custom.contractor = 8;
+                    $scope.oblastName = 'Алматинская область';
+                    $scope.technicalMaintenanceServicesAndSite07Regions = ['Almaty', 'North&Central'];
+                    $scope.technicalMaintenanceServicesAndSite07Oblasts = ['Алматинская область', 'Жамбылская область'];
+                }
             }
 
             $scope.needToSelectSubcontractor99 = false;
@@ -1435,7 +1451,25 @@
                         $scope.custom.contractor = 6;
                     }
                 }
+            }
+
+            $scope.technicalMaintenanceServicesAndSite07RegionSelected = function(regionName) {
+                if (regionName === "Almaty") {
+                    const regionId = "1";
+                    setRegion(regionId, regionName);
+                    $scope.subcontractorName = 'Arlan Si';
+                    $scope.custom.contractor = 8;
+                    $scope.oblastName = undefined;
+                    $scope.technicalMaintenanceServicesAndSite07Oblasts = ['Алматинская область', 'Жамбылская область'];
+                } else if(regionName === "North&Central") {
+                    const regionId = "3";
+                    setRegion(regionId, regionName);
+                    $scope.subcontractorName = 'Логиком';
+                    $scope.custom.contractor = 7;
+                    $scope.oblastName = undefined;
+                    $scope.technicalMaintenanceServicesAndSite07Oblasts = ['Карагандинская область'];
                 }
+            }
 
             $scope.selectedOblast = undefined;
             $scope.oblastSelected = function(selectedOblast) {
@@ -1657,7 +1691,7 @@
     <div class="form-group">
         <label class="col-sm-3 control-label">Region:</label>
         <input type="hidden" ng-model="siteRegionShow" name="siteRegionShow" required/>
-        <div class="col-sm-3" ng-if="!needToSelectRegion">
+        <div class="col-sm-3" ng-if="!needToSelectRegion&&!technicalMaintenanceServicesAndSite07">
             <div class="form-control">{{siteRegionShow}}</div>
             <label class="error" ng-if="kcell_form.siteRegionShow.$error.required && ( kcell_form.siteRegionShow.$touched || view.submitted)">Required field</label>
         </div>
@@ -1668,10 +1702,17 @@
             </select>
             <label class="error" ng-if="kcell_form.selectedRegion.$error.required && ( kcell_form.selectedRegion.$touched || view.submitted)">Required field</label>
         </div>
+        <div class="col-sm-3" ng-if="technicalMaintenanceServicesAndSite07">
+            <select ng-model="siteRegionShow" ng-options='r for r in technicalMaintenanceServicesAndSite07Regions'
+                    class="form-control" ng-required="true" ng-change="technicalMaintenanceServicesAndSite07RegionSelected(siteRegionShow)">
+                <option value="">select region</option>
+            </select>
+            <label class="error" ng-if="kcell_form.siteRegionShow.$error.required && ( kcell_form.siteRegionShow.$touched || view.submitted)">Required field</label>
+        </div>
     </div>
     <div class="form-group" ng-if="(mainContract === '2022Work-agreement')||(mainContract === 'technical_maintenance_services')">
         <label class="col-sm-3 control-label">Oblast:</label>
-        <div class="col-sm-3" ng-if="!needToSelectOblast&&!needToSelectOblast99&&!needToSelectOblast07&&!needToSelectOblast0405">
+        <div class="col-sm-3" ng-if="!needToSelectOblast&&!needToSelectOblast99&&!needToSelectOblast07&&!needToSelectOblast0405&&!technicalMaintenanceServicesAndSite07">
             <div class="form-control">{{oblastName}}</div>
         </div>
         <div class="col-sm-3" ng-if="needToSelectOblast">
@@ -1694,6 +1735,13 @@
                 <option value="">select oblast</option>
             </select>
             <label class="error" ng-if="kcell_form.selectedOblast.$error.required && ( kcell_form.selectedOblast.$touched || view.submitted)">Required field</label>
+        </div>
+        <div class="col-sm-3" ng-if="technicalMaintenanceServicesAndSite07">
+            <select ng-model="oblastName" ng-options='o for o in technicalMaintenanceServicesAndSite07Oblasts'
+                     class="form-control" ng-required="true">
+                <option value="">select oblast</option>
+            </select>
+            <label class="error" ng-if="kcell_form.oblastName.$error.required && ( kcell_form.oblastName.$touched || view.submitted)">Required field</label>
         </div>
         <div class="col-sm-3" ng-if="needToSelectOblast99">
             <select ng-model="selectedOblast" ng-options="o as o for o in oblastToSelect99"
