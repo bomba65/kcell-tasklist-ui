@@ -2,8 +2,9 @@ package kz.kcell.flow.controller;
 
 import jcifs.smb.SmbFile;
 import jcifs.smb.SmbFileInputStream;
-import kz.kcell.flow.vpnportprocess.service.SambaService;
+import kz.kcell.flow.vpnportprocess.service.SambaServiceTest;
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import org.apache.commons.io.FileUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -13,8 +14,11 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.io.IOException;
@@ -29,7 +33,7 @@ public class TestController {
     @Value("${ipvpn.samba.url}")
     private String sambaUrl;
 
-    private final SambaService sambaService;
+    private final SambaServiceTest sambaService;
 
     @GetMapping("/ip_vpn_connect")
     public ResponseEntity<Resource> getIpVpnConnectFile() {
@@ -69,6 +73,17 @@ public class TestController {
         } catch (IOException e) {
             throw new RuntimeException("Failed getIpVpnStatisticsFile", e);
         }
+    }
+
+    @SneakyThrows
+    @PostMapping("/ip_vpn_statistics")
+    public ResponseEntity<Resource> uploadIpVpnStatisticsFile(@RequestParam("file") MultipartFile file) {
+        if (!file.getOriginalFilename().endsWith(".xlsx")) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        sambaService.uploadIpVpnStatistics(file.getOriginalFilename(), file.getBytes());
+        return ResponseEntity.ok().build();
     }
 
     @GetMapping("/test_ip_vpn_samba_connection")
