@@ -1,4 +1,4 @@
-<style>
+<style xmlns="http://www.w3.org/1999/html">
 
     .start-table tbody {
         max-height:470px;
@@ -412,6 +412,13 @@
                 if ($scope.jobWorks.length > 0) {
                     isOptical = !!$scope.jobWorks.filter(work => ['9.90', '9.91', '9.92', '9.93', '9.94', '9.95', '9.96', '9.97', '9.98', '9.99', '9.100', '9.101', '9.102', '9.103', '9.104', '9.105', '9.106']
                     .includes(work.sapServiceNumber)).length
+                }
+                if($scope.mainContract === 'technical_maintenance_services'){
+                    camForm.variableManager.createVariable({
+                        name: 'reason',
+                        type: 'String',
+                        value: '4'
+                    });
                 }
                 camForm.variableManager.variableValue('sendNotifyToRegionHeads', sendNotifyToRegionHeads)
                 camForm.variableManager.variableValue('isOptical', isOptical)
@@ -875,7 +882,7 @@
 
             function refreshJobRequests(){
                 if($scope.mainContract === 'technical_maintenance_services'){
-                    $scope.reason = '4';
+                    $scope.reason = 4;
                 }
                 if($scope.mainContract === 'emergencyRevision2022' || $scope.mainContract === 'Roll-outRevision2020'){
                     $scope.rolloutOrEmergency = true;
@@ -1203,7 +1210,7 @@
                             }
                             if (item.siteId.value.split(',').map((item) => parseInt(item, 10)).includes(parseInt(val.substring(0,2), 10))) {
                               $scope.subcontractorName = item.value;
-                              if($scope.mainContract === '2022Work-agreement') {
+                              if($scope.mainContract === '2022Work-agreement'||$scope.mainContract === 'technical_maintenance_services') {
                                   $scope.custom.contractor = item.id;
                               }
                               break;
@@ -1579,7 +1586,7 @@
                         return deferred.promise;
                     } else {
                         var jrCounter;
-                        if($scope.mainContract === '2022Work-agreement') {
+                        if($scope.mainContract === '2022Work-agreement'||$scope.mainContract === 'technical_maintenance_services') {
                             jrCounter = $scope.regionNewShortName+'-'+$scope.contractorNewShortName[$scope.custom.contractor]+'-'+$scope.reasonNewShortName[$scope.reason]+'-'+$scope.requestedDate.getFullYear().toString().substr(-2);
                         } else {
                             jrCounter = $scope.regionShortName+'-'+$scope.contractorShortName[$scope.custom.contractor]+'-'+$scope.reasonShortName[$scope.reason]+'-'+$scope.requestedDate.getFullYear().toString().substr(-2)+($scope.mainContract==='Roll-out'?'-Ro':'');
@@ -1610,8 +1617,8 @@
             <label>JR Number:</label>
         </div>
         <div class="col-sm-3">
-            <span ng-if="mainContract !== '2022Work-agreement'">{{regionShortName?regionShortName:'###'}}-{{contractorShortName[custom.contractor]?contractorShortName[custom.contractor]:'##'}}-{{reasonShortName[reason]?reasonShortName[reason]:'###'}}-{{requestedDate.getFullYear().toString().substr(-2)}}-{{siteCounter?siteCounter:'####'}}{{mainContract == 'Roll-out'?'-Ro':''}}</span>
-            <span ng-if="mainContract === '2022Work-agreement'">{{regionNewShortName?regionNewShortName:'###'}}-{{contractorNewShortName[custom.contractor]?contractorNewShortName[custom.contractor]:'##'}}-{{reasonNewShortName[reason]?reasonNewShortName[reason]:'###'}}-{{requestedDate.getFullYear().toString().substr(-2)}}-{{siteCounter?siteCounter:'####'}}{{mainContract == 'Roll-out'?'-Ro':''}}</span>
+            <span ng-if="mainContract !== '2022Work-agreement'&&mainContract !== 'technical_maintenance_services'">{{regionShortName?regionShortName:'###'}}-{{contractorShortName[custom.contractor]?contractorShortName[custom.contractor]:'##'}}-{{reasonShortName[reason]?reasonShortName[reason]:'###'}}-{{requestedDate.getFullYear().toString().substr(-2)}}-{{siteCounter?siteCounter:'####'}}{{mainContract == 'Roll-out'?'-Ro':''}}</span>
+            <span ng-if="mainContract === '2022Work-agreement'||mainContract === 'technical_maintenance_services'">{{regionNewShortName?regionNewShortName:'###'}}-{{contractorNewShortName[custom.contractor]?contractorNewShortName[custom.contractor]:'##'}}-{{reasonNewShortName[reason]?reasonNewShortName[reason]:'###'}}-{{requestedDate.getFullYear().toString().substr(-2)}}-{{siteCounter?siteCounter:'####'}}{{mainContract == 'Roll-out'?'-Ro':''}}</span>
         </div>
     </div>
 
@@ -1819,18 +1826,18 @@
             </div>
         </div>
     </div>
-    <div class="form-group" ng-if="mainContract === 'technical_maintenance_services'">
+    <div class="form-group" ng-If="mainContract === 'technical_maintenance_services'" >
         <label class="col-sm-3 control-label">Reason:</label>
         <div class="col-sm-3">
-            <select class="form-control selectpicker" select-picker select-model="reasons" title="" cam-variable-name="reason" name="reason" ng-required="true" cam-variable-type="String" ng-change="refreshJobRequests()" disabled>
+            <select class="form-control selectpicker" ng-required="true" disabled>
                 <option value="4">Эксплуатация</option>
             </select>
             <label class="error" ng-if="kcell_form.reason.$error.required && ( kcell_form.reason.$touched || view.submitted)">Required field</label>
         </div>
     </div>
-    <div class="form-group" ng-if="mainContract !== 'technical_maintenance_services'">
+    <div class="form-group" ng-show="mainContract !== 'technical_maintenance_services'">
         <label class="col-sm-3 control-label">Reason:</label>
-        <div class="col-sm-3">
+        <div class="col-sm-3" >
             <select class="form-control selectpicker" select-picker select-model="reasons" title="" cam-variable-name="reason" name="reason" ng-required="true" cam-variable-type="String" ng-change="refreshJobRequests()">
                 <option value="">select reason</option>
                 <option ng-if="mainContract != 'emergencyRevision2022'" value="{{r.id}}" ng-repeat="r in reasons" ng-selected="{{r.id == reason}}">{{r.name}}</option>
@@ -2405,7 +2412,7 @@
                             <div class="col-md-1"><button type="button" class="btn btn-sm btn-default" ng-if="$index !== 0" ng-click="removeWork($index)"><i class="glyphicon glyphicon-trash"></i> Remove</button></div>
                         </td>
                     </tr>
-                    <tr ng-if="mainContract !== '2022Work-agreement'">
+                    <tr ng-if="mainContract !== '2022Work-agreement'&&mainContract !== 'technical_maintenance_services'">
                         <td>
                             <div class="input-group">
                                 <span class="input-group-addon">
