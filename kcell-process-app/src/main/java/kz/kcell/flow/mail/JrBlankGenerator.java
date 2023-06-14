@@ -67,15 +67,35 @@ public class JrBlankGenerator {
         put("Павлодарская область", 0.03);
     }};
 
-    private final static Map<String, String> contractorNumber;
+    private final static Map<String, String> contractNumber;
     static
     {
-        contractorNumber = new HashMap<String, String>();
-        contractorNumber.put("6", "734974/2022/1 (CM 98137)");
-        contractorNumber.put("7", "734974/2022/2-1 (CM 98110)");
-        contractorNumber.put("8", "734974/2022/4 (CM 98132)");
-        contractorNumber.put("10", "734974/2022/3 (CM 98136)");
-        contractorNumber.put("11", "734974/2022/5 (CM 98235)");
+        contractNumber = new HashMap<String, String>();
+        contractNumber.put("6", "734974/2022/1 (CM 98137)");
+        contractNumber.put("7", "734974/2022/2-1 (CM 98110)");
+        contractNumber.put("8", "734974/2022/4 (CM 98132)");
+        contractNumber.put("10", "734974/2022/3 (CM 98136)");
+        contractNumber.put("11", "734974/2022/5 (CM 98235)");
+    };
+
+    private final static Map<String, String> contractNumberSAO2023;
+    static
+    {
+        contractNumberSAO2023 = new HashMap<String, String>();
+        contractNumberSAO2023.put("7", "808229/2023/2");
+        contractNumberSAO2023.put("8", "777717/2023/1");
+        contractNumberSAO2023.put("9", "808229/2023/1");
+        contractNumberSAO2023.put("10", "777717/2023/2");
+    };
+
+    private final static Map<String, String> contractDateSAO2023;
+    static
+    {
+        contractDateSAO2023 = new HashMap<String, String>();
+        contractDateSAO2023.put("7", "14.02.2023 г.");
+        contractDateSAO2023.put("8", "17.01.2023 г.");
+        contractDateSAO2023.put("9", "10.02.2023 г.");
+        contractDateSAO2023.put("10", "18.01.2023 г.");
     };
 
     private final static Map<String, String> reasonsTitle;
@@ -204,10 +224,17 @@ public class JrBlankGenerator {
             row.setHeight((short)500);
             cell = row.createCell(6);
             StringBuilder stringBuilder = new StringBuilder();
-            stringBuilder.append("К Договору подряда №")
-                .append(contractorNumber.get(contractor) != null ? contractorNumber.get(contractor) : "________")
-                .append(System.lineSeparator())
-                .append("от 16.09.2022 г");
+            if (mainContract.equals("technical_maintenance_services")) {
+                stringBuilder.append("К Договору подряда №")
+                    .append(contractNumberSAO2023.get(contractor) != null ? contractNumberSAO2023.get(contractor) : "________")
+                    .append(System.lineSeparator())
+                    .append(contractDateSAO2023.get(contractor));
+            } else {
+                stringBuilder.append("К Договору подряда №")
+                    .append(contractNumber.get(contractor) != null ? contractNumber.get(contractor) : "________")
+                    .append(System.lineSeparator())
+                    .append("от 16.09.2022 г");
+            }
             cell.setCellValue(stringBuilder.toString());
             CellUtil.setFont(cell, arialBI9);
             CellUtil.setCellStyleProperties(cell, properties);
@@ -251,9 +278,11 @@ public class JrBlankGenerator {
             row.createCell(1).setCellValue("Дата начала выполнения работ:");
             row.createCell(4).setCellValue(workStartDate != null ? sdf.format(workStartDate) : "");
 
-            row = sheet.createRow(12);
-            row.createCell(1).setCellValue("Дата выполнения Интеграции");
-            row.createCell(4).setCellValue(integrationRunDate != null ? sdf.format(integrationRunDate) : "");
+            if (!mainContract.equals("technical_maintenance_services")) {
+                row = sheet.createRow(12);
+                row.createCell(1).setCellValue("Дата выполнения Интеграции");
+                row.createCell(4).setCellValue(integrationRunDate != null ? sdf.format(integrationRunDate) : "");
+            }
 
             row = sheet.createRow(13);
             row.createCell(1).setCellValue("Дата окончания работ:");
@@ -404,15 +433,21 @@ public class JrBlankGenerator {
 
             }
 
-            row = sheet.getRow(18+jobWorks.size())!=null?sheet.getRow(18+jobWorks.size()):sheet.createRow(18 + jobWorks.size());
-            row.createCell(7).setCellValue("Размер скидки, %:");
-            row.createCell(8).setCellValue(Math.round(DISCOUNT_MAP.get(oblastName)*100));
-            CellUtil.setFont(row.getCell(7), arialB10);
+            if (mainContract.equals("technical_maintenance_services")) {
+                row = sheet.getRow(18 + jobWorks.size()) != null ? sheet.getRow(18 + jobWorks.size()) : sheet.createRow(18 + jobWorks.size());
+                row.createCell(7).setCellValue("Размер скидки, %:");
+                row.createCell(8).setCellValue(Math.round(DISCOUNT_MAP.get(oblastName) * 100));
+                CellUtil.setFont(row.getCell(7), arialB10);
+            }
 
             BigDecimal jobWorksTotalDiscounted = jobWorksTotal.multiply(BigDecimal.valueOf(1-DISCOUNT_MAP.get(oblastName))).setScale(2, RoundingMode.HALF_UP);
             row = sheet.getRow(19+jobWorks.size())!=null?sheet.getRow(19+jobWorks.size()):sheet.createRow(19 + jobWorks.size());
             row.createCell(7).setCellValue("Всего работ на сумму:");
-            row.createCell(8).setCellValue(jobWorksTotalDiscounted.doubleValue());
+            if (mainContract.equals("technical_maintenance_services")) {
+                row.createCell(8).setCellValue(jobWorksTotal.doubleValue());
+            } else {
+                row.createCell(8).setCellValue(jobWorksTotalDiscounted.doubleValue());
+            }
             CellUtil.setFont(row.getCell(7), arialB10);
 
             row = sheet.getRow(20+jobWorks.size())!=null?sheet.getRow(20+jobWorks.size()):sheet.createRow(20 + jobWorks.size());
