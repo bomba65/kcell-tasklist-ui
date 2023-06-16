@@ -3071,6 +3071,7 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                                 'headers': [
                                     "Contract",
                                     "JR To",
+                                    "Contractor",
                                     "Year",
                                     "Month",
                                     "Region",
@@ -3110,6 +3111,7 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
 
                                 arrId['data'][i]["Contract"] = el['contract']?.['name']
                                 arrId['data'][i]["JR To"] = el["job_to"]
+                                arrId['data'][i]["Contractor"] = el["contractor"]?.['name']
 
                                 var monthNames = ["January", "February", "March", "April", "May", "June",
                                     "July", "August", "September", "October", "November", "December"
