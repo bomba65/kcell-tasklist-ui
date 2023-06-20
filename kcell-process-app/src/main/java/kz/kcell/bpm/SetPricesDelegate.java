@@ -163,7 +163,7 @@ public class SetPricesDelegate implements TaskListener {
                 BigDecimal jobWorksTotal = BigDecimal.ZERO;
                 int i=0;
                 for (JsonNode work : jobWorks) {
-                    if(work.has("id") && work.get("id").intValue() >= 5000) {
+                    if(work.has("id") && work.get("id").intValue() >= 6000) {
                         continue;
                     }
                     ObjectNode workPrice = work.deepCopy();
@@ -181,6 +181,17 @@ public class SetPricesDelegate implements TaskListener {
                             workPriceJson.put("priceWithMaterial", priceJson.get(oblastName).textValue());
                             workPriceJson.put("priceWithoutMaterial", priceJson.get(oblastName).textValue());
                             workPriceJson.put("price", priceJson.get(oblastName).textValue());
+                        } else if ("technical_maintenance_services".equals(mainContract)) {
+                            if(work.get("materials").asBoolean()){
+                                workPriceJson.put("price", priceJson.get(oblastName).get(work.get("isMaterialsActive").textValue()).textValue());
+                                workPriceJson.put("priceWithMaterial", priceJson.get(oblastName).get(work.get("isMaterialsActive").textValue()).textValue());
+                                workPriceJson.put("priceWithoutMaterial", priceJson.get(oblastName).get(work.get("isMaterialsActive").textValue()).textValue());
+                            }
+                            else {
+                                workPriceJson.put("price", priceJson.get(oblastName).get("active").textValue());
+                                workPriceJson.put("priceWithMaterial", priceJson.get(oblastName).get("active").textValue());
+                                workPriceJson.put("priceWithoutMaterial", priceJson.get(oblastName).get("active").textValue());
+                            }
                         } else {
                             workPriceJson.put("priceWithMaterial", priceJson.get(siteRegion).get("with_material").textValue());
                             workPriceJson.put("priceWithoutMaterial", priceJson.get(siteRegion).get("without_material").textValue());
@@ -208,6 +219,17 @@ public class SetPricesDelegate implements TaskListener {
                         }
                         workPrice.put("basePrice", priceJson.get(oblastName).textValue());
                         workPrices.add(workPrice);
+                    } else if ("technical_maintenance_services".equals(mainContract)) {
+                        if(work.get("materials").asBoolean()){
+                            unitWorkPrice = new BigDecimal(priceJson.get(oblastName).get(work.get("isMaterialsActive").textValue()).textValue());
+                            workPrice.put("basePrice",  priceJson.get(oblastName).get(work.get("isMaterialsActive").textValue()).textValue());
+                            workPrices.add(workPrice);
+                        }
+                        else {
+                            unitWorkPrice = new BigDecimal(priceJson.get(oblastName).get("active").textValue());
+                            workPrice.put("basePrice",priceJson.get(oblastName).get("active").textValue());
+                            workPrices.add(workPrice);
+                        }
                     } else {
                         unitWorkPrice = new BigDecimal(priceJson.get(siteRegion).get(work.has("materialsProvidedBy") && "subcontractor".equals(work.get("materialsProvidedBy").textValue()) ? "with_material" : "without_material").textValue());
 
