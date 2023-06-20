@@ -700,6 +700,7 @@
                     $scope.jobWorks[index].displayServiceName = $item.displayServiceName;
                     $scope.jobWorks[index].materialUnit = $item.units;
                     $scope.jobWorks[index].materialsProvidedByDisabled = true;
+                    $scope.jobWorks[index].materials =  $item.materials[$scope.oblastName];
                     if (subContractorsMaterials.includes($scope.jobWorks[index].sapServiceNumber)) {
                         $scope.jobWorks[index].materialsProvidedBy = 'subcontractor'
                     }
@@ -711,6 +712,13 @@
                     }
                 }
             };
+            $scope.isMaterialsActive=null;
+            $scope.setMaterials = function(isMaterialsActive, index){
+                $scope.jobWorks[index].isMaterialsActive=isMaterialsActive;
+                console.log("$scope.jobWorks[index].isMaterialsActive "+$scope.jobWorks[index].isMaterialsActive)
+
+            };
+
             $scope.getWorks = function(val) {
                 var result = _.filter($scope.works, function(work){
                     return work.displayServiceName.toLowerCase().indexOf(val.toLowerCase()) !== -1;
@@ -720,7 +728,9 @@
                     if(!$scope.mainContract || !$scope.custom.contractor){
                         return false;
                     } else {
-                        if($scope.mainContract === '2022Work-agreement') {
+                        if($scope.mainContract === 'technical_maintenance_services'){
+                            return element.id >= 5000;
+                        } else if($scope.mainContract === '2022Work-agreement') {
                             return element.id >= 4000;
                         } else if($scope.mainContract === 'Roll-outRevision2020'){
                             return element.id >= 3000 && element.id < 4000;
@@ -1041,8 +1051,8 @@
             <div class="form-control disabled">{{subcontractorName}}</div>
         </div>
     </div>
-    <div ng-show="mainContract === '2022Work-agreement'">
-        <div class="form-group">
+
+        <div class="form-group" ng-show="mainContract === '2022Work-agreement'">
             <label class="col-sm-4 control-label">Work start date:</label>
             <div class="col-sm-3">
                 <div class="input-group">
@@ -1055,7 +1065,7 @@
                 </div>
             </div>
         </div>
-        <div class="form-group">
+        <div class="form-group" ng-show="mainContract === '2022Work-agreement'||mainContract==='technical_maintenance_services'">
             <label class="col-sm-4 control-label">Integration run date:</label>
             <div class="col-sm-3">
                 <div class="input-group">
@@ -1068,7 +1078,7 @@
                 </div>
             </div>
         </div>
-        <div class="form-group">
+        <div class="form-group" ng-show="mainContract === '2022Work-agreement'">
             <label class="col-sm-4 control-label">Work completion date:</label>
             <div class="col-sm-3">
                 <div class="input-group">
@@ -1081,7 +1091,6 @@
                 </div>
             </div>
         </div>
-    </div>
     <div class="form-group">
         <label class="col-sm-4 control-label">Reason:</label>
         <div class="col-sm-3">
@@ -1248,8 +1257,9 @@
                     <th width="40%">Works</th>
                     <th width="7%">Works Qty</th>
                     <th width="13%" ng-if="isOldContracts">Materials Qty</th>
-                    <th width="16%" ng-if="!isOldContracts && mainContract !== '2022Work-agreement'">Materials By</th>
+                    <th width="16%" ng-if="!isOldContracts && mainContract !== '2022Work-agreement'&&mainContract!=='technical_maintenance_services'">Materials By</th>
                     <th width="30%">Sites involved</th>
+                    <th width="13%" ng-if="mainContract === 'technical_maintenance_services'">Materials</th>
                     <th></th>
                 </tr>
                 </thead>
@@ -1286,7 +1296,7 @@
                             </div>
                             <label class="error" ng-if="workForm.materialQuantity.$error.required && ( workForm.materialQuantity.$touched || view.submitted)">Required field</label>
                         </td>
-                        <td style="padding-left: 40px" ng-if="!isOldContracts && mainContract !== '2022Work-agreement'">
+                        <td style="padding-left: 40px" ng-if="!isOldContracts && mainContract !== '2022Work-agreement'&&mainContract!=='technical_maintenance_services'">
                             <input id="subContractorMaterial{{$index}}" type="radio" ng-model="jobWork.materialsProvidedBy" name="materialsProvidedBy{{$index}}" value="subcontractor" required ng-disabled="jobWork.materialsProvidedByDisabled">
                             <label class="bolder" for="subContractorMaterial{{$index}}">Subcontractor</label>
                             <br/>
@@ -1298,10 +1308,18 @@
                             <span ng-repeat="rs in jobWork.relatedSites" class="my-tag" ng-class="{'main-site':rs.site_name===site_name}"><span ng-if="rs.site_name===site_name">Main Site: </span>{{rs.site_name}} <a ng-click="removeRelatedSite($parent.$index, $index)">&times;</a></span>
                             <input type="text" ng-model="tempSite.name" style="display: inline-block; width:100px;" name="tempSiteName" typeahead="site as sites.site_name for sites in getSite($viewValue)" typeahead-on-select="workSiteSelected($item, $index); tempSite={};" class="form-control" autocomplete="off" placeholder="Add Site">
                         </td>
+                        <td style="padding-left: 40px" ng-if="mainContract === 'technical_maintenance_services'">
+                            <input type="radio" ng-model="isMaterialsActive" name="isMaterialsActive{{$index}}" value="active" ng-required="jobWork.materials"  ng-change="setMaterials(isMaterialsActive,$index)" ng-disabled="!jobWork.materials">
+                            <label class="bolder" >active</label>
+                            <br/>
+                            <input type="radio" ng-model="isMaterialsActive" name="isMaterialsActive{{$index}}" value="inactive" ng-required="jobWork.materials" ng-change="setMaterials(isMaterialsActive,$index)" ng-disabled="!jobWork.materials">
+                            <label class="bolder" >inactive</label>
+                            <label class="error" ng-show="kcell_form['isMaterialsActive'+$index].$error.required && ( kcell_form['isMaterialsActive'+$index].$touched || view.submitted)">Required field</label>
+                        </td>
                         <td><div class="col-md-1"><button type="button" class="btn btn-sm btn-warning" ng-if="$index !== 0" ng-click="removeWork($index)"><i class="glyphicon glyphicon-trash"></i> Remove</button></div></td>
                     </ng-form>
                 </tr>
-                <tr ng-if="mainContract !== '2022Work-agreement'">
+                <tr ng-if="mainContract !== '2022Work-agreement'&&mainContract!=='technical_maintenance_services'">
                     <td>
                         <div class="input-group">
                                 <span class="input-group-addon">
