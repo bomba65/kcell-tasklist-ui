@@ -9,10 +9,7 @@ select
     oblastName.text_ as "Oblast",
     case
         when relatedSites.site_names is not null then
-            case
-                when position(sitename.text_ in relatedSites.site_names) > 0 then relatedSites.site_names
-                else sitename.text_ || ', ' || relatedSites.site_names
-                end
+            relatedSites.site_names
         else
             sitename.text_
         end as sitename,
@@ -42,20 +39,20 @@ select
         else null
         end as "JR Reason",
     to_timestamp(requestedDate.long_/1000) + interval '6 hour' as "Requested Date",
-    pi.start_user_id_ as "Requested By",
+        pi.start_user_id_ as "Requested By",
     to_timestamp(validityDate.long_/1000) + interval '6 hour' as "Validity Date",
-    to_timestamp(workStartDate.long_/1000) + interval '6 hour' as "workStartDate",
-    to_timestamp(integrationRunDate.long_/1000) + interval '6 hour' as "integrationRunDate",
-    to_timestamp(workCompletionDate.long_/1000) + interval '6 hour' as "workCompletionDate",
-    relatedTo.text_ as "Related to the",
+            to_timestamp(workStartDate.long_/1000) + interval '6 hour' as "workStartDate",
+            to_timestamp(integrationRunDate.long_/1000) + interval '6 hour' as "integrationRunDate",
+            to_timestamp(workCompletionDate.long_/1000) + interval '6 hour' as "workCompletionDate",
+        relatedTo.text_ as "Related to the",
     project.text_ as "Project",
     mtListSignDate.value_ + interval '6 hour' as "Material List Signing Date",
-    acceptanceByInitiatorDate.value_ + interval '6 hour' as "Accept by Initiator",
-    acceptMaint.value_ + interval '6 hour' as "Accept by Work Maintenance",
-    acceptPlan.value_ + interval '6 hour' as "Accept by Work Planning",
-    acceptanceDate.value_ + interval '6 hour' as "Acceptance Date",
+            acceptanceByInitiatorDate.value_ + interval '6 hour' as "Accept by Initiator",
+            acceptMaint.value_ + interval '6 hour' as "Accept by Work Maintenance",
+            acceptPlan.value_ + interval '6 hour' as "Accept by Work Planning",
+            acceptanceDate.value_ + interval '6 hour' as "Acceptance Date",
     -- сюда еще нужно состав работ разбитый на строки
-    coalesce(title.value_, worksJson.value ->>'displayServiceName') as "Job Description",
+        coalesce(title.value_, worksJson.value ->>'displayServiceName') as "Job Description",
     worksJson.value ->>'quantity' as "Quantity",
     worksJson.value ->> 'materialsProvidedBy' as "Materials from",
     jobReason.text_ as "Job reason",
@@ -81,7 +78,7 @@ select
     sapPRTotalValue.text_ as "PR Total Value",
     sapPRStatus.text_ as "PR Status",
     to_timestamp(sapPRApproveDate.long_/1000) + interval '6 hour' as "PR Approval date",
-    sapPONo.text_ as "PO#",
+        sapPONo.text_ as "PO#",
     invoiceNumber.text_ as "Invoice #",
     to_timestamp(invoiceDate.long_/1000) + interval '6 hour' as "Invoice date"
 from act_hi_procinst pi
@@ -183,12 +180,12 @@ from act_hi_procinst pi
                    on true
          left join lateral (
     select distinct workPricesJson.value->>'sapServiceNumber' as sapServiceNumber,
-                    workPricesJson.value->>'quantity' as quantity,
-                    cast(workPricesJson.value->>'totalWithDiscount' as numeric) as totalWithDiscount,
-                    --workPricesJson.value->>'basePriceByQuantity' as basePriceByQuantity,
-                    --workPricesJson.value->>'netWorkPricePerSite' as netWorkPricePerSite
-                    cast(workPricesJson.value ->>'unitWorkPrice' as numeric) * cast(worksJson.value ->>'quantity' as double precision) as unitWorkPrice,            --"Price without transport",
-                    cast(workPricesJson.value ->>'unitWorkPricePlusTx' as numeric) * cast(worksJson.value ->>'quantity' as double precision) as unitWorkPricePlusTx --"Price with transport"
+            workPricesJson.value->>'quantity' as quantity,
+            cast(workPricesJson.value->>'totalWithDiscount' as numeric) as totalWithDiscount,
+    --workPricesJson.value->>'basePriceByQuantity' as basePriceByQuantity,
+    --workPricesJson.value->>'netWorkPricePerSite' as netWorkPricePerSite
+            cast(workPricesJson.value ->>'unitWorkPrice' as numeric) * cast(worksJson.value ->>'quantity' as double precision) as unitWorkPrice,            --"Price without transport",
+            cast(workPricesJson.value ->>'unitWorkPricePlusTx' as numeric) * cast(worksJson.value ->>'quantity' as double precision) as unitWorkPricePlusTx --"Price with transport"
     from act_hi_varinst workPrices
              left join act_ge_bytearray workPricesBytes
                        on workPrices.bytearray_id_ = workPricesBytes.id_
@@ -223,7 +220,7 @@ from act_hi_procinst pi
     where jobWorks.proc_inst_id_ = pi.id_
       and jobWorks.name_ = 'jobWorks'
     GROUP BY
-	 sapServiceNumber
+        sapServiceNumber
     ) relatedSites on worksJson.value->>'sapServiceNumber'=relatedSites.sapServiceNumber
 
          left join act_hi_varinst acceptAndSignByInitiatorTaskResult
