@@ -86,6 +86,14 @@ public class SetWorkVariables implements ExecutionListener {
                         String oblast = execution.hasVariable("oblastName") ? execution.getVariable("oblastName").toString() : null;
                         if(oblast.contains("Шымкент (г.а.)")) oblast="Туркестанская область";
                         workPriceJson.put("price", priceJson.get(oblast).textValue());
+                    } else if ("technical_maintenance_services".equals(mainContract)) {
+                        String oblast = execution.hasVariable("oblastName") ? execution.getVariable("oblastName").toString() : null;
+                        if(work.get("materials").asBoolean()){
+                            workPriceJson.put("price", priceJson.get(oblast).get(work.get("isMaterialsActive").textValue()).textValue());
+                        }
+                        else {
+                            workPriceJson.put("price", priceJson.get(oblast).get("active").textValue());
+                        }
                     } else {
                         String siteRegion = (String) execution.getVariable("siteRegion");
                         if("nc".equals(siteRegion) || "east".equals(siteRegion)){
