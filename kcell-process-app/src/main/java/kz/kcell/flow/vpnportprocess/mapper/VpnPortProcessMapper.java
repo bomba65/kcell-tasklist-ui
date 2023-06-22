@@ -81,8 +81,8 @@ public class VpnPortProcessMapper {
             .kcellIp(vpn.getKcellIp())
             .vlan(vlan)
             .serviceCapacity(vpn.getServiceCapacity())
-            .providerAs(vpn.getService().equals("L3") ? "9198" : null)
-            .kcellAs(vpn.getService().equals("L3") ? "29355" : null)
+            .providerAs(vpn.getProviderAs() == null && vpn.getService().equals("L3") ? "9198" : vpn.getProviderAs())
+            .kcellAs(vpn.getKcellAs() == null && vpn.getService().equals("L3") ? "29355" : vpn.getKcellAs())
             .nearEndAddressId(addressId)
             .status(status)
             .build();
