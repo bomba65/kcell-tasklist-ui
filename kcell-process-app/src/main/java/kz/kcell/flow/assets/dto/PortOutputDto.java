@@ -21,6 +21,6 @@ public class PortOutputDto {
     private String portCapacityUnit;
     private String channelType;
     private String portType;
-    private AdressesOutputDto farEndAddress;
+    private AdressesOutputDto portTerminationPoint;
     private String status;
 }

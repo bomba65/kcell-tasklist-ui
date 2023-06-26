@@ -4,59 +4,20 @@ define(['./../../module'], function(module) {
         return {
             restrict: 'E',
             scope: {
+                formData: '=',
                 addedServices: '=',
                 oblastCatalog: '=',
                 districtCatalog: '=',
                 cityVillageCatalog: '=',
                 serviceTypeCatalog: '=',
-                formData: '=',
                 form: '=',
                 view: '='
             },
             link: function (scope, el, attrs) {
-                scope.searchOblastSelected = function (obl) {
-                    scope.addedServices.length = 0;
-                    scope.formData.isSearched = false;
-                    scope.formData.availablePorts = undefined;
-                }
-
-                scope.searchDistrictSelected = function (dis) {
-                    scope.addedServices.length = 0;
-                    scope.formData.isSearched = false;
-                    scope.formData.availablePorts = undefined;
-                }
-
-                scope.searchCitySelected = function (city) {
-                    scope.addedServices.length = 0;
-                    scope.formData.isSearched = false;
-                    scope.formData.availablePorts = undefined;
-                }
-
-                scope.formData.isSearched = false;
-                scope.formData.searchOption = scope.formData?.searchOption ? scope.formData.searchOption : 'portId'
-
-                scope.searchPorts = function () {
-                    scope.addedServices.length = 0;
-                    scope.formData.isSearched = true;
-                    if (!scope.formData.search_oblast || !scope.formData.search_district || !scope.formData.search_city_village) return;
-
-                    $http.get('/camunda/port/city_id/' + scope.formData.search_city_village + '?status=Active').then(
-                        (response) => {
-                            scope.formData.availablePorts = response.data
-                        }
-                    );
-                }
-
-                scope.searchByPortNumber = function () {
-                    scope.addedServices.length = 0;
-                    scope.formData.isSearched = true;
-                    if (!scope.formData.search_port_number) return;
-
-                    $http.get('/camunda/port/port_number/' + scope.formData.search_port_number + '?status=Active').then(
-                        (response) => {
-                            scope.formData.availablePorts = response.data
-                        }
-                    );
+                if (scope.addedServices != null && scope.addedServices.length > 0) {
+                    for (var i = 0; i < scope.addedServices.length; i++) {
+                        scope.addedServices[i].terminationPoint2FormData = {};
+                    }
                 }
 
                 scope.addService = function(availablePort) {
@@ -72,7 +33,7 @@ define(['./../../module'], function(module) {
                         "service_capacity": null,
                         "provider_as": null,
                         "kcell_as": null,
-                        "near_end_address": {
+                        "vpn_termination_point_2": {
                             "city_id": {
                                 "id": null
                             },
@@ -80,9 +41,14 @@ define(['./../../module'], function(module) {
                             "building": null,
                             "cadastral_number": null,
                             "note": null,
-                        }
+                        },
+                        "terminationPoint2FormData": {}
                     }
                     scope.addedServices.push(service);
+                };
+
+                scope.addTerminationPoint2 = function (addedService, availablePort) {
+                    addedService.vpn_termination_point_2 = availablePort.port_termination_point;
                 };
 
                 scope.addressToString = function (address) {

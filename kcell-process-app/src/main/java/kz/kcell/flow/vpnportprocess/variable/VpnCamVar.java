@@ -1,6 +1,7 @@
 package kz.kcell.flow.vpnportprocess.variable;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.PropertyNamingStrategy;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import lombok.AllArgsConstructor;
@@ -29,7 +30,8 @@ public class VpnCamVar {
     private Integer modifiedServiceCapacity;
     private String providerAs;
     private String kcellAs;
-    private AddressCamVar nearEndAddress;
+    @JsonProperty("vpn_termination_point_2")
+    private AddressCamVar vpnTerminationPoint2;
     private Boolean confirmed;
     private Boolean providerConfirmed;
     private Boolean modifyConfirmed;

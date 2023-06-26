@@ -119,7 +119,7 @@ public class IpVpnConnectService {
                 sheet = workbook.getSheet("3G_REGIONS");
                 sheet.shiftRows(rowIndexPortNumberFoundIn3gRegionsSheet + 1, sheet.getLastRowNum(), 1, true, true);
                 row = sheet.createRow(rowIndexPortNumberFoundIn3gRegionsSheet + 1);
-            } else if (DISTRICTS.contains(vpn.getNearEndAddress().getCityId().getDistrictId().getName())) {
+            } else if (DISTRICTS.contains(vpn.getVpnTerminationPoint2().getCityId().getDistrictId().getName())) {
                 sheet = workbook.getSheet("VPN");
                 row = sheet.createRow(findLastNonBlankRow(sheet) + 1);
             } else {

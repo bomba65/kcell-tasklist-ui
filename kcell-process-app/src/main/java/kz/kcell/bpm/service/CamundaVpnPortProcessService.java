@@ -149,6 +149,7 @@ public class CamundaVpnPortProcessService {
             .processInstanceId(processInstance.getId())
             .variableNameLike("%Services").list();
         return vpnVars.stream()
+            .filter(o -> !o.getName().equals("preModifiedAddedServices"))
             .map(vpnVar -> ((JacksonJsonNode) vpnVar.getValue())).flatMap(node -> node.elements().stream())
             .map(e -> ((JacksonJsonNode) e).unwrap().findValue("vpn_number"))
             .filter(Objects::nonNull).map(JsonNode::toString).map(s -> s.replace("\"", "")).collect(Collectors.toList());
@@ -159,6 +160,7 @@ public class CamundaVpnPortProcessService {
             .processInstanceId(processInstance.getId())
             .variableNameLike("%Services").list();
         Set<String> set = vpnVars.stream()
+            .filter(o -> !o.getName().equals("preModifiedAddedServices"))
             .map(vpnVar -> ((JacksonJsonNode) vpnVar.getValue())).flatMap(node -> node.elements().stream())
             .map(e -> ((JacksonJsonNode) e).unwrap().findValue("port_id") != null ?
                 ((JacksonJsonNode) e).unwrap().findValue("port_id") : ((JacksonJsonNode) e).unwrap().findValue("port_number"))
