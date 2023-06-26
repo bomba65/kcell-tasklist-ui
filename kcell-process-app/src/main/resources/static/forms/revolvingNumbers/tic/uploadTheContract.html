@@ -6,11 +6,13 @@
             color: #333;
         }
     </style>
-    <script cam-script type="text/form-script">
+    <script cam-script type="text/javascript">
         inject(['$scope', '$http', 'Uri', '$rootScope', '$q', 'toasty', '$timeout', function ($scope, $http, Uri, $rootScope, $q, toasty, $timeout) {
             $scope.legalInfo = {};
             $scope.resolutions = [];
             $scope.attachments = [];
+            var processInstanceId = undefined;
+            var assigneeName = undefined;
 
             $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
                 function(result){
@@ -76,6 +78,68 @@
                     function(response) {console.log(response.data);}
                 );
             }
+
+            $scope.fileSelected = function(el ){
+                $timeout(function () {
+                    $scope.$apply(function () {
+                        uploadFileToMinio(el.files[0]);
+                    });
+                })
+            };
+
+            $scope.newAttachemnts = [];
+
+            function uploadFileToMinio(file) {
+                var fileToUpload = {
+                    name: file.name.replace(/[/\\?%*:|"<>]/g, '-'),
+                    path: processInstanceId + '/' + camForm.taskId + '/' + file.name.replace(/[/\\?%*:|"<>]/g, '-'),
+                    created: new Date(),
+                    createdBy: assigneeName
+                };
+                $http({method: 'GET', url: '/camunda/uploads/put/' + fileToUpload.path, transformResponse: [] }).then(
+                    function(response) {
+                        $http.put(response.data, file, {headers: {'Content-Type': undefined}}).then(
+                            function () {
+                                $scope.attachments.push(fileToUpload);
+                                $scope.newAttachemnts.push(fileToUpload);
+                                angular.element(document.querySelector('#attachments')).val(null);
+                            },
+                            function (error) {
+                                console.log(error.data);
+                            }
+                        );
+                    },
+                    function(response) { console.log(response.data); }
+                );
+            }
+
+            $http.get('/camunda/api/engine/engine/default/task/' + camForm.taskId).then(
+                function (result) {
+                    processInstanceId = result.data.processInstanceId;
+                },
+                function (error) {
+                    console.log(error.data);
+                }
+            );
+
+            $http.get("/camunda/api/engine/engine/default/user/" + $rootScope.authentication.name + "/profile").then(function(result){
+                assigneeName = (result.data.firstName ? result.data.firstName : "") + " " + (result.data.lastName ? result.data.lastName : "");
+            });
+
+            $scope.clearFile = function(fileIndex) {
+                var fileToRemove = $scope.attachments[fileIndex];
+                var newFileIndex = $scope.newAttachemnts.indexOf(fileToRemove);
+                if (newFileIndex !== -1) {
+                    $scope.newAttachemnts.splice(newFileIndex, 1);
+                }
+                $scope.attachments.splice(fileIndex, 1);
+            };
+
+            $scope.isRemovable = function(index) {
+                var file = $scope.attachments[index];
+                var newFileIndex = $scope.newAttachemnts.indexOf(file);
+                return newFileIndex !== -1
+            }
         }]);
     </script>
 
@@ -111,6 +175,7 @@
     <div class="form-group">
         <label class="col-sm-3 control-label">Attachments</label>
         <div class="col-sm-9">
+            <input type="file" class="form-control" id="attachments" name="attachments" onchange="angular.element(this).scope().fileSelected(this)"/>
             <div class="col-sm-12" style="padding: 0;">
                 <table class="table table-bordered">
                     <thead>
@@ -118,6 +183,7 @@
                         <th>File Name</th>
                         <th>Created</th>
                         <th>Created By</th>
+                        <th>Delete</th>
                     </tr>
                     </thead>
                     <tbody>
@@ -125,6 +191,7 @@
                         <td><a ng-click="downloadFile(file)">{{file.name}}</a></td>
                         <td>{{file.created | date: 'dd.MM.yyyy HH:mm'}}</td>
                         <td>{{file.createdBy}}</td>
+                        <td><a ng-if="isRemovable($index)" ng-click="clearFile($index)"><i class="glyphicon glyphicon-trash"></i></a></td>
                     </tr>
                     </tbody>
                 </table>
