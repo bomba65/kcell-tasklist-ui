@@ -14,6 +14,6 @@ public class PortInputDto {
     private String portCapacityUnit;
     private String channelType;
     private String portType;
-    private Long farEndAddressId;
+    private Long portTerminationPointId;
     private String status;
 }

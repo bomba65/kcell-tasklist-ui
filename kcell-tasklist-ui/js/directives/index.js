@@ -22,6 +22,7 @@ define([
 	'./search/vpnPortSearch',
 	'./aftersalesRevolvingNumbers/index',
   	'./fixedInternet/index',
+	'./vpnPortProcess/common/portSearchForm',
 	'./vpnPortProcess/start/organizePort',
 	'./vpnPortProcess/start/disbandPort',
 	'./vpnPortProcess/start/organizeVpn',

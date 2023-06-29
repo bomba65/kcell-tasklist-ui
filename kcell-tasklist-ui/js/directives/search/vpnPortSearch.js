@@ -62,12 +62,12 @@ define(['../module'], function (module) {
                                 : new Date(scope.processInstances[i].processInstance.endTime).toLocaleDateString();
 
                             if (scope.processInstances[i].channel === 'VPN') {
-                                var servicesString = searchPropValue(scope.processInstances[i], "Services");
+                                var servicesString = searchPropValue(scope.processInstances[i], "Services", "preModifiedAddedServices");
                                 if (servicesString) {
                                     scope.processInstances[i].vpns = JSON.parse(servicesString)
                                 }
                             } else {
-                                var portsString = searchPropValue(scope.processInstances[i], "Ports");
+                                var portsString = searchPropValue(scope.processInstances[i], "Ports", null);
                                 if (portsString) {
                                     scope.processInstances[i].ports = JSON.parse(portsString)
                                 }
@@ -164,9 +164,9 @@ define(['../module'], function (module) {
                     return value;
                 }
 
-                function searchPropValue(obj, searchString) {
+                function searchPropValue(obj, searchString, excludeSearchString) {
                     for (var prop in obj) {
-                        if (prop.includes(searchString)) {
+                        if (prop.includes(searchString) && prop !== excludeSearchString) {
                             return obj[prop];
                         }
                     }

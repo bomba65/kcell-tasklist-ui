@@ -19,6 +19,6 @@ public class VpnInputDto {
     private Integer serviceCapacity;
     private String providerAs;
     private String kcellAs;
-    private Long nearEndAddressId;
+    private Long vpnTerminationPoint2Id;
     private String status;
 }

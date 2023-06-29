@@ -29,7 +29,7 @@ public class VpnPortProcessMapper {
             .portCapacityUnit(port.getPortCapacityUnit())
             .channelType(port.getChannelType())
             .portType(port.getPortType())
-            .farEndAddressId(addressId)
+            .portTerminationPointId(addressId)
             .status(status)
             .build();
     }
@@ -41,7 +41,7 @@ public class VpnPortProcessMapper {
             .portCapacityUnit(port.getPortCapacityUnit())
             .channelType(port.getChannelType())
             .portType(port.getPortType())
-            .farEndAddressId(port.getFarEndAddress().getId())
+            .portTerminationPointId(port.getPortTerminationPoint().getId())
             .status(status)
             .build();
     }
@@ -53,7 +53,7 @@ public class VpnPortProcessMapper {
             .portCapacityUnit(port.getModifiedPortCapacityUnit())
             .channelType(port.getChannelType())
             .portType(port.getPortType())
-            .farEndAddressId(port.getFarEndAddress().getId())
+            .portTerminationPointId(port.getPortTerminationPoint().getId())
             .status(status)
             .build();
     }
@@ -65,7 +65,7 @@ public class VpnPortProcessMapper {
             .portCapacityUnit(port.getPortCapacityUnit())
             .channelType(port.getChannelType())
             .portType(port.getPortType())
-            .farEndAddressId(port.getFarEndAddress().getId())
+            .portTerminationPointId(port.getPortTerminationPoint().getId())
             .status(status)
             .build();
     }
@@ -83,7 +83,7 @@ public class VpnPortProcessMapper {
             .serviceCapacity(vpn.getServiceCapacity())
             .providerAs(vpn.getProviderAs() == null && vpn.getService().equals("L3") ? "9198" : vpn.getProviderAs())
             .kcellAs(vpn.getKcellAs() == null && vpn.getService().equals("L3") ? "29355" : vpn.getKcellAs())
-            .nearEndAddressId(addressId)
+            .vpnTerminationPoint2Id(addressId)
             .status(status)
             .build();
     }
@@ -101,7 +101,7 @@ public class VpnPortProcessMapper {
             .serviceCapacity(vpn.getServiceCapacity())
             .providerAs(vpn.getProviderAs())
             .kcellAs(vpn.getKcellAs())
-            .nearEndAddressId(vpn.getNearEndAddress().getId())
+            .vpnTerminationPoint2Id(vpn.getVpnTerminationPoint2().getId())
             .status(vpn.getStatus())
             .build();
     }
@@ -119,7 +119,7 @@ public class VpnPortProcessMapper {
             .serviceCapacity(vpn.getServiceCapacity())
             .providerAs(vpn.getProviderAs())
             .kcellAs(vpn.getKcellAs())
-            .nearEndAddressId(vpn.getNearEndAddress().getId())
+            .vpnTerminationPoint2Id(vpn.getVpnTerminationPoint2().getId())
             .status(status)
             .build();
     }
@@ -137,7 +137,7 @@ public class VpnPortProcessMapper {
             .serviceCapacity(serviceCapacity)
             .providerAs(vpn.getProviderAs())
             .kcellAs(vpn.getKcellAs())
-            .nearEndAddressId(vpn.getNearEndAddress().getId())
+            .vpnTerminationPoint2Id(vpn.getVpnTerminationPoint2().getId())
             .status(status)
             .build();
     }
@@ -155,7 +155,7 @@ public class VpnPortProcessMapper {
             .serviceCapacity(vpn.getServiceCapacity()) // set modified service capacity
             .providerAs(vpn.getProviderAs())
             .kcellAs(vpn.getKcellAs())
-            .nearEndAddressId(vpn.getNearEndAddress().getId())
+            .vpnTerminationPoint2Id(vpn.getVpnTerminationPoint2().getId())
             .status(status)
             .build();
     }
@@ -173,7 +173,7 @@ public class VpnPortProcessMapper {
             .serviceCapacity(vpn.getServiceCapacity())
             .providerAs(vpn.getProviderAs())
             .kcellAs(vpn.getKcellAs())
-            .nearEndAddressId(vpn.getNearEndAddress().getId())
+            .vpnTerminationPoint2Id(vpn.getVpnTerminationPoint2().getId())
             .status(status)
             .build();
     }
@@ -193,7 +193,7 @@ public class VpnPortProcessMapper {
             .modifiedServiceCapacity(modifiedServiceCapacity)
             .providerAs(vpn.getProviderAs())
             .kcellAs(vpn.getKcellAs())
-            .nearEndAddress(map(vpn.getNearEndAddress()))
+            .vpnTerminationPoint2(map(vpn.getVpnTerminationPoint2()))
             .build();
     }
 
@@ -205,7 +205,7 @@ public class VpnPortProcessMapper {
             .portCapacityUnit(port.getPortCapacityUnit())
             .channelType(port.getChannelType())
             .portType(port.getPortType())
-            .farEndAddress(map(port.getFarEndAddress()))
+            .portTerminationPoint(map(port.getPortTerminationPoint()))
             .build();
     }
 

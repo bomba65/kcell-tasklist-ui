@@ -27,10 +27,10 @@ public interface VpnPortClient {
     List<VpnOutputDto> getVpnsByPortNumber(@Param("portNumber") String portNumber, @QueryMap Map<String, Object> queryMap);
 
     @RequestLine("GET /vpn/far_end_city_id/{farEndCityId}")
-    List<VpnOutputDto> getVpnsByFarEndAddress(@Param("farEndCityId") Long farEndCityId, @QueryMap Map<String, Object> queryMap);
+    List<VpnOutputDto> getVpnsByPortTerminationPoint(@Param("farEndCityId") Long farEndCityId, @QueryMap Map<String, Object> queryMap);
 
     @RequestLine("GET /vpn/near_end_city_id/{nearEndCityId}")
-    List<VpnOutputDto> getVpnsByNearEndAddress(@Param("nearEndCityId") Long nearEndCityId, @QueryMap Map<String, Object> queryMap);
+    List<VpnOutputDto> getVpnsByVpnTerminationPoint2(@Param("nearEndCityId") Long nearEndCityId, @QueryMap Map<String, Object> queryMap);
 
     @RequestLine("PUT /vpn/{id}")
     VpnOutputDto updateVpn(VpnInputDto vpnInputDto, @Param("id") Long id);

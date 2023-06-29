@@ -62,23 +62,23 @@ public class VpnController {
         }
     }
 
-    @GetMapping("/far_end_city_id/{farEndCityId}")
-    public List<VpnOutputDto> getVpnsByFarEndAddress(@PathVariable Long farEndCityId, @RequestParam(required=false) String status) {
+    @GetMapping("/port_termination_point_city_id/{portTerminationPointCityId}")
+    public List<VpnOutputDto> getVpnsByPortTerminationPoint(@PathVariable Long portTerminationPointCityId, @RequestParam(required=false) String status) {
         if (status == null) {
-            return vpnPortClient.getVpnsByFarEndAddress(farEndCityId, new HashMap<>());
+            return vpnPortClient.getVpnsByPortTerminationPoint(portTerminationPointCityId, new HashMap<>());
         } else {
-            return vpnPortClient.getVpnsByFarEndAddress(farEndCityId, new HashMap<String, Object>() {{
+            return vpnPortClient.getVpnsByPortTerminationPoint(portTerminationPointCityId, new HashMap<String, Object>() {{
                 put("status", status);
             }});
         }
     }
 
-    @GetMapping("/near_end_city_id/{nearEndCityId}")
-    public List<VpnOutputDto> getVpnsByNearEndAddress(@PathVariable Long nearEndCityId, @RequestParam(required=false) String status) {
+    @GetMapping("/vpn_termination_point_2_city_id/{vpnTerminationPoint2CityId}")
+    public List<VpnOutputDto> getVpnsByVpnTerminationPoint2(@PathVariable Long vpnTerminationPoint2CityId, @RequestParam(required=false) String status) {
         if (status == null) {
-            return vpnPortClient.getVpnsByNearEndAddress(nearEndCityId, new HashMap<>());
+            return vpnPortClient.getVpnsByVpnTerminationPoint2(vpnTerminationPoint2CityId, new HashMap<>());
         } else {
-            return vpnPortClient.getVpnsByNearEndAddress(nearEndCityId, new HashMap<String, Object>() {{
+            return vpnPortClient.getVpnsByVpnTerminationPoint2(vpnTerminationPoint2CityId, new HashMap<String, Object>() {{
                 put("status", status);
             }});
         }

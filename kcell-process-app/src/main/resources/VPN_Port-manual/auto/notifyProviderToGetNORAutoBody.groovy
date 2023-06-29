@@ -35,8 +35,8 @@ def makeStringAddress(address) {
 }
 
 for (service in automodifyServices) {
-    service.near_end_address = makeStringAddress(service.near_end_address)
-    service.port?.far_end_address = makeStringAddress(service.port?.far_end_address)
+    service.vpn_termination_point_2 = makeStringAddress(service.vpn_termination_point_2)
+    service.port?.port_termination_point = makeStringAddress(service.port?.port_termination_point)
 }
 
 def link = System.getenv('CATALOG_URL') ?: 'https://catalogs.test-flow.kcell.kz'
@@ -113,11 +113,11 @@ html(lang:'ru') {
                         td(service.kcell_ip)
                         td(service.provider_as)
                         td(service.kcell_as)
-                        td(service.near_end_address)
+                        td(service.vpn_termination_point_2)
                         td(service.port?.port_number)
                         td(service.port?.channel_type)
                         td(service.port?.port_type)
-                        td(service.port?.far_end_address)
+                        td(service.port?.port_termination_point)
                     }
                 }
             }

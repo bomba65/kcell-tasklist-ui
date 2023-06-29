@@ -23,5 +23,5 @@ public class PortCamVar {
     private Integer modifiedPortCapacity;
     private String portCapacityUnit;
     private String modifiedPortCapacityUnit;
-    private AddressCamVar farEndAddress;
+    private AddressCamVar portTerminationPoint;
 }

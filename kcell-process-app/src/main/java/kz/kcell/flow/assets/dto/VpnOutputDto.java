@@ -1,6 +1,7 @@
 package kz.kcell.flow.assets.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.PropertyNamingStrategy;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import lombok.AllArgsConstructor;
@@ -29,6 +30,7 @@ public class VpnOutputDto {
     private Integer serviceCapacity;
     private String providerAs;
     private String kcellAs;
-    private AdressesOutputDto nearEndAddress;
+    @JsonProperty("vpn_termination_point_2")
+    private AdressesOutputDto vpnTerminationPoint2;
     private String status;
 }

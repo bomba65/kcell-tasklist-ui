@@ -59,23 +59,23 @@ def makeStringAddress(address) {
 }
 
 for (port in addedPorts) {
-    port.far_end_address = makeStringAddress(port.far_end_address)
+    port.port_termination_point = makeStringAddress(port.port_termination_point)
 }
 for (port in modifyPorts) {
-    port.far_end_address = makeStringAddress(port.far_end_address)
+    port.port_termination_point = makeStringAddress(port.port_termination_point)
 }
 for (port in disbandPorts) {
-    port.far_end_address = makeStringAddress(port.far_end_address)
+    port.port_termination_point = makeStringAddress(port.port_termination_point)
 }
 
 for (service in addedServices) {
-    service.near_end_address = makeStringAddress(service.near_end_address)
+    service.vpn_termination_point_2 = makeStringAddress(service.vpn_termination_point_2)
 }
 for (service in modifyServices) {
-    service.near_end_address = makeStringAddress(service.near_end_address)
+    service.vpn_termination_point_2 = makeStringAddress(service.vpn_termination_point_2)
 }
 for (service in disbandServices) {
-    service.near_end_address = makeStringAddress(service.near_end_address)
+    service.vpn_termination_point_2 = makeStringAddress(service.vpn_termination_point_2)
 }
 
 def link = System.getenv('CATALOG_URL') ?: 'https://catalogs.test-flow.kcell.kz'
@@ -112,7 +112,7 @@ if (request_type == "Organize") {
                                 td(port.port_type)
                                 td(port.port_capacity)
                                 td(port.port_capacity_unit)
-                                td(port.far_end_address)
+                                td(port.port_termination_point)
                             }
                         }
                     }
@@ -158,7 +158,7 @@ if (request_type == "Organize") {
                                 td(service.port?.port_number)
                                 td(service.port?.channel_type)
                                 td(service.port?.port_type)
-                                td(service.near_end_address)
+                                td(service.vpn_termination_point_2)
                             }
                         }
                     }
@@ -193,7 +193,7 @@ if (request_type == "Organize") {
                                 td(port.port_capacity_unit)
                                 td(port.modified_port_capacity)
                                 td(port.modified_port_capacity_unit)
-                                td(port.far_end_address)
+                                td(port.port_termination_point)
                             }
                         }
                     }
@@ -241,7 +241,7 @@ if (request_type == "Organize") {
                                 td(service.port?.port_number)
                                 td(service.port?.channel_type)
                                 td(service.port?.port_type)
-                                td(service.near_end_address)
+                                td(service.vpn_termination_point_2)
                             }
                         }
                     }
@@ -272,7 +272,7 @@ if (request_type == "Organize") {
                                 td(port.port_type)
                                 td(port.port_capacity)
                                 td(port.port_capacity_unit)
-                                td(port.far_end_address)
+                                td(port.port_termination_point)
                             }
                         }
                     }
@@ -318,7 +318,7 @@ if (request_type == "Organize") {
                                 td(service.port?.port_number)
                                 td(service.port?.channel_type)
                                 td(service.port?.port_type)
-                                td(service.near_end_address)
+                                td(service.vpn_termination_point_2)
                             }
                         }
                     }

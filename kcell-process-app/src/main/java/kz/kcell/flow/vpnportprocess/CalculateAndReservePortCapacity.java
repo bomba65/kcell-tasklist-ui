@@ -62,11 +62,11 @@ public class CalculateAndReservePortCapacity implements JavaDelegate {
         List<PortOutputDto> createdPorts = Arrays.stream(addedPorts).map((port) -> {
             try {
                 PortOutputDto existingPort = vpnPortClient.getPortsByPortNumber(port.getPortNumber(), new HashMap<String,Object>(){{put("status","Ordered");}}).get(0);
-                vpnPortClient.updateAddress(vpnPortProcessMapper.map(port.getFarEndAddress()), existingPort.getFarEndAddress().getId());
-                return vpnPortClient.updatePort(vpnPortProcessMapper.map(port, existingPort.getFarEndAddress().getId(), "Ordered"), existingPort.getId());
+                vpnPortClient.updateAddress(vpnPortProcessMapper.map(port.getPortTerminationPoint()), existingPort.getPortTerminationPoint().getId());
+                return vpnPortClient.updatePort(vpnPortProcessMapper.map(port, existingPort.getPortTerminationPoint().getId(), "Ordered"), existingPort.getId());
             } catch (FeignException exception) {
                 if (exception.status() == 404) {
-                    long addressId = vpnPortClient.createNewAddress(vpnPortProcessMapper.map(port.getFarEndAddress())).getId();
+                    long addressId = vpnPortClient.createNewAddress(vpnPortProcessMapper.map(port.getPortTerminationPoint())).getId();
                     return vpnPortClient.createNewPort(vpnPortProcessMapper.map(port, addressId, "Ordered"));
                 } else {
                     throw exception;
@@ -174,7 +174,7 @@ public class CalculateAndReservePortCapacity implements JavaDelegate {
 
         List<Pair<String,Integer>> addedIpVpnRowNumbers = new ArrayList<>();
         List<VpnOutputDto> createdVpns = Arrays.stream(addedServices).map(vpn -> {
-            long addressId = vpnPortClient.createNewAddress(vpnPortProcessMapper.map(vpn.getNearEndAddress())).getId();
+            long addressId = vpn.getVpnTerminationPoint2().getId();
             String vlan = null;
             // write to IPVPN CONNECT.xlsm to VLAN sheet and get a vlan value for the newly created vpn
             if (vpn.getService().equals("L2")) {

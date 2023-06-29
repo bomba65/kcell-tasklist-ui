@@ -75,7 +75,7 @@ public class CompletionSaveInDb implements JavaDelegate {
 
         for(int i = 0; i < addedServices.length; i++) {
             VpnCamVar vpn = addedServices[i];
-            vpnPortClient.updateVpn(vpnPortProcessMapper.mapFromAddedVpn(vpn, vpn.getNearEndAddress().getId(), vpn.getVlan(), "Active"), vpn.getId());
+            vpnPortClient.updateVpn(vpnPortProcessMapper.mapFromAddedVpn(vpn, vpn.getVpnTerminationPoint2().getId(), vpn.getVlan(), "Active"), vpn.getId());
             ipVpnConnectService.changeAddedServiceStatus(vpn,  addedIpVpnRowNumbers.get(i), "Active");
         }
     }

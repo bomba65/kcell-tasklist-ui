@@ -60,7 +60,7 @@ define(['./../../module'], function(module) {
                             "port_type": null,
                             "port_capacity": null,
                             "port_capacity_unit": null,
-                            "far_end_address": {
+                            "port_termination_point": {
                                 "city_id": {
                                     "id": scope.formData.search_city_village,
                                 },
