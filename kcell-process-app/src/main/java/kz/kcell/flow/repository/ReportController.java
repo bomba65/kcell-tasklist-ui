@@ -12,7 +12,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
@@ -72,6 +71,33 @@ public class ReportController {
             return ResponseEntity.ok(new ArrayList<FinancialReportDto>());
         }
         InputStream fis = ReportController.class.getResourceAsStream("/reports/financial-report_contract2022.sql");
+        Scanner s = new Scanner(fis).useDelimiter("\\A");
+        String query = s.hasNext() ? s.next() : "";
+        List<FinancialReportDto> reportDtos = reportRepository.financialReport(query);
+        return ResponseEntity.ok(reportDtos);
+    }
+
+    @RequestMapping(value = "/power-extended-financial-report-by-works", method = RequestMethod.GET)
+    @ResponseBody
+    public ResponseEntity<List<FinancialReportDto>> getPowerExtendedReportByWorks(){
+        if (identityService.getCurrentAuthentication() == null || identityService.getCurrentAuthentication().getUserId() == null) {
+            log.warning("No user logged in");
+            return ResponseEntity.ok(new ArrayList<FinancialReportDto>());
+        }
+        InputStream fis = ReportController.class.getResourceAsStream("/reports/power-extended-financial-report-by-works.sql");
+        Scanner s = new Scanner(fis).useDelimiter("\\A");
+        String query = s.hasNext() ? s.next() : "";
+        List<FinancialReportDto> reportDtos = reportRepository.financialReport(query);
+        return ResponseEntity.ok(reportDtos);
+    }
+    @RequestMapping(value = "/power-extended-financial-report-by-jobs", method = RequestMethod.GET)
+    @ResponseBody
+    public ResponseEntity<List<FinancialReportDto>> getPowerExtendedReportByJobs(){
+        if (identityService.getCurrentAuthentication() == null || identityService.getCurrentAuthentication().getUserId() == null) {
+            log.warning("No user logged in");
+            return ResponseEntity.ok(new ArrayList<FinancialReportDto>());
+        }
+        InputStream fis = ReportController.class.getResourceAsStream("/reports/power-extended-financial-report-by-jobs.sql");
         Scanner s = new Scanner(fis).useDelimiter("\\A");
         String query = s.hasNext() ? s.next() : "";
         List<FinancialReportDto> reportDtos = reportRepository.financialReport(query);
