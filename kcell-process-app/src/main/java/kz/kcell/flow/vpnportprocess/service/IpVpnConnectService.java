@@ -588,7 +588,7 @@ public class IpVpnConnectService {
             }
 
             if (foundRowNumbersInVpnSheet.isEmpty() && foundRowNumbersIn3gSheet.isEmpty()) {
-                throw new RuntimeException("Port number:" + portNumber + " not found in IPVPN CONNECT.xlsm");
+                log.info("In modify port process no services found for port number: {}", portNumber);
             }
 
             ByteArrayOutputStream out = new ByteArrayOutputStream();

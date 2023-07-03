@@ -37,13 +37,13 @@ define(['./../../module'], function(module) {
                     if (!scope.formData.search_oblast || !scope.formData.search_district || !scope.formData.search_city_village) return;
 
                     if (scope.formData.searchOption === 'portTerminationPoint') {
-                        $http.get('/camunda/vpn/far_end_city_id/' + scope.formData.search_city_village + '?status=Active').then(
+                        $http.get('/camunda/vpn/port_termination_point_city_id/' + scope.formData.search_city_village + '?status=Active').then(
                             (response) => {
                                 scope.formData.availableServices = response.data;
                             }
                         );
                     } else if (scope.formData.searchOption === 'vpnTerminationPoint2') {
-                        $http.get('/camunda/vpn/near_end_city_id/' + scope.formData.search_city_village + '?status=Active').then(
+                        $http.get('/camunda/vpn/vpn_termination_point_2_city_id/' + scope.formData.search_city_village + '?status=Active').then(
                             (response) => {
                                 scope.formData.availableServices = response.data
                             }

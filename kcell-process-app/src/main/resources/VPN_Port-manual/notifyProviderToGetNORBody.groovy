@@ -100,7 +100,7 @@ if (request_type == "Organize") {
                             th('Port type')
                             th('Capacity')
                             th('Capacity unit')
-                            th('Far end address')
+                            th('Termination point')
                         }
                     }
                     tbody {
@@ -179,7 +179,7 @@ if (request_type == "Organize") {
                             th('Capacity unit')
                             th('Modified Capacity')
                             th('Modified Capacity unit')
-                            th('Far end address')
+                            th('Termination point')
                         }
                     }
                     tbody {
@@ -260,7 +260,7 @@ if (request_type == "Organize") {
                             th('Port type')
                             th('Capacity')
                             th('Capacity unit')
-                            th('Far end address')
+                            th('Termination point')
                         }
                     }
                     tbody {
