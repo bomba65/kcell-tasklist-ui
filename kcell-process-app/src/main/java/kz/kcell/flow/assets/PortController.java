@@ -3,7 +3,10 @@ package kz.kcell.flow.assets;
 import kz.kcell.flow.assets.client.VpnPortClient;
 import kz.kcell.flow.assets.dto.PortInputDto;
 import kz.kcell.flow.assets.dto.PortOutputDto;
+import kz.kcell.flow.vpnportprocess.service.PortCapacityService;
+import kz.kcell.flow.vpnportprocess.variable.PortCamVar;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -22,6 +25,7 @@ import java.util.List;
 @RequestMapping("/port")
 public class PortController {
     private final VpnPortClient vpnPortClient;
+    private final PortCapacityService portCapacityService;
 
     @PostMapping
     public PortOutputDto createNewPort(@RequestBody PortInputDto portDto) {
@@ -70,5 +74,10 @@ public class PortController {
     @DeleteMapping("/{id}")
     public void deletePorts(@PathVariable Long id) {
         vpnPortClient.deletePorts(id);
+    }
+
+    @PostMapping("/port-capacity-enough")
+    public ResponseEntity<Boolean> checkPortCapacity(@RequestBody List<PortCamVar> ports) {
+        return ResponseEntity.ok(portCapacityService.portCapacityEnough(ports));
     }
 }

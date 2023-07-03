@@ -468,5 +468,91 @@ define(['./module', 'camundaSDK', 'html2canvas', 'pdfMake'], function (module, C
                 }
             };
         };
+    }]).service('VpnPortService', ['$http', '$modal', function ($http, $modal) {
+        this.checkCapacityForVpns = function (services, deferred, scope, getBusinessKeyFunc) {
+            if (!scope.portCapacityExceeded) {
+                return $http.post('/camunda/vpn/port-capacity-enough', services)
+                    .then(function (response) {
+                        if (response.data === false) {
+                            scope.portCapacityExceeded = true;
+                            deferred.reject('Port capacity exceeded')
+                            return deferred.promise;
+                        } else {
+                            if (getBusinessKeyFunc != null) return getBusinessKeyFunc();
+
+                            deferred.resolve();
+                            return deferred.promise;
+                        }
+                    })
+                    .catch(function (error) {
+                        deferred.reject('An error occurred during port capacity check');
+                        return deferred.promise;
+                    });
+            } else {
+                return this.showModalWindow(deferred, getBusinessKeyFunc)
+            }
+        }
+
+        this.checkCapacity = function (ports, deferred, scope, getBusinessKeyFunc) {
+            if (!scope.portCapacityExceeded) {
+                return $http.post('/camunda/port/port-capacity-enough', ports)
+                    .then(function (response) {
+                        if (response.data === false) {
+                            scope.portCapacityExceeded = true;
+                            deferred.reject('Port capacity exceeded')
+                            return deferred.promise;
+                        } else {
+                            if (getBusinessKeyFunc != null) return getBusinessKeyFunc();
+
+                            deferred.resolve();
+                            return deferred.promise;
+                        }
+                    })
+                    .catch(function (error) {
+                        deferred.reject('An error occurred during port capacity check');
+                        return deferred.promise;
+                    });
+            } else {
+                return this.showModalWindow(deferred, getBusinessKeyFunc)
+            }
+        }
+
+        this.showModalWindow = function (deferred, getBusinessKeyFunc) {
+            const modalInstance = $modal.open({
+                template: `
+                          <div class="modal-header">
+                            <h3 class="modal-title">Attention! Port capacity exceeded</h3>
+                          </div>
+                          <div class="modal-body">
+                            <p>Do you really want to Start request?</p>
+                          </div>
+                          <div class="modal-footer">
+                            <button class="btn btn-default" ng-click="cancel()">Cancel</button>
+                            <button class="btn btn-primary" ng-click="submit()">Start</button>
+                          </div>
+                        `,
+                backdrop: true,
+                windowClass: 'modal',
+                controller: function ($scope, $modalInstance) {
+                    $scope.submit = function () {
+                        $modalInstance.close('start');
+                    };
+                    $scope.cancel = function () {
+                        $modalInstance.dismiss('cancel');
+                    };
+                }
+            });
+
+            return modalInstance.result.then(function (result) {
+                if (getBusinessKeyFunc != null) return getBusinessKeyFunc();
+
+                deferred.resolve();
+                return deferred.promise;
+            }, function (reason) {
+                deferred.reject("Port capacity exceeded")
+                return deferred.promise;
+            });
+        }
+
     }]);
 });
