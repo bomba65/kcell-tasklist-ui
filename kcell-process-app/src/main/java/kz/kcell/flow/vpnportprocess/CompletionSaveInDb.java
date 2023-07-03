@@ -64,7 +64,7 @@ public class CompletionSaveInDb implements JavaDelegate {
 
         for (PortCamVar port : modifyPorts) {
             vpnPortClient.updatePort(vpnPortProcessMapper.mapModifiedPort(port, "Active"), port.getId());
-            ipVpnConnectService.changePortCapacity(port.getPortNumber(),port.getPortCapacity()+port.getPortCapacityUnit(), "In Process");
+            ipVpnConnectService.changePortCapacity(port.getPortNumber(),port.getPortCapacity()+port.getPortCapacityUnit(), "Active");
         }
     }
 

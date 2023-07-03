@@ -93,11 +93,11 @@ html(lang:'ru') {
                     th('Kcell IP')
                     th('Provider AS')
                     th('Kcell AS')
-                    th('Near end address')
                     th('Port ID')
                     th('Channel Type')
                     th('Port Type')
-                    th('Far end address')
+                    th('Termination point 1')
+                    th('Termination point 2')
                 }
             }
             tbody {
@@ -113,11 +113,11 @@ html(lang:'ru') {
                         td(service.kcell_ip)
                         td(service.provider_as)
                         td(service.kcell_as)
-                        td(service.vpn_termination_point_2)
                         td(service.port?.port_number)
                         td(service.port?.channel_type)
                         td(service.port?.port_type)
                         td(service.port?.port_termination_point)
+                        td(service.vpn_termination_point_2)
                     }
                 }
             }
