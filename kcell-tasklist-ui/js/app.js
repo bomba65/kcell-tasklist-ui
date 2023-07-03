@@ -245,7 +245,13 @@ define('app',[
 	    	controller: "leasingStatisticsCtrl",
 	    	authenticate: true,
 	    	resolve: resolve
-	    }).state("filesAndDictionaries", {
+	    }).state("PowerRevisionStatistics", {
+			url: "/PowerRevisionStatistics",
+			templateUrl: "js/partials/PowerRevisionStatistics.html",
+			controller: "PowerRevisionStatisticsCtrl",
+			authenticate: true,
+			resolve: resolve
+		}).state("filesAndDictionaries", {
 			url: "/filesAndDictionaries",
 			templateUrl: "js/partials/files.html",
 			controller: "filesCtrl",
