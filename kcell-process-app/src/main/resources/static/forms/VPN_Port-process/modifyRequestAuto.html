@@ -1,6 +1,6 @@
 <form role="form" class="form-horizontal" name="kcell_form" novalidate>
     <script cam-script type="text/form-script" type="text/javascript">
-        inject(['$scope', '$http', '$rootScope', '$q', '$timeout', 'exModal', function ($scope, $http, $rootScope, $q) {
+        inject(['$scope', '$http', '$rootScope', '$q', 'VpnPortService', function ($scope, $http, $rootScope, $q, VpnPortService) {
             const variables = [
                 'automodifyServices',
                 'channel',
@@ -15,6 +15,11 @@
 
             $scope.resolution = undefined;
             $scope.confirmRequestTaskComment = undefined;
+            $scope.portCapacityExceeded = false;
+
+            $scope.$watch('automodifyServices', function () {
+                $scope.portCapacityExceeded = false;
+            }, true);
 
             $http.get('/camunda/catalogs/api/get/id/83').then(
                 function (response) {
@@ -92,6 +97,18 @@
                     }
                 });
             });
+
+            $scope.preSubmit = function() {
+                const deferred = $q.defer();
+
+                if ($scope.automodifyServices.length > 0) {
+                    VpnPortService.checkCapacityForVpns($scope.automodifyServices, deferred, scope)
+                } else {
+                    deferred.resolve();
+                }
+
+                return deferred.promise;
+            }
 
             camForm.on('submit', function (e) {
                 camForm.variableManager.variableValue("automodifyServices", $scope.automodifyServices);
@@ -193,6 +210,8 @@
             </table>
         </div>
     </div>
+
+    <div ng-if="portCapacityExceeded"><span class="exclamation-mark">!</span><span style="padding-left: 1rem;" class="text-danger">Attention! Port capacity exceeded</span></div>
 
     <div class="form-group">
         <div class="col-sm-2 control-label">

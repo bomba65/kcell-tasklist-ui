@@ -103,61 +103,12 @@ public class CalculateAndReservePortCapacity implements JavaDelegate {
         PortCamVar[] modifyPorts = objectMapper.readValue(execution.getVariable("modifyPorts").toString(), PortCamVar[].class);
 
         for (PortCamVar port : modifyPorts) {
-            long totalServiceCapacity;
-            try {
-                totalServiceCapacity = vpnPortClient.getVpnsByPortNumber(port.getPortNumber(), new HashMap<String,Object>(){{put("status","Active");}})
-                    .stream().mapToLong(VpnOutputDto::getServiceCapacity).sum();
-            } catch (FeignException exception) {
-                if (exception.status() == 404) {
-                    totalServiceCapacity = 0;
-                } else {
-                    throw exception;
-                }
-            }
-            long portCapacity = port.getPortCapacityUnit().equals("Gb") ? port.getPortCapacity() * 1000L : port.getPortCapacity();
-            long modifiedPortCapacity = port.getModifiedPortCapacityUnit().equals("Gb") ? port.getModifiedPortCapacity() * 1000L : port.getModifiedPortCapacity();
-
-            if (modifiedPortCapacity < portCapacity && totalServiceCapacity * 100 / modifiedPortCapacity >= 90) {
-                execution.setVariable("calculateAndReservePortCapacityReject", "modified port capacity is not enough");
-                return;
-            }
-        }
-
-        for (PortCamVar port : modifyPorts) {
             vpnPortClient.updatePort(vpnPortProcessMapper.map(port, "In Process"), port.getId());
         }
     }
 
     private void organizeVpn(DelegateExecution execution) throws Exception {
         VpnCamVar[] addedServices = objectMapper.readValue(execution.getVariable("addedServices").toString(), VpnCamVar[].class);
-
-        // group newly added vpns by port
-        Map<PortCamVar, List<VpnCamVar>> portToVpns = Arrays.stream(addedServices).collect(Collectors.groupingBy(VpnCamVar::getPort));
-
-        // check if port capacity is enough
-        for (Map.Entry<PortCamVar, List<VpnCamVar>> entry : portToVpns.entrySet()) {
-            PortCamVar port = entry.getKey();
-            long totalServiceCapacity;
-            try {
-                totalServiceCapacity = vpnPortClient.getVpnsByPortNumber(port.getPortNumber(), new HashMap<String,Object>(){{put("status","Active");}})
-                    .stream().mapToLong(VpnOutputDto::getServiceCapacity).sum();
-            } catch (FeignException exception) {
-                if (exception.status() == 404) {
-                    totalServiceCapacity = 0;
-                } else {
-                    throw exception;
-                }
-            }
-
-            long portCapacity = port.getPortCapacityUnit().equals("Gb") ? port.getPortCapacity() * 1000L : port.getPortCapacity();
-
-            long totalAddedServiceCapacity = entry.getValue().stream().mapToLong(VpnCamVar::getServiceCapacity).sum();
-
-            if ((totalServiceCapacity + totalAddedServiceCapacity) * 100 / portCapacity >= 90) {
-                execution.setVariable("calculateAndReservePortCapacityReject", "port capacity is not enough for new service");
-                return;
-            }
-        }
 
         VpnCamVar[] preModifiedAddedServices = execution.getVariable("preModifiedAddedServices") != null ?
             objectMapper.readValue(execution.getVariable("preModifiedAddedServices").toString(), VpnCamVar[].class) :
@@ -207,35 +158,6 @@ public class CalculateAndReservePortCapacity implements JavaDelegate {
 
     private void modifyVpn(DelegateExecution execution) throws IOException {
         VpnCamVar[] modifyServices = objectMapper.readValue(execution.getVariable("modifyServices").toString(), VpnCamVar[].class);
-
-        // group vpns to modify by port
-        Map<PortCamVar, List<VpnCamVar>> portToVpns = Arrays.stream(modifyServices).collect(Collectors.groupingBy(VpnCamVar::getPort));
-
-        for (Map.Entry<PortCamVar, List<VpnCamVar>> entry : portToVpns.entrySet()) {
-            PortCamVar port = entry.getKey();
-            long totalServiceCapacityOnPort;
-            try {
-                totalServiceCapacityOnPort = vpnPortClient.getVpnsByPortNumber(port.getPortNumber(), new HashMap<String,Object>(){{put("status","Active");}})
-                    .stream().mapToLong(VpnOutputDto::getServiceCapacity).sum();
-            } catch (FeignException exception) {
-                if (exception.status() == 404) {
-                    totalServiceCapacityOnPort = 0;
-                } else {
-                    throw exception;
-                }
-            }
-
-            long portCapacity = port.getPortCapacityUnit().equals("Gb") ? port.getPortCapacity() * 1000L : port.getPortCapacity();
-
-            long totalExistingServiceCapacity = entry.getValue().stream().mapToLong(VpnCamVar::getServiceCapacity).sum();
-            long totalModifiedServiceCapacity = entry.getValue().stream().mapToLong(VpnCamVar::getModifiedServiceCapacity).sum();
-            long capacityDiff = totalModifiedServiceCapacity - totalExistingServiceCapacity;
-
-            if ((totalServiceCapacityOnPort + capacityDiff) * 100 / portCapacity >= 90) {
-                execution.setVariable("calculateAndReservePortCapacityReject", "port capacity is not enough for modified service");
-                return;
-            }
-        }
 
         for (VpnCamVar vpn : modifyServices) {
             vpnPortClient.updateVpn(vpnPortProcessMapper.mapFromModifiedVpn(vpn, "In Process", vpn.getServiceCapacity()), vpn.getId());

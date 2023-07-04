@@ -1,6 +1,6 @@
 <form role="form" class="form-horizontal" name="kcell_form" novalidate>
     <script cam-script type="text/form-script" type="text/javascript">
-        inject(['$scope', '$http', '$rootScope', '$q', '$timeout', 'exModal', function ($scope, $http, $rootScope, $q) {
+        inject(['$scope', '$http', '$rootScope', '$q', '$modal', 'VpnPortService', function ($scope, $http, $rootScope, $q, $modal, VpnPortService) {
             $scope.addedPorts = [];
             $scope.disbandPorts = [];
             $scope.modifyPorts = [];
@@ -12,6 +12,7 @@
             $scope.request_type = 'Organize';
             $scope.priority = 'Regular';
             $scope.dateCreated = undefined;
+            $scope.portCapacityExceeded = false;
 
             $scope.clearArrays = function () {
                 $scope.addedPorts = [];
@@ -21,6 +22,7 @@
                 $scope.disbandServices= [];
                 $scope.modifyServices= [];
                 $scope.formData = {};
+                $scope.portCapacityExceeded = false;
             }
 
             $http.get('/camunda/catalogs/api/get/id/30').then(
@@ -47,29 +49,57 @@
                 }
             );
 
+            $scope.$watch('addedServices', function () {
+                $scope.portCapacityExceeded = false;
+            }, true);
+
+            $scope.$watch('modifyServices', function () {
+                $scope.portCapacityExceeded = false;
+            }, true);
+
+            $scope.$watch('modifyPorts', function () {
+                $scope.portCapacityExceeded = false;
+            }, true);
+
             $scope.preSubmit = function () {
                 const deferred = $q.defer();
                 if ($scope.request_type === 'Organize' && $scope.channel === 'Port' && $scope.addedPorts.length === 0) {
                     deferred.reject('Please add ports');
                 } else if ($scope.request_type === 'Disband' && $scope.channel === 'Port' && $scope.disbandPorts.length === 0) {
                     deferred.reject('Please select ports to disband');
-                } else if ($scope.request_type === 'Modify' && $scope.channel === 'Port' && $scope.modifyPorts.length === 0) {
-                    deferred.reject('Please select ports to disband');
-                } else if ($scope.request_type === 'Organize' && $scope.channel === 'VPN' && $scope.addedServices.length === 0) {
-                    deferred.reject('Please add services');
+                } else if ($scope.request_type === 'Modify' && $scope.channel === 'Port') {
+                    if ($scope.modifyPorts.length === 0) {
+                        deferred.reject('Please select ports to disband');
+                    } else {
+                        return VpnPortService.checkCapacity($scope.modifyPorts, deferred, $scope, getBusinessKey);
+                    }
+                } else if ($scope.request_type === 'Organize' && $scope.channel === 'VPN') {
+                    if ($scope.addedServices.length === 0) {
+                        deferred.reject('Please add services');
+                    } else {
+                        return VpnPortService.checkCapacityForVpns($scope.addedServices, deferred, $scope, getBusinessKey);
+                    }
                 } else if ($scope.request_type === 'Disband' && $scope.channel === 'VPN' && $scope.disbandServices.length === 0) {
                     deferred.reject('Please select services to disband');
-                } else if ($scope.request_type === 'Modify' && $scope.channel === 'VPN' && $scope.modifyServices.length === 0) {
-                    deferred.reject('Please select services to modify');
+                } else if ($scope.request_type === 'Modify' && $scope.channel === 'VPN') {
+                    if ($scope.modifyServices.length === 0) {
+                        deferred.reject('Please select services to modify');
+                    } else {
+                        return VpnPortService.checkCapacityForVpns($scope.modifyServices, deferred, $scope, getBusinessKey);
+                    }
                 } else {
-                    deferred.resolve();
-                    return $http.post('/asset-management/vpn_port_counter/' + $scope.channel).then(
-                        function(result){
-                            $scope.businessKey = $scope.channel + '-' + result.data;
-                        }
-                    );
+                    return getBusinessKey();
                 }
+
                 return deferred.promise;
+            }
+
+            function getBusinessKey() {
+                return $http.post('/asset-management/vpn_port_counter/' + $scope.channel).then(
+                    function(result){
+                        $scope.businessKey = $scope.channel + '-' + result.data;
+                    }
+                );
             }
 
             camForm.on('submit', function (e) {
@@ -144,6 +174,40 @@
                     value: new Date().toISOString()
                 });
             });
+
+            function showModalWindow(deferred) {
+                var modalInstance = $modal.open({
+                    template: `
+                          <div class="modal-header">
+                            <h3 class="modal-title">Attention! Port capacity exceeded</h3>
+                          </div>
+                          <div class="modal-body">
+                            <p>Do you really want to Start request?</p>
+                          </div>
+                          <div class="modal-footer">
+                            <button class="btn btn-default" ng-click="cancel()">Cancel</button>
+                            <button class="btn btn-primary" ng-click="submit()">Start</button>
+                          </div>
+                        `,
+                    backdrop: true,
+                    windowClass: 'modal',
+                    controller: function($scope, $modalInstance) {
+                        $scope.submit = function() {
+                            $modalInstance.close('start');
+                        };
+                        $scope.cancel = function() {
+                            $modalInstance.dismiss('cancel');
+                        };
+                    }
+                });
+
+                return modalInstance.result.then(function(result) {
+                    return getBusinessKey();
+                }, function(reason) {
+                    deferred.reject("Port capacity exceeded")
+                    return deferred.promise;
+                });
+            }
         }]);
     </script>
     <div class="form-group">
@@ -200,4 +264,6 @@
                  oblast-catalog="oblastCatalog" district-catalog="districtCatalog" city-village-catalog="cityVillageCatalog"
                  form-data="formData" service-type-catalog="serviceTypeCatalog"
                  form="kcell_form" view="view"></modify-vpn>
+
+    <div ng-if="portCapacityExceeded"><span class="exclamation-mark">!</span><span style="padding-left: 1rem;" class="text-danger">Attention! Port capacity exceeded</span></div>
 </form>
