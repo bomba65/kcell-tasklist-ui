@@ -3380,7 +3380,7 @@ define(['./module', 'camundaSDK', 'lodash', 'big-js', 'jquery', 'moment'], funct
                             "Work start date", "Integration run date", "Work completion date", "Related to the", "Project"
                             , "Material List Signing Date", "Accept by Initiator", "Accept by Work Maintenance", "Accept by Work Planning", "Acceptance Date", "Job Description", "Quantity"
                             , "Materials from", "Job reason", "Type of expenses", "Comments", "Customer Material", "Process State", "JR Status", "Detailed status", "Reason", "Price (without transportation)"
-                            , "Price (with transportation)", "Price (discount)", "Monthly act #", "JO#", "PR#", "PR Total Value", "PR Status", "PR Approval date", "PO#", "Invoice No", "Invoice date"
+                            , "Price (with transportation)", "Price (discount)", "Monthly act #", "JO#", "PR#", "PR Total Value", "PR Status", "PR Approval date", "PO#", "Invoice No", "Invoice date", "CAPEX/OPEX"
                         ]);
 
                         var ws = XLSX.utils.json_to_sheet(response.data, {skipHeader: true});

@@ -252,11 +252,11 @@ from act_hi_procinst pi
          left join LATERAL (
            select string_agg(
                 concat(
-                 worksPriceListJson ->> 'title',
+                 worksJson ->> 'title',
                 '; qty: ',
                 worksJson ->> 'quantity',
-                '; materials: ',
-                worksJson ->> 'materialsProvidedBy'
+                '; capexOpex: ',
+                worksJson ->> 'CAPEX/OPEX'
                 )
                 , chr(10)) as job_list
             from act_hi_varinst jobWorks
@@ -264,14 +264,8 @@ from act_hi_procinst pi
                                on jobWorks.bytearray_id_ = jobWorksBytes.id_
                      left join json_array_elements(CAST(convert_from(jobWorksBytes.bytes_, 'UTF8') AS json)) as worksJson
                                on true
-                    left join act_hi_varinst worksPriceList
-                                    on worksPriceList.proc_inst_id_ = pi.id_ and worksPriceList.name_ = 'worksPriceList'
-                      left join act_ge_bytearray worksPriceListBytes
-                                on worksPriceList.bytearray_id_ = worksPriceListBytes.id_
-                    left join json_array_elements(CAST(convert_from(worksPriceListBytes.bytes_, 'UTF8') AS json)) as worksPriceListJson
-                                        on true and worksJson.value->>'sapServiceNumber' = worksPriceListJson.value->>'sapServiceNumber'
             where jobWorks.proc_inst_id_ = pi.id_
-              and jobWorks.name_ = 'jobWorks'
+              and jobWorks.name_ = 'jobs'
 
             ) jobList on true
 

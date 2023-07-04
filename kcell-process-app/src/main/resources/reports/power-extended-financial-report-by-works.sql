@@ -63,7 +63,8 @@ select
     to_timestamp(sapPRApproveDate.long_/1000) + interval '6 hour' as "PR Approval date",
         sapPONo.text_ as "PO#",
     invoiceNumber.text_ as "Invoice #",
-    to_timestamp(invoiceDate.long_/1000) + interval '6 hour' as "Invoice date"
+    to_timestamp(invoiceDate.long_/1000) + interval '6 hour' as "Invoice date",
+    worksJson.value ->> 'capexOpex' as "CAPEX/OPEX"
 from act_hi_procinst pi
          left join act_hi_varinst sitename
                    on pi.id_ = sitename.proc_inst_id_ and sitename.name_ = 'site_name'
@@ -156,7 +157,7 @@ from act_hi_procinst pi
 
     -- canceled, accepted, in progress, количество работ
          left join act_hi_varinst jobWorks
-                   on pi.id_ = jobWorks.proc_inst_id_ and jobWorks.name_ = 'jobWorks'
+                   on pi.id_ = jobWorks.proc_inst_id_ and jobWorks.name_ = 'jobs'
          left join act_ge_bytearray jobWorksBytes
                    on jobWorks.bytearray_id_ = jobWorksBytes.id_
          left join json_array_elements(CAST(convert_from(jobWorksBytes.bytes_, 'UTF8') AS json)) as worksJson
