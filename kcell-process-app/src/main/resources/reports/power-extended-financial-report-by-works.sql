@@ -35,7 +35,7 @@ select
             acceptPlan.value_ + interval '6 hour' as "Accept by Work Planning",
             acceptanceDate.value_ + interval '6 hour' as "Acceptance Date",
     -- сюда еще нужно состав работ разбитый на строки
-        coalesce(title.value_, worksJson.value ->>'displayServiceName') as "Job Description",
+        coalesce(title.value_, worksJson.value ->>'title') as "Job Description",
     worksJson.value ->>'quantity' as "Quantity",
     worksJson.value ->> 'materialsProvidedBy' as "Materials from",
     jobReason.text_ as "Job reason",
