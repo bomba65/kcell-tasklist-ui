@@ -462,13 +462,15 @@ public class IpVpnConnectService {
             }
             Sheet sheet = workbook.getSheet("L2 VLAN");
 
-            // find add vlan value
-            int rowIndex = searchForNumericValueAtCell(sheet, 0, Double.parseDouble(vpn.getVlan()));
-            // remove row with shift up all rows
-            if (rowIndex == sheet.getLastRowNum()) {
-                sheet.removeRow(sheet.getRow(rowIndex));
-            } else {
-                sheet.shiftRows(rowIndex + 1, sheet.getLastRowNum(), -1);
+            if (vpn.getVlan() != null) {
+                // find add vlan value
+                int rowIndex = searchForNumericValueAtCell(sheet, 0, Double.parseDouble(vpn.getVlan()));
+                // remove row with shift up all rows
+                if (rowIndex == sheet.getLastRowNum()) {
+                    sheet.removeRow(sheet.getRow(rowIndex));
+                } else {
+                    sheet.shiftRows(rowIndex + 1, sheet.getLastRowNum(), -1);
+                }
             }
 
             sheet = workbook.getSheet(rowNumber.getKey());
