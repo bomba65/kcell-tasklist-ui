@@ -256,7 +256,9 @@ from act_hi_procinst pi
                 '; qty: ',
                 worksJson ->> 'quantity',
                 '; capexOpex: ',
-                worksJson ->> 'CAPEX/OPEX'
+                worksJson ->> 'CAPEX/OPEX',
+                '; sppElement: ',
+                worksJson ->> 'sppElement'
                 )
                 , chr(10)) as job_list
             from act_hi_varinst jobWorks
