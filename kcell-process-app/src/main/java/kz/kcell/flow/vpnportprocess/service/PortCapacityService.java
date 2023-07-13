@@ -60,7 +60,7 @@ public class PortCapacityService {
                 capacityDiff = totalExistingServiceCapacity;
             }
 
-            if ((totalServiceCapacityOnPort + capacityDiff) * 100 / portCapacity >= 90) {
+            if ((totalServiceCapacityOnPort + capacityDiff) > portCapacity) {
                 return false;
             }
         }
@@ -83,7 +83,7 @@ public class PortCapacityService {
             long portCapacity = port.getPortCapacityUnit().equals("Gb") ? port.getPortCapacity() * 1000L : port.getPortCapacity();
             long modifiedPortCapacity = port.getModifiedPortCapacityUnit().equals("Gb") ? port.getModifiedPortCapacity() * 1000L : port.getModifiedPortCapacity();
 
-            if (modifiedPortCapacity < portCapacity && totalServiceCapacity * 100 / modifiedPortCapacity >= 90) {
+            if (modifiedPortCapacity < portCapacity && totalServiceCapacity > modifiedPortCapacity) {
                 return false;
             }
         }
