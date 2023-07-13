@@ -28,7 +28,7 @@ select
     acceptanceByInitiatorDate.value_ + interval '6 hour' as "Accept by Initiator",
     acceptMaint.value_ + interval '6 hour' as "Accept by Work Maintenance",
     acceptPlan.value_ + interval '6 hour' as "Accept by Work Planning",
-    acceptanceDate.value_ + interval '6 hour' as "Acceptance Date",
+    to_timestamp(jrAcceptanceDate.long_/1000) + interval '6 hour' as "Acceptance Date",
     -- сюда еще нужно состав работ разбитый на строки
     aggregatedWorks.title as "Job Description",
     aggregatedWorks.quantity as "Quantity",
@@ -62,7 +62,7 @@ select
     job_list
 from act_hi_procinst pi
          left join act_hi_varinst sitename
-                   on pi.id_ = sitename.proc_inst_id_ and sitename.name_ = 'site_name'
+                   on pi.id_ = sitename.proc_inst_id_ and sitename.name_ = 'Site_Name'
          left join act_hi_varinst contractorName
                    on pi.id_ = contractorName.proc_inst_id_ and contractorName.name_ = 'contractorName'
          left join act_hi_varinst reason
@@ -109,6 +109,8 @@ from act_hi_procinst pi
                    on pi.id_ = initiatorAcceptanceDate.proc_inst_id_ and initiatorAcceptanceDate.name_ = 'initiatorAcceptanceDate'
          left join act_hi_varinst requestedDate
                    on pi.id_ = requestedDate.proc_inst_id_ and requestedDate.name_ = 'requestedDate'
+         left join act_hi_varinst jrAcceptanceDate
+                   on pi.id_ = jrAcceptanceDate.proc_inst_id_ and jrAcceptanceDate.name_ = 'jrAcceptanceDate'
          left join lateral (select max(ti.start_time_) as value_
                             from act_hi_taskinst ti
                             where pi.id_ = ti.proc_inst_id_

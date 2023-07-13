@@ -33,10 +33,11 @@ select
             acceptanceByInitiatorDate.value_ + interval '6 hour' as "Accept by Initiator",
             acceptMaint.value_ + interval '6 hour' as "Accept by Work Maintenance",
             acceptPlan.value_ + interval '6 hour' as "Accept by Work Planning",
-            acceptanceDate.value_ + interval '6 hour' as "Acceptance Date",
+            to_timestamp(jrAcceptanceDate.long_/1000) + interval '6 hour' as "Acceptance Date",
     -- сюда еще нужно состав работ разбитый на строки
         coalesce(title.value_, worksJson.value ->>'title') as "Job Description",
     worksJson.value ->>'quantity' as "Quantity",
+    worksJson.value ->>'materialSum' as "Sum",
     worksJson.value ->> 'materialsProvidedBy' as "Materials from",
     jobReason.text_ as "Job reason",
     typeOfExpenses.text_ as "Type of expenses",
@@ -48,8 +49,7 @@ select
     case pi.state_
         when 'ACTIVE' then 'In progress'
         else 'Closed'
-        end as "Process State",
-    CAST(convert_from(statusBytes.bytes_, 'UTF8') AS json)->>'parentStatus' as "JR Status",
+        end as "JR Status",
     CAST(convert_from(statusBytes.bytes_, 'UTF8') AS json)->>'statusName' as "Detailed status",
     CAST(convert_from(statusBytes.bytes_, 'UTF8') AS json)->>'comment' as "Return reason",
     totalWorkPrice.unitWorkPrice as "Price without transport",
@@ -64,10 +64,11 @@ select
         sapPONo.text_ as "PO#",
     invoiceNumber.text_ as "Invoice #",
     to_timestamp(invoiceDate.long_/1000) + interval '6 hour' as "Invoice date",
-    worksJson.value ->> 'capexOpex' as "CAPEX/OPEX"
+    worksJson.value ->> 'capexOpex' as "CAPEX/OPEX",
+    worksJson.value ->> 'sppElement' as "SPP Element"
 from act_hi_procinst pi
          left join act_hi_varinst sitename
-                   on pi.id_ = sitename.proc_inst_id_ and sitename.name_ = 'site_name'
+                   on pi.id_ = sitename.proc_inst_id_ and sitename.name_ = 'Site_Name'
          left join act_hi_varinst contractorName
                    on pi.id_ = contractorName.proc_inst_id_ and contractorName.name_ = 'contractorName'
          left join act_hi_varinst reason
@@ -114,7 +115,8 @@ from act_hi_procinst pi
                    on pi.id_ = initiatorAcceptanceDate.proc_inst_id_ and initiatorAcceptanceDate.name_ = 'initiatorAcceptanceDate'
          left join act_hi_varinst requestedDate
                    on pi.id_ = requestedDate.proc_inst_id_ and requestedDate.name_ = 'requestedDate'
-
+         left join act_hi_varinst jrAcceptanceDate
+                   on pi.id_ = jrAcceptanceDate.proc_inst_id_ and jrAcceptanceDate.name_ = 'jrAcceptanceDate'
          left join lateral (select max(ti.start_time_) as value_
                             from act_hi_taskinst ti
                             where pi.id_ = ti.proc_inst_id_
