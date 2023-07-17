@@ -390,9 +390,26 @@
                     }
                 );
 
+                $http.get('/camunda/catalogs/api/get/id/121').then(
+                    function(response) {
+                        $scope.subcontractorCatalogSAO2023 = response.data.data.$list;
+                    }
+                );
+                $http.get('/camunda/catalogs/api/get/id/61').then(
+                    function(response) {
+                        $scope.subcontractorCatalogPS2023 = response.data.data.$list;
+                    }
+                );
+
                 $http.get('/camunda/catalogs/api/get/id/151').then(
                     function(response) {
                         $scope.SAO2023Catalog = response.data.data.$list;
+                    }
+                );
+
+                $http.get('/camunda/catalogs/api/get/id/152').then(
+                    function(response) {
+                        $scope.PS2023Catalog = response.data.data.$list;
                     }
                 );
 
@@ -641,6 +658,7 @@
                         '6': 'АЛТ',
                         '7': 'ЛОГ',
                         '8': 'АРЛ',
+                        '9': 'ИНТ',
                         '10': 'ФОР',
                         '11': 'ТРК',
 
@@ -949,6 +967,8 @@
             function refreshJobRequests(){
                 if($scope.mainContract === 'technical_maintenance_services'){
                     $scope.reason = '4';
+                }
+                if($scope.mainContract === 'technical_maintenance_services'||$scope.mainContract==='2023primary_source'){
                     $scope.integrationRunDate=null;
                 }
                 if($scope.mainContract === 'emergencyRevision2022' || $scope.mainContract === 'Roll-outRevision2020'){
@@ -1412,8 +1432,8 @@
                 let list = [];
                 if ($scope.mainContract === 'technical_maintenance_services') {
                     list = $scope.SAO2023Catalog;
-                } else if ($scope.mainContract === 'other_contract') {
-                    list = $scope.OtherContract;
+                } else if ($scope.mainContract === '2023primary_source') {
+                    list = $scope.PS2023Catalog;
                 }
 
                 $scope.siteIdOblastSubcontractorMap = new Map();
@@ -1508,7 +1528,14 @@
                     let set = $scope.siteIdOblastSubcontractorMap.get(siteIdFirstTwoDigits).get(regionId).get(oblastId);
 
                     for (let subcontractorId of set) {
-                        let subcontractor = {id: subcontractorId, name: $scope.subcontractorCatalog[subcontractorId - 1].value};
+                        let subcontractor;
+                       if($scope.mainContract==='2022Work-agreement') {
+                           subcontractor = {id: subcontractorId, name: $scope.subcontractorCatalog[subcontractorId - 1].value};
+                       } else if($scope.mainContract==='technical_maintenance_services'){
+                           subcontractor = {id: subcontractorId, name: $scope.subcontractorCatalogSAO2023[subcontractorId - 1].value};
+                       } else if($scope.mainContract==='2023primary_source'){
+                           subcontractor = {id: subcontractorId, name: $scope.subcontractorCatalogPS2023[subcontractorId - 1].value};
+                       }
                         $scope.subcontractorsList.push(subcontractor);
                     }
                 }
@@ -1592,6 +1619,9 @@
             }
 
             function setSubcontractorName99(selectedSubcontractor99) {
+                if($scope.mainContract !== '2022Work-agreement'){
+                    selectedSubcontractor99=selectedSubcontractor99.name;
+                }
                 for (const item of $scope.subcontractorCatalog) {
                     if(item.value===selectedSubcontractor99) {
                         $scope.subcontractorName = item.value;
@@ -1602,6 +1632,7 @@
             };
 
             $scope.selectedSubcontractor99 = undefined;
+            $scope.selectedSubcontractor = undefined;
             $scope.subcontractorSelected = function(selectedSubcontractor99) {
                 if (selectedSubcontractor99) {
                     setSubcontractorName99(selectedSubcontractor99);
@@ -1793,7 +1824,7 @@
                         return deferred.promise;
                     } else {
                         var jrCounter;
-                        if($scope.mainContract === '2022Work-agreement'||$scope.mainContract === 'technical_maintenance_services') {
+                        if($scope.mainContract === '2022Work-agreement'||$scope.mainContract === 'technical_maintenance_services'||$scope.mainContract==='2023primary_source') {
                             jrCounter = $scope.regionNewShortName+'-'+$scope.contractorNewShortName[$scope.custom.contractor]+'-'+$scope.reasonNewShortName[$scope.reason]+'-'+$scope.requestedDate.getFullYear().toString().substr(-2);
                         } else {
                             jrCounter = $scope.regionShortName+'-'+$scope.contractorShortName[$scope.custom.contractor]+'-'+$scope.reasonShortName[$scope.reason]+'-'+$scope.requestedDate.getFullYear().toString().substr(-2)+($scope.mainContract==='Roll-out'?'-Ro':'');
@@ -1803,6 +1834,10 @@
                                 if($scope.mainContract === 'technical_maintenance_services') {
                                     var count = result.data.substring(result.data.length - 4, result.data.length)
                                     count = Number(count) + 9000;
+                                    result.data = result.data.substring(0, result.data.length - 4) + count;
+                                } else if($scope.mainContract === '2023primary_source') {
+                                    var count = result.data.substring(result.data.length - 4, result.data.length)
+                                    count = Number(count) + 3000;
                                     result.data = result.data.substring(0, result.data.length - 4) + count;
                                 }
                                 $scope.jrNumber = result.data;
@@ -1829,8 +1864,8 @@
             <label>JR Number:</label>
         </div>
         <div class="col-sm-3">
-            <span ng-if="mainContract !== '2022Work-agreement'&&mainContract !== 'technical_maintenance_services'">{{regionShortName?regionShortName:'###'}}-{{contractorShortName[custom.contractor]?contractorShortName[custom.contractor]:'##'}}-{{reasonShortName[reason]?reasonShortName[reason]:'###'}}-{{requestedDate.getFullYear().toString().substr(-2)}}-{{siteCounter?siteCounter:'####'}}{{mainContract == 'Roll-out'?'-Ro':''}}</span>
-            <span ng-if="mainContract === '2022Work-agreement'||mainContract === 'technical_maintenance_services'">{{regionNewShortName?regionNewShortName:'###'}}-{{contractorNewShortName[custom.contractor]?contractorNewShortName[custom.contractor]:'##'}}-{{reasonNewShortName[reason]?reasonNewShortName[reason]:'###'}}-{{requestedDate.getFullYear().toString().substr(-2)}}-{{siteCounter?siteCounter:'####'}}{{mainContract == 'Roll-out'?'-Ro':''}}</span>
+            <span ng-if="mainContract !== '2022Work-agreement'&&mainContract !== 'technical_maintenance_services'&&mainContract !== '2023primary_source'">{{regionShortName?regionShortName:'###'}}-{{contractorShortName[custom.contractor]?contractorShortName[custom.contractor]:'##'}}-{{reasonShortName[reason]?reasonShortName[reason]:'###'}}-{{requestedDate.getFullYear().toString().substr(-2)}}-{{siteCounter?siteCounter:'####'}}{{mainContract == 'Roll-out'?'-Ro':''}}</span>
+            <span ng-if="mainContract === '2022Work-agreement'||mainContract === 'technical_maintenance_services'||mainContract==='2023primary_source'">{{regionNewShortName?regionNewShortName:'###'}}-{{contractorNewShortName[custom.contractor]?contractorNewShortName[custom.contractor]:'##'}}-{{reasonNewShortName[reason]?reasonNewShortName[reason]:'###'}}-{{requestedDate.getFullYear().toString().substr(-2)}}-{{siteCounter?siteCounter:'####'}}{{mainContract == 'Roll-out'?'-Ro':''}}</span>
         </div>
     </div>
 
@@ -1840,6 +1875,7 @@
             <select class="form-control selectpicker" select-picker title="" cam-variable-name="mainContract" name="mainContract" required cam-variable-type="String" ng-change="contractSelected()">
                 <option value="2022Work-agreement">Договор Подряда на Выполнение Работ 2022</option>
                 <option value="technical_maintenance_services">Услуги по Техническому (Ревизионному) Обслуживанию</option>
+                <option value="2023primary_source">Контракт 2023 ОИ</option>
             </select>
             <label class="error" ng-if="kcell_form.mainContract.$error.required && ( kcell_form.mainContract.$touched || view.submitted)">Required field</label>
         </div>
@@ -1858,7 +1894,7 @@
             </label>
             <label class="error" ng-if="kcell_form.contractor.$error.required && ( kcell_form.contractor.$touched || view.submitted)">Required field</label>
         </div>
-        <div class="col-sm-8" ng-if="(mainContract === '2022Work-agreement')||(mainContract === 'technical_maintenance_services')">
+        <div class="col-sm-8" ng-if="mainContract === '2022Work-agreement'||mainContract === 'technical_maintenance_services'||mainContract==='2023primary_source'">
             <label class="radio-inline">
                 <input type="radio" ng-checked="true"> Subcontractor
             </label>
@@ -1971,7 +2007,7 @@
             </div>
         </div>
     </div>
-    <div class="form-group" ng-if="(mainContract === '2022Work-agreement')||(mainContract === 'technical_maintenance_services')">
+    <div class="form-group" ng-if="mainContract === '2022Work-agreement'||mainContract === 'technical_maintenance_services'||mainContract === '2023primary_source'">
         <label class="col-sm-3 control-label">Subcontractor:</label>
         <input type="hidden" ng-model="subcontractorName" name="subcontractorName"/>
         <div ng-if="mainContract === '2022Work-agreement'">
@@ -1988,8 +2024,8 @@
         </div>
         <div ng-if="mainContract !== '2022Work-agreement'">
             <div class="col-sm-3">
-                <select ng-model="selectedSubcontractor99" ng-options="s as s.name for s in subcontractorsList"
-                        class="form-control" title="" name="selectedSubcontractor99" ng-required="true" ng-change="subcontractorSelected(selectedSubcontractor99)">
+                <select ng-model="selectedSubcontractor" ng-options="s as s.name for s in subcontractorsList"
+                        class="form-control" title="" name="selectedSubcontractor" ng-required="true" ng-change="subcontractorSelected(selectedSubcontractor)">
                     <option value="">select subcontractor</option>
                 </select>
                 <label class="error" ng-if="kcell_form.selectedSubcontractor99.$error.required && ( kcell_form.selectedSubcontractor99.$touched || view.submitted)">Required field</label>
@@ -2002,8 +2038,8 @@
             <div class="form-control" style="height: auto">{{siteAddress}}</div>
         </div>
     </div>
-    <div ng-show="mainContract === '2022Work-agreement'||mainContract === 'technical_maintenance_services'">
-        <div class="form-group">
+    <div ng-show="mainContract === '2022Work-agreement'||mainContract === 'technical_maintenance_services'||mainContract==='2023primary_source'">
+    <div class="form-group">
             <label class="col-sm-3 control-label">Work start date:</label>
             <div class="col-sm-3">
                 <div class="input-group">
