@@ -3255,7 +3255,7 @@ define(['./module', 'camundaSDK', 'lodash', 'big-js', 'jquery', 'moment'], funct
                         var wb = XLSX.utils.book_new();
                         XLSX.utils.book_append_sheet(wb, ws, 'New Sheet Name 1');
 
-                        return XLSX.writeFile(wb, 'extended-report-by-works.xlsx');
+                        return XLSX.writeFile(wb, 'sao2023-extended-report-by-works.xlsx');
                     });
                 }
             }
@@ -3395,7 +3395,7 @@ define(['./module', 'camundaSDK', 'lodash', 'big-js', 'jquery', 'moment'], funct
                         var ws = XLSX.utils.json_to_sheet(response.data, {skipHeader: true});
                         var wb = XLSX.utils.book_new();
                         XLSX.utils.book_append_sheet(wb, ws, 'New Sheet Name 1');
-                        return XLSX.writeFile(wb, 'extended-report-by-jobs.xlsx');
+                        return XLSX.writeFile(wb, 'sao2023-extended-report-by-jobs.xlsx');
                     });
                 }
             }
