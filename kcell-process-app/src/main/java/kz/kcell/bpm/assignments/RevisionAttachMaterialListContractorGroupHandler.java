@@ -75,6 +75,26 @@ public class RevisionAttachMaterialListContractorGroupHandler implements TaskLis
                 delegateTask.addCandidateGroup("west_contractor_foresterhg");
             }
 
+        } else if ("2023primary_source".equals(mainContract)) {
+            String siteIdFirstTwoDigits = siteId.substring(0, 2);
+            if (Arrays.asList("03", "05", "07").contains(siteIdFirstTwoDigits)&&"Жамбылская область".equals(oblastName)) {
+                delegateTask.addCandidateGroup("alm_contractor_arlan");
+            } else if (Arrays.asList("00", "01", "04", "06").contains(siteIdFirstTwoDigits) || Arrays.asList("03", "05", "07").contains(siteIdFirstTwoDigits)&&"Алматинская область".equals(oblastName)) {
+                delegateTask.addCandidateGroup("alm_contractor_inter");
+            } else if (Arrays.asList("40", "41", "42", "47", "48").contains(siteIdFirstTwoDigits)) {
+                delegateTask.addCandidateGroup("south_contractor_inter");
+            } else if (Arrays.asList("71", "72").contains(siteIdFirstTwoDigits)) {
+                delegateTask.addCandidateGroup("west_contractor_inter");
+            } else if (Arrays.asList("10", "11", "12", "13").contains(siteIdFirstTwoDigits) || siteIdFirstTwoDigits.equals("07") && "Карагандинская область".equals(oblastName)) {
+                delegateTask.addCandidateGroup("nc_contractor_logycom");
+            } else if (Arrays.asList("43", "44", "45", "46").contains(siteIdFirstTwoDigits)) {
+                delegateTask.addCandidateGroup("south_contractor_arlan");
+            } else if (Arrays.asList("61", "62").contains(siteIdFirstTwoDigits)) {
+                delegateTask.addCandidateGroup("west_contractor_logycom");
+            } else if (Arrays.asList("51", "52", "61", "62", "81", "82").contains(siteIdFirstTwoDigits)) {
+                delegateTask.addCandidateGroup("west_contractor_foresterhg");
+            }
+
         } else {
             if (contractor.equals("5")) {
                 if (reason.equals("5")) {
