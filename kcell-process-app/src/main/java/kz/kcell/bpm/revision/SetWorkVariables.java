@@ -82,20 +82,19 @@ public class SetWorkVariables implements ExecutionListener {
                     ObjectNode workPriceJson = mapper.createObjectNode();
                     workPriceJson.put("sapServiceNumber", work.get("sapServiceNumber").textValue());
 
+                    String oblast = execution.hasVariable("oblastName") ? execution.getVariable("oblastName").toString() : null;
                     if ("2022Work-agreement".equals(mainContract)) {
-                        String oblast = execution.hasVariable("oblastName") ? execution.getVariable("oblastName").toString() : null;
                         if(oblast.contains("Шымкент (г.а.)")) oblast="Туркестанская область";
                         workPriceJson.put("price", priceJson.get(oblast).textValue());
                     } else if ("technical_maintenance_services".equals(mainContract)) {
-                        String oblast = execution.hasVariable("oblastName") ? execution.getVariable("oblastName").toString() : null;
-                        if(work.get("materials").asBoolean()){
+                        if(work.get("materials") != null && work.get("materials").asBoolean()){
                             workPriceJson.put("price", priceJson.get(oblast).get(work.get("isMaterialsActive").textValue()).textValue());
                         }
                         else {
                             workPriceJson.put("price", priceJson.get(oblast).get("active").textValue());
                         }
                     } else if ("2023primary_source".equals(mainContract)) {
-                        continue;
+                        workPriceJson.put("price", priceJson.get(oblast).textValue());
                     } else {
                         String siteRegion = (String) execution.getVariable("siteRegion");
                         if("nc".equals(siteRegion) || "east".equals(siteRegion)){
