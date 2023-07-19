@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import kz.kcell.bpm.SetPricesDelegate;
+import lombok.SneakyThrows;
 import org.apache.commons.lang.time.DateFormatUtils;
 import org.apache.poi.hssf.usermodel.HSSFFont;
 import org.apache.poi.hssf.util.HSSFColor;
@@ -159,7 +160,21 @@ public class JrBlankGenerator {
         }
 
 
-        if (mainContract.equalsIgnoreCase("2022Work-agreement")){
+        if (mainContract.equalsIgnoreCase("2023primary_source")) {
+            return generateFor2023PrimarySource(
+                reason,
+                jrNumber,
+                explanation,
+                contractor,
+                requestDate,
+                workStartDate,
+                integrationRunDate,
+                workCompletionDate,
+                sdf,
+                jobWorks,
+                initiatorFull
+            );
+        } else if (mainContract.equalsIgnoreCase("2022Work-agreement")){
             if ("nc".equals(siteRegion) || "east".equals(siteRegion)) {
                 siteRegion = "astana";
             }
@@ -1024,5 +1039,348 @@ public class JrBlankGenerator {
         workbook.write(out);
         out.close();
         return out.toByteArray();
+    }
+
+    @SneakyThrows
+    private byte[] generateFor2023PrimarySource(String reason,
+                                                String jrNumber,
+                                                String explanation,
+                                                String contractor,
+                                                Date requestDate,
+                                                Date workStartDate,
+                                                Date integrationRunDate,
+                                                Date workCompletionDate,
+                                                SimpleDateFormat sdf,
+                                                ArrayNode jobWorks,
+                                                JsonNode initiatorFull) {
+        XSSFWorkbook workbook = new XSSFWorkbook();
+        XSSFSheet sheet = workbook.createSheet();
+
+        CellRangeAddress cellRangeAddress;
+        Map<String, Object> properties = new HashMap<>();
+
+        XSSFFont timesNewRoman11 = workbook.createFont();
+        timesNewRoman11.setFontName(HSSFFont.FONT_ARIAL);
+        timesNewRoman11.setFontHeightInPoints((short)11);
+        timesNewRoman11.setBold(true);
+        timesNewRoman11.setItalic(true);
+
+        XSSFFont arialBI9 = workbook.createFont();
+        arialBI9.setFontName(HSSFFont.FONT_ARIAL);
+        arialBI9.setFontHeightInPoints((short) 9);
+        arialBI9.setItalic(true);
+        arialBI9.setBold(true);
+
+        XSSFFont arialB10 = workbook.createFont();
+        arialB10.setFontName(HSSFFont.FONT_ARIAL);
+        arialB10.setFontHeightInPoints((short) 10);
+        arialB10.setBold(true);
+
+        XSSFFont arialB8 = workbook.createFont();
+        arialB8.setFontName(HSSFFont.FONT_ARIAL);
+        arialB8.setFontHeightInPoints((short) 8);
+        arialB8.setBold(true);
+
+        XSSFFont arialI6 = workbook.createFont();
+        arialI6.setFontName(HSSFFont.FONT_ARIAL);
+        arialI6.setFontHeightInPoints((short) 6);
+        arialI6.setItalic(true);
+
+        XSSFFont arial12 = workbook.createFont();
+        arial12.setFontName(HSSFFont.FONT_ARIAL);
+        arial12.setFontHeightInPoints((short) 12);
+
+        //common properties
+        properties.put(CellUtil.ALIGNMENT, HorizontalAlignment.RIGHT);
+        properties.put(CellUtil.VERTICAL_ALIGNMENT, VerticalAlignment.CENTER);
+        properties.put(CellUtil.WRAP_TEXT, true);
+
+        Row row = sheet.createRow(0);
+        row.createCell(0);
+
+        Cell cell = row.createCell(6);
+        CellUtil.setFont(cell, timesNewRoman11);
+        CellUtil.setCellStyleProperties(cell, properties);
+
+        row = sheet.createRow(1);
+        row.setHeight((short)500);
+        cell = row.createCell(2);
+        StringBuilder stringBuilder = new StringBuilder();
+        stringBuilder.append("Договор подряда №___________");
+        stringBuilder.append("\n");
+        stringBuilder.append("от _____ ___________202_г");
+
+        cell.setCellValue(stringBuilder.toString());
+        CellUtil.setFont(cell, arialBI9);
+        CellUtil.setCellStyleProperties(cell, properties);
+
+
+        properties.replace(CellUtil.ALIGNMENT, HorizontalAlignment.CENTER);
+
+        row = sheet.createRow(5);
+        row.createCell(1).setCellValue("Заказ  №");
+        row.createCell(2).setCellValue(jrNumber);
+        row.createCell(4).setCellValue("от");
+        row.createCell(5).setCellValue(DateFormatUtils.format(requestDate, "dd.MM.yyyy"));
+
+        CellUtil.setFont(row.getCell(1), arial12);
+        CellUtil.setFont(row.getCell(2), arial12);
+        CellUtil.setFont(row.getCell(4), arial12);
+        CellUtil.setFont(row.getCell(5), arial12);
+
+        sheet.createRow(7);
+
+        row = sheet.createRow(8);
+        row.createCell(1).setCellValue("Заказчик:");
+        row.createCell(4).setCellValue("АО \"Кселл\"");
+
+        row = sheet.createRow(9);
+        row.createCell(1).setCellValue("Подрядчик:");
+        row.createCell(4).setCellValue(contractorsTitle.get(contractor) != null ? contractorsTitle.get(contractor) : "");
+
+        row = sheet.createRow(10);
+        row.createCell(1).setCellValue("Тип Работ:");
+        row.createCell(4).setCellValue(reason);
+        row.createCell(6);
+        row.createCell(7);
+
+        CellUtil.setFont(row.getCell(7), arialB10);
+
+        row = sheet.createRow(11);
+        row.createCell(1).setCellValue("Дата начала выполнения работ:");
+        row.createCell(4).setCellValue(workStartDate != null ? sdf.format(workStartDate) : "");
+
+        row = sheet.createRow(12);
+        row.createCell(1).setCellValue("Дата выполнения Интеграции");
+        row.createCell(4).setCellValue(integrationRunDate != null ? sdf.format(integrationRunDate) : "");
+
+        row = sheet.createRow(13);
+        row.createCell(1).setCellValue("Дата окончания работ:");
+        row.createCell(4).setCellValue(workCompletionDate != null ? sdf.format(workCompletionDate) : "");
+
+        row = sheet.createRow(14);
+        row.createCell(1).setCellValue("Критическая просрочка(дней):");
+
+        for(int i = 7; i < 15; i++){
+            if (sheet.getRow(i) != null && sheet.getRow(i).getCell(1) != null) {
+                CellUtil.setCellStyleProperties(sheet.getRow(i).getCell(1), properties);
+                CellUtil.setFont(sheet.getRow(i).getCell(1), arialB10);
+            } else {
+                row = sheet.createRow(i);
+                row.createCell(1);
+            }
+        }
+
+        properties.put(CellUtil.WRAP_TEXT, true);
+        properties.put(CellUtil.BORDER_TOP, BorderStyle.THIN);
+        properties.put(CellUtil.BORDER_LEFT, BorderStyle.THIN);
+        properties.put(CellUtil.BORDER_RIGHT, BorderStyle.THIN);
+        properties.put(CellUtil.BORDER_BOTTOM, BorderStyle.THIN);
+
+        row = sheet.createRow(16);
+        row.createCell(0).setCellValue("№");
+        row.createCell(1).setCellValue("Имя сайта");
+        row.createCell(2).setCellValue("№ статьи по ТЦП");
+        row.createCell(3).setCellValue("Наименование");
+        row.createCell(4).setCellValue("Ед.изм.");
+        row.createCell(5).setCellValue("Кол-во");
+        cellRangeAddress = new CellRangeAddress(16, 16, 5, 6);
+        sheet.addMergedRegion(cellRangeAddress);
+        setRegionBorders(cellRangeAddress, sheet);
+
+        for(int i = 0; i < 6; i++){
+            CellUtil.setCellStyleProperties(row.getCell(i), properties);
+            CellUtil.setFont(row.getCell(i), arialB8);
+        }
+
+        for (int i = 0; i < jobWorks.size(); i++) {
+            row = sheet.getRow(17+i) != null ? sheet.getRow(17+i) :sheet.createRow(17 + i);
+            row.createCell(0).setCellValue(i+1);
+
+            cell = row.createCell(1);
+            StringBuilder siteNames = new StringBuilder();
+            ArrayNode sites = (ArrayNode) jobWorks.get(i).get("relatedSites");
+            for (int j = 0; j < sites.size(); j++) {
+                siteNames.append(sites.get(j).get("site_name").textValue());
+                if (j < sites.size()-1)
+                    siteNames.append(',');
+            }
+            cell.setCellValue(siteNames.toString());
+
+            row.createCell(2).setCellValue(jobWorks.get(i).get("displayServiceName").textValue().split(" ")[0]);
+
+            row.createCell(3).setCellValue(jobWorks.get(i).get("displayServiceName").textValue());
+
+            row.createCell(4).setCellValue(jobWorks.get(i).get("materialUnit").textValue());
+
+            row.createCell(5).setCellValue(jobWorks.get(i).get("quantity").asText());
+            cellRangeAddress = new CellRangeAddress(17+i, 17+i, 5, 6);
+            sheet.addMergedRegion(cellRangeAddress);
+            setRegionBorders(cellRangeAddress, sheet);
+
+            CellUtil.setCellStyleProperties(row.getCell(0), properties);
+            CellUtil.setCellStyleProperties(row.getCell(1), properties);
+            CellUtil.setCellStyleProperties(row.getCell(2), properties);
+            CellUtil.setCellStyleProperties(row.getCell(3), properties);
+            CellUtil.setCellStyleProperties(row.getCell(4), properties);
+            CellUtil.setCellStyleProperties(row.getCell(5), properties);
+        }
+
+        row = sheet.getRow(18+jobWorks.size())!=null?sheet.getRow(18+jobWorks.size()):sheet.createRow(18 + jobWorks.size());
+        cell = row.createCell(1);
+        cell.setCellValue("Описание работ:");
+        CellStyle cellStyle = workbook.createCellStyle();
+        cellStyle.setBorderBottom(BorderStyle.THIN);
+        cell.setCellStyle(cellStyle);
+
+        CellUtil.setFont(cell, arialB10);
+        row = sheet.getRow(19+jobWorks.size())!=null?sheet.getRow(19+jobWorks.size()):sheet.createRow(19 + jobWorks.size());
+        // explanation of works
+        cell = row.getCell(1) != null ? row.getCell(1) : row.createCell(1);
+        cell.setCellValue(explanation != null ? explanation : "");
+        CellUtil.setCellStyleProperties(cell, properties);
+        CellUtil.setAlignment(cell, HorizontalAlignment.LEFT);
+        CellUtil.setVerticalAlignment(cell, VerticalAlignment.CENTER);
+        cellStyle = workbook.createCellStyle();
+        cellStyle.setBorderRight(BorderStyle.THIN);
+        row.createCell(0).setCellStyle(cellStyle);
+
+
+        cellRangeAddress = new CellRangeAddress(19+jobWorks.size(), 27 + jobWorks.size(), 1, 6);
+        sheet.addMergedRegion(cellRangeAddress);
+
+        setRegionBorders(cellRangeAddress, sheet);
+
+
+        cellStyle = workbook.createCellStyle();
+        cellStyle.setWrapText(true);
+        cell.setCellStyle(cellStyle);
+        row.createCell(7);
+        row.createCell(8);
+
+
+        // remove borders from properties
+        properties.remove(CellUtil.WRAP_TEXT);
+        properties.remove(CellUtil.BORDER_TOP);
+        properties.remove(CellUtil.BORDER_LEFT);
+        properties.remove(CellUtil.BORDER_RIGHT);
+        properties.remove(CellUtil.BORDER_BOTTOM);
+
+
+        row = sheet.getRow(29+jobWorks.size())!=null?sheet.getRow(29+jobWorks.size()):sheet.createRow(29 + jobWorks.size());
+        row.setHeight((short)500);
+        row.createCell(1).setCellValue("Инициатор:");
+        row.createCell(2).setCellValue(initiatorFull.get("firstName").textValue() + " " + initiatorFull.get("lastName").textValue());
+        CellUtil.setFont(row.getCell(1), arialB10);
+        CellUtil.setFont(row.getCell(2), arialB10);
+
+        row = sheet.getRow(30+jobWorks.size())!=null?sheet.getRow(30+jobWorks.size()):sheet.createRow(30 + jobWorks.size());
+        row.setHeight((short)500);
+        row.createCell(1).setCellValue("Подрядчик: _________");
+        row.createCell(4).setCellValue("Заказчик: _________");
+        CellUtil.setFont(row.getCell(1), arialB10);
+        CellUtil.setFont(row.getCell(4), arialB10);
+
+        properties.replace(CellUtil.VERTICAL_ALIGNMENT, VerticalAlignment.TOP);
+        row = sheet.getRow(34+jobWorks.size())!=null?sheet.getRow(34+jobWorks.size()):sheet.createRow(34 + jobWorks.size());
+        row.createCell(1).setCellValue("(должность)");
+        row.createCell(4).setCellValue("(должность)");
+        CellUtil.setCellStyleProperties(row.getCell(1), properties);
+        CellUtil.setCellStyleProperties(row.getCell(4), properties);
+        CellUtil.setFont(row.getCell(1), arialI6);
+        CellUtil.setFont(row.getCell(4), arialI6);
+
+        row = sheet.getRow(37+jobWorks.size())!=null?sheet.getRow(37+jobWorks.size()):sheet.createRow(37 + jobWorks.size());
+        row.createCell(1).setCellValue("(Ф.И.О., подпись)");
+        row.createCell(4).setCellValue("(Ф.И.О., подпись)");
+        CellUtil.setCellStyleProperties(sheet.getRow(row.getRowNum()).getCell(1), properties);
+        CellUtil.setCellStyleProperties(sheet.getRow(row.getRowNum()).getCell(4), properties);
+        CellUtil.setFont(row.getCell(1), arialI6);
+        CellUtil.setFont(row.getCell(4), arialI6);
+
+        sheet.addMergedRegion(new CellRangeAddress(1, 1, 2, 5));
+
+        sheet.addMergedRegion(new CellRangeAddress(8, 8, 1, 3));
+        sheet.addMergedRegion(new CellRangeAddress(9, 9, 1, 3));
+        sheet.addMergedRegion(new CellRangeAddress(10, 10, 1, 3));
+        sheet.addMergedRegion(new CellRangeAddress(11, 11, 1, 3));
+        sheet.addMergedRegion(new CellRangeAddress(12, 12, 1, 3));
+        sheet.addMergedRegion(new CellRangeAddress(13, 13, 1, 3));
+        sheet.addMergedRegion(new CellRangeAddress(14, 14, 1, 3));
+
+        sheet.addMergedRegion(new CellRangeAddress(5, 5, 2, 3));
+        sheet.addMergedRegion(new CellRangeAddress(5, 5, 5, 6));
+
+        sheet.addMergedRegion(new CellRangeAddress(jobWorks.size() + 30, jobWorks.size() + 30, 1, 2));
+        sheet.addMergedRegion(new CellRangeAddress(jobWorks.size() + 30, jobWorks.size() + 30, 4, 5));
+
+        cellRangeAddress = new CellRangeAddress(11, 11, 4, 4);
+        RegionUtil.setBorderBottom(BorderStyle.THIN, cellRangeAddress, sheet);
+        cellRangeAddress = new CellRangeAddress(12, 12, 4, 4);
+        RegionUtil.setBorderBottom(BorderStyle.THIN, cellRangeAddress, sheet);
+        cellRangeAddress = new CellRangeAddress(13, 13, 4, 4);
+        RegionUtil.setBorderBottom(BorderStyle.THIN, cellRangeAddress, sheet);
+        cellRangeAddress = new CellRangeAddress(14, 14, 4, 4);
+        RegionUtil.setBorderBottom(BorderStyle.THIN, cellRangeAddress, sheet);
+
+        cellRangeAddress = new CellRangeAddress(jobWorks.size() + 33, jobWorks.size() + 33, 1, 2);
+        sheet.addMergedRegion(cellRangeAddress);
+        RegionUtil.setBorderBottom(BorderStyle.THIN, cellRangeAddress, sheet);
+        cellRangeAddress = new CellRangeAddress(jobWorks.size() + 33, jobWorks.size() + 33, 4, 5);
+        sheet.addMergedRegion(cellRangeAddress);
+        RegionUtil.setBorderBottom(BorderStyle.THIN, cellRangeAddress, sheet);
+
+        cellRangeAddress = new CellRangeAddress(jobWorks.size() + 34, jobWorks.size() + 34, 1, 2);
+        sheet.addMergedRegion(cellRangeAddress);
+        cellRangeAddress = new CellRangeAddress(jobWorks.size() + 34, jobWorks.size() + 34, 4, 5);
+        sheet.addMergedRegion(cellRangeAddress);
+
+        cellRangeAddress = new CellRangeAddress(jobWorks.size() + 35, jobWorks.size() + 35, 1, 2);
+        sheet.addMergedRegion(cellRangeAddress);
+        cellRangeAddress = new CellRangeAddress(jobWorks.size() + 35, jobWorks.size() + 35, 4, 5);
+        sheet.addMergedRegion(cellRangeAddress);
+
+        cellRangeAddress = new CellRangeAddress(jobWorks.size() + 36, jobWorks.size() + 36, 1, 2);
+        sheet.addMergedRegion(cellRangeAddress);
+        RegionUtil.setBorderTop(BorderStyle.THIN, cellRangeAddress, sheet);
+        RegionUtil.setBorderBottom(BorderStyle.THIN, cellRangeAddress, sheet);
+        cellRangeAddress = new CellRangeAddress(jobWorks.size() + 36, jobWorks.size() + 36, 4, 5);
+        sheet.addMergedRegion(cellRangeAddress);
+        RegionUtil.setBorderTop(BorderStyle.THIN, cellRangeAddress, sheet);
+        RegionUtil.setBorderBottom(BorderStyle.THIN, cellRangeAddress, sheet);
+
+        cellRangeAddress = new CellRangeAddress(jobWorks.size() + 37, jobWorks.size() + 37, 1, 2);
+        sheet.addMergedRegion(cellRangeAddress);
+        cellRangeAddress = new CellRangeAddress(jobWorks.size() + 37, jobWorks.size() + 37, 4, 5);
+        sheet.addMergedRegion(cellRangeAddress);
+
+
+        sheet.setColumnWidth(0, 900);
+        sheet.setColumnWidth(1,7000);
+        sheet.setColumnWidth(2, 3000);
+        sheet.setColumnWidth(3, 11000);
+        sheet.setColumnWidth(4, 5000);
+        sheet.setColumnWidth(5, 2000);
+        sheet.setColumnWidth(6, 4000);
+        sheet.setColumnWidth(7, 8000);
+        sheet.setColumnWidth(8, 3000);
+        sheet.setColumnWidth(11, 8000);
+        sheet.setColumnWidth(12, 3000);
+        sheet.setColumnWidth(13, 12000);
+        sheet.setColumnWidth(14, 5000);
+        sheet.setColumnWidth(15, 4000);
+        sheet.setColumnWidth(16, 4000);
+
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        workbook.write(out);
+        out.close();
+        return out.toByteArray();
+    }
+
+    private void setRegionBorders(CellRangeAddress cellRangeAddress, Sheet sheet) {
+        RegionUtil.setBorderTop(BorderStyle.THIN, cellRangeAddress, sheet);
+        RegionUtil.setBorderBottom(BorderStyle.THIN, cellRangeAddress, sheet);
+        RegionUtil.setBorderLeft(BorderStyle.THIN, cellRangeAddress, sheet);
+        RegionUtil.setBorderRight(BorderStyle.THIN, cellRangeAddress, sheet);
     }
 }
