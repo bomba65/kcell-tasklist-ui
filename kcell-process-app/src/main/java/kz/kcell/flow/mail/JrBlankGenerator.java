@@ -161,18 +161,21 @@ public class JrBlankGenerator {
 
 
         if (mainContract.equalsIgnoreCase("2023primary_source")) {
+            String subcontractor = (String) delegateExecution.getVariable("subcontractorName");
+            String oblastName = (String) delegateExecution.getVariable("oblastName");
             return generateFor2023PrimarySource(
                 reason,
                 jrNumber,
                 explanation,
-                contractor,
+                subcontractor,
                 requestDate,
                 workStartDate,
                 integrationRunDate,
                 workCompletionDate,
                 sdf,
                 jobWorks,
-                initiatorFull
+                initiatorFull,
+                oblastName
             );
         } else if (mainContract.equalsIgnoreCase("2022Work-agreement")){
             if ("nc".equals(siteRegion) || "east".equals(siteRegion)) {
@@ -1045,14 +1048,64 @@ public class JrBlankGenerator {
     private byte[] generateFor2023PrimarySource(String reason,
                                                 String jrNumber,
                                                 String explanation,
-                                                String contractor,
+                                                String subcontractor,
                                                 Date requestDate,
                                                 Date workStartDate,
                                                 Date integrationRunDate,
                                                 Date workCompletionDate,
                                                 SimpleDateFormat sdf,
                                                 ArrayNode jobWorks,
-                                                JsonNode initiatorFull) {
+                                                JsonNode initiatorFull,
+                                                String oblastName) {
+
+        List<Map<String, String>> subcontractorList = new ArrayList<>();
+
+        Map<String, String> contract1 = new HashMap<>();
+        contract1.put("Contractor number", "103120");
+        contract1.put("Contract date", "17.07.2023");
+        contract1.put("Contractor name", "Arlan Si");
+        subcontractorList.add(contract1);
+
+        Map<String, String> contract2 = new HashMap<>();
+        contract2.put("Contractor number", "103124");
+        contract2.put("Contract date", "17.07.2023");
+        contract2.put("Contractor name", "TOO Inter Service");
+        subcontractorList.add(contract2);
+
+        Map<String, String> contract3 = new HashMap<>();
+        contract3.put("Contractor number", "103291");
+        contract3.put("Contract date", "17.07.2023");
+        contract3.put("Contractor name", "Логиком");
+        contract3.put("Oblast", "Атырауская область");
+        subcontractorList.add(contract3);
+
+        Map<String, String> contract4 = new HashMap<>();
+        contract4.put("Contractor number", "103122");
+        contract4.put("Contract date", "17.07.2023");
+        contract4.put("Contractor name", "Логиком");
+        contract4.put("Oblast", "Астана (г.а.)");
+        subcontractorList.add(contract4);
+
+        Map<String, String> contract5 = new HashMap<>();
+        contract4.put("Contractor number", "103122");
+        contract4.put("Contract date", "17.07.2023");
+        contract4.put("Contractor name", "Логиком");
+        contract4.put("Oblast", "Акмолинская область");
+        subcontractorList.add(contract5);
+
+        Map<String, String> contract6 = new HashMap<>();
+        contract5.put("Contractor number", "103295");
+        contract5.put("Contract date", "17.07.2023");
+        contract5.put("Contractor name", "Forester-Hes Group");
+        subcontractorList.add(contract6);
+
+        Map<String,String> subcontractorInfo = subcontractorList.stream()
+            .filter(map -> map.get("Contractor name").equals(subcontractor))
+            .filter(map -> map.get("Oblast") == null || map.get("Oblast").equals(oblastName))
+            .findFirst()
+            .get();
+
+
         XSSFWorkbook workbook = new XSSFWorkbook();
         XSSFSheet sheet = workbook.createSheet();
 
@@ -1105,12 +1158,11 @@ public class JrBlankGenerator {
         row = sheet.createRow(1);
         row.setHeight((short)500);
         cell = row.createCell(2);
-        StringBuilder stringBuilder = new StringBuilder();
-        stringBuilder.append("Договор подряда №___________");
-        stringBuilder.append("\n");
-        stringBuilder.append("от _____ ___________202_г");
+        String stringBuilder = "Договор подряда №  " + subcontractorInfo.get("Contractor number") +
+            "\n" +
+            "от " + subcontractorInfo.get("Contract date");
 
-        cell.setCellValue(stringBuilder.toString());
+        cell.setCellValue(stringBuilder);
         CellUtil.setFont(cell, arialBI9);
         CellUtil.setCellStyleProperties(cell, properties);
 
@@ -1136,7 +1188,7 @@ public class JrBlankGenerator {
 
         row = sheet.createRow(9);
         row.createCell(1).setCellValue("Подрядчик:");
-        row.createCell(4).setCellValue(contractorsTitle.get(contractor) != null ? contractorsTitle.get(contractor) : "");
+        row.createCell(4).setCellValue(subcontractor);
 
         row = sheet.createRow(10);
         row.createCell(1).setCellValue("Тип Работ:");
