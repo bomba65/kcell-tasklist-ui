@@ -163,7 +163,7 @@ public class SetPricesDelegate implements TaskListener {
                 BigDecimal jobWorksTotal = BigDecimal.ZERO;
                 int i=0;
                 for (JsonNode work : jobWorks) {
-                    if(work.has("id") && work.get("id").intValue() >= 6000) {
+                    if(work.has("id") && work.get("id").intValue() >= 7000) {
                         continue;
                     }
                     ObjectNode workPrice = work.deepCopy();
@@ -178,6 +178,10 @@ public class SetPricesDelegate implements TaskListener {
                         ObjectNode workPriceJson = mapper.createObjectNode();
                         workPriceJson.put("sapServiceNumber", work.get("sapServiceNumber").textValue());
                         if ("2022Work-agreement".equals(mainContract)) {
+                            workPriceJson.put("priceWithMaterial", priceJson.get(oblastName).textValue());
+                            workPriceJson.put("priceWithoutMaterial", priceJson.get(oblastName).textValue());
+                            workPriceJson.put("price", priceJson.get(oblastName).textValue());
+                        } else if ("2023primary_source".equals(mainContract)) {
                             workPriceJson.put("priceWithMaterial", priceJson.get(oblastName).textValue());
                             workPriceJson.put("priceWithoutMaterial", priceJson.get(oblastName).textValue());
                             workPriceJson.put("price", priceJson.get(oblastName).textValue());
@@ -230,6 +234,10 @@ public class SetPricesDelegate implements TaskListener {
                             workPrice.put("basePrice",priceJson.get(oblastName).get("active").textValue());
                             workPrices.add(workPrice);
                         }
+                    } else if ("2023primary_source".equals(mainContract)) {
+                        unitWorkPrice = new BigDecimal(priceJson.get(oblastName).textValue());
+                        workPrice.put("basePrice",priceJson.get(oblastName).textValue());
+                        workPrices.add(workPrice);
                     } else {
                         unitWorkPrice = new BigDecimal(priceJson.get(siteRegion).get(work.has("materialsProvidedBy") && "subcontractor".equals(work.get("materialsProvidedBy").textValue()) ? "with_material" : "without_material").textValue());
 
