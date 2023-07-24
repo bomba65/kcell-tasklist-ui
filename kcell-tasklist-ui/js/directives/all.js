@@ -2633,13 +2633,23 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                 }
 
                 scope.getWorks = function(val) {
+                    if (scope.filter.mainContract === undefined || scope.filter.mainContract === null || scope.filter.mainContract === 'All') {
+                        scope.filter.workName = undefined;
+                        toasty.error("Please select the Contract");
+                        return;
+                    }
+
                     var result = _.filter(scope.works, function (work) {
                         return work.displayServiceName.toLowerCase().indexOf(val.toLowerCase()) !== -1;
                     });
 
                     result = _.filter(result, function(element){
-                        if(scope.filter.mainContract === '2022Work-agreement') {
-                            return element.id >= 4000;
+                        if (scope.filter.mainContract === '2023primary_source') {
+                            return element.id >= 6000;
+                        } if(scope.filter.mainContract === 'technical_maintenance_services') {
+                            return element.id >= 5000 && element.id < 6000;
+                        } if(scope.filter.mainContract === '2022Work-agreement') {
+                            return element.id >= 4000 && element.id < 5000;
                         } else if(scope.filter.mainContract === 'Roll-outRevision2020' || scope.filter.mainContract === 'emergencyRevision2022'){
                             return (element.id >= 3000 && element.id < 4000);
                         } else if(scope.filter.mainContract === 'Roll-out'){
@@ -3435,11 +3445,15 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                         filter.variables.push({"name": "priority", "operator": "eq", "value": scope.filter.priority});
                     }
                     if (scope.filter.workName) {
-                        filter.variables.push({
-                            "name": "workTitlesForSearch",
-                            "operator": "like",
-                            "value": "%" + scope.filter.workName + "%"
-                        });
+                        if (scope.filter.mainContract && scope.filter.mainContract !== 'All') {
+                            filter.variables.push({
+                                "name": "workTitlesForSearch",
+                                "operator": "like",
+                                "value": "%" + scope.filter.workName + "%"
+                            });
+                        } else {
+                            scope.filter.workName = undefined;
+                        }
                     }
                     if (scope.filter.dismantlingInitiator) {
                         filter.variables.push({
