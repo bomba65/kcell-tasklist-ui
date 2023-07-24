@@ -15,7 +15,7 @@ public class ApproveMaterialsListByCentralGroupsHeadAssignmentHandler implements
         String group = String.valueOf(delegateTask.getVariable("group"));
         String reason = delegateTask.getVariable("reason").toString();
         String mainContract = delegateTask.getVariable("mainContract").toString();
-        if("2022Work-agreement".equals(mainContract)){
+        if(Arrays.asList("2022Work-agreement","technical_maintenance_services","2023primary_source").contains(mainContract)){
             if (reason.equals("4") && group.equals("\"Development\"")) {
                 delegateTask.addCandidateGroup("development_mlapprove");
             } else if (Arrays.asList("1", "2", "3", "5","6").contains(reason) && group.equals("\"Operation\"")){
