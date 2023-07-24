@@ -149,7 +149,7 @@ public class JrBlankGenerator {
             if ("nc".equals(siteRegion) || "east".equals(siteRegion)) {
                 siteRegion = "astana";
             }
-            InputStream fis = SetPricesDelegate.class.getResourceAsStream("/revision/" + ((Arrays.asList("Roll-outRevision2020", "2022Work-agreement").contains(mainContract)) ? "newWorkPrice.json" : "workPrice.json"));
+            InputStream fis = SetPricesDelegate.class.getResourceAsStream("/revision/" + ((Arrays.asList("Roll-outRevision2020", "2022Work-agreement","technical_maintenance_services").contains(mainContract)) ? "newWorkPrice.json" : "workPrice.json"));
             InputStreamReader reader = new InputStreamReader(fis, "utf-8");
             ArrayNode json = (ArrayNode) mapper.readTree(reader);
 
@@ -177,7 +177,7 @@ public class JrBlankGenerator {
                 initiatorFull,
                 oblastName
             );
-        } else if (mainContract.equalsIgnoreCase("2022Work-agreement")){
+        } else if (mainContract.equalsIgnoreCase("2022Work-agreement")||mainContract.equals("technical_maintenance_services")){
             if ("nc".equals(siteRegion) || "east".equals(siteRegion)) {
                 siteRegion = "astana";
             }
@@ -310,6 +310,7 @@ public class JrBlankGenerator {
             row.createCell(1).setCellValue("Критическая просрочка(дней):");
 
             for(int i = 7; i < 15; i++){
+                if(i==12)continue;
                 CellUtil.setCellStyleProperties(sheet.getRow(i).getCell(1), properties);
                 CellUtil.setFont(sheet.getRow(i).getCell(1), arialB10);
             }
@@ -397,7 +398,16 @@ public class JrBlankGenerator {
 
             for (int i = 0; i < jobWorks.size(); i++) {
                 JsonNode priceJson = worksPrice.get(Integer.toString(jobWorks.get(i).get("id").intValue()));
-                BigDecimal jobPrice = new BigDecimal(priceJson.get(oblastName).textValue()).setScale(2, RoundingMode.DOWN);
+                BigDecimal jobPrice=null;
+                if ("technical_maintenance_services".equals(mainContract)) {
+                    if (jobWorks.get(i).get("materials").asBoolean()) {
+                        jobPrice = new BigDecimal(priceJson.get(oblastName).get(jobWorks.get(i).get("isMaterialsActive").textValue()).textValue()).setScale(2, RoundingMode.DOWN);
+                    } else {
+                        jobPrice = new BigDecimal(priceJson.get(oblastName).get("active").textValue()).setScale(2, RoundingMode.DOWN);
+                    }
+                }else {
+                    jobPrice = new BigDecimal(priceJson.get(oblastName).textValue()).setScale(2, RoundingMode.DOWN);
+                }
                if (unitWorkPrice_jr!=null) {
                    if (unitWorkPrice_jr.get(i) != null) {
                        String s = String.valueOf(unitWorkPrice_jr.get(i));
@@ -451,7 +461,7 @@ public class JrBlankGenerator {
 
             }
 
-            if (mainContract.equals("technical_maintenance_services")) {
+            if (!mainContract.equals("technical_maintenance_services")) {
                 row = sheet.getRow(18 + jobWorks.size()) != null ? sheet.getRow(18 + jobWorks.size()) : sheet.createRow(18 + jobWorks.size());
                 row.createCell(7).setCellValue("Размер скидки, %:");
                 row.createCell(8).setCellValue(Math.round(DISCOUNT_MAP.get(oblastName) * 100));
