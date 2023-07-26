@@ -3502,24 +3502,14 @@ define(['./module', 'camundaSDK', 'lodash', 'big-js', 'jquery', 'moment'], funct
                         angular.forEach(data, function (d) {
                             d[9] = $filter('date')(d[9], "dd-MM-yyyy");
                             d[11] = $filter('date')(d[11], "dd-MM-yyyy");
-                            d[12] = $filter('date')(d[12], "dd-MM-yyyy");
                             d[13] = $filter('date')(d[13], "dd-MM-yyyy");
-
-                            d[14] = $filter('date')(d[14], "dd-MM-yyyy");
-                            d[17] = $filter('date')(d[17], "dd-MM-yyyy");
-                            d[18] = $filter('date')(d[18], "dd-MM-yyyy");
-                            d[19] = $filter('date')(d[19], "dd-MM-yyyy");
-                            d[20] = $filter('date')(d[20], "dd-MM-yyyy");
-                            d[21] = $filter('date')(d[21], "dd-MM-yyyy");
-                            d[41] = $filter('date')(d[41], "dd-MM-yyyy");
-                            d[44] = $filter('date')(d[44], "dd-MM-yyyy");
+                            d[26] = $filter('date')(d[26], "dd-MM-yyyy");
+                            d[29] = $filter('date')(d[29], "dd-MM-yyyy");
                         });
 
                         data.splice(0, 0, ["Contract", "Year", "Month", "Region", "Oblast", "Sitename", "JR No", "JR To", "JR Reason", "Requested Date", "Requested By", "Validity Date",
-                            "Work start date", "Integration run date", "Work completion date", "Related to the", "Project"
-                            , "Material List Signing Date", "Accept by Initiator", "Accept by Work Maintenance", "Accept by Work Planning", "Acceptance Date", "Job Description", "Quantity", "Sum"
-                            , "Materials from", "Job reason", "Type of expenses", "Comments", "Customer Material", "JR status", "Detailed status", "Reason", "Price (without transportation)"
-                            , "Price (with transportation)", "Price (discount)", "Monthly act #", "JO#", "PR#", "PR Total Value", "PR Status", "PR Approval date", "PO#", "Invoice No", "Invoice date", "CAPEX/OPEX", "SPP Element"
+                            "Project", "Acceptance Date", "Job Description", "Quantity", "Sum", "Comments", "Customer Material", "JR status", "Price",
+                            "Monthly act #", "JO#", "PR#", "PR Total Value", "PR Status", "PR Approval date", "PO#", "Invoice No", "Invoice date", "CAPEX/OPEX", "SPP Element"
                         ]);
 
                         var ws = XLSX.utils.json_to_sheet(response.data, {skipHeader: true});

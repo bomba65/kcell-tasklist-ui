@@ -24,23 +24,12 @@ select
     to_timestamp(requestedDate.long_/1000) + interval '6 hour' as "Requested Date",
         pi.start_user_id_ as "Requested By",
     to_timestamp(validityDate.long_/1000) + interval '6 hour' as "Validity Date",
-            to_timestamp(workStartDate.long_/1000) + interval '6 hour' as "workStartDate",
-            to_timestamp(integrationRunDate.long_/1000) + interval '6 hour' as "integrationRunDate",
-            to_timestamp(workCompletionDate.long_/1000) + interval '6 hour' as "workCompletionDate",
-        relatedTo.text_ as "Related to the",
     project.text_ as "Project",
-    mtListSignDate.value_ + interval '6 hour' as "Material List Signing Date",
-            acceptanceByInitiatorDate.value_ + interval '6 hour' as "Accept by Initiator",
-            acceptMaint.value_ + interval '6 hour' as "Accept by Work Maintenance",
-            acceptPlan.value_ + interval '6 hour' as "Accept by Work Planning",
             to_timestamp(jrAcceptanceDate.long_/1000) + interval '6 hour' as "Acceptance Date",
     -- сюда еще нужно состав работ разбитый на строки
         coalesce(title.value_, worksJson.value ->>'title') as "Job Description",
     worksJson.value ->>'quantity' as "Quantity",
     worksJson.value ->>'materialSum' as "Sum",
-    worksJson.value ->> 'materialsProvidedBy' as "Materials from",
-    jobReason.text_ as "Job reason",
-    typeOfExpenses.text_ as "Type of expenses",
     explanation.text_ as "Comments",
     case materialsRequired.text_
         when 'Yes' then 'required'
@@ -50,11 +39,7 @@ select
         when 'ACTIVE' then 'In progress'
         else 'Closed'
         end as "JR Status",
-    CAST(convert_from(statusBytes.bytes_, 'UTF8') AS json)->>'statusName' as "Detailed status",
-    CAST(convert_from(statusBytes.bytes_, 'UTF8') AS json)->>'comment' as "Return reason",
-    totalWorkPrice.unitWorkPrice as "Price without transport",
-    totalWorkPrice.unitWorkPricePlusTx as "Price with transport",
-    totalWorkPrice.totalWithDiscount as "Price discount",
+    worksJson.value ->>'materialPrice' as "Price",
     monthlyAct.text_ as "Monthly act #",
     jrNumber.text_ as "JO#",
     sapPRNo.text_ as "PR#",
