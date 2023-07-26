@@ -3,9 +3,8 @@ package kz.kcell.flow.hopDelete;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.extern.java.Log;
-import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
-import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.conn.ssl.TrustSelfSignedStrategy;
@@ -17,35 +16,20 @@ import org.apache.http.ssl.SSLContextBuilder;
 import org.apache.http.util.EntityUtils;
 import org.camunda.bpm.engine.delegate.DelegateExecution;
 import org.camunda.bpm.engine.delegate.JavaDelegate;
-import org.camunda.bpm.engine.delegate.BpmnError;
-import org.apache.http.client.HttpClient;
-import org.json.JSONObject;
 import org.camunda.spin.json.SpinJsonNode;
 import org.camunda.spin.plugin.variable.value.JsonValue;
-import static org.camunda.spin.Spin.*;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import java.security.KeyManagementException;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.text.ParseException;
-
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.Random;
-import java.util.*;
 
 @Log
-@Service("sendHopDeleteDataToAssets")
-public class sendHopDeleteDataToAssets implements JavaDelegate {
-
+@Service("updateTSDmw")
+public class UpdateTSDmw implements JavaDelegate {
     @Value("${asset.url:https://asset.test-flow.kcell.kz}")
     private String assetsUri;
 
     @Override
     public void execute(DelegateExecution execution) throws Exception {
-        log.info("HOP delete update data");
+        log.info("RFS status change");
 
         ObjectMapper objectMapper = new ObjectMapper();
         ObjectNode objectNode = objectMapper.createObjectNode();
@@ -54,10 +38,10 @@ public class sendHopDeleteDataToAssets implements JavaDelegate {
 
         String tsdId = String.valueOf(newTsd.prop("id"));
 
-        ObjectNode tsd_status_id = objectMapper.createObjectNode();
-        objectNode.set("tsd_status_id", tsd_status_id);
-        tsd_status_id.put("catalog_id", 107);
-        tsd_status_id.put("id", 2);
+        ObjectNode rfs_status_id = objectMapper.createObjectNode();
+        objectNode.set("rfs_status_id", rfs_status_id);
+        rfs_status_id.put("catalog_id", 92);
+        rfs_status_id.put("id", 4);
 
         SSLContextBuilder builder = new SSLContextBuilder();
         builder.loadTrustMaterial(null, new TrustSelfSignedStrategy());
@@ -72,6 +56,7 @@ public class sendHopDeleteDataToAssets implements JavaDelegate {
         if (httpResponse.getStatusLine().getStatusCode() < 200 || httpResponse.getStatusLine().getStatusCode() >= 300) {
             throw new RuntimeException("asset.flow.kcell.kz returns code(hop delete) " + httpResponse.getStatusLine().getStatusCode());
         }
+
     }
 
     private HttpResponse executePut(String url, HttpClient httpClient, String requestBody) throws Exception {
