@@ -1097,16 +1097,16 @@ public class JrBlankGenerator {
         subcontractorList.add(contract4);
 
         Map<String, String> contract5 = new HashMap<>();
-        contract4.put("Contractor number", "103122");
-        contract4.put("Contract date", "17.07.2023");
-        contract4.put("Contractor name", "Логиком");
-        contract4.put("Oblast", "Акмолинская область");
+        contract5.put("Contractor number", "103122");
+        contract5.put("Contract date", "17.07.2023");
+        contract5.put("Contractor name", "Логиком");
+        contract5.put("Oblast", "Акмолинская область");
         subcontractorList.add(contract5);
 
         Map<String, String> contract6 = new HashMap<>();
-        contract5.put("Contractor number", "103295");
-        contract5.put("Contract date", "17.07.2023");
-        contract5.put("Contractor name", "Forester-Hes Group");
+        contract6.put("Contractor number", "103295");
+        contract6.put("Contract date", "17.07.2023");
+        contract6.put("Contractor name", "Forester-Hes Group");
         subcontractorList.add(contract6);
 
         Map<String,String> subcontractorInfo = subcontractorList.stream()
