@@ -12,15 +12,7 @@ select
         end as sitename,
     pi.business_key_ as "JR No",
     contractorName.text_ as "JR To",
-    case reason.text_
-        when '1' then 'Оптимизация и планирование'
-        when '2' then 'Трансмиссия'
-        when '3' then 'Инфраструктура'
-        when '4' then 'Эксплуатация'
-        when '5' then 'Строительно-монтажные работы'
-        when '6' then 'Подготовка проекта'
-        else null
-        end as "JR Reason",
+    reason.text_ as "JR Reason",
     to_timestamp(requestedDate.long_/1000) + interval '6 hour' as "Requested Date",
         pi.start_user_id_ as "Requested By",
     to_timestamp(validityDate.long_/1000) + interval '6 hour' as "Validity Date",
@@ -57,7 +49,7 @@ from act_hi_procinst pi
          left join act_hi_varinst contractorName
                    on pi.id_ = contractorName.proc_inst_id_ and contractorName.name_ = 'contractorName'
          left join act_hi_varinst reason
-                   on pi.id_ = reason.proc_inst_id_ and reason.name_ = 'reason'
+                   on pi.id_ = reason.proc_inst_id_ and reason.name_ = 'jrReasonName'
          left join act_hi_varinst validityDate
                    on pi.id_ = validityDate.proc_inst_id_ and validityDate.name_ = 'validityDate'
          left join act_hi_varinst workStartDate
@@ -99,7 +91,7 @@ from act_hi_procinst pi
          left join act_hi_varinst initiatorAcceptanceDate
                    on pi.id_ = initiatorAcceptanceDate.proc_inst_id_ and initiatorAcceptanceDate.name_ = 'initiatorAcceptanceDate'
          left join act_hi_varinst requestedDate
-                   on pi.id_ = requestedDate.proc_inst_id_ and requestedDate.name_ = 'requestedDate'
+                   on pi.id_ = requestedDate.proc_inst_id_ and requestedDate.name_ = 'jrOrderedDate'
          left join act_hi_varinst jrAcceptanceDate
                    on pi.id_ = jrAcceptanceDate.proc_inst_id_ and jrAcceptanceDate.name_ = 'jrAcceptanceDate'
          left join lateral (select max(ti.start_time_) as value_
