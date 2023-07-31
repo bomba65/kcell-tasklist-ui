@@ -36,7 +36,9 @@ public class UploadTrByContractorGroupHandler implements TaskListener {
         String mainContract = delegateTask.getVariable("mainContract").toString();
         if ("2022Work-agreement".equals(mainContract)) {
             String siteName = delegateTask.getVariable("site_name").toString();
-            if(siteName.substring(0, 2).contains("99")){
+            if (reason.equals("2")) {
+                delegateTask.addCandidateGroup(siteRegion + "_transmission_tr");
+            } else if(siteName.substring(0, 2).contains("99")){
                 delegateTask.addCandidateGroup(siteRegion+"_contractor_"+contractorsTitle.get(contractor));
             } else if(siteName.substring(0, 2).contains("40")){
                 delegateTask.addCandidateGroup("south_contractor_foresterhg");
@@ -44,13 +46,15 @@ public class UploadTrByContractorGroupHandler implements TaskListener {
                 delegateTask.addCandidateGroup("south_contractor_foresterhg");
             } else if (reason.equals("4")) {
                 delegateTask.addCandidateGroup(siteRegion + "_operation_tr");
-            } else if (Arrays.asList("1", "2", "3", "5","6").contains(reason)){
+            } else if (Arrays.asList("1", "3", "5","6").contains(reason)){
                 delegateTask.addCandidateGroup(siteRegion + "_development_tr");
             }
         } else if (Arrays.asList("technical_maintenance_services","2023primary_source").contains(mainContract)) {
-            if (reason.equals("4")) {
+            if (reason.equals("2")) {
+                delegateTask.addCandidateGroup(siteRegion + "_transmission_tr");
+            } else if (reason.equals("4")) {
                 delegateTask.addCandidateGroup(siteRegion + "_operation_tr");
-            } else if (Arrays.asList("1", "2", "3", "5","6").contains(reason)){
+            } else if (Arrays.asList("1", "3", "5","6").contains(reason)){
                 delegateTask.addCandidateGroup(siteRegion + "_development_tr");
             }
         } else {

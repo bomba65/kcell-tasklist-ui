@@ -15,9 +15,11 @@ public class ValidateTrApproversAssignmentHandler implements TaskListener {
         String mainContract = delegateTask.getVariable("mainContract").toString();
 
         if(Arrays.asList("2022Work-agreement","technical_maintenance_services","2023primary_source").contains(mainContract)){
-            if (reason.equals("4")) {
+            if (reason.equals("2")) {
+                delegateTask.addCandidateGroup(siteRegion + "_transmission_tr");
+            } else if (reason.equals("4")) {
                 delegateTask.addCandidateGroup(siteRegion + "_operation_tr");
-            } else if (Arrays.asList("1", "2", "3", "5", "6").contains(reason)){
+            } else if (Arrays.asList("1", "3", "5", "6").contains(reason)){
                 delegateTask.addCandidateGroup(siteRegion + "_development_tr");
             }
         }else {
