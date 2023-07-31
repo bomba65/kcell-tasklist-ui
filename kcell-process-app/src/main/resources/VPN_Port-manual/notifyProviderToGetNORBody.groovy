@@ -23,11 +23,11 @@ if (channel == "Port") {
 
 def request_type_rus
 if (request_type == "Organize") {
-    request_type_rus = "организацию"
+    request_type_rus = "организовать"
 } else if (request_type == "Modify") {
-    request_type_rus = "изменение"
+    request_type_rus = "изменить"
 } else if (request_type == "Disband") {
-    request_type_rus = "расформирование"
+    request_type_rus = "расформировать"
 }
 
 def makeStringAddress(address) {
@@ -69,12 +69,15 @@ for (port in disbandPorts) {
 }
 
 for (service in addedServices) {
+    service.port.port_termination_point = service?.port?.port_termination_point != null ? makeStringAddress(service.port.port_termination_point) : null
     service.vpn_termination_point_2 = makeStringAddress(service.vpn_termination_point_2)
 }
 for (service in modifyServices) {
+    service.port.port_termination_point = service?.port?.port_termination_point != null ? makeStringAddress(service.port.port_termination_point) : null
     service.vpn_termination_point_2 = makeStringAddress(service.vpn_termination_point_2)
 }
 for (service in disbandServices) {
+    service.port.port_termination_point = service?.port?.port_termination_point != null ? makeStringAddress(service.port.port_termination_point) : null
     service.vpn_termination_point_2 = makeStringAddress(service.vpn_termination_point_2)
 }
 
@@ -140,7 +143,8 @@ if (request_type == "Organize") {
                             th('Port ID')
                             th('Channel Type')
                             th('Port Type')
-                            th('Near end address')
+                            th('Termination point 1')
+                            th('Termination point 2')
                         }
                     }
                     tbody {
@@ -158,6 +162,7 @@ if (request_type == "Organize") {
                                 td(service.port?.port_number)
                                 td(service.port?.channel_type)
                                 td(service.port?.port_type)
+                                td(service.port?.port_termination_point)
                                 td(service.vpn_termination_point_2)
                             }
                         }
@@ -222,7 +227,8 @@ if (request_type == "Organize") {
                             th('Port ID')
                             th('Channel Type')
                             th('Port Type')
-                            th('Near end address')
+                            th('Termination point 1')
+                            th('Termination point 2')
                         }
                     }
                     tbody {
@@ -241,6 +247,7 @@ if (request_type == "Organize") {
                                 td(service.port?.port_number)
                                 td(service.port?.channel_type)
                                 td(service.port?.port_type)
+                                td(service.port?.port_termination_point)
                                 td(service.vpn_termination_point_2)
                             }
                         }
@@ -289,6 +296,7 @@ if (request_type == "Organize") {
                     thead {
                         tr {
                             th('#')
+                            th('VPN ID')
                             th('Service')
                             th('Service Type')
                             th('Capacity (Mbit/s)')
@@ -300,13 +308,15 @@ if (request_type == "Organize") {
                             th('Port ID')
                             th('Channel Type')
                             th('Port Type')
-                            th('Near end address')
+                            th('Termination point 1')
+                            th('Termination point 2')
                         }
                     }
                     tbody {
                         disbandServices.eachWithIndex { service, index ->
                             tr {
                                 td(index + 1)
+                                td(service.vpn_number)
                                 td(service.service)
                                 td(service.type)
                                 td(service.service_capacity)
@@ -318,6 +328,7 @@ if (request_type == "Organize") {
                                 td(service.port?.port_number)
                                 td(service.port?.channel_type)
                                 td(service.port?.port_type)
+                                td(service.port?.port_termination_point)
                                 td(service.vpn_termination_point_2)
                             }
                         }
@@ -348,7 +359,15 @@ html(lang:'ru') {
     }
     body {
         p { 
-            yield "На основании запроса # " + request_number + ", просим " + request_type_rus + " " + channel_rus + " АО «Казахтелеком» в населенных пунктах и с техническими параметрами, указанными в Таблице №1."
+            yield "АО «Кселл» в рамках заключенного Договора № 30/21-V от 22.02.2021 г., по тарифному плану «EXT-3», просит " + request_type_rus + " " + channel_rus + " в населенных пунктах и с техническими параметрами, указанными в Таблице №1."
+        }
+        p {
+            span("Таблица №1")
+        }
+''' + table +
+'''
+        p {
+            span("Запрос # " + request_number)
         }
         p {
             span("Инициатор: " + initiator)
@@ -357,22 +376,10 @@ html(lang:'ru') {
             span("Статус: " + priority)
         }
         p {
-            yield "Со стороны АО «Кселл» к принятию в эксплуатацию Услуг - всё готово."
-        }
-        newLine()
+            span("Срок и время проведения работ просим согласовать с представителями АО «Кселл»:")
+        }        
         p {
-            span("Таблица №1")
-        }
-''' + table +
-'''
-        p {
-            yield "Срок и время проведения работ просим согласовать с представителями АО «Кселл»:"
-        }
-        p {
-            yield "- Дежурный инженер,  +7 701 211 49 83, kcellnor@kcell.kz"
-        }
-        p {
-            yield "- Павел Романов, +7 701 211 19 60, Pavel.Romanov@kcell.kz"
+            span("- Дежурный инженер, +7 701 211 49 83, kcellnor@kcell.kz")
         }
     }
 }
