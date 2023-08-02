@@ -1198,7 +1198,7 @@ public class JrBlankGenerator {
 
         row = sheet.createRow(9);
         row.createCell(1).setCellValue("Подрядчик:");
-        row.createCell(4).setCellValue(subcontractor);
+        row.createCell(4).setCellValue(subcontractor.equals("Логиком") ? "АО \"Логиком\"" : subcontractor);
 
         row = sheet.createRow(10);
         row.createCell(1).setCellValue("Тип Работ:");
