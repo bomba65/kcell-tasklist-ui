@@ -14,9 +14,11 @@ public class ApproveMaterialsListByCenterAssignmentHandler implements TaskListen
         String mainContract = delegateTask.getVariable("mainContract").toString();
 
         if(Arrays.asList("2022Work-agreement","technical_maintenance_services","2023primary_source").contains(mainContract)){
-            if (reason.equals("4")) {
+            if (reason.equals("2")) {
+                delegateTask.addCandidateGroup("transmission_mlapprove");
+            } else if (reason.equals("4")) {
                 delegateTask.addCandidateGroup("operation_mlapprove");
-            } else if (Arrays.asList("1", "2", "3", "5","6").contains(reason)){
+            } else if (Arrays.asList("1", "3", "5","6").contains(reason)){
                 delegateTask.addCandidateGroup("development_mlapprove");
             }
         }else {
