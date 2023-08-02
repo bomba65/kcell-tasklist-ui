@@ -16,7 +16,7 @@ def disbandServices = new JsonSlurper().parseText(execution.getVariable("disband
 
 def channel_rus
 if (channel == "Port") {
-    channel_rus = "порта"
+    channel_rus = "порт"
 } else {
     channel_rus = "VPN"
 }
