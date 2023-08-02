@@ -209,7 +209,8 @@ from act_hi_procinst pi
     -- relatedSites
          left join LATERAL (
     select string_agg(distinct sites.value->>'site_name',', ') as site_names,
-            worksJson.value->>'sapServiceNumber' as sapServiceNumber
+           worksJson.value->>'sapServiceNumber' as sapServiceNumber,
+           worksJson.value->>'quantity' as quantity
     from act_hi_varinst jobWorks
              left join act_ge_bytearray jobWorksBytes
                        on jobWorks.bytearray_id_ = jobWorksBytes.id_
@@ -220,8 +221,8 @@ from act_hi_procinst pi
     where jobWorks.proc_inst_id_ = pi.id_
       and jobWorks.name_ = 'jobWorks'
     GROUP BY
-        sapServiceNumber
-    ) relatedSites on worksJson.value->>'sapServiceNumber'=relatedSites.sapServiceNumber
+        sapServiceNumber, quantity
+    ) relatedSites on worksJson.value->>'sapServiceNumber'=relatedSites.sapServiceNumber and worksJson.value->>'quantity'=relatedSites.quantity
 
          left join act_hi_varinst acceptAndSignByInitiatorTaskResult
                    on pi.id_ = acceptAndSignByInitiatorTaskResult.proc_inst_id_
