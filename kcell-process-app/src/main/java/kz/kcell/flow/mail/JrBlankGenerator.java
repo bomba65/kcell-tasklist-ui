@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import kz.kcell.bpm.SetPricesDelegate;
+import kz.kcell.bpm.revision.SetWorkVariables;
 import lombok.SneakyThrows;
 import org.apache.commons.lang.time.DateFormatUtils;
 import org.apache.poi.hssf.usermodel.HSSFFont;
@@ -27,8 +28,10 @@ import java.math.RoundingMode;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.function.Supplier;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
+@Slf4j
 public class JrBlankGenerator {
 
     private static final Map<String, String> worksTitle = new HashMap<>();
@@ -149,7 +152,7 @@ public class JrBlankGenerator {
             if ("nc".equals(siteRegion) || "east".equals(siteRegion)) {
                 siteRegion = "astana";
             }
-            InputStream fis = SetPricesDelegate.class.getResourceAsStream("/revision/" + ((Arrays.asList("Roll-outRevision2020", "2022Work-agreement","technical_maintenance_services").contains(mainContract)) ? "newWorkPrice.json" : "workPrice.json"));
+            InputStream fis = SetWorkVariables.class.getResourceAsStream("/revision/newWorkPrice.json");
             InputStreamReader reader = new InputStreamReader(fis, "utf-8");
             ArrayNode json = (ArrayNode) mapper.readTree(reader);
 
@@ -397,7 +400,7 @@ public class JrBlankGenerator {
             CellUtil.setFont(row.getCell(11), arialB10);
 
             for (int i = 0; i < jobWorks.size(); i++) {
-                JsonNode priceJson = worksPrice.get(Integer.toString(jobWorks.get(i).get("id").intValue()));
+                JsonNode priceJson = worksPrice.get(jobWorks.get(i).get("sapServiceNumber").textValue());
                 BigDecimal jobPrice=null;
                 if ("technical_maintenance_services".equals(mainContract)) {
                     if (jobWorks.get(i).get("materials").asBoolean()) {
