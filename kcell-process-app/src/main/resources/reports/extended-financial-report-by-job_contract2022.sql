@@ -201,15 +201,15 @@ from act_hi_procinst pi
              from act_hi_varinst jobWorks
                       left join act_ge_bytearray jobWorksBytes
                                 on jobWorks.bytearray_id_ = jobWorksBytes.id_
-                      left join json_array_elements(CAST(convert_from(jobWorksBytes.bytes_, 'UTF8') AS json)) as worksJson
+                      left join lateral (select row_number() over () as row_number, * from json_array_elements(CAST(convert_from(jobWorksBytes.bytes_, 'UTF8') AS json))) as worksJson
                                 on true
                  ---------------------------------
                       left join act_hi_varinst workPrices
                                 on workPrices.proc_inst_id_ = pi.id_ and workPrices.name_ = 'workPrices'
                       left join act_ge_bytearray workPricesBytes
                                 on workPrices.bytearray_id_ = workPricesBytes.id_
-                      left join json_array_elements(CAST(convert_from(workPricesBytes.bytes_, 'UTF8') AS json)) as workPricesJson
-                                on true and worksJson.value->>'sapServiceNumber' = workPricesJson.value->>'sapServiceNumber'
+                      left join lateral (select row_number() over () as row_number, * from json_array_elements(CAST(convert_from(workPricesBytes.bytes_, 'UTF8') AS json))) as workPricesJson
+                                on true and worksJson.value->>'sapServiceNumber' = workPricesJson.value->>'sapServiceNumber' and worksJson.row_number = workPricesJson.row_number
                  ---------------------------------
                       left join act_hi_varinst worksPriceList
                                 on worksPriceList.proc_inst_id_ = pi.id_ and worksPriceList.name_ = 'worksPriceList'
