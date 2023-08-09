@@ -2321,7 +2321,7 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                 //         console.log(error.data);
                 //     }
                 // );
-                $http.post('/camunda/catalogs/api/get/rolloutcatalogids', [2, 4, 5, 6, 7, 8, 9, 11, 12, 16, 22, 23, 60]).then(
+                $http.post('/camunda/catalogs/api/get/rolloutcatalogids', [2, 4, 5, 6, 7, 8, 9, 11, 12, 16, 22, 23, 30, 60]).then(
                     function(res){
                         let newR = {};
                         for (let i = 0; i < res.data.regions.length ; i++ ) {
@@ -2351,6 +2351,12 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                             }
                         }
                         scope.regionsMap = newR
+                        scope.oblastsMap = res.data.oblast.map(i => {
+                            return {
+                                id: i.id,
+                                name: i.name
+                            }
+                        })
                         scope.leasingCatalogs.initiators = res.data.ncp_initiator
                         scope.leasingCatalogs.allUnionProjects = res.data.ncp_projects.map(i => {
                             return {
@@ -2593,11 +2599,12 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                     '9': 'IS '
                 };
                 scope.reasonShortName = {
-                    '1': 'P&O',
-                    '2': 'TNU',
-                    '3': 'S&FM',
-                    '4': 'SAO',
-                    '5': 'RO'
+                    '1': 'ОПТ',
+                    '2': 'ТРН',
+                    '3': 'ИНФ',
+                    '4': 'ЭКС',
+                    '5': 'СМР',
+                    '6': 'ПП'
                 };
                 scope.processInstancesTotal = 0;
                 scope.processInstancesPages = 0;
@@ -3270,6 +3277,9 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                     if (scope.filter.region && scope.filter.region !== 'all') {
                         filter.variables.push({"name": "siteRegion", "operator": "eq", "value": scope.filter.region});
                     }
+                    if (scope.filter.oblast && scope.filter.oblast !== 'all') {
+                        filter.variables.push({"name": "oblastName", "operator": "eq", "value": scope.filter.oblast});
+                    }
                     if (scope.filter.tnuRegion && scope.filter.tnuRegion !== 'all') {
                         filter.variables.push({"name": "region", "operator": "eq", "value": scope.filter.tnuRegion});
                     }
@@ -3612,6 +3622,7 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
 
                 scope.clearFilters = function () {
                     scope.filter.region = 'all';
+                    scope.filter.oblast = 'all';
                     scope.filter.tnuRegion = 'all';
                     scope.filter.initiator = undefined;
                     scope.filter.period = undefined;
