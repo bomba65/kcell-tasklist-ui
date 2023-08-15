@@ -2526,7 +2526,7 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
 
                 scope.isProcessVisible = function (process) {
                     if (process === 'Revision') {
-                        if ($rootScope.hasGroup('search_revision') || $rootScope.hasGroup('infrastructure_revision_users')) {
+                        if ($rootScope.hasGroup('search_revision') || $rootScope.hasGroup('infrastructure_revision_users') || $rootScope.hasGroup('search_revision_contractor')) {
                             return true;
                         } else
                             return false;
@@ -2543,7 +2543,7 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                     } else
                         return true;
                 }
-                if($rootScope.hasGroup('search_revision') || $rootScope.hasGroup('infrastructure_revision_users')){
+                if($rootScope.hasGroup('search_revision') || $rootScope.hasGroup('infrastructure_revision_users') || $rootScope.hasGroup('search_revision_contractor')){
                     allKWMSProcesses.Revision = {
                         title: "Revision", value: false
                     }
