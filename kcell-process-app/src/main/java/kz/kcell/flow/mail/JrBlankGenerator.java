@@ -483,12 +483,20 @@ public class JrBlankGenerator {
 
             row = sheet.getRow(20+jobWorks.size())!=null?sheet.getRow(20+jobWorks.size()):sheet.createRow(20 + jobWorks.size());
             row.createCell(7).setCellValue("в т.ч. НДС:");
-            row.createCell(8).setCellValue(jobWorksTotalDiscounted.subtract(jobWorksTotalDiscounted.divide(new BigDecimal("1.12"), 2, RoundingMode.HALF_UP)).toString());
+            if (mainContract.equals("technical_maintenance_services")) {
+                row.createCell(8).setCellValue(jobWorksTotal.subtract(jobWorksTotal.divide(new BigDecimal("1.12"), 2, RoundingMode.HALF_UP)).toString());
+            } else {
+                row.createCell(8).setCellValue(jobWorksTotalDiscounted.subtract(jobWorksTotalDiscounted.divide(new BigDecimal("1.12"), 2, RoundingMode.HALF_UP)).toString());
+            }
             CellUtil.setFont(row.getCell(7), arialB10);
 
             row = sheet.getRow(22+jobWorks.size())!=null?sheet.getRow(22+jobWorks.size()):sheet.createRow(22 + jobWorks.size());
             row.createCell(3).setCellValue("Итого сумма включая НДС, 12%:");
-            row.createCell(5).setCellValue(jobWorksTotalDiscounted.doubleValue());
+            if (mainContract.equals("technical_maintenance_services")) {
+                row.createCell(5).setCellValue(jobWorksTotal.doubleValue());
+            } else {
+                row.createCell(5).setCellValue(jobWorksTotalDiscounted.doubleValue());
+            }
             CellUtil.setFont(row.getCell(3), arialB10);
 
             properties.remove(CellUtil.BORDER_TOP);
