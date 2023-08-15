@@ -3508,8 +3508,8 @@ define(['./module', 'camundaSDK', 'lodash', 'big-js', 'jquery', 'moment'], funct
                         });
 
                         data.splice(0, 0, ["Contract", "Year", "Month", "Region", "Oblast", "Sitename", "JR No", "JR To", "JR Reason", "Requested Date", "Requested By", "Validity Date",
-                            "Project", "Acceptance Date", "Job Description", "Quantity", "Sum", "Comments", "Customer Material", "JR status", "Price",
-                            "Monthly act #", "JO#", "PR#", "PR Total Value", "PR Status", "PR Approval date", "PO#", "Invoice No", "Invoice date", "CAPEX/OPEX", "SPP Element"
+                            "Project", "Acceptance Date", "Job Description", "Quantity",  "Price", "Sum", "Comments", "Customer Material", "JR status",
+                            "Monthly act #", "JO#", "PR#", "PR Total Value", "PR Status", "PR Approval date", "PO#", "Invoice No", "Invoice date", "CAPEX/OPEX", "SPP Element", "Номер АВР", "Дата АВР", "Номер ЭСФ", "Дата ЭСФ"
                         ]);
 
                         var ws = XLSX.utils.json_to_sheet(response.data, {skipHeader: true});

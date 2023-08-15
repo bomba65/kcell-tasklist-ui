@@ -2,7 +2,7 @@ select
     contractName.text_,
     to_char(pi.start_time_ + interval '6 hour', 'YYYY') as "Year",
     to_char(pi.start_time_ + interval '6 hour', 'month') as "Month",
-    substring(pi.business_key_ from '^[^-]+') as region,
+    substring(pi.business_key_ from '-(.*?)-') as region,
     oblastName.text_ as "Oblast",
     case
         when relatedSites.site_names is not null then
@@ -21,6 +21,7 @@ select
     -- сюда еще нужно состав работ разбитый на строки
         coalesce(title.value_, worksJson.value ->>'title') as "Job Description",
     worksJson.value ->>'quantity' as "Quantity",
+    worksJson.value ->>'materialPrice' as "Price",
     worksJson.value ->>'materialSum' as "Sum",
     explanation.text_ as "Comments",
     case materialsRequired.text_
@@ -31,7 +32,6 @@ select
         when 'ACTIVE' then 'In progress'
         else 'Closed'
         end as "JR Status",
-    worksJson.value ->>'materialPrice' as "Price",
     monthlyAct.text_ as "Monthly act #",
     jrNumber.text_ as "JO#",
     sapPRNo.text_ as "PR#",
@@ -42,7 +42,11 @@ select
     invoiceNumber.text_ as "Invoice #",
     to_timestamp(invoiceDate.long_/1000) + interval '6 hour' as "Invoice date",
     worksJson.value ->> 'capexOpex' as "CAPEX/OPEX",
-    worksJson.value ->> 'sppElement' as "SPP Element"
+    worksJson.value ->> 'sppElement' as "SPP Element",
+    Cast('' as varchar) as "Номер АВР",
+    Cast('' as varchar) as "Дата АВР",
+    Cast('' as varchar) as "Номер ЭСФ",
+    Cast('' as varchar) as "Дата ЭСФ"
 from act_hi_procinst pi
          left join act_hi_varinst sitename
                    on pi.id_ = sitename.proc_inst_id_ and sitename.name_ = 'Site_Name'
