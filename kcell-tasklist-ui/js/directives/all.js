@@ -4314,7 +4314,6 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                                     })).then(function (tasks) {
                                         
                                         console.log("5")
-                                        scope.jobModel.tasks = _.flatten(_.map(tasks, (task) => task.data));
                                         var asynCall2 = true;
                                         try {
                                             if(asynCall3) {
@@ -4341,7 +4340,6 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                                 }
                                 //scope.jobModel.tasks = processInstanceTasks;
                                 angular.extend(scope.jobModel, catalogs);
-                                scope.jobModel.tasks = processInstanceTasks;
 
                             },
                             function (error) {
@@ -4458,7 +4456,7 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                                     }
                                     
                                 }
-                                
+                                scope.jobModel.tasks = processInstanceTasks;
                             },
                             function (error) {
                                 console.log(error.data);
