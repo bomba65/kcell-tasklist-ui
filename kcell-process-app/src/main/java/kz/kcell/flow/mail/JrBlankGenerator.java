@@ -405,6 +405,8 @@ public class JrBlankGenerator {
                 if ("technical_maintenance_services".equals(mainContract)) {
                     if (jobWorks.get(i).get("materials").asBoolean()) {
                         jobPrice = new BigDecimal(priceJson.get(oblastName).get(jobWorks.get(i).get("isMaterialsActive").textValue()).textValue()).setScale(2, RoundingMode.DOWN);
+                    } else if (Arrays.asList("-","").contains(priceJson.get(oblastName).get("active").textValue())) {
+                        jobPrice = new BigDecimal(priceJson.get(oblastName).get("inactive").textValue()).setScale(2, RoundingMode.DOWN);
                     } else {
                         jobPrice = new BigDecimal(priceJson.get(oblastName).get("active").textValue()).setScale(2, RoundingMode.DOWN);
                     }

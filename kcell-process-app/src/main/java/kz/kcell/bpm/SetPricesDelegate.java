@@ -228,8 +228,11 @@ public class SetPricesDelegate implements TaskListener {
                             unitWorkPrice = new BigDecimal(priceJson.get(oblastName).get(work.get("isMaterialsActive").textValue()).textValue());
                             workPrice.put("basePrice",  priceJson.get(oblastName).get(work.get("isMaterialsActive").textValue()).textValue());
                             workPrices.add(workPrice);
-                        }
-                        else {
+                        } else if (Arrays.asList("-","").contains(priceJson.get(oblastName).get("active").textValue())) {
+                            unitWorkPrice = new BigDecimal(priceJson.get(oblastName).get("inactive").textValue());
+                            workPrice.put("basePrice",priceJson.get(oblastName).get("inactive").textValue());
+                            workPrices.add(workPrice);
+                        } else {
                             unitWorkPrice = new BigDecimal(priceJson.get(oblastName).get("active").textValue());
                             workPrice.put("basePrice",priceJson.get(oblastName).get("active").textValue());
                             workPrices.add(workPrice);
