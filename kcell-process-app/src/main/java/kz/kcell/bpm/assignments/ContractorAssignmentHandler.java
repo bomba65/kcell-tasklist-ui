@@ -90,7 +90,7 @@ public class ContractorAssignmentHandler implements TaskListener {
 
         } else if ("2023primary_source".equals(mainContract)) {
             String siteIdFirstTwoDigits = siteId.substring(0, 2);
-                if (Arrays.asList("03", "05", "07").contains(siteIdFirstTwoDigits)&&"Жамбылская область".equals(oblastName)) {
+            if (Arrays.asList("03", "05", "07").contains(siteIdFirstTwoDigits)&&"Жамбылская область".equals(oblastName)) {
                 delegateTask.addCandidateGroup("alm_contractor_arlan");
             } else if (Arrays.asList("00", "01", "04", "06").contains(siteIdFirstTwoDigits) || Arrays.asList("03", "05", "07").contains(siteIdFirstTwoDigits)&&"Алматинская область".equals(oblastName)) {
                 delegateTask.addCandidateGroup("alm_contractor_inter");
@@ -106,6 +106,8 @@ public class ContractorAssignmentHandler implements TaskListener {
                 delegateTask.addCandidateGroup("west_contractor_logycom");
             } else if (Arrays.asList("51", "52", "61", "62", "81", "82").contains(siteIdFirstTwoDigits)) {
                 delegateTask.addCandidateGroup("west_contractor_foresterhg");
+            } else if (Arrays.asList("99").contains(siteIdFirstTwoDigits)) {
+                delegateTask.addCandidateGroup(siteRegion + "_contractor_" + contractorsTitle.get(contractor));
             }
         } else {
             if (contractor.equals("5")) {
