@@ -2,7 +2,7 @@ select
     contractName.text_,
     to_char(pi.start_time_ + interval '6 hour', 'YYYY') as "Year",
     to_char(pi.start_time_ + interval '6 hour', 'month') as "Month",
-    substring(pi.business_key_ from '^[^-]+') as region,
+    substring(pi.business_key_ from '-(.*?)-') as region,
     oblastName.text_ as "Oblast",
     sitename.text_ as sitename,
     pi.business_key_ as "JR No",
