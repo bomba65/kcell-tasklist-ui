@@ -5,8 +5,10 @@ import org.camunda.bpm.engine.delegate.DelegateTask;
 import org.camunda.bpm.engine.delegate.TaskListener;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Supplier;
 
 public class RevisionAttachMaterialListGroupHandler implements TaskListener {
 
@@ -23,8 +25,26 @@ public class RevisionAttachMaterialListGroupHandler implements TaskListener {
         put("west_contractor_transtlc", new String[] {"71", "72"});
     }};
 
+    private static final Map<String, String> contractorsTitle =
+        ((Supplier<Map<String, String>>) (() -> {
+            Map<String, String> map = new HashMap<>();
+            map.put("1", "avrora");
+            map.put("2", "aicom");
+            map.put("3", "spectr");
+            map.put("4", "lse");
+            map.put("5", "kcell");
+            map.put("6", "alta");
+            map.put("7", "logycom");
+            map.put("8", "arlan");
+            map.put("9", "inter");
+            map.put("10","foresterhg");
+            map.put("11","transtlc");
+            return Collections.unmodifiableMap(map);
+        })).get();
+
     @Override
     public void notify(DelegateTask delegateTask) {
+        String contractor = delegateTask.getVariable("contractor").toString();
         String siteRegion = delegateTask.getVariable("siteRegion").toString();
         String mainContract = delegateTask.getVariable("mainContract").toString();
         String siteId = delegateTask.getVariable("siteName").toString();
@@ -83,6 +103,8 @@ public class RevisionAttachMaterialListGroupHandler implements TaskListener {
                 delegateTask.addCandidateGroup("west_contractor_logycom");
             } else if (Arrays.asList("51", "52", "61", "62", "81", "82").contains(siteIdFirstTwoDigits)) {
                 delegateTask.addCandidateGroup("west_contractor_foresterhg");
+            } else if (Arrays.asList("99").contains(siteIdFirstTwoDigits)) {
+                delegateTask.addCandidateGroup(siteRegion + "_contractor_" + contractorsTitle.get(contractor));
             }
 
         } else {
