@@ -68,7 +68,9 @@ public class ContractorAssignmentHandler implements TaskListener {
             }
         } else if ("technical_maintenance_services".equals(mainContract)) {
             String siteIdFirstTwoDigits = siteId.substring(0, 2);
-            if (Arrays.asList("00", "01", "04", "05", "06", "07").contains(siteIdFirstTwoDigits)&&("Алматинская область".equals(oblastName)||"Жамбылская область".equals(oblastName))) {
+            if("99".contains(siteIdFirstTwoDigits)){
+                delegateTask.addCandidateGroup(siteRegion+"_contractor_"+contractorsTitle.get(contractor));
+            } else if (Arrays.asList("00", "01", "04", "05", "06", "07").contains(siteIdFirstTwoDigits)&&("Алматинская область".equals(oblastName)||"Жамбылская область".equals(oblastName))) {
                 delegateTask.addCandidateGroup("alm_contractor_arlan");
             } else if (Arrays.asList("04", "05", "06").contains(siteIdFirstTwoDigits)&&"Жетысуская область".equals(oblastName)) {
                 delegateTask.addCandidateGroup("alm_contractor_inter");
