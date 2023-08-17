@@ -363,6 +363,13 @@
         '5': 'South',
         '6': 'West'
       };
+      $scope.regions99 = [
+        {id: 1, name: 'Almaty'},
+        {id: 3, name: 'North and Center'},
+        {id: 4, name: 'East'},
+        {id: 5, name: 'South'},
+        {id: 6, name: 'West'}
+      ];
 
       $scope.regionsMapLC = {
         '1': 'alm',
@@ -435,10 +442,27 @@
                 $scope.siteRegion = siteInfo.facility_main_id.address_id.region_id ? $scope.regionsMapLC[siteInfo.facility_main_id.address_id.region_id.id] : '';
                 $scope.siteRegionShow = siteInfo.facility_main_id.address_id.region_id ? siteInfo.facility_main_id.address_id.region_id.name : '';
                 $scope.regionShortName = siteInfo.facility_main_id.address_id.region_id ? $scope.regionsMap[siteInfo.facility_main_id.address_id.region_id.id] : '';
+                checkIfNeedToSelectRegion();
               }
           }
           setOblastNameBySiteId(siteInfo.site_id)
         })
+
+        $scope.needToSelectRegion = false;
+        function checkIfNeedToSelectRegion() {
+          const siteId = $scope.siteId ? $scope.siteId.substring(0,2) : '';
+          $scope.needToSelectRegion = ['99'].includes(siteId);
+        }
+
+        $scope.selectedRegion = undefined;
+        $scope.regionSelected99 = function(selectedRegion) {
+          if (selectedRegion) {
+            $scope.siteRegion =$scope.regionsMapLC[selectedRegion.id];
+            $scope.siteRegionShow = selectedRegion.name;
+            $scope.regionShortName = $scope.regionsMap[selectedRegion.id];
+
+          }
+        }
 
         $(function () {
             $('[data-toggle="tooltip"]').tooltip('fixTitle');
@@ -853,8 +877,19 @@
   </div>
   <div class="form-group" ng-if="siteAddress">
     <label class="col-sm-3 control-label">Region:</label>
-    <div class="col-sm-3">
+    <input type="hidden" ng-model="siteRegionShow" name="siteRegionShow" required/>
+    <div >
+      <div class="col-sm-3" ng-if="!needToSelectRegion">
         <div class="form-control">{{siteRegionShow}}</div>
+        <label class="error" ng-if="kcell_form.siteRegionShow.$error.required && ( kcell_form.siteRegionShow.$touched || view.submitted)">Required field</label>
+      </div>
+      <div class="col-sm-3" ng-if="needToSelectRegion">
+        <select ng-model="selectedRegion" ng-options="r as r.name for r in regions99"
+                class="form-control" title="" name="selectedRegion" ng-required="true" ng-change="regionSelected99(selectedRegion)">
+          <option value="">select region</option>
+        </select>
+        <label class="error" ng-if="kcell_form.selectedRegion.$error.required && ( kcell_form.selectedRegion.$touched || view.submitted)">Required field</label>
+      </div>
     </div>
   </div>
   <div class="form-group" ng-if="siteAddress">
