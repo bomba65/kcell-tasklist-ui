@@ -4111,48 +4111,61 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                                             url: baseUrl + '/task/' + e.id
                                         }).then(
                                             function (taskResult) {
-                                                if (taskResult.data._embedded && taskResult.data._embedded.group) {
-                                                    e.group = taskResult.data._embedded.group[0].id;
-                                                    groupasynCalls += 1;
-                                                    if (groupasynCalls === maxGroupAsynCalls) {
-                                                        asynCall1 = true;
-                                                        if (asynCall1 && asynCall2) {
-                                                            if (processDefinitionKey === 'CreatePR'){
-                                                                openProcessCardModalCreatePR(processDefinitionId, businessKey, index);
+                                                $http({
+                                                    method: 'GET',
+                                                    headers: {'Accept': 'application/hal+json, application/json; q=0.5'},
+                                                    url: baseUrl + '/history/user-operation?operationType=Claim&taskId=' + e.id + '&processInstanceId=' + scope.processInstances[index].id,
+                                                }).then(
+                                                    function (claimData) {
+                                                        if (claimData.data[0]) {
+                                                            e.claimDate = claimData.data[0].timestamp;
+                                                        }
+                                                        if (taskResult.data._embedded && taskResult.data._embedded.group) {
+                                                            e.group = taskResult.data._embedded.group[0].id;
+                                                            groupasynCalls += 1;
+                                                            if (groupasynCalls === maxGroupAsynCalls) {
+                                                                asynCall1 = true;
+                                                                if (asynCall1 && asynCall2) {
+                                                                    if (processDefinitionKey === 'CreatePR') {
+                                                                        openProcessCardModalCreatePR(processDefinitionId, businessKey, index);
+                                                                    } else {
+                                                                        openProcessCardModalRevision(processDefinitionId, businessKey, index);
+                                                                    }
+
+                                                                    asynCall1 = false;
+                                                                } else console.log('asynCall 2 problem');
                                                             } else {
-                                                                openProcessCardModalRevision(processDefinitionId, businessKey, index);
+                                                                console.log(groupasynCalls, maxGroupAsynCalls);
+
                                                             }
-
-                                                            asynCall1 = false;
-                                                        } else console.log('asynCall 2 problem');
-                                                    } else {
-                                                        console.log(groupasynCalls, maxGroupAsynCalls);
-
-                                                    }
-                                                } else {
-                                                    console.log('vtoroi', groupasynCalls, maxGroupAsynCalls);
-                                                    groupasynCalls += 1;
-                                                    if (groupasynCalls === maxGroupAsynCalls) {
-                                                        asynCall1 = true;
-                                                        if (asynCall1 && asynCall2) {
-                                                            if (processDefinitionKey === 'CreatePR'){
-                                                                openProcessCardModalCreatePR(processDefinitionId, businessKey, index);
+                                                        } else {
+                                                            console.log('vtoroi', groupasynCalls, maxGroupAsynCalls);
+                                                            groupasynCalls += 1;
+                                                            if (groupasynCalls === maxGroupAsynCalls) {
+                                                                asynCall1 = true;
+                                                                if (asynCall1 && asynCall2) {
+                                                                    if (processDefinitionKey === 'CreatePR') {
+                                                                        openProcessCardModalCreatePR(processDefinitionId, businessKey, index);
+                                                                    } else {
+                                                                        openProcessCardModalRevision(processDefinitionId, businessKey, index);
+                                                                    }
+                                                                    asynCall1 = false;
+                                                                } else console.log('asynCall 2 problem');
                                                             } else {
-                                                                openProcessCardModalRevision(processDefinitionId, businessKey, index);
-                                                            }
-                                                            asynCall1 = false;
-                                                        } else console.log('asynCall 2 problem');
-                                                    } else {
-                                                        console.log(groupasynCalls, maxGroupAsynCalls);
+                                                                console.log(groupasynCalls, maxGroupAsynCalls);
 
+                                                            }
+                                                        }
+                                                    },
+                                                    function (error) {
+                                                        console.log(error.data);
                                                     }
-                                                }
+                                                );
                                             },
                                             function (error) {
                                                 console.log(error.data);
                                             }
                                         );
-
                                     });
 
                                 } else {
@@ -4228,14 +4241,11 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                                         //scope.jobModel.tasks = processInstanceTasks;
                                         angular.extend(scope.jobModel, catalogs);
                                         scope.jobModel.tasks = processInstanceTasks;
-
-
                                     },
                                     function (error) {
                                         console.log(error.data);
                                     }
                                 );
-
                             },
                             function (error) {
                                 console.log(error.data);
