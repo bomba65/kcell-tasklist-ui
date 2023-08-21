@@ -44,7 +44,6 @@ select
             to_timestamp(workStartDate.long_/1000) + interval '6 hour' as "workStartDate",
             to_timestamp(integrationRunDate.long_/1000) + interval '6 hour' as "integrationRunDate",
             to_timestamp(workCompletionDate.long_/1000) + interval '6 hour' as "workCompletionDate",
-        relatedTo.text_ as "Related to the",
     project.text_ as "Project",
     mtListSignDate.value_ + interval '6 hour' as "Material List Signing Date",
             acceptanceByInitiatorDate.value_ + interval '6 hour' as "Accept by Initiator",
@@ -55,8 +54,6 @@ select
         coalesce(title.value_, worksJson.value ->>'displayServiceName') as "Job Description",
     worksJson.value ->>'quantity' as "Quantity",
     worksJson.value ->> 'materialsProvidedBy' as "Materials from",
-    jobReason.text_ as "Job reason",
-    typeOfExpenses.text_ as "Type of expenses",
     explanation.text_ as "Comments",
     case materialsRequired.text_
         when 'Yes' then 'required'
@@ -74,13 +71,14 @@ select
     totalWorkPrice.totalWithDiscount as "Price discount",
     monthlyAct.text_ as "Monthly act #",
     jrNumber.text_ as "JO#",
-    sapPRNo.text_ as "PR#",
-    sapPRTotalValue.text_ as "PR Total Value",
-    sapPRStatus.text_ as "PR Status",
-    to_timestamp(sapPRApproveDate.long_/1000) + interval '6 hour' as "PR Approval date",
-        sapPONo.text_ as "PO#",
-    invoiceNumber.text_ as "Invoice #",
-    to_timestamp(invoiceDate.long_/1000) + interval '6 hour' as "Invoice date"
+    pr_number.text_ as "PR",
+    po_number.text_ as "PO",
+    cm_number.text_ as "CM",
+    avr_number.text_ as "AVR",
+    esf_number.text_ as "ESF",
+    to_timestamp(avr_date.long_/1000) + interval '6 hour' as "AVR date",
+    to_timestamp(esf_date.long_/1000) + interval '6 hour' as "ESF date",
+    ir.text_ as "IR"
 from act_hi_procinst pi
          left join act_hi_varinst sitename
                    on pi.id_ = sitename.proc_inst_id_ and sitename.name_ = 'site_name'
@@ -96,14 +94,8 @@ from act_hi_procinst pi
                    on pi.id_ = integrationRunDate.proc_inst_id_ and integrationRunDate.name_ = 'integrationRunDate'
          left join act_hi_varinst workCompletionDate
                    on pi.id_ = workCompletionDate.proc_inst_id_ and workCompletionDate.name_ = 'workCompletionDate'
-         left join act_hi_varinst relatedTo
-                   on pi.id_ = relatedTo.proc_inst_id_ and relatedTo.name_ = 'relatedTo'
          left join act_hi_varinst project
                    on pi.id_ = project.proc_inst_id_ and project.name_ = 'project'
-         left join act_hi_varinst jobReason
-                   on pi.id_ = jobReason.proc_inst_id_ and jobReason.name_ = 'jobReason'
-         left join act_hi_varinst typeOfExpenses
-                   on pi.id_ = typeOfExpenses.proc_inst_id_ and typeOfExpenses.name_ = 'typeOfExpenses'
          left join act_hi_varinst monthlyAct
                    on pi.id_ = monthlyAct.proc_inst_id_ and monthlyAct.name_ = 'monthActNumber'
          left join act_hi_varinst jrNumber
@@ -112,20 +104,22 @@ from act_hi_procinst pi
                    on pi.id_ = discount.proc_inst_id_ and discount.name_ = 'discount'
          left join act_hi_varinst oblastName
                    on pi.id_ = oblastName.proc_inst_id_ and oblastName.name_ = 'oblastName'
-         left join act_hi_varinst sapPRNo
-                   on pi.id_ = sapPRNo.proc_inst_id_ and sapPRNo.name_ = 'sapPRNo'
-         left join act_hi_varinst sapPRTotalValue
-                   on pi.id_ = sapPRTotalValue.proc_inst_id_ and sapPRTotalValue.name_ = 'sapPRTotalValue'
-         left join act_hi_varinst sapPRStatus
-                   on pi.id_ = sapPRStatus.proc_inst_id_ and sapPRStatus.name_ = 'sapPRStatus'
-         left join act_hi_varinst sapPRApproveDate
-                   on pi.id_ = sapPRApproveDate.proc_inst_id_ and sapPRApproveDate.name_ = 'sapPRApproveDate'
-         left join act_hi_varinst sapPONo
-                   on pi.id_ = sapPONo.proc_inst_id_ and sapPONo.name_ = 'sapPONo'
-         left join act_hi_varinst invoiceNumber
-                   on pi.id_ = invoiceNumber.proc_inst_id_ and invoiceNumber.name_ = 'invoiceNumber'
-         left join act_hi_varinst invoiceDate
-                   on pi.id_ = invoiceDate.proc_inst_id_ and invoiceDate.name_ = 'invoiceDate'
+         left join act_hi_varinst pr_number
+                   on pi.id_ = pr_number.proc_inst_id_ and pr_number.name_ = 'pr_number'
+         left join act_hi_varinst po_number
+                   on pi.id_ = po_number.proc_inst_id_ and po_number.name_ = 'po_number'
+         left join act_hi_varinst cm_number
+                   on pi.id_ = cm_number.proc_inst_id_ and cm_number.name_ = 'cm_number'
+         left join act_hi_varinst avr_number
+                   on pi.id_ = avr_number.proc_inst_id_ and avr_number.name_ = 'avr_number'
+         left join act_hi_varinst esf_number
+                   on pi.id_ = esf_number.proc_inst_id_ and esf_number.name_ = 'esf_number'
+         left join act_hi_varinst avr_date
+                   on pi.id_ = avr_date.proc_inst_id_ and avr_date.name_ = 'avr_date'
+         left join act_hi_varinst esf_date
+                   on pi.id_ = esf_date.proc_inst_id_ and esf_date.name_ = 'esf_date'
+         left join act_hi_varinst ir
+                   on pi.id_ = ir.proc_inst_id_ and ir.name_ = 'ir'
          left join act_hi_varinst initiatorAcceptanceDate
                    on pi.id_ = initiatorAcceptanceDate.proc_inst_id_ and initiatorAcceptanceDate.name_ = 'initiatorAcceptanceDate'
          left join act_hi_varinst requestedDate
