@@ -2632,13 +2632,6 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                     return Object.keys(obj).length === 0;
                 }
 
-                scope.KWMSProcessesCount = Object.keys(scope.KWMSProcesses).length;
-                if (scope.KWMSProcessesCount === 1) {
-                    angular.forEach(scope.KWMSProcesses, function (value, processKey) {
-                        value.value = true;
-                    });
-                }
-
                 scope.getWorks = function(val) {
                     if (scope.filter.mainContract === undefined || scope.filter.mainContract === null || scope.filter.mainContract === 'All') {
                         scope.filter.workName = undefined;
@@ -6001,6 +5994,10 @@ define(['./module', 'angular', 'bpmn-viewer', 'bpmn-navigated-viewer', 'moment',
                     });
                 }
 
+                scope.KWMSProcessesCount = Object.keys(scope.KWMSProcesses).length;
+                if (scope.KWMSProcessesCount === 1) {
+                    scope.toggleProcess(Object.keys(scope.KWMSProcesses)[0]);
+                }
             },
             templateUrl: './js/directives/search/networkArchitectureSearch.html'
         };
