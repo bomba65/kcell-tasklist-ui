@@ -222,7 +222,7 @@ from act_hi_procinst pi
       and jobWorks.name_ = 'jobWorks'
     GROUP BY
         sapServiceNumber, dummyIdentifier
-    ) relatedSites on worksJson.value->>'sapServiceNumber'=relatedSites.sapServiceNumber
+    ) relatedSites on CAST(worksJson.value AS text)=relatedSites.dummyIdentifier
 
          left join act_hi_varinst acceptAndSignByInitiatorTaskResult
                    on pi.id_ = acceptAndSignByInitiatorTaskResult.proc_inst_id_
