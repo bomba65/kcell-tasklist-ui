@@ -3208,11 +3208,10 @@ define(['./module', 'camundaSDK', 'lodash', 'big-js', 'jquery', 'moment'], funct
                         });
 
                         data.splice(0, 0, ["Contract", "Year", "Month", "Region", "Oblast", "Sitename", "JR No", "JR To", "JR Reason", "Requested Date", "Requested By", "Validity Date",
-                            "Work start date", "Integration run date", "Work completion date", "Related to the", "Project"
+                            "Work start date", "Integration run date", "Work completion date", "Project"
                             , "Material List Signing Date", "Accept by Initiator", "Accept by Work Maintenance", "Accept by Work Planning", "Acceptance Date", "Job Description", "Quantity"
-                            , "Materials from", "Job reason", "Type of expenses", "Comments", "Customer Material", "Process State", "JR Status", "Detailed status", "Reason", "Price (without transportation)"
-                            , "Price (with transportation)", "Price (discount)", "Monthly act #", "JO#", "PR#", "PR Total Value", "PR Status", "PR Approval date", "PO#", "Invoice No", "Invoice date"
-                        ]);
+                            , "Materials from", "Comments", "Customer Material", "Process State", "JR Status", "Detailed status", "Reason", "Price (without transportation)"
+                            , "Price (with transportation)", "Price (discount)", "Monthly act #", "JO#", "PR", "PO", "CM", "AVR", "ESF", "AVR date", "ESF date", "IR"]);
 
                         var ws = XLSX.utils.json_to_sheet(response.data, {skipHeader: true});
 
@@ -3244,10 +3243,10 @@ define(['./module', 'camundaSDK', 'lodash', 'big-js', 'jquery', 'moment'], funct
                         });
 
                         data.splice(0, 0, ["Contract", "Year", "Month", "Region", "Oblast", "Sitename", "JR No", "JR To", "JR Reason", "Requested Date", "Requested By", "Validity Date",
-                            "Work start date", "Integration run date", "Work completion date", "Related to the", "Project"
+                            "Work start date", "Integration run date", "Work completion date", "Project"
                             , "Material List Signing Date", "Accept by Initiator", "Accept by Work Maintenance", "Accept by Work Planning", "Acceptance Date", "Job Description", "Quantity"
-                            , "Materials from", "Job reason", "Type of expenses", "Comments", "Customer Material", "Process State", "JR Status", "Detailed status", "Reason", "Price (without transportation)"
-                            , "Price (with transportation)", "Price (discount)", "Monthly act #", "JO#", "PR#", "PR Total Value", "PR Status", "PR Approval date", "PO#", "Invoice No", "Invoice date"
+                            , "Materials from", "Comments", "Customer Material", "Process State", "JR Status", "Detailed status", "Reason", "Price (without transportation)"
+                            , "Price (with transportation)", "Price (discount)", "Monthly act #", "JO#", "PR", "PO", "CM", "AVR", "ESF", "AVR date", "ESF date", "IR"
                         ]);
 
                         var ws = XLSX.utils.json_to_sheet(response.data, {skipHeader: true});
@@ -3280,10 +3279,10 @@ define(['./module', 'camundaSDK', 'lodash', 'big-js', 'jquery', 'moment'], funct
                         });
 
                         data.splice(0, 0, ["Contract", "Year", "Month", "Region", "Oblast", "Sitename", "JR No", "JR To", "JR Reason", "Requested Date", "Requested By", "Validity Date",
-                            "Work start date", "Integration run date", "Work completion date", "Related to the", "Project"
+                            "Work start date", "Integration run date", "Work completion date", "Project"
                             , "Material List Signing Date", "Accept by Initiator", "Accept by Work Maintenance", "Accept by Work Planning", "Acceptance Date", "Job Description", "Quantity"
-                            , "Materials from", "Job reason", "Type of expenses", "Comments", "Customer Material", "Process State", "JR Status", "Detailed status", "Reason", "Price (without transportation)"
-                            , "Price (with transportation)", "Price (discount)", "Monthly act #", "JO#", "PR#", "PR Total Value", "PR Status", "PR Approval date", "PO#", "Invoice No", "Invoice date"
+                            , "Materials from", "Comments", "Customer Material", "Process State", "JR Status", "Detailed status", "Reason", "Price (without transportation)"
+                            , "Price (with transportation)", "Price (discount)", "Monthly act #", "JO#", "PR", "PO", "CM", "AVR", "ESF", "AVR date", "ESF date", "IR"
                         ]);
 
                         var ws = XLSX.utils.json_to_sheet(response.data, {skipHeader: true});
@@ -3352,10 +3351,10 @@ define(['./module', 'camundaSDK', 'lodash', 'big-js', 'jquery', 'moment'], funct
                         });
 
                         data.splice(0, 0, ["Contract", "Year", "Month", "Region", "Oblast", "Sitename", "JR No", "JR To", "JR Reason", "Requested Date", "Requested By", "Validity Date",
-                            "Work start date", "Integration run date", "Work completion date", "Related to the", "Project"
+                            "Work start date", "Integration run date", "Work completion date", "Project"
                             , "Material List Signing Date", "Accept by Initiator", "Accept by Work Maintenance", "Accept by Work Planning", "Acceptance Date", "Job Description", "Quantity", "Materials from"
-                            , "Job reason", "Type of expenses", "Comments", "Customer Material", "Process State", "JR Status", "Detailed status", "Reason", "Price (without transportation)"
-                            , "Price (with transportation)", "Price (discount)", "Monthly act #", "JO#", "PR#", "PR Total Value", "PR Status", "PR Approval date", "PO#", "Invoice No", "Invoice date", "Job list"
+                            , "Comments", "Customer Material", "Process State", "JR Status", "Detailed status", "Reason", "Price (without transportation)"
+                            , "Price (with transportation)", "Price (discount)", "Monthly act #", "JO#", "Job list", "PR", "PO", "CM", "AVR", "ESF", "AVR date", "ESF date", "IR"
                         ]);
 
                         var ws = XLSX.utils.json_to_sheet(response.data, {skipHeader: true});
@@ -3386,10 +3385,10 @@ define(['./module', 'camundaSDK', 'lodash', 'big-js', 'jquery', 'moment'], funct
                         });
 
                         data.splice(0, 0, ["Contract", "Year", "Month", "Region", "Oblast", "Sitename", "JR No", "JR To", "JR Reason", "Requested Date", "Requested By", "Validity Date",
-                            "Work start date", "Integration run date", "Work completion date", "Related to the", "Project"
+                            "Work start date", "Integration run date", "Work completion date", "Project"
                             , "Material List Signing Date", "Accept by Initiator", "Accept by Work Maintenance", "Accept by Work Planning", "Acceptance Date", "Job Description", "Quantity", "Materials from"
-                            , "Job reason", "Type of expenses", "Comments", "Customer Material", "Process State", "JR Status", "Detailed status", "Reason", "Price (without transportation)"
-                            , "Price (with transportation)", "Price (discount)", "Monthly act #", "JO#", "PR#", "PR Total Value", "PR Status", "PR Approval date", "PO#", "Invoice No", "Invoice date", "Job list"
+                            , "Comments", "Customer Material", "Process State", "JR Status", "Detailed status", "Reason", "Price (without transportation)"
+                            , "Price (with transportation)", "Price (discount)", "Monthly act #", "JO#", "Job list", "PR", "PO", "CM", "AVR", "ESF", "AVR date", "ESF date", "IR"
                         ]);
 
                         var ws = XLSX.utils.json_to_sheet(response.data, {skipHeader: true});
@@ -3420,10 +3419,10 @@ define(['./module', 'camundaSDK', 'lodash', 'big-js', 'jquery', 'moment'], funct
                         });
 
                         data.splice(0, 0, ["Contract", "Year", "Month", "Region", "Oblast", "Sitename", "JR No", "JR To", "JR Reason", "Requested Date", "Requested By", "Validity Date",
-                            "Work start date", "Integration run date", "Work completion date", "Related to the", "Project"
+                            "Work start date", "Integration run date", "Work completion date", "Project"
                             , "Material List Signing Date", "Accept by Initiator", "Accept by Work Maintenance", "Accept by Work Planning", "Acceptance Date", "Job Description", "Quantity", "Materials from"
-                            , "Job reason", "Type of expenses", "Comments", "Customer Material", "Process State", "JR Status", "Detailed status", "Reason", "Price (without transportation)"
-                            , "Price (with transportation)", "Price (discount)", "Monthly act #", "JO#", "PR#", "PR Total Value", "PR Status", "PR Approval date", "PO#", "Invoice No", "Invoice date", "Job list"
+                            , "Comments", "Customer Material", "Process State", "JR Status", "Detailed status", "Reason", "Price (without transportation)"
+                            , "Price (with transportation)", "Price (discount)", "Monthly act #", "JO#", "Job list", "PR", "PO", "CM", "AVR", "ESF", "AVR date", "ESF date", "IR"
                         ]);
 
                         var ws = XLSX.utils.json_to_sheet(response.data, {skipHeader: true});
