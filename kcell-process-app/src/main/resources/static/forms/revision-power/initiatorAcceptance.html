@@ -10,6 +10,7 @@
 <form role="form" class="form-horizontal" name="kcell_form" novalidate>
   <script cam-script type="text/form-script" type="text/javascript">
     inject(['$scope', '$http', 'Uri', '$rootScope', '$q', '$timeout', function ($scope, $http, Uri, $rootScope, $q, $timeout) {
+      var uuid = new Date().getTime();
       var variables = [
         'jrOrderedDate',
         'jrNumber',
@@ -34,6 +35,7 @@
       $scope.dateFieldOpened = false;
       $scope.currentDate = new Date();
       $scope.open = open;
+      $scope.fileSelected = fileSelected;
 
       camForm.on('form-loaded', function () {
         $http.get('/api/powerProjectTypes').then(
@@ -78,6 +80,15 @@
             value: $scope.comment
         });
 
+        if (camForm.variableManager.variables['attachments'] !== null) {
+          camForm.variableManager.destroyVariable('attachments');
+        }
+        camForm.variableManager.createVariable({
+          name: 'attachments',
+          type: 'Json',
+          value: $scope.attachments
+        });
+
         if ($scope.resolution === 'modify') {
             camForm.variableManager.createVariable({
             name: 'rejectedBy',
@@ -103,6 +114,9 @@
         $scope.dateFieldOpened = true;
       };
 
+      $scope.clearFile = function(index){
+        $scope.attachments.splice(index, 1);
+      }
       $scope.download = function download (file) {
           $http({method: 'GET', url: '/camunda/uploads/' + (file.path.split('/').length === 2 ? 'tmp/' : '') + 'get/' + file.path, transformResponse: [] }).then(
               function(response) {
@@ -110,7 +124,41 @@
               },
               function(response) {console.log(response.data);}
           );
+      };
+
+      function fileSelected(el, bindedInput){
+        $timeout(function () {
+          $scope.$apply(function () {
+            uploadFileToMinio(el.files[0], bindedInput);
+          });
+
+        })
       }
+
+      function uploadFileToMinio(file, bindedInput) {
+        var fileValue = {
+          name: file.name.replace(/[/\\?%#*:|"<>]/g, '-'),
+          path: uuid + '/' + file.name.replace(/[/\\?%#*:|"<>;]/g, '-')
+        };
+        $http({method: 'GET', url: '/camunda/uploads/tmp/put/' + fileValue.path, transformResponse: [] }).
+        then(function(response) {
+          $http.put(response.data, file, {headers: {'Content-Type': undefined}}).then(
+                  function () {
+                    if(!$scope.attachments){
+                      $scope.attachments = [];
+                    }
+                    $scope.attachments.push(fileValue);
+                    angular.element(document.querySelector('#attachments')).val(null);
+                    $(bindedInput).val('');
+                  },
+                  function (error) {
+                    console.log(error.data);
+                  }
+          );
+        }, function(error){
+          console.log(error.data);
+        });
+      };
     }]);
   </script>
   <div class="row">
@@ -289,6 +337,40 @@
       </label>
     </div>
   </div>
+
+  <div class="form-group">
+    <label class="col-sm-3 control-label"> Attachments:</label>
+    <div class="col-sm-6">
+      <div class="input-group" ng-repeat="file in attachments track by $index">
+        <a ng-click="download(file)">{{file.name}}</a> |
+        <a ng-click="clearFile($index);"
+        ><i class="glyphicon glyphicon-trash"></i
+        ></a>
+      </div>
+      <div class="input-group">
+        <label class="input-group-btn">
+          <span class="btn btn-default">
+            Choose File
+            <input
+                    type="file"
+                    id="attachments"
+                    name="attachments"
+                    style="display: none"
+                    onchange="angular.element(this).scope().fileSelected(this, '#attachedFilesName');$('#attachedFilesName').val(this.files[0].name)"
+            />
+          </span>
+        </label>
+        <input
+                type="text"
+                class="form-control upload-filename"
+                id="attachedFilesName"
+                placeholder="No File Chosen"
+                readonly
+        />
+      </div>
+    </div>
+  </div>
+
   <div class="form-group">
     <label class="col-sm-3 control-label">Resolution:</label>
     <div class="col-sm-8">
