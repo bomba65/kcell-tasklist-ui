@@ -459,6 +459,8 @@ define(['./module', 'camundaSDK', 'lodash', 'big-js', 'jquery', 'moment'], funct
                 $scope.contractorCode = 7;
             } else if ($rootScope.hasGroup('hq_contractor_alta') || $rootScope.hasGroup('astana_contractor_alta') || $rootScope.hasGroup('nc_contractor_alta') || $rootScope.hasGroup('alm_contractor_alta') || $rootScope.hasGroup('east_contractor_alta') || $rootScope.hasGroup('south_contractor_alta') || $rootScope.hasGroup('west_contractor_alta')) {
                 $scope.contractorCode = 6;
+            } else if ($rootScope.hasGroup('hq_contractor_inter') || $rootScope.hasGroup('astana_contractor_inter') || $rootScope.hasGroup('nc_contractor_inter') || $rootScope.hasGroup('alm_contractor_inter') || $rootScope.hasGroup('east_contractor_inter') || $rootScope.hasGroup('south_contractor_inter') || $rootScope.hasGroup('west_contractor_inter')) {
+                $scope.contractorCode = 9;
             } else if ($rootScope.hasGroup('hq_contractor_foresterhg') || $rootScope.hasGroup('astana_contractor_foresterhg') || $rootScope.hasGroup('nc_contractor_foresterhg') || $rootScope.hasGroup('alm_contractor_foresterhg') || $rootScope.hasGroup('east_contractor_foresterhg') || $rootScope.hasGroup('south_contractor_foresterhg') || $rootScope.hasGroup('west_contractor_foresterhg')) {
                 $scope.contractorCode = 10;
             } else if ($rootScope.hasGroup('hq_contractor_transtlc') || $rootScope.hasGroup('astana_contractor_transtlc') || $rootScope.hasGroup('nc_contractor_transtlc') || $rootScope.hasGroup('alm_contractor_transtlc') || $rootScope.hasGroup('east_contractor_transtlc') || $rootScope.hasGroup('south_contractor_transtlc') || $rootScope.hasGroup('west_contractor_transtlc')) {
@@ -494,17 +496,17 @@ define(['./module', 'camundaSDK', 'lodash', 'big-js', 'jquery', 'moment'], funct
                 } else {
                     queryParams.variables.push({"name": "siteRegion", "operator": "eq", "value": $scope.region});
                 }
-            } else if ($rootScope.hasGroup('astana_contractor_lse') || $rootScope.hasGroup('astana_contractor_arlan') || $rootScope.hasGroup('astana_contractor_alta') || $rootScope.hasGroup('astana_contractor_logycom')) {
+            } else if ($rootScope.hasGroup('astana_contractor_lse') || $rootScope.hasGroup('astana_contractor_arlan') || $rootScope.hasGroup('astana_contractor_alta') || $rootScope.hasGroup('astana_contractor_logycom') || $rootScope.hasGroup('astana_contractor_inter')) {
                 queryParams.variables.push({"name": "siteRegion", "operator": "eq", "value": 'astana'});
-            } else if ($rootScope.hasGroup('nc_contractor_lse') || $rootScope.hasGroup('nc_contractor_arlan') || $rootScope.hasGroup('nc_contractor_alta') || $rootScope.hasGroup('nc_contractor_logycom')) {
+            } else if ($rootScope.hasGroup('nc_contractor_lse') || $rootScope.hasGroup('nc_contractor_arlan') || $rootScope.hasGroup('nc_contractor_alta') || $rootScope.hasGroup('nc_contractor_logycom') || $rootScope.hasGroup('nc_contractor_inter')) {
                 queryParams.variables.push({"name": "siteRegion", "operator": "eq", "value": 'nc'});
-            } else if ($rootScope.hasGroup('alm_contractor_lse') || $rootScope.hasGroup('alm_contractor_arlan') || $rootScope.hasGroup('alm_contractor_alta') || $rootScope.hasGroup('alm_contractor_logycom')) {
+            } else if ($rootScope.hasGroup('alm_contractor_lse') || $rootScope.hasGroup('alm_contractor_arlan') || $rootScope.hasGroup('alm_contractor_alta') || $rootScope.hasGroup('alm_contractor_logycom') || $rootScope.hasGroup('alm_contractor_inter')) {
                 queryParams.variables.push({"name": "siteRegion", "operator": "eq", "value": 'alm'});
-            } else if ($rootScope.hasGroup('east_contractor_lse') || $rootScope.hasGroup('east_contractor_arlan') || $rootScope.hasGroup('east_contractor_alta') || $rootScope.hasGroup('east_contractor_logycom')) {
+            } else if ($rootScope.hasGroup('east_contractor_lse') || $rootScope.hasGroup('east_contractor_arlan') || $rootScope.hasGroup('east_contractor_alta') || $rootScope.hasGroup('east_contractor_logycom') || $rootScope.hasGroup('east_contractor_inter')) {
                 queryParams.variables.push({"name": "siteRegion", "operator": "eq", "value": 'east'});
-            } else if ($rootScope.hasGroup('south_contractor_lse') || $rootScope.hasGroup('south_contractor_arlan') || $rootScope.hasGroup('south_contractor_alta') || $rootScope.hasGroup('south_contractor_logycom')) {
+            } else if ($rootScope.hasGroup('south_contractor_lse') || $rootScope.hasGroup('south_contractor_arlan') || $rootScope.hasGroup('south_contractor_alta') || $rootScope.hasGroup('south_contractor_logycom') || $rootScope.hasGroup('south_contractor_inter')) {
                 queryParams.variables.push({"name": "siteRegion", "operator": "eq", "value": 'south'});
-            } else if ($rootScope.hasGroup('west_contractor_lse') || $rootScope.hasGroup('west_contractor_arlan') || $rootScope.hasGroup('west_contractor_alta') || $rootScope.hasGroup('west_contractor_logycom')) {
+            } else if ($rootScope.hasGroup('west_contractor_lse') || $rootScope.hasGroup('west_contractor_arlan') || $rootScope.hasGroup('west_contractor_alta') || $rootScope.hasGroup('west_contractor_logycom') || $rootScope.hasGroup('west_contractor_inter')) {
                 queryParams.variables.push({"name": "siteRegion", "operator": "eq", "value": 'west'});
             }
 
