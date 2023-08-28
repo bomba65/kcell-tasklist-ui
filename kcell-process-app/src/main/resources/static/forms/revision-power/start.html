@@ -11,7 +11,17 @@
           submit: true,
           store: true
         },{
+          name: 'switchName',
+          type: 'String',
+          submit: true,
+          store: true
+        },{
           name: 'site_name',
+          type: 'String',
+          submit: true,
+          store: true
+        },{
+          name: 'switch_name',
           type: 'String',
           submit: true,
           store: true
@@ -73,6 +83,7 @@
 
       camForm.on('form-loaded', function () {
         $scope.jobTo = "contractor";
+        $scope.worksOn = "site";
         $http.get('/api/powerProjectTypes').then(
                 function (response) {
                   $scope.powerProjectTypes = response.data;
@@ -135,6 +146,11 @@
             function(response) {
               $scope.oblastCatalog = response.data.data.$list;
             }
+          );
+          $http.get('/camunda/catalogs/api/get/id/111').then(
+                  function(response) {
+                    $scope.swithCatalog = response.data.data.$list;
+                  }
           );
         } catch(err){
           console.log(err)
@@ -287,6 +303,11 @@
             value: $scope.site_name
           });
           camForm.variableManager.createVariable({
+            name: 'Switch_Name',
+            type: 'String',
+            value: $scope.switch_name
+          });
+          camForm.variableManager.createVariable({
             name: 'address',
             type: 'String',
             value: $scope.siteAddress
@@ -300,6 +321,11 @@
             name: 'job_to',
             type: 'String',
             value: $scope.jobTo
+          });
+          camForm.variableManager.createVariable({
+            name: 'works_on',
+            type: 'String',
+            value: $scope.worksOn
           });
           camForm.variableManager.createVariable({
             name: 'jobs',
@@ -363,6 +389,14 @@
         '5': 'South',
         '6': 'West'
       };
+      $scope.regionsMapSwitch = {
+        '1': 'Almaty',
+        '2': 'Astana',
+        '3': 'North and Center',
+        '4': 'East',
+        '5': 'South',
+        '6': 'West'
+      };
       $scope.regions99 = [
         {id: 1, name: 'Almaty'},
         {id: 3, name: 'North and Center'},
@@ -392,6 +426,9 @@
               return response.data.map(el => ({ id: el.id, name: el.siteid, site_name: el.site_name }))
           }
         );
+      };
+      $scope.getSwitch = function(val) {
+        return $scope.swithCatalog.filter(el => el.value.includes(val)).map(el => ({ id: el.id, switch_name: el.value, parent: el.parent, address: el.Address.value}))
       };
 
       $scope.siteSelected = function($item){
@@ -467,6 +504,16 @@
         $(function () {
             $('[data-toggle="tooltip"]').tooltip('fixTitle');
         });
+      };
+      $scope.switchSelected = function($item){
+        $scope.switchId = $item.id;
+        $scope.switchName = $item.switch_name;
+        $scope.switch_name = $item.switch_name;
+        $scope.siteAddress = $item.address;
+        $scope.siteRegion =$scope.regionsMapLC[$item.parent];
+        $scope.siteRegionShow = $scope.regionsMapSwitch[$item.parent];
+        $scope.regionShortName = $scope.regionsMap[$item.parent];
+
       };
 
       function setValidityDate() {
@@ -848,7 +895,32 @@
     </div>
   </div>
   <div class="form-group">
-    <label class="col-sm-3 control-label">Site:</label>
+    <label class="col-sm-3 control-label">Works on:</label>
+    <div class="col-sm-8">
+      <label class="radio-inline">
+        <input
+                type="radio"
+                id="worksOnSite"
+                value="site"
+                ng-model="worksOn"
+                required
+        />
+        Site
+      </label>
+      <label class="radio-inline">
+        <input
+                type="radio"
+                id="worksOnSwitch"
+                value="switch"
+                ng-model="worksOn"
+                required
+        />
+        Switch
+      </label>
+    </div>
+  </div>
+  <div class="form-group" ng-show="worksOn=='site'">
+    <label class="col-sm-3 control-label"></label>
     <div class="col-sm-5">
       <div class="input-group">
         <input
@@ -858,11 +930,11 @@
           typeahead="site as sites.site_name for sites in getSite($viewValue)"
           typeahead-on-select="siteSelected($item,$model,$label)"
           class="form-control"
-          required
+          ng-required="worksOn=='site'"
           autocomplete="off"
-          placeholder="Search Site..."
+          placeholder="Search..."
         />
-        <input type="hidden" ng-model="siteName" name="siteId" required />
+        <input type="hidden" ng-model="siteName" name="siteId"  ng-required="worksOn=='site'"  />
         </span>
       </div>
       <label
@@ -873,6 +945,34 @@
         class="error"
         ng-if="kcell_form.siteId.$error.required && ( kcell_form.siteName.$touched || view.submitted)"
         >Необходимо выбрать сайт из списка</label>
+    </div>
+  </div>
+  <div class="form-group" ng-show="worksOn=='switch'">
+    <label class="col-sm-3 control-label"></label>
+    <div class="col-sm-5">
+      <div class="input-group">
+        <input
+                type="text"
+                ng-model="switch_name"
+                name="switch_name"
+                typeahead="site as sites.switch_name for sites in getSwitch($viewValue)"
+                typeahead-on-select="switchSelected($item,$model,$label)"
+                class="form-control"
+                ng-required="worksOn=='switch'"
+                autocomplete="off"
+                placeholder="Search..."
+        />
+        <input type="hidden" ng-model="switchName" name="switchId"  ng-required="worksOn=='switch'"  />
+        </span>
+      </div>
+      <label
+              class="error"
+              ng-if="kcell_form.switch_name.$error.required && ( kcell_form.switch_name.$touched || view.submitted)"
+      >Required field</label>
+      <label
+              class="error"
+              ng-if="kcell_form.switchId.$error.required && ( kcell_form.switchName.$touched || view.submitted)"
+      >Необходимо выбрать switch из списка</label>
     </div>
   </div>
   <div class="form-group" ng-if="siteAddress">
