@@ -2,8 +2,8 @@
   <script cam-script type="text/form-script" type="text/javascript">
     inject(['$scope', '$http', 'Uri', '$rootScope', '$q', '$timeout', function ($scope, $http, Uri, $rootScope, $q, $timeout) {
       var uuid = new Date().getTime();
-      
-      
+
+
       var variablesToCreate = [
         {
           name: 'siteName',
@@ -58,7 +58,7 @@
         }
       ];
 
-      
+
       $scope.siteAddress = undefined;
       $scope.setValidityDate = setValidityDate;
       $scope.getSum = getSum;
@@ -155,7 +155,7 @@
         } catch(err){
           console.log(err)
         }
-        
+
       })
 
       camForm.on('variables-fetched', function () {
@@ -195,11 +195,11 @@
           }
         });
       });
-      
-      
+
+
       camForm.on('submit', function (e) {
         // evt.submitPrevented = true;
-        
+
         try{
           camForm.variableManager.createVariable({
             name: 'worksTotalSum',
@@ -221,8 +221,8 @@
             value: JSON.parse($scope.jrReason),
             type: 'Json'
           });
-         
-          
+
+
           var jrTypeJson = JSON.parse($scope.jrType)
           camForm.variableManager.createVariable({
             name: 'jrTypeName',
@@ -261,7 +261,7 @@
               type: 'String'
             });
           }
-          
+
           camForm.variableManager.createVariable({
             name: 'validityDate',
             value: new Date($scope.validityDate),
@@ -332,8 +332,8 @@
             type: 'Json',
             value: JSON.parse(angular.toJson($scope.jobWorks))
           });
-          
-          
+
+
           if ($scope.jrNumber) {
             camForm.variableManager.createVariable({
               name: 'jrNumber',
@@ -370,12 +370,17 @@
         } else {
           contractorName = "Kcell"
         }
-        
+
         let jrCounter = 'Power'+ '-'+$scope.regionShortName + '-CNTR-SID-YY';
         return $http.post('/asset-management/jobrequestcounter/' + jrCounter).then(
-          function(result){
-            $scope.jrNumber = result.data.replace('-CNTR-SID-YY', '-'+contractorName+'-'+$scope.siteId+'-'+$scope.jrOrderedDate.getFullYear().toString().substr(-2));
-          }
+           function(result){
+                  if( $scope.worksOn === 'site'){
+                    $scope.jrNumber = result.data.replace('-CNTR-SID-YY', '-'+contractorName+'-'+$scope.siteId+'-'+$scope.jrOrderedDate.getFullYear().toString().substr(-2));
+                  }
+                  else {
+                    $scope.jrNumber = result.data.replace('-CNTR-SID-YY', '-'+contractorName+'-'+$scope.switchName+'-'+$scope.jrOrderedDate.getFullYear().toString().substr(-2));
+                  }
+                }
         );
         deferred.resolve();
         return deferred.promise;
@@ -671,7 +676,7 @@
         $scope.jobWorks[index].materialSum = ($scope.jobWorks[index].materialPrice*$scope.jobWorks[index].quantity).toFixed(2)
         $scope.worksTotalSum = $scope.jobWorks.map(i=>i.materialSum).reduce((a,b)=>((+a)+(+b)).toFixed(3))
       };
-      
+
       function getPrice(index, transportation_flag) {
         <!-- O21 -->
         if (transportation_flag) {
@@ -681,7 +686,7 @@
           $scope.jobWorks[index].refersTo = transptWork.num;
           $scope.jobWorks[index].refersToTitle = transptWork.title;
           $scope.jobWorks[index].materialPrice = (transptWork.materialPrice*$scope.jobWorks[index].percentage/100).toFixed(2);
-          
+
         } else {
           <!-- O20 -->
           let dismntWork = JSON.parse($scope.jobWorks[index].dismantlingFor)
