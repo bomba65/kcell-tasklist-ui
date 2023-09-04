@@ -95,6 +95,8 @@ public class SetWorkVariables implements ExecutionListener {
                         }
                     } else if ("2023primary_source".equals(mainContract)) {
                         workPriceJson.put("price", priceJson.get(oblast).textValue());
+                    }else if ("Vostoktelecom".equals(mainContract)) {
+                        workPriceJson.put("price", priceJson.get(oblast).textValue());
                     } else {
                         String siteRegion = (String) execution.getVariable("siteRegion");
                         if("nc".equals(siteRegion) || "east".equals(siteRegion)){

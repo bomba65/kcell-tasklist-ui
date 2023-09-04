@@ -411,6 +411,11 @@
                         $scope.PS2023Catalog = response.data.data.$list;
                     }
                 );
+                $http.get('/camunda/catalogs/api/get/id/153').then(
+                    function(response) {
+                        $scope.VostokCatalog = response.data.data.$list;
+                    }
+                );
 
                 $http.get('/api/revisionProjectTypes').then(
                     function (response) {
@@ -968,7 +973,7 @@
                     $scope.reason = '4';
                     $scope.priority = "regular"
                 }
-                if($scope.mainContract === 'technical_maintenance_services'||$scope.mainContract==='2023primary_source'){
+                if($scope.mainContract === 'technical_maintenance_services'||$scope.mainContract==='2023primary_source'||$scope.mainContract==='Vostoktelecom'){
                     $scope.integrationRunDate=null;
                 }
                 if($scope.mainContract === 'emergencyRevision2022' || $scope.mainContract === 'Roll-outRevision2020'){
@@ -983,7 +988,7 @@
                 getJobs();
                 getTotalJobsCount();
                 console.log(typeof $scope.reason)
-                if($scope.mainContract === '2022Work-agreement'){
+                if($scope.mainContract === '2022Work-agreement'||$scope.mainContract==='2023primary_source'||$scope.mainContract==='Vostoktelecom'){
                     if ($scope.reason === undefined) {
                         $scope.priority = null
                     } else if ($scope.reason !== '4') {
@@ -1190,8 +1195,10 @@
                     if(!$scope.mainContract || !$scope.custom.contractor){
                         return false;
                     } else {
-                        if($scope.mainContract === '2023primary_source'){
-                            return element.id >= 6000;
+                        if($scope.mainContract === 'Vostoktelecom'){
+                            return element.id >= 7000;
+                        } else if($scope.mainContract === '2023primary_source'){
+                            return element.id >= 6000 && element.id < 7000;
                         } else if($scope.mainContract === 'technical_maintenance_services'){
                             return element.id >= 5000 && element.id < 6000;
                         } else if($scope.mainContract === '2022Work-agreement') {
@@ -1438,6 +1445,8 @@
                     list = $scope.SAO2023Catalog;
                 } else if ($scope.mainContract === '2023primary_source') {
                     list = $scope.PS2023Catalog;
+                } else if ($scope.mainContract === 'Vostoktelecom') {
+                    list = $scope.VostokCatalog;
                 }
 
                 $scope.siteIdOblastSubcontractorMap = new Map();
@@ -1550,6 +1559,8 @@
                            subcontractor = {id: subcontractorId, name: $scope.subcontractorCatalogSAO2023[subcontractorId - 1].value};
                        } else if($scope.mainContract==='2023primary_source'){
                            subcontractor = {id: subcontractorId, name: $scope.subcontractorCatalogPS2023[subcontractorId - 1].value};
+                       } else if($scope.mainContract==='Vostoktelecom'){
+                           subcontractor = {id: subcontractorId, name: $scope.subcontractorCatalog[subcontractorId - 1].value};
                        }
                         $scope.subcontractorsList.push(subcontractor);
                     }
@@ -1896,6 +1907,7 @@
                 <option value="2022Work-agreement">Договор Подряда на Выполнение Работ 2022</option>
                 <option value="technical_maintenance_services">Услуги по Техническому (Ревизионному) Обслуживанию</option>
                 <option hidden="true" value="2023primary_source">Контракт 2023 ОИ</option>
+                <option value="Vostoktelecom">Внутрихолдинговый закуп 2023 - "Востоктелеком"</option>
             </select>
             <label class="error" ng-if="kcell_form.mainContract.$error.required && ( kcell_form.mainContract.$touched || view.submitted)">Required field</label>
         </div>
@@ -1914,7 +1926,7 @@
             </label>
             <label class="error" ng-if="kcell_form.contractor.$error.required && ( kcell_form.contractor.$touched || view.submitted)">Required field</label>
         </div>
-        <div class="col-sm-8" ng-if="mainContract === '2022Work-agreement'||mainContract === 'technical_maintenance_services'||mainContract==='2023primary_source'">
+        <div class="col-sm-8" ng-if="mainContract === '2022Work-agreement'||mainContract === 'technical_maintenance_services'||mainContract==='2023primary_source'||mainContract==='Vostoktelecom'">
             <label class="radio-inline">
                 <input type="radio" ng-checked="true"> Subcontractor
             </label>
@@ -2029,7 +2041,7 @@
             </div>
         </div>
     </div>
-    <div class="form-group" ng-if="mainContract === '2022Work-agreement'||mainContract === 'technical_maintenance_services'||mainContract === '2023primary_source'">
+    <div class="form-group" ng-if="mainContract === '2022Work-agreement'||mainContract === 'technical_maintenance_services'||mainContract === '2023primary_source'||mainContract==='Vostoktelecom'">
         <label class="col-sm-3 control-label">Subcontractor:</label>
         <input type="hidden" ng-model="subcontractorName" name="subcontractorName"/>
         <div ng-if="mainContract === '2022Work-agreement'">
@@ -2061,7 +2073,7 @@
             <div class="form-control" style="height: auto">{{siteAddress}}</div>
         </div>
     </div>
-    <div ng-show="mainContract === '2022Work-agreement'||mainContract === 'technical_maintenance_services'||mainContract==='2023primary_source'">
+    <div ng-show="mainContract === '2022Work-agreement'||mainContract === 'technical_maintenance_services'||mainContract==='2023primary_source'||mainContract==='Vostoktelecom'">
     <div class="form-group">
             <label class="col-sm-3 control-label">Work start date:</label>
             <div class="col-sm-3">
