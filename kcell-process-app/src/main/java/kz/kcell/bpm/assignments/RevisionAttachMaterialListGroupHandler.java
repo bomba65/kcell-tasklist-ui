@@ -109,6 +109,13 @@ public class RevisionAttachMaterialListGroupHandler implements TaskListener {
                 delegateTask.addCandidateGroup(siteRegion + "_contractor_" + contractorsTitle.get(contractor));
             }
 
+        } else if ("Vostoktelecom".equals(mainContract)) {
+            String siteIdFirstTwoDigits = siteId.substring(0, 2);
+            if (Arrays.asList("00", "01", "03", "04", "05", "06", "07").contains(siteIdFirstTwoDigits)) {
+                delegateTask.addCandidateGroup("alm_contractor_inter");
+            } else if (Arrays.asList("40", "41", "42", "47", "48").contains(siteIdFirstTwoDigits)) {
+                delegateTask.addCandidateGroup("south_contractor_inter");
+            }
         } else {
             delegateTask.addCandidateGroup(siteRegion + "_engineer");
         }
