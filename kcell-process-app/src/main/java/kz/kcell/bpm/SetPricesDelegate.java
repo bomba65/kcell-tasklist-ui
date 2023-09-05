@@ -163,7 +163,7 @@ public class SetPricesDelegate implements TaskListener {
                 BigDecimal jobWorksTotal = BigDecimal.ZERO;
                 int i=0;
                 for (JsonNode work : jobWorks) {
-                    if(work.has("id") && work.get("id").intValue() >= 7000) {
+                    if(work.has("id") && work.get("id").intValue() >= 8000) {
                         continue;
                     }
                     ObjectNode workPrice = work.deepCopy();
@@ -177,11 +177,7 @@ public class SetPricesDelegate implements TaskListener {
 
                         ObjectNode workPriceJson = mapper.createObjectNode();
                         workPriceJson.put("sapServiceNumber", work.get("sapServiceNumber").textValue());
-                        if ("2022Work-agreement".equals(mainContract)) {
-                            workPriceJson.put("priceWithMaterial", priceJson.get(oblastName).textValue());
-                            workPriceJson.put("priceWithoutMaterial", priceJson.get(oblastName).textValue());
-                            workPriceJson.put("price", priceJson.get(oblastName).textValue());
-                        } else if ("2023primary_source".equals(mainContract)) {
+                        if ("2022Work-agreement".equals(mainContract)||"2023primary_source".equals(mainContract)||"Vostoktelecom".equals(mainContract)) {
                             workPriceJson.put("priceWithMaterial", priceJson.get(oblastName).textValue());
                             workPriceJson.put("priceWithoutMaterial", priceJson.get(oblastName).textValue());
                             workPriceJson.put("price", priceJson.get(oblastName).textValue());
@@ -237,7 +233,7 @@ public class SetPricesDelegate implements TaskListener {
                             workPrice.put("basePrice",priceJson.get(oblastName).get("active").textValue());
                             workPrices.add(workPrice);
                         }
-                    } else if ("2023primary_source".equals(mainContract)) {
+                    } else if ("2023primary_source".equals(mainContract)||"Vostoktelecom".equals(mainContract)) {
                         unitWorkPrice = new BigDecimal(priceJson.get(oblastName).textValue());
                         workPrice.put("basePrice",priceJson.get(oblastName).textValue());
                         workPrices.add(workPrice);
