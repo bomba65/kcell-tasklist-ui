@@ -473,7 +473,10 @@ public class JrBlankGenerator {
                 CellUtil.setFont(row.getCell(7), arialB10);
             }
 
-            BigDecimal jobWorksTotalDiscounted = jobWorksTotal.multiply(BigDecimal.valueOf(1-DISCOUNT_MAP.get(oblastName))).setScale(2, RoundingMode.HALF_UP);
+            BigDecimal jobWorksTotalDiscounted = null;
+            if (!mainContract.equals("technical_maintenance_services")) {
+                jobWorksTotalDiscounted = jobWorksTotal.multiply(BigDecimal.valueOf(1 - DISCOUNT_MAP.get(oblastName))).setScale(2, RoundingMode.HALF_UP);
+            }
             row = sheet.getRow(19+jobWorks.size())!=null?sheet.getRow(19+jobWorks.size()):sheet.createRow(19 + jobWorks.size());
             row.createCell(7).setCellValue("Всего работ на сумму:");
             if (mainContract.equals("technical_maintenance_services")) {
