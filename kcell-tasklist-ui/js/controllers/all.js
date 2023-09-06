@@ -3189,6 +3189,41 @@ define(['./module', 'camundaSDK', 'lodash', 'big-js', 'jquery', 'moment'], funct
                     });
                 }
             }
+            $scope.downloadFinancialReportVostok2023 = function () {
+                if ($rootScope.hasGroup('revision_reports')) {
+                    $http.get('/camunda/reports/financialreportvostok2023').then(function (response) {
+                        var data = response.data;
+                        angular.forEach(data, function (d) {
+                            d[9] = $filter('date')(d[9], "dd-MM-yyyy");
+                            d[11] = $filter('date')(d[11], "dd-MM-yyyy");
+                            d[12] = $filter('date')(d[12], "dd-MM-yyyy");
+                            d[13] = $filter('date')(d[13], "dd-MM-yyyy");
+
+                            d[14] = $filter('date')(d[14], "dd-MM-yyyy");
+                            d[17] = $filter('date')(d[17], "dd-MM-yyyy");
+                            d[18] = $filter('date')(d[18], "dd-MM-yyyy");
+                            d[19] = $filter('date')(d[19], "dd-MM-yyyy");
+                            d[20] = $filter('date')(d[20], "dd-MM-yyyy");
+                            d[21] = $filter('date')(d[21], "dd-MM-yyyy");
+                            d[41] = $filter('date')(d[41], "dd-MM-yyyy");
+                            d[44] = $filter('date')(d[44], "dd-MM-yyyy");
+                        });
+
+                        data.splice(0, 0, ["Contract", "Year", "Month", "Region", "Oblast", "Sitename", "JR No", "JR To", "JR Reason", "Requested Date", "Requested By", "Validity Date",
+                            "Work start date", "Integration run date", "Work completion date", "Project"
+                            , "Material List Signing Date", "Accept by Initiator", "Accept by Work Maintenance", "Accept by Work Planning", "Acceptance Date", "Job Description", "Quantity"
+                            , "Materials from", "Comments", "Customer Material", "Process State", "JR Status", "Detailed status", "Reason", "Price (without transportation)"
+                            , "Price (with transportation)", "Price (discount)", "Monthly act #", "JO#", "PR", "PO", "CM", "AVR", "ESF", "AVR date", "ESF date", "IR"]);
+
+                        var ws = XLSX.utils.json_to_sheet(response.data, {skipHeader: true});
+
+                        var wb = XLSX.utils.book_new();
+                        XLSX.utils.book_append_sheet(wb, ws, 'New Sheet Name 1');
+
+                        return XLSX.writeFile(wb, 'vostok2023-extended-report-by-works.xlsx');
+                    });
+                }
+            }
             $scope.downloadFinancialReportPS2023 = function () {
                 if ($rootScope.hasGroup('revision_reports')) {
                     $http.get('/camunda/reports/financialreportps2023').then(function (response) {
@@ -3331,7 +3366,40 @@ define(['./module', 'camundaSDK', 'lodash', 'big-js', 'jquery', 'moment'], funct
                     });
                 }
             }
+            $scope.downloadExtendedByJobsReportVostok2023 = function () {
+                if ($rootScope.hasGroup('revision_reports')) {
+                    $http.get('/camunda/reports/extended-report-by-jobs-vostok-2023').then(function (response) {
+                        var data = response.data;
 
+                        angular.forEach(data, function (d) {
+                            d[9] = $filter('date')(d[9], "dd-MM-yyyy");
+                            d[11] = $filter('date')(d[11], "dd-MM-yyyy");
+                            d[12] = $filter('date')(d[12], "dd-MM-yyyy");
+                            d[13] = $filter('date')(d[13], "dd-MM-yyyy");
+                            d[14] = $filter('date')(d[14], "dd-MM-yyyy");
+                            d[17] = $filter('date')(d[17], "dd-MM-yyyy");
+                            d[18] = $filter('date')(d[18], "dd-MM-yyyy");
+                            d[19] = $filter('date')(d[19], "dd-MM-yyyy");
+                            d[20] = $filter('date')(d[20], "dd-MM-yyyy");
+                            d[21] = $filter('date')(d[21], "dd-MM-yyyy");
+                            d[41] = $filter('date')(d[41], "dd-MM-yyyy");
+                            d[44] = $filter('date')(d[44], "dd-MM-yyyy");
+                        });
+
+                        data.splice(0, 0, ["Contract", "Year", "Month", "Region", "Oblast", "Sitename", "JR No", "JR To", "JR Reason", "Requested Date", "Requested By", "Validity Date",
+                            "Work start date", "Integration run date", "Work completion date", "Project"
+                            , "Material List Signing Date", "Accept by Initiator", "Accept by Work Maintenance", "Accept by Work Planning", "Acceptance Date", "Job Description", "Quantity", "Materials from"
+                            , "Comments", "Customer Material", "Process State", "JR Status", "Detailed status", "Reason", "Price (without transportation)"
+                            , "Price (with transportation)", "Price (discount)", "Monthly act #", "JO#", "Job list", "PR", "PO", "CM", "AVR", "ESF", "AVR date", "ESF date", "IR"
+                        ]);
+
+                        var ws = XLSX.utils.json_to_sheet(response.data, {skipHeader: true});
+                        var wb = XLSX.utils.book_new();
+                        XLSX.utils.book_append_sheet(wb, ws, 'New Sheet Name 1');
+                        return XLSX.writeFile(wb, 'vostok2023-extended-report-by-jobs.xlsx');
+                    });
+                }
+            }
             $scope.downloadExtendedByJobsReportPS2023 = function () {
                 if ($rootScope.hasGroup('revision_reports')) {
                     $http.get('/camunda/reports/extended-report-by-jobs-ps-2023').then(function (response) {
