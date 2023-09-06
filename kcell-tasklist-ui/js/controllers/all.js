@@ -3576,7 +3576,7 @@ define(['./module', 'camundaSDK', 'lodash', 'big-js', 'jquery', 'moment'], funct
                             d[29] = $filter('date')(d[29], "dd-MM-yyyy");
                         });
 
-                        data.splice(0, 0, ["Contract", "Year", "Month", "Region", "Oblast", "Sitename", "JR No", "JR To", "JR Reason", "Requested Date", "Requested By", "Validity Date",
+                        data.splice(0, 0, ["Contract", "Year", "Month", "Region", "Oblast", "Switchname", "Sitename", "JR No", "JR To", "JR Reason", "Requested Date", "Requested By", "Validity Date",
                             "Project", "Acceptance Date", "Job Description", "Quantity",  "Price", "Sum", "Comments", "Customer Material", "JR status",
                             "Monthly act #", "JO#", "PR#", "PR Total Value", "PR Status", "PR Approval date", "PO#", "Invoice No", "Invoice date", "CAPEX/OPEX", "SPP Element", "Номер АВР", "Дата АВР", "Номер ЭСФ", "Дата ЭСФ"
                         ]);

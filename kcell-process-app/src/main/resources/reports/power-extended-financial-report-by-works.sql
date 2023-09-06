@@ -4,6 +4,7 @@ select
     to_char(pi.start_time_ + interval '6 hour', 'month') as "Month",
     substring(pi.business_key_ from '-(.*?)-') as region,
     oblastName.text_ as "Oblast",
+    switch_name.text_ as switch_name,
     case
         when relatedSites.site_names is not null then
             relatedSites.site_names
@@ -50,6 +51,8 @@ select
 from act_hi_procinst pi
          left join act_hi_varinst sitename
                    on pi.id_ = sitename.proc_inst_id_ and sitename.name_ = 'Site_Name'
+         left join act_hi_varinst switch_name
+                   on pi.id_ = switch_name.proc_inst_id_ and switch_name.name_ = 'Switch_Name'
          left join act_hi_varinst contractorName
                    on pi.id_ = contractorName.proc_inst_id_ and contractorName.name_ = 'contractorName'
          left join act_hi_varinst reason
