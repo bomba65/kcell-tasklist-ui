@@ -67,4 +67,9 @@ public class SambaServiceTest implements SambaService {
             throw new RuntimeException("Error while writing \"IPVPN CONNECT.xlsm\" file to the host machine.", e);
         }
     }
+
+    @Override
+    public boolean canWrite() {
+        return true;
+    }
 }

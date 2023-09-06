@@ -554,5 +554,19 @@ define(['./module', 'camundaSDK', 'html2canvas', 'pdfMake'], function (module, C
             });
         }
 
+        this.canWriteIpVpnConnect = function (deferred) {
+            return $http.get('/camunda/vpn/can-write-ip-vpn-connect')
+                .then(function (response) {
+                    if (!response.data) {
+                        deferred.reject('The file IPVPN Connect.xlsm is opened. Please close the file and try to Start the request again')
+                        return deferred.promise;
+                    }
+                })
+                .catch(function (error) {
+                    deferred.reject("An error occurred during 'IPVPN Connect.xml can write' check");
+                    return deferred.promise;
+                });
+        }
+
     }]);
 });

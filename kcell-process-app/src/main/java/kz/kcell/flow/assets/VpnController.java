@@ -4,6 +4,7 @@ import kz.kcell.flow.assets.client.VpnPortClient;
 import kz.kcell.flow.assets.dto.VpnInputDto;
 import kz.kcell.flow.assets.dto.VpnOutputDto;
 import kz.kcell.flow.vpnportprocess.service.PortCapacityService;
+import kz.kcell.flow.vpnportprocess.service.SambaService;
 import kz.kcell.flow.vpnportprocess.variable.VpnCamVar;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -26,6 +27,7 @@ import java.util.List;
 public class VpnController {
     private final VpnPortClient vpnPortClient;
     private final PortCapacityService portCapacityService;
+    private final SambaService sambaService;
 
 
     @PostMapping
@@ -102,5 +104,10 @@ public class VpnController {
     @PostMapping("/port-capacity-enough")
     public ResponseEntity<Boolean> checkPortCapacity(@RequestBody List<VpnCamVar> services) {
         return ResponseEntity.ok(portCapacityService.portCapacityEnoughForVpns(services));
+    }
+
+    @GetMapping("/can-write-ip-vpn-connect")
+    public ResponseEntity<Boolean> canWriteIpVpnConnect() {
+        return ResponseEntity.ok(sambaService.canWrite());
     }
 }
