@@ -8,12 +8,14 @@ import java.text.SimpleDateFormat
 
 def jrNumberObj = (jrNumber != null ? jrNumber : '########')
 
+def worksOn = (works_on == 'site' ? Site_Name : Switch_Name)
+
 def initiatorObj = new JsonSlurper().parseText(initiatorFull.toString())
 def jrReasonObj = new JsonSlurper().parseText(jrReason.toString())
 def binding = [
         "jrNumber" : jrNumberObj,
         "initiatorFull" : initiatorObj.firstName + " " + initiatorObj.lastName,
-        "site_name": Site_Name,
+        "works_on": worksOn,
         "jrReason":jrReasonObj.name,
 ]
 def template = '''\
@@ -28,7 +30,7 @@ html(lang:'en') {
     body {
         p("Заявка на электромонтажные работы " + jrNumber + " возвращена инициатору, требуются корректировки.")
         newLine()
-        p("Site: "+site_name)
+        p("Works on: "+works_on)
         newLine() 
         p ("Инициатор возврата: "+initiatorFull)
         newLine()
