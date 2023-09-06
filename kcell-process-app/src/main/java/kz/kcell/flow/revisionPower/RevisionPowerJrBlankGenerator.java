@@ -41,7 +41,7 @@ public class RevisionPowerJrBlankGenerator implements JavaDelegate {
         String jrNumber = (String) delegateExecution.getVariable("jrNumber");
         byte[] jrBlank = generateJrBlank(delegateExecution);
 
-        String path = delegateExecution.getProcessInstanceId() + "/" + jrNumber + ".xlsx";
+        String path = "power-revision-jr-blank/" + delegateExecution.getProcessInstanceId() + "/" + jrNumber + ".xlsx";
         String fileName = jrNumber + ".xlsx";
         ByteArrayInputStream bis = new ByteArrayInputStream(jrBlank);
         minioClient.saveFile(path, bis, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
