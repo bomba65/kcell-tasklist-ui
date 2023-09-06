@@ -9,4 +9,6 @@ public interface SambaService {
     InputStream readIpVpnStatistics();
 
     void writeIpVpnConnect(ByteArrayOutputStream byteArrayOutputStream);
+
+    boolean canWrite();
 }

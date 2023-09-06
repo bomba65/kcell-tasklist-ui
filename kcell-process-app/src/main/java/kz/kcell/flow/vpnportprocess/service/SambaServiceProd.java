@@ -79,4 +79,15 @@ public class SambaServiceProd implements SambaService {
             throw new RuntimeException("Error while writing \"IPVPN CONNECT.xlsm\" file to files001 samba server.", e);
         }
     }
+
+    @Override
+    public boolean canWrite() {
+        NtlmPasswordAuthenticator auth = new NtlmPasswordAuthenticator(sambaDomain, sambaUsername, sambaPassword);
+        CIFSContext ct = SingletonContext.getInstance().withCredentials(auth);
+        try (SmbFile smbFile = new SmbFile(sambaUrl + "MSC_Data/TRUNK COMMUNICATIONS/IP Core/CORE_NETWORK/IPVPN CONNECT.xlsm", ct)){
+            return smbFile.canWrite();
+        } catch(IOException e) {
+            throw new RuntimeException("Error while writing \"IPVPN CONNECT.xlsm\" file to files001 samba server.", e);
+        }
+    }
 }
