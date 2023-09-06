@@ -34,12 +34,12 @@ select
         when '6' then 'Подготовка проекта'
         else null
         end as "JR Reason",
-    to_timestamp(requestedDate.long_/1000) + interval '6 hour' as "Requested Date",
+    to_timestamp(requestedDate.long_/1000) as "Requested Date",
     pi.start_user_id_ as "Requested By",
-    to_timestamp(validityDate.long_/1000) + interval '6 hour' as "Validity Date",
-    to_timestamp(workStartDate.long_/1000) + interval '6 hour' as "workStartDate",
-    to_timestamp(integrationRunDate.long_/1000) + interval '6 hour' as "integrationRunDate",
-    to_timestamp(workCompletionDate.long_/1000) + interval '6 hour' as "workCompletionDate",
+    to_timestamp(validityDate.long_/1000) as "Validity Date",
+    to_timestamp(workStartDate.long_/1000) as "workStartDate",
+    to_timestamp(integrationRunDate.long_/1000) as "integrationRunDate",
+    to_timestamp(workCompletionDate.long_/1000) as "workCompletionDate",
     project.text_ as "Project",
     mtListSignDate.value_ + interval '6 hour' as "Material List Signing Date",
     acceptanceByInitiatorDate.value_ + interval '6 hour' as "Accept by Initiator",
