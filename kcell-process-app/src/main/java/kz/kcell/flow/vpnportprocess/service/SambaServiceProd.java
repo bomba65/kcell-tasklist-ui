@@ -3,6 +3,7 @@ package kz.kcell.flow.vpnportprocess.service;
 import jcifs.CIFSContext;
 import jcifs.context.SingletonContext;
 import jcifs.smb.NtlmPasswordAuthenticator;
+import jcifs.smb.SmbException;
 import jcifs.smb.SmbFile;
 import jcifs.smb.SmbFileInputStream;
 import jcifs.smb.SmbFileOutputStream;
@@ -85,9 +86,14 @@ public class SambaServiceProd implements SambaService {
         NtlmPasswordAuthenticator auth = new NtlmPasswordAuthenticator(sambaDomain, sambaUsername, sambaPassword);
         CIFSContext ct = SingletonContext.getInstance().withCredentials(auth);
         try (SmbFile smbFile = new SmbFile(sambaUrl + "MSC_Data/TRUNK COMMUNICATIONS/IP Core/CORE_NETWORK/IPVPN CONNECT.xlsm", ct)){
-            return smbFile.canWrite();
+            try (SmbFileOutputStream os = smbFile.openOutputStream(true)) {
+                os.close();
+                return smbFile.canWrite();
+            } catch (SmbException exception) {
+                return false;
+            }
         } catch(IOException e) {
-            throw new RuntimeException("Error while writing \"IPVPN CONNECT.xlsm\" file to files001 samba server.", e);
+            throw new RuntimeException("Error while checking \"IPVPN CONNECT.xlsm\" file on files001 samba server.", e);
         }
     }
 }
