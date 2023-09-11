@@ -174,8 +174,8 @@ define('app',[
 						(process.key === 'Revision-power' && ["alm_power", "astana_power", "nc_power", "south_power", "west_power", "east_power"].some(group => hasGroup(group))) ||
 						(process.key === 'Invoice' && (hasGroup('statistics_monthlyact') || hasGroup('search_monthlyact'))) ||
 						(process.key === 'monthlyAct' && (hasGroup('statistics_monthlyact') || hasGroup('search_monthlyact')) ||
-						(process.key === 'VPN_Port_process' && (hasGroup('port_admin') || hasGroup('port_ipcore'))) ||
-						(process.key === 'VPN_Port_auto_process' && hasGroup('port_admin')))
+						(process.key === 'VPN_Port_process' && (hasGroup('port_admin') || hasGroup('port_ipcore') || hasGroup('port_provider_relations'))) ||
+						(process.key === 'VPN_Port_auto_process' && (hasGroup('port_admin') || hasGroup('port_ipcore') || hasGroup('port_provider_relations'))))
 					  )){
 						p.processes.push(process);
 					}
