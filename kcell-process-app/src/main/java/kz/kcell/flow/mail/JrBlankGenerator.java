@@ -46,7 +46,7 @@ public class JrBlankGenerator {
             map.put("4", "TOO \"Line System Engineering\"");
             map.put("5", "Kcell_region");
             map.put("6", "TOO \"Алта Телеком\"");
-            map.put("7", "TOO \"Логиком\"");
+            map.put("7", "АО \"Логиком\"");
             map.put("8", "TOO \"Arlan SI\"");
             map.put("9", "ТОО \"Inter Service\"");
             map.put("10", "TOO \"Forester-Hes Group\"");
