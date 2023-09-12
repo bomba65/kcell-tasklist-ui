@@ -117,6 +117,19 @@ public class ReportController {
         List<FinancialReportDto> reportDtos = reportRepository.financialReport(query);
         return ResponseEntity.ok(reportDtos);
     }
+    @RequestMapping(value = "/financialreportopentender2023", method = RequestMethod.GET)
+    @ResponseBody
+    public ResponseEntity<List<FinancialReportDto>> getFinancialReportOpenTender2023(){
+        if (identityService.getCurrentAuthentication() == null || identityService.getCurrentAuthentication().getUserId() == null) {
+            log.warning("No user logged in");
+            return ResponseEntity.ok(new ArrayList<FinancialReportDto>());
+        }
+        InputStream fis = ReportController.class.getResourceAsStream("/reports/financial-report_contract-open-tender-2023.sql");
+        Scanner s = new Scanner(fis).useDelimiter("\\A");
+        String query = s.hasNext() ? s.next() : "";
+        List<FinancialReportDto> reportDtos = reportRepository.financialReport(query);
+        return ResponseEntity.ok(reportDtos);
+    }
     @RequestMapping(value = "/power-extended-financial-report-by-works", method = RequestMethod.GET)
     @ResponseBody
     public ResponseEntity<List<FinancialReportDto>> getPowerExtendedReportByWorks(){
@@ -211,6 +224,20 @@ public class ReportController {
             return ResponseEntity.ok(new ArrayList<ExtendedReportByJobsDto>());
         }
         InputStream fis = ReportController.class.getResourceAsStream("/reports/extended-financial-report-by-job_contract-vostok-2023.sql");
+        Scanner s = new Scanner(fis).useDelimiter("\\A");
+        String query = s.hasNext() ? s.next() : "";
+        List<ExtendedReportByJobsDto> reportDtos = reportRepository.extendedReportByJobs(query);
+        return ResponseEntity.ok(reportDtos);
+    }
+
+    @RequestMapping(value = "/extended-report-by-jobs-open-tender-2023", method = RequestMethod.GET)
+    @ResponseBody
+    public ResponseEntity<List<ExtendedReportByJobsDto>> getExtendedReportByJobsOpenTender2023(){
+        if (identityService.getCurrentAuthentication() == null || identityService.getCurrentAuthentication().getUserId() == null) {
+            log.warning("No user logged in");
+            return ResponseEntity.ok(new ArrayList<ExtendedReportByJobsDto>());
+        }
+        InputStream fis = ReportController.class.getResourceAsStream("/reports/extended-financial-report-by-job_contract-open-tender-2023.sql");
         Scanner s = new Scanner(fis).useDelimiter("\\A");
         String query = s.hasNext() ? s.next() : "";
         List<ExtendedReportByJobsDto> reportDtos = reportRepository.extendedReportByJobs(query);
