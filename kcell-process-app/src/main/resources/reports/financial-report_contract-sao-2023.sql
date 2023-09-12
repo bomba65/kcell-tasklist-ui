@@ -39,11 +39,11 @@ select
         else null
         end as "JR Reason",
     to_timestamp(requestedDate.long_/1000) as "Requested Date",
-        pi.start_user_id_ as "Requested By",
+    pi.start_user_id_ as "Requested By",
     to_timestamp(validityDate.long_/1000) as "Validity Date",
-            to_timestamp(workStartDate.long_/1000) as "workStartDate",
-            to_timestamp(integrationRunDate.long_/1000) as "integrationRunDate",
-            to_timestamp(workCompletionDate.long_/1000) as "workCompletionDate",
+    to_timestamp(workStartDate.long_/1000) as "workStartDate",
+    to_timestamp(integrationRunDate.long_/1000) as "integrationRunDate",
+    to_timestamp(workCompletionDate.long_/1000) as "workCompletionDate",
     project.text_ as "Project",
     mtListSignDate.value_ + interval '6 hour' as "Material List Signing Date",
             acceptanceByInitiatorDate.value_ + interval '6 hour' as "Accept by Initiator",
@@ -77,8 +77,8 @@ select
     avr_number.text_ as "AVR",
     esf_number.text_ as "ESF",
     to_timestamp(avr_date.long_/1000) + interval '6 hour' as "AVR date",
-    to_timestamp(esf_date.long_/1000) + interval '6 hour' as "ESF date",
-    ir.text_ as "IR"
+            to_timestamp(esf_date.long_/1000) + interval '6 hour' as "ESF date",
+        ir.text_ as "IR"
 from act_hi_procinst pi
          left join act_hi_varinst sitename
                    on pi.id_ = sitename.proc_inst_id_ and sitename.name_ = 'site_name'
@@ -203,7 +203,8 @@ from act_hi_procinst pi
     -- relatedSites
          left join LATERAL (
     select string_agg(distinct sites.value->>'site_name',', ') as site_names,
-            worksJson.value->>'sapServiceNumber' as sapServiceNumber
+            worksJson.value->>'sapServiceNumber' as sapServiceNumber,
+            CAST(worksJson.value AS text) as dummyIdentifier
     from act_hi_varinst jobWorks
              left join act_ge_bytearray jobWorksBytes
                        on jobWorks.bytearray_id_ = jobWorksBytes.id_
@@ -214,8 +215,8 @@ from act_hi_procinst pi
     where jobWorks.proc_inst_id_ = pi.id_
       and jobWorks.name_ = 'jobWorks'
     GROUP BY
-        sapServiceNumber
-    ) relatedSites on worksJson.value->>'sapServiceNumber'=relatedSites.sapServiceNumber
+        sapServiceNumber, dummyIdentifier
+    ) relatedSites on CAST(worksJson.value AS text)=relatedSites.dummyIdentifier
 
          left join act_hi_varinst acceptAndSignByInitiatorTaskResult
                    on pi.id_ = acceptAndSignByInitiatorTaskResult.proc_inst_id_
