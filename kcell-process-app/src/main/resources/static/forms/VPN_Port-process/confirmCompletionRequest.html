@@ -1,6 +1,6 @@
 <form role="form" class="form-horizontal" name="kcell_form" novalidate>
     <script cam-script type="text/form-script" type="text/javascript">
-        inject(['$scope', '$http', '$rootScope', '$q', '$timeout', 'exModal', function ($scope, $http, $rootScope, $q) {
+        inject(['$scope', '$http', '$rootScope', '$q', 'VpnPortService', function ($scope, $http, $rootScope, $q, VpnPortService) {
             const variables = [
                 'addedPorts',
                 'disbandPorts',
@@ -58,6 +58,16 @@
                     }
                 });
             });
+
+            $scope.preSubmit = function() {
+                const deferred = $q.defer();
+                if ($scope.channel === 'VPN' || ($scope.channel === 'Port' && $scope.request_type === 'Modify')) {
+                    return VpnPortService.canWriteIpVpnConnect(deferred);
+                } else {
+                    deferred.resolve();
+                    return deferred.promise;
+                }
+            }
 
             camForm.on('submit', function (e) {
 
