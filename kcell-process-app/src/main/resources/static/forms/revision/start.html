@@ -416,6 +416,11 @@
                         $scope.VostokCatalog = response.data.data.$list;
                     }
                 );
+                $http.get('/camunda/catalogs/api/get/id/154').then(
+                    function(response) {
+                        $scope.OT2023Catalog = response.data.data.$list;
+                    }
+                );
 
                 $http.get('/api/revisionProjectTypes').then(
                     function (response) {
@@ -967,6 +972,16 @@
                 $scope.selectedRegion = undefined;
                 $scope.selectedOblast = undefined;
                 $scope.selectedSubcontractor99 = undefined;
+
+                setDefaultFields();
+            }
+
+            function setDefaultFields() {
+                if ($scope.mainContract === 'open-tender-2023') {
+                    $scope.worksBelongsTo = "No";
+                } else {
+                    $scope.worksBelongsTo = undefined;
+                }
             }
 
             function refreshJobRequests(){
@@ -1448,6 +1463,8 @@
                     list = $scope.PS2023Catalog;
                 } else if ($scope.mainContract === 'Vostoktelecom') {
                     list = $scope.VostokCatalog;
+                } else if ($scope.mainContract === 'open-tender-2023') {
+                    list = $scope.OT2023Catalog;
                 }
 
                 $scope.siteIdOblastSubcontractorMap = new Map();
@@ -1856,11 +1873,7 @@
                         return deferred.promise;
                     } else {
                         var jrCounter;
-                        if($scope.mainContract === '2022Work-agreement'||$scope.mainContract === 'technical_maintenance_services'||$scope.mainContract==='2023primary_source'||$scope.mainContract==='Vostoktelecom') {
-                            jrCounter = $scope.regionNewShortName+'-'+$scope.contractorNewShortName[$scope.custom.contractor]+'-'+$scope.reasonNewShortName[$scope.reason]+'-'+$scope.requestedDate.getFullYear().toString().substr(-2);
-                        } else {
-                            jrCounter = $scope.regionShortName+'-'+$scope.contractorShortName[$scope.custom.contractor]+'-'+$scope.reasonShortName[$scope.reason]+'-'+$scope.requestedDate.getFullYear().toString().substr(-2)+($scope.mainContract==='Roll-out'?'-Ro':'');
-                        }
+                        jrCounter = $scope.regionNewShortName+'-'+$scope.contractorNewShortName[$scope.custom.contractor]+'-'+$scope.reasonNewShortName[$scope.reason]+'-'+$scope.requestedDate.getFullYear().toString().substr(-2);
                         return $http.post('/asset-management/jobrequestcounter/' + jrCounter).then(
                             function(result){
                                 if($scope.mainContract === 'technical_maintenance_services') {
@@ -1896,8 +1909,7 @@
             <label>JR Number:</label>
         </div>
         <div class="col-sm-3">
-            <span ng-if="mainContract !== '2022Work-agreement'&&mainContract !== 'technical_maintenance_services'&&mainContract !== '2023primary_source'&&mainContract !== 'Vostoktelecom'">{{regionShortName?regionShortName:'###'}}-{{contractorShortName[custom.contractor]?contractorShortName[custom.contractor]:'##'}}-{{reasonShortName[reason]?reasonShortName[reason]:'###'}}-{{requestedDate.getFullYear().toString().substr(-2)}}-{{siteCounter?siteCounter:'####'}}{{mainContract == 'Roll-out'?'-Ro':''}}</span>
-            <span ng-if="mainContract === '2022Work-agreement'||mainContract === 'technical_maintenance_services'||mainContract==='2023primary_source'||mainContract==='Vostoktelecom'">{{regionNewShortName?regionNewShortName:'###'}}-{{contractorNewShortName[custom.contractor]?contractorNewShortName[custom.contractor]:'##'}}-{{reasonNewShortName[reason]?reasonNewShortName[reason]:'###'}}-{{requestedDate.getFullYear().toString().substr(-2)}}-{{siteCounter?siteCounter:'####'}}{{mainContract == 'Roll-out'?'-Ro':''}}</span>
+            <span>{{regionNewShortName?regionNewShortName:'###'}}-{{contractorNewShortName[custom.contractor]?contractorNewShortName[custom.contractor]:'##'}}-{{reasonNewShortName[reason]?reasonNewShortName[reason]:'###'}}-{{requestedDate.getFullYear().toString().substr(-2)}}-{{siteCounter?siteCounter:'####'}}{{mainContract == 'Roll-out'?'-Ro':''}}</span>
         </div>
     </div>
 
@@ -1909,6 +1921,7 @@
                 <option value="technical_maintenance_services">Услуги по Техническому (Ревизионному) Обслуживанию</option>
                 <option hidden="true" value="2023primary_source">Контракт 2023 ОИ</option>
                 <option value="Vostoktelecom">Внутрихолдинговый закуп 2023 - "Востоктелеком"</option>
+                <option value="open-tender-2023">Открытый Тендер 2023</option>
             </select>
             <label class="error" ng-if="kcell_form.mainContract.$error.required && ( kcell_form.mainContract.$touched || view.submitted)">Required field</label>
         </div>
@@ -1927,7 +1940,7 @@
             </label>
             <label class="error" ng-if="kcell_form.contractor.$error.required && ( kcell_form.contractor.$touched || view.submitted)">Required field</label>
         </div>
-        <div class="col-sm-8" ng-if="mainContract === '2022Work-agreement'||mainContract === 'technical_maintenance_services'||mainContract==='2023primary_source'||mainContract==='Vostoktelecom'">
+        <div class="col-sm-8">
             <label class="radio-inline">
                 <input type="radio" ng-checked="true"> Subcontractor
             </label>
@@ -2042,7 +2055,7 @@
             </div>
         </div>
     </div>
-    <div class="form-group" ng-if="mainContract === '2022Work-agreement'||mainContract === 'technical_maintenance_services'||mainContract === '2023primary_source'||mainContract==='Vostoktelecom'">
+    <div class="form-group">
         <label class="col-sm-3 control-label">Subcontractor:</label>
         <input type="hidden" ng-model="subcontractorName" name="subcontractorName"/>
         <div ng-if="mainContract === '2022Work-agreement'">
@@ -2074,44 +2087,43 @@
             <div class="form-control" style="height: auto">{{siteAddress}}</div>
         </div>
     </div>
-    <div ng-show="mainContract === '2022Work-agreement'||mainContract === 'technical_maintenance_services'||mainContract==='2023primary_source'||mainContract==='Vostoktelecom'">
+
     <div class="form-group">
-            <label class="col-sm-3 control-label">Work start date:</label>
-            <div class="col-sm-3">
-                <div class="input-group">
-                    <input type="text" ng-model="workStartDate" name="workStartDate" required class="form-control" datepicker-popup="dd.MM.yyyy" is-open="workStartDateOpened" id="workStartDate" min-date="requestedDate" />
-                    <span class="input-group-btn">
-                        <button type="button" class="btn btn-default" ng-click="workStartDateOpened = true">
-                            <i class="glyphicon glyphicon-calendar"></i>
-                        </button>
-                    </span>
-                </div>
+        <label class="col-sm-3 control-label">Work start date:</label>
+        <div class="col-sm-3">
+            <div class="input-group">
+                <input type="text" ng-model="workStartDate" name="workStartDate" required class="form-control" datepicker-popup="dd.MM.yyyy" is-open="workStartDateOpened" id="workStartDate" min-date="requestedDate" />
+                <span class="input-group-btn">
+                    <button type="button" class="btn btn-default" ng-click="workStartDateOpened = true">
+                        <i class="glyphicon glyphicon-calendar"></i>
+                    </button>
+                </span>
             </div>
         </div>
-        <div class="form-group">
-            <label class="col-sm-3 control-label">Integration run date:</label>
-            <div class="col-sm-3">
-                <div class="input-group">
-                    <input type="text" ng-model="integrationRunDate" name="integrationRunDate"  class="form-control" datepicker-popup="dd.MM.yyyy" is-open="integrationRunDateOpened" id="integrationRunDate" min-date="requestedDate" />
-                    <span class="input-group-btn">
-                        <button type="button" class="btn btn-default" ng-click="integrationRunDateOpened = true">
-                            <i class="glyphicon glyphicon-calendar"></i>
-                        </button>
-                    </span>
-                </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-3 control-label">Integration run date:</label>
+        <div class="col-sm-3">
+            <div class="input-group">
+                <input type="text" ng-model="integrationRunDate" name="integrationRunDate"  class="form-control" datepicker-popup="dd.MM.yyyy" is-open="integrationRunDateOpened" id="integrationRunDate" min-date="requestedDate" />
+                <span class="input-group-btn">
+                    <button type="button" class="btn btn-default" ng-click="integrationRunDateOpened = true">
+                        <i class="glyphicon glyphicon-calendar"></i>
+                    </button>
+                </span>
             </div>
         </div>
-        <div class="form-group">
-            <label class="col-sm-3 control-label">Work completion date:</label>
-            <div class="col-sm-3">
-                <div class="input-group">
-                    <input type="text" ng-model="workCompletionDate" name="workCompletionDate" required class="form-control" datepicker-popup="dd.MM.yyyy" is-open="workCompletionDateOpened" id="workCompletionDate" min-date="requestedDate" />
-                    <span class="input-group-btn">
-                        <button type="button" class="btn btn-default" ng-click="workCompletionDateOpened = true">
-                            <i class="glyphicon glyphicon-calendar"></i>
-                        </button>
-                    </span>
-                </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-3 control-label">Work completion date:</label>
+        <div class="col-sm-3">
+            <div class="input-group">
+                <input type="text" ng-model="workCompletionDate" name="workCompletionDate" required class="form-control" datepicker-popup="dd.MM.yyyy" is-open="workCompletionDateOpened" id="workCompletionDate" min-date="requestedDate" />
+                <span class="input-group-btn">
+                    <button type="button" class="btn btn-default" ng-click="workCompletionDateOpened = true">
+                        <i class="glyphicon glyphicon-calendar"></i>
+                    </button>
+                </span>
             </div>
         </div>
     </div>
@@ -2129,8 +2141,7 @@
         <div class="col-sm-3" >
             <select class="form-control selectpicker" select-picker select-model="reasons" title="" cam-variable-name="reason" name="reason" ng-required="true" cam-variable-type="String" ng-change="refreshJobRequests()">
                 <option value="">select reason</option>
-                <option ng-if="mainContract != 'emergencyRevision2022'" value="{{r.id}}" ng-repeat="r in reasons" ng-selected="{{r.id == reason}}">{{r.name}}</option>
-                <option ng-if="mainContract == 'emergencyRevision2022'" value="{{reasons[3].id}}" ng-selected="{{reasons[3].id == reason}}">{{reasons[3].name}}</option>
+                <option value="{{r.id}}" ng-repeat="r in reasons" ng-selected="{{r.id == reason}}">{{r.name}}</option>
             </select>
             <label class="error" ng-if="kcell_form.reason.$error.required && ( kcell_form.reason.$touched || view.submitted)">Required field</label>
         </div>
