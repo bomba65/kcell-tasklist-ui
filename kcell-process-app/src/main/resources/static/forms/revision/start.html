@@ -1866,30 +1866,23 @@
                     deferred.reject('At least one job should contains Main Site');
                     return deferred.promise;
                 } else {
-                    if($scope.custom.contractor === '-1'){
-                        $scope.jrNumber = $scope.regionShortName + '-##-' + $scope.reasonShortName[$scope.reason] + '-' + $scope.requestedDate.getFullYear().toString().substr(-2) + '-####';
-                        camForm.businessKey = $scope.jrNumber;
-                        deferred.resolve();
-                        return deferred.promise;
-                    } else {
-                        var jrCounter;
-                        jrCounter = $scope.regionNewShortName+'-'+$scope.contractorNewShortName[$scope.custom.contractor]+'-'+$scope.reasonNewShortName[$scope.reason]+'-'+$scope.requestedDate.getFullYear().toString().substr(-2);
-                        return $http.post('/asset-management/jobrequestcounter/' + jrCounter).then(
-                            function(result){
-                                if($scope.mainContract === 'technical_maintenance_services') {
-                                    var count = result.data.substring(result.data.length - 4, result.data.length)
-                                    count = Number(count) + 9000;
-                                    result.data = result.data.substring(0, result.data.length - 4) + count;
-                                } else if($scope.mainContract === '2023primary_source'||$scope.mainContract === 'Vostoktelecom') {
-                                    var count = result.data.substring(result.data.length - 4, result.data.length)
-                                    count = Number(count) + 3000;
-                                    result.data = result.data.substring(0, result.data.length - 4) + count;
-                                }
-                                $scope.jrNumber = result.data;
-                                camForm.businessKey = result.data;
+                    var jrCounter;
+                    jrCounter = $scope.regionNewShortName+'-'+$scope.contractorNewShortName[$scope.custom.contractor]+'-'+$scope.reasonNewShortName[$scope.reason]+'-'+$scope.requestedDate.getFullYear().toString().substr(-2);
+                    return $http.post('/asset-management/jobrequestcounter/' + jrCounter).then(
+                        function(result){
+                            var count = result.data.substring(result.data.length - 4, result.data.length);
+                            if ($scope.mainContract === 'technical_maintenance_services') {
+                                count = Number(count) + 9000;
+                            } else if ($scope.mainContract === '2023primary_source'||$scope.mainContract === 'Vostoktelecom') {
+                                count = Number(count) + 3000;
+                            } else if ($scope.mainContract === 'open-tender-2023') {
+                                count = Number(count) + 4000;
                             }
-                        );
-                    }
+                            result.data = result.data.substring(0, result.data.length - 4) + count;
+                            $scope.jrNumber = result.data;
+                            camForm.businessKey = result.data;
+                        }
+                    );
                 }
             }
 
@@ -1928,18 +1921,6 @@
     </div>
     <div class="form-group">
         <label class="col-sm-3 control-label">Job to:</label>
-        <div class="col-sm-8" ng-if="false">
-            <label class="radio-inline" ng-if="$root.authentication.name === 'demo'">
-                <input type="radio" name="contractor" ng-disabled="['emergencyRevision2022'].includes(mainContract)" ng-model="custom.contractor" id="lse" value="4"> TOO Line System Engineering
-            </label>
-            <label class="radio-inline">
-                <input type="radio" name="contractor" ng-model="custom.contractor" id="subcontractor" value="-1"> Subcontractor
-            </label>
-            <label class="radio-inline">
-                <input type="radio" name="contractor" ng-disabled="['emergencyRevision2022'].includes(mainContract)" ng-model="custom.contractor" id="kcell_region" value="5"> Kcell_region
-            </label>
-            <label class="error" ng-if="kcell_form.contractor.$error.required && ( kcell_form.contractor.$touched || view.submitted)">Required field</label>
-        </div>
         <div class="col-sm-8">
             <label class="radio-inline">
                 <input type="radio" ng-checked="true"> Subcontractor
