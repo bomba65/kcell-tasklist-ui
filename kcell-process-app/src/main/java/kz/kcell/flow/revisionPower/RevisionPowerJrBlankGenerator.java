@@ -187,11 +187,6 @@ public class RevisionPowerJrBlankGenerator implements JavaDelegate {
         arialBI9.setItalic(true);
         arialBI9.setBold(true);
 
-        XSSFFont arialRed10 = workbook.createFont();
-        arialRed10.setFontName(HSSFFont.FONT_ARIAL);
-        arialRed10.setFontHeightInPoints((short) 10);
-        arialRed10.setColor(Font.COLOR_RED);
-
         CellUtil.setFont(sheet.getRow(2).getCell(3), arialB10);
         CellUtil.setFont(sheet.getRow(3).getCell(3), arialB10);
         CellUtil.setFont(sheet.getRow(3).getCell(4), arialB10);
@@ -215,12 +210,6 @@ public class RevisionPowerJrBlankGenerator implements JavaDelegate {
         CellUtil.setFont(sheet.getRow(15).getCell(3), arialB10);
         CellUtil.setFont(sheet.getRow(15).getCell(5), arialB10);
         CellUtil.setFont(sheet.getRow(15).getCell(6), arialB10);
-        for (int i = 0; i < jobsOffset; i++) {
-            CellUtil.setFont(sheet.getRow(16 + i).getCell(2), arialRed10);
-            CellUtil.setFont(sheet.getRow(16 + i).getCell(3), arialRed10);
-            CellUtil.setFont(sheet.getRow(16 + i).getCell(5), arialRed10);
-            CellUtil.setFont(sheet.getRow(16 + i).getCell(6), arialRed10);
-        }
 
         CellUtil.setFont(sheet.getRow(17 + jobsOffset).getCell(1), arialBI9);
 
