@@ -163,7 +163,7 @@ public class SetPricesDelegate implements TaskListener {
                 BigDecimal jobWorksTotal = BigDecimal.ZERO;
                 int i=0;
                 for (JsonNode work : jobWorks) {
-                    if(work.has("id") && work.get("id").intValue() >= 8000) {
+                    if(work.has("id") && work.get("id").intValue() >= 9000) {
                         continue;
                     }
                     ObjectNode workPrice = work.deepCopy();
@@ -177,7 +177,7 @@ public class SetPricesDelegate implements TaskListener {
 
                         ObjectNode workPriceJson = mapper.createObjectNode();
                         workPriceJson.put("sapServiceNumber", work.get("sapServiceNumber").textValue());
-                        if ("2022Work-agreement".equals(mainContract)||"2023primary_source".equals(mainContract)||"Vostoktelecom".equals(mainContract)) {
+                        if (Arrays.asList("2022Work-agreement","2023primary_source","Vostoktelecom","open-tender-2023").contains(mainContract)) {
                             workPriceJson.put("priceWithMaterial", priceJson.get(oblastName).textValue());
                             workPriceJson.put("priceWithoutMaterial", priceJson.get(oblastName).textValue());
                             workPriceJson.put("price", priceJson.get(oblastName).textValue());
@@ -233,7 +233,7 @@ public class SetPricesDelegate implements TaskListener {
                             workPrice.put("basePrice",priceJson.get(oblastName).get("active").textValue());
                             workPrices.add(workPrice);
                         }
-                    } else if ("2023primary_source".equals(mainContract)||"Vostoktelecom".equals(mainContract)) {
+                    } else if (Arrays.asList("2023primary_source","Vostoktelecom","open-tender-2023").contains(mainContract)) {
                         unitWorkPrice = new BigDecimal(priceJson.get(oblastName).textValue());
                         workPrice.put("basePrice",priceJson.get(oblastName).textValue());
                         workPrices.add(workPrice);
