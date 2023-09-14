@@ -163,7 +163,7 @@ public class JrBlankGenerator {
         }
 
 
-        if (mainContract.equalsIgnoreCase("2023primary_source") || mainContract.equalsIgnoreCase("Vostoktelecom")) {
+        if (mainContract.equalsIgnoreCase("2023primary_source") || mainContract.equalsIgnoreCase("Vostoktelecom")||mainContract.equalsIgnoreCase("open-tender-2023")) {
             String subcontractor = (String) delegateExecution.getVariable("subcontractorName");
             String oblastName = (String) delegateExecution.getVariable("oblastName");
             return generateFor2023PrimarySource(
