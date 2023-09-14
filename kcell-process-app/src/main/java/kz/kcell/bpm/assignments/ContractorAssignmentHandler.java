@@ -118,6 +118,23 @@ public class ContractorAssignmentHandler implements TaskListener {
             } else if (Arrays.asList("40", "41", "42", "47", "48").contains(siteIdFirstTwoDigits)) {
                 delegateTask.addCandidateGroup("south_contractor_inter");
             }
+        } else if ("open-tender-2023".equals(mainContract)) {
+            String siteIdFirstTwoDigits = siteId.substring(0, 2);
+            if (Arrays.asList("00", "01", "03", "04", "05", "06", "07").contains(siteIdFirstTwoDigits)) {
+                delegateTask.addCandidateGroup("alm_contractor_avrora");
+            } else if (Arrays.asList("03", "05", "07").contains(siteIdFirstTwoDigits)) {
+                delegateTask.addCandidateGroup("alm_contractor_antares");
+            } else if (Arrays.asList("10", "11", "12", "13").contains(siteIdFirstTwoDigits)) {
+                delegateTask.addCandidateGroup("nc_contractor_antares");
+            } else if (Arrays.asList("43", "44", "45", "46").contains(siteIdFirstTwoDigits)) {
+                delegateTask.addCandidateGroup("south_contractor_antares");
+            } else if (Arrays.asList("61", "62", "71", "72").contains(siteIdFirstTwoDigits)) {
+                delegateTask.addCandidateGroup("west_contractor_nurtrans");
+            } else if (Arrays.asList("40", "41", "42", "47", "48").contains(siteIdFirstTwoDigits)) {
+                delegateTask.addCandidateGroup("south_contractor_nurtrans");
+            } else if (Arrays.asList("51", "52", "81", "82").contains(siteIdFirstTwoDigits)) {
+                delegateTask.addCandidateGroup("west_contractor_foresterhg");
+            }
         } else {
             if (contractor.equals("5")) {
                 if (reason.equals("5")) {
