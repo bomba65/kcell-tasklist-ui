@@ -56,7 +56,7 @@ public class CreateCustomSubscriber implements JavaDelegate {
         httpPost.setEntity(inputData);
 
         HttpResponse response = httpClientWithoutSSL.execute(httpPost);
-        TimeUnit.MINUTES.sleep(1);
+        TimeUnit.SECONDS.sleep(20);
 
         if(response.getStatusLine().getStatusCode() < 200 || response.getStatusLine().getStatusCode() >= 300) {
             log.error("CreateCustomSubscriber returns code: " + response.getStatusLine().getStatusCode() + "\n" +
