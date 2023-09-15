@@ -1129,7 +1129,7 @@ public class JrBlankGenerator {
             .filter(map -> map.get("Contractor name").equals(subcontractor))
             .filter(map -> map.get("Oblast") == null || map.get("Oblast").equals(oblastName))
             .findFirst()
-            .get();
+            .orElse(null);
 
 
         XSSFWorkbook workbook = new XSSFWorkbook();
@@ -1184,9 +1184,12 @@ public class JrBlankGenerator {
         row = sheet.createRow(1);
         row.setHeight((short)500);
         cell = row.createCell(2);
-        String stringBuilder = "Договор подряда №  " + subcontractorInfo.get("Contractor number") +
+
+        String contractorNumber = subcontractorInfo != null ? subcontractorInfo.get("Contractor number") : "";
+        String contractDate = subcontractorInfo != null ? subcontractorInfo.get("Contract date") : "";
+        String stringBuilder = "Договор подряда №  " + contractorNumber +
             "\n" +
-            "от " + subcontractorInfo.get("Contract date");
+            "от " + contractDate;
 
         cell.setCellValue(stringBuilder);
         CellUtil.setFont(cell, arialBI9);
