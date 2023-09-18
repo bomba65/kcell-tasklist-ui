@@ -3638,11 +3638,11 @@ define(['./module', 'camundaSDK', 'lodash', 'big-js', 'jquery', 'moment'], funct
                     $http.get('/camunda/reports/power-extended-financial-report-by-works').then(function (response) {
                         var data = response.data;
                         angular.forEach(data, function (d) {
-                            d[9] = $filter('date')(d[9], "dd-MM-yyyy");
-                            d[11] = $filter('date')(d[11], "dd-MM-yyyy");
-                            d[13] = $filter('date')(d[13], "dd-MM-yyyy");
-                            d[26] = $filter('date')(d[26], "dd-MM-yyyy");
-                            d[29] = $filter('date')(d[29], "dd-MM-yyyy");
+                            d[10] = $filter('date')(d[10], "dd-MM-yyyy");
+                            d[12] = $filter('date')(d[12], "dd-MM-yyyy");
+                            d[14] = $filter('date')(d[14], "dd-MM-yyyy");
+                            d[27] = $filter('date')(d[27], "dd-MM-yyyy");
+                            d[30] = $filter('date')(d[30], "dd-MM-yyyy");
                         });
 
                         data.splice(0, 0, ["Contract", "Year", "Month", "Region", "Oblast", "Switchname", "Sitename", "JR No", "JR To", "JR Reason", "Requested Date", "Requested By", "Validity Date",
