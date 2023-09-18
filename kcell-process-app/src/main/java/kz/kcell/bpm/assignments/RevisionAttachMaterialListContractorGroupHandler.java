@@ -104,6 +104,12 @@ public class RevisionAttachMaterialListContractorGroupHandler implements TaskLis
                 delegateTask.addCandidateGroup("alm_contractor_inter");
             } else if (Arrays.asList("40", "41", "42", "47", "48").contains(siteIdFirstTwoDigits)) {
                 delegateTask.addCandidateGroup("south_contractor_inter");
+            } else if (siteIdFirstTwoDigits.equals("99")) {
+                if (siteRegion.equals("alm")) {
+                    delegateTask.addCandidateGroup("alm_contractor_inter");
+                } else if (siteRegion.equals("south")) {
+                    delegateTask.addCandidateGroup("south_contractor_inter");
+                }
             }
         } else if ("open-tender-2023".equals(mainContract)) {
             String siteIdFirstTwoDigits = siteId.substring(0, 2);
