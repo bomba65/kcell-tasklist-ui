@@ -51,6 +51,7 @@ public class JrBlankGenerator {
             map.put("9", "ТОО \"Inter Service\"");
             map.put("10", "TOO \"Forester-Hes Group\"");
             map.put("11", "TOO \"Транстелеком\"");
+            map.put("12", "TOO \"Востоктелеком\"");
             return Collections.unmodifiableMap(map);
         })).get();
 
@@ -1217,7 +1218,17 @@ public class JrBlankGenerator {
 
         row = sheet.createRow(9);
         row.createCell(1).setCellValue("Подрядчик:");
-        row.createCell(4).setCellValue(subcontractor.equals("Логиком") ? "АО \"Логиком\"" : subcontractor.equals("Arlan Si") ? "АО \"ARLAN SI\"" : subcontractor);
+        String subcontractorFullName;
+        if (subcontractor.equals("Логиком")) {
+            subcontractorFullName = "АО \"Логиком\"";
+        } else if (subcontractor.equals("Arlan Si")) {
+            subcontractorFullName = "АО \"ARLAN SI\"";
+        } else if (subcontractor.equals("Востоктелеком")) {
+            subcontractorFullName = "ТОО \"Востоктелеком\"";
+        } else {
+            subcontractorFullName = subcontractor;
+        }
+        row.createCell(4).setCellValue(subcontractorFullName);
 
         row = sheet.createRow(10);
         row.createCell(1).setCellValue("Тип Работ:");
