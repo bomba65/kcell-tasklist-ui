@@ -52,6 +52,8 @@ public class JrBlankGenerator {
             map.put("10", "TOO \"Forester-Hes Group\"");
             map.put("11", "TOO \"Транстелеком\"");
             map.put("12", "TOO \"Востоктелеком\"");
+            map.put("13", "TOO \"Antares engineering\"");
+            map.put("14", "TOO \"NURTRANSENERGOTELECOM\"");
             return Collections.unmodifiableMap(map);
         })).get();
 
@@ -1219,12 +1221,20 @@ public class JrBlankGenerator {
         row = sheet.createRow(9);
         row.createCell(1).setCellValue("Подрядчик:");
         String subcontractorFullName;
-        if (subcontractor.equals("Логиком")) {
+        if (subcontractor.equals("ТОО Аврора Сервис")) {
+            subcontractorFullName = "ТОО \"Аврора Сервис\"";
+        } else if (subcontractor.equals("Логиком")) {
             subcontractorFullName = "АО \"Логиком\"";
         } else if (subcontractor.equals("Arlan Si")) {
             subcontractorFullName = "АО \"ARLAN SI\"";
+        } else if (subcontractor.equals("Forester-Hes Group")) {
+            subcontractorFullName = "ТОО \"HES Group\"";
         } else if (subcontractor.equals("Востоктелеком")) {
             subcontractorFullName = "ТОО \"Востоктелеком\"";
+        } else if (subcontractor.equals("Antares Engineering")) {
+            subcontractorFullName = "ТОО \"Antares Engineering\"";
+        } else if (subcontractor.equals("NURTRANSENERGOTELECOM")) {
+            subcontractorFullName = "ТОО \"NURTRANSENERGOTELECOM\"";
         } else {
             subcontractorFullName = subcontractor;
         }
