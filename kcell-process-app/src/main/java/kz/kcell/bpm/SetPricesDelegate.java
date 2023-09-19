@@ -203,46 +203,43 @@ public class SetPricesDelegate implements TaskListener {
                         uniqueWorks.put(work.get("sapServiceNumber").textValue(), "");
                     }
 
-                    BigDecimal unitWorkPrice;
+                    BigDecimal unitWorkPrice = null;
+                    String basePrice;
+                    if (unitWorkPrice_jr != null && unitWorkPrice_jr.get(i) != null) {
+                        String s = String.valueOf(unitWorkPrice_jr.get(i));
+                        unitWorkPrice = new BigDecimal(s);
+                    }
                     if ("2022Work-agreement".equals(mainContract)) {
-                        unitWorkPrice = new BigDecimal( priceJson.get(oblastName).textValue());
-                        if (unitWorkPrice_jr!=null) {
-                            if (unitWorkPrice_jr.get(i) != null) {
-                                String s = String.valueOf(unitWorkPrice_jr.get(i));
-                                unitWorkPrice = new BigDecimal(s);
-                                double discount= DISCOUNT_MAP.get(oblastName);
-                                BigDecimal totalWithDiscount=unitWorkPrice;
-                                totalWithDiscount=totalWithDiscount.multiply(new BigDecimal(1.00-discount));
-                                totalWithDiscount=totalWithDiscount.multiply(new BigDecimal(workPrice.get("quantity").asText())).setScale(2, RoundingMode.DOWN);
-                                workPrice.put("totalWithDiscount",totalWithDiscount.toString());
-                            }
+                        basePrice = priceJson.get(oblastName).textValue();
+                        unitWorkPrice = unitWorkPrice != null ? unitWorkPrice : new BigDecimal(basePrice);
+                        if (unitWorkPrice_jr != null && unitWorkPrice_jr.get(i) != null) {
+                            double discount= DISCOUNT_MAP.get(oblastName);
+                            BigDecimal totalWithDiscount=unitWorkPrice;
+                            totalWithDiscount=totalWithDiscount.multiply(new BigDecimal(1.00-discount));
+                            totalWithDiscount=totalWithDiscount.multiply(new BigDecimal(workPrice.get("quantity").asText())).setScale(2, RoundingMode.DOWN);
+                            workPrice.put("totalWithDiscount",totalWithDiscount.toString());
                         }
-                        workPrice.put("basePrice", priceJson.get(oblastName).textValue());
-                        workPrices.add(workPrice);
                     } else if ("technical_maintenance_services".equals(mainContract)) {
                         if(work.get("materials").asBoolean()){
-                            unitWorkPrice = new BigDecimal(priceJson.get(oblastName).get(work.get("isMaterialsActive").textValue()).textValue());
-                            workPrice.put("basePrice",  priceJson.get(oblastName).get(work.get("isMaterialsActive").textValue()).textValue());
-                            workPrices.add(workPrice);
+                            basePrice = priceJson.get(oblastName).get(work.get("isMaterialsActive").textValue()).textValue();
+                            unitWorkPrice = unitWorkPrice != null ? unitWorkPrice : new BigDecimal(basePrice);
                         } else if (Arrays.asList("-","").contains(priceJson.get(oblastName).get("active").textValue())) {
-                            unitWorkPrice = new BigDecimal(priceJson.get(oblastName).get("inactive").textValue());
-                            workPrice.put("basePrice",priceJson.get(oblastName).get("inactive").textValue());
-                            workPrices.add(workPrice);
+                            basePrice = priceJson.get(oblastName).get("inactive").textValue();
+                            unitWorkPrice = unitWorkPrice != null ? unitWorkPrice : new BigDecimal(basePrice);
                         } else {
-                            unitWorkPrice = new BigDecimal(priceJson.get(oblastName).get("active").textValue());
-                            workPrice.put("basePrice",priceJson.get(oblastName).get("active").textValue());
-                            workPrices.add(workPrice);
+                            basePrice = priceJson.get(oblastName).get("active").textValue();
+                            unitWorkPrice = unitWorkPrice != null ? unitWorkPrice : new BigDecimal(basePrice);
                         }
                     } else if (Arrays.asList("2023primary_source","Vostoktelecom","open-tender-2023").contains(mainContract)) {
-                        unitWorkPrice = new BigDecimal(priceJson.get(oblastName).textValue());
-                        workPrice.put("basePrice",priceJson.get(oblastName).textValue());
-                        workPrices.add(workPrice);
+                        basePrice = priceJson.get(oblastName).textValue();
+                        unitWorkPrice = unitWorkPrice != null ? unitWorkPrice : new BigDecimal(basePrice);
                     } else {
-                        unitWorkPrice = new BigDecimal(priceJson.get(siteRegion).get(work.has("materialsProvidedBy") && "subcontractor".equals(work.get("materialsProvidedBy").textValue()) ? "with_material" : "without_material").textValue());
-
-                        workPrice.put("basePrice", priceJson.get(siteRegion).get("without_material").textValue());
-                        workPrices.add(workPrice);
+                        basePrice = priceJson.get(siteRegion).get("without_material").textValue();
+                        unitWorkPrice = unitWorkPrice != null ? unitWorkPrice :
+                            new BigDecimal(priceJson.get(siteRegion).get(work.has("materialsProvidedBy") && "subcontractor".equals(work.get("materialsProvidedBy").textValue()) ? "with_material" : "without_material").textValue());
                     }
+                    workPrice.put("basePrice", basePrice);
+                    workPrices.add(workPrice);
 
                     if (priority.equals("emergency")) {
                         unitWorkPrice = unitWorkPrice.multiply(new BigDecimal("1.5"));
