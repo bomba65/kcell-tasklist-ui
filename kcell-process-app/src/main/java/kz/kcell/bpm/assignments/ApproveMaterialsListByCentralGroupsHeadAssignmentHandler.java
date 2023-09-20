@@ -17,21 +17,21 @@ public class ApproveMaterialsListByCentralGroupsHeadAssignmentHandler implements
 
         if (reason != null) {
             if (Arrays.asList("1", "3","5").contains(reason)) {
-                if (group.equals("Operation")) {
+                if (group.equals("\"Operation\"")) {
                     delegateTask.addCandidateGroup("hq_operation_tr");
-                } else if (group.equals("Transmission")) {
+                } else if (group.equals("\"Transmission\"")) {
                     delegateTask.addCandidateGroup("hq_transmission_tr");
                 }
             } else if (reason.equals("2")) {
-                if (group.equals("Operation")) {
+                if (group.equals("\"Operation\"")) {
                     delegateTask.addCandidateGroup("hq_operation_tr");
-                } else if (group.equals("Development")) {
+                } else if (group.equals("\"Development\"")) {
                     delegateTask.addCandidateGroup("hq_development_tr");
                 }
             } else if (reason.equals("4")) {
-                if (group.equals("Transmission")) {
+                if (group.equals("\"Transmission\"")) {
                     delegateTask.addCandidateGroup("hq_transmission_tr");
-                } else if (group.equals("Development")) {
+                } else if (group.equals("\"Development\"")) {
                     delegateTask.addCandidateGroup("hq_development_tr");
                 }
             }
