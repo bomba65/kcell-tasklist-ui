@@ -112,14 +112,14 @@ public class RevisionAttachMaterialListGroupHandler implements TaskListener {
         } else if ("Vostoktelecom".equals(mainContract)) {
             String siteIdFirstTwoDigits = siteId.substring(0, 2);
             if (Arrays.asList("00", "01", "03", "04", "05", "06", "07").contains(siteIdFirstTwoDigits)) {
-                delegateTask.addCandidateGroup("alm_contractor_inter");
+                delegateTask.addCandidateGroup("alm_contractor_vostok");
             } else if (Arrays.asList("40", "41", "42", "47", "48").contains(siteIdFirstTwoDigits)) {
-                delegateTask.addCandidateGroup("south_contractor_inter");
+                delegateTask.addCandidateGroup("south_contractor_vostok");
             } else if (siteIdFirstTwoDigits.equals("99")) {
                 if (siteRegion.equals("alm")) {
-                    delegateTask.addCandidateGroup("alm_contractor_inter");
+                    delegateTask.addCandidateGroup("alm_contractor_vostok");
                 } else if (siteRegion.equals("south")) {
-                    delegateTask.addCandidateGroup("south_contractor_inter");
+                    delegateTask.addCandidateGroup("south_contractor_vostok");
                 }
             }
         } else if ("open-tender-2023".equals(mainContract)) {
