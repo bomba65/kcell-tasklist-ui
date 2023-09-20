@@ -138,6 +138,22 @@ public class RevisionAttachMaterialListGroupHandler implements TaskListener {
                 delegateTask.addCandidateGroup("south_contractor_nurtrans");
             } else if (Arrays.asList("51", "52", "81", "82").contains(siteIdFirstTwoDigits)) {
                 delegateTask.addCandidateGroup("west_contractor_foresterhg");
+            } else if (siteIdFirstTwoDigits.equals("99")) {
+                if (oblastName.equals("Алматинская область") && contractor.equals("1")) {
+                    delegateTask.addCandidateGroup("alm_contractor_avrora");
+                } else if (oblastName.equals("Жамбылская область") && contractor.equals("13") && siteRegion.equals("alm")) {
+                    delegateTask.addCandidateGroup("alm_contractor_antares");
+                } else if (oblastName.equals("Акмолинская область") && contractor.equals("13")) {
+                    delegateTask.addCandidateGroup("nc_contractor_antares");
+                } else if (oblastName.equals("Кызылординская область") && contractor.equals("13") || oblastName.equals("Жамбылская область") && contractor.equals("13") && siteRegion.equals("south")) {
+                    delegateTask.addCandidateGroup("south_contractor_antares");
+                } else if ((oblastName.equals("Атырауская область") || oblastName.equals("Актюбинская область")) && contractor.equals("14")) {
+                    delegateTask.addCandidateGroup("west_contractor_nurtrans");
+                } else if ((oblastName.equals("Шымкент") || oblastName.equals("Туркестанская область")) && contractor.equals("14")) {
+                    delegateTask.addCandidateGroup("south_contractor_nurtrans");
+                } else if ((oblastName.equals("Западно-Казахстанская область") || oblastName.equals("Мангыстауская область")) && contractor.equals("10")) {
+                    delegateTask.addCandidateGroup("west_contractor_foresterhg");
+                }
             }
         } else {
             delegateTask.addCandidateGroup(siteRegion + "_engineer");
