@@ -450,7 +450,7 @@ define(['./module', 'camundaSDK', 'lodash', 'big-js', 'jquery', 'moment'], funct
                 $scope.xlsxPreparedRevision = false;
                 $scope.xlsFilter = $scope.searchFilter;
             }
-            if ($rootScope.hasGroup('alm_contractor_avrora') ) {
+            if ($rootScope.hasGroup('alm_contractor_avrora') || $rootScope.hasGroup('contractor_users_avrora')) {
                 $scope.contractorCode = 1;
             } else if ($rootScope.hasGroup('hq_contractor_lse') || $rootScope.hasGroup('astana_contractor_lse') || $rootScope.hasGroup('nc_contractor_lse') || $rootScope.hasGroup('alm_contractor_lse') || $rootScope.hasGroup('east_contractor_lse') || $rootScope.hasGroup('south_contractor_lse') || $rootScope.hasGroup('west_contractor_lse')) {
                 $scope.contractorCode = 4;
@@ -466,11 +466,11 @@ define(['./module', 'camundaSDK', 'lodash', 'big-js', 'jquery', 'moment'], funct
                 $scope.contractorCode = 10;
             } else if ($rootScope.hasGroup('hq_contractor_transtlc') || $rootScope.hasGroup('astana_contractor_transtlc') || $rootScope.hasGroup('nc_contractor_transtlc') || $rootScope.hasGroup('alm_contractor_transtlc') || $rootScope.hasGroup('east_contractor_transtlc') || $rootScope.hasGroup('south_contractor_transtlc') || $rootScope.hasGroup('west_contractor_transtlc')) {
                 $scope.contractorCode = 11;
-            } else if ($rootScope.hasGroup('alm_contractor_vostok') || $rootScope.hasGroup('south_contractor_vostok') ) {
+            } else if ($rootScope.hasGroup('alm_contractor_vostok') || $rootScope.hasGroup('south_contractor_vostok') || $rootScope.hasGroup('contractor_users_vostok')) {
                 $scope.contractorCode = 12;
-            } else if ($rootScope.hasGroup('alm_contractor_antares') || $rootScope.hasGroup('nc_contractor_antares') || $rootScope.hasGroup('south_contractor_antares') ) {
+            } else if ($rootScope.hasGroup('alm_contractor_antares') || $rootScope.hasGroup('nc_contractor_antares') || $rootScope.hasGroup('south_contractor_antares') || $rootScope.hasGroup('contractor_users_antares')) {
                 $scope.contractorCode = 13;
-            } else if ($rootScope.hasGroup('west_contractor_nurtrans') || $rootScope.hasGroup('south_contractor_nurtrans') ) {
+            } else if ($rootScope.hasGroup('west_contractor_nurtrans') || $rootScope.hasGroup('south_contractor_nurtrans') || $rootScope.hasGroup('contractor_users_nurtrans')) {
                 $scope.contractorCode = 14;
             }
 
