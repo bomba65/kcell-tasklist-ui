@@ -179,7 +179,8 @@ define(['../module'], function (module) {
                             process: process,
                             addressToString: scope.addressToString,
                             downloadFile: scope.downloadFile,
-                            showHistory: $rootScope.showHistory
+                            showHistory: scope.showHistory,
+                            showDiagram: scope.showDiagram
                         },
                         templateUrl: './js/partials/vpnPortProcessCardModal.html',
                         size: 'hg'
