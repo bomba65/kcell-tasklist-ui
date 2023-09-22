@@ -59,10 +59,11 @@ public class CreateCustomSubscriber implements JavaDelegate {
         TimeUnit.SECONDS.sleep(20);
 
         if(response.getStatusLine().getStatusCode() < 200 || response.getStatusLine().getStatusCode() >= 300) {
-            log.error("CreateCustomSubscriber returns code: " + response.getStatusLine().getStatusCode() + "\n" +
+            log.error("CreateCustomSubscriber, query " + uriBuilder + " body " + body + " returns code: " + response.getStatusLine().getStatusCode() + "\n" +
                 "Error message: " + EntityUtils.toString(response.getEntity()));
             delegateExecution.setVariable("unsuccessful", true);
         } else {
+            log.info("CreateCustomSubscriber, query " + uriBuilder + " body " + body + " returns code: " + response.getStatusLine().getStatusCode());
             HttpEntity entity = response.getEntity();
             String entityAsString = EntityUtils.toString(entity);
             JSONObject jsonObject = new JSONObject(entityAsString);

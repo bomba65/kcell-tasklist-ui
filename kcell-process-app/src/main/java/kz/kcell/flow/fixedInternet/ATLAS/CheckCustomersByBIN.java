@@ -50,10 +50,11 @@ public class CheckCustomersByBIN implements JavaDelegate {
         HttpResponse response = httpClientWithoutSSL.execute(httpGet);
 
         if(response.getStatusLine().getStatusCode() < 200 || response.getStatusLine().getStatusCode() >= 300) {
-            log.error("CheckCustomersByBIN returns code " + response.getStatusLine().getStatusCode() + "\n" +
+            log.error("CheckCustomersByBIN, query " + uriBuilder + " returns code " + response.getStatusLine().getStatusCode() + "\n" +
                 "Error message: " + EntityUtils.toString(response.getEntity()));
             delegateExecution.setVariable("unsuccessful", true);
         } else {
+            log.info("CheckCustomersByBIN, query " + uriBuilder + " returns code " + response.getStatusLine().getStatusCode());
             HttpEntity entity = response.getEntity();
             String entityAsString = EntityUtils.toString(entity);
             JSONObject jsonObject = new JSONObject(entityAsString);

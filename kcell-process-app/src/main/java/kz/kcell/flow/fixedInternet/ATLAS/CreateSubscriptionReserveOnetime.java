@@ -96,6 +96,7 @@ public class CreateSubscriptionReserveOnetime implements JavaDelegate {
                                 delegateExecution.setVariable("unsuccessful", true);
                                 return;
                             } else {
+                                log.info("CreateSubscriptionReserveOnetime, query " + uriBuilder + " body " + body + " returns code: " + response.getStatusLine().getStatusCode());
                                 HttpEntity entity = response.getEntity();
                                 String entityAsString = EntityUtils.toString(entity);
                                 JSONObject jsonObject = new JSONObject(entityAsString);
