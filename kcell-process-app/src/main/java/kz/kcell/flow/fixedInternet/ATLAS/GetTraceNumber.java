@@ -41,9 +41,10 @@ public class GetTraceNumber implements JavaDelegate {
         HttpResponse response = httpClientWithoutSSL.execute(httpGet);
 
         if (response.getStatusLine().getStatusCode() < 200 || response.getStatusLine().getStatusCode() >= 300) {
-            log.error("GetTraceNumber returns code " + response.getStatusLine().getStatusCode() + "\n" +
+            log.error("GetTraceNumber, query " + uriBuilder + " returns code " + response.getStatusLine().getStatusCode() + "\n" +
                 "Error message: " + EntityUtils.toString(response.getEntity()));
         } else {
+            log.info("GetTraceNumber, query " + uriBuilder + " returns code " + response.getStatusLine().getStatusCode());
             HttpEntity entity = response.getEntity();
             String content = EntityUtils.toString(entity);
             delegateExecution.setVariable("traceNumber", content);

@@ -55,10 +55,11 @@ public class SetCreditLimit implements JavaDelegate {
         HttpResponse response = httpClientWithoutSSL.execute(httpPost);
 
         if(response.getStatusLine().getStatusCode() < 200 || response.getStatusLine().getStatusCode() >= 300) {
-            log.error("SetCreditLimit returns code: " + response.getStatusLine().getStatusCode() + "\n" +
+            log.error("SetCreditLimit, query " + uriBuilder + " body " + body + " returns code: " + response.getStatusLine().getStatusCode() + "\n" +
                 "Error message: " + EntityUtils.toString(response.getEntity()));
             delegateExecution.setVariable("unsuccessful", true);
         } else {
+            log.info("SetCreditLimit, query " + uriBuilder + " body " + body + " returns code: " + response.getStatusLine().getStatusCode());
             delegateExecution.setVariable("isCreditLimitSet", true);
         }
     }

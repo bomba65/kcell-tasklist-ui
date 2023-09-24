@@ -71,9 +71,11 @@ public class ConfirmReservation implements JavaDelegate {
                 HttpResponse response = httpClientWithoutSSL.execute(httpPost);
 
                 if (response.getStatusLine().getStatusCode() < 200 || response.getStatusLine().getStatusCode() >= 300) {
-                    log.error("ConfirmReserve for variable " + reservation.variableName + " returns code " + response.getStatusLine().getStatusCode() + "\n" +
+                    log.error("ConfirmReserve, query " + uriBuilder + " for variable " + reservation.variableName + " returns code " + response.getStatusLine().getStatusCode() + "\n" +
                         "Error message: " + EntityUtils.toString(response.getEntity()));
                     delegateExecution.setVariable("unsuccessful", true);
+                } else {
+                    log.info("ConfirmReserve, query " + uriBuilder + " for variable " + reservation.variableName + " returns code " + response.getStatusLine().getStatusCode());
                 }
             }
         }

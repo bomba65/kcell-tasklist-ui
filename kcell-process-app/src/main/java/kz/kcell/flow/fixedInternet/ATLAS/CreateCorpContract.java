@@ -63,10 +63,11 @@ public class CreateCorpContract implements JavaDelegate {
         HttpResponse response = httpClientWithoutSSL.execute(httpPost);
 
         if(response.getStatusLine().getStatusCode() < 200 || response.getStatusLine().getStatusCode() >= 300) {
-            log.error("CreateCorpContract returns code " + response.getStatusLine().getStatusCode() + "\n" +
+            log.error("CreateCorpContract, query " + uriBuilder + " returns code " + response.getStatusLine().getStatusCode() + "\n" +
                 "Error message: " + EntityUtils.toString(response.getEntity()));
             delegateExecution.setVariable("unsuccessful", true);
         } else {
+            log.info("CreateCorpContract, query " + uriBuilder + " returns code " + response.getStatusLine().getStatusCode());
             HttpEntity entity = response.getEntity();
             String content = EntityUtils.toString(entity);
             JSONObject jsonObject = new JSONObject(content);

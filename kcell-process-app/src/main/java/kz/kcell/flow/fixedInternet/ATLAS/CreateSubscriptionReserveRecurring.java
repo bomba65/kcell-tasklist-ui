@@ -114,11 +114,12 @@ public class CreateSubscriptionReserveRecurring implements JavaDelegate {
                                 HttpResponse response = httpClientWithoutSSL.execute(httpPost);
 
                                 if(response.getStatusLine().getStatusCode() < 200 || response.getStatusLine().getStatusCode() >= 300) {
-                                    log.error("CreateSubscriptionReserveRecurring for service " + serviceId + " returns code: " + response.getStatusLine().getStatusCode() + "\n" +
+                                    log.error("CreateSubscriptionReserveRecurring , query " + uriBuilder + " body " + body + " for service " + serviceId + " returns code: " + response.getStatusLine().getStatusCode() + "\n" +
                                         "Error message: " + EntityUtils.toString(response.getEntity()));
                                     delegateExecution.setVariable("unsuccessful", true);
                                     return;
                                 } else {
+                                    log.info("CreateSubscriptionReserveRecurring , query " + uriBuilder + " body " + body + " for service " + serviceId + " returns code: " + response.getStatusLine().getStatusCode());
                                     HttpEntity entity = response.getEntity();
                                     String entityAsString = EntityUtils.toString(entity);
                                     JSONObject jsonObject = new JSONObject(entityAsString);
