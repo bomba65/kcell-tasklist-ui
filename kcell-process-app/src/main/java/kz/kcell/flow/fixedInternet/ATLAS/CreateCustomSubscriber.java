@@ -16,7 +16,6 @@ import org.springframework.stereotype.Service;
 
 import javax.ws.rs.core.UriBuilder;
 import java.util.Base64;
-import java.util.concurrent.TimeUnit;
 
 @Slf4j
 @Service("CreateCustomSubscriber")
@@ -56,7 +55,6 @@ public class CreateCustomSubscriber implements JavaDelegate {
         httpPost.setEntity(inputData);
 
         HttpResponse response = httpClientWithoutSSL.execute(httpPost);
-        TimeUnit.SECONDS.sleep(90);
 
         if(response.getStatusLine().getStatusCode() < 200 || response.getStatusLine().getStatusCode() >= 300) {
             log.error("CreateCustomSubscriber, query " + uriBuilder + " body " + body + " returns code: " + response.getStatusLine().getStatusCode() + "\n" +
