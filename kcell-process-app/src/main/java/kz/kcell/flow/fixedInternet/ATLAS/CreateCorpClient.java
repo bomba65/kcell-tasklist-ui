@@ -2,7 +2,7 @@ package kz.kcell.flow.fixedInternet.ATLAS;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpEntity;
-import org.apache.http.HttpResponse;
+import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -119,7 +119,7 @@ public class CreateCorpClient implements JavaDelegate {
         httpPost.setHeader("Authorization", "Basic " + encoding);
         httpPost.addHeader("Content-Type", "application/json;charset=UTF-8");
 
-        HttpResponse response = httpClientWithoutSSL.execute(httpPost);
+        CloseableHttpResponse response = httpClientWithoutSSL.execute(httpPost);
 
         if (response.getStatusLine().getStatusCode() < 200 || response.getStatusLine().getStatusCode() >= 300) {
             log.error("CreateCorpClient, query " + uriBuilder + " returns code " + response.getStatusLine().getStatusCode() + "\n" +
@@ -135,5 +135,6 @@ public class CreateCorpClient implements JavaDelegate {
             delegateExecution.setVariable("client_associationId", jsonObject.getString("asscId"));
         }
 
+        response.close();
     }
 }
