@@ -1,7 +1,7 @@
 package kz.kcell.flow.fixedInternet.ATLAS;
 
 import lombok.extern.slf4j.Slf4j;
-import org.apache.http.HttpResponse;
+import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.entity.StringEntity;
@@ -52,7 +52,7 @@ public class SetCreditLimit implements JavaDelegate {
         StringEntity inputData = new StringEntity(body.toString(), "UTF-8");
         httpPost.setEntity(inputData);
 
-        HttpResponse response = httpClientWithoutSSL.execute(httpPost);
+        CloseableHttpResponse response = httpClientWithoutSSL.execute(httpPost);
 
         if(response.getStatusLine().getStatusCode() < 200 || response.getStatusLine().getStatusCode() >= 300) {
             log.error("SetCreditLimit, query " + uriBuilder + " body " + body + " returns code: " + response.getStatusLine().getStatusCode() + "\n" +
@@ -62,5 +62,7 @@ public class SetCreditLimit implements JavaDelegate {
             log.info("SetCreditLimit, query " + uriBuilder + " body " + body + " returns code: " + response.getStatusLine().getStatusCode());
             delegateExecution.setVariable("isCreditLimitSet", true);
         }
+
+        response.close();
     }
 }

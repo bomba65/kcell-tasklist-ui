@@ -1,7 +1,7 @@
 package kz.kcell.flow.fixedInternet.ATLAS;
 
 import lombok.extern.slf4j.Slf4j;
-import org.apache.http.HttpResponse;
+import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -68,7 +68,7 @@ public class ConfirmReservation implements JavaDelegate {
                 httpPost.setHeader("Authorization", "Basic " + encoding);
                 httpPost.addHeader("Content-Type", "application/json;charset=UTF-8");
 
-                HttpResponse response = httpClientWithoutSSL.execute(httpPost);
+                CloseableHttpResponse response = httpClientWithoutSSL.execute(httpPost);
 
                 if (response.getStatusLine().getStatusCode() < 200 || response.getStatusLine().getStatusCode() >= 300) {
                     log.error("ConfirmReserve, query " + uriBuilder + " for variable " + reservation.variableName + " returns code " + response.getStatusLine().getStatusCode() + "\n" +
@@ -77,6 +77,8 @@ public class ConfirmReservation implements JavaDelegate {
                 } else {
                     log.info("ConfirmReserve, query " + uriBuilder + " for variable " + reservation.variableName + " returns code " + response.getStatusLine().getStatusCode());
                 }
+
+                response.close();
             }
         }
 

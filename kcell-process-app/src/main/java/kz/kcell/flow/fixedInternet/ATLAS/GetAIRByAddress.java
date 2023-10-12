@@ -2,7 +2,7 @@ package kz.kcell.flow.fixedInternet.ATLAS;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpEntity;
-import org.apache.http.HttpResponse;
+import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -52,7 +52,7 @@ public class GetAIRByAddress implements JavaDelegate {
 
         HttpGet httpGet = new HttpGet(uriBuilder.build());
         httpGet.setHeader("Authorization", "Basic " + encoding);
-        HttpResponse response = httpClientWithoutSSL.execute(httpGet);
+        CloseableHttpResponse response = httpClientWithoutSSL.execute(httpGet);
 
         if (response.getStatusLine().getStatusCode() < 200 || response.getStatusLine().getStatusCode() >= 300) {
             log.error("GetAIRByAddress, query " + uriBuilder + " returns code " + response.getStatusLine().getStatusCode() + "\n" +
@@ -67,5 +67,6 @@ public class GetAIRByAddress implements JavaDelegate {
             delegateExecution.setVariable("airId", jsonObject.getString("id"));
         }
 
+        response.close();
     }
 }
