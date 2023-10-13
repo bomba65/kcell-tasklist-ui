@@ -80,7 +80,10 @@ select
     to_timestamp(avr_date.long_/1000) + interval '6 hour' as "AVR date",
     to_timestamp(esf_date.long_/1000) + interval '6 hour' as "ESF date",
     ir.text_ as "IR"
-from act_hi_procinst pi
+from (select pi.* from (select * from act_hi_procinst pi
+               where pi.proc_def_key_ = 'Revision' and pi.state_ <> 'EXTERNALLY_TERMINATED') as pi
+                    inner join act_hi_varinst mainContract
+                        on pi.id_ = mainContract.proc_inst_id_ and mainContract.text_ = 'open-tender-2023') as pi
          left join act_hi_varinst sitename
                    on pi.id_ = sitename.proc_inst_id_ and sitename.name_ = 'site_name'
          left join act_hi_varinst contractor
@@ -247,5 +250,4 @@ from act_hi_procinst pi
          left join act_hi_varinst mainContract
                    on pi.id_ = mainContract.proc_inst_id_ and mainContract.name_ = 'mainContract'
 
-where pi.proc_def_key_ = 'Revision' and pi.state_ <> 'EXTERNALLY_TERMINATED' and mainContract.text_ = 'open-tender-2023'
 order by "Requested Date", "Job Description"
